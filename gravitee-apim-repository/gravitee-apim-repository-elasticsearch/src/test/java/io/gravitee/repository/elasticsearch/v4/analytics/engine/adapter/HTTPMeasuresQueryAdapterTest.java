@@ -225,4 +225,90 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         assertThat(errorRateBucketScript).isNotNull();
         assertThat(errorRateBucketScript.has("script")).isTrue();
     }
+
+    @Test
+    void should_build_query_with_llm_total_token_count_measure() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOTAL_TOKEN, Set.of(Measure.COUNT)));
+
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+
+        var queryString = adapter.adapt(query);
+
+        var jsonQuery = JSON.readTree(queryString);
+
+        var aggs = jsonQuery.at("/aggs");
+        assertThat(aggs).isNotEmpty();
+
+        // LLM_PROMPT_TOTAL_TOKEN COUNT uses a sum aggregation with script
+        var sumAgg = aggs.at("/LLM_PROMPT_TOTAL_TOKEN#COUNT/sum/script/source");
+        assertThat(sumAgg).isNotNull();
+        assertThat(sumAgg.asText()).contains("additional-metrics.long_llm-proxy_tokens-sent");
+        assertThat(sumAgg.asText()).contains("additional-metrics.long_llm-proxy_tokens-received");
+    }
+
+    @Test
+    void should_build_query_with_llm_total_token_avg_measure() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOTAL_TOKEN, Set.of(Measure.AVG)));
+
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+
+        var queryString = adapter.adapt(query);
+
+        var jsonQuery = JSON.readTree(queryString);
+
+        var aggs = jsonQuery.at("/aggs");
+        assertThat(aggs).isNotEmpty();
+
+        // LLM_PROMPT_TOTAL_TOKEN AVG uses an avg aggregation with script
+        var avgAgg = aggs.at("/LLM_PROMPT_TOTAL_TOKEN#AVG/avg/script/source");
+        assertThat(avgAgg).isNotNull();
+        assertThat(avgAgg.asText()).contains("additional-metrics.long_llm-proxy_tokens-sent");
+        assertThat(avgAgg.asText()).contains("additional-metrics.long_llm-proxy_tokens-received");
+    }
+
+    @Test
+    void should_build_query_with_llm_total_cost_count_measure() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_COST, Set.of(Measure.COUNT)));
+
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+
+        var queryString = adapter.adapt(query);
+
+        var jsonQuery = JSON.readTree(queryString);
+
+        var aggs = jsonQuery.at("/aggs");
+        assertThat(aggs).isNotEmpty();
+
+        var sumAgg = aggs.at("/LLM_PROMPT_TOKEN_COST#COUNT/sum/script/source");
+        assertThat(sumAgg).isNotNull();
+        assertThat(sumAgg.asText()).contains("additional-metrics.double_llm-proxy_sent-cost");
+        assertThat(sumAgg.asText()).contains("additional-metrics.double_llm-proxy_received-cost");
+    }
+
+    @Test
+    void should_build_query_with_llm_total_cost_avg_measure() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_COST, Set.of(Measure.AVG)));
+
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+
+        var queryString = adapter.adapt(query);
+
+        var jsonQuery = JSON.readTree(queryString);
+
+        var aggs = jsonQuery.at("/aggs");
+        assertThat(aggs).isNotEmpty();
+
+        var avgAgg = aggs.at("/LLM_PROMPT_TOKEN_COST#AVG/avg/script/source");
+        assertThat(avgAgg).isNotNull();
+        assertThat(avgAgg.asText()).contains("additional-metrics.double_llm-proxy_sent-cost");
+        assertThat(avgAgg.asText()).contains("additional-metrics.double_llm-proxy_received-cost");
+    }
 }

@@ -1414,5 +1414,124 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 }
             }
         }
+
+        @Nested
+        class LLMMeasures {
+
+            private static final String LLM_API_ID = "llm-api-001";
+
+            @Test
+            void should_return_llm_total_token_count() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOTAL_TOKEN, Set.of(Measure.COUNT)));
+
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(LLM_API_ID));
+
+                var query = new MeasuresQuery(timeRange, List.of(filter), metrics);
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.measures()).hasSize(1);
+
+                var measure = result.measures().getFirst();
+                assertThat(measure.metric()).isEqualTo(Metric.LLM_PROMPT_TOTAL_TOKEN);
+                assertThat(measure.measures()).containsKey(Measure.COUNT);
+                assertThat(measure.measures().get(Measure.COUNT).doubleValue()).isCloseTo(950.0, offset(0.01));
+            }
+
+            @Test
+            void should_return_llm_total_token_average() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOTAL_TOKEN, Set.of(Measure.AVG)));
+
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(LLM_API_ID));
+
+                var query = new MeasuresQuery(timeRange, List.of(filter), metrics);
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.measures()).hasSize(1);
+
+                var measure = result.measures().getFirst();
+                assertThat(measure.metric()).isEqualTo(Metric.LLM_PROMPT_TOTAL_TOKEN);
+                assertThat(measure.measures()).containsKey(Measure.AVG);
+                assertThat(measure.measures().get(Measure.AVG).doubleValue()).isCloseTo(316.67, offset(0.1));
+            }
+
+            @Test
+            void should_return_llm_total_token_cost_count() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_COST, Set.of(Measure.COUNT)));
+
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(LLM_API_ID));
+
+                var query = new MeasuresQuery(timeRange, List.of(filter), metrics);
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.measures()).hasSize(1);
+
+                var measure = result.measures().getFirst();
+                assertThat(measure.metric()).isEqualTo(Metric.LLM_PROMPT_TOKEN_COST);
+                assertThat(measure.measures()).containsKey(Measure.COUNT);
+                assertThat(measure.measures().get(Measure.COUNT).doubleValue()).isCloseTo(0.0095, offset(0.0001));
+            }
+
+            @Test
+            void should_return_llm_total_token_cost_average() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_COST, Set.of(Measure.AVG)));
+
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(LLM_API_ID));
+
+                var query = new MeasuresQuery(timeRange, List.of(filter), metrics);
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.measures()).hasSize(1);
+
+                var measure = result.measures().getFirst();
+                assertThat(measure.metric()).isEqualTo(Metric.LLM_PROMPT_TOKEN_COST);
+                assertThat(measure.measures()).containsKey(Measure.AVG);
+                assertThat(measure.measures().get(Measure.AVG).doubleValue()).isCloseTo(0.00317, offset(0.00001));
+            }
+
+            @Test
+            void should_return_all_llm_measures_in_single_query() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(
+                    new MetricMeasuresQuery(Metric.LLM_PROMPT_TOTAL_TOKEN, Set.of(Measure.COUNT, Measure.AVG)),
+                    new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_COST, Set.of(Measure.COUNT, Measure.AVG))
+                );
+
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(LLM_API_ID));
+
+                var query = new MeasuresQuery(timeRange, List.of(filter), metrics);
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.measures()).hasSize(2);
+
+                var tokenMeasure = result
+                    .measures()
+                    .stream()
+                    .filter(m -> m.metric() == Metric.LLM_PROMPT_TOTAL_TOKEN)
+                    .findFirst()
+                    .orElseThrow();
+                assertThat(tokenMeasure.measures()).containsKeys(Measure.COUNT, Measure.AVG);
+                assertThat(tokenMeasure.measures().get(Measure.COUNT).doubleValue()).isCloseTo(950.0, offset(0.01));
+                assertThat(tokenMeasure.measures().get(Measure.AVG).doubleValue()).isCloseTo(316.67, offset(0.1));
+
+                var costMeasure = result
+                    .measures()
+                    .stream()
+                    .filter(m -> m.metric() == Metric.LLM_PROMPT_TOKEN_COST)
+                    .findFirst()
+                    .orElseThrow();
+                assertThat(costMeasure.measures()).containsKeys(Measure.COUNT, Measure.AVG);
+                assertThat(costMeasure.measures().get(Measure.COUNT).doubleValue()).isCloseTo(0.0095, offset(0.0001));
+                assertThat(costMeasure.measures().get(Measure.AVG).doubleValue()).isCloseTo(0.00317, offset(0.00001));
+            }
+        }
     }
 }

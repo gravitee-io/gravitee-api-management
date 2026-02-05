@@ -46,4 +46,6 @@ public enum Facet {
     API_STATE,
     API_LIFECYCLE_STATE,
     API_VISIBILITY,
+    LLM_PROXY_MODEL,
+    LLM_PROXY_PROVIDER,
 }

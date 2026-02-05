@@ -41,6 +41,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
           filters:
               - API
               - APPLICATION
@@ -64,6 +66,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
 
         - name: HTTP_ERRORS
           label: Error Rate
@@ -94,6 +98,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
           filters:
               - API
               - APPLICATION
@@ -117,6 +123,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
 
         - name: HTTP_REQUEST_CONTENT_LENGTH
           label: Request content length
@@ -152,6 +160,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
           filters:
               - API
               - APPLICATION
@@ -174,6 +184,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
 
         - name: HTTP_RESPONSE_CONTENT_LENGTH
           label: Response content length
@@ -209,6 +221,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
           filters:
               - API
               - APPLICATION
@@ -231,6 +245,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
 
         - name: HTTP_ENDPOINT_RESPONSE_TIME
           label: Endpoint response time
@@ -263,10 +279,11 @@ spec:
               - HOST
               - GEO_IP_COUNTRY
               - GEO_IP_REGION
-
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
           filters:
               - API
               - APPLICATION
@@ -289,6 +306,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
 
         - name: HTTP_GATEWAY_RESPONSE_TIME
           label: Gateway response time
@@ -324,6 +343,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
           filters:
               - API
               - APPLICATION
@@ -346,6 +367,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
 
         - name: HTTP_GATEWAY_LATENCY
           label: Latency
@@ -381,6 +404,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
           filters:
               - API
               - APPLICATION
@@ -403,6 +428,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
 
         - name: LLM_PROMPT_TOKEN_SENT
           label: Sent token count
@@ -432,6 +459,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
           filters:
               - API
               - APPLICATION
@@ -453,6 +482,8 @@ spec:
               - GEO_IP_REGION
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
 
         - name: LLM_PROMPT_TOKEN_RECEIVED
           label: Received token count
@@ -482,6 +513,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
           filters:
               - API
               - APPLICATION
@@ -504,6 +537,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
 
         - name: LLM_PROMPT_TOKEN_SENT_COST
           label: Sent token cost
@@ -533,6 +568,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
           filters:
               - API
               - APPLICATION
@@ -555,6 +592,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
 
         - name: LLM_PROMPT_TOKEN_RECEIVED_COST
           label: Received token cost
@@ -584,6 +623,8 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
           filters:
               - API
               - APPLICATION
@@ -606,6 +647,119 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
+
+        - name: LLM_PROMPT_TOTAL_TOKEN
+          label: Total token count
+          apis:
+              - LLM
+          type: COUNTER
+          measures:
+              - COUNT
+              - AVG
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - GATEWAY
+              - TENANT
+              - ZONE
+              - HTTP_METHOD
+              - HTTP_STATUS_CODE_GROUP
+              - HTTP_STATUS
+              - HTTP_PATH
+              - HTTP_PATH_MAPPING
+              - HTTP_USER_AGENT_OS_NAME
+              - HTTP_USER_AGENT_DEVICE
+              - HOST
+              - GEO_IP_COUNTRY
+              - GEO_IP_REGION
+              - GEO_IP_CITY
+              - GEO_IP_CONTINENT
+              - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - GATEWAY
+              - TENANT
+              - ZONE
+              - HTTP_STATUS_CODE_GROUP
+              - HTTP_STATUS
+              - HTTP_PATH
+              - HTTP_PATH_MAPPING
+              - HTTP_USER_AGENT_OS_NAME
+              - HTTP_USER_AGENT_DEVICE
+              - HTTP_ENDPOINT_RESPONSE_TIME
+              - HTTP_GATEWAY_LATENCY
+              - HTTP_GATEWAY_RESPONSE_TIME
+              - HOST
+              - GEO_IP_COUNTRY
+              - GEO_IP_REGION
+              - GEO_IP_CITY
+              - GEO_IP_CONTINENT
+              - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
+
+        - name: LLM_PROMPT_TOKEN_COST
+          label: Total token cost
+          apis:
+              - LLM
+          type: GAUGE
+          unit: NUMBER
+          measures:
+              - COUNT
+              - AVG
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - GATEWAY
+              - TENANT
+              - ZONE
+              - HTTP_METHOD
+              - HTTP_STATUS_CODE_GROUP
+              - HTTP_STATUS
+              - HTTP_PATH
+              - HTTP_PATH_MAPPING
+              - HTTP_USER_AGENT_OS_NAME
+              - HTTP_USER_AGENT_DEVICE
+              - HOST
+              - GEO_IP_COUNTRY
+              - GEO_IP_REGION
+              - GEO_IP_CITY
+              - GEO_IP_CONTINENT
+              - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - GATEWAY
+              - TENANT
+              - ZONE
+              - HTTP_STATUS_CODE_GROUP
+              - HTTP_STATUS
+              - HTTP_PATH
+              - HTTP_PATH_MAPPING
+              - HTTP_USER_AGENT_OS_NAME
+              - HTTP_USER_AGENT_DEVICE
+              - HTTP_ENDPOINT_RESPONSE_TIME
+              - HTTP_GATEWAY_LATENCY
+              - HTTP_GATEWAY_RESPONSE_TIME
+              - HOST
+              - GEO_IP_COUNTRY
+              - GEO_IP_REGION
+              - GEO_IP_CITY
+              - GEO_IP_CONTINENT
+              - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
 
         - name: MESSAGE_PAYLOAD_SIZE
           label: Message Payload Size
@@ -1481,6 +1635,20 @@ spec:
               - EQ
               - LTE
               - GTE
+
+        - name: LLM_PROXY_MODEL
+          label: LLM Model
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: LLM_PROXY_PROVIDER
+          label: LLM Provider
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
     facets:
         - name: API
           label: API
@@ -1584,4 +1752,12 @@ spec:
 
         - name: API_VISIBILITY
           label: API Visibility
+          type: KEYWORD
+
+        - name: LLM_PROXY_MODEL
+          label: LLM Model
+          type: KEYWORD
+
+        - name: LLM_PROXY_PROVIDER
+          label: LLM Provider
           type: KEYWORD

@@ -45,6 +45,8 @@ public record FacetSpec(Name name, String label, String type, List<Object> enumV
         API_STATE,
         API_LIFECYCLE_STATE,
         API_VISIBILITY,
+        LLM_PROXY_MODEL,
+        LLM_PROXY_PROVIDER,
     }
 
     public enum Type {

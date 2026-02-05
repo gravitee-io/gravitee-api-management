@@ -24,6 +24,8 @@ import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.Coun
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountWithSumBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.HTTPRPSBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.HttpErrorRateBuilder;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.LLMTotalCostBuilder;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.LLMTotalTokenBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleAVGBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleCountBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleMaxBuilder;
@@ -54,6 +56,8 @@ public class HTTPMeasuresQueryAdapter {
     private final SimpleAVGBuilder avgBuilder = new SimpleAVGBuilder();
     private final HttpErrorRateBuilder errorRateBuilder = new HttpErrorRateBuilder();
     private final HTTPRPSBuilder rpsBuilder = new HTTPRPSBuilder();
+    private final LLMTotalTokenBuilder llmTotalTokenBuilder = new LLMTotalTokenBuilder();
+    private final LLMTotalCostBuilder llmTotalCostBuilder = new LLMTotalCostBuilder();
 
     private final FieldResolver fieldResolver = new HTTPFieldResolver();
 
@@ -73,8 +77,9 @@ public class HTTPMeasuresQueryAdapter {
         var aggs = new JsonObject();
         for (var metric : metrics) {
             for (var measure : metric.measures()) {
-                var field = fieldResolver.fromMetric(metric.metric());
                 var aggName = AggregationAdapter.adaptName(metric.metric(), measure);
+
+                var field = isComputedMetric(metric.metric()) ? null : fieldResolver.fromMetric(metric.metric());
 
                 aggregate(aggName, field, metric.metric(), measure).ifPresent(agg -> {
                     aggs.put(agg.keySet().iterator().next(), agg.values().iterator().next());
@@ -84,21 +89,54 @@ public class HTTPMeasuresQueryAdapter {
         return aggs;
     }
 
+    private boolean isComputedMetric(Metric metric) {
+        return metric == Metric.LLM_PROMPT_TOTAL_TOKEN || metric == Metric.LLM_PROMPT_TOKEN_COST;
+    }
+
     private Optional<Map<String, JsonObject>> aggregate(String aggName, String field, Metric metric, Measure measure) {
-        if (metric == Metric.HTTP_ERRORS && measure == Measure.PERCENTAGE) {
+        return switch (metric) {
+            case LLM_PROMPT_TOTAL_TOKEN -> aggregateLLMTotalToken(aggName, measure);
+            case LLM_PROMPT_TOKEN_COST -> aggregateLLMTotalCost(aggName, measure);
+            case HTTP_ERRORS -> aggregateHTTPErrors(aggName, field, metric, measure);
+            default -> aggregateByMeasure(aggName, field, metric, measure);
+        };
+    }
+
+    private Optional<Map<String, JsonObject>> aggregateLLMTotalToken(String aggName, Measure measure) {
+        return switch (measure) {
+            case COUNT -> Optional.of(llmTotalTokenBuilder.buildSum(aggName));
+            case AVG -> Optional.of(llmTotalTokenBuilder.buildAvg(aggName));
+            default -> Optional.empty();
+        };
+    }
+
+    private Optional<Map<String, JsonObject>> aggregateLLMTotalCost(String aggName, Measure measure) {
+        return switch (measure) {
+            case COUNT -> Optional.of(llmTotalCostBuilder.buildSum(aggName));
+            case AVG -> Optional.of(llmTotalCostBuilder.buildAvg(aggName));
+            default -> Optional.empty();
+        };
+    }
+
+    private Optional<Map<String, JsonObject>> aggregateHTTPErrors(String aggName, String field, Metric metric, Measure measure) {
+        if (measure == Measure.PERCENTAGE) {
             return errorRate().map(errorRate -> errorRate.build(aggName, field));
         }
+        return aggregateByMeasure(aggName, field, metric, measure);
+    }
+
+    private Optional<Map<String, JsonObject>> aggregateByMeasure(String aggName, String field, Metric metric, Measure measure) {
         return switch (measure) {
-            case Measure.AVG -> avg().map(avg -> avg.build(aggName, field));
-            case Measure.COUNT -> count(metric).map(count -> count.build(aggName, field));
-            case Measure.MAX -> max().map(max -> max.build(aggName, field));
-            case Measure.MIN -> min().map(min -> min.build(aggName, field));
-            case Measure.P50 -> p50().map(p50 -> p50.build(aggName, field));
-            case Measure.P90 -> p90().map(p90 -> p90.build(aggName, field));
-            case Measure.P95 -> p95().map(p95 -> p95.build(aggName, field));
-            case Measure.P99 -> p99().map(p99 -> p99.build(aggName, field));
-            case Measure.RPS -> rps().map(rps -> rps.build(aggName, field));
-            case Measure.PERCENTAGE -> Optional.empty();
+            case AVG -> avg().map(avg -> avg.build(aggName, field));
+            case COUNT -> count(metric).map(count -> count.build(aggName, field));
+            case MAX -> max().map(max -> max.build(aggName, field));
+            case MIN -> min().map(min -> min.build(aggName, field));
+            case P50 -> p50().map(p50 -> p50.build(aggName, field));
+            case P90 -> p90().map(p90 -> p90.build(aggName, field));
+            case P95 -> p95().map(p95 -> p95.build(aggName, field));
+            case P99 -> p99().map(p99 -> p99.build(aggName, field));
+            case RPS -> rps().map(rps -> rps.build(aggName, field));
+            case PERCENTAGE -> Optional.empty();
         };
     }
 

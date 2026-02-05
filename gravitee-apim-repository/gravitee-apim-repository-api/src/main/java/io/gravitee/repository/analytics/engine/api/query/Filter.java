@@ -55,6 +55,8 @@ public record Filter(Filter.Name name, Operator operator, Object value) {
         HTTP_GATEWAY_RESPONSE_TIME,
         HTTP_REQUEST_CONTENT_LENGTH,
         HTTP_RESPONSE_CONTENT_LENGTH,
+        LLM_PROXY_MODEL,
+        LLM_PROXY_PROVIDER,
     }
 
     public enum Operator {
