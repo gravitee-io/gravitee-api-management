@@ -63,6 +63,8 @@ public class HTTPFieldResolver implements FieldResolver {
             case Filter.Name.CONSUMER_IP -> "remote-address";
             case Filter.Name.HTTP_USER_AGENT_OS_NAME -> "user_agent.os_name";
             case Filter.Name.HTTP_USER_AGENT_DEVICE -> "user_agent.device.name";
+            case Filter.Name.LLM_PROXY_MODEL -> "additional-metrics.keyword_llm-proxy_model";
+            case Filter.Name.LLM_PROXY_PROVIDER -> "additional-metrics.keyword_llm-proxy_provider";
             default -> throw new UnsupportedOperationException("not an HTTP filter");
         };
     }
@@ -88,6 +90,8 @@ public class HTTPFieldResolver implements FieldResolver {
             case CONSUMER_IP -> "remote-address";
             case HTTP_USER_AGENT_OS_NAME -> "user_agent.os_name";
             case HTTP_USER_AGENT_DEVICE -> "user_agent.device.name";
+            case LLM_PROXY_MODEL -> "additional-metrics.keyword_llm-proxy_model";
+            case LLM_PROXY_PROVIDER -> "additional-metrics.keyword_llm-proxy_provider";
             default -> throw new UnsupportedOperationException("not an HTTP facet");
         };
     }

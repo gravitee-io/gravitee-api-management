@@ -52,7 +52,9 @@ public class FilterAdapter {
         Filter.Name.GEO_IP_CITY,
         Filter.Name.GEO_IP_REGION,
         Filter.Name.GEO_IP_COUNTRY,
-        Filter.Name.GEO_IP_CONTINENT
+        Filter.Name.GEO_IP_CONTINENT,
+        Filter.Name.LLM_PROXY_MODEL,
+        Filter.Name.LLM_PROXY_PROVIDER
     );
 
     static final List<Filter.Name> MESSAGE_FILTER_NAMES = List.of(

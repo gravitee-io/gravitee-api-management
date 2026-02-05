@@ -59,7 +59,9 @@ public class HTTPDataPlaneAnalyticsQueryService implements AnalyticsEngineQueryS
             LLM_PROMPT_TOKEN_SENT,
             LLM_PROMPT_TOKEN_RECEIVED,
             LLM_PROMPT_TOKEN_SENT_COST,
-            LLM_PROMPT_TOKEN_RECEIVED_COST
+            LLM_PROMPT_TOKEN_RECEIVED_COST,
+            LLM_PROMPT_TOTAL_TOKEN,
+            LLM_PROMPT_TOKEN_COST
         );
     }
 
