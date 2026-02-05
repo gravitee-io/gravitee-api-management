@@ -18,10 +18,10 @@ package io.gravitee.apim.infra.domain_service.analytics_engine.processors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
-import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.user.model.UserContext;
 import java.util.List;
 import java.util.UUID;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -52,7 +52,7 @@ public class ManagementFilterPreProcessorTest {
             Api.builder().id("id3").name("api3").build()
         );
 
-        MetricsContext context = new MetricsContext(auditInfo).withApis(adminApis);
+        UserContext context = new UserContext(auditInfo).withApis(adminApis);
         var filters = filterPreProcessor.buildFilters(context);
 
         assertThat(filters).size().isEqualTo(1);

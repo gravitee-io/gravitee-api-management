@@ -20,10 +20,10 @@ import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValid
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
-import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +61,7 @@ public class ComputeMeasuresUseCase {
 
         var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
 
-        var metricsContextWithPermissions = filterPreprocessor.buildFilters(new MetricsContext(input.auditInfo));
+        var metricsContextWithPermissions = filterPreprocessor.buildFilters(new UserContext(input.auditInfo));
 
         var queryContext = queryContextProvider.resolve(input.request);
 
@@ -72,14 +72,14 @@ public class ComputeMeasuresUseCase {
 
     private List<MeasuresResponse> executeQueries(
         ExecutionContext executionContext,
-        MetricsContext metricsContext,
+        UserContext userContext,
         Map<AnalyticsEngineQueryService, MeasuresRequest> queryExecutions
     ) {
         var responses = new ArrayList<MeasuresResponse>();
 
         queryExecutions.forEach((queryService, request) -> {
             var filters = new ArrayList<>(request.filters());
-            filters.addAll(metricsContext.filters());
+            filters.addAll(userContext.filters());
 
             responses.add(queryService.searchMeasures(executionContext, request.withFilters(filters)));
         });
