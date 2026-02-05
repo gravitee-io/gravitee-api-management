@@ -125,7 +125,6 @@ import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase
 import io.gravitee.apim.core.subscription.use_case.GetSubscriptionsUseCase;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
 import io.gravitee.apim.core.subscription.use_case.UpdateSubscriptionUseCase;
-import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
@@ -1104,10 +1103,5 @@ public class ResourceContextConfiguration {
     @Bean
     public CloseSubscriptionUseCase closeSubscriptionUseCase() {
         return mock(CloseSubscriptionUseCase.class);
-    }
-
-    @Bean
-    public UserContextLoader userContextLoader() {
-        return mock(UserContextLoader.class);
     }
 }

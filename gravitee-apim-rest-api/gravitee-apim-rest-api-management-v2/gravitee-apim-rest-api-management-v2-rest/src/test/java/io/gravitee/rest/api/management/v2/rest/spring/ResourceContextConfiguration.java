@@ -164,7 +164,6 @@ import io.gravitee.apim.core.subscription.use_case.GetSubscriptionsUseCase;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.UpdateSubscriptionUseCase;
-import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
@@ -1096,10 +1095,5 @@ public class ResourceContextConfiguration {
     @Bean
     public DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase() {
         return mock(DeletePortalNavigationItemUseCase.class);
-    }
-
-    @Bean
-    public UserContextLoader userContextLoader() {
-        return mock(UserContextLoader.class);
     }
 }
