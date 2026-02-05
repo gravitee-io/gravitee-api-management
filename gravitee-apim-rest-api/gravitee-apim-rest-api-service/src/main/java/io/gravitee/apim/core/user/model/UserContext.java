@@ -15,41 +15,31 @@
  */
 package io.gravitee.apim.core.user.model;
 
-import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
- * @author GraviteeSource Team
- */
 public record UserContext(
     AuditInfo auditInfo,
     Optional<Map<String, String>> apiNameById,
     Optional<Map<String, String>> applicationNameById,
-    List<Filter> filters,
     Optional<List<Api>> apis
 ) {
     public UserContext(AuditInfo auditInfo) {
-        this(auditInfo, Optional.empty(), Optional.empty(), List.of(), Optional.empty());
+        this(auditInfo, Optional.empty(), Optional.empty(), Optional.empty());
     }
 
     public UserContext withApiNamesById(Map<String, String> apiNameById) {
-        return new UserContext(auditInfo, Optional.ofNullable(apiNameById), applicationNameById, filters, apis);
+        return new UserContext(auditInfo, Optional.ofNullable(apiNameById), applicationNameById, apis);
     }
 
     public UserContext withApplicationNameById(Map<String, String> applicationNameById) {
-        return new UserContext(auditInfo, apiNameById, Optional.ofNullable(applicationNameById), filters, apis);
-    }
-
-    public UserContext withFilters(List<Filter> filters) {
-        return new UserContext(auditInfo, apiNameById, applicationNameById, filters, apis);
+        return new UserContext(auditInfo, apiNameById, Optional.ofNullable(applicationNameById), apis);
     }
 
     public UserContext withApis(List<Api> apis) {
-        return new UserContext(auditInfo, apiNameById, applicationNameById, filters, Optional.ofNullable(apis));
+        return new UserContext(auditInfo, apiNameById, applicationNameById, Optional.ofNullable(apis));
     }
 }
