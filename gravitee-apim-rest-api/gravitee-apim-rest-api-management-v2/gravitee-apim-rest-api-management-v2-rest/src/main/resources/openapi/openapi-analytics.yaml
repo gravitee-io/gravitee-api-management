@@ -607,15 +607,16 @@ paths:
                                 value: 1234
                           - key: "2025-01-01T00:01:00Z"
                             timestamp: 1735689660000
+                            type: LEAF
                             measures:
-                                  - name: "COUNT"
-                                    value: 873
+                              - name: "COUNT"
+                                value: 873
                           - key: "2025-01-01T00:01:00Z"
                             timestamp: 1735689720000
                             type: LEAF
                             measures:
-                                  - name: "COUNT"
-                                    value: 984
+                              - name: "COUNT"
+                                value: 984
                 multiple-metric:
                   summary: Multiple metrics response
                   value:
@@ -670,45 +671,46 @@ paths:
                             timestamp: 1735689600000
                             type: GROUP
                             buckets:
-                              - key: 100-399
-                                name: 100-399
+                              - key: "100-399"
+                                name: "100-399"
                                 type: LEAF
                                 measures:
                                   - name: "COUNT"
                                     value: 587
-                              - key: 400-599
-                                name: 400-599
+                              - key: "400-599"
+                                name: "400-599"
                                 type: LEAF
                                 measures:
                                   - name: "COUNT"
                                     value: 487
                           - key: "2025-01-01T00:01:00Z"
                             timestamp: 1735689660000
+                            type: GROUP
                             buckets:
-                              - key: 100-399
-                                name: 100-399
+                              - key: "100-399"
+                                name: "100-399"
                                 type: LEAF
                                 measures:
                                   - name: "COUNT"
                                     value: 387
-                              - key: 400-599
-                                name: 400-599
+                              - key: "400-599"
+                                name: "400-599"
                                 type: LEAF
                                 measures:
                                   - name: "COUNT"
                                     value: 489
                           - key: "2025-01-01T00:01:00Z"
                             timestamp: 1735689720000
-                            type: LEAF
+                            type: GROUP
                             buckets:
-                              - key: 100-399
-                                name: 100-399
+                              - key: "100-399"
+                                name: "100-399"
                                 type: LEAF
                                 measures:
                                   - name: "COUNT"
                                     value: 345
-                              - key: 400-599
-                                name: 400-599
+                              - key: "400-599"
+                                name: "400-599"
                                 type: LEAF
                                 measures:
                                   - name: "COUNT"
@@ -779,6 +781,8 @@ components:
                 - LLM_PROMPT_TOKEN_RECEIVED
                 - LLM_PROMPT_TOKEN_SENT_COST
                 - LLM_PROMPT_TOKEN_RECEIVED_COST
+                - LLM_TOTAL_TOKEN
+                - LLM_TOTAL_TOKEN_COST
                 - MESSAGE_PAYLOAD_SIZE
                 - MESSAGES
                 - MESSAGE_ERRORS
@@ -832,6 +836,8 @@ components:
                 - API_STATE
                 - API_LIFECYCLE_STATE
                 - API_VISIBILITY
+                - LLM_PROXY_MODEL
+                - LLM_PROXY_PROVIDER
             description: Available facet names for grouping analytics data
 
         FilterName:
@@ -871,6 +877,8 @@ components:
                 - HTTP_GATEWAY_RESPONSE_TIME
                 - HTTP_REQUEST_CONTENT_LENGTH
                 - HTTP_RESPONSE_CONTENT_LENGTH
+                - LLM_PROXY_MODEL
+                - LLM_PROXY_PROVIDER
             description: Available filter names for filtering analytics data
 
         Operator:
@@ -1337,8 +1345,8 @@ components:
                     $ref: "#/components/schemas/TimeRange"
                 by:
                     type: array
-                    minimum: 1
-                    maximum: 3
+                    minItems: 1
+                    maxItems: 3
                     items:
                         $ref: "#/components/schemas/FacetName"
                     description: List of facet names to group by (applies to all metrics)
@@ -1360,7 +1368,7 @@ components:
                           value: ["GET", "POST"]
                 metrics:
                     type: array
-                    minimum: 1
+                    minItems: 1
                     items:
                         $ref: "#/components/schemas/FacetMetricRequest"
                     description: List of facet metric requests to process
@@ -1410,7 +1418,7 @@ components:
                 $ref: "#/components/schemas/TimeRange"
               by:
                 type: array
-                maximum: 2
+                maxItems: 2
                 items:
                   $ref: "#/components/schemas/FacetName"
                 description: List of facet names to group time-series buckets (up to two facets)
@@ -1432,7 +1440,7 @@ components:
                     value: [ "GET", "POST" ]
               metrics:
                 type: array
-                minimum: 1
+                minItems: 1
                 items:
                   $ref: "#/components/schemas/FacetMetricRequest"
                 description: List of facet metric requests to process
@@ -1620,7 +1628,7 @@ components:
             key:
               type: string
               format: date-time
-              description: Timestamp key (ISO 8601)
+              description: The time series bucket timestamp key (ISO 8601), leading to measures.
             timestamp:
               type: integer
               format: int64
@@ -1641,7 +1649,7 @@ components:
             key:
               type: string
               format: date-time
-              description: Timestamp key (ISO 8601)
+              description: The time series bucket timestamp key (ISO 8601)
             timestamp:
               type: integer
               format: int64
@@ -1698,16 +1706,24 @@ components:
                     - name: "HTTP_REQUESTS"
                       buckets:
                           - key: "49ddd7db-35d6-497e-b497-2dc16af0cdcc"
+                            name: "api-1"
+                            type: GROUP
                             buckets:
                                 - key: "e65289b0-35b2-40e7-8d41-711fba7fdc96"
+                                  name: "app-1"
+                                  type: LEAF
                                   measures:
                                       - name: "RPS"
                                         value: 45.7
                                 - key: "4c65d87a-008a-4a4c-b11a-a38b7a662fcc"
+                                  name: "app-2"
+                                  type: LEAF
                                   measures:
                                       - name: "RPS"
                                         value: 34.9
                                 - key: "71091fd9-a6a9-4c7f-afdb-d837ea28058c"
+                                  name: "app-3"
+                                  type: LEAF
                                   measures:
                                       - name: "RPS"
                                         value: 989
@@ -1736,23 +1752,33 @@ components:
                       buckets:
                           - key: "2025-01-01T00:00:00Z"
                             timestamp: 1735689600000
+                            type: GROUP
                             buckets:
                                 - key: "a5954f6e-1d95-463a-9a41-2442c575d022"
+                                  name: "api-1"
+                                  type: LEAF
                                   measures:
                                       - name: "COUNT"
                                         value: 1234
                                 - key: "12bff449-1556-491c-8e34-c1c93b27e1cb"
+                                  name: "api-2"
+                                  type: LEAF
                                   measures:
                                       - name: "COUNT"
                                         value: 989
                           - key: "2025-01-01T00:01:00Z"
                             timestamp: 1735689660000
+                            type: GROUP
                             buckets:
                                 - key: "a5954f6e-1d95-463a-9a41-2442c575d022"
+                                  name: "api-1"
+                                  type: LEAF
                                   measures:
                                       - name: "COUNT"
                                         value: 873
                                 - key: "12bff449-1556-491c-8e34-c1c93b27e1cb"
+                                  name: "api-2"
+                                  type: LEAF
                                   measures:
                                       - name: "COUNT"
                                         value: 938
@@ -1784,7 +1810,7 @@ components:
                     example:
                         name: "HTTP_REQUESTS"
                         type: "TIME_SERIES"
-                        interval: -3600000
+                        interval: "-3600000"
                 details:
                     type: array
                     description: A list of details about the error
