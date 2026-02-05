@@ -107,7 +107,7 @@ public class PlanService_PublishTest {
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
-            .api(API_ID)
+            .referenceId(API_ID)
             .build();
 
         var keylessPlan = Plan.builder().status(Plan.Status.PUBLISHED).security(Plan.PlanSecurityType.KEY_LESS).build();
@@ -128,7 +128,7 @@ public class PlanService_PublishTest {
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
             .security(Plan.PlanSecurityType.KEY_LESS)
-            .api(API_ID)
+            .referenceId(API_ID)
             .build();
 
         var keylessPlan = Plan.builder().status(Plan.Status.PUBLISHED).security(Plan.PlanSecurityType.KEY_LESS).build();
@@ -145,7 +145,7 @@ public class PlanService_PublishTest {
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
-            .api(API_ID)
+            .referenceId(API_ID)
             .build();
 
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
@@ -162,7 +162,7 @@ public class PlanService_PublishTest {
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
-            .api(API_ID)
+            .referenceId(API_ID)
             .build();
 
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
@@ -180,7 +180,7 @@ public class PlanService_PublishTest {
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
-            .api(API_ID)
+            .referenceId(API_ID)
             .generalConditions(GC_PAGE_ID)
             .build();
 
@@ -204,7 +204,7 @@ public class PlanService_PublishTest {
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
-            .api(API_ID)
+            .referenceId(API_ID)
             .generalConditions(GC_PAGE_ID)
             .build();
 

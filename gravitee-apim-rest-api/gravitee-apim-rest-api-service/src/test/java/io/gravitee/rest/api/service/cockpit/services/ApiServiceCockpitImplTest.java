@@ -303,7 +303,7 @@ public class ApiServiceCockpitImplTest {
 
         verify(planService).create(eq(EXECUTION_CONTEXT), newPlanCaptor.capture());
         assertThat(newPlanCaptor.getValue())
-            .extracting(NewPlanEntity::getApi, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
+            .extracting(NewPlanEntity::getReferenceId, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
             .containsExactly(API_ID, PlanSecurityType.KEY_LESS, PlanStatus.PUBLISHED);
 
         verify(apiService).start(EXECUTION_CONTEXT, API_ID, USER_ID);
@@ -387,7 +387,7 @@ public class ApiServiceCockpitImplTest {
 
         verify(planService).create(eq(EXECUTION_CONTEXT), newPlanCaptor.capture());
         assertThat(newPlanCaptor.getValue())
-            .extracting(NewPlanEntity::getApi, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
+            .extracting(NewPlanEntity::getReferenceId, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
             .containsExactly(API_ID, PlanSecurityType.KEY_LESS, PlanStatus.PUBLISHED);
 
         verify(apiService).start(EXECUTION_CONTEXT, API_ID, USER_ID);
@@ -718,7 +718,7 @@ public class ApiServiceCockpitImplTest {
         verify(planService).findByApi(eq(EXECUTION_CONTEXT), eq(API_ID));
         verify(planService).create(eq(EXECUTION_CONTEXT), newPlanCaptor.capture());
         assertThat(newPlanCaptor.getValue())
-            .extracting(NewPlanEntity::getApi, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
+            .extracting(NewPlanEntity::getReferenceId, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
             .containsExactly(API_ID, PlanSecurityType.KEY_LESS, PlanStatus.PUBLISHED);
         verify(apiService).start(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID));
     }
@@ -757,7 +757,7 @@ public class ApiServiceCockpitImplTest {
         verify(planService).findByApi(eq(EXECUTION_CONTEXT), eq(API_ID));
         verify(planService).create(eq(EXECUTION_CONTEXT), newPlanCaptor.capture());
         assertThat(newPlanCaptor.getValue())
-            .extracting(NewPlanEntity::getApi, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
+            .extracting(NewPlanEntity::getReferenceId, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
             .containsExactly(API_ID, PlanSecurityType.KEY_LESS, PlanStatus.PUBLISHED);
 
         verify(apiService).start(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID));

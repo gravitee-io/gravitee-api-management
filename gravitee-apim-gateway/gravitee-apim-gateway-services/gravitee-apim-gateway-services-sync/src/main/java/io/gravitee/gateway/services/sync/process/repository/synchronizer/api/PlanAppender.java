@@ -107,7 +107,7 @@ public class PlanAppender {
             final Map<String, List<Plan>> plansByApi = planRepository
                 .findByApisAndEnvironments(apiV1Ids, environments)
                 .stream()
-                .collect(Collectors.groupingBy(Plan::getApi));
+                .collect(Collectors.groupingBy(Plan::getReferenceId));
 
             plansByApi.forEach((apiId, plans) -> {
                 final Api api = apiById.get(apiId);
@@ -137,7 +137,8 @@ public class PlanAppender {
         plan.setSelectionRule(repoPlan.getSelectionRule());
         plan.setTags(repoPlan.getTags());
         plan.setStatus(repoPlan.getStatus().name());
-        plan.setApi(repoPlan.getApi());
+        plan.setReferenceId(repoPlan.getReferenceId());
+        plan.setReferenceType(repoPlan.getReferenceType().name());
 
         if (repoPlan.getSecurity() != null) {
             plan.setSecurity(repoPlan.getSecurity().name());

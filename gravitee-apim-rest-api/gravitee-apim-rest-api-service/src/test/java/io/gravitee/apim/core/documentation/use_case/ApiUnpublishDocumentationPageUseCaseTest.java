@@ -39,6 +39,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.search.model.IndexablePage;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.Date;
 import java.util.List;
@@ -211,7 +212,8 @@ class ApiUnpublishDocumentationPageUseCaseTest {
                 PlanFixtures.aPlanHttpV4()
                     .toBuilder()
                     .id("plan-id")
-                    .apiId(API_ID)
+                    .referenceId(API_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
                     .generalConditions(PAGE_ID)
                     .build()
                     .setPlanStatus(PlanStatus.PUBLISHED)

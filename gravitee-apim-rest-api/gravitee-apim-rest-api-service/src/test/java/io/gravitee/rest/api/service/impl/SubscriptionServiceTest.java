@@ -97,6 +97,7 @@ import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
@@ -284,12 +285,14 @@ public class SubscriptionServiceTest {
     public void before() {
         planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
-        planEntity.setApi(API_ID);
+        planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
+        planEntity.setReferenceId(API_ID);
         planEntity.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
 
         planEntityV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
         planEntityV4.setId(PLAN_ID);
-        planEntityV4.setApiId(API_ID);
+        planEntityV4.setReferenceType(BasePlanEntity.ReferenceType.API);
+        planEntityV4.setReferenceId(API_ID);
         planEntityV4.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
 
         application = new ApplicationEntity();
@@ -1498,7 +1501,8 @@ public class SubscriptionServiceTest {
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         planEntity.setStatus(PlanStatus.PUBLISHED);
         planEntity.setSecurity(PlanSecurityType.API_KEY);
-        planEntity.setApi("another");
+        planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
+        planEntity.setReferenceId("another");
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
         subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
@@ -1553,11 +1557,13 @@ public class SubscriptionServiceTest {
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         planEntity.setStatus(PlanStatus.PUBLISHED);
         planEntity.setSecurity(PlanSecurityType.API_KEY);
-        planEntity.setApi("another");
+        planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
+        planEntity.setReferenceId("another");
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
         PlanEntity pushPlan = new PlanEntity();
         pushPlan.setStatus(PlanStatus.PUBLISHED);
-        pushPlan.setApi("another");
+        pushPlan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+        pushPlan.setReferenceId("another");
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), "push-plan-id")).thenReturn(pushPlan);
 
         subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
@@ -1608,7 +1614,8 @@ public class SubscriptionServiceTest {
     public void shouldCreateWithGroupRestriction_BecauseAdmin() throws Exception {
         // Prepare data
         planEntity.setExcludedGroups(List.of("excl1", "excl2"));
-        planEntity.setApi("api1");
+        planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
+        planEntity.setReferenceId("api1");
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
         // Stub

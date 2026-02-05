@@ -36,6 +36,7 @@ import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageSource;
 import io.gravitee.apim.infra.domain_service.documentation.PageSourceDomainServiceImpl;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
@@ -145,7 +146,8 @@ class ApiGetDocumentationPagesUseCaseTest {
                     PlanFixtures.aPlanHttpV4()
                         .toBuilder()
                         .id("plan-1")
-                        .apiId(API_ID)
+                        .referenceId(API_ID)
+                        .referenceType(GenericPlanEntity.ReferenceType.API)
                         .generalConditions("page#1")
                         .build()
                         .setPlanStatus(PlanStatus.PUBLISHED)

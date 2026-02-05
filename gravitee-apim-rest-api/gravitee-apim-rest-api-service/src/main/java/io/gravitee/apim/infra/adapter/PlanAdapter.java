@@ -285,10 +285,7 @@ public interface PlanAdapter {
 
     @Named("toPlanReferenceType")
     default io.gravitee.repository.management.model.Plan.PlanReferenceType toPlanReferenceType(Plan source) {
-        if (source == null || source.getPlanType() == null) {
-            return io.gravitee.repository.management.model.Plan.PlanReferenceType.API;
-        }
-        return io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(source.getPlanType().name());
+        return io.gravitee.repository.management.model.Plan.PlanReferenceType.valueOf(source.getReferenceType().name());
     }
 
     default io.gravitee.rest.api.model.PlanEntity map(GenericPlanEntity entity) {

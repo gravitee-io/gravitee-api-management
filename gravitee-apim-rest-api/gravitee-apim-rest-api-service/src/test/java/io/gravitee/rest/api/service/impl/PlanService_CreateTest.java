@@ -104,7 +104,7 @@ public class PlanService_CreateTest {
 
     @Before
     public void setup() throws Exception {
-        when(newPlanEntity.getApi()).thenReturn(API_ID);
+        when(newPlanEntity.getReferenceId()).thenReturn(API_ID);
         when(newPlanEntity.getSecurity()).thenReturn(PlanSecurityType.KEY_LESS);
         when(newPlanEntity.getFlows()).thenReturn(new ArrayList<>());
         when(api.getDefinition()).thenReturn("apidefinition");

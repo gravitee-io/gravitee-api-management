@@ -58,7 +58,7 @@ class PlanAdapterTest {
             var plan = PlanAdapter.INSTANCE.fromRepository(repository);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(plan.getApiId()).isEqualTo("my-api");
+                soft.assertThat(plan.getReferenceId()).isEqualTo("my-api");
                 soft.assertThat(plan.getCharacteristics()).containsExactly("characteristic-1");
                 soft.assertThat(plan.getClosedAt()).isEqualTo(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.getCommentMessage()).isEqualTo("comment-message");
@@ -93,7 +93,7 @@ class PlanAdapterTest {
             var plan = PlanAdapter.INSTANCE.fromRepository(repository);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(plan.getApiId()).isEqualTo("my-api");
+                soft.assertThat(plan.getReferenceId()).isEqualTo("my-api");
                 soft.assertThat(plan.getCharacteristics()).containsExactly("characteristic-1");
                 soft.assertThat(plan.getClosedAt()).isEqualTo(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.getCommentMessage()).isEqualTo("comment-message");
@@ -128,7 +128,7 @@ class PlanAdapterTest {
             var plan = PlanAdapter.INSTANCE.fromRepository(repository);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(plan.getApiId()).isEqualTo("my-api");
+                soft.assertThat(plan.getReferenceId()).isEqualTo("my-api");
                 soft.assertThat(plan.getCharacteristics()).containsExactly("characteristic-1");
                 soft.assertThat(plan.getCommentMessage()).isEqualTo("comment-message");
                 soft.assertThat(plan.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
@@ -167,7 +167,7 @@ class PlanAdapterTest {
             var plan = PlanAdapter.INSTANCE.fromRepository(repository);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(plan.getApiId()).isEqualTo("my-api");
+                soft.assertThat(plan.getReferenceId()).isEqualTo("my-api");
                 soft.assertThat(plan.getCharacteristics()).containsExactly("characteristic-1");
                 soft.assertThat(plan.getClosedAt()).isEqualTo(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.getCommentMessage()).isEqualTo("comment-message");
@@ -352,7 +352,7 @@ class PlanAdapterTest {
         private Plan.PlanBuilder planHttpV4() {
             return Plan.builder()
                 .id("my-id")
-                .api("my-api")
+                .referenceId("my-api")
                 .crossId("cross-id")
                 .name("plan-name")
                 .definitionVersion(DefinitionVersion.V4)
@@ -382,7 +382,7 @@ class PlanAdapterTest {
         private Plan.PlanBuilder planNativeV4() {
             return Plan.builder()
                 .id("my-id")
-                .api("my-api")
+                .referenceId("my-api")
                 .crossId("cross-id")
                 .name("plan-name")
                 .definitionVersion(DefinitionVersion.V4)
@@ -412,7 +412,7 @@ class PlanAdapterTest {
         private Plan.PlanBuilder federatedPlan() {
             return Plan.builder()
                 .id("my-id")
-                .api("my-api")
+                .referenceId("my-api")
                 .name("plan-name")
                 .definitionVersion(DefinitionVersion.FEDERATED)
                 .description("plan-description")
@@ -437,7 +437,7 @@ class PlanAdapterTest {
         private Plan.PlanBuilder planV2() {
             return Plan.builder()
                 .id("my-id")
-                .api("my-api")
+                .referenceId("my-api")
                 .crossId("cross-id")
                 .name("plan-name")
                 .description("plan-description")

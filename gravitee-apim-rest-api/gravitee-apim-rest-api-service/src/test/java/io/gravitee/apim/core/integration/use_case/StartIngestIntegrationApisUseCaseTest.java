@@ -92,6 +92,7 @@ import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import java.time.Clock;
@@ -476,8 +477,8 @@ class StartIngestIntegrationApisUseCaseTest {
                         .name("Key less plan")
                         .description("Default plan")
                         .validation(Plan.PlanValidationType.MANUAL)
-                        .type(Plan.PlanType.API)
-                        .apiId(
+                        .referenceType(GenericPlanEntity.ReferenceType.API)
+                        .referenceId(
                             "environment-ida2a-integration-idhttps://example.com/.well-known/agent.jsonhttps://example.com/.well-known/agent.json"
                         )
                         .order(0)
@@ -578,8 +579,8 @@ class StartIngestIntegrationApisUseCaseTest {
                         .name("Key less plan")
                         .description("Default plan")
                         .validation(Plan.PlanValidationType.MANUAL)
-                        .type(Plan.PlanType.API)
-                        .apiId(
+                        .referenceType(GenericPlanEntity.ReferenceType.API)
+                        .referenceId(
                             "environment-ida2a-integration-idhttps://example1.com/.well-known/agent.jsonhttps://example1.com/.well-known/agent.json"
                         )
                         .order(0)
@@ -607,8 +608,8 @@ class StartIngestIntegrationApisUseCaseTest {
                         .name("Key less plan")
                         .description("Default plan")
                         .validation(Plan.PlanValidationType.MANUAL)
-                        .type(Plan.PlanType.API)
-                        .apiId(
+                        .referenceType(GenericPlanEntity.ReferenceType.API)
+                        .referenceId(
                             "environment-ida2a-integration-idhttps://example2.com/.well-known/agent.jsonhttps://example2.com/.well-known/agent.json"
                         )
                         .order(0)

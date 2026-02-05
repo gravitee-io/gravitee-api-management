@@ -167,7 +167,7 @@ public class ImportDefinitionCreateDomainService {
         if (plans != null) {
             plans
                 .stream()
-                .map(plan -> plan.toBuilder().apiId(api.getId()).build())
+                .map(plan -> plan.toBuilder().referenceId(api.getId()).build())
                 .forEach(plan -> createPlanDomainService.create(plan, plan.getFlows(), api.toApi(), auditInfo));
         }
     }

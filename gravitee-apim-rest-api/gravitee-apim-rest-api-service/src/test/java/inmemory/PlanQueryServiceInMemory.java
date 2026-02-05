@@ -43,7 +43,7 @@ public class PlanQueryServiceInMemory implements PlanQueryService, InMemoryAlter
             .stream()
             .filter(
                 plan ->
-                    Objects.equals(apiId, plan.getApiId()) &&
+                    Objects.equals(apiId, plan.getReferenceId()) &&
                     Objects.equals(pageId, plan.getGeneralConditions()) &&
                     !(PlanStatus.STAGING.equals(plan.getPlanStatus()) || PlanStatus.CLOSED.equals(plan.getPlanStatus()))
             )
@@ -54,7 +54,7 @@ public class PlanQueryServiceInMemory implements PlanQueryService, InMemoryAlter
     public List<Plan> findAllByApiId(String apiId) {
         return storage
             .stream()
-            .filter(plan -> Objects.equals(apiId, plan.getApiId()))
+            .filter(plan -> Objects.equals(apiId, plan.getReferenceId()))
             .map(p -> (Plan) p)
             .toList();
     }

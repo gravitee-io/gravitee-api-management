@@ -43,6 +43,7 @@ import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
@@ -362,7 +363,8 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         plan.setId(UuidString.generateForEnvironment(environmentId, apiId));
         plan.setName("Keyless plan");
         plan.setSecurity(PlanSecurityType.KEY_LESS);
-        plan.setApi(apiId);
+        plan.setReferenceId(apiId);
+        plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
         plan.setStatus(PlanStatus.PUBLISHED);
 
         return plan;

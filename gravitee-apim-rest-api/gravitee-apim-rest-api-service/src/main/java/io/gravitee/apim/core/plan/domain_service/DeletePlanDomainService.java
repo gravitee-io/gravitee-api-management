@@ -58,7 +58,7 @@ public class DeletePlanDomainService {
             ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
-                .apiId(planToDelete.getApiId())
+                .apiId(planToDelete.getReferenceId())
                 .event(PlanAuditEvent.PLAN_DELETED)
                 .actor(auditInfo.actor())
                 .oldValue(planToDelete)

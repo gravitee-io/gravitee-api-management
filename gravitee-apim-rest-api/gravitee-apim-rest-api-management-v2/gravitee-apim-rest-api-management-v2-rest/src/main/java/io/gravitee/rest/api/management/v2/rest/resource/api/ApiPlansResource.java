@@ -402,10 +402,15 @@ public class ApiPlansResource extends AbstractResource {
             hasPermission(
                 GraviteeContext.getExecutionContext(),
                 RolePermission.API_GATEWAY_DEFINITION,
-                entity.getApiId(),
+                entity.getReferenceId(),
                 RolePermissionAction.READ
             ) &&
-            hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_PLAN, entity.getApiId(), RolePermissionAction.READ)
+            hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_PLAN,
+                entity.getReferenceId(),
+                RolePermissionAction.READ
+            )
         ) {
             // Return complete information if user has permission.
             return entity;

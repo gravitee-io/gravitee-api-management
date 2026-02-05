@@ -68,7 +68,6 @@ describe('API - Imports with plans', () => {
     expect(plan.description).toStrictEqual(fakePlan1.description);
     expect(plan.validation).toStrictEqual(fakePlan1.validation);
     expect(plan.security).toStrictEqual(fakePlan1.security);
-    expect(plan.type).toStrictEqual(fakePlan1.type);
     expect(plan.status).toStrictEqual(fakePlan1.status);
     expect(plan.order).toStrictEqual(fakePlan1.order);
     expect(plan.general_conditions).toBeUndefined();
@@ -83,7 +82,6 @@ describe('API - Imports with plans', () => {
     expect(plan.description).toStrictEqual(fakePlan2.description);
     expect(plan.validation).toStrictEqual(fakePlan2.validation);
     expect(plan.security).toStrictEqual(fakePlan2.security);
-    expect(plan.type).toStrictEqual(fakePlan2.type);
     expect(plan.status).toStrictEqual(fakePlan2.status);
     expect(plan.order).toStrictEqual(fakePlan2.order);
     expect(plan.general_conditions).toEqual(pages[0].id);
