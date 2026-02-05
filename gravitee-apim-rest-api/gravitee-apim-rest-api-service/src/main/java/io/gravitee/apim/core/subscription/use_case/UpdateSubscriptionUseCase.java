@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.subscription.use_case.api_product;
+package io.gravitee.apim.core.subscription.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
@@ -30,27 +31,21 @@ import lombok.RequiredArgsConstructor;
 @UseCase
 @CustomLog
 @RequiredArgsConstructor
-public class UpdateApiProductSubscriptionUseCase {
+public class UpdateSubscriptionUseCase {
 
     private final UpdateSubscriptionDomainService updateSubscriptionDomainService;
     private final SubscriptionCrudService subscriptionCrudService;
+    private final ApiCrudService apiCrudService;
     private final ApiProductCrudService apiProductCrudService;
 
     public Output execute(Input input) {
-        log.debug("Updating subscription {} for API Product {}", input.subscriptionId, input.apiProductId);
-        // Verify API Product exists
-        apiProductCrudService.get(input.apiProductId);
+        log.debug("Updating subscription {} for {} {}", input.subscriptionId, input.referenceType, input.referenceId);
 
-        // Get subscription and verify it belongs to API Product
+        verifyReferenceExists(input.referenceId, input.referenceType);
+
         var subscription = subscriptionCrudService.get(input.subscriptionId);
-        if (
-            !SubscriptionReferenceType.API_PRODUCT.equals(subscription.getReferenceType()) ||
-            !input.apiProductId.equals(subscription.getReferenceId())
-        ) {
-            throw new SubscriptionNotFoundException(input.subscriptionId);
-        }
+        validateSubscription(subscription, input.referenceId, input.referenceType);
 
-        // Update subscription using domain service
         updateSubscriptionDomainService.update(
             input.auditInfo,
             input.subscriptionId,
@@ -62,13 +57,28 @@ public class UpdateApiProductSubscriptionUseCase {
 
         SubscriptionEntity updatedSubscription = subscriptionCrudService.get(input.subscriptionId);
 
-        log.debug("Updated subscription {} for API Product {}", input.subscriptionId, input.apiProductId);
+        log.debug("Updated subscription {} for {} {}", input.subscriptionId, input.referenceType, input.referenceId);
         return new Output(updatedSubscription);
+    }
+
+    private void verifyReferenceExists(String referenceId, SubscriptionReferenceType referenceType) {
+        if (referenceType == SubscriptionReferenceType.API) {
+            apiCrudService.get(referenceId);
+        } else if (referenceType == SubscriptionReferenceType.API_PRODUCT) {
+            apiProductCrudService.get(referenceId);
+        }
+    }
+
+    private void validateSubscription(SubscriptionEntity subscription, String referenceId, SubscriptionReferenceType referenceType) {
+        if (!referenceType.equals(subscription.getReferenceType()) || !referenceId.equals(subscription.getReferenceId())) {
+            throw new SubscriptionNotFoundException(subscription.getId());
+        }
     }
 
     @Builder
     public record Input(
-        String apiProductId,
+        String referenceId,
+        SubscriptionReferenceType referenceType,
         String subscriptionId,
         io.gravitee.rest.api.model.SubscriptionConfigurationEntity configuration,
         java.util.Map<String, String> metadata,

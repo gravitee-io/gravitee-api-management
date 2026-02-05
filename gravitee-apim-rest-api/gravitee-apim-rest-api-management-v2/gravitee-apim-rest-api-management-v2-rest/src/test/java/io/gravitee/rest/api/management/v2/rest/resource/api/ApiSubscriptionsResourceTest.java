@@ -30,6 +30,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.SubscriptionFixtures;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -335,7 +336,11 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             verify(acceptSubscriptionUseCase, atLeastOnce()).execute(inputCaptor.capture());
 
             AcceptSubscriptionUseCase.Input capturedInput = inputCaptor.getValue();
-            assertThat(capturedInput.customKey()).isNull();
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(capturedInput.referenceId()).isEqualTo(API);
+                soft.assertThat(capturedInput.referenceType()).isEqualTo(SubscriptionReferenceType.API);
+                soft.assertThat(capturedInput.customKey()).isNull();
+            });
         }
 
         @Test
@@ -396,7 +401,11 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             verify(acceptSubscriptionUseCase, atLeastOnce()).execute(inputCaptor.capture());
 
             AcceptSubscriptionUseCase.Input capturedInput = inputCaptor.getValue();
-            assertThat(capturedInput.customKey()).isEqualTo(customApiKey);
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(capturedInput.referenceId()).isEqualTo(API);
+                soft.assertThat(capturedInput.referenceType()).isEqualTo(SubscriptionReferenceType.API);
+                soft.assertThat(capturedInput.customKey()).isEqualTo(customApiKey);
+            });
         }
     }
 
@@ -442,7 +451,8 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             SoftAssertions.assertSoftly(soft -> {
                 var input = captor.getValue();
                 soft.assertThat(input.subscriptionId()).isEqualTo(SUBSCRIPTION);
-                soft.assertThat(input.apiId()).isEqualTo(API);
+                soft.assertThat(input.referenceId()).isEqualTo(API);
+                soft.assertThat(input.referenceType()).isEqualTo(SubscriptionReferenceType.API);
                 soft.assertThat(input.startingAt()).isEqualTo(Objects.requireNonNull(acceptSubscription.getStartingAt()).toZonedDateTime());
                 soft.assertThat(input.endingAt()).isEqualTo(Objects.requireNonNull(acceptSubscription.getEndingAt()).toZonedDateTime());
                 soft.assertThat(input.reasonMessage()).isEqualTo(acceptSubscription.getReason());
@@ -491,7 +501,8 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             SoftAssertions.assertSoftly(soft -> {
                 var input = captor.getValue();
                 soft.assertThat(input.subscriptionId()).isEqualTo(SUBSCRIPTION);
-                soft.assertThat(input.apiId()).isEqualTo(API);
+                soft.assertThat(input.referenceId()).isEqualTo(API);
+                soft.assertThat(input.referenceType()).isEqualTo(SubscriptionReferenceType.API);
                 soft.assertThat(input.startingAt()).isEqualTo(Objects.requireNonNull(acceptSubscription.getStartingAt()).toZonedDateTime());
                 soft.assertThat(input.endingAt()).isEqualTo(Objects.requireNonNull(acceptSubscription.getEndingAt()).toZonedDateTime());
                 soft.assertThat(input.reasonMessage()).isEqualTo(acceptSubscription.getReason());
@@ -564,7 +575,8 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             SoftAssertions.assertSoftly(soft -> {
                 var input = captor.getValue();
                 soft.assertThat(input.subscriptionId()).isEqualTo(SUBSCRIPTION);
-                soft.assertThat(input.apiId()).isEqualTo(API);
+                soft.assertThat(input.referenceId()).isEqualTo(API);
+                soft.assertThat(input.referenceType()).isEqualTo(SubscriptionReferenceType.API);
                 soft.assertThat(input.reasonMessage()).isEqualTo(rejectPayload.getReason());
             });
         }

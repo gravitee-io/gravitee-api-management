@@ -51,7 +51,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class UpdateApiProductPlanUseCaseTest {
 
-    private static final String API_PRODUCT_ID = "api-product-id";
+    private static final String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
     private static final String PLAN_ID = "plan-id";
     private static final String ORG_ID = "org-id";
     private static final String ENV_ID = "env-id";

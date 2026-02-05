@@ -15,11 +15,12 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
-import io.gravitee.apim.core.subscription.use_case.api_product.AcceptApiProductSubscriptionUseCase;
-import io.gravitee.apim.core.subscription.use_case.api_product.CloseApiProductSubscriptionUseCase;
-import io.gravitee.apim.core.subscription.use_case.api_product.GetApiProductSubscriptionsUseCase;
-import io.gravitee.apim.core.subscription.use_case.api_product.RejectApiProductSubscriptionUseCase;
-import io.gravitee.apim.core.subscription.use_case.api_product.UpdateApiProductSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
+import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.GetSubscriptionsUseCase;
+import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.UpdateSubscriptionUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
@@ -56,19 +57,19 @@ public class ApiProductSubscriptionResource extends AbstractResource {
     private final SubscriptionMapper subscriptionMapper = SubscriptionMapper.INSTANCE;
 
     @Inject
-    private GetApiProductSubscriptionsUseCase getApiProductSubscriptionsUseCase;
+    private GetSubscriptionsUseCase getSubscriptionsUseCase;
 
     @Inject
-    private UpdateApiProductSubscriptionUseCase updateApiProductSubscriptionUseCase;
+    private UpdateSubscriptionUseCase updateSubscriptionUseCase;
 
     @Inject
-    private AcceptApiProductSubscriptionUseCase acceptApiProductSubscriptionUseCase;
+    private AcceptSubscriptionUseCase acceptSubscriptionUseCase;
 
     @Inject
-    private RejectApiProductSubscriptionUseCase rejectApiProductSubscriptionUseCase;
+    private RejectSubscriptionUseCase rejectSubscriptionUseCase;
 
     @Inject
-    private CloseApiProductSubscriptionUseCase closeApiProductSubscriptionUseCase;
+    private CloseSubscriptionUseCase closeSubscriptionUseCase;
 
     @PathParam("apiProductId")
     private String apiProductId;
@@ -81,7 +82,9 @@ public class ApiProductSubscriptionResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.READ }) })
     public Response getApiProductSubscription() {
         log.debug("Getting subscription {} for API Product {}", subscriptionId, apiProductId);
-        var output = getApiProductSubscriptionsUseCase.execute(GetApiProductSubscriptionsUseCase.Input.of(apiProductId, subscriptionId));
+        var output = getSubscriptionsUseCase.execute(
+            GetSubscriptionsUseCase.Input.of(apiProductId, SubscriptionReferenceType.API_PRODUCT, subscriptionId)
+        );
         Optional<io.gravitee.apim.core.subscription.model.SubscriptionEntity> subscription = output.subscription();
 
         if (subscription.isEmpty()) {
@@ -104,8 +107,9 @@ public class ApiProductSubscriptionResource extends AbstractResource {
             configuration = subscriptionMapper.mapConsumerConfigurationToEntity(updateSubscription.getConsumerConfiguration());
         }
 
-        var input = UpdateApiProductSubscriptionUseCase.Input.builder()
-            .apiProductId(apiProductId)
+        var input = UpdateSubscriptionUseCase.Input.builder()
+            .referenceId(apiProductId)
+            .referenceType(SubscriptionReferenceType.API_PRODUCT)
             .subscriptionId(subscriptionId)
             .configuration(configuration)
             .metadata(updateSubscription.getMetadata())
@@ -114,7 +118,7 @@ public class ApiProductSubscriptionResource extends AbstractResource {
             .auditInfo(getAuditInfo())
             .build();
 
-        var output = updateApiProductSubscriptionUseCase.execute(input);
+        var output = updateSubscriptionUseCase.execute(input);
         log.debug("Updated subscription {} for API Product {}", subscriptionId, apiProductId);
         return Response.ok(subscriptionMapper.map(output.subscription())).build();
     }
@@ -126,8 +130,9 @@ public class ApiProductSubscriptionResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
     public Response acceptApiProductSubscription(@Valid @NotNull AcceptSubscription acceptSubscription) {
         log.debug("Accepting subscription {} for API Product {}", subscriptionId, apiProductId);
-        var input = AcceptApiProductSubscriptionUseCase.Input.builder()
-            .apiProductId(apiProductId)
+        var input = AcceptSubscriptionUseCase.Input.builder()
+            .referenceId(apiProductId)
+            .referenceType(SubscriptionReferenceType.API_PRODUCT)
             .subscriptionId(subscriptionId)
             .startingAt(acceptSubscription.getStartingAt() != null ? acceptSubscription.getStartingAt().toZonedDateTime() : null)
             .endingAt(acceptSubscription.getEndingAt() != null ? acceptSubscription.getEndingAt().toZonedDateTime() : null)
@@ -136,7 +141,7 @@ public class ApiProductSubscriptionResource extends AbstractResource {
             .auditInfo(getAuditInfo())
             .build();
 
-        var output = acceptApiProductSubscriptionUseCase.execute(input);
+        var output = acceptSubscriptionUseCase.execute(input);
         log.debug("Accepted subscription {} for API Product {}", subscriptionId, apiProductId);
         return Response.ok(subscriptionMapper.map(output.subscription())).build();
     }
@@ -148,14 +153,15 @@ public class ApiProductSubscriptionResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
     public Response rejectApiProductSubscription(@Valid @NotNull RejectSubscription rejectSubscription) {
         log.debug("Rejecting subscription {} for API Product {}", subscriptionId, apiProductId);
-        var input = RejectApiProductSubscriptionUseCase.Input.builder()
-            .apiProductId(apiProductId)
+        var input = RejectSubscriptionUseCase.Input.builder()
+            .referenceId(apiProductId)
+            .referenceType(SubscriptionReferenceType.API_PRODUCT)
             .subscriptionId(subscriptionId)
             .reasonMessage(rejectSubscription.getReason())
             .auditInfo(getAuditInfo())
             .build();
 
-        var output = rejectApiProductSubscriptionUseCase.execute(input);
+        var output = rejectSubscriptionUseCase.execute(input);
         log.debug("Rejected subscription {} for API Product {}", subscriptionId, apiProductId);
         return Response.ok(subscriptionMapper.map(output.subscription())).build();
     }
@@ -166,13 +172,14 @@ public class ApiProductSubscriptionResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
     public Response closeApiProductSubscription() {
         log.debug("Closing subscription {} for API Product {}", subscriptionId, apiProductId);
-        var input = CloseApiProductSubscriptionUseCase.Input.builder()
-            .apiProductId(apiProductId)
+        var input = CloseSubscriptionUseCase.Input.builder()
+            .referenceId(apiProductId)
+            .referenceType(SubscriptionReferenceType.API_PRODUCT)
             .subscriptionId(subscriptionId)
             .auditInfo(getAuditInfo())
             .build();
 
-        var output = closeApiProductSubscriptionUseCase.execute(input);
+        var output = closeSubscriptionUseCase.execute(input);
         log.debug("Closed subscription {} for API Product {}", subscriptionId, apiProductId);
         return Response.ok(subscriptionMapper.map(output.subscription())).build();
     }

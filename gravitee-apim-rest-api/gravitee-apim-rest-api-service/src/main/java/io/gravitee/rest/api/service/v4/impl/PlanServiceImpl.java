@@ -24,6 +24,7 @@ import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_PUBLI
 import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_UPDATED;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
@@ -34,6 +35,7 @@ import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Group;
@@ -152,6 +154,10 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     @Lazy
     @Autowired
     private ApiRepository apiRepository;
+
+    @Lazy
+    @Autowired
+    private ApiProductsRepository apiProductsRepository;
 
     @Autowired
     private PlanMapper planMapper;
@@ -505,25 +511,36 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             plan = planRepository.update(plan);
 
             // Audit
-            auditService.createApiAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()))
-                    .event(PLAN_CLOSED)
-                    .createdAt(plan.getUpdatedAt())
-                    .oldValue(previousPlan)
-                    .newValue(plan)
-                    .build(),
-                plan.getReferenceId()
-            );
+            String referenceId = plan.getReferenceId();
+            Plan.PlanReferenceType referenceType = plan.getReferenceType();
+            var auditLogData = AuditService.AuditLogData.builder()
+                .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()))
+                .event(PLAN_CLOSED)
+                .createdAt(plan.getUpdatedAt())
+                .oldValue(previousPlan)
+                .newValue(plan)
+                .build();
+
+            if (referenceType == Plan.PlanReferenceType.API_PRODUCT) {
+                auditService.createApiProductAuditLog(executionContext, auditLogData, referenceId);
+            } else {
+                auditService.createApiAuditLog(executionContext, auditLogData, referenceId);
+            }
 
             //reorder plan
             reorderedAndSavePlansAfterRemove(plan);
 
-            String apiId = plan.getReferenceId();
-            Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
-
-            return genericPlanMapper.toGenericPlanWithFlow(api, plan);
+            // Fetch API/API Product and return appropriate plan entity
+            return switch (referenceType) {
+                case API -> {
+                    Api api = apiRepository.findById(referenceId).orElseThrow(() -> new ApiNotFoundException(referenceId));
+                    yield genericPlanMapper.toGenericPlanWithFlow(api, plan);
+                }
+                case API_PRODUCT -> {
+                    apiProductsRepository.findById(referenceId).orElseThrow(() -> new ApiProductNotFoundException(referenceId));
+                    yield genericPlanMapper.toGenericApiProductPlan(plan);
+                }
+            };
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to close plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to close plan: %s", planId), ex);

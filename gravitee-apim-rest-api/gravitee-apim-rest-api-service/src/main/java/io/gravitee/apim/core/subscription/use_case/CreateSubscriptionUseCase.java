@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.subscription.use_case.api_product;
+package io.gravitee.apim.core.subscription.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CreateSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import lombok.Builder;
@@ -31,40 +35,32 @@ import lombok.RequiredArgsConstructor;
 @UseCase
 @CustomLog
 @RequiredArgsConstructor
-public class CreateApiProductSubscriptionUseCase {
+public class CreateSubscriptionUseCase {
 
     private final CreateSubscriptionDomainService createSubscriptionDomainService;
     private final SubscriptionCrudService subscriptionCrudService;
     private final PlanCrudService planCrudService;
+    private final ApiCrudService apiCrudService;
     private final ApiProductCrudService apiProductCrudService;
 
     public Output execute(Input input) {
         log.debug(
-            "Creating subscription for API Product {} with plan {} and application {}",
-            input.apiProductId,
+            "Creating subscription for {} {} with plan {} and application {}",
+            input.referenceType,
+            input.referenceId,
             input.planId,
             input.applicationId
         );
-        // Verify API Product exists
-        apiProductCrudService.get(input.apiProductId);
 
-        // Get and validate plan belongs to API Product
+        verifyReferenceExists(input.referenceId, input.referenceType);
+
         var plan = planCrudService.getById(input.planId);
-        if (
-            plan.getReferenceType() == null ||
-            !plan.getReferenceType().equals(GenericPlanEntity.ReferenceType.API_PRODUCT) ||
-            !plan.getReferenceId().equals(input.apiProductId)
-        ) {
+        validatePlanBelongsToReference(plan, input.referenceId, input.referenceType);
+
+        if (plan.getPlanStatus() == PlanStatus.DEPRECATED) {
             throw new PlanNotFoundException(input.planId);
         }
 
-        // TODO: For Deprecated API Products we need to throw exception (this is only if we have deprecate feature in API Product?)
-        // Currently API Products don't have a deprecated field, so we check if the plan is deprecated instead
-        if (plan.getPlanStatus() == io.gravitee.definition.model.v4.plan.PlanStatus.DEPRECATED) {
-            throw new PlanNotFoundException(input.planId);
-        }
-
-        // Create subscription using domain service
         io.gravitee.rest.api.model.SubscriptionEntity createdSubscriptionEntity = createSubscriptionDomainService.create(
             input.auditInfo,
             input.planId,
@@ -77,16 +73,38 @@ public class CreateApiProductSubscriptionUseCase {
             input.generalConditionsContentRevision
         );
 
-        // SubscriptionServiceImpl.create already sets referenceId and referenceType from the plan
         SubscriptionEntity createdSubscription = subscriptionCrudService.get(createdSubscriptionEntity.getId());
 
-        log.debug("Created subscription {} for API Product {}", createdSubscription.getId(), input.apiProductId);
+        log.debug("Created subscription {} for {} {}", createdSubscription.getId(), input.referenceType, input.referenceId);
         return new Output(createdSubscription);
+    }
+
+    private void verifyReferenceExists(String referenceId, SubscriptionReferenceType referenceType) {
+        if (referenceType == SubscriptionReferenceType.API) {
+            apiCrudService.get(referenceId);
+        } else if (referenceType == SubscriptionReferenceType.API_PRODUCT) {
+            apiProductCrudService.get(referenceId);
+        }
+    }
+
+    private void validatePlanBelongsToReference(Plan plan, String referenceId, SubscriptionReferenceType referenceType) {
+        GenericPlanEntity.ReferenceType expectedReferenceType = referenceType == SubscriptionReferenceType.API
+            ? GenericPlanEntity.ReferenceType.API
+            : GenericPlanEntity.ReferenceType.API_PRODUCT;
+
+        if (
+            plan.getReferenceType() == null ||
+            !plan.getReferenceType().equals(expectedReferenceType) ||
+            !plan.getReferenceId().equals(referenceId)
+        ) {
+            throw new PlanNotFoundException(plan.getId());
+        }
     }
 
     @Builder
     public record Input(
-        String apiProductId,
+        String referenceId,
+        SubscriptionReferenceType referenceType,
         String planId,
         String applicationId,
         String requestMessage,

@@ -16,8 +16,9 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
 import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
-import io.gravitee.apim.core.subscription.use_case.api_product.CreateApiProductSubscriptionUseCase;
-import io.gravitee.apim.core.subscription.use_case.api_product.GetApiProductSubscriptionsUseCase;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
+import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.GetSubscriptionsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
@@ -68,10 +69,10 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @Inject
-    private GetApiProductSubscriptionsUseCase getApiProductSubscriptionsUseCase;
+    private GetSubscriptionsUseCase getSubscriptionsUseCase;
 
     @Inject
-    private CreateApiProductSubscriptionUseCase createApiProductSubscriptionUseCase;
+    private CreateSubscriptionUseCase createSubscriptionUseCase;
 
     @Inject
     private ParameterService parameterService;
@@ -84,7 +85,7 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.READ }) })
     public Response getApiProductSubscriptions(@BeanParam @Valid PaginationParam paginationParam) {
         log.debug("Getting subscriptions for API Product {}", apiProductId);
-        var output = getApiProductSubscriptionsUseCase.execute(GetApiProductSubscriptionsUseCase.Input.of(apiProductId));
+        var output = getSubscriptionsUseCase.execute(GetSubscriptionsUseCase.Input.of(apiProductId, SubscriptionReferenceType.API_PRODUCT));
         List<io.gravitee.apim.core.subscription.model.SubscriptionEntity> subscriptions = output.subscriptions();
         if (subscriptions == null) {
             subscriptions = List.of();
@@ -92,7 +93,7 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
 
         List<Subscription> subscriptionList = subscriptions.stream().map(subscriptionMapper::map).map(this::filterSensitiveData).toList();
 
-        // TODO: Pagination is currently in-memory; consider DB-level pagination in GetApiProductSubscriptionsUseCase for scalability
+        // TODO: Pagination is currently in-memory; consider DB-level pagination in GetSubscriptionsUseCase for scalability
         int totalCount = subscriptionList.size();
         int fromIndex = Math.min((paginationParam.getPage() - 1) * paginationParam.getPerPage(), totalCount);
         int toIndex = Math.min(fromIndex + paginationParam.getPerPage(), totalCount);
@@ -141,8 +142,9 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
                 .build();
         }
 
-        CreateApiProductSubscriptionUseCase.Input input = CreateApiProductSubscriptionUseCase.Input.builder()
-            .apiProductId(apiProductId)
+        CreateSubscriptionUseCase.Input input = CreateSubscriptionUseCase.Input.builder()
+            .referenceId(apiProductId)
+            .referenceType(SubscriptionReferenceType.API_PRODUCT)
             .planId(createSubscription.getPlanId())
             .applicationId(createSubscription.getApplicationId())
             .requestMessage(null)
@@ -154,7 +156,7 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
             .auditInfo(getAuditInfo())
             .build();
 
-        CreateApiProductSubscriptionUseCase.Output output = createApiProductSubscriptionUseCase.execute(input);
+        CreateSubscriptionUseCase.Output output = createSubscriptionUseCase.execute(input);
         Subscription subscription = subscriptionMapper.map(output.subscription());
 
         log.debug("Created subscription {} for API Product {}", output.subscription().getId(), apiProductId);

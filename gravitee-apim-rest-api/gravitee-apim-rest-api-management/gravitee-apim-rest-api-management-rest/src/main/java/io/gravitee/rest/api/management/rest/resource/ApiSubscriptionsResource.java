@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static java.lang.String.format;
 
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
@@ -192,7 +193,16 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
         if (created.getStatus() == SubscriptionStatus.PENDING) {
             var output = acceptSubscriptionUseCase.execute(
-                new AcceptSubscriptionUseCase.Input(api, created.getId(), TimeProvider.now(), null, null, customApiKey, getAuditInfo())
+                AcceptSubscriptionUseCase.Input.builder()
+                    .referenceId(api)
+                    .referenceType(SubscriptionReferenceType.API)
+                    .subscriptionId(created.getId())
+                    .startingAt(TimeProvider.now())
+                    .endingAt(null)
+                    .reasonMessage(null)
+                    .customKey(customApiKey)
+                    .auditInfo(getAuditInfo())
+                    .build()
             );
 
             subscription = convert(executionContext, output.subscription());

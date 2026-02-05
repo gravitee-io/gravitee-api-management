@@ -62,6 +62,7 @@ public class JdbcGenericNotificationConfigRepositoryTest {
             .build();
 
         when(jdbcTemplate.query(anyString(), any(RowMapper.class))).thenReturn(List.of(config));
+
         doAnswer(inv -> {
             config.setHooks(List.of("HOOK_1"));
             return null;
@@ -70,8 +71,10 @@ public class JdbcGenericNotificationConfigRepositoryTest {
             .query(contains("generic_notification_config_hooks"), any(RowCallbackHandler.class));
 
         Set<GenericNotificationConfig> result = repository.findAll();
+
         assertThat(result).hasSize(1);
         GenericNotificationConfig cfg = result.iterator().next();
+
         assertThat(cfg.getHooks()).containsExactly("HOOK_1");
     }
 }

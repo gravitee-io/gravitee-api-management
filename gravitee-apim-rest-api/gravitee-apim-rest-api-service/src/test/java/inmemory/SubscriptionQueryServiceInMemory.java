@@ -90,6 +90,28 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
     }
 
     @Override
+    public List<SubscriptionEntity> findActiveByApplicationIdAndReferenceIdAndReferenceType(
+        String applicationId,
+        String referenceId,
+        SubscriptionReferenceType referenceType
+    ) {
+        return storage
+            .stream()
+            .filter(
+                subscription ->
+                    List.of(
+                        SubscriptionEntity.Status.ACCEPTED,
+                        SubscriptionEntity.Status.PENDING,
+                        SubscriptionEntity.Status.PAUSED
+                    ).contains(subscription.getStatus()) &&
+                    referenceId.equals(subscription.getReferenceId()) &&
+                    referenceType.equals(subscription.getReferenceType()) &&
+                    applicationId.equals(subscription.getApplicationId())
+            )
+            .toList();
+    }
+
+    @Override
     public List<SubscriptionEntity> findAllByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType) {
         return storage
             .stream()

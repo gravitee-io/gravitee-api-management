@@ -31,11 +31,6 @@ public class ApiProductCrudServiceInMemory extends AbstractCrudServiceInMemory<A
     }
 
     @Override
-    public ApiProduct get(String id) {
-        return findById(id).orElseThrow(() -> new ApiProductNotFoundException(id));
-    }
-
-    @Override
     public ApiProduct update(ApiProduct apiProductToUpdate) {
         OptionalInt index = this.findIndex(this.storage, apiProduct -> apiProduct.getId().equals(apiProductToUpdate.getId()));
         if (index.isPresent()) {

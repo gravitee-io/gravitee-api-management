@@ -29,6 +29,12 @@ public interface SubscriptionQueryService {
 
     List<SubscriptionEntity> findActiveByApplicationIdAndApiId(String applicationId, String apiId);
 
+    List<SubscriptionEntity> findActiveByApplicationIdAndReferenceIdAndReferenceType(
+        String applicationId,
+        String referenceId,
+        SubscriptionReferenceType referenceType
+    );
+
     List<SubscriptionEntity> findAllByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType);
 
     Optional<SubscriptionEntity> findByIdAndReferenceIdAndReferenceType(

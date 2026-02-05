@@ -97,6 +97,28 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
     }
 
     @Override
+    public List<SubscriptionEntity> findActiveByApplicationIdAndReferenceIdAndReferenceType(
+        String applicationId,
+        String referenceId,
+        SubscriptionReferenceType referenceType
+    ) {
+        try {
+            io.gravitee.repository.management.model.SubscriptionReferenceType repoReferenceType =
+                io.gravitee.repository.management.model.SubscriptionReferenceType.valueOf(referenceType.name());
+            var criteria = SubscriptionCriteria.builder()
+                .statuses(List.of(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PENDING.name(), SubscriptionStatus.PAUSED.name()))
+                .referenceIds(List.of(referenceId))
+                .referenceType(repoReferenceType)
+                .applications(List.of(applicationId))
+                .build();
+
+            return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find subscriptions", e);
+        }
+    }
+
+    @Override
     public List<SubscriptionEntity> findAllByReferenceIdAndReferenceType(String referenceId, SubscriptionReferenceType referenceType) {
         try {
             // Convert core enum to repository enum

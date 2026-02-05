@@ -25,25 +25,31 @@ import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.Map;
+import lombok.CustomLog;
 
 @DomainService
+@CustomLog
 public class ClosePlanDomainService {
 
     private final PlanCrudService planCrudService;
     private final SubscriptionQueryService subscriptionQueryService;
+    private final CloseSubscriptionDomainService closeSubscriptionDomainService;
     private final AuditDomainService auditService;
 
     public ClosePlanDomainService(
         PlanCrudService planCrudService,
         SubscriptionQueryService subscriptionQueryService,
+        CloseSubscriptionDomainService closeSubscriptionDomainService,
         AuditDomainService auditService
     ) {
         this.planCrudService = planCrudService;
         this.subscriptionQueryService = subscriptionQueryService;
+        this.closeSubscriptionDomainService = closeSubscriptionDomainService;
         this.auditService = auditService;
     }
 
@@ -53,7 +59,6 @@ public class ClosePlanDomainService {
         }
 
         var planToClose = planCrudService.getById(planId);
-
         final Plan closedPlan = planToClose.close();
 
         var planUpdated = planCrudService.update(closedPlan);

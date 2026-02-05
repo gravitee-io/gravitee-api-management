@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
 import fixtures.core.model.SubscriptionFixtures;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
@@ -190,7 +191,8 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         verify(acceptSubscriptionUseCase, times(1)).execute(captor.capture());
         SoftAssertions.assertSoftly(soft -> {
             var input = captor.getValue();
-            soft.assertThat(input.apiId()).isEqualTo(API_NAME);
+            soft.assertThat(input.referenceId()).isEqualTo(API_NAME);
+            soft.assertThat(input.referenceType()).isEqualTo(SubscriptionReferenceType.API);
             soft.assertThat(input.subscriptionId()).isEqualTo(FAKE_SUBSCRIPTION_ID);
             soft.assertThat(input.customKey()).isEqualTo(customApiKey);
             soft.assertThat(input.startingAt()).isStrictlyBetween(ZonedDateTime.now().minusSeconds(5), ZonedDateTime.now().plusSeconds(5));
@@ -248,7 +250,8 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         verify(acceptSubscriptionUseCase, times(1)).execute(captor.capture());
         SoftAssertions.assertSoftly(soft -> {
             var input = captor.getValue();
-            soft.assertThat(input.apiId()).isEqualTo(API_NAME);
+            soft.assertThat(input.referenceId()).isEqualTo(API_NAME);
+            soft.assertThat(input.referenceType()).isEqualTo(SubscriptionReferenceType.API);
             soft.assertThat(input.subscriptionId()).isEqualTo(FAKE_SUBSCRIPTION_ID);
             soft.assertThat(input.customKey()).isNull();
             soft.assertThat(input.startingAt()).isStrictlyBetween(ZonedDateTime.now().minusSeconds(5), ZonedDateTime.now().plusSeconds(5));

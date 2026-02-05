@@ -28,8 +28,9 @@ import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
-import io.gravitee.apim.core.subscription.use_case.api_product.CreateApiProductSubscriptionUseCase;
-import io.gravitee.apim.core.subscription.use_case.api_product.GetApiProductSubscriptionsUseCase;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
+import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.GetSubscriptionsUseCase;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -50,13 +51,13 @@ import org.mockito.ArgumentCaptor;
 class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
 
     private static final String ENV_ID = "my-env";
-    private static final String API_PRODUCT_ID = "api-product-id";
+    private static final String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
 
     @Inject
-    private GetApiProductSubscriptionsUseCase getApiProductSubscriptionsUseCase;
+    private GetSubscriptionsUseCase getSubscriptionsUseCase;
 
     @Inject
-    private CreateApiProductSubscriptionUseCase createApiProductSubscriptionUseCase;
+    private CreateSubscriptionUseCase createSubscriptionUseCase;
 
     @Override
     protected String contextPath() {
@@ -82,7 +83,7 @@ class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(getApiProductSubscriptionsUseCase, createApiProductSubscriptionUseCase);
+        reset(getSubscriptionsUseCase, createSubscriptionUseCase);
     }
 
     @Nested
@@ -90,7 +91,7 @@ class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_empty_list_when_no_subscriptions() {
-            when(getApiProductSubscriptionsUseCase.execute(any())).thenReturn(GetApiProductSubscriptionsUseCase.Output.multiple(List.of()));
+            when(getSubscriptionsUseCase.execute(any())).thenReturn(GetSubscriptionsUseCase.Output.multiple(List.of()));
 
             Response response = rootTarget().request().get();
 
@@ -98,25 +99,26 @@ class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
             var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.SubscriptionsResponse.class);
             assertThat(body.getData()).isEmpty();
 
-            var captor = ArgumentCaptor.forClass(GetApiProductSubscriptionsUseCase.Input.class);
-            verify(getApiProductSubscriptionsUseCase).execute(captor.capture());
-            assertThat(captor.getValue().apiProductId()).isEqualTo(API_PRODUCT_ID);
+            var captor = ArgumentCaptor.forClass(GetSubscriptionsUseCase.Input.class);
+            verify(getSubscriptionsUseCase).execute(captor.capture());
+            assertThat(captor.getValue().referenceId()).isEqualTo(API_PRODUCT_ID);
+            assertThat(captor.getValue().referenceType()).isEqualTo(SubscriptionReferenceType.API_PRODUCT);
         }
 
         @Test
         void should_return_subscriptions_list() {
             SubscriptionEntity sub = SubscriptionEntity.builder()
                 .id("sub-1")
-                .apiId(API_PRODUCT_ID)
+                .apiId(null)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
                 .planId("plan-1")
                 .applicationId("app-1")
                 .status(SubscriptionEntity.Status.ACCEPTED)
                 .createdAt(ZonedDateTime.now())
                 .updatedAt(ZonedDateTime.now())
                 .build();
-            when(getApiProductSubscriptionsUseCase.execute(any())).thenReturn(
-                GetApiProductSubscriptionsUseCase.Output.multiple(List.of(sub))
-            );
+            when(getSubscriptionsUseCase.execute(any())).thenReturn(GetSubscriptionsUseCase.Output.multiple(List.of(sub)));
 
             Response response = rootTarget().request().get();
 
@@ -141,14 +143,16 @@ class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
         void should_create_subscription() {
             SubscriptionEntity created = SubscriptionEntity.builder()
                 .id("new-sub-id")
-                .apiId(API_PRODUCT_ID)
+                .apiId(null)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
                 .planId("plan-1")
                 .applicationId("app-1")
                 .status(SubscriptionEntity.Status.PENDING)
                 .createdAt(ZonedDateTime.now())
                 .updatedAt(ZonedDateTime.now())
                 .build();
-            when(createApiProductSubscriptionUseCase.execute(any())).thenReturn(new CreateApiProductSubscriptionUseCase.Output(created));
+            when(createSubscriptionUseCase.execute(any())).thenReturn(new CreateSubscriptionUseCase.Output(created));
 
             var createPayload = new io.gravitee.rest.api.management.v2.rest.model.CreateSubscription();
             createPayload.setPlanId("plan-1");
@@ -159,10 +163,11 @@ class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
             MAPIAssertions.assertThat(response).hasStatus(CREATED_201);
             assertThat(response.getLocation().getPath()).contains("new-sub-id");
 
-            var captor = ArgumentCaptor.forClass(CreateApiProductSubscriptionUseCase.Input.class);
-            verify(createApiProductSubscriptionUseCase).execute(captor.capture());
+            var captor = ArgumentCaptor.forClass(CreateSubscriptionUseCase.Input.class);
+            verify(createSubscriptionUseCase).execute(captor.capture());
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(captor.getValue().apiProductId()).isEqualTo(API_PRODUCT_ID);
+                soft.assertThat(captor.getValue().referenceId()).isEqualTo(API_PRODUCT_ID);
+                soft.assertThat(captor.getValue().referenceType()).isEqualTo(SubscriptionReferenceType.API_PRODUCT);
                 soft.assertThat(captor.getValue().planId()).isEqualTo("plan-1");
                 soft.assertThat(captor.getValue().applicationId()).isEqualTo("app-1");
             });

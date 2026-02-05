@@ -670,7 +670,9 @@ public class PlanCrudServiceImplTest {
             .commentRequired(true)
             .commentMessage("comment-message")
             .generalConditions("general-conditions")
-            .tags(Set.of("tag-1"));
+            .tags(Set.of("tag-1"))
+            .referenceId("api-id")
+            .referenceType(Plan.PlanReferenceType.API);
     }
 
     private Plan.PlanBuilder planV2() {
@@ -697,6 +699,8 @@ public class PlanCrudServiceImplTest {
             .commentRequired(true)
             .commentMessage("comment-message")
             .generalConditions("general-conditions")
-            .tags(Set.of("tag-1"));
+            .tags(Set.of("tag-1"))
+            .referenceId("api-id")
+            .referenceType(Plan.PlanReferenceType.API);
     }
 }
