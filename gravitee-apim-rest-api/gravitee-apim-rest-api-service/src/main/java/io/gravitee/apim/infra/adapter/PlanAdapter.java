@@ -60,7 +60,6 @@ public interface PlanAdapter {
     Plan fromRepository(io.gravitee.repository.management.model.Plan plan);
 
     @Mapping(source = "apiId", target = "api")
-    @Mapping(source = "referenceId", target = "referenceId")
     @Mapping(target = "security", source = "planSecurity", qualifiedByName = "computeRepositorySecurityType")
     @Mapping(target = "securityDefinition", source = "planSecurity.configuration")
     @Mapping(target = "definition", expression = "java(serializeDefinition(source))")
@@ -68,7 +67,6 @@ public interface PlanAdapter {
     @Mapping(target = "selectionRule", expression = "java(serializeSelectionRule(source))")
     @Mapping(target = "status", source = "planStatus")
     @Mapping(target = "tags", expression = "java(serializeTags(source))")
-    @Mapping(target = "referenceType", expression = "java(toPlanReferenceType(source))")
     io.gravitee.repository.management.model.Plan toRepository(Plan source);
 
     @Mapping(target = "status", source = "planStatus")

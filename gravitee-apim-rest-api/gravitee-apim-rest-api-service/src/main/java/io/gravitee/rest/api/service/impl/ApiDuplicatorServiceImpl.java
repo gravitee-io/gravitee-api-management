@@ -41,6 +41,7 @@ import io.gravitee.rest.api.model.NewGroupEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.SystemFolderType;
 import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
@@ -1086,7 +1087,12 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             if (existingPlan != null) {
                 plansToImport.add(objectMapper.readerForUpdating(existingPlan).readValue(planNode.getJsonNode()));
             } else {
-                plansToImport.add(objectMapper.readValue(planNode.toString(), PlanEntity.class));
+                PlanEntity planEntity = objectMapper.readValue(planNode.toString(), PlanEntity.class);
+                planEntity.setApi(apiJsonNode.getId());
+                planEntity.setReferenceId(apiJsonNode.getId());
+                planEntity.setType(PlanType.API);
+                planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
+                plansToImport.add(planEntity);
             }
         }
         return plansToImport;

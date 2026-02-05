@@ -26,7 +26,6 @@ import io.gravitee.rest.api.model.NewPlanEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.model.PlanStatus;
-import io.gravitee.rest.api.model.PlanType;
 import io.gravitee.rest.api.model.PlanValidationType;
 import io.gravitee.rest.api.model.UpdatePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -139,7 +138,6 @@ public class PlanConverter {
         newPlanEntity.setId(planEntity.getId());
         newPlanEntity.setCrossId(resetCrossId ? null : planEntity.getCrossId());
         newPlanEntity.setHrid(planEntity.getHrid());
-        newPlanEntity.setReferenceId(planEntity.getReferenceId());
         newPlanEntity.setName(planEntity.getName());
         newPlanEntity.setDescription(planEntity.getDescription());
         newPlanEntity.setOrder(planEntity.getOrder());
@@ -171,6 +169,8 @@ public class PlanConverter {
         newPlanEntity.setGeneralConditions(planEntity.getGeneralConditions());
         newPlanEntity.setTags(planEntity.getTags());
         newPlanEntity.setSelectionRule(planEntity.getSelectionRule());
+        newPlanEntity.setReferenceId(planEntity.getReferenceId());
+        newPlanEntity.setReferenceType(planEntity.getReferenceType());
         return newPlanEntity;
     }
 
@@ -186,7 +186,6 @@ public class PlanConverter {
         plan.setCreatedAt(new Date());
         plan.setUpdatedAt(plan.getCreatedAt());
         plan.setNeedRedeployAt(plan.getCreatedAt());
-        plan.setReferenceType(Plan.PlanReferenceType.valueOf(newPlan.getReferenceType().name()));
         plan.setSecurity(Plan.PlanSecurityType.valueOf(newPlan.getSecurity().name()));
         plan.setSecurityDefinition(newPlan.getSecurityDefinition());
         plan.setStatus(Plan.Status.valueOf(newPlan.getStatus().name()));
@@ -236,6 +235,8 @@ public class PlanConverter {
         planDefinition.setSelectionRule(plan.getSelectionRule());
         planDefinition.setStatus(plan.getStatus().name());
         planDefinition.setTags(plan.getTags());
+        planDefinition.setReferenceId(plan.getReferenceId());
+        planDefinition.setReferenceType(plan.getReferenceType().name());
         return planDefinition;
     }
 }
