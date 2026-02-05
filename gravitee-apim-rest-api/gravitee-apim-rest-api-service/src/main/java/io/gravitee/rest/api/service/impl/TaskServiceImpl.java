@@ -333,7 +333,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             Optional<Plan> optPlan = planRepository.findById(subscription.getPlan());
 
             if (optPlan.isPresent()) {
-                String apiId = optPlan.get().getApi();
+                String apiId = optPlan.get().getReferenceId();
                 metadata.put(subscription.getPlan(), "name", optPlan.get().getName());
                 metadata.put(subscription.getPlan(), "api", apiId);
 

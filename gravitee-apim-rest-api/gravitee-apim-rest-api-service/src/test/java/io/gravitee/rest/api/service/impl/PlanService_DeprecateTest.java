@@ -100,7 +100,7 @@ public class PlanService_DeprecateTest {
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
-            .api(API_ID)
+            .referenceId(API_ID)
             .build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
@@ -116,7 +116,7 @@ public class PlanService_DeprecateTest {
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
-            .api(API_ID)
+            .referenceId(API_ID)
             .build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 

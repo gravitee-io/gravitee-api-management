@@ -167,11 +167,13 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     @Override
     public PlanEntity create(final ExecutionContext executionContext, NewPlanEntity newPlan) {
         try {
-            log.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApi());
+            log.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getReferenceId());
 
             assertPlanSecurityIsAllowed(executionContext, newPlan.getSecurity());
 
-            Api api = apiRepository.findById(newPlan.getApi()).orElseThrow(() -> new ApiNotFoundException(newPlan.getApi()));
+            Api api = apiRepository
+                .findById(newPlan.getReferenceId())
+                .orElseThrow(() -> new ApiNotFoundException(newPlan.getReferenceId()));
 
             if (api.getApiLifecycleState() == DEPRECATED) {
                 throw new ApiDeprecatedException(api.getName());
@@ -179,7 +181,9 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             validateTags(newPlan.getTags(), api);
 
-            String id = newPlan.getId() != null && UUID.fromString(newPlan.getId()) != null ? newPlan.getId() : UuidString.generateRandom();
+            String id = newPlan.getId() != null && UUID.fromString(newPlan.getReferenceId()) != null
+                ? newPlan.getId()
+                : UuidString.generateRandom();
 
             newPlan.setId(id);
             Plan plan = planConverter.toPlan(newPlan, getApiDefinitionVersion(api));
@@ -197,19 +201,19 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                     .oldValue(null)
                     .newValue(plan)
                     .build(),
-                newPlan.getApi()
+                newPlan.getReferenceId()
             );
             return convert(plan);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create a plan {} for API {}", newPlan.getName(), newPlan.getApi(), ex);
+            log.error("An error occurs while trying to create a plan {} for API {}", newPlan.getName(), newPlan.getReferenceId(), ex);
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to create a plan %s for API %s", newPlan.getName(), newPlan.getApi()),
+                String.format("An error occurs while trying to create a plan %s for API %s", newPlan.getName(), newPlan.getReferenceId()),
                 ex
             );
         } catch (JsonProcessingException jse) {
             log.error("Unexpected error while generating plan definition", jse);
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to create a plan %s for API %s", newPlan.getName(), newPlan.getApi()),
+                String.format("An error occurs while trying to create a plan %s for API %s", newPlan.getName(), newPlan.getReferenceId()),
                 jse
             );
         }
@@ -238,7 +242,9 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             Plan oldPlan = planRepository.findById(updatePlan.getId()).orElseThrow(() -> new PlanNotFoundException(updatePlan.getId()));
             assertPlanSecurityIsAllowed(executionContext, PlanSecurityType.valueOf(oldPlan.getSecurity().name()));
 
-            Api api = apiRepository.findById(oldPlan.getApi()).orElseThrow(() -> new ApiNotFoundException(oldPlan.getApi()));
+            Api api = apiRepository
+                .findById(oldPlan.getReferenceId())
+                .orElseThrow(() -> new ApiNotFoundException(oldPlan.getReferenceId()));
             if (getApiDefinitionVersion(api) == V2 && updatePlan.getFlows() == null) {
                 throw new PlanFlowRequiredException(updatePlan.getId());
             }
@@ -251,7 +257,8 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             newPlan.setType(oldPlan.getType());
             newPlan.setStatus(oldPlan.getStatus());
             newPlan.setOrder(oldPlan.getOrder());
-            newPlan.setApi(oldPlan.getApi());
+            newPlan.setReferenceId(oldPlan.getReferenceId());
+            newPlan.setReferenceType(oldPlan.getReferenceType());
             newPlan.setCreatedAt(oldPlan.getCreatedAt());
             newPlan.setPublishedAt(oldPlan.getPublishedAt());
             newPlan.setClosedAt(oldPlan.getClosedAt());
@@ -324,7 +331,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                     .oldValue(oldPlan)
                     .newValue(newPlan)
                     .build(),
-                newPlan.getApi()
+                newPlan.getReferenceId()
             );
 
             return convert(newPlan);
@@ -415,7 +422,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                     .oldValue(previousPlan)
                     .newValue(plan)
                     .build(),
-                plan.getApi()
+                plan.getReferenceId()
             );
 
             //reorder plan
@@ -456,7 +463,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                     .oldValue(plan)
                     .newValue(null)
                     .build(),
-                plan.getApi()
+                plan.getReferenceId()
             );
 
             //reorder plan
@@ -484,7 +491,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             checkStatusOfGeneralConditions(plan);
 
-            Set<Plan> plans = planRepository.findByApi(plan.getApi());
+            Set<Plan> plans = planRepository.findByApi(plan.getReferenceId());
             if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
                 // Look to other plans if there is already a keyless-published plan
                 long count = plans
@@ -525,7 +532,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                     .oldValue(previousPlan)
                     .newValue(plan)
                     .build(),
-                plan.getApi()
+                plan.getReferenceId()
             );
 
             return convert(plan);
@@ -572,7 +579,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                     .oldValue(previousPlan)
                     .newValue(plan)
                     .build(),
-                plan.getApi()
+                plan.getReferenceId()
             );
 
             return convert(plan);
@@ -590,7 +597,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     }
 
     private Plan reorderAndSavePlans(final Plan planToReorder) throws TechnicalException {
-        final Collection<Plan> plans = planRepository.findByApi(planToReorder.getApi());
+        final Collection<Plan> plans = planRepository.findByApi(planToReorder.getReferenceId());
         Plan[] plansToReorder = plans
             .stream()
             .filter(p -> Plan.Status.PUBLISHED.equals(p.getStatus()) && !Objects.equals(p.getId(), planToReorder.getId()))
@@ -624,7 +631,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     }
 
     private void reorderedAndSavePlansAfterRemove(final Plan planRemoved) throws TechnicalException {
-        final Collection<Plan> plans = planRepository.findByApi(planRemoved.getApi());
+        final Collection<Plan> plans = planRepository.findByApi(planRemoved.getReferenceId());
         plans
             .stream()
             .filter(p -> Plan.Status.PUBLISHED.equals(p.getStatus()))

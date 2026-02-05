@@ -79,11 +79,13 @@ class PlanAppenderTest {
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder().apiId("apiId").reactableApi(reactableApi).build();
             Plan plan = new Plan();
             plan.setId("planId");
-            plan.setApi("apiId");
             plan.setStatus(Plan.Status.PUBLISHED);
+            plan.setReferenceId("apiId");
+            plan.setReferenceType(Plan.PlanReferenceType.API);
             Plan plan2 = new Plan();
             plan2.setId("planId2");
-            plan2.setApi("apiId");
+            plan2.setReferenceId("apiId");
+            plan2.setReferenceType(Plan.PlanReferenceType.API);
             plan2.setStatus(Plan.Status.CLOSED);
             when(planRepository.findByApisAndEnvironments(List.of("apiId"), Set.of("env"))).thenReturn(List.of(plan, plan2));
             List<ApiReactorDeployable> appends = cut.appends(List.of(apiReactorDeployable), Set.of("env"));

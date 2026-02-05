@@ -82,11 +82,11 @@ class GetApiDefinitionUseCaseTest {
             flowCrudServiceInMemory.saveApiFlows(API_ID, flows);
 
             //   Plan flow
-            var planPublished = aPlanHttpV4().setPlanId("plan-push-id").toBuilder().apiId(API_ID).build();
+            var planPublished = aPlanHttpV4().setPlanId("plan-push-id").toBuilder().referenceId(API_ID).build();
             planPublished.setPlanStatus(PlanStatus.PUBLISHED);
-            var planDeprecated = aPlanHttpV4().setPlanId("plan-deprecate-id").toBuilder().apiId(API_ID).build();
+            var planDeprecated = aPlanHttpV4().setPlanId("plan-deprecate-id").toBuilder().referenceId(API_ID).build();
             planDeprecated.setPlanStatus(PlanStatus.DEPRECATED);
-            var planStaging = aPlanHttpV4().setPlanId("plan-staging-id").toBuilder().apiId(API_ID).build();
+            var planStaging = aPlanHttpV4().setPlanId("plan-staging-id").toBuilder().referenceId(API_ID).build();
             planStaging.setPlanStatus(PlanStatus.STAGING);
             planQueryServiceInMemory.initWith(List.of(planPublished, planDeprecated, planStaging));
 
@@ -143,11 +143,11 @@ class GetApiDefinitionUseCaseTest {
             flowCrudServiceInMemory.saveNativeApiFlows(API_ID, flows);
 
             //   Plan flow
-            var planPublished = aPlanNativeV4().setPlanId("plan-push-id").toBuilder().apiId(API_ID).build();
+            var planPublished = aPlanNativeV4().setPlanId("plan-push-id").toBuilder().referenceId(API_ID).build();
             planPublished.setPlanStatus(PlanStatus.PUBLISHED);
-            var planDeprecated = aPlanNativeV4().setPlanId("plan-deprecate-id").toBuilder().apiId(API_ID).build();
+            var planDeprecated = aPlanNativeV4().setPlanId("plan-deprecate-id").toBuilder().referenceId(API_ID).build();
             planDeprecated.setPlanStatus(PlanStatus.DEPRECATED);
-            var planStaging = aPlanNativeV4().setPlanId("plan-staging-id").toBuilder().apiId(API_ID).build();
+            var planStaging = aPlanNativeV4().setPlanId("plan-staging-id").toBuilder().referenceId(API_ID).build();
             planStaging.setPlanStatus(PlanStatus.STAGING);
             planQueryServiceInMemory.initWith(List.of(planPublished, planDeprecated, planStaging));
 
@@ -201,11 +201,11 @@ class GetApiDefinitionUseCaseTest {
             flowCrudServiceInMemory.saveApiFlowsV2(API_ID, flows);
 
             //   Plan flow
-            var planPublished = aPlanV2().setPlanId("plan-push-id").toBuilder().apiId(API_ID).build();
+            var planPublished = aPlanV2().setPlanId("plan-push-id").toBuilder().referenceId(API_ID).build();
             planPublished.setPlanStatus(PlanStatus.PUBLISHED);
-            var planDeprecated = aPlanV2().setPlanId("plan-deprecate-id").toBuilder().apiId(API_ID).build();
+            var planDeprecated = aPlanV2().setPlanId("plan-deprecate-id").toBuilder().referenceId(API_ID).build();
             planDeprecated.setPlanStatus(PlanStatus.DEPRECATED);
-            var planStaging = aPlanV2().setPlanId("plan-staging-id").toBuilder().apiId(API_ID).build();
+            var planStaging = aPlanV2().setPlanId("plan-staging-id").toBuilder().referenceId(API_ID).build();
             planStaging.setPlanStatus(PlanStatus.STAGING);
             planQueryServiceInMemory.initWith(List.of(planPublished, planDeprecated, planStaging));
 

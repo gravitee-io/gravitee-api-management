@@ -955,7 +955,6 @@ class IngestFederatedApisUseCaseTest {
                             .name("My Plan 1")
                             .description("Description 1")
                             .validation(Plan.PlanValidationType.MANUAL)
-                            .apiId("environment-idintegration-idasset-uid")
                             .referenceId("environment-idintegration-idasset-uid")
                             .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
                             .federatedPlanDefinition(
@@ -978,7 +977,6 @@ class IngestFederatedApisUseCaseTest {
                             .name("My Plan 2")
                             .description("Description 2")
                             .validation(Plan.PlanValidationType.MANUAL)
-                            .apiId("environment-idintegration-idasset-uid")
                             .referenceId("environment-idintegration-idasset-uid")
                             .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
                             .federatedPlanDefinition(
@@ -1045,7 +1043,6 @@ class IngestFederatedApisUseCaseTest {
                             .build()
                     )
                     .validation(Plan.PlanValidationType.MANUAL)
-                    .apiId("environment-idintegration-idasset-uid")
                     .referenceType(GenericPlanEntity.ReferenceType.API)
                     .referenceId("environment-idintegration-idasset-uid")
                     .build()
@@ -1068,7 +1065,6 @@ class IngestFederatedApisUseCaseTest {
                             .name("Updated Plan 1")
                             .description("Updated description 1")
                             .validation(Plan.PlanValidationType.MANUAL)
-                            .apiId("environment-idintegration-idasset-uid")
                             .referenceId("environment-idintegration-idasset-uid")
                             .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
                             .federatedPlanDefinition(
@@ -1118,7 +1114,8 @@ class IngestFederatedApisUseCaseTest {
                             .build()
                     )
                     .validation(Plan.PlanValidationType.MANUAL)
-                    .apiId("environment-idintegration-idasset-uid")
+                    .referenceId("environment-idintegration-idasset-uid")
+                    .referenceType(GenericPlanEntity.ReferenceType.API)
                     .build()
             );
             TimeProvider.overrideClock(Clock.fixed(UPDATE_TIME, ZoneId.systemDefault()));
@@ -1183,7 +1180,6 @@ class IngestFederatedApisUseCaseTest {
                             .build()
                     )
                     .validation(Plan.PlanValidationType.MANUAL)
-                    .apiId("environment-idintegration-idasset-uid")
                     .build()
             );
 

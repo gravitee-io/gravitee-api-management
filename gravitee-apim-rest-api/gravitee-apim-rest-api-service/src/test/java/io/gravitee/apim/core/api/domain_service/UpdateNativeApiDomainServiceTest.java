@@ -457,7 +457,7 @@ class UpdateNativeApiDomainServiceTest {
         return Plan.builder()
             .id(status.name())
             .definitionVersion(DefinitionVersion.V4)
-            .apiId(ApiFixtures.aNativeApi().getId())
+            .referenceId(ApiFixtures.aNativeApi().getId())
             .apiType(ApiType.NATIVE)
             .planDefinitionNativeV4(NativePlan.builder().status(status).build())
             .build();

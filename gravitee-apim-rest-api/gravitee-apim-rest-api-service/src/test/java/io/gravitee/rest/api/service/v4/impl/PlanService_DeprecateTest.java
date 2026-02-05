@@ -109,7 +109,7 @@ public class PlanService_DeprecateTest {
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
             .id(PLAN_ID)
-            .api(API_ID)
+            .referenceId(API_ID)
             .build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
@@ -123,10 +123,10 @@ public class PlanService_DeprecateTest {
     public void shouldDepreciateNativePlanWithStagingAndAllowStaging() throws TechnicalException {
         var plan = Plan.builder()
             .status(Plan.Status.STAGING)
-            .type(Plan.PlanType.API)
+            .referenceType(Plan.PlanReferenceType.API)
             .validation(Plan.PlanValidationType.AUTO)
             .id(PLAN_ID)
-            .api(API_ID)
+            .referenceId(API_ID)
             .apiType(ApiType.NATIVE)
             .build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
@@ -143,10 +143,10 @@ public class PlanService_DeprecateTest {
     public void shouldNotDepreciateWithStagingPlanAndNotAllowStaging() throws TechnicalException {
         var plan = Plan.builder()
             .status(Plan.Status.STAGING)
-            .type(Plan.PlanType.API)
+            .referenceType(Plan.PlanReferenceType.API)
             .validation(Plan.PlanValidationType.AUTO)
             .id(PLAN_ID)
-            .api(API_ID)
+            .referenceId(API_ID)
             .build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
@@ -166,10 +166,10 @@ public class PlanService_DeprecateTest {
     public void shouldDepreciate() throws TechnicalException {
         var plan = Plan.builder()
             .status(Plan.Status.PUBLISHED)
-            .type(Plan.PlanType.API)
+            .referenceType(Plan.PlanReferenceType.API)
             .validation(Plan.PlanValidationType.AUTO)
             .id(PLAN_ID)
-            .api(API_ID)
+            .referenceId(API_ID)
             .build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());

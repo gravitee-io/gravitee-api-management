@@ -343,7 +343,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             givenExistingPlan(
                 Plan.builder()
                     .id("plan-id")
-                    .api(API_ID)
+                    .referenceId(API_ID)
                     .name("plan")
                     .description("plan-description")
                     .order(1)
@@ -398,7 +398,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             givenExistingPlan(
                 Plan.builder()
                     .id("plan-id")
-                    .api(API_ID)
+                    .referenceId(API_ID)
                     .name("plan")
                     .description("plan-description")
                     .order(1)
@@ -716,7 +716,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             givenExistingPlan(
                 Plan.builder()
                     .id("plan-id")
-                    .api(API_ID)
+                    .referenceId(API_ID)
                     .name("plan")
                     .description("plan-description")
                     .order(1)
@@ -772,7 +772,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             givenExistingPlan(
                 Plan.builder()
                     .id("plan-id")
-                    .api(API_ID)
+                    .referenceId(API_ID)
                     .name("plan")
                     .description("plan-description")
                     .order(1)

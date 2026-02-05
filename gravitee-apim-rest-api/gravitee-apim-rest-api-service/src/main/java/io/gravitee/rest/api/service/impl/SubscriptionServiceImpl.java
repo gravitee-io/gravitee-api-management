@@ -360,7 +360,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             if (genericPlanEntity.getExcludedGroups() != null && !genericPlanEntity.getExcludedGroups().isEmpty()) {
                 final boolean userAuthorizedToAccessApiData = groupService.isUserAuthorizedToAccessApiData(
-                    apiSearchService.findGenericById(executionContext, genericPlanEntity.getApiId(), false, false, false),
+                    apiSearchService.findGenericById(executionContext, genericPlanEntity.getReferenceId(), false, false, false),
                     genericPlanEntity.getExcludedGroups(),
                     getAuthenticatedUsername()
                 );
@@ -398,7 +398,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             List<Subscription> subscriptions = subscriptionRepository.search(
                 SubscriptionCriteria.builder()
                     .applications(Collections.singleton(application))
-                    .apis(Collections.singleton(genericPlanEntity.getApiId()))
+                    .apis(Collections.singleton(genericPlanEntity.getReferenceId()))
                     .build()
             );
 
@@ -530,7 +530,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             setSubscriptionConfig(newSubscriptionEntity.getConfiguration(), subscription);
 
-            String apiId = genericPlanEntity.getApiId();
+            String apiId = genericPlanEntity.getReferenceId();
             subscription.setApi(apiId);
             subscription.setGeneralConditionsAccepted(newSubscriptionEntity.getGeneralConditionsAccepted());
             if (newSubscriptionEntity.getGeneralConditionsContentRevision() != null) {
@@ -711,7 +711,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             createAudit(
                 executionContext,
-                planEntity.getApiId(),
+                planEntity.getReferenceId(),
                 subscription.getApplication(),
                 SUBSCRIPTION_UPDATED,
                 subscription.getUpdatedAt(),
@@ -809,7 +809,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscription = subscriptionRepository.update(subscription);
                 createAudit(
                     executionContext,
-                    genericPlanEntity.getApiId(),
+                    genericPlanEntity.getReferenceId(),
                     subscription.getApplication(),
                     SUBSCRIPTION_UPDATED,
                     subscription.getUpdatedAt(),
@@ -896,7 +896,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             ExecutionContext executionContext = new ExecutionContext(environmentEntity.getOrganizationId(), environmentEntity.getId());
             final ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
             final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
-            String apiId = genericPlanEntity.getApiId();
+            String apiId = genericPlanEntity.getReferenceId();
             final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
             final Map<String, Object> params = new NotificationParamsBuilder()
@@ -936,7 +936,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             ExecutionContext executionContext = new ExecutionContext(environmentEntity.getOrganizationId(), environmentEntity.getId());
             final ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
             final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
-            String apiId = genericPlanEntity.getApiId();
+            String apiId = genericPlanEntity.getReferenceId();
             final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
             final Map<String, Object> params = new NotificationParamsBuilder()
@@ -969,7 +969,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             final ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
             final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
-            String apiId = genericPlanEntity.getApiId();
+            String apiId = genericPlanEntity.getReferenceId();
             final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
             validateConsumerStatus(subscription, genericApiModel);
 
@@ -1038,7 +1038,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 // Send an email to subscriber
                 final ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
                 final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
-                String apiId = genericPlanEntity.getApiId();
+                String apiId = genericPlanEntity.getReferenceId();
                 final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
                 final PrimaryOwnerEntity owner = application.getPrimaryOwner();
                 final Map<String, Object> params = new NotificationParamsBuilder()
@@ -1085,7 +1085,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
 
             final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
-            String apiId = genericPlanEntity.getApiId();
+            String apiId = genericPlanEntity.getReferenceId();
             final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
             validateConsumerStatus(subscription, genericApiModel);
 
@@ -1215,7 +1215,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 // Send an email to subscriber
                 final ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
                 final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
-                String apiId = genericPlanEntity.getApiId();
+                String apiId = genericPlanEntity.getReferenceId();
                 final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
                 final PrimaryOwnerEntity owner = application.getPrimaryOwner();
                 final Map<String, Object> params = new NotificationParamsBuilder()
@@ -1512,7 +1512,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 .orElseThrow(() -> new SubscriptionNotFoundException(transferSubscription.getId()));
             GenericPlanEntity subscriptionGenericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
             if (
-                !transferGenericPlanEntity.getApiId().equals(subscription.getApi()) || //Don't transfer to another API
+                !transferGenericPlanEntity.getReferenceId().equals(subscription.getApi()) || //Don't transfer to another API
                 transferGenericPlanEntity.getPlanStatus() != PlanStatus.PUBLISHED || //Don't transfer to a non published plan
                 (transferGenericPlanEntity.getPlanSecurity() == null && subscriptionGenericPlanEntity.getPlanSecurity() != null) || //Don't transfer to a plan with security (Mode STANDARD) if the plan to transfer has no security (Mode PUSH)
                 (transferGenericPlanEntity.getPlanSecurity() != null && subscriptionGenericPlanEntity.getPlanSecurity() == null) || //Don't transfer to a plan with no security (Mode PUSH) if the plan to transfer has security (Mode STANDARD)
@@ -1549,7 +1549,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
             }
             final ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
-            final String apiId = subscriptionGenericPlanEntity.getApiId();
+            final String apiId = subscriptionGenericPlanEntity.getReferenceId();
             final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
             createAudit(

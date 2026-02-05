@@ -42,7 +42,7 @@ public class ReorderPlanDomainService {
      */
     public Plan reorderAfterUpdate(Plan toUpdate) {
         var toReorder = planQueryService
-            .findAllByApiId(toUpdate.getApiId())
+            .findAllByApiId(toUpdate.getReferenceId())
             .stream()
             .filter(p -> p.isPublished() && !Objects.equals(p.getId(), toUpdate.getId()))
             .sorted(Comparator.comparingInt(Plan::getOrder))
