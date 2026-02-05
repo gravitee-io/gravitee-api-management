@@ -24,20 +24,25 @@ import io.gravitee.rest.api.management.v2.rest.model.logs.engine.SearchLogsRespo
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationLinks;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
-import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParamWithMaxValidation;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.BeanParam;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 
 /**
  * @author GraviteeSource Team
  */
 public class LogsSearchResource extends AbstractResource {
+
+    public static final String PAGE_QUERY_PARAM_NAME = "page";
+    public static final String PER_PAGE_QUERY_PARAM_NAME = "perPage";
 
     @Inject
     SearchEnvironmentLogsUseCase searchEnvironmentLogsUseCase;
@@ -47,12 +52,13 @@ public class LogsSearchResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public SearchLogsResponse searchLogs(
-        @BeanParam @Valid PaginationParamWithMaxValidation paginationParam,
+        @QueryParam(PAGE_QUERY_PARAM_NAME) @Valid @DefaultValue("1") @Min(1) int page,
+        @QueryParam(PER_PAGE_QUERY_PARAM_NAME) @Valid @DefaultValue("10") @Min(1) @Max(100) int perPage,
         @Valid SearchLogsRequest request
     ) {
         var input = new SearchEnvironmentLogsUseCase.Input(
             getAuditInfo(),
-            LogsEngineMapper.INSTANCE.fromRequestEntity(request, paginationParam.getPage(), paginationParam.getPerPage())
+            LogsEngineMapper.INSTANCE.fromRequestEntity(request, page, perPage)
         );
         var output = searchEnvironmentLogsUseCase.execute(input);
         SearchLogsResponse searchLogsResponse = LogsEngineMapper.INSTANCE.fromResponseModel(output.response());
