@@ -18,8 +18,8 @@ package io.gravitee.apim.infra.domain_service.analytics_engine.processors;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
-import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.user.model.UserContext;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 public class ManagementFilterPreProcessor implements FilterPreProcessor {
 
     @Override
-    public List<Filter> buildFilters(MetricsContext context) {
+    public List<Filter> buildFilters(UserContext context) {
         Set<String> apiIds = context
             .apis()
             .map(apis -> apis.stream().filter(Objects::nonNull).map(Api::getId).filter(Objects::nonNull).collect(Collectors.toSet()))

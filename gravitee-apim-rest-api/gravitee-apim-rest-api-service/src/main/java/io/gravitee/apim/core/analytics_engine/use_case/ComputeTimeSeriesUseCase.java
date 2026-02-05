@@ -19,12 +19,12 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
-import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +66,7 @@ public class ComputeTimeSeriesUseCase {
 
         var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
 
-        var metricsContextWithPermissions = filterPreprocessor.buildFilters(new MetricsContext(input.auditInfo));
+        var metricsContextWithPermissions = filterPreprocessor.buildFilters(new UserContext(input.auditInfo));
 
         var queryContext = queryContextProvider.resolve(input.request);
 
@@ -81,14 +81,14 @@ public class ComputeTimeSeriesUseCase {
 
     private List<TimeSeriesResponse> executeQueries(
         ExecutionContext executionContext,
-        MetricsContext metricsContext,
+        UserContext userContext,
         Map<AnalyticsEngineQueryService, TimeSeriesRequest> queryContext
     ) {
         var responses = new ArrayList<TimeSeriesResponse>();
 
         queryContext.forEach((queryService, request) -> {
             var filters = new ArrayList<>(request.filters());
-            filters.addAll(metricsContext.filters());
+            filters.addAll(userContext.filters());
 
             responses.add(queryService.searchTimeSeries(executionContext, request.withFilters(filters)));
         });

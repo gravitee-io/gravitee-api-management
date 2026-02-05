@@ -25,6 +25,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.model.*;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
@@ -67,13 +68,13 @@ class BucketNamesProcessorTest {
 
     private final BucketNamesPostProcessor processor = new BucketNamesPostProcessorImpl(applicationService);
 
-    private MetricsContext context;
+    private UserContext context;
 
     @BeforeEach
     void setUp() {
         var apiNamesById = Map.of(API_ID1, API_NAME1, API_ID2, API_NAME2);
 
-        context = new MetricsContext(AuditInfo.builder().build()).withApiNamesById(apiNamesById);
+        context = new UserContext(AuditInfo.builder().build()).withApiNamesById(apiNamesById);
 
         when(applicationService.search(any(), any(), isNull(), isNull())).thenReturn(
             getApplicationListContent(APPLICATION_ID1, APPLICATION_ID2)

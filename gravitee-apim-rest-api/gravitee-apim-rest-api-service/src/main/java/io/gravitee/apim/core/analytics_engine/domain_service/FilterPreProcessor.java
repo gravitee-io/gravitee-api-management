@@ -16,12 +16,12 @@
 package io.gravitee.apim.core.analytics_engine.domain_service;
 
 import io.gravitee.apim.core.analytics_engine.model.Filter;
-import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
+import io.gravitee.apim.core.user.model.UserContext;
 import java.util.List;
 
 /**
  * @author GraviteeSource Team
  */
 public interface FilterPreProcessor {
-    List<Filter> buildFilters(MetricsContext context);
+    List<Filter> buildFilters(UserContext context);
 }

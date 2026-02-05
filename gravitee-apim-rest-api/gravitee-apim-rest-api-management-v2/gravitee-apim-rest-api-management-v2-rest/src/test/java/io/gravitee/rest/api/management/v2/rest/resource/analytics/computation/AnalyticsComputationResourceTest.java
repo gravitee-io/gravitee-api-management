@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
-import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
+import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.result.*;
@@ -97,7 +97,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             );
 
-            when(filterPreProcessor.buildFilters(any(MetricsContext.class))).thenAnswer(caller -> caller.getArgument(0));
+            when(filterPreProcessor.buildFilters(any(UserContext.class))).thenAnswer(caller -> caller.getArgument(0));
         }
 
         @Test
@@ -178,7 +178,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             ).thenAnswer(invocation -> invocation.getArgument(2));
 
-            when(filterPreProcessor.buildFilters(any(MetricsContext.class))).thenAnswer(caller -> caller.getArgument(0));
+            when(filterPreProcessor.buildFilters(any(UserContext.class))).thenAnswer(caller -> caller.getArgument(0));
         }
 
         @Test
@@ -296,7 +296,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             ).thenAnswer(invocation -> invocation.getArgument(2));
 
-            when(filterPreProcessor.buildFilters(any(MetricsContext.class))).thenAnswer(caller -> caller.getArgument(0));
+            when(filterPreProcessor.buildFilters(any(UserContext.class))).thenAnswer(caller -> caller.getArgument(0));
         }
 
         @Test
