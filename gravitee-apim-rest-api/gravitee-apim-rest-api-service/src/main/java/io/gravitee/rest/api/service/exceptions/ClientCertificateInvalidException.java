@@ -15,22 +15,16 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import io.gravitee.common.http.HttpStatusCode;
 import java.util.Map;
 
 /**
  * @author GraviteeSource Team
  */
-public class ClientCertificateInvalidException extends AbstractManagementException {
+public class ClientCertificateInvalidException extends AbstractClientCertificateException {
 
     @Override
     public String getMessage() {
         return "An error has occurred while parsing client certificate";
-    }
-
-    @Override
-    public int getHttpStatusCode() {
-        return HttpStatusCode.BAD_REQUEST_400;
     }
 
     @Override
@@ -40,6 +34,6 @@ public class ClientCertificateInvalidException extends AbstractManagementExcepti
 
     @Override
     public Map<String, String> getParameters() {
-        return null;
+        return Map.of();
     }
 }

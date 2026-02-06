@@ -13,14 +13,13 @@ databaseChangeLog:
               - column: { name: starts_at, type: timestamp }
               - column: { name: ends_at, type: timestamp }
               - column: { name: created_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
-              - column: { name: updated_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+              - column: { name: updated_at, type: timestamp(6)}
               - column: { name: certificate, type: nclob, constraints: { nullable: false } }
               - column: { name: certificate_expiration, type: timestamp }
               - column: { name: subject, type: nvarchar(1024) }
               - column: { name: issuer, type: nvarchar(1024) }
-              - column: { name: fingerprint, type: nvarchar(256) }
+              - column: { name: fingerprint, type: nvarchar(256), constraints: { nullable: false } }
               - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: { name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: status, type: nvarchar(32), constraints: { nullable: false } }
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}client_certificates

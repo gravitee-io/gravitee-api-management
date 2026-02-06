@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.crud_service.application_certificates;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -31,6 +32,7 @@ import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
 import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
 import io.gravitee.rest.api.model.clientcertificate.UpdateClientCertificate;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateAlreadyUsedException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateAuthorityException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateEmptyException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateInvalidException;
@@ -218,6 +220,16 @@ class ClientCertificateCrudServiceImplTest {
         ClientCertificate created = clientCertificateCrudService.create(APPLICATION_ID, createDto);
 
         assertThat(created.status()).isEqualTo(io.gravitee.rest.api.model.clientcertificate.ClientCertificateStatus.REVOKED);
+    }
+
+    @Test
+    void should_raise_error_when_certificate_already_exists() throws TechnicalException {
+        CreateClientCertificate createDto = new CreateClientCertificate("Certificate", null, null, PEM_CERTIFICATE);
+
+        when(clientCertificateRepository.existsByFingerprintAndActiveApplication(any(), eq(ENVIRONMENT_ID))).thenReturn(true);
+        assertThatCode(() -> clientCertificateCrudService.create(APPLICATION_ID, createDto)).isInstanceOf(
+            ClientCertificateAlreadyUsedException.class
+        );
     }
 
     @Test
@@ -508,10 +520,88 @@ class ClientCertificateCrudServiceImplTest {
         );
     }
 
+    @Test
+    void should_create_certificate_with_scheduled_status_when_starts_at_and_ends_at_in_future() throws TechnicalException {
+        CreateClientCertificate createDto = new CreateClientCertificate(
+            "Scheduled Certificate",
+            Date.from(Instant.now().plus(1, ChronoUnit.DAYS)),
+            Date.from(Instant.now().plus(2, ChronoUnit.DAYS)),
+            PEM_CERTIFICATE
+        );
+        when(clientCertificateRepository.existsByFingerprintAndActiveApplication(any(), eq(ENVIRONMENT_ID))).thenReturn(false);
+        when(clientCertificateRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ClientCertificate created = clientCertificateCrudService.create(APPLICATION_ID, createDto);
+
+        assertThat(created.status()).isEqualTo(io.gravitee.rest.api.model.clientcertificate.ClientCertificateStatus.SCHEDULED);
+
+        ArgumentCaptor<io.gravitee.repository.management.model.ClientCertificate> captor = ArgumentCaptor.forClass(
+            io.gravitee.repository.management.model.ClientCertificate.class
+        );
+        verify(clientCertificateRepository).create(captor.capture());
+        assertThat(captor.getValue().getStatus()).isEqualTo(ClientCertificateStatus.SCHEDULED);
+    }
+
+    @Test
+    void should_return_most_recent_active_certificate_when_multiple_active_certificates_exist() throws TechnicalException {
+        String oldCertificateId = "old-cert-id";
+        String recentCertificateId = "recent-cert-id";
+
+        io.gravitee.repository.management.model.ClientCertificate oldCertificate = buildRepositoryClientCertificateWithCreatedAt(
+            oldCertificateId,
+            APPLICATION_ID,
+            ClientCertificateStatus.ACTIVE,
+            Date.from(Instant.now().minus(2, ChronoUnit.DAYS))
+        );
+        io.gravitee.repository.management.model.ClientCertificate recentCertificate = buildRepositoryClientCertificateWithCreatedAt(
+            recentCertificateId,
+            APPLICATION_ID,
+            ClientCertificateStatus.ACTIVE_WITH_END,
+            Date.from(Instant.now().minus(1, ChronoUnit.DAYS))
+        );
+
+        when(
+            clientCertificateRepository.findByApplicationIdAndStatuses(
+                APPLICATION_ID,
+                io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE,
+                io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE_WITH_END
+            )
+        ).thenReturn(Set.of(oldCertificate, recentCertificate));
+
+        Optional<ClientCertificate> result = clientCertificateCrudService.findMostRecentActiveByApplicationId(APPLICATION_ID);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().id()).isEqualTo(recentCertificateId);
+    }
+
+    @Test
+    void should_return_empty_when_no_active_certificates_exist() throws TechnicalException {
+        when(
+            clientCertificateRepository.findByApplicationIdAndStatuses(
+                APPLICATION_ID,
+                io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE,
+                io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE_WITH_END
+            )
+        ).thenReturn(Set.of());
+
+        Optional<ClientCertificate> result = clientCertificateCrudService.findMostRecentActiveByApplicationId(APPLICATION_ID);
+
+        assertThat(result).isEmpty();
+    }
+
     private io.gravitee.repository.management.model.ClientCertificate buildRepositoryClientCertificate(
         String id,
         String applicationId,
         ClientCertificateStatus status
+    ) {
+        return buildRepositoryClientCertificateWithCreatedAt(id, applicationId, status, new Date());
+    }
+
+    private io.gravitee.repository.management.model.ClientCertificate buildRepositoryClientCertificateWithCreatedAt(
+        String id,
+        String applicationId,
+        ClientCertificateStatus status,
+        Date createdAt
     ) {
         return io.gravitee.repository.management.model.ClientCertificate.builder()
             .id(id)
@@ -520,7 +610,7 @@ class ClientCertificateCrudServiceImplTest {
             .name("Test Certificate")
             .startsAt(null)
             .endsAt(null)
-            .createdAt(new Date())
+            .createdAt(createdAt)
             .updatedAt(new Date())
             .certificate(PEM_CERTIFICATE)
             .certificateExpiration(Date.from(Instant.now().plus(365, ChronoUnit.DAYS)))
@@ -528,7 +618,6 @@ class ClientCertificateCrudServiceImplTest {
             .issuer("CN=localhost")
             .fingerprint("abc123")
             .environmentId(ENVIRONMENT_ID)
-            .organizationId(ORGANIZATION_ID)
             .status(status)
             .build();
     }

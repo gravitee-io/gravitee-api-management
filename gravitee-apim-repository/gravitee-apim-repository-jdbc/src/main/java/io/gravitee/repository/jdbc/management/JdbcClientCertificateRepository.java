@@ -71,7 +71,6 @@ public class JdbcClientCertificateRepository
             .addColumn("issuer", Types.NVARCHAR, String.class)
             .addColumn("fingerprint", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("status", Types.NVARCHAR, ClientCertificateStatus.class)
             .build();
     }

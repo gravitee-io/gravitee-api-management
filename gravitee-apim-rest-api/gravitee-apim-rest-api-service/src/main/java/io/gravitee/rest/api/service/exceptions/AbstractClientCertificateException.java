@@ -16,27 +16,14 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
-import java.util.Map;
 
-public class ClientCertificateChangeNotAllowedException extends AbstractManagementException {
-
-    @Override
-    public String getMessage() {
-        return "Client certificate change is not allowed.";
-    }
+/**
+ * @author GraviteeSource Team
+ */
+public abstract class AbstractClientCertificateException extends AbstractManagementException {
 
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.BAD_REQUEST_400;
-    }
-
-    @Override
-    public String getTechnicalCode() {
-        return "application.certificate.changeNotAllowed";
-    }
-
-    @Override
-    public Map<String, String> getParameters() {
-        return null;
     }
 }

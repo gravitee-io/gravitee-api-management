@@ -53,7 +53,6 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
     private static final String API_ID = "api-id";
     private static final String SUBSCRIPTION_ID = "sub-id";
     private static final String ENVIRONMENT_ID = "env-id";
-    private static final String ORGANIZATION_ID = "org-id";
 
     private static final String PEM_CERTIFICATE_1 = """
         -----BEGIN CERTIFICATE-----
@@ -409,7 +408,6 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
             "CN=localhost",
             "fingerprint-" + id,
             ENVIRONMENT_ID,
-            ORGANIZATION_ID,
             status
         );
     }

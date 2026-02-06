@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.11.0_06_drop_organization_id_from_client_certificates
+      author: GraviteeSource Team
+      changes:
+        - dropColumn:
+            tableName: ${gravitee_prefix}client_certificates
+            columnName: organization_id

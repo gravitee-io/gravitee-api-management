@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
 import io.gravitee.rest.api.model.clientcertificate.UpdateClientCertificate;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.ApplicationInvalidCertificateException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateAlreadyUsedException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateAuthorityException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateEmptyException;
@@ -88,6 +89,9 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
 
             X509Certificate x509Certificate = parseCertificate(createClientCertificate.certificate());
             String fingerprint = CertificateUtils.generateThumbprint(x509Certificate, "SHA-256");
+            if (fingerprint == null) {
+                throw new ClientCertificateInvalidException();
+            }
             String environmentId = GraviteeContext.getCurrentEnvironment();
 
             if (clientCertificateRepository.existsByFingerprintAndActiveApplication(fingerprint, environmentId)) {
@@ -108,7 +112,6 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
             clientCertificate.setSubject(x509Certificate.getSubjectX500Principal().getName());
             clientCertificate.setIssuer(x509Certificate.getIssuerX500Principal().getName());
             clientCertificate.setFingerprint(fingerprint);
-            clientCertificate.setOrganizationId(GraviteeContext.getCurrentOrganization());
             clientCertificate.setEnvironmentId(environmentId);
             clientCertificate.setCreatedAt(new Date());
             clientCertificate.setStatus(computeStatus(createClientCertificate.startsAt(), createClientCertificate.endsAt()));
@@ -322,7 +325,6 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
             entity.getIssuer(),
             entity.getFingerprint(),
             entity.getEnvironmentId(),
-            entity.getOrganizationId(),
             entity.getStatus() != null ? ClientCertificateStatus.valueOf(entity.getStatus().name()) : null
         );
     }

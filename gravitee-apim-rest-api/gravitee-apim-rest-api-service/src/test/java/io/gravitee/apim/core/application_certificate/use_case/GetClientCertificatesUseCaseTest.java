@@ -55,7 +55,6 @@ class GetClientCertificatesUseCaseTest {
             "CN=Issuer",
             "fingerprint1",
             "env-id",
-            "org-id",
             ClientCertificateStatus.ACTIVE
         );
         var certificate2 = new ClientCertificate(
@@ -73,7 +72,6 @@ class GetClientCertificatesUseCaseTest {
             "CN=Issuer",
             "fingerprint2",
             "env-id",
-            "org-id",
             ClientCertificateStatus.ACTIVE
         );
         clientCertificateCrudService.initWith(List.of(certificate1, certificate2));

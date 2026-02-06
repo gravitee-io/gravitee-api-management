@@ -18,7 +18,6 @@ package io.gravitee.apim.core.application_certificate.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 import inmemory.ClientCertificateCrudServiceInMemory;
 import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
@@ -71,7 +70,6 @@ class DeleteClientCertificateUseCaseTest {
             "CN=Issuer",
             "fingerprint",
             "env-id",
-            "org-id",
             ClientCertificateStatus.ACTIVE
         );
         clientCertificateCrudService.initWith(List.of(certificate));
