@@ -38,6 +38,7 @@ import io.gravitee.apim.core.api_product.model.CreateApiProduct;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.Role;
@@ -181,7 +182,7 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
-    void should_filter_out_apis_not_allowed_in_product() {
+    void should_throw_exception_when_api_not_allowed_in_product() {
         Api allowedApi = createV4ProxyApi("api-allowed", true);
         Api notAllowedApi = createV4ProxyApi("api-not-allowed", false);
         Api nullAllowedApi = createV4ProxyApi("api-null-allowed", null);
@@ -194,12 +195,15 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
             .apiIds(List.of("api-allowed", "api-not-allowed", "api-null-allowed"))
             .build();
 
-        var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
-        assertThat(output.apiProduct().getApiIds()).containsExactly("api-allowed");
+        var throwable = Assertions.catchThrowable(() ->
+            createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO))
+        );
+        Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+        Assertions.assertThat(throwable.getMessage()).contains("not allowed in API Products");
     }
 
     @Test
-    void should_filter_out_non_existent_apis() {
+    void should_throw_exception_when_api_does_not_exist() {
         Api allowedApi = createV4ProxyApi("api-allowed", true);
         apiCrudService.initWith(List.of(allowedApi));
 
@@ -207,11 +211,15 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
             .name("API Product 1")
             .version("1.0.0")
             .description("desc")
-            .apiIds(List.of("api-allowed", "non-existent-1", "non-existent-2"))
+            .apiIds(List.of("api-allowed", "non-existent-1"))
             .build();
 
-        var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
-        assertThat(output.apiProduct().getApiIds()).containsExactly("api-allowed");
+        var throwable = Assertions.catchThrowable(() ->
+            createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO))
+        );
+        Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+        Assertions.assertThat(throwable.getMessage()).contains("do not exist");
+        Assertions.assertThat(throwable.getMessage()).contains("non-existent-1");
     }
 
     @Test
@@ -233,7 +241,7 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
-    void should_create_product_with_empty_api_ids_when_no_apis_are_allowed() {
+    void should_throw_exception_when_no_apis_are_allowed() {
         Api api1 = createV4ProxyApi("api-1", false);
         Api api2 = createV4ProxyApi("api-2", null);
 
@@ -246,8 +254,71 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
             .apiIds(List.of("api-1", "api-2"))
             .build();
 
+        var throwable = Assertions.catchThrowable(() ->
+            createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO))
+        );
+        Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+        Assertions.assertThat(throwable.getMessage()).contains("not allowed in API Products");
+    }
+
+    @Test
+    void should_create_product_with_empty_api_ids() {
+        var toCreate = CreateApiProduct.builder().name("API Product 1").version("1.0.0").description("desc").apiIds(List.of()).build();
+
         var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
         assertThat(output.apiProduct().getApiIds()).isEmpty();
+    }
+
+    @Test
+    void should_throw_exception_when_api_is_not_v4() {
+        Api v4Api = createV4ProxyApi("api-v4", true);
+        Api v2Api = ApiFixtures.aProxyApiV2().toBuilder().id("api-v2").environmentId(ENV_ID).build();
+
+        apiCrudService.initWith(List.of(v4Api, v2Api));
+
+        var toCreate = CreateApiProduct.builder()
+            .name("API Product 1")
+            .version("1.0.0")
+            .description("desc")
+            .apiIds(List.of("api-v4", "api-v2"))
+            .build();
+
+        var throwable = Assertions.catchThrowable(() ->
+            createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO))
+        );
+        Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+        Assertions.assertThat(throwable.getMessage()).contains("Only V4 API definition is supported");
+        Assertions.assertThat(throwable.getMessage()).contains("api-v2");
+    }
+
+    @Test
+    void should_throw_exception_with_all_errors_when_multiple_validation_failures() {
+        Api validApi = createV4ProxyApi("api-valid", true);
+        Api notAllowedApi = createV4ProxyApi("api-not-allowed", false);
+        Api v2Api = ApiFixtures.aProxyApiV2().toBuilder().id("api-v2").environmentId(ENV_ID).build();
+
+        apiCrudService.initWith(List.of(validApi, notAllowedApi, v2Api));
+
+        var toCreate = CreateApiProduct.builder()
+            .name("API Product 1")
+            .version("1.0.0")
+            .description("desc")
+            .apiIds(List.of("api-valid", "api-not-allowed", "api-v2", "non-existent-1", "non-existent-2"))
+            .build();
+
+        var throwable = Assertions.catchThrowable(() ->
+            createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO))
+        );
+        Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+        var message = throwable.getMessage();
+        // Should contain all error types
+        Assertions.assertThat(message).contains("do not exist");
+        Assertions.assertThat(message).contains("non-existent-1");
+        Assertions.assertThat(message).contains("non-existent-2");
+        Assertions.assertThat(message).contains("not V4");
+        Assertions.assertThat(message).contains("api-v2");
+        Assertions.assertThat(message).contains("not allowed in API Products");
+        Assertions.assertThat(message).contains("api-not-allowed");
     }
 
     private Api createV4ProxyApi(String id, Boolean allowedInApiProducts) {

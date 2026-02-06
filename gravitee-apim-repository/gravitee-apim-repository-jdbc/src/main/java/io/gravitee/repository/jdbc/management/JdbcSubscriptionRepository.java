@@ -209,8 +209,12 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         if (criteria.getApplications() != null && !criteria.getApplications().isEmpty()) {
             group = "application";
             data = criteria.getApplications();
-        } else if (criteria.getApis() != null && !criteria.getApis().isEmpty()) {
-            data = criteria.getApis();
+        } else if (
+            criteria.getReferenceType() != null &&
+            criteria.getReferenceType() == SubscriptionReferenceType.API &&
+            !isEmpty(criteria.getReferenceIds())
+        ) {
+            data = criteria.getReferenceIds();
         }
 
         builder
@@ -326,18 +330,11 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
         started = addStringsWhereClause(criteria.getPlans(), "s." + escapeReservedWord("plan"), argsList, builder, started);
         started = addStringsWhereClause(criteria.getApplications(), "s.application", argsList, builder, started);
-        // Prefer referenceIds/referenceType (generic); fallback to apis as referenceType=API for backward compatibility
         if (criteria.getReferenceType() != null && !isEmpty(criteria.getReferenceIds())) {
             started = addStringsWhereClause(criteria.getReferenceIds(), "s.reference_id", argsList, builder, started);
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
             builder.append("s.reference_type = ?");
             argsList.add(criteria.getReferenceType().name());
-            started = true;
-        } else if (!isEmpty(criteria.getApis())) {
-            started = addStringsWhereClause(criteria.getApis(), "s.reference_id", argsList, builder, started);
-            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("s.reference_type = ?");
-            argsList.add(SubscriptionReferenceType.API.name());
             started = true;
         }
         started = addStringsWhereClause(criteria.getIds(), "s.id", argsList, builder, started);

@@ -337,7 +337,7 @@ public class SubscriptionQueryServiceImplTest {
         @Test
         void should_return_subscription_when_found() throws TechnicalException {
             var subscriptionId = "sub-1";
-            var referenceId = "api-product-1";
+            var referenceId = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
             var repoSubscription = aSubscription(subscriptionId)
                 .referenceId(referenceId)
                 .referenceType(SubscriptionReferenceType.API_PRODUCT)
@@ -370,7 +370,7 @@ public class SubscriptionQueryServiceImplTest {
 
             var result = service.findByIdAndReferenceIdAndReferenceType(
                 "sub-1",
-                "api-product-1",
+                "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
                 io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT
             );
 
@@ -384,7 +384,7 @@ public class SubscriptionQueryServiceImplTest {
             var throwable = catchThrowable(() ->
                 service.findByIdAndReferenceIdAndReferenceType(
                     "sub-1",
-                    "api-product-1",
+                    "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
                     io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT
                 )
             );

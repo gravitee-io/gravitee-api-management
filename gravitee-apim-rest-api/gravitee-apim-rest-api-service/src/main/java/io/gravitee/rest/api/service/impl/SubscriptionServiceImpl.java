@@ -409,11 +409,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             String refId = genericPlanEntity.getReferenceId();
             if (refId != null) {
-                if (genericPlanEntity.getReferenceType() == GenericPlanEntity.ReferenceType.API_PRODUCT) {
-                    criteriaBuilder.referenceIds(Collections.singleton(refId)).referenceType(SubscriptionReferenceType.API_PRODUCT);
-                } else {
-                    criteriaBuilder.apis(Collections.singleton(refId));
-                }
+                SubscriptionReferenceType referenceType = genericPlanEntity.getReferenceType() ==
+                    GenericPlanEntity.ReferenceType.API_PRODUCT
+                    ? SubscriptionReferenceType.API_PRODUCT
+                    : SubscriptionReferenceType.API;
+                criteriaBuilder.referenceIds(Collections.singleton(refId)).referenceType(referenceType);
             }
 
             List<Subscription> subscriptions = subscriptionRepository.search(criteriaBuilder.build());
@@ -1562,7 +1562,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     private SubscriptionCriteria.SubscriptionCriteriaBuilder toSubscriptionCriteriaBuilder(SubscriptionQuery query) {
         SubscriptionCriteria.SubscriptionCriteriaBuilder builder = SubscriptionCriteria.builder()
-            .apis(query.getApis())
             .applications(query.getApplications())
             .plans(query.getPlans())
             .from(query.getFrom())
@@ -1572,10 +1571,16 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .includeWithoutEnd(query.isIncludeWithoutEnd())
             .excludedApis(query.getExcludedApis());
 
-        // Map referenceId/referenceType for generic filtering; backward compat: apis still set above
         if (query.getReferenceId() != null && query.getReferenceType() != null) {
             builder.referenceIds(Collections.singleton(query.getReferenceId()));
             builder.referenceType(SubscriptionReferenceType.valueOf(query.getReferenceType().name()));
+            if (query.getReferenceType() == GenericPlanEntity.ReferenceType.API) {
+                builder.apis(Collections.singleton(query.getReferenceId()));
+            }
+        } else if (query.getApis() != null && !query.getApis().isEmpty()) {
+            builder.referenceIds(query.getApis());
+            builder.referenceType(SubscriptionReferenceType.API);
+            builder.apis(query.getApis());
         }
 
         if (query.getStatuses() != null) {

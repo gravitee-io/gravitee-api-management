@@ -481,7 +481,13 @@ public class SubscriptionServiceTest {
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), existingApiKeyPlanId)).thenReturn(existingApiKeyPlan);
 
         when(
-            subscriptionRepository.search(SubscriptionCriteria.builder().apis(Set.of(API_ID)).applications(Set.of(APPLICATION_ID)).build())
+            subscriptionRepository.search(
+                SubscriptionCriteria.builder()
+                    .referenceIds(Set.of(API_ID))
+                    .referenceType(SubscriptionReferenceType.API)
+                    .applications(Set.of(APPLICATION_ID))
+                    .build()
+            )
         ).thenReturn(List.of(existingSubscription));
         // Run
         subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
@@ -507,7 +513,13 @@ public class SubscriptionServiceTest {
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), existingMtlsPlanId)).thenReturn(existingApiKeyPlan);
 
         when(
-            subscriptionRepository.search(SubscriptionCriteria.builder().apis(Set.of(API_ID)).applications(Set.of(APPLICATION_ID)).build())
+            subscriptionRepository.search(
+                SubscriptionCriteria.builder()
+                    .referenceIds(Set.of(API_ID))
+                    .referenceType(SubscriptionReferenceType.API)
+                    .applications(Set.of(APPLICATION_ID))
+                    .build()
+            )
         ).thenReturn(List.of(existingSubscription));
         // Run
         subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
@@ -2594,12 +2606,12 @@ public class SubscriptionServiceTest {
     @Test
     public void should_search_with_referenceId_and_referenceType_in_criteria() throws Exception {
         SubscriptionQuery query = new SubscriptionQuery();
-        query.setReferenceId("api-product-1");
+        query.setReferenceId("c45b8e66-4d2a-47ad-9b8e-664d2a97ad88");
         query.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
 
         Subscription subscription = buildTestSubscription(
             SUBSCRIPTION_ID,
-            "api-product-1",
+            "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
             ACCEPTED,
             PLAN_ID,
             APPLICATION_ID,
@@ -2615,7 +2627,7 @@ public class SubscriptionServiceTest {
             argThat(
                 criteria ->
                     criteria.getReferenceIds() != null &&
-                    criteria.getReferenceIds().contains("api-product-1") &&
+                    criteria.getReferenceIds().contains("c45b8e66-4d2a-47ad-9b8e-664d2a97ad88") &&
                     criteria.getReferenceType() == SubscriptionReferenceType.API_PRODUCT
             )
         );

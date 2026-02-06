@@ -108,7 +108,7 @@
     "createdAt": 1300000000000,
     "updatedAt": 1900000000000,
     "endingAt": 1400000000000,
-    "referenceId": "api-product-1",
+    "referenceId": "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
     "referenceType": "API_PRODUCT"
   },
   {
@@ -121,7 +121,7 @@
     "createdAt": 1300000000002,
     "updatedAt": 1900000000001,
     "endingAt": 1400000000001,
-    "referenceId": "api-product-1",
+    "referenceId": "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88",
     "referenceType": "API_PRODUCT"
   }
 ]

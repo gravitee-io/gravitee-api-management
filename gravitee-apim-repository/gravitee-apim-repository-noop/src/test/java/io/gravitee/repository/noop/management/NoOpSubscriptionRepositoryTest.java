@@ -55,7 +55,7 @@ public class NoOpSubscriptionRepositoryTest extends AbstractNoOpRepositoryTest {
     public void searchWithReferenceIdsAndReferenceTypeCriteria() throws TechnicalException {
         List<Subscription> subscriptions = cut.search(
             SubscriptionCriteria.builder()
-                .referenceIds(List.of("api-product-1"))
+                .referenceIds(List.of("c45b8e66-4d2a-47ad-9b8e-664d2a97ad88"))
                 .referenceType(SubscriptionReferenceType.API_PRODUCT)
                 .build()
         );

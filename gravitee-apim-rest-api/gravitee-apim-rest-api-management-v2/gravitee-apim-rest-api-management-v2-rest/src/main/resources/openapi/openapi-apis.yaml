@@ -8478,16 +8478,6 @@ components:
               format: date-time
               description: API Product last update date
               example: "2025-01-01T10:15:30Z"
-            apiIds:
-              type: array
-              description: List of API IDs included in the product
-              items:
-                type: string
-              example:
-                - "api-1"
-                - "api-2"
-            primaryOwner:
-              $ref: "#/components/schemas/PrimaryOwner"
 
     parameters:
         #############

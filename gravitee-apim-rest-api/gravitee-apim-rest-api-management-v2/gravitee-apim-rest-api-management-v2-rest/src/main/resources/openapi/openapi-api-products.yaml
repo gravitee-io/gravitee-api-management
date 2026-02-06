@@ -149,6 +149,12 @@ paths:
       description: |-
         Create a new API Product in the given environment.
         The API Product name must be unique within the environment.
+        
+        **API ID Validation:**
+        - All provided API IDs must exist in the environment
+        - All APIs must be V4 definition version
+        - All APIs must have `allowedInApiProducts` flag set to `true`
+        - If any API ID is invalid, a 400 error will be returned with details
       operationId: createApiProduct
       requestBody:
         required: true
@@ -165,7 +171,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiProduct"
         "400":
-          $ref: "#/components/responses/BadRequestError"
+          description: Bad Request - Invalid request body, invalid API IDs, or validation errors
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidApiIds:
+                  summary: Invalid API IDs provided
+                  value:
+                    httpStatus: 400
+                    message: "These APIs [api-1, api-2] do not exist. Only V4 API definition is supported. These APIs [api-3] are not V4"
+                    parameters:
+                      nonExistentApiIds: "api-1, api-2"
+                      invalidApiIds: "api-3"
+                apisNotAllowed:
+                  summary: APIs not allowed in API Products
+                  value:
+                    httpStatus: 400
+                    message: "These APIs [api-4] are not allowed in API Products"
+                    parameters:
+                      notAllowedApiIds: "api-4"
+                multipleErrors:
+                  summary: Multiple validation errors
+                  value:
+                    httpStatus: 400
+                    message: "These APIs [api-1] do not exist. Only V4 API definition is supported. These APIs [api-2] are not V4. These APIs [api-3] are not allowed in API Products"
+                    parameters:
+                      nonExistentApiIds: "api-1"
+                      invalidApiIds: "api-2"
+                      notAllowedApiIds: "api-3"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "403":
@@ -223,6 +258,12 @@ paths:
         Update an existing API Product in the environment.
         The `apiIds` field should be managed through this endpoint, similar to how groups are managed in APIs.
         When `apiIds` is provided, it will REPLACE the entire list of APIs (not merge).
+        
+        **API ID Validation:**
+        - All provided API IDs must exist in the environment
+        - All APIs must be V4 definition version
+        - All APIs must have `allowedInApiProducts` flag set to `true`
+        - If any API ID is invalid, a 400 error will be returned with details
       operationId: updateApiProduct
       requestBody:
         required: true
@@ -239,7 +280,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiProduct'
         '400':
-          $ref: '#/components/responses/BadRequestError'
+          description: Bad Request - Invalid request body, invalid API IDs, or validation errors
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidApiIds:
+                  summary: Invalid API IDs provided
+                  value:
+                    httpStatus: 400
+                    message: "These APIs [api-1, api-2] do not exist. Only V4 API definition is supported. These APIs [api-3] are not V4"
+                    parameters:
+                      nonExistentApiIds: "api-1, api-2"
+                      invalidApiIds: "api-3"
+                apisNotAllowed:
+                  summary: APIs not allowed in API Products
+                  value:
+                    httpStatus: 400
+                    message: "These APIs [api-4] are not allowed in API Products"
+                    parameters:
+                      notAllowedApiIds: "api-4"
+                multipleErrors:
+                  summary: Multiple validation errors
+                  value:
+                    httpStatus: 400
+                    message: "These APIs [api-1] do not exist. Only V4 API definition is supported. These APIs [api-2] are not V4. These APIs [api-3] are not allowed in API Products"
+                    parameters:
+                      nonExistentApiIds: "api-1"
+                      invalidApiIds: "api-2"
+                      notAllowedApiIds: "api-3"
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -261,68 +331,6 @@ paths:
       responses:
         '204':
           description: API Product successfully deleted
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-        '404':
-          description: Not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /environments/{envId}/api-products/{apiProductId}/apis:
-    parameters:
-      - $ref: "#/components/parameters/envIdParam"
-      - $ref: "#/components/parameters/apiProductIdParam"
-    delete:
-      tags:
-        - API Products
-      summary: Delete all APIs from an API Product
-      description: Remove all APIs from the specified API Product in the environment.
-      operationId: deleteAllApisFromApiProduct
-      responses:
-        '204':
-          description: All APIs successfully deleted from the API Product
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-        '404':
-          description: Not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /environments/{envId}/api-products/{apiProductId}/apis/{apiId}:
-    parameters:
-      - $ref: "#/components/parameters/envIdParam"
-      - $ref: "#/components/parameters/apiProductIdParam"
-      - name: apiId
-        in: path
-        description: The ID of the API to remove from the product
-        required: true
-        schema:
-          type: string
-    delete:
-      tags:
-        - API Products
-      summary: Delete a specific API from an API Product
-      description: Remove a single API from the specified API Product in the environment.
-      operationId: deleteApiFromApiProduct
-      responses:
-        '204':
-          description: API successfully deleted from the API Product
         '400':
           $ref: '#/components/responses/BadRequestError'
         '401':

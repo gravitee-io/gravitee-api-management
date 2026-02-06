@@ -21,6 +21,7 @@ import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
+import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiKeyAuditEvent;
@@ -28,8 +29,10 @@ import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDoma
 import io.gravitee.apim.core.notification.model.hook.ApiKeyRevokedApiHookContext;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -71,16 +74,20 @@ public class RevokeApiKeyDomainService {
             .forEach(subscriptionId -> {
                 var subscription = subscriptionCrudService.get(subscriptionId);
                 createAuditLog(apiKey, revoked, subscription, auditInfo);
-                triggerNotificationDomainService.triggerApiNotification(
-                    auditInfo.organizationId(),
-                    auditInfo.environmentId(),
-                    new ApiKeyRevokedApiHookContext(
-                        subscription.getApiId(),
-                        subscription.getApplicationId(),
-                        subscription.getPlanId(),
-                        apiKey.getKey()
-                    )
-                );
+                // Notifications are not applicable for API Product subscriptions
+                boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT.equals(subscription.getReferenceType());
+                if (!isApiProduct && subscription.getApiId() != null) {
+                    triggerNotificationDomainService.triggerApiNotification(
+                        auditInfo.organizationId(),
+                        auditInfo.environmentId(),
+                        new ApiKeyRevokedApiHookContext(
+                            subscription.getApiId(),
+                            subscription.getApplicationId(),
+                            subscription.getPlanId(),
+                            apiKey.getKey()
+                        )
+                    );
+                }
             });
 
         return revoked;
@@ -92,27 +99,44 @@ public class RevokeApiKeyDomainService {
         SubscriptionEntity subscription,
         AuditInfo auditInfo
     ) {
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
-                .organizationId(auditInfo.organizationId())
-                .environmentId(auditInfo.environmentId())
-                .apiId(subscription.getApiId())
-                .event(ApiKeyAuditEvent.APIKEY_REVOKED)
-                .actor(auditInfo.actor())
-                .oldValue(apiKeyEntity)
-                .newValue(revokedApiKeyEntity)
-                .createdAt(ZonedDateTime.ofInstant(revokedApiKeyEntity.getRevokedAt().toInstant(), ZoneId.systemDefault()))
-                .properties(
-                    Map.of(
-                        AuditProperties.API_KEY,
-                        apiKeyEntity.getKey(),
-                        AuditProperties.API,
-                        subscription.getApiId(),
-                        AuditProperties.APPLICATION,
-                        subscription.getApplicationId()
-                    )
-                )
-                .build()
-        );
+        boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT.equals(subscription.getReferenceType());
+        String referenceId = isApiProduct ? subscription.getReferenceId() : subscription.getApiId();
+
+        Map<AuditProperties, String> properties = new HashMap<>();
+        properties.put(AuditProperties.API_KEY, apiKeyEntity.getKey());
+        if (referenceId != null) {
+            properties.put(isApiProduct ? AuditProperties.API_PRODUCT : AuditProperties.API, referenceId);
+        }
+        properties.put(AuditProperties.APPLICATION, subscription.getApplicationId());
+
+        if (isApiProduct) {
+            auditService.createApiProductAuditLog(
+                ApiProductAuditLogEntity.builder()
+                    .organizationId(auditInfo.organizationId())
+                    .environmentId(auditInfo.environmentId())
+                    .apiProductId(referenceId)
+                    .event(ApiKeyAuditEvent.APIKEY_REVOKED)
+                    .actor(auditInfo.actor())
+                    .oldValue(apiKeyEntity)
+                    .newValue(revokedApiKeyEntity)
+                    .createdAt(ZonedDateTime.ofInstant(revokedApiKeyEntity.getRevokedAt().toInstant(), ZoneId.systemDefault()))
+                    .properties(properties)
+                    .build()
+            );
+        } else {
+            auditService.createApiAuditLog(
+                ApiAuditLogEntity.builder()
+                    .organizationId(auditInfo.organizationId())
+                    .environmentId(auditInfo.environmentId())
+                    .apiId(referenceId)
+                    .event(ApiKeyAuditEvent.APIKEY_REVOKED)
+                    .actor(auditInfo.actor())
+                    .oldValue(apiKeyEntity)
+                    .newValue(revokedApiKeyEntity)
+                    .createdAt(ZonedDateTime.ofInstant(revokedApiKeyEntity.getRevokedAt().toInstant(), ZoneId.systemDefault()))
+                    .properties(properties)
+                    .build()
+            );
+        }
     }
 }

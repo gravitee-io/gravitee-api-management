@@ -303,29 +303,34 @@ public class AcceptSubscriptionDomainService {
             acceptedSubscription.getApplicationId()
         );
 
-        triggerNotificationDomainService.triggerApiNotification(
-            organizationId,
-            environmentId,
-            new SubscriptionAcceptedApiHookContext(
-                acceptedSubscription.getApiId(),
-                acceptedSubscription.getApplicationId(),
-                acceptedSubscription.getPlanId(),
-                acceptedSubscription.getId(),
-                applicationPrimaryOwner.id()
-            )
-        );
-        triggerNotificationDomainService.triggerApplicationNotification(
-            organizationId,
-            environmentId,
-            new SubscriptionAcceptedApplicationHookContext(
-                acceptedSubscription.getApplicationId(),
-                acceptedSubscription.getApiId(),
-                acceptedSubscription.getPlanId(),
-                acceptedSubscription.getId(),
-                applicationPrimaryOwner.id()
-            ),
-            additionalRecipients
-        );
+        boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT.equals(acceptedSubscription.getReferenceType());
+
+        // Notifications are not applicable for API Product subscriptions (TODO: implement notifications for API Product subscriptions)
+        if (!isApiProduct) {
+            triggerNotificationDomainService.triggerApiNotification(
+                organizationId,
+                environmentId,
+                new SubscriptionAcceptedApiHookContext(
+                    acceptedSubscription.getApiId(),
+                    acceptedSubscription.getApplicationId(),
+                    acceptedSubscription.getPlanId(),
+                    acceptedSubscription.getId(),
+                    applicationPrimaryOwner.id()
+                )
+            );
+            triggerNotificationDomainService.triggerApplicationNotification(
+                organizationId,
+                environmentId,
+                new SubscriptionAcceptedApplicationHookContext(
+                    acceptedSubscription.getApplicationId(),
+                    acceptedSubscription.getApiId(),
+                    acceptedSubscription.getPlanId(),
+                    acceptedSubscription.getId(),
+                    applicationPrimaryOwner.id()
+                ),
+                additionalRecipients
+            );
+        }
     }
 
     private void createApiProductAudit(

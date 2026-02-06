@@ -74,20 +74,12 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             }
         }
 
-        // Prefer referenceIds/referenceType (generic); fallback to apis as referenceType=API for backward compatibility
         if (criteria.getReferenceType() != null && criteria.getReferenceIds() != null && !criteria.getReferenceIds().isEmpty()) {
             dataPipeline.add(match(eq("referenceType", criteria.getReferenceType().name())));
             if (criteria.getReferenceIds().size() == 1) {
                 dataPipeline.add(match(eq("referenceId", criteria.getReferenceIds().iterator().next())));
             } else {
                 dataPipeline.add(match(in("referenceId", criteria.getReferenceIds())));
-            }
-        } else if (criteria.getApis() != null && !criteria.getApis().isEmpty()) {
-            dataPipeline.add(match(eq("referenceType", SubscriptionReferenceType.API.name())));
-            if (criteria.getApis().size() == 1) {
-                dataPipeline.add(match(eq("referenceId", criteria.getApis().iterator().next())));
-            } else {
-                dataPipeline.add(match(in("referenceId", criteria.getApis())));
             }
         }
 
@@ -196,8 +188,14 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         if (criteria.getApplications() != null && !criteria.getApplications().isEmpty()) {
             aggregations.add(match(in("application", criteria.getApplications())));
             group = "$application";
-        } else if (criteria.getApis() != null && !criteria.getApis().isEmpty()) {
-            aggregations.add(match(in("api", criteria.getApis())));
+        } else if (
+            criteria.getReferenceType() != null &&
+            criteria.getReferenceType() == SubscriptionReferenceType.API &&
+            criteria.getReferenceIds() != null &&
+            !criteria.getReferenceIds().isEmpty()
+        ) {
+            aggregations.add(match(in("referenceId", criteria.getReferenceIds())));
+            aggregations.add(match(eq("referenceType", SubscriptionReferenceType.API.name())));
         } else {
             aggregations.add(match(ne("api", null)));
         }
