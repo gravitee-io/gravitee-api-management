@@ -1104,6 +1104,9 @@ public class ResourceContextConfiguration {
     @Bean
     public CloseSubscriptionUseCase closeSubscriptionUseCase() {
         return mock(CloseSubscriptionUseCase.class);
+    }
+
+    @Bean
     public UserContextLoader userContextLoader() {
         return mock(UserContextLoader.class);
     }
