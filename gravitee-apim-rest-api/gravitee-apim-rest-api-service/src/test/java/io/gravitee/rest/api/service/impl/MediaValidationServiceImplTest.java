@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -31,26 +32,34 @@ import org.apache.pdfbox.pdmodel.interactive.action.PDActionLaunch;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionSubmitForm;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDNamedDestination;
+import org.apache.tika.Tika;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 class MediaValidationServiceImplTest {
 
-    private final MediaValidationServiceImpl mediaValidationService = new MediaValidationServiceImpl();
+    private MediaValidationServiceImpl mediaValidationService;
 
     private MockedStatic<Loader> loader;
+    private MockedConstruction<Tika> tikaConstruction;
 
     @BeforeEach
     public void setUp() {
         loader = Mockito.mockStatic(Loader.class);
+        tikaConstruction = Mockito.mockConstruction(Tika.class, (mock, context) -> {
+            when(mock.detect(Mockito.any(byte[].class), Mockito.nullable(String.class))).thenReturn("application/pdf");
+        });
+        mediaValidationService = new MediaValidationServiceImpl();
     }
 
     @AfterEach
     public void tearDown() {
         loader.close();
+        tikaConstruction.close();
     }
 
     @Test
@@ -227,5 +236,42 @@ class MediaValidationServiceImplTest {
         mediaEntity.setData(new byte[0]);
 
         assertThrows(UploadUnauthorized.class, () -> mediaValidationService.validate(mediaEntity));
+    }
+
+    @Test
+    void should_throw_when_type_mismatch() {
+        final String mediaType = "image/jpeg";
+        final MediaEntity mediaEntity = new MediaEntity();
+        mediaEntity.setType(mediaType.split("/")[0]);
+        mediaEntity.setSubType(mediaType.split("/")[1]);
+        mediaEntity.setData(new byte[0]);
+
+        assertThrows(UploadUnauthorized.class, () -> mediaValidationService.validate(mediaEntity));
+    }
+
+    @Test
+    void should_throw_when_json_declared_as_image() {
+        final String mediaType = "image/json";
+        final MediaEntity mediaEntity = new MediaEntity();
+        mediaEntity.setType(mediaType.split("/")[0]);
+        mediaEntity.setSubType(mediaType.split("/")[1]);
+        mediaEntity.setData(new byte[0]);
+
+        assertThrows(UploadUnauthorized.class, () -> mediaValidationService.validate(mediaEntity));
+    }
+
+    @Test
+    void should_not_throw_when_json_declared_as_json() {
+        Tika mockedTika = tikaConstruction.constructed().getFirst();
+        when(mockedTika.detect(Mockito.any(byte[].class), Mockito.nullable(String.class))).thenReturn("application/json");
+
+        final byte[] data = "data".getBytes();
+        final String mediaType = "application/json";
+        final MediaEntity mediaEntity = new MediaEntity();
+        mediaEntity.setType(mediaType.split("/")[0]);
+        mediaEntity.setSubType(mediaType.split("/")[1]);
+        mediaEntity.setData(data);
+
+        assertDoesNotThrow(() -> mediaValidationService.validate(mediaEntity));
     }
 }
