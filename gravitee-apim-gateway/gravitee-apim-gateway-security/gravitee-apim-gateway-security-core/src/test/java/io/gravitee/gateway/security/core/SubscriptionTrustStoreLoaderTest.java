@@ -132,7 +132,7 @@ class SubscriptionTrustStoreLoaderTest {
 
     @SneakyThrows
     @Test
-    void should_compute_digest_from_first_certificate_in_pkcs7_bundle() {
+    void should_compute_digests_from_all_certificates_in_pkcs7_bundle() {
         // Given: a PKCS7 bundle containing two certificates
         String pkcs7Base64 = createPkcs7Bundle(PEM_CERTIFICATE_1, PEM_CERTIFICATE_2);
 

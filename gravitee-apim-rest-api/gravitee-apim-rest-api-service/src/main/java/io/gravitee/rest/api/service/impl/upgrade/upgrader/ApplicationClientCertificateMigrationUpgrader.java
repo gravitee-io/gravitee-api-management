@@ -16,12 +16,20 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
+import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.AbstractClientCertificateException;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateInvalidException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +49,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
 
-    private static final String METADATA_CLIENT_CERTIFICATE = "client_certificate";
+    static final String METADATA_CLIENT_CERTIFICATE = "client_certificate";
 
     @Lazy
     @Autowired
@@ -55,23 +63,27 @@ public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
         return this.wrapException(() -> {
             log.info("Starting migration of application client certificates to ClientCertificate entity");
 
-            List<Application> applicationsWithCertificate = applicationRepository
-                .findAll()
-                .stream()
-                .filter(
-                    app ->
-                        app.getMetadata() != null &&
-                        app.getMetadata().containsKey(METADATA_CLIENT_CERTIFICATE) &&
-                        app.getMetadata().get(METADATA_CLIENT_CERTIFICATE) != null &&
-                        !app.getMetadata().get(METADATA_CLIENT_CERTIFICATE).isBlank()
-                )
-                .toList();
-
-            log.info("Found {} applications with client certificates to migrate", applicationsWithCertificate.size());
-
-            for (Application application : applicationsWithCertificate) {
-                migrateApplicationCertificate(application);
-            }
+            ApplicationCriteria criteria = ApplicationCriteria.builder().build();
+            int pageNumber = 0;
+            Page<Application> page;
+            do {
+                Pageable pageable = new PageableBuilder().pageNumber(pageNumber + 1).pageSize(100).build();
+                page = applicationRepository.search(criteria, pageable);
+                for (Application application : page
+                    .getContent()
+                    .stream()
+                    .filter(
+                        app ->
+                            app.getMetadata() != null &&
+                            app.getMetadata().get(METADATA_CLIENT_CERTIFICATE) != null &&
+                            !app.getMetadata().get(METADATA_CLIENT_CERTIFICATE).isBlank()
+                    )
+                    .toList()) {
+                    // candidate to be migrated
+                    migrateApplicationCertificate(application);
+                }
+                pageNumber++;
+            } while (page.getTotalElements() > pageNumber * page.getPageElements());
 
             log.info("Completed migration of application client certificates");
             return true;
@@ -84,46 +96,49 @@ public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
         String base64Certificate = application.getMetadata().get(METADATA_CLIENT_CERTIFICATE);
 
         try {
-            // Decode the certificate from base64
-            Optional<String> decodedCertificate = decodeCert(application, base64Certificate);
+            // Set the application environment id in the context
+            GraviteeContext.setCurrentEnvironment(application.getEnvironmentId());
 
-            if (decodedCertificate.isPresent()) {
-                // Create a new ClientCertificate named after the Application
-                clientCertificateCrudService.create(
-                    applicationId,
-                    new CreateClientCertificate(applicationName, null, null, decodedCertificate.get())
-                );
+            // Create a new ClientCertificate named after the Application
+            CreateClientCertificate createClientCertificate = new CreateClientCertificate(
+                applicationName,
+                null,
+                null,
+                decodeCert(base64Certificate)
+            );
+            clientCertificateCrudService.create(applicationId, createClientCertificate);
 
-                log.debug("Created ClientCertificate for application {} ({})", applicationName, applicationId);
-            }
-
-            // Remove the client_certificate metadata entry from the application and save it
-            Map<String, String> updatedMetadata = new HashMap<>(application.getMetadata());
-            updatedMetadata.remove(METADATA_CLIENT_CERTIFICATE);
-            application.setMetadata(updatedMetadata);
-            applicationRepository.update(application);
-            log.debug("Removed client_certificate metadata from application {} ({})", application.getName(), application.getId());
+            log.debug("Created ClientCertificate for application {} ({})", applicationName, applicationId);
+        } catch (AbstractClientCertificateException e) {
+            log.warn(
+                "Failed to decode or parse certificate for application {} ({}), skipping certificate creation but removing metadata",
+                application.getName(),
+                application.getId(),
+                e
+            );
         } catch (Exception e) {
             throw new TechnicalException(
                 "Failed to migrate certificate for application %s (%s)".formatted(applicationName, applicationId),
                 e
             );
+        } finally {
+            GraviteeContext.cleanContext();
         }
+
+        // Remove the client_certificate metadata entry from the application and save it
+        Map<String, String> updatedMetadata = new HashMap<>(application.getMetadata());
+        updatedMetadata.remove(METADATA_CLIENT_CERTIFICATE);
+        application.setMetadata(updatedMetadata);
+        applicationRepository.update(application);
+        log.debug("Removed client_certificate metadata from application {} ({})", application.getName(), application.getId());
     }
 
-    private static Optional<String> decodeCert(Application application, String base64Certificate) {
+    private static String decodeCert(String base64Certificate) {
         try {
-            return Optional.of(new String(Base64.getDecoder().decode(base64Certificate)));
+            return new String(Base64.getDecoder().decode(base64Certificate));
         } catch (IllegalArgumentException e) {
-            // Base64 decoding failed, skip certificate creation but still remove metadata
-            log.warn(
-                "Failed to decode base64 certificate for application {} ({}), skipping certificate creation but removing metadata",
-                application.getName(),
-                application.getId(),
-                e
-            );
+            throw new ClientCertificateInvalidException();
         }
-        return Optional.empty();
     }
 
     @Override

@@ -940,7 +940,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             return convertApplication(executionContext, Collections.singleton(updatedApplication)).iterator().next();
         } catch (TechnicalException ex) {
             String error = String.format(
-                "An error occurs while trying to update application % with apiKeyMode %s",
+                "An error occurs while trying to update application %s with apiKeyMode %s",
                 applicationId,
                 apiKeyMode
             );

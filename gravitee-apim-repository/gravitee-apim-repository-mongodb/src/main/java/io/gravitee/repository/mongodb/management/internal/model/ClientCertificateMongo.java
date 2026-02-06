@@ -66,7 +66,5 @@ public class ClientCertificateMongo {
 
     private String environmentId;
 
-    private String organizationId;
-
     private String status;
 }

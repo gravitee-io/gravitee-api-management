@@ -67,7 +67,5 @@ public class ClientCertificate {
 
     private String environmentId;
 
-    private String organizationId;
-
     private ClientCertificateStatus status;
 }

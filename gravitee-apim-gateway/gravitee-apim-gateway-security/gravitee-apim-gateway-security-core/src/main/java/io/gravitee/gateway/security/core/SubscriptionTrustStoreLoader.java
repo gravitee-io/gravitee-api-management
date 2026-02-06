@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.security.core;
 
+import io.gravitee.common.security.CertificateUtils;
 import io.gravitee.common.security.PKCS7Utils;
 import io.gravitee.common.util.KeyStoreUtils;
 import io.gravitee.gateway.api.service.Subscription;
@@ -24,6 +25,7 @@ import io.gravitee.node.api.certificate.KeyStoreEvent;
 import io.gravitee.node.certificates.AbstractKeyStoreLoader;
 import java.security.KeyStore;
 import java.security.MessageDigest;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -32,7 +34,7 @@ import lombok.CustomLog;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import org.bouncycastle.jcajce.provider.digest.SHA256;
+import org.bouncycastle.util.encoders.Hex;
 import org.springframework.util.DigestUtils;
 
 @CustomLog
@@ -66,7 +68,7 @@ public class SubscriptionTrustStoreLoader extends AbstractKeyStoreLoader<Subscri
 
             // compute digests from all certificates to be able to find them later
             for (String alias : aliases) {
-                digests.add(DigestUtils.md5DigestAsHex(keystore.getCertificate(alias).getEncoded()));
+                digests.add(CertificateUtils.generateThumbprint((X509Certificate) keystore.getCertificate(alias), "SHA-256"));
             }
         } catch (Exception e) {
             throw new MalformedCertificateException(

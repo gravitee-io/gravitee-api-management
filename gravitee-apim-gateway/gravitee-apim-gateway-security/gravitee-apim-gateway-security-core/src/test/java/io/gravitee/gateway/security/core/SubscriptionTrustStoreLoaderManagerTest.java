@@ -288,5 +288,5 @@ class SubscriptionTrustStoreLoaderManagerTest {
 
     private static final String BASE_64_CERTIFICATE_1 = Base64.getEncoder().encodeToString(PEM_CERTIFICATE_1.getBytes());
 
-    private static final String CERTIFICATE_DIGEST = "29906ca0dc39bc99ee0f3f11f7e78517";
+    private static final String CERTIFICATE_DIGEST = "u21dNKud2YsKNJn3HQTTon1_qSoZi8IrBTsLiZCFQLg";
 }

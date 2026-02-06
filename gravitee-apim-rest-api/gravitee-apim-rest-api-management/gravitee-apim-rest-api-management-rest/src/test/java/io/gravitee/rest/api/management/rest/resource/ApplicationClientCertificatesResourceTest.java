@@ -121,7 +121,6 @@ public class ApplicationClientCertificatesResourceTest extends AbstractResourceT
             null,
             null,
             null,
-            null,
             null
         );
     }

@@ -69,7 +69,6 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
             null, // issuer - would be parsed from PEM in real impl
             null, // fingerprint - would be computed from PEM in real impl
             null, // environmentId - would come from GraviteeContext in real impl
-            null, // organizationId - would come from GraviteeContext in real impl
             status
         );
 
@@ -102,7 +101,6 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
             existing.issuer(),
             existing.fingerprint(),
             existing.environmentId(),
-            existing.organizationId(),
             status
         );
 

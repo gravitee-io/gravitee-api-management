@@ -21,16 +21,11 @@ import java.util.Map;
 /**
  * @author GraviteeSource Team
  */
-public class ClientCertificateAuthorityException extends AbstractManagementException {
+public class ClientCertificateAuthorityException extends AbstractClientCertificateException {
 
     @Override
     public String getMessage() {
         return "Certificate Authorities are not supported, requires a client certificate";
-    }
-
-    @Override
-    public int getHttpStatusCode() {
-        return HttpStatusCode.BAD_REQUEST_400;
     }
 
     @Override
@@ -40,6 +35,6 @@ public class ClientCertificateAuthorityException extends AbstractManagementExcep
 
     @Override
     public Map<String, String> getParameters() {
-        return null;
+        return Map.of();
     }
 }

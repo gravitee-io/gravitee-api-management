@@ -210,7 +210,6 @@ public class ApplicationService_UpdateTest {
                 null,
                 null,
                 null,
-                null,
                 io.gravitee.rest.api.model.clientcertificate.ClientCertificateStatus.ACTIVE
             );
         when(clientCertificateCrudService.findMostRecentActiveByApplicationId(any())).thenReturn(java.util.Optional.of(mockCert));
@@ -814,7 +813,6 @@ public class ApplicationService_UpdateTest {
                 new java.util.Date(),
                 new java.util.Date(),
                 "old certificate content",
-                null,
                 null,
                 null,
                 null,

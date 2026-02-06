@@ -44,7 +44,6 @@ public record ClientCertificate(
     @Schema(description = "Issuer of the certificate") String issuer,
     @Schema(description = "Fingerprint of the certificate") String fingerprint,
     @Schema(description = "Environment ID in which the certificate was created") String environmentId,
-    @Schema(description = "Organization ID in which the certificate was created") String organizationId,
     @Schema(
         description = "Status of the certificate. It is computed depending on start and end dates. ACTIVE means it is available. ACTIVE_WITH_END means it is available but will be removed when endsAt is reached. SCHEDULED means that startsAt is not yet passed. REVOKED means endsAt is passed."
     )

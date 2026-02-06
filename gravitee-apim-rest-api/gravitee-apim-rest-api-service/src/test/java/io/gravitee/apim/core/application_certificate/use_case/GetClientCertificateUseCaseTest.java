@@ -56,7 +56,6 @@ class GetClientCertificateUseCaseTest {
             "CN=Issuer",
             "fingerprint",
             "env-id",
-            "org-id",
             ClientCertificateStatus.ACTIVE
         );
         clientCertificateCrudService.initWith(List.of(certificate));

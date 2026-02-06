@@ -60,7 +60,6 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
         assertThat(certificate.getIssuer()).isEqualTo("CN=Test Issuer");
         assertThat(certificate.getFingerprint()).isEqualTo("ABC123");
         assertThat(certificate.getEnvironmentId()).isEqualTo("env-1");
-        assertThat(certificate.getOrganizationId()).isEqualTo("org-1");
         assertThat(certificate.getStatus()).isEqualTo(ClientCertificateStatus.ACTIVE);
     }
 
@@ -88,7 +87,6 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
         certificate.setIssuer("CN=New Issuer");
         certificate.setFingerprint("NEW123");
         certificate.setEnvironmentId("env-new");
-        certificate.setOrganizationId("org-new");
         certificate.setStatus(ClientCertificateStatus.SCHEDULED);
 
         ClientCertificate created = clientCertificateRepository.create(certificate);
@@ -284,7 +282,6 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
         certificate.setIssuer("CN=New Issuer");
         certificate.setFingerprint("NEW123");
         certificate.setEnvironmentId("env-new");
-        certificate.setOrganizationId("org-new");
         certificate.setStatus(ClientCertificateStatus.SCHEDULED);
         assertThatThrownBy(() -> clientCertificateRepository.update(certificate)).isInstanceOf(IllegalStateException.class);
     }

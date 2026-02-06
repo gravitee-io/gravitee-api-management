@@ -60,7 +60,7 @@ public class SubscriptionTrustStoreLoaderManager {
             .filter(server -> deployOnServers.isEmpty() || deployOnServers.contains(server.id()))
             .map(s -> (VertxServer<?, ?>) s)
             .forEach(server -> server.trustStoreLoaderManager().registerLoader(loader));
-        subscriptionTrustStoreLoaders.put(subscription.getId(), loader);
+        subscriptionTrustStoreLoaders.putIfAbsent(subscription.getId(), loader);
         loader
             .certificateDigests()
             .forEach(digest ->
