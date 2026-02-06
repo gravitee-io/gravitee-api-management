@@ -17,24 +17,31 @@ package io.gravitee.rest.api.service.converter;
 
 import static org.junit.Assert.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PlanConverterTest {
 
-    @InjectMocks
     private PlanConverter planConverter;
+
+    @Before
+    public void setUp() {
+        planConverter = new PlanConverter(new ObjectMapper());
+    }
 
     @Test
     public void toPlanEntity_should_convert_plan_to_plan_entity() {
@@ -59,6 +66,7 @@ public class PlanConverterTest {
         assertEquals(plan.getValidation().name(), planEntity.getValidation().name());
         assertEquals(plan.getStatus().name(), planEntity.getStatus().name());
         assertEquals(plan.getReferenceId(), planEntity.getReferenceId());
+        assertEquals(plan.getApi(), planEntity.getApi());
         assertEquals(plan.getGeneralConditions(), planEntity.getGeneralConditions());
         assertEquals(plan.getSecurity().name(), planEntity.getSecurity().name());
         assertSame(flows, planEntity.getFlows());
@@ -120,6 +128,7 @@ public class PlanConverterTest {
         assertEquals(result.getReferenceType(), actual.getReferenceType());
         assertEquals(result.getStatus(), actual.getStatus());
         assertEquals(result.getReferenceId(), actual.getReferenceId());
+        assertEquals(result.getApi(), actual.getApi());
         assertEquals(result.getPaths(), actual.getPaths());
         assertEquals(result.getFlows(), actual.getFlows());
         assertEquals(result.getCharacteristics(), actual.getCharacteristics());
@@ -150,6 +159,7 @@ public class PlanConverterTest {
         assertEquals(result.getSecurity(), PlanSecurityType.API_KEY);
         assertEquals(result.getSecurityDefinition(), actual.getSecurityDefinition());
         assertEquals(result.getReferenceType(), GenericPlanEntity.ReferenceType.API);
+        assertEquals(result.getApi(), actual.getApi());
         assertEquals(result.getStatus(), PlanStatus.STAGING);
         assertEquals(result.getReferenceId(), actual.getReferenceId());
         assertEquals(result.getPaths(), new HashMap<>());
@@ -181,6 +191,99 @@ public class PlanConverterTest {
         NewPlanEntity newPlanEntity = planConverter.toNewPlanEntity(planEntity, true);
 
         assertNull(newPlanEntity.getCrossId());
+    }
+
+    @Test
+    public void toPlan_should_convert_NewPlanEntity_to_Plan_with_all_fields() throws Exception {
+        NewPlanEntity newPlan = buildNewPlanEntity();
+        newPlan.setStatus(PlanStatus.STAGING);
+        newPlan.setSecurity(PlanSecurityType.API_KEY);
+        newPlan.setValidation(PlanValidationType.MANUAL);
+
+        Plan plan = planConverter.toPlan(newPlan, DefinitionVersion.V4);
+
+        assertEquals(newPlan.getId(), plan.getId());
+        assertEquals(newPlan.getCrossId(), plan.getCrossId());
+        assertEquals(newPlan.getHrid(), plan.getHrid());
+        assertEquals(newPlan.getReferenceId(), plan.getApi());
+        assertEquals(newPlan.getReferenceId(), plan.getReferenceId());
+        assertEquals(Plan.PlanReferenceType.API, plan.getReferenceType());
+        assertEquals(newPlan.getName(), plan.getName());
+        assertEquals(newPlan.getDescription(), plan.getDescription());
+        assertNotNull(plan.getCreatedAt());
+        assertEquals(plan.getCreatedAt(), plan.getUpdatedAt());
+        assertEquals(plan.getCreatedAt(), plan.getNeedRedeployAt());
+        assertEquals(Plan.PlanSecurityType.API_KEY, plan.getSecurity());
+        assertEquals(newPlan.getSecurityDefinition(), plan.getSecurityDefinition());
+        assertEquals(Plan.Status.STAGING, plan.getStatus());
+        assertEquals(newPlan.getExcludedGroups(), plan.getExcludedGroups());
+        assertEquals(newPlan.isCommentRequired(), plan.isCommentRequired());
+        assertEquals(newPlan.getCommentMessage(), plan.getCommentMessage());
+        assertEquals(newPlan.getTags(), plan.getTags());
+        assertEquals(newPlan.getSelectionRule(), plan.getSelectionRule());
+        assertEquals(newPlan.getGeneralConditions(), plan.getGeneralConditions());
+        assertEquals(newPlan.getOrder(), plan.getOrder());
+        assertEquals(Plan.PlanValidationType.MANUAL, plan.getValidation());
+        assertEquals(newPlan.getCharacteristics(), plan.getCharacteristics());
+        assertNull(plan.getPublishedAt());
+        assertNotNull(plan.getDefinition());
+    }
+
+    @Test
+    public void toPlan_should_set_publishedAt_when_status_is_PUBLISHED() throws Exception {
+        NewPlanEntity newPlan = buildNewPlanEntity();
+        newPlan.setStatus(PlanStatus.PUBLISHED);
+
+        Plan plan = planConverter.toPlan(newPlan, DefinitionVersion.V4);
+
+        assertEquals(Plan.Status.PUBLISHED, plan.getStatus());
+        assertNotNull(plan.getPublishedAt());
+    }
+
+    @Test
+    public void toPlan_should_force_validation_AUTO_when_security_is_KEY_LESS() throws Exception {
+        NewPlanEntity newPlan = buildNewPlanEntity();
+        newPlan.setSecurity(PlanSecurityType.KEY_LESS);
+        newPlan.setValidation(PlanValidationType.MANUAL);
+
+        Plan plan = planConverter.toPlan(newPlan, DefinitionVersion.V4);
+
+        assertEquals(Plan.PlanSecurityType.KEY_LESS, plan.getSecurity());
+        assertEquals(Plan.PlanValidationType.AUTO, plan.getValidation());
+    }
+
+    @Test
+    public void toPlan_should_not_set_definition_when_definition_version_is_V2() throws Exception {
+        NewPlanEntity newPlan = buildNewPlanEntity();
+
+        Plan plan = planConverter.toPlan(newPlan, DefinitionVersion.V2);
+
+        assertNull(plan.getDefinition());
+    }
+
+    private NewPlanEntity buildNewPlanEntity() {
+        NewPlanEntity newPlan = new NewPlanEntity();
+        newPlan.setId("plan-id-123");
+        newPlan.setCrossId("cross-id-456");
+        newPlan.setHrid("plan-hrid");
+        newPlan.setReferenceId("api-ref-id");
+        newPlan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+        newPlan.setName("Plan name");
+        newPlan.setDescription("Plan description");
+        newPlan.setSecurity(PlanSecurityType.API_KEY);
+        newPlan.setSecurityDefinition("{\"prop\":\"value\"}");
+        newPlan.setStatus(PlanStatus.STAGING);
+        newPlan.setValidation(PlanValidationType.MANUAL);
+        newPlan.setPaths(new HashMap<>());
+        newPlan.setCharacteristics(new ArrayList<>());
+        newPlan.setExcludedGroups(new ArrayList<>());
+        newPlan.setCommentRequired(true);
+        newPlan.setCommentMessage("Comment message");
+        newPlan.setTags(new HashSet<>(Collections.singletonList("tag1")));
+        newPlan.setSelectionRule("selection-rule");
+        newPlan.setGeneralConditions("general-conditions-page-id");
+        newPlan.setOrder(1);
+        return newPlan;
     }
 
     private PlanEntity buildTestPlanEntity() {

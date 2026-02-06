@@ -179,6 +179,7 @@ public class PlanConverter {
         plan.setId(newPlan.getId());
         plan.setCrossId(newPlan.getCrossId());
         plan.setHrid(newPlan.getHrid());
+        plan.setApi(newPlan.getReferenceId());
         plan.setReferenceId(newPlan.getReferenceId());
         plan.setReferenceType(Plan.PlanReferenceType.valueOf(newPlan.getReferenceType().name()));
         plan.setName(newPlan.getName());

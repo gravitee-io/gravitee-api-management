@@ -422,6 +422,7 @@ class ImportApiDefinitionUseCaseTest {
             var plan = PlanWithFlowsFixtures.aPlanWithFlows()
                 .toBuilder()
                 .referenceId(API_ID)
+                .environmentId(ENVIRONMENT_ID)
                 .referenceType(GenericPlanEntity.ReferenceType.API)
                 .planDefinitionHttpV4(PlanWithFlowsFixtures.aPlanWithFlows().getPlanDefinitionHttpV4().toBuilder().tags(TAGS).build())
                 .build();
@@ -438,7 +439,7 @@ class ImportApiDefinitionUseCaseTest {
                 var createdPlans = importDefinitionCreateDomainServiceTestInitializer.planCrudService
                     .storage()
                     .stream()
-                    .filter(p -> p.getApiId().equals(API_ID))
+                    .filter(p -> p.getReferenceId().equals(API_ID))
                     .collect(Collectors.toSet());
                 var expectedPlan = plan
                     .toBuilder()
@@ -764,6 +765,8 @@ class ImportApiDefinitionUseCaseTest {
                 .toBuilder()
                 .referenceId(API_ID)
                 .referenceType(GenericPlanEntity.ReferenceType.API)
+                .environmentId(ENVIRONMENT_ID)
+                .definitionVersion(PlanWithFlowsFixtures.aNativePlanWithFlows().getDefinitionVersion())
                 .planDefinitionNativeV4(
                     PlanWithFlowsFixtures.aNativePlanWithFlows().getPlanDefinitionNativeV4().toBuilder().tags(TAGS).build()
                 )

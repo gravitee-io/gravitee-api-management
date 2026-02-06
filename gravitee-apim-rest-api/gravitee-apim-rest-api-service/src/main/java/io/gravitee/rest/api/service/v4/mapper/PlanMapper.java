@@ -101,6 +101,7 @@ public class PlanMapper {
         entity.setSelectionRule(plan.getSelectionRule());
         entity.setGeneralConditions(plan.getGeneralConditions());
         entity.setGeneralConditionsHrid(plan.getGeneralConditionsHrid());
+        entity.setApiId(plan.getReferenceId());
         entity.setReferenceId(plan.getReferenceId());
         entity.setReferenceType(GenericPlanEntity.ReferenceType.valueOf(plan.getReferenceType().name()));
         return entity;
@@ -213,6 +214,7 @@ public class PlanMapper {
         newPlanEntity.setId(planEntity.getId());
         newPlanEntity.setCrossId(resetCrossId ? null : planEntity.getCrossId());
         newPlanEntity.setReferenceId(planEntity.getReferenceId());
+        newPlanEntity.setApiId(planEntity.getApiId());
         newPlanEntity.setName(planEntity.getName());
         newPlanEntity.setDescription(planEntity.getDescription());
         newPlanEntity.setOrder(planEntity.getOrder());

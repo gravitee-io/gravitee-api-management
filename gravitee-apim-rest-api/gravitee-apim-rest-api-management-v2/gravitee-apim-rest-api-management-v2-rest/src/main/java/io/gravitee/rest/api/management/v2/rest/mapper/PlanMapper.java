@@ -65,10 +65,12 @@ public interface PlanMapper {
 
     @Mapping(target = "security.type", qualifiedByName = "mapToPlanSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(target = "apiId", source = "referenceId")
     PlanV4 map(PlanEntity planEntity);
 
     @Mapping(target = "security.type", qualifiedByName = "mapToPlanSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(target = "apiId", source = "referenceId")
     PlanV4 map(NativePlanEntity planEntity);
 
     default PlanV4 mapToPlanV4(GenericPlanEntity planEntity) {
