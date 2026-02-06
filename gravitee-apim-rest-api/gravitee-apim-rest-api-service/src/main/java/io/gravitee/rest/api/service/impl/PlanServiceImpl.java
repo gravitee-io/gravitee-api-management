@@ -261,6 +261,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             newPlan.setCreatedAt(oldPlan.getCreatedAt());
             newPlan.setPublishedAt(oldPlan.getPublishedAt());
             newPlan.setClosedAt(oldPlan.getClosedAt());
+            newPlan.setEnvironmentId(oldPlan.getEnvironmentId());
             // for existing plans, needRedeployAt doesn't exist. We have to initalize it
             if (oldPlan.getNeedRedeployAt() == null) {
                 newPlan.setNeedRedeployAt(oldPlan.getUpdatedAt());
@@ -279,7 +280,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             newPlan.setTags(updatePlan.getTags());
             newPlan.setSelectionRule(updatePlan.getSelectionRule());
             newPlan.setGeneralConditions(updatePlan.getGeneralConditions());
-
             if (Plan.Status.PUBLISHED.equals(newPlan.getStatus()) || Plan.Status.DEPRECATED.equals(newPlan.getStatus())) {
                 checkStatusOfGeneralConditions(newPlan);
             }

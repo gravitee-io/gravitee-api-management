@@ -50,7 +50,7 @@ public class PlanMapperTest {
         final var plan = planMapper.map(planEntity);
 
         assertEquals(planEntity.getId(), plan.getId());
-        assertEquals(planEntity.getApiId(), plan.getApiId());
+        assertEquals(planEntity.getReferenceId(), plan.getApiId());
         assertEquals(planEntity.getName(), plan.getName());
         assertEquals(planEntity.getDescription(), plan.getDescription());
         assertEquals(planEntity.getOrder(), (int) plan.getOrder());
@@ -77,7 +77,7 @@ public class PlanMapperTest {
         final var plan = planMapper.map(planEntity);
 
         assertEquals(planEntity.getId(), plan.getId());
-        assertEquals(planEntity.getApiId(), plan.getApiId());
+        assertEquals(planEntity.getReferenceId(), plan.getApiId());
         assertEquals(planEntity.getName(), plan.getName());
         assertEquals(planEntity.getDescription(), plan.getDescription());
         assertEquals(planEntity.getOrder(), (int) plan.getOrder());
