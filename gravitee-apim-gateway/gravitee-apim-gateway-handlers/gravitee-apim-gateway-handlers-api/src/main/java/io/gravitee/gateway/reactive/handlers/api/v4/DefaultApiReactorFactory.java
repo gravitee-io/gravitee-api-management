@@ -29,7 +29,6 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
-import io.gravitee.gateway.handlers.api.registry.ApiReactorRegistry;
 import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
@@ -353,11 +352,9 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
     ) {
         ApiProductRegistry apiProductRegistry = null;
         ProductPlanDefinitionCache productPlanDefinitionCache = null;
-        ApiReactorRegistry apiReactorRegistry = null;
         try {
             apiProductRegistry = applicationContext.getBean(ApiProductRegistry.class);
             productPlanDefinitionCache = applicationContext.getBean(ProductPlanDefinitionCache.class);
-            apiReactorRegistry = applicationContext.getBean(ApiReactorRegistry.class);
         } catch (BeansException e) {
             // API Product support may not be loaded
         }
@@ -387,12 +384,6 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
             apiProductRegistry,
             productPlanDefinitionCache
         );
-
-        // Register reactor in ApiReactorRegistry for security chain refresh
-        if (apiReactorRegistry != null) {
-            apiReactorRegistry.register(api.getId(), reactor);
-        }
-
         return reactor;
     }
 
