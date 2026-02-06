@@ -1,6 +1,6 @@
 @use 'sass:map';
 @use '@angular/material' as mat;
-@use 'node_modules/@gravitee/ui-particles-angular' as gio;
+@use '@gravitee/ui-particles-angular' as gio;
 
 $background: map.get(gio.$mat-theme, background);
 
