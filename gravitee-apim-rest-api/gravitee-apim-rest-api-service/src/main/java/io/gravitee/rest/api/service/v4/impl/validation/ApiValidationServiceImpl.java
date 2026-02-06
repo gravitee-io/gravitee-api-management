@@ -17,8 +17,6 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.ARCHIVED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
-import static io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED;
-import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
@@ -330,21 +328,40 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     }
 
     private ApiLifecycleState validateAndSanitizeLifecycleState(final ApiEntity existingApiEntity, final UpdateApiEntity updateApiEntity) {
-        // if lifecycle state not provided, return the existing one
-        if (updateApiEntity.getLifecycleState() == null) {
-            return existingApiEntity.getLifecycleState();
-        } else if (DEPRECATED == existingApiEntity.getLifecycleState()) {
-            //  Otherwise, we should first check that existingAPI and updateApi have the same lifecycleState and THEN check for deprecation status of the exiting API //  if we don't want a deprecated API to be updated, then we should have a specific check // TODO FCY: because of this, you can't update a deprecated API but the reason is not clear.
-            throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
-        } else if (existingApiEntity.getLifecycleState() == updateApiEntity.getLifecycleState()) {
-            return existingApiEntity.getLifecycleState();
-        } else if (
-            (ARCHIVED == existingApiEntity.getLifecycleState() && (ARCHIVED != updateApiEntity.getLifecycleState())) ||
-            ((UNPUBLISHED == existingApiEntity.getLifecycleState()) && (CREATED == updateApiEntity.getLifecycleState())) ||
-            ((CREATED == existingApiEntity.getLifecycleState()) && (WorkflowState.IN_REVIEW == existingApiEntity.getWorkflowState()))
-        ) {
-            throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
+        var existingState = existingApiEntity.getLifecycleState();
+        var newState = updateApiEntity.getLifecycleState();
+
+        if (newState == null) {
+            return existingState;
         }
-        return updateApiEntity.getLifecycleState();
+
+        if (existingState == newState) {
+            return existingState;
+        }
+
+        return switch (existingState) {
+            case DEPRECATED -> {
+                if (newState != ARCHIVED) {
+                    throw new LifecycleStateChangeNotAllowedException(newState.name());
+                }
+                yield newState;
+            }
+            case ARCHIVED -> {
+                throw new LifecycleStateChangeNotAllowedException(newState.name());
+            }
+            case UNPUBLISHED -> {
+                if (newState == CREATED) {
+                    throw new LifecycleStateChangeNotAllowedException(newState.name());
+                }
+                yield newState;
+            }
+            case CREATED -> {
+                if (existingApiEntity.getWorkflowState() == WorkflowState.IN_REVIEW) {
+                    throw new LifecycleStateChangeNotAllowedException(newState.name());
+                }
+                yield newState;
+            }
+            default -> newState;
+        };
     }
 }
