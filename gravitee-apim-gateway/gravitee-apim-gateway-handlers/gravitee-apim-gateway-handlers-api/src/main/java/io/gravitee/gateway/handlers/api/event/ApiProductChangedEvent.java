@@ -63,6 +63,6 @@ public class ApiProductChangedEvent {
         /**
          * API Product was undeployed
          */
-        UNDEPLOY
+        UNDEPLOY,
     }
 }
