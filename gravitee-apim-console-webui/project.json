@@ -1,0 +1,204 @@
+{
+  "name": "gravitee-apim-console-webui",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "gravitee-apim-console-webui/src",
+  "prefix": "",
+  "targets": {
+    "build": {
+      "executor": "@angular-devkit/build-angular:browser",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "gravitee-apim-console-webui/dist",
+        "index": "gravitee-apim-console-webui/src/index.html",
+        "main": "gravitee-apim-console-webui/src/index.ts",
+        "polyfills": "gravitee-apim-console-webui/src/polyfills.ts",
+        "tsConfig": "gravitee-apim-console-webui/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          "gravitee-apim-console-webui/src/favicon.ico",
+          "gravitee-apim-console-webui/src/assets",
+          {
+            "glob": "build.json",
+            "input": "gravitee-apim-console-webui",
+            "output": "/"
+          },
+          {
+            "glob": "constants.json",
+            "input": "gravitee-apim-console-webui",
+            "output": "/"
+          },
+          {
+            "glob": "webcomponents-loader.js",
+            "input": "node_modules/@webcomponents/webcomponentsjs/",
+            "output": "webcomponents/"
+          },
+          {
+            "glob": "**/*",
+            "input": "gravitee-apim-console-webui/src/docs",
+            "output": "docs/"
+          },
+          {
+            "glob": "**/*",
+            "input": "node_modules/@gravitee/ui-components/assets/css",
+            "output": "css/"
+          },
+          {
+            "glob": "**/*",
+            "input": "node_modules/@gravitee/ui-components/assets/i18n",
+            "output": "i18n/"
+          },
+          {
+            "glob": "**/*",
+            "input": "node_modules/@gravitee/ui-components/assets/icons",
+            "output": "icons/"
+          },
+          {
+            "glob": "**/*",
+            "input": "node_modules/@gravitee/ui-particles-angular/assets",
+            "output": "assets/"
+          },
+          {
+            "glob": "**/*",
+            "input": "node_modules/monaco-editor",
+            "output": "assets/monaco-editor"
+          },
+          {
+            "glob": "asciidoctor.js",
+            "input": "node_modules/@asciidoctor/core/dist/browser",
+            "output": "assets/asciidoctor/"
+          },
+          {
+            "glob": "asciidoctor.css",
+            "input": "node_modules/@asciidoctor/core/dist/css",
+            "output": "assets/asciidoctor/"
+          },
+          {
+            "glob": "prism.js",
+            "input": "node_modules/prismjs",
+            "output": "assets/prismjs"
+          },
+          {
+            "glob": "prism-json.js",
+            "input": "node_modules/prismjs/components",
+            "output": "assets/prismjs/components"
+          },
+          {
+            "glob": "oauth2-redirect.html",
+            "input": "node_modules/swagger-ui-dist",
+            "output": "/"
+          },
+          {
+            "glob": "**/*",
+            "input": "node_modules/@gravitee/gravitee-markdown/src/lib/assets/homepage",
+            "output": "assets/homepage"
+          }
+        ],
+        "styles": [
+          "gravitee-apim-console-webui/src/index.scss",
+          {
+            "input": "node_modules/swagger-ui/dist/swagger-ui.css",
+            "inject": true,
+            "bundleName": "swagger-ui"
+          }
+        ],
+        "scripts": [
+          {
+            "input": "node_modules/@asyncapi/web-component/lib/asyncapi-web-component.js",
+            "inject": true,
+            "bundleName": "asyncapi-web-component"
+          }
+        ],
+        "stylePreprocessorOptions": {
+          "includePaths": ["node_modules/"]
+        },
+        "preserveSymlinks": true
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "20mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "10kb",
+              "maximumError": "20kb"
+            }
+          ],
+          "fileReplacements": [
+            {
+              "replace": "gravitee-apim-console-webui/src/environments/environment.ts",
+              "with": "gravitee-apim-console-webui/src/environments/environment.prod.ts"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "buildOptimizer": false,
+          "optimization": false,
+          "vendorChunk": true,
+          "extractLicenses": false,
+          "sourceMap": true,
+          "namedChunks": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "executor": "@angular-devkit/build-angular:dev-server",
+      "options": {
+        "proxyConfig": "gravitee-apim-console-webui/proxy.conf.mjs",
+        "disableHostCheck": true,
+        "port": 4000,
+        "buildTarget": "gravitee-apim-console-webui:build"
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "gravitee-apim-console-webui:build:production"
+        },
+        "development": {
+          "buildTarget": "gravitee-apim-console-webui:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "options": {
+        "jestConfig": "gravitee-apim-console-webui/jest.config.js",
+        "passWithNoTests": true
+      },
+      "outputs": ["{workspaceRoot}/coverage/gravitee-apim-console-webui"]
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": [
+          "gravitee-apim-console-webui/**/*.ts",
+          "gravitee-apim-console-webui/**/*.json"
+        ]
+      }
+    },
+    "storybook": {
+      "executor": "@storybook/angular:start-storybook",
+      "options": {
+        "browserTarget": "gravitee-apim-console-webui:build",
+        "compodoc": false,
+        "port": 9008,
+        "configDir": "gravitee-apim-console-webui/.storybook"
+      }
+    },
+    "build-storybook": {
+      "executor": "@storybook/angular:build-storybook",
+      "options": {
+        "browserTarget": "gravitee-apim-console-webui:build",
+        "compodoc": false,
+        "configDir": "gravitee-apim-console-webui/.storybook"
+      }
+    }
+  },
+  "tags": ["type:app", "scope:console"]
+}
