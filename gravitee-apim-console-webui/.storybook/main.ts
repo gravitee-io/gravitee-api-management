@@ -18,10 +18,10 @@ const config: StorybookConfig = {
   },
   staticDirs: [
     {
-      from: '../node_modules/@gravitee/ui-particles-angular/assets',
+      from: '../../node_modules/@gravitee/ui-particles-angular/assets',
       to: '/assets',
     },
-    { from: '../node_modules/monaco-editor', to: '/assets/monaco-editor' },
+    { from: '../../node_modules/monaco-editor', to: '/assets/monaco-editor' },
   ],
 };
 
