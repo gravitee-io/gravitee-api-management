@@ -666,10 +666,7 @@ class SearchEnvironmentLogsUseCaseTest {
                     List.of(new Range(200L, 500L))
                 ),
                 // No response time filters -> empty list
-                Arguments.of(
-                    List.of(new Filter(new StringFilter(FilterName.API, Operator.EQ, API1.getId()))),
-                    List.of()
-                )
+                Arguments.of(List.of(new Filter(new StringFilter(FilterName.API, Operator.EQ, API1.getId()))), List.of())
             );
         }
 
