@@ -29,6 +29,7 @@ import io.gravitee.apim.core.logs_engine.model.ApiLogDiagnostic;
 import io.gravitee.apim.core.logs_engine.model.ArrayFilter;
 import io.gravitee.apim.core.logs_engine.model.Filter;
 import io.gravitee.apim.core.logs_engine.model.FilterName;
+import io.gravitee.apim.core.logs_engine.model.NumericFilter;
 import io.gravitee.apim.core.logs_engine.model.Operator;
 import io.gravitee.apim.core.logs_engine.model.Pagination;
 import io.gravitee.apim.core.logs_engine.model.SearchLogsRequest;
@@ -38,6 +39,7 @@ import io.gravitee.apim.core.logs_engine.use_case.SearchEnvironmentLogsUseCase.I
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.rest.api.model.analytics.Range;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
@@ -603,6 +605,92 @@ class SearchEnvironmentLogsUseCaseTest {
                     "/api/products" // Last EQ wins
                 )
             );
+        }
+
+        @ParameterizedTest
+        @MethodSource("responseTimeRangeFiltersProvider")
+        void should_map_response_time_range_filters(List<Filter> filters, List<Range> expectedRanges) {
+            var request = new SearchLogsRequest(null, filters, 1, 10);
+
+            when_searching(request);
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().responseTimeRanges()).isEqualTo(expectedRanges);
+        }
+
+        static Stream<Arguments> responseTimeRangeFiltersProvider() {
+            return Stream.of(
+                // Single GTE filter -> range with from only
+                Arguments.of(
+                    List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME_RANGE, Operator.GTE, 100))),
+                    List.of(new Range(100L, null))
+                ),
+                // Single LTE filter -> range with to only
+                Arguments.of(
+                    List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME_RANGE, Operator.LTE, 500))),
+                    List.of(new Range(null, 500L))
+                ),
+                // GTE + LTE -> range with both bounds
+                Arguments.of(
+                    List.of(
+                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME_RANGE, Operator.GTE, 100)),
+                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME_RANGE, Operator.LTE, 500))
+                    ),
+                    List.of(new Range(100L, 500L))
+                ),
+                // Overlapping GTE: GTE 100 then GTE 200 -> last wins (200)
+                Arguments.of(
+                    List.of(
+                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME_RANGE, Operator.GTE, 100)),
+                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME_RANGE, Operator.GTE, 200))
+                    ),
+                    List.of(new Range(200L, null))
+                ),
+                // Overlapping LTE: LTE 500 then LTE 300 -> last wins (300)
+                Arguments.of(
+                    List.of(
+                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME_RANGE, Operator.LTE, 500)),
+                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME_RANGE, Operator.LTE, 300))
+                    ),
+                    List.of(new Range(null, 300L))
+                ),
+                // Overlapping GTE + LTE combined: GTE 100, GTE 200, LTE 500 -> last GTE wins
+                Arguments.of(
+                    List.of(
+                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME_RANGE, Operator.GTE, 100)),
+                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME_RANGE, Operator.GTE, 200)),
+                        new Filter(new NumericFilter(FilterName.RESPONSE_TIME_RANGE, Operator.LTE, 500))
+                    ),
+                    List.of(new Range(200L, 500L))
+                ),
+                // No response time filters -> empty list
+                Arguments.of(
+                    List.of(new Filter(new StringFilter(FilterName.API, Operator.EQ, API1.getId()))),
+                    List.of()
+                )
+            );
+        }
+
+        @Test
+        void should_ignore_numeric_filter_with_unsupported_operator() {
+            var request = new SearchLogsRequest(
+                null,
+                List.of(
+                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME_RANGE, Operator.EQ, 100)),
+                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME_RANGE, Operator.IN, 200))
+                ),
+                1,
+                10
+            );
+
+            when_searching(request);
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().responseTimeRanges()).isEmpty();
         }
     }
 

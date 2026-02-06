@@ -28,6 +28,7 @@ import io.gravitee.apim.core.logs_engine.model.BasePlan;
 import io.gravitee.apim.core.logs_engine.model.Filter;
 import io.gravitee.apim.core.logs_engine.model.FilterName;
 import io.gravitee.apim.core.logs_engine.model.HttpMethod;
+import io.gravitee.apim.core.logs_engine.model.NumericFilter;
 import io.gravitee.apim.core.logs_engine.model.Operator;
 import io.gravitee.apim.core.logs_engine.model.Pagination;
 import io.gravitee.apim.core.logs_engine.model.SearchLogsRequest;
@@ -36,6 +37,7 @@ import io.gravitee.apim.core.logs_engine.model.StringFilter;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.model.analytics.Range;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -105,6 +107,8 @@ public class SearchEnvironmentLogsUseCase {
                     applyStringFilter(stringFilter, filterContext);
                 } else if (instance instanceof ArrayFilter arrayFilter) {
                     applyArrayFilter(arrayFilter, filterContext);
+                } else if (instance instanceof NumericFilter numericFilter) {
+                    applyNumericFilter(numericFilter, filterContext);
                 }
             }
         }
@@ -130,6 +134,7 @@ public class SearchEnvironmentLogsUseCase {
         builder.requestIds(filterContext.requestIds().orElseGet(Collections::emptySet));
         builder.transactionIds(filterContext.transactionIds().orElseGet(Collections::emptySet));
         builder.uri(filterContext.uri().orElse(null));
+        builder.responseTimeRanges(buildResponseTimeRanges(filterContext));
 
         if (request.timeRange() != null) {
             builder.from(toEpochMilli(request.timeRange().from()));
@@ -164,6 +169,25 @@ public class SearchEnvironmentLogsUseCase {
         }
 
         updateFilterIds(filter.name(), filterContext, Collections.emptySet());
+    }
+
+    private void applyNumericFilter(NumericFilter filter, FilterContext filterContext) {
+        if (filter.name() == FilterName.RESPONSE_TIME_RANGE) {
+            if (filter.operator() == Operator.GTE) {
+                filterContext.limitByResponseTimeFrom(filter.value().longValue());
+            } else if (filter.operator() == Operator.LTE) {
+                filterContext.limitByResponseTimeTo(filter.value().longValue());
+            }
+        }
+    }
+
+    private List<Range> buildResponseTimeRanges(FilterContext filterContext) {
+        var from = filterContext.responseTimeFrom().orElse(null);
+        var to = filterContext.responseTimeTo().orElse(null);
+        if (from == null && to == null) {
+            return List.of();
+        }
+        return List.of(new Range(from, to));
     }
 
     private void updateFilterIds(FilterName name, FilterContext filterContext, Set<String> ids) {

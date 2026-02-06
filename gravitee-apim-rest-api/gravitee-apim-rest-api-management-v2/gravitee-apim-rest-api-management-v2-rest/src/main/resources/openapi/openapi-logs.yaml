@@ -62,6 +62,19 @@ paths:
                       value:
                         - "200"
                         - "404"
+              filter-by-response-time-range:
+                summary: Logs filtered by response time range (100ms to 500ms)
+                value:
+                  timeRange:
+                    from: "2025-01-01T00:00:00Z"
+                    to: "2025-01-31T23:59:59Z"
+                  filters:
+                    - name: "RESPONSE_TIME_RANGE"
+                      operator: "GTE"
+                      value: 100
+                    - name: "RESPONSE_TIME_RANGE"
+                      operator: "LTE"
+                      value: 500
               filter-by-entrypoint:
                 summary: Logs filtered by entrypoint
                 value:
@@ -149,17 +162,18 @@ components:
 
     Filter:
       description: |
-        Filter specification for analytics queries.
-        Filters can be used at the top level of a request to refine the analytics results, 
-        or nested within a metrics to refine specific measures.
+        Filters can be used refine the logs results.
       oneOf:
         - $ref: "#/components/schemas/StringFilter"
         - $ref: "#/components/schemas/ArrayFilter"
+        - $ref: "#/components/schemas/NumericFilter"
       discriminator:
         propertyName: operator
         mapping:
           EQ: "#/components/schemas/StringFilter"
           IN: "#/components/schemas/ArrayFilter"
+          GTE: "#/components/schemas/NumericFilter"
+          LTE: "#/components/schemas/NumericFilter"
       example:
         name: "API"
         operator: "EQ"
@@ -195,6 +209,20 @@ components:
           description: Filter value (array for IN operator)
       example: { name: "HTTP_STATUS", operator: "IN", value: ["200", "301"] }
 
+    NumericFilter:
+      description: Filter specification for numeric values
+      type: object
+      required: [name, operator, value]
+      properties:
+        name:
+          $ref: "#/components/schemas/FilterName"
+        operator:
+          $ref: "#/components/schemas/Operator"
+        value:
+          type: integer
+          description: Filter value (number for GTE/LTE)
+      example: { name: "RESPONSE_TIME_RANGE", operator: "GTE", value: 100 }
+
     FilterName:
       type: string
       enum:
@@ -208,11 +236,14 @@ components:
         - TRANSACTION_ID
         - REQUEST_ID
         - URI
+        - RESPONSE_TIME_RANGE
       description: Available filter names for filtering analytics data
 
     Operator:
       type: string
       enum:
         - EQ
+        - GTE
+        - LTE
         - IN
       description: Filter operator

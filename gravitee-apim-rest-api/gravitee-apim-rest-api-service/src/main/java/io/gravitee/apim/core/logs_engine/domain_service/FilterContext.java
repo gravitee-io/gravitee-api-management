@@ -34,6 +34,8 @@ public final class FilterContext {
     private Set<String> transactionIds;
     private Set<String> requestIds;
     private String uri;
+    private Long responseTimeFrom;
+    private Long responseTimeTo;
 
     public void limitByApiIds(Set<String> apiIds) {
         if (apiIds == null) {
@@ -141,6 +143,20 @@ public final class FilterContext {
         this.uri = uri;
     }
 
+    public void limitByResponseTimeFrom(Long responseTimeFrom) {
+        if (responseTimeFrom == null) {
+            return;
+        }
+        this.responseTimeFrom = responseTimeFrom;
+    }
+
+    public void limitByResponseTimeTo(Long responseTimeTo) {
+        if (responseTimeTo == null) {
+            return;
+        }
+        this.responseTimeTo = responseTimeTo;
+    }
+
     public Optional<Set<String>> apiIds() {
         return Optional.ofNullable(apiIds);
     }
@@ -179,5 +195,13 @@ public final class FilterContext {
 
     public Optional<String> uri() {
         return Optional.ofNullable(uri);
+    }
+
+    public Optional<Long> responseTimeFrom() {
+        return Optional.ofNullable(responseTimeFrom);
+    }
+
+    public Optional<Long> responseTimeTo() {
+        return Optional.ofNullable(responseTimeTo);
     }
 }
