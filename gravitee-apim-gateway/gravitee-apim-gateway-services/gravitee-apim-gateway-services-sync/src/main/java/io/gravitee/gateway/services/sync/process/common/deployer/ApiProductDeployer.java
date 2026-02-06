@@ -117,15 +117,14 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
             Set<String> apiIds = reactableApiProduct.getApiIds();
             String environmentId = reactableApiProduct.getEnvironmentId();
             if (apiIds != null && !apiIds.isEmpty() && environmentId != null) {
-                ApiProductChangedEvent event = new ApiProductChangedEvent(
-                    reactableApiProduct.getId(),
-                    environmentId,
-                    apiIds,
-                    changeType
-                );
+                ApiProductChangedEvent event = new ApiProductChangedEvent(reactableApiProduct.getId(), environmentId, apiIds, changeType);
                 try {
                     eventManager.publishEvent(ApiProductEventType.CHANGED, event);
-                    log.debug("Emitted ApiProductChangedEvent for product [{}] affecting {} APIs", reactableApiProduct.getId(), apiIds.size());
+                    log.debug(
+                        "Emitted ApiProductChangedEvent for product [{}] affecting {} APIs",
+                        reactableApiProduct.getId(),
+                        apiIds.size()
+                    );
                 } catch (Exception e) {
                     log.warn("Failed to emit ApiProductChangedEvent for product [{}]", reactableApiProduct.getId(), e);
                     // Don't fail deployment if event emission fails
@@ -172,23 +171,23 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
 
             try {
                 log.debug("Undeploying API Product [{}]", apiProductId);
-                
+
                 // Get API IDs before unregistering (needed for event)
                 ReactableApiProduct product = apiProductManager.get(apiProductId);
                 Set<String> apiIds = product != null && product.getApiIds() != null ? product.getApiIds() : Set.of();
                 String environmentId = product != null ? product.getEnvironmentId() : null;
-                
+
                 apiProductManager.unregister(apiProductId);
                 planService.unregisterForApiProduct(apiProductId);
                 if (productPlanDefinitionCache != null) {
                     productPlanDefinitionCache.unregister(apiProductId);
                 }
-                
+
                 // Emit event to trigger security chain refresh for affected APIs
                 if (environmentId != null && !apiIds.isEmpty()) {
                     emitProductChangedEvent(apiProductId, environmentId, apiIds, ApiProductChangedEvent.ChangeType.UNDEPLOY);
                 }
-                
+
                 log.debug("API Product [{}] undeployed successfully", apiProductId);
             } catch (Exception e) {
                 throw new SyncException(String.format("An error occurred when trying to undeploy API Product [%s].", apiProductId), e);
