@@ -1,13 +1,12 @@
 // Import all styles of the app
-import { applicationConfig, moduleMetadata } from '@storybook/angular';
-import { GioMatConfigModule } from '@gravitee/ui-particles-angular';
+import { applicationConfig } from '@storybook/angular';
 import { importProvidersFrom } from '@angular/core';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpClientModule } from '@angular/common/http';
+import { provideAnimations} from '@angular/platform-browser/animations';
+import { provideHttpClient} from '@angular/common/http';
+import { provideRouter } from '@angular/router';
 import { CONSTANTS_TESTING } from '../src/shared/testing';
 import { Constants } from '../src/entities/Constants';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { RouterTestingModule } from '@angular/router/testing';
 
 // Set material classes to the Storybook root div
 window.document.body.parentElement.classList.add('mat');
@@ -15,11 +14,11 @@ window.document.body.classList.add('mat-typography');
 window.document.body.classList.add('mat-app-background');
 
 export const decorators = [
-  moduleMetadata({ imports: [GioMatConfigModule, RouterTestingModule] }),
   applicationConfig({
     providers: [
-      importProvidersFrom(BrowserAnimationsModule),
-      importProvidersFrom(HttpClientModule),
+      provideAnimations(),
+      provideHttpClient(),
+      provideRouter([]),
       importProvidersFrom(MatSnackBarModule),
       {
         provide: Constants,

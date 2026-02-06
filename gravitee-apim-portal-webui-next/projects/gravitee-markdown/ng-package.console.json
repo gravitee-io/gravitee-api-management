@@ -1,6 +1,6 @@
 {
   "$schema": "../../node_modules/ng-packagr/ng-package.schema.json",
-  "dest": "../../../gravitee-apim-console-webui/dist-lib/gravitee-markdown",
+  "dest": "../../../dist-lib/gravitee-markdown",
   "lib": {
     "entryFile": "src/public-api.ts"
   },
