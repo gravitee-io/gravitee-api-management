@@ -22,6 +22,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 import { GioConfirmAndValidateDialogHarness, GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 
@@ -42,6 +43,7 @@ import {
   fakePortalNavigationItemsResponse,
   fakePortalNavigationLink,
   fakePortalNavigationPage,
+  fakeUpdateApiPortalNavigationItem,
   fakeUpdatePagePortalNavigationItem,
   NewPortalNavigationItem,
   PortalNavigationItem,
@@ -1008,6 +1010,52 @@ describe('PortalNavigationItemsComponent', () => {
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [privateNavItem] }));
         expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
       });
+    });
+  });
+
+  describe('changing api navigation item visibility', () => {
+    const apiNavItem = fakePortalNavigationApi({
+      id: 'nav-api-1',
+      parentId: 'nav-folder-1',
+      apiId: 'api-v2',
+      visibility: 'PUBLIC',
+      area: 'TOP_NAVBAR',
+    });
+
+    beforeEach(async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [fakePortalNavigationFolder({ id: 'nav-folder-1', area: 'TOP_NAVBAR' }), apiNavItem],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+    });
+
+    it('should update visibility using edit dialog', async () => {
+      await harness.editNodeById('nav-api-1');
+
+      const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
+      expect(await dialog.getDialogTitle()).toContain('Edit API');
+
+      const visibilitySelect = await rootLoader.getHarness(MatSelectHarness);
+      await visibilitySelect.open();
+      await visibilitySelect.clickOptions({ text: 'Private' });
+
+      await dialog.clickSubmitButton();
+
+      expectPutPortalNavigationItem(
+        apiNavItem.id,
+        fakeUpdateApiPortalNavigationItem({
+          title: apiNavItem.title,
+          parentId: apiNavItem.parentId,
+          order: apiNavItem.order,
+          published: apiNavItem.published,
+          visibility: 'PRIVATE',
+          apiId: apiNavItem.apiId,
+        }),
+        fakePortalNavigationApi({}),
+      );
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [apiNavItem] }));
     });
   });
 

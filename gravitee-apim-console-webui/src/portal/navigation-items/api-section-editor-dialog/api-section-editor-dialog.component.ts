@@ -19,7 +19,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -28,21 +28,23 @@ import { MatTableModule } from '@angular/material/table';
 import { isEqual } from 'lodash';
 import { Observable, Subject, of, BehaviorSubject } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { MatSelectModule } from '@angular/material/select';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { Api, ApiV2, ApiV4, PortalVisibility, ApisResponse } from '../../../entities/management-api-v2';
+import { Api, ApiV2, ApiV4, PortalVisibility, ApisResponse, PortalNavigationApi } from '../../../entities/management-api-v2';
 import { getApiAccess } from '../../../shared/utils';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 export interface ApiSectionEditorDialogData {
-  mode: 'create';
+  mode: 'create' | 'edit';
+  existingItem?: PortalNavigationApi;
 }
 
 export interface ApiSectionEditorDialogResult {
   visibility: PortalVisibility;
   apiId?: string;
-  apiIds: string[];
+  apiIds?: string[];
 }
 
 type ApiRow = {
@@ -60,10 +62,12 @@ type SelectedApi = {
 
 interface ApiSectionFormControls {
   apiIds: FormControl<string[]>;
+  visibility: FormControl<PortalVisibility>;
 }
 
 interface ApiSectionFormValues {
   apiIds: string[];
+  visibility: PortalVisibility;
 }
 
 type ApiSectionForm = FormGroup<ApiSectionFormControls>;
@@ -81,6 +85,7 @@ type ApiSectionForm = FormGroup<ApiSectionFormControls>;
     MatTableModule,
     MatChipsModule,
     MatExpansionModule,
+    MatSelectModule,
     AsyncPipe,
     GioTableWrapperModule,
   ],
@@ -90,10 +95,14 @@ type ApiSectionForm = FormGroup<ApiSectionFormControls>;
 export class ApiSectionEditorDialogComponent implements OnInit {
   private readonly apiService = inject(ApiV2Service);
 
+  readonly data: ApiSectionEditorDialogData = inject(MAT_DIALOG_DATA);
+  readonly isEditMode = computed(() => this.data?.mode === 'edit');
+
   form!: ApiSectionForm;
   public initialFormValues: ApiSectionFormValues;
 
   public title = 'Add APIs';
+  public buttonTitle = 'Add';
 
   displayedColumns = ['select', 'name', 'path', 'labels'];
 
@@ -128,12 +137,35 @@ export class ApiSectionEditorDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const isEditMode = this.isEditMode();
+
+    if (isEditMode) {
+      this.title = 'Edit API';
+      this.buttonTitle = 'Save';
+    }
+
     this.form = new FormGroup<ApiSectionFormControls>({
       apiIds: new FormControl<string[]>([], {
+        validators: isEditMode ? [] : [Validators.required],
+        nonNullable: true,
+      }),
+      visibility: new FormControl<PortalVisibility>(this.data?.existingItem?.visibility ?? 'PUBLIC', {
         validators: [Validators.required],
         nonNullable: true,
       }),
     });
+
+    if (isEditMode) {
+      const id = this.data.existingItem?.apiId;
+      if (id) {
+        this.form.controls.apiIds.setValue([id]);
+        this.selectedOrderedApis.set([{ id, name: id }]);
+      }
+
+      this.rows$ = of([]);
+      this.initialFormValues = this.form.getRawValue();
+      return;
+    }
 
     const initialApiIds = this.form.controls.apiIds.value ?? [];
     this.selectedOrderedApis.set(initialApiIds.map(id => ({ id, name: id })));
@@ -239,7 +271,7 @@ export class ApiSectionEditorDialogComponent implements OnInit {
       const apiIds = formValues.apiIds ?? [];
 
       this.dialogRef.close({
-        visibility: 'PUBLIC',
+        visibility: formValues.visibility,
         apiIds,
         apiId: apiIds[0],
       });
