@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.gateway.reactor.Reactable;
 import java.util.Collection;
+import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -37,8 +38,20 @@ public interface ReactorHandlerRegistry {
      * A collection of {@link Acceptor} based on the acceptorType parameter and ordered by natural comparison method.
      *
      * @param acceptorType The type of acceptor
-     * @return
-     * @param <T>
+     * @return collection of acceptors
+     * @param <T> acceptor type
      */
     <T extends Acceptor<T>> Collection<T> getAcceptors(Class<T> acceptorType);
+
+    /**
+     * Retrieve the {@link ReactorHandler} associated with the given {@link Reactable}, if any.
+     *
+     * <p>This is primarily intended for internal use cases such as API Product–driven
+     * refreshes, where we need to access the underlying reactor to trigger a refresh
+     * without changing the existing deploy/update/undeploy semantics.</p>
+     *
+     * @param reactable the reactable for which to retrieve the handler
+     * @return an {@link Optional} containing the associated {@link ReactorHandler} if present
+     */
+    Optional<ReactorHandler> getReactorHandler(Reactable reactable);
 }
