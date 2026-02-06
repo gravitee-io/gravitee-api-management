@@ -36,6 +36,7 @@ import io.gravitee.rest.api.management.v2.rest.model.logs.engine.ApiLog;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.ArrayFilter;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.Filter;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.FilterName;
+import io.gravitee.rest.api.management.v2.rest.model.logs.engine.NumericFilter;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.Operator;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.SearchLogsRequest;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.SearchLogsResponse;
@@ -711,6 +712,95 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 .satisfies(r -> {
                     assertThat(r.getData()).hasSize(2);
                     assertThat(r.getData().stream().map(ApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req3");
+                });
+        }
+
+        @Test
+        void should_filter_logs_by_response_time_gte() {
+            connectionLogsCrudService.initWith(
+                List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder().gatewayResponseTime(50).build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder().gatewayResponseTime(150).build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder().gatewayResponseTime(300).build()
+                )
+            );
+
+            var request = new SearchLogsRequest()
+                .timeRange(
+                    new TimeRange()
+                        .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
+                        .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+                )
+                .addFiltersItem(new Filter(new NumericFilter().name(FilterName.RESPONSE_TIME_RANGE).operator(Operator.GTE).value(100)));
+
+            var response = searchTarget.request().post(Entity.json(request));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(SearchLogsResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getData()).hasSize(2);
+                    assertThat(r.getData().stream().map(ApiLog::getRequestId)).containsExactlyInAnyOrder("req2", "req3");
+                });
+        }
+
+        @Test
+        void should_filter_logs_by_response_time_lte() {
+            connectionLogsCrudService.initWith(
+                List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder().gatewayResponseTime(50).build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder().gatewayResponseTime(150).build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder().gatewayResponseTime(300).build()
+                )
+            );
+
+            var request = new SearchLogsRequest()
+                .timeRange(
+                    new TimeRange()
+                        .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
+                        .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+                )
+                .addFiltersItem(new Filter(new NumericFilter().name(FilterName.RESPONSE_TIME_RANGE).operator(Operator.LTE).value(200)));
+
+            var response = searchTarget.request().post(Entity.json(request));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(SearchLogsResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getData()).hasSize(2);
+                    assertThat(r.getData().stream().map(ApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req2");
+                });
+        }
+
+        @Test
+        void should_filter_logs_by_response_time_range() {
+            connectionLogsCrudService.initWith(
+                List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder().gatewayResponseTime(50).build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder().gatewayResponseTime(150).build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder().gatewayResponseTime(300).build(),
+                    connectionLogFixtures.aConnectionLog("req4").toBuilder().gatewayResponseTime(500).build()
+                )
+            );
+
+            var request = new SearchLogsRequest()
+                .timeRange(
+                    new TimeRange()
+                        .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
+                        .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+                )
+                .addFiltersItem(new Filter(new NumericFilter().name(FilterName.RESPONSE_TIME_RANGE).operator(Operator.GTE).value(150)))
+                .addFiltersItem(new Filter(new NumericFilter().name(FilterName.RESPONSE_TIME_RANGE).operator(Operator.LTE).value(300)));
+
+            var response = searchTarget.request().post(Entity.json(request));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(SearchLogsResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getData()).hasSize(2);
+                    assertThat(r.getData().stream().map(ApiLog::getRequestId)).containsExactlyInAnyOrder("req2", "req3");
                 });
         }
     }

@@ -18,4 +18,6 @@ package io.gravitee.apim.core.logs_engine.model;
 public enum Operator {
     EQ,
     IN,
+    GTE,
+    LTE,
 }

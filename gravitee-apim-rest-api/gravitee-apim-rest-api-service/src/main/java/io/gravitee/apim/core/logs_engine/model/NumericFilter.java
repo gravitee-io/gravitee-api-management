@@ -15,16 +15,7 @@
  */
 package io.gravitee.apim.core.logs_engine.model;
 
-public enum FilterName {
-    API,
-    APPLICATION,
-    ENTRYPOINT,
-    PLAN,
-    HTTP_METHOD,
-    HTTP_STATUS,
-    MCP_METHOD,
-    TRANSACTION_ID,
-    REQUEST_ID,
-    URI,
-    RESPONSE_TIME_RANGE,
-}
+/**
+ * @author GraviteeSource Team
+ */
+public record NumericFilter(FilterName name, Operator operator, Integer value) {}

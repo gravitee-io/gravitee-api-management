@@ -19,6 +19,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.logs_engine.model.ArrayFilter;
 import io.gravitee.apim.core.logs_engine.model.Filter;
 import io.gravitee.apim.core.logs_engine.model.FilterName;
+import io.gravitee.apim.core.logs_engine.model.NumericFilter;
 import io.gravitee.apim.core.logs_engine.model.Operator;
 import io.gravitee.apim.core.logs_engine.model.SearchLogsRequest;
 import io.gravitee.apim.core.logs_engine.model.StringFilter;
@@ -55,6 +56,9 @@ public interface LogsEngineMapper {
             );
             case io.gravitee.rest.api.management.v2.rest.model.logs.engine.ArrayFilter a -> new Filter(
                 new ArrayFilter(mapFilterName(a.getName()), mapOperator(a.getOperator()), a.getValue())
+            );
+            case io.gravitee.rest.api.management.v2.rest.model.logs.engine.NumericFilter n -> new Filter(
+                new NumericFilter(mapFilterName(n.getName()), mapOperator(n.getOperator()), n.getValue())
             );
             default -> throw new ValidationDomainException("unknown filter type");
         };
