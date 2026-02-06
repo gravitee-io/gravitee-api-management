@@ -22,20 +22,45 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
-import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
+import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
-import io.gravitee.repository.analytics.engine.api.result.*;
+import io.gravitee.repository.analytics.engine.api.result.FacetBucketResult;
+import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
+import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
+import io.gravitee.repository.analytics.engine.api.result.MetricFacetsResult;
+import io.gravitee.repository.analytics.engine.api.result.MetricMeasuresResult;
+import io.gravitee.repository.analytics.engine.api.result.MetricTimeSeriesResult;
+import io.gravitee.repository.analytics.engine.api.result.TimeSeriesBucketResult;
+import io.gravitee.repository.analytics.engine.api.result.TimeSeriesResult;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.*;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Bucket;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.BucketLeaf;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CustomInterval;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetsResponseMetricsInner;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Measure;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasureName;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresResponse;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresResponseMetricsInner;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesBucket;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesBucketLeaf;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesResponseMetricsInner;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
 import jakarta.ws.rs.client.Entity;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -97,7 +122,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             );
 
-            when(filterPreProcessor.buildFilters(any(MetricsContext.class))).thenAnswer(caller -> caller.getArgument(0));
+            when(filterPreProcessor.buildFilters(any(UserContext.class))).thenAnswer(caller -> caller.getArgument(0));
         }
 
         @Test
@@ -178,7 +203,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             ).thenAnswer(invocation -> invocation.getArgument(2));
 
-            when(filterPreProcessor.buildFilters(any(MetricsContext.class))).thenAnswer(caller -> caller.getArgument(0));
+            when(filterPreProcessor.buildFilters(any(UserContext.class))).thenAnswer(caller -> caller.getArgument(0));
         }
 
         @Test
@@ -296,7 +321,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             ).thenAnswer(invocation -> invocation.getArgument(2));
 
-            when(filterPreProcessor.buildFilters(any(MetricsContext.class))).thenAnswer(caller -> caller.getArgument(0));
+            when(filterPreProcessor.buildFilters(any(UserContext.class))).thenAnswer(caller -> caller.getArgument(0));
         }
 
         @Test

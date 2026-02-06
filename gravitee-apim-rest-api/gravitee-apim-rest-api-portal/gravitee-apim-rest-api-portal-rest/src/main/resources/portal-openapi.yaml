@@ -6386,6 +6386,7 @@ components:
                     PAGE: "#/components/schemas/PortalNavigationPage"
                     FOLDER: "#/components/schemas/PortalNavigationFolder"
                     LINK: "#/components/schemas/PortalNavigationLink"
+                    API: "#/components/schemas/PortalNavigationApi"
         PortalNavigationPage:
             allOf:
                 - $ref: "#/components/schemas/BasePortalNavigationItem"
@@ -6405,17 +6406,27 @@ components:
                           type: string
                           description: The URL for the link
                   required: [url]
+        PortalNavigationApi:
+          allOf:
+            - $ref: "#/components/schemas/BasePortalNavigationItem"
+            - properties:
+                apiId:
+                  type: string
+                  description: The ApiId for the navigation item
+              required: [ apiId ]
         PortalNavigationItem:
             oneOf:
                 - $ref: "#/components/schemas/PortalNavigationPage"
                 - $ref: "#/components/schemas/PortalNavigationFolder"
                 - $ref: "#/components/schemas/PortalNavigationLink"
+                - $ref: "#/components/schemas/PortalNavigationApi"
             discriminator:
                 propertyName: type
                 mapping:
                     PAGE: "#/components/schemas/PortalNavigationPage"
                     FOLDER: "#/components/schemas/PortalNavigationFolder"
                     LINK: "#/components/schemas/PortalNavigationLink"
+                    API: "#/components/schemas/PortalNavigationApi"
 
         PortalPageContent:
             type: object

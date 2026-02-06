@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -46,6 +47,7 @@ public interface PortalNavigationItemMapper {
             case PortalNavigationFolder folder -> map(folder);
             case PortalNavigationLink link -> map(link);
             case PortalNavigationPage page -> map(page);
+            case PortalNavigationApi api -> map(api);
         };
         var wrappedItem = new io.gravitee.rest.api.portal.rest.model.PortalNavigationItem();
         wrappedItem.setActualInstance(baseItem);
@@ -55,6 +57,7 @@ public interface PortalNavigationItemMapper {
     io.gravitee.rest.api.portal.rest.model.PortalNavigationFolder map(PortalNavigationFolder folder);
     io.gravitee.rest.api.portal.rest.model.PortalNavigationLink map(PortalNavigationLink link);
     io.gravitee.rest.api.portal.rest.model.PortalNavigationPage map(PortalNavigationPage page);
+    io.gravitee.rest.api.portal.rest.model.PortalNavigationApi map(PortalNavigationApi api);
 
     @Mapping(source = "type", target = "type")
     io.gravitee.rest.api.portal.rest.model.PortalPageContent map(PortalPageContent content);

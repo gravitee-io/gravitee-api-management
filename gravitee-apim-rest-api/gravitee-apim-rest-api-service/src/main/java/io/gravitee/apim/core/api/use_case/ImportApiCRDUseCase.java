@@ -62,6 +62,7 @@ import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.context.OriginContext;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Date;
 import java.util.HashMap;
@@ -400,7 +401,8 @@ public class ImportApiCRDUseCase {
             .type(planCRD.getType())
             .validation(planCRD.getValidation())
             .apiType(api.getType())
-            .apiId(api.getId())
+            .referenceId(api.getId())
+            .referenceType(GenericPlanEntity.ReferenceType.API)
             .build();
 
         if (ApiType.NATIVE.equals(api.getType())) {

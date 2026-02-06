@@ -19,6 +19,7 @@ import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PlanFixtures;
@@ -26,6 +27,10 @@ import fixtures.core.model.RepositoryFixtures;
 import fixtures.repository.ConnectionLogFixtures;
 import inmemory.ConnectionLogsCrudServiceInMemory;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.user.domain_service.UserContextLoader;
+import io.gravitee.apim.core.user.model.UserContext;
+import io.gravitee.apim.infra.domain_service.user.UserContextLoaderImpl;
+import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.ApiLog;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.ArrayFilter;
@@ -40,6 +45,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
@@ -47,6 +53,7 @@ import jakarta.ws.rs.core.Response;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.LongStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +61,7 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class LogsSearchResourceTest extends AbstractResourceTest {
@@ -81,6 +89,15 @@ class LogsSearchResourceTest extends AbstractResourceTest {
     final ConnectionLogFixtures connectionLogFixtures = new ConnectionLogFixtures(API_1, APPLICATION_1.getId(), PLAN_1.getId());
 
     @Inject
+    private ApiAuthorizationService apiAuthorizationService;
+
+    @Inject
+    private ApiRepository apiRepository;
+
+    @Inject
+    private UserContextLoader userContextLoader;
+
+    @Inject
     ConnectionLogsCrudServiceInMemory connectionLogsCrudService;
 
     WebTarget searchTarget;
@@ -99,7 +116,14 @@ class LogsSearchResourceTest extends AbstractResourceTest {
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
+        when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean())).thenReturn(Set.of(API_1, API_2));
+
         when(apiRepository.search(any(), any())).thenReturn(List.of(GIO_API_1, GIO_API_2));
+
+        var realContextManager = new UserContextLoaderImpl(apiAuthorizationService, apiRepository);
+        when(userContextLoader.loadApis(any(UserContext.class))).thenAnswer(invocation ->
+            realContextManager.loadApis(invocation.getArgument(0))
+        );
     }
 
     @Override
@@ -108,6 +132,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
         super.tearDown();
         GraviteeContext.cleanContext();
         connectionLogsCrudService.reset();
+        Mockito.reset(userContextLoader);
     }
 
     @Override

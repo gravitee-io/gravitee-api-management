@@ -18,15 +18,18 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import fixtures.PortalNavigationItemsFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
@@ -46,6 +49,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 /**
  * @author GraviteeSource Team
@@ -92,6 +96,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
     @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
+        Mockito.reset(createPortalNavigationItemUseCase);
     }
 
     @Test
@@ -195,6 +200,49 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
             .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
             .hasFieldOrPropertyWithValue("published", false)
             .hasFieldOrPropertyWithValue("visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
+    }
+
+    @Test
+    void should_create_portal_navigation_api() {
+        // Given
+        final var api = PortalNavigationItemsFixtures.aCreatePortalNavigationApi();
+
+        final var output = PortalNavigationItem.from(PortalNavigationItemsMapper.INSTANCE.map(api), ENVIRONMENT, ORGANIZATION);
+        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+
+        // When
+        Response response = target.request().post(json(api));
+
+        // Then
+        assertThat(response).hasStatus(CREATED_201);
+
+        final var item = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApi.class);
+        assertThat(item)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("id", api.getId())
+            .hasFieldOrPropertyWithValue("title", api.getTitle())
+            .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.API)
+            .hasFieldOrPropertyWithValue("apiId", ((CreatePortalNavigationApi) api).getApiId())
+            .hasFieldOrPropertyWithValue("parentId", api.getParentId())
+            .hasFieldOrPropertyWithValue("order", api.getOrder())
+            .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
+            .hasFieldOrPropertyWithValue("published", false)
+            .hasFieldOrPropertyWithValue("visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
+    }
+
+    @Test
+    void should_fail_create_portal_navigation_api_when_api_not_found() {
+        // Given
+        final var api = PortalNavigationItemsFixtures.aCreatePortalNavigationApi();
+
+        final var output = PortalNavigationItem.from(PortalNavigationItemsMapper.INSTANCE.map(api), ENVIRONMENT, ORGANIZATION);
+        when(createPortalNavigationItemUseCase.execute(any())).thenThrow(new ApiNotFoundException("apiId"));
+
+        // When
+        Response response = target.request().post(json(api));
+
+        // Then
+        assertThat(response).hasStatus(NOT_FOUND_404);
     }
 
     @Test

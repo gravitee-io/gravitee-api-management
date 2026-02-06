@@ -20,10 +20,11 @@ import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValid
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
-import io.gravitee.apim.core.analytics_engine.model.MetricsContext;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.user.domain_service.UserContextLoader;
+import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,14 +43,18 @@ public class ComputeMeasuresUseCase {
 
     private final FilterPreProcessor filterPreprocessor;
 
+    private final UserContextLoader userContextLoader;
+
     public ComputeMeasuresUseCase(
         AnalyticsQueryContextProvider queryContextResolver,
         AnalyticsQueryValidator validator,
-        FilterPreProcessor filterPreprocessor
+        FilterPreProcessor filterPreprocessor,
+        UserContextLoader userContextLoader
     ) {
         this.queryContextProvider = queryContextResolver;
         this.validator = validator;
         this.filterPreprocessor = filterPreprocessor;
+        this.userContextLoader = userContextLoader;
     }
 
     public record Input(AuditInfo auditInfo, MeasuresRequest request) {}
@@ -61,25 +66,25 @@ public class ComputeMeasuresUseCase {
 
         var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
 
-        var metricsContextWithPermissions = filterPreprocessor.buildFilters(new MetricsContext(input.auditInfo));
+        var userContext = userContextLoader.loadApis(new UserContext(input.auditInfo));
 
         var queryContext = queryContextProvider.resolve(input.request);
 
-        var responses = executeQueries(executionContext, metricsContextWithPermissions, queryContext);
+        var responses = executeQueries(executionContext, userContext, queryContext);
 
         return new Output(MeasuresResponse.merge(responses));
     }
 
     private List<MeasuresResponse> executeQueries(
         ExecutionContext executionContext,
-        MetricsContext metricsContext,
+        UserContext userContext,
         Map<AnalyticsEngineQueryService, MeasuresRequest> queryExecutions
     ) {
         var responses = new ArrayList<MeasuresResponse>();
 
         queryExecutions.forEach((queryService, request) -> {
             var filters = new ArrayList<>(request.filters());
-            filters.addAll(metricsContext.filters());
+            filters.addAll(filterPreprocessor.buildFilters(userContext));
 
             responses.add(queryService.searchMeasures(executionContext, request.withFilters(filters)));
         });

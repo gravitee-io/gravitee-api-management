@@ -1805,7 +1805,8 @@ public class SubscriptionServiceTest {
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         planEntity.setStatus(PlanStatus.PUBLISHED);
         planEntity.setSecurity(PlanSecurityType.API_KEY);
-        planEntity.setApi("another");
+        planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
+        planEntity.setReferenceId("another");
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
         PlanEntity pushPlan = new PlanEntity();
         pushPlan.setStatus(PlanStatus.PUBLISHED);

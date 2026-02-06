@@ -17,8 +17,10 @@ package io.gravitee.rest.api.management.v2.rest.spring;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
+import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.BucketNamesPostProcessorImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ManagementFilterPreProcessor;
+import io.gravitee.apim.infra.domain_service.user.UserContextLoaderImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -51,10 +53,12 @@ public class RestManagementConfiguration {
     }
 
     @Bean
-    public FilterPreProcessor managementFilterPreProcessor(
-        ApiAuthorizationService apiAuthorizationService,
-        @Lazy ApiRepository apiRepository
-    ) {
-        return new ManagementFilterPreProcessor(apiAuthorizationService, apiRepository);
+    public FilterPreProcessor managementFilterPreProcessor() {
+        return new ManagementFilterPreProcessor();
+    }
+
+    @Bean
+    public UserContextLoader userContextLoader(ApiAuthorizationService apiAuthorizationService, @Lazy ApiRepository apiRepository) {
+        return new UserContextLoaderImpl(apiAuthorizationService, apiRepository);
     }
 }

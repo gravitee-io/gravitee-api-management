@@ -118,7 +118,7 @@ public class PlanSearchServiceImplTest {
 
         plan = new Plan();
         plan.setId(PLAN_ID);
-        plan.setApi(API_ID);
+        plan.setReferenceId(API_ID);
         plan.setReferenceType(Plan.PlanReferenceType.API);
         plan.setReferenceId(API_ID);
     }
@@ -144,7 +144,7 @@ public class PlanSearchServiceImplTest {
         Set<String> ids = Set.of(PLAN_ID, "plan2");
         when(planRepository.findByIdIn(argThat(ids::containsAll))).thenReturn(Set.of(plan, plan2));
 
-        apiRepository.findById(plan.getApi());
+        apiRepository.findById(plan.getReferenceId());
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(plan.getId());
         when(genericPlanMapper.toGenericPlanWithFlow(api, plan)).thenReturn(planEntity);
@@ -236,7 +236,7 @@ public class PlanSearchServiceImplTest {
     public void shouldNotHaveMismatchPlanForApi() throws TechnicalException {
         Plan plan = new Plan();
         plan.setId("plan-id");
-        plan.setApi("api-id");
+        plan.setReferenceId("api-id");
         when(planRepository.findByIdIn(List.of("plan-id"))).thenReturn(Set.of(plan));
         assertFalse(planSearchService.anyPlanMismatchWithApi(List.of("plan-id"), "api-id"));
     }

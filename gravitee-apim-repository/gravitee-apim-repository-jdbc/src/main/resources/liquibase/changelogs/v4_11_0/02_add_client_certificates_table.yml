@@ -12,8 +12,8 @@ databaseChangeLog:
               - column: { name: name, type: nvarchar(512), constraints: { nullable: false } }
               - column: { name: starts_at, type: timestamp }
               - column: { name: ends_at, type: timestamp }
-              - column: { name: created_at, type: timestamp, constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
-              - column: { name: updated_at, type: timestamp, constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+              - column: { name: created_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+              - column: { name: updated_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
               - column: { name: certificate, type: nclob, constraints: { nullable: false } }
               - column: { name: certificate_expiration, type: timestamp }
               - column: { name: subject, type: nvarchar(1024) }

@@ -13,20 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.analytics_engine.domain_service;
+package io.gravitee.apim.core.user.domain_service;
 
-import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
-import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
-import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.apim.core.user.model.UserContext;
-import java.util.List;
 
 /**
- * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface BucketNamesPostProcessor {
-    FacetsResponse mapBucketNames(UserContext context, List<FacetSpec.Name> facets, FacetsResponse response);
-
-    TimeSeriesResponse mapBucketNames(UserContext context, List<FacetSpec.Name> facets, TimeSeriesResponse response);
+public interface UserContextLoader {
+    UserContext loadApis(UserContext context);
 }

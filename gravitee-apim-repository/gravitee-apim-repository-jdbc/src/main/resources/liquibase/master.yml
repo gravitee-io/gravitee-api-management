@@ -303,3 +303,4 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_11_0/04_add_reference_fields_to_plans_table.yml
     - include:
         - file: liquibase/changelogs/v4_11_0/03_add_reference_fields_to_subscriptions_table.yml
+        - file: liquibase/changelogs/v4_11_0/05_add_api_id_to_portal_navigation_items.yml

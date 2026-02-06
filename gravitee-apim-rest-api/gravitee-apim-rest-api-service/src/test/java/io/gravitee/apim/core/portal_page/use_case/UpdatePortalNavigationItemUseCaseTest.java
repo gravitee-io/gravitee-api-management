@@ -26,6 +26,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
@@ -53,6 +54,7 @@ class UpdatePortalNavigationItemUseCaseTest {
     private PortalNavigationItemValidatorService validatorService;
     private PortalNavigationItemDomainService domainService;
     private PortalPageContentCrudServiceInMemory pageContentCrudService;
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
 
     @BeforeEach
     void setUp() {
@@ -61,7 +63,7 @@ class UpdatePortalNavigationItemUseCaseTest {
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
         validatorService = mock(PortalNavigationItemValidatorService.class);
-        domainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService);
+        domainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService, apiCrudService);
         useCase = new UpdatePortalNavigationItemUseCase(queryService, validatorService, domainService);
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());

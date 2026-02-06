@@ -249,7 +249,7 @@ public class TaskServiceTest {
 
         Plan plan = new Plan();
         plan.setName("Plan Name");
-        plan.setApi("planApiId");
+        plan.setReferenceId("planApiId");
         when(planRepository.findById(eq("planId"))).thenReturn(Optional.of(plan));
         Api planApi = new Api();
         planApi.setName("Plan Api Name");

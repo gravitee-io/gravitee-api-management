@@ -79,7 +79,7 @@ public class PlanCrudServiceImplTest {
             var planId = "plan-id";
             var apiId = "api-id";
             when(planRepository.findById(planId)).thenAnswer(invocation ->
-                Optional.of(planV4().id(invocation.getArgument(0)).api(apiId).build())
+                Optional.of(planV4().id(invocation.getArgument(0)).referenceId(apiId).build())
             );
             when(apiRepository.findById(any(String.class))).thenAnswer(invocation ->
                 Optional.of(Api.builder().id(invocation.getArgument(0)).definitionVersion(DefinitionVersion.V4).build())
@@ -90,7 +90,7 @@ public class PlanCrudServiceImplTest {
 
             // Then
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(plan.getApiId()).isEqualTo(apiId);
+                soft.assertThat(plan.getReferenceId()).isEqualTo(apiId);
                 soft.assertThat(plan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
                 soft.assertThat(plan.getCharacteristics()).containsExactly("characteristic-1");
                 soft.assertThat(plan.getClosedAt()).isEqualTo(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC));
@@ -125,7 +125,7 @@ public class PlanCrudServiceImplTest {
             var planId = "plan-id";
             var apiId = "api-id";
             when(planRepository.findById(planId)).thenAnswer(invocation ->
-                Optional.of(planV2().id(invocation.getArgument(0)).api(apiId).build())
+                Optional.of(planV2().id(invocation.getArgument(0)).referenceId(apiId).build())
             );
             when(apiRepository.findById(any(String.class))).thenAnswer(invocation ->
                 Optional.of(Api.builder().id(invocation.getArgument(0)).definitionVersion(DefinitionVersion.V2).build())
@@ -136,7 +136,7 @@ public class PlanCrudServiceImplTest {
 
             // Then
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(plan.getApiId()).isEqualTo(apiId);
+                soft.assertThat(plan.getReferenceId()).isEqualTo(apiId);
                 soft.assertThat(plan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
                 soft.assertThat(plan.getCharacteristics()).containsExactly("characteristic-1");
                 soft.assertThat(plan.getClosedAt()).isEqualTo(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC));
@@ -204,7 +204,7 @@ public class PlanCrudServiceImplTest {
             var apiId = "api-id";
 
             when(planRepository.findById(planId)).thenAnswer(invocation ->
-                Optional.of(planV4().id(invocation.getArgument(0)).api(apiId).build())
+                Optional.of(planV4().id(invocation.getArgument(0)).referenceId(apiId).build())
             );
             var foundPlan = service.findById(planId);
 
@@ -214,7 +214,7 @@ public class PlanCrudServiceImplTest {
                 soft.assertThat(foundPlan).isPresent();
                 var plan = foundPlan.get();
 
-                soft.assertThat(plan.getApiId()).isEqualTo(apiId);
+                soft.assertThat(plan.getReferenceId()).isEqualTo(apiId);
                 soft.assertThat(plan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
                 soft.assertThat(plan.getCharacteristics()).containsExactly("characteristic-1");
                 soft.assertThat(plan.getClosedAt()).isEqualTo(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC));
@@ -279,7 +279,12 @@ public class PlanCrudServiceImplTest {
             var referenceId = "api-product-id";
             when(planRepository.findByIdAndReferenceIdAndReferenceType(planId, referenceId, Plan.PlanReferenceType.API_PRODUCT)).thenReturn(
                 Optional.of(
-                    planV4().id(planId).api("api-id").referenceId(referenceId).referenceType(Plan.PlanReferenceType.API_PRODUCT).build()
+                    planV4()
+                        .id(planId)
+                        .referenceId("api-id")
+                        .referenceId(referenceId)
+                        .referenceType(Plan.PlanReferenceType.API_PRODUCT)
+                        .build()
                 )
             );
 
@@ -337,7 +342,7 @@ public class PlanCrudServiceImplTest {
         void should_return_plans_for_api_id() throws TechnicalException {
             var apiId = "api-id";
             when(planRepository.findByReferenceIdAndReferenceType(apiId, Plan.PlanReferenceType.API)).thenReturn(
-                Set.of(planV4().id("plan-1").api(apiId).build(), planV4().id("plan-2").api(apiId).build())
+                Set.of(planV4().id("plan-1").referenceId(apiId).build(), planV4().id("plan-2").referenceId(apiId).build())
             );
 
             var plans = service.findByApiId(apiId);
@@ -377,7 +382,7 @@ public class PlanCrudServiceImplTest {
         void should_return_plans_for_ids() throws TechnicalException {
             var apiId = "api-id";
             when(planRepository.findByIdIn(List.of("plan-1", "plan-2"))).thenReturn(
-                Set.of(planV4().id("plan-1").api(apiId).build(), planV4().id("plan-2").api(apiId).build())
+                Set.of(planV4().id("plan-1").referenceId(apiId).build(), planV4().id("plan-2").api(apiId).build())
             );
 
             var plans = service.findByIds(List.of("plan-1", "plan-2"));

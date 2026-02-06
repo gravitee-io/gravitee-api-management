@@ -149,7 +149,8 @@ class PromotionsResourceTest extends AbstractResourceTest {
             .toBuilder()
             .id(PROMOTION_ID)
             .apiId(API_ID)
-            .apiDefinition("{ \"gravitee\" : \"2.0.0\", \"id\" : \"api-id\" }")
+            .targetEnvCockpitId(TARGET_ENV_COCKPIT_ID)
+            .apiDefinition("{ \"gravitee\" : \"2.0.0\", \"id\" : \"api-id\", \"crossId\" : \"api-cross-id\" }")
             .build();
         promotionCrudServiceInMemory.initWith(List.of(promotion));
         apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).crossId(API_CROSS_ID).environmentId(DEFAULT_ENV_ID).build()));

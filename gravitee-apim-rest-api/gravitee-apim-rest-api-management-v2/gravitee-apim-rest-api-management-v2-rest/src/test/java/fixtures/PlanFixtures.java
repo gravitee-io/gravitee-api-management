@@ -29,6 +29,7 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV4;
 import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.Date;
 import java.util.List;
@@ -232,7 +233,7 @@ public class PlanFixtures {
             .name("My plan")
             .description("Description")
             .validation(Plan.PlanValidationType.AUTO)
-            .type(Plan.PlanType.API)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
             .apiType(ApiType.MESSAGE)
             .definitionVersion(DefinitionVersion.V4)
             .planDefinitionHttpV4(
@@ -245,7 +246,7 @@ public class PlanFixtures {
                     .flows(List.of(FlowFixtures.aModelFlowHttpV4()))
                     .build()
             )
-            .apiId("api-id")
+            .referenceId("api-id")
             .order(1)
             .characteristics(List.of("characteristic1", "characteristic2"))
             .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
@@ -263,7 +264,7 @@ public class PlanFixtures {
             .name("My plan")
             .description("Description")
             .validation(Plan.PlanValidationType.AUTO)
-            .type(Plan.PlanType.API)
+            .referenceType(GenericPlanEntity.ReferenceType.API)
             .apiType(ApiType.NATIVE)
             .definitionVersion(DefinitionVersion.V4)
             .planDefinitionNativeV4(
@@ -276,7 +277,7 @@ public class PlanFixtures {
                     .flows(List.of(FlowFixtures.aModelFlowNativeV4()))
                     .build()
             )
-            .apiId("api-id")
+            .referenceId("api-id")
             .order(1)
             .characteristics(List.of("characteristic1", "characteristic2"))
             .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))

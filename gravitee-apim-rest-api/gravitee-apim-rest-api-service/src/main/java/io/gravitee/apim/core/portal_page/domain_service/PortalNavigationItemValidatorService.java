@@ -26,6 +26,7 @@ import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.ParentTypeMismatchException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -132,6 +133,7 @@ public class PortalNavigationItemValidatorService {
             case PortalNavigationFolder ignored -> PortalNavigationItemType.FOLDER;
             case PortalNavigationPage ignored -> PortalNavigationItemType.PAGE;
             case PortalNavigationLink ignored -> PortalNavigationItemType.LINK;
+            case PortalNavigationApi ignored -> PortalNavigationItemType.API;
         };
 
         if (existingType != requestedType) {

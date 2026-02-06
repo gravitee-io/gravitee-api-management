@@ -110,6 +110,31 @@ class PortalNavigationItemAdapterTest {
         }
 
         @Test
+        void should_map_api_to_entity() {
+            // Given
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.anApi(
+                "550e8400-e29b-41d4-a716-446655440004",
+                "My Link",
+                "testApi",
+                null
+            );
+
+            // When
+            var entity = adapter.toEntity(repositoryItem);
+
+            // Then
+            assertThat(entity).isInstanceOf(PortalNavigationApi.class);
+            var api = (PortalNavigationApi) entity;
+            assertThat(api.getId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440004"));
+            assertThat(api.getOrganizationId()).isEqualTo("org-id");
+            assertThat(api.getEnvironmentId()).isEqualTo("env-id");
+            assertThat(api.getTitle()).isEqualTo("My Link");
+            assertThat(api.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
+            assertThat(api.getApiId()).isEqualTo("testApi");
+            assertThat(api.getOrder()).isEqualTo(0);
+        }
+
+        @Test
         void should_throw_when_page_configuration_is_missing() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aPage(
@@ -195,7 +220,7 @@ class PortalNavigationItemAdapterTest {
             entity.setParentId(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440011"));
 
             // When
-            var repositoryItem = adapter.toRepository(entity);
+            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
 
             // Then
             assertThat(repositoryItem.getId()).isEqualTo("550e8400-e29b-41d4-a716-446655440010");
@@ -220,7 +245,7 @@ class PortalNavigationItemAdapterTest {
                 .build();
 
             // When
-            var repositoryItem = adapter.toRepository(entity);
+            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
 
             // Then
             assertThat(repositoryItem.getId()).isEqualTo("550e8400-e29b-41d4-a716-446655440012");
@@ -241,7 +266,7 @@ class PortalNavigationItemAdapterTest {
             var entity = PortalNavigationItemFixtures.aLink("550e8400-e29b-41d4-a716-446655440014", "My Link", null);
 
             // When
-            var repositoryItem = adapter.toRepository(entity);
+            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
 
             // Then
             assertThat(repositoryItem.getId()).isEqualTo("550e8400-e29b-41d4-a716-446655440014");
@@ -252,6 +277,27 @@ class PortalNavigationItemAdapterTest {
             assertThat(repositoryItem.getArea()).isEqualTo(PortalNavigationItem.Area.TOP_NAVBAR);
             assertThat(repositoryItem.getOrder()).isEqualTo(0);
             assertThat(repositoryItem.getConfiguration()).isEqualTo("{\"url\":\"http://example.com\"}");
+            assertThat(repositoryItem.isPublished()).isTrue();
+            assertThat(repositoryItem.getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PUBLIC);
+        }
+
+        @Test
+        void should_map_api_to_repository() {
+            // Given
+            var entity = PortalNavigationItemFixtures.anApi("550e8400-e29b-41d4-a716-446655440014", "My Link", null, "apiId");
+
+            // When
+            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+
+            // Then
+            assertThat(repositoryItem.getId()).isEqualTo("550e8400-e29b-41d4-a716-446655440014");
+            assertThat(repositoryItem.getOrganizationId()).isEqualTo("org-id");
+            assertThat(repositoryItem.getEnvironmentId()).isEqualTo("env-id");
+            assertThat(repositoryItem.getTitle()).isEqualTo("My Link");
+            assertThat(repositoryItem.getType()).isEqualTo(PortalNavigationItem.Type.API);
+            assertThat(repositoryItem.getArea()).isEqualTo(PortalNavigationItem.Area.TOP_NAVBAR);
+            assertThat(repositoryItem.getOrder()).isEqualTo(0);
+            assertThat(repositoryItem.getApiId()).isEqualTo("apiId");
             assertThat(repositoryItem.isPublished()).isTrue();
             assertThat(repositoryItem.getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PUBLIC);
         }

@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.logs_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.logs_engine.domain_service.FilterContext;
@@ -32,6 +33,8 @@ import io.gravitee.apim.core.logs_engine.model.Pagination;
 import io.gravitee.apim.core.logs_engine.model.SearchLogsRequest;
 import io.gravitee.apim.core.logs_engine.model.SearchLogsResponse;
 import io.gravitee.apim.core.logs_engine.model.StringFilter;
+import io.gravitee.apim.core.user.domain_service.UserContextLoader;
+import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -53,9 +56,11 @@ public class SearchEnvironmentLogsUseCase {
     private static final int DEFAULT_PAGE = 1;
     private static final int DEFAULT_PER_PAGE = 10;
     private final ConnectionLogsCrudService connectionLogsCrudService;
+    private final UserContextLoader userContextLoader;
 
-    public SearchEnvironmentLogsUseCase(ConnectionLogsCrudService connectionLogsCrudService) {
+    public SearchEnvironmentLogsUseCase(ConnectionLogsCrudService connectionLogsCrudService, UserContextLoader userContextLoader) {
         this.connectionLogsCrudService = connectionLogsCrudService;
+        this.userContextLoader = userContextLoader;
     }
 
     public record Input(AuditInfo auditInfo, SearchLogsRequest request) {}
@@ -65,10 +70,23 @@ public class SearchEnvironmentLogsUseCase {
     public Output execute(Input input) {
         var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
         var pageable = buildPageable(input.request);
-        var searchFilters = buildFilters(input.request);
-        io.gravitee.rest.api.model.v4.log.SearchLogsResponse<BaseConnectionLog> searchLogResponse =
-            connectionLogsCrudService.searchApiConnectionLogs(executionContext, searchFilters, pageable, List.of(DefinitionVersion.V4));
-        return new Output(mapResponse(searchLogResponse, pageable));
+
+        var userContext = userContextLoader.loadApis(new UserContext(input.auditInfo));
+
+        var searchFilters = buildFilters(userContext, input.request);
+
+        if (searchFilters.apiIds().isEmpty()) {
+            return new Output(new SearchLogsResponse(List.of(), new Pagination(0, 0, 0, 0, 0L), null));
+        }
+
+        var result = connectionLogsCrudService.searchApiConnectionLogs(
+            executionContext,
+            searchFilters,
+            pageable,
+            List.of(DefinitionVersion.V4)
+        );
+
+        return new Output(mapResponse(result, pageable));
     }
 
     private Pageable buildPageable(SearchLogsRequest request) {
@@ -77,7 +95,7 @@ public class SearchEnvironmentLogsUseCase {
         return new PageableImpl(page, perPage);
     }
 
-    private SearchLogsFilters buildFilters(SearchLogsRequest request) {
+    private SearchLogsFilters buildFilters(UserContext userContext, SearchLogsRequest request) {
         var filterContext = new FilterContext();
 
         if (request.filters() != null) {
@@ -90,6 +108,9 @@ public class SearchEnvironmentLogsUseCase {
                 }
             }
         }
+
+        Set<String> apiIds = userContext.apis().orElseGet(Collections::emptyList).stream().map(Api::getId).collect(Collectors.toSet());
+        filterContext.limitByApiIds(apiIds);
 
         var builder = SearchLogsFilters.builder();
         builder.apiIds(filterContext.apiIds().orElseGet(Collections::emptySet));

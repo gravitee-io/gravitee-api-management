@@ -22,6 +22,8 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.TaskEntity;
@@ -33,7 +35,6 @@ import io.gravitee.rest.api.model.promotion.PromotionQuery;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.promotion.PromotionTasksService;
@@ -46,6 +47,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -54,6 +56,7 @@ import org.springframework.util.StringUtils;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
 public class PromotionTasksServiceImpl extends AbstractService implements PromotionTasksService {
 
@@ -61,17 +64,20 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
     private final PermissionService permissionService;
     private final EnvironmentService environmentService;
     private final ApiSearchService apiSearchService;
+    private final ObjectMapper objectMapper;
 
     public PromotionTasksServiceImpl(
         PromotionService promotionService,
         PermissionService permissionService,
         EnvironmentService environmentService,
-        ApiSearchService apiSearchService
+        ApiSearchService apiSearchService,
+        ObjectMapper objectMapper
     ) {
         this.promotionService = promotionService;
         this.permissionService = permissionService;
         this.environmentService = environmentService;
         this.apiSearchService = apiSearchService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -145,10 +151,10 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
         taskEntity.setType(TaskType.PROMOTION_APPROVAL);
         taskEntity.setCreatedAt(promotionEntity.getCreatedAt());
 
-        var api = apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), promotionEntity.getApiId());
+        String apiName = extractApiNameFromDefinition(promotionEntity.getApiDefinition());
 
         Map<String, Object> data = new HashMap<>();
-        data.put("apiName", api.getName());
+        data.put("apiName", apiName);
         data.put("apiId", promotionEntity.getApiId());
         data.put("sourceEnvironmentName", promotionEntity.getSourceEnvName());
         data.put("targetEnvironmentName", promotionEntity.getTargetEnvName());
@@ -161,5 +167,41 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
 
         taskEntity.setData(data);
         return taskEntity;
+    }
+
+    /**
+     * Extracts the API name from the API definition.
+     * This approach works for both v2 and v4 API definitions.
+     *
+     * @param apiDefinition the API definition JSON string
+     * @return the API name, or "Unknown API" if extraction fails
+     */
+    private String extractApiNameFromDefinition(String apiDefinition) {
+        if (apiDefinition == null || apiDefinition.isBlank()) {
+            return "Unknown API name";
+        }
+        try {
+            JsonNode root = objectMapper.readTree(apiDefinition);
+
+            // Try to get name directly (v2 format)
+            JsonNode nameNode = root.get("name");
+            if (nameNode != null && !nameNode.isNull()) {
+                return nameNode.asText();
+            }
+
+            // Try to get name from api object (v4 format)
+            JsonNode apiNode = root.get("api");
+            if (apiNode != null && !apiNode.isNull()) {
+                nameNode = apiNode.get("name");
+                if (nameNode != null && !nameNode.isNull()) {
+                    return nameNode.asText();
+                }
+            }
+
+            return "Unknown API name";
+        } catch (Exception e) {
+            log.warn("Failed to extract API name from promotion definition", e);
+            return "Unknown API name";
+        }
     }
 }

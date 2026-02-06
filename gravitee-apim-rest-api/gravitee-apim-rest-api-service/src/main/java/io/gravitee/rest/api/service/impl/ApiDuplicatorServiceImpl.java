@@ -50,6 +50,7 @@ import io.gravitee.rest.api.model.api.DuplicateApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiIdsCalculatorService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -825,6 +826,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
             plansToImport.forEach(planEntity -> {
                 planEntity.setApi(apiEntity.getId());
+                planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
+                planEntity.setReferenceId(apiEntity.getId());
                 replacePlanGroupNameById(executionContext, apiEntity, planEntity);
                 planService.createOrUpdatePlan(executionContext, planEntity);
                 apiEntity.getPlans().add(planEntity);

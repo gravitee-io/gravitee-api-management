@@ -26,9 +26,12 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
@@ -40,6 +43,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.function.ThrowingRunnable;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,6 +63,7 @@ class CreatePortalNavigationItemUseCaseTest {
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private PortalNavigationItemValidatorService validatorService;
     private PortalPageContentCrudServiceInMemory pageContentCrudService;
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
 
     @BeforeEach
     void setUp() {
@@ -68,9 +73,63 @@ class CreatePortalNavigationItemUseCaseTest {
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         validatorService = mock(PortalNavigationItemValidatorService.class);
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
-        domainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService);
+        domainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService, apiCrudService);
         useCase = new CreatePortalNavigationItemUseCase(domainService, validatorService);
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
+        apiCrudService.initWith(List.of(Api.builder().id("apiId").name("apiIdName").build()));
+    }
+
+    @Test
+    void should_create_api_item_if_validation_succeeds() {
+        // Given
+        final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+            .id(PortalNavigationItemId.random())
+            .type(PortalNavigationItemType.API)
+            .apiId("apiId")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .build();
+        createPortalNavigationItem.setParentId(PortalNavigationItemId.of(APIS_ID));
+
+        // When
+        useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
+
+        // Then
+        final var items = queryService.findByParentIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(APIS_ID));
+        final var createdItem = items
+            .stream()
+            .filter(item -> item.getId().equals(createPortalNavigationItem.getId()))
+            .findFirst();
+        assertThat(createdItem).isPresent();
+        assertThat(createdItem.get()).satisfies(item -> {
+            assertThat(item.getTitle()).isEqualTo("apiIdName");
+            assertThat(item.getArea()).isEqualTo(createPortalNavigationItem.getArea());
+            assertThat(item.getOrder()).isEqualTo(createPortalNavigationItem.getOrder());
+            assertThat(item.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+            assertThat(item.getPublished()).isFalse();
+        });
+    }
+
+    @Test
+    void should_not_create_api_item_if_validation_fails() {
+        // Given
+        final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+            .id(PortalNavigationItemId.random())
+            .type(PortalNavigationItemType.API)
+            .apiId("wrongApiId")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .build();
+        createPortalNavigationItem.setParentId(PortalNavigationItemId.of(APIS_ID));
+
+        // When
+
+        final ThrowingRunnable throwing = () ->
+            useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
+
+        // Then
+        Exception exception = assertThrows(ApiNotFoundException.class, throwing);
+        assertThat(exception.getMessage()).isEqualTo("Api not found.");
     }
 
     @Test

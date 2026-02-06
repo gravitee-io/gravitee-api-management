@@ -54,6 +54,7 @@ public class JdbcPortalNavigationItemRepository
             .addColumn("order", Types.INTEGER, Integer.class)
             .addColumn("configuration", Types.NVARCHAR, String.class)
             .addColumn("published", Types.BOOLEAN, boolean.class)
+            .addColumn("apiId", Types.NVARCHAR, String.class)
             .addColumn("visibility", Types.NVARCHAR, PortalNavigationItem.Visibility.class)
             .build();
     }

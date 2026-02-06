@@ -58,7 +58,7 @@ public class PlanConverterTest {
         assertEquals(plan.getDescription(), planEntity.getDescription());
         assertEquals(plan.getValidation().name(), planEntity.getValidation().name());
         assertEquals(plan.getStatus().name(), planEntity.getStatus().name());
-        assertEquals(plan.getApi(), planEntity.getApi());
+        assertEquals(plan.getReferenceId(), planEntity.getReferenceId());
         assertEquals(plan.getGeneralConditions(), planEntity.getGeneralConditions());
         assertEquals(plan.getSecurity().name(), planEntity.getSecurity().name());
         assertSame(flows, planEntity.getFlows());
@@ -143,15 +143,15 @@ public class PlanConverterTest {
         final NewPlanEntity result = planConverter.toNewPlanEntity(actual);
 
         assertEquals(result.getId(), actual.getId());
-        assertEquals(result.getApi(), actual.getApi());
+        assertEquals(result.getReferenceId(), actual.getReferenceId());
         assertEquals(result.getName(), actual.getName());
         assertEquals(result.getDescription(), actual.getDescription());
         assertEquals(result.getValidation(), PlanValidationType.MANUAL);
         assertEquals(result.getSecurity(), PlanSecurityType.API_KEY);
         assertEquals(result.getSecurityDefinition(), actual.getSecurityDefinition());
-        assertEquals(result.getType(), PlanType.API);
+        assertEquals(result.getReferenceType(), GenericPlanEntity.ReferenceType.API);
         assertEquals(result.getStatus(), PlanStatus.STAGING);
-        assertEquals(result.getApi(), actual.getApi());
+        assertEquals(result.getReferenceId(), actual.getReferenceId());
         assertEquals(result.getPaths(), new HashMap<>());
         assertEquals(result.getFlows(), new ArrayList<>());
         assertEquals(result.getCharacteristics(), actual.getCharacteristics());

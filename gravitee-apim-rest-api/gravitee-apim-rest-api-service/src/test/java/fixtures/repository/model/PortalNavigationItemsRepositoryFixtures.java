@@ -86,6 +86,24 @@ public class PortalNavigationItemsRepositoryFixtures {
             .build();
     }
 
+    public static PortalNavigationItem anApi(String id, String title, String apiId, String parentId) {
+        var configuration = "{}";
+        return PortalNavigationItem.builder()
+            .id(id)
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title(title)
+            .type(Type.API)
+            .area(Area.TOP_NAVBAR)
+            .order(0)
+            .parentId(parentId)
+            .configuration(configuration)
+            .published(true)
+            .visibility(Visibility.PUBLIC)
+            .apiId(apiId)
+            .build();
+    }
+
     public static List<PortalNavigationItem> sampleRepositoryNavigationItems() {
         var apis = aFolder(APIS_ID, "APIs");
         apis.setOrder(0);
@@ -95,7 +113,9 @@ public class PortalNavigationItemsRepositoryFixtures {
         page12.setOrder(2);
         var link1 = aLink(LINK1_ID, "Example Link", null, null);
         link1.setOrder(3);
+        var aip1 = anApi(LINK1_ID, "Example Link", "apiId", null);
+        aip1.setOrder(4);
 
-        return List.of(apis, page11, page12, link1);
+        return List.of(apis, page11, page12, link1, aip1);
     }
 }

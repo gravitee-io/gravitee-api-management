@@ -31,6 +31,8 @@ public class PlanFixtures {
         Plan.builder()
             .id("my-plan")
             .apiId("my-api")
+            .referenceId("my-api")
+            .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
             .name("My plan")
             .description("Description")
             .order(1)

@@ -232,7 +232,8 @@ public class StartIngestIntegrationApisUseCase {
             .id(id)
             .name("Key less plan")
             .description("Default plan")
-            .apiId(api.getId())
+            .referenceId(api.getId())
+            .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
             .federatedPlanDefinition(
                 FederatedPlan.builder()
                     .id(id)

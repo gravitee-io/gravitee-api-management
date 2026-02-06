@@ -16,6 +16,7 @@
 package fixtures;
 
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
@@ -65,6 +66,22 @@ public class PortalNavigationItemsFixtures {
         return new CreatePortalNavigationLink()
             .url(url)
             .type(PortalNavigationItemType.LINK)
+            .id(id)
+            .title(title)
+            .area(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
+            .order(3)
+            .parentId(parentId)
+            .visibility(PortalVisibility.PUBLIC);
+    }
+
+    public static BaseCreatePortalNavigationItem aCreatePortalNavigationApi() {
+        var title = "My Link";
+        var id = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        var parentId = UUID.fromString("00000000-0000-0000-0000-000000000002");
+        var url = "apiId";
+        return new CreatePortalNavigationApi()
+            .apiId(url)
+            .type(PortalNavigationItemType.API)
             .id(id)
             .title(title)
             .area(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)

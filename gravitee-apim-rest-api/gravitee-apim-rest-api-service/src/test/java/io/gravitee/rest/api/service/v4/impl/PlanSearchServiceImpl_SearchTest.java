@@ -298,7 +298,7 @@ public class PlanSearchServiceImpl_SearchTest {
     ) {
         var plan = new io.gravitee.repository.management.model.Plan();
         plan.setId(id);
-        plan.setApi(API_ID);
+        plan.setReferenceId(API_ID);
         plan.setType(Plan.PlanType.API);
         plan.setValidation(Plan.PlanValidationType.AUTO);
         plan.setOrder(order);

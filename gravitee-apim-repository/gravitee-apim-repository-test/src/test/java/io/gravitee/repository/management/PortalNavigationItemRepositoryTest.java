@@ -114,6 +114,31 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     }
 
     @Test
+    public void should_create_and_delete_api_navigation_item() throws Exception {
+        PortalNavigationItem item = PortalNavigationItem.builder()
+            .id("new-nav-item")
+            .organizationId("org-1")
+            .environmentId("env-1")
+            .title("Support")
+            .type(PortalNavigationItem.Type.API)
+            .apiId("testApiId")
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(4)
+            .published(true)
+            .configuration("{}")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .build();
+
+        PortalNavigationItem created = portalNavigationItemRepository.create(item);
+        assertThat(created).isNotNull();
+        assertThat(created.getId()).isEqualTo(item.getId());
+
+        portalNavigationItemRepository.delete(item.getId());
+        var maybeFound = portalNavigationItemRepository.findById(item.getId());
+        assertThat(maybeFound).isEmpty();
+    }
+
+    @Test
     public void should_find_all_navigation_items_for_parent_id_and_environment() throws Exception {
         List<PortalNavigationItem> items = portalNavigationItemRepository.findAllByParentIdAndEnvironmentId(
             "5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c",

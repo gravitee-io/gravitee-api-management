@@ -17,7 +17,6 @@ package io.gravitee.apim.core.promotion.domain_service;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
@@ -30,20 +29,17 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 public class PromotionContextDomainService {
 
     private final PromotionCrudService promotionCrudService;
-    private final ApiCrudService apiCrudService;
     private final ApiQueryService apiQueryService;
     private final EnvironmentCrudService environmentCrudService;
     private final JsonMapper jsonMapper;
 
     public PromotionContextDomainService(
         PromotionCrudService promotionCrudService,
-        ApiCrudService apiCrudService,
         ApiQueryService apiQueryService,
         EnvironmentCrudService environmentCrudService,
         JsonMapper jsonMapper
     ) {
         this.promotionCrudService = promotionCrudService;
-        this.apiCrudService = apiCrudService;
         this.apiQueryService = apiQueryService;
         this.environmentCrudService = environmentCrudService;
         this.jsonMapper = jsonMapper;
@@ -67,9 +63,9 @@ public class PromotionContextDomainService {
      */
     public PromotionContext getPromotionContext(String promotionId, boolean isAccepted) {
         var promotion = promotionCrudService.getById(promotionId);
-        var api = apiCrudService.get(promotion.getApiId());
+        var crossId = extractCrossIdFromDefinition(promotion);
         var environment = environmentCrudService.getByCockpitId(promotion.getTargetEnvCockpitId());
-        var targetApiOpt = apiQueryService.findByEnvironmentIdAndCrossId(environment.getId(), api.getCrossId());
+        var targetApiOpt = apiQueryService.findByEnvironmentIdAndCrossId(environment.getId(), crossId);
         var expectedDefinitionVersion = getPromotionDefinitionVersion(promotion);
 
         if (isAccepted && targetApiOpt.isPresent()) {
@@ -81,6 +77,34 @@ public class PromotionContextDomainService {
         }
 
         return new PromotionContext(promotion, expectedDefinitionVersion, targetApiOpt.orElse(null), environment.getId());
+    }
+
+    /**
+     * Extracts the crossId from the API definition JSON stored in the promotion.
+     */
+    private String extractCrossIdFromDefinition(Promotion promotion) {
+        try {
+            var root = jsonMapper.readTree(promotion.getApiDefinition());
+
+            // Try to get crossId directly (v2 format)
+            var crossIdNode = root.get("crossId");
+            if (crossIdNode != null && !crossIdNode.isNull()) {
+                return crossIdNode.asText();
+            }
+
+            // Try to get crossId from api object (v4 format)
+            var apiNode = root.get("api");
+            if (apiNode != null && !apiNode.isNull()) {
+                crossIdNode = apiNode.get("crossId");
+                if (crossIdNode != null && !crossIdNode.isNull()) {
+                    return crossIdNode.asText();
+                }
+            }
+
+            throw new IllegalStateException("Could not find crossId in promotion " + promotion.getId() + " API definition");
+        } catch (Exception e) {
+            throw new TechnicalManagementException("An error occurred while trying to extract crossId from promotion " + promotion.getId());
+        }
     }
 
     private DefinitionVersion getPromotionDefinitionVersion(Promotion promotion) {

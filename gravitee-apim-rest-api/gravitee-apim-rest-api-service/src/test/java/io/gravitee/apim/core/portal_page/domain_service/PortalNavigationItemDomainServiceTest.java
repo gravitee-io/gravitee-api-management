@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
@@ -40,6 +41,7 @@ public class PortalNavigationItemDomainServiceTest {
     private final PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService =
         new PortalNavigationItemsQueryServiceInMemory(portalNavigationItemsCrudService.storage());
     private final PortalPageContentCrudServiceInMemory portalPageContentCrudService = new PortalPageContentCrudServiceInMemory();
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private PortalNavigationItemDomainService domainService;
 
     @BeforeEach
@@ -47,10 +49,13 @@ public class PortalNavigationItemDomainServiceTest {
         portalNavigationItemsCrudService.reset();
         portalNavigationItemsQueryService.reset();
         portalPageContentCrudService.reset();
+        apiCrudService.reset();
+
         domainService = new PortalNavigationItemDomainService(
             portalNavigationItemsCrudService,
             portalNavigationItemsQueryService,
-            portalPageContentCrudService
+            portalPageContentCrudService,
+            apiCrudService
         );
     }
 

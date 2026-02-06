@@ -42,12 +42,11 @@ import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValid
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
-import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
-import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFacetSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetMetricFilterSpecUseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
@@ -165,6 +164,7 @@ import io.gravitee.apim.core.subscription.use_case.GetSubscriptionsUseCase;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.UpdateSubscriptionUseCase;
+import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
@@ -993,12 +993,14 @@ public class ResourceContextConfiguration {
     public PortalNavigationItemDomainService portalNavigationItemDomainService(
         PortalNavigationItemCrudService portalNavigationItemCrudService,
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        PortalPageContentCrudService portalPageContentCrudService
+        PortalPageContentCrudService portalPageContentCrudService,
+        ApiCrudService apiCrudService
     ) {
         return new PortalNavigationItemDomainService(
             portalNavigationItemCrudService,
             portalNavigationItemsQueryService,
-            portalPageContentCrudService
+            portalPageContentCrudService,
+            apiCrudService
         );
     }
 
@@ -1057,15 +1059,6 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ComputeMeasuresUseCase computeMeasuresUseCase(
-        AnalyticsQueryContextProvider analyticsQueryContextProvider,
-        AnalyticsQueryValidator analyticsQueryValidator,
-        FilterPreProcessor filterPreprocessor
-    ) {
-        return new ComputeMeasuresUseCase(analyticsQueryContextProvider, analyticsQueryValidator, filterPreprocessor);
-    }
-
-    @Bean
     public ProcessPromotionUseCase processPromotionUseCase() {
         return mock(ProcessPromotionUseCase.class);
     }
@@ -1103,5 +1096,10 @@ public class ResourceContextConfiguration {
     @Bean
     public DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase() {
         return mock(DeletePortalNavigationItemUseCase.class);
+    }
+
+    @Bean
+    public UserContextLoader userContextLoader() {
+        return mock(UserContextLoader.class);
     }
 }
