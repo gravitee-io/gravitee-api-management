@@ -1,5 +1,5 @@
-@use '../../../../node_modules/prismjs/themes/prism';
-@use '../../../../node_modules/@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight';
+@use 'prismjs/themes/prism';
+@use '@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight';
 
 #page-content {
   font-size: 14px;
