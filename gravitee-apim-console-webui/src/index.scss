@@ -1,26 +1,26 @@
-@use '../node_modules/@gravitee/ui-particles-angular' as gio;
+@use '@gravitee/ui-particles-angular' as gio;
 
-@use '../node_modules/angular-gridster/dist/angular-gridster.css';
-@use '../node_modules/angular-loading-bar/build/loading-bar.css';
-@use '../node_modules/angular-material/modules/scss/angular-material';
-@use '../node_modules/angular-material-data-table/dist/md-data-table.css';
-@use '../node_modules/angular-moment-picker/dist/angular-moment-picker.css';
-@use '../node_modules/angular-timeline/dist/angular-timeline.css';
+@use 'angular-gridster/dist/angular-gridster.css';
+@use 'angular-loading-bar/build/loading-bar.css';
+@use 'angular-material/modules/scss/angular-material';
+@use 'angular-material-data-table/dist/md-data-table.css';
+@use 'angular-moment-picker/dist/angular-moment-picker.css';
+@use 'angular-timeline/dist/angular-timeline.css';
 @use './scss/bootstrap';
-@use '../node_modules/codemirror/addon/dialog/dialog.css';
-@use '../node_modules/codemirror/addon/lint/lint.css';
-@use '../node_modules/codemirror/lib/codemirror.css';
-@use '../node_modules/dragular/dist/dragular.css';
-@use '../node_modules/highlight.js/styles/a11y-light.css';
-@use '../node_modules/md-color-picker/dist/mdColorPicker.css';
-@use '../node_modules/md-steppers/dist/md-steppers.min.css';
-@use '../node_modules/@toast-ui/editor/dist/toastui-editor.css';
-@use '../node_modules/@toast-ui/editor/dist/toastui-editor-viewer.css';
-@use '../node_modules/@gravitee/ui-components/assets/css/gravitee-console-theme.css';
-@use '../node_modules/@fontsource/libre-franklin/scss/mixins';
+@use 'codemirror/addon/dialog/dialog.css';
+@use 'codemirror/addon/lint/lint.css';
+@use 'codemirror/lib/codemirror.css';
+@use 'dragular/dist/dragular.css';
+@use 'highlight.js/styles/a11y-light.css';
+@use 'md-color-picker/dist/mdColorPicker.css';
+@use 'md-steppers/dist/md-steppers.min.css';
+@use '@toast-ui/editor/dist/toastui-editor.css';
+@use '@toast-ui/editor/dist/toastui-editor-viewer.css';
+@use '@gravitee/ui-components/assets/css/gravitee-console-theme.css';
+@use '@fontsource/libre-franklin/scss/mixins';
 @use './scss/material-layout-compatibility.scss' as mlc;
 
-@use '../node_modules/v-accordion/dist/v-accordion.css';
+@use 'v-accordion/dist/v-accordion.css';
 
 @use 'constants' as constants;
 
