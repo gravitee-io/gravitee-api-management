@@ -181,9 +181,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             validateTags(newPlan.getTags(), api);
 
-            String id = newPlan.getId() != null && UUID.fromString(newPlan.getReferenceId()) != null
-                ? newPlan.getId()
-                : UuidString.generateRandom();
+            String id = newPlan.getId() != null ? newPlan.getId() : UuidString.generateRandom();
 
             newPlan.setId(id);
             Plan plan = planConverter.toPlan(newPlan, getApiDefinitionVersion(api));
@@ -257,6 +255,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             newPlan.setType(oldPlan.getType());
             newPlan.setStatus(oldPlan.getStatus());
             newPlan.setOrder(oldPlan.getOrder());
+            newPlan.setApi(oldPlan.getReferenceId());
             newPlan.setReferenceId(oldPlan.getReferenceId());
             newPlan.setReferenceType(oldPlan.getReferenceType());
             newPlan.setCreatedAt(oldPlan.getCreatedAt());

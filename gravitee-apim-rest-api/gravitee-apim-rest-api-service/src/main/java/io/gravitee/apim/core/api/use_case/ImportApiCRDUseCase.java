@@ -401,6 +401,7 @@ public class ImportApiCRDUseCase {
             .type(planCRD.getType())
             .validation(planCRD.getValidation())
             .apiType(api.getType())
+            .apiId(api.getId())
             .referenceId(api.getId())
             .referenceType(GenericPlanEntity.ReferenceType.API)
             .build();
