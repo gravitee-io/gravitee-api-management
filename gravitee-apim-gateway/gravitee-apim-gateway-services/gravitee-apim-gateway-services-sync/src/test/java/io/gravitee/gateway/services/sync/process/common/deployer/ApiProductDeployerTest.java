@@ -21,6 +21,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
@@ -29,7 +30,6 @@ import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.PlanReferenceType;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Date;
 import java.util.Set;
@@ -65,15 +65,25 @@ class ApiProductDeployerTest {
     @Mock
     private ProductPlanDefinitionCache productPlanDefinitionCache;
 
+    @Mock
+    private EventManager eventManager;
+
     private ApiProductDeployer cut;
 
     @BeforeEach
     void setUp() throws TechnicalException {
-        cut = new ApiProductDeployer(apiProductManager, planRepository, planService, distributedSyncService, productPlanDefinitionCache);
+        cut = new ApiProductDeployer(apiProductManager, planRepository, planService, distributedSyncService, productPlanDefinitionCache, eventManager);
         lenient()
             .when(distributedSyncService.distributeIfNeeded(any(ApiProductReactorDeployable.class)))
             .thenReturn(Completable.complete());
-        lenient().when(planRepository.findByReferenceIdAndReferenceType(any(), eq(PlanReferenceType.API_PRODUCT))).thenReturn(Set.of());
+        lenient()
+            .when(
+                planRepository.findByReferenceIdAndReferenceType(
+                    any(),
+                    eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
+                )
+            )
+            .thenReturn(Set.of());
     }
 
     @Nested
