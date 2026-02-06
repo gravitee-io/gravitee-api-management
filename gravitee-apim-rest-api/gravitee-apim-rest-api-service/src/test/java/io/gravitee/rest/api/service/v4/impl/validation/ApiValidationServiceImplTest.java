@@ -27,7 +27,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -178,7 +177,7 @@ public class ApiValidationServiceImplTest {
         verify(flowValidationService, times(1)).validateAndSanitize(apiEntity.getType(), null);
         verify(resourcesValidationService, times(1)).validateAndSanitize(List.of());
         verify(planValidationService, times(1)).validateAndSanitize(apiEntity.getType(), Set.of());
-        verify(flowValidationDomainService, times(1)).validatePathParameters(eq(apiEntity.getType()), any(), any());
+        verify(flowValidationDomainService, times(1)).validatePathParameters(any(), any(), any());
     }
 
     @Test(expected = InvalidDataException.class)
@@ -288,12 +287,12 @@ public class ApiValidationServiceImplTest {
     }
 
     @Test
-    public void shouldNotUpdateADeprecatedApi() {
+    public void shouldNotUpdateADeprecatedApiIfNotArchived() {
         assertUpdate(DEPRECATED, CREATED, true);
         assertUpdate(DEPRECATED, PUBLISHED, true);
         assertUpdate(DEPRECATED, UNPUBLISHED, true);
-        assertUpdate(DEPRECATED, ARCHIVED, true);
-        assertUpdate(DEPRECATED, DEPRECATED, true);
+        assertUpdate(DEPRECATED, ARCHIVED, false);
+        assertUpdate(DEPRECATED, DEPRECATED, false);
     }
 
     @Test
@@ -302,6 +301,25 @@ public class ApiValidationServiceImplTest {
         assertUpdate(ARCHIVED, PUBLISHED, true);
         assertUpdate(ARCHIVED, UNPUBLISHED, true);
         assertUpdate(ARCHIVED, DEPRECATED, true);
+        assertUpdate(ARCHIVED, ARCHIVED, false);
+    }
+
+    @Test
+    public void shouldAllowCreatedToOtherStatesWhenNotInReview() {
+        assertUpdate(CREATED, PUBLISHED, false);
+        assertUpdate(CREATED, UNPUBLISHED, false);
+        assertUpdate(CREATED, DEPRECATED, false);
+        assertUpdate(CREATED, ARCHIVED, false);
+        assertUpdate(CREATED, CREATED, false);
+    }
+
+    @Test
+    public void shouldAllowPublishedToOtherStates() {
+        assertUpdate(PUBLISHED, CREATED, false);
+        assertUpdate(PUBLISHED, UNPUBLISHED, false);
+        assertUpdate(PUBLISHED, DEPRECATED, false);
+        assertUpdate(PUBLISHED, ARCHIVED, false);
+        assertUpdate(PUBLISHED, PUBLISHED, false);
     }
 
     @Test(expected = LifecycleStateChangeNotAllowedException.class)
@@ -444,6 +462,9 @@ public class ApiValidationServiceImplTest {
         }
         if (!failed && shouldFail) {
             fail("Should not be possible to change the lifecycle state of a " + fromLifecycleState + " API to " + lifecycleState);
+        }
+        if (failed && !shouldFail) {
+            fail("Should be possible to change the lifecycle state of a " + fromLifecycleState + " API to " + lifecycleState);
         }
     }
 }
