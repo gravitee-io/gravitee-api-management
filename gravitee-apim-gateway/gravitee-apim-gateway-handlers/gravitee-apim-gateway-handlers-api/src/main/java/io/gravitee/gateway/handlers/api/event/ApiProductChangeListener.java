@@ -61,12 +61,7 @@ public class ApiProductChangeListener
             try {
                 refreshSecurityChainForApi(apiId, productEvent.getProductId());
             } catch (Exception e) {
-                log.warn(
-                    "Failed to refresh security chain for API [{}] due to product [{}] change",
-                    apiId,
-                    productEvent.getProductId(),
-                    e
-                );
+                log.warn("Failed to refresh security chain for API [{}] due to product [{}] change", apiId, productEvent.getProductId(), e);
                 // Continue with other APIs - don't fail the whole event processing
             }
         }

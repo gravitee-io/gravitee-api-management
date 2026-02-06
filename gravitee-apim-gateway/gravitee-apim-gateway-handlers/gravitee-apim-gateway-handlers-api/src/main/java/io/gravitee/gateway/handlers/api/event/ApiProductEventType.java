@@ -26,4 +26,3 @@ package io.gravitee.gateway.handlers.api.event;
 public enum ApiProductEventType {
     CHANGED,
 }
-
