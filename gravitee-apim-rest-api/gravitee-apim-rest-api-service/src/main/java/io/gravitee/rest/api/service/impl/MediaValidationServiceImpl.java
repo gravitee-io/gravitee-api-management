@@ -20,6 +20,7 @@ import io.gravitee.rest.api.service.MediaValidationService;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import java.io.IOException;
 import java.util.Set;
+import java.util.regex.Pattern;
 import lombok.CustomLog;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -37,6 +38,8 @@ import org.springframework.stereotype.Component;
 public class MediaValidationServiceImpl implements MediaValidationService {
 
     private static final Tika TIKA = new Tika();
+
+    private static final Pattern MEDIA_TYPE_PATTERN = Pattern.compile("^(?<major>[^/]*(application|image|audio|video)[^/]*)");
 
     private static final Set<String> FORBIDDEN_TYPES = Set.of(
         "application/java-archive",
@@ -79,6 +82,8 @@ public class MediaValidationServiceImpl implements MediaValidationService {
         }
 
         log.debug("File '{}': declared type='{}', detected type='{}'", mediaEntity.getFileName(), mediaType, detectedMediaType);
+
+        checkContentTypeMismatch(mediaType, detectedMediaType, mediaEntity.getFileName());
 
         (mediaType.equals(detectedMediaType) ? Set.of(mediaType) : Set.of(mediaType, detectedMediaType)).forEach(type -> {
             if (isForbidden(type)) {
@@ -132,6 +137,23 @@ public class MediaValidationServiceImpl implements MediaValidationService {
         } catch (IOException e) {
             log.error("Unable to read the PDF file {}.", media.getFileName(), e);
             return false;
+        }
+    }
+
+    private void checkContentTypeMismatch(String mediaType, String detectedMediaType, String fileName) {
+        if (detectedMediaType == null) {
+            return;
+        }
+
+        var match = MEDIA_TYPE_PATTERN.matcher(mediaType);
+        if (match.find() && !detectedMediaType.startsWith(match.group("major") + '/')) {
+            throw new UploadUnauthorized(
+                String.format(
+                    "File content does not match its extension. Declared as '%s/...', but content is of type '%s'.",
+                    match.group("major"),
+                    detectedMediaType
+                )
+            );
         }
     }
 }
