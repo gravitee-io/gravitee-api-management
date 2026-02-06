@@ -55,7 +55,10 @@ class EditPageAttachedResourcesComponentController implements IController {
 
           this.DocumentationService.addMedia(fd, this.page.id, this.apiId)
             .then(() => this.onSave())
-            .then(() => this.NotificationService.show(fileName + ' has been attached'));
+            .then(() => this.NotificationService.show(fileName + ' has been attached'))
+            .catch((error) => {
+              this.NotificationService.showError(error.data?.message || 'An error occurred while uploading the media.');
+            });
         }
       });
   }
