@@ -150,7 +150,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected final String loggingExcludedResponseType;
     protected final String loggingMaxSize;
     private final DeploymentContext deploymentContext;
-    protected HttpSecurityChain httpSecurityChain;
+    protected volatile HttpSecurityChain httpSecurityChain;
     private Lifecycle.State lifecycleState;
     protected AnalyticsContext analyticsContext;
     private List<ApiService> services;
@@ -555,14 +555,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
         policyManager.start();
 
         // Create httpSecurityChain once policy manager has been started.
-        httpSecurityChain = new HttpSecurityChain(
-            api.getDefinition(),
-            policyManager,
-            ExecutionPhase.REQUEST,
-            api.getEnvironmentId(),
-            apiProductRegistry,
-            productPlanDefinitionCache
-        );
+        refreshSecurityChainInternal();
 
         tracingContext.start();
         analyticsContext = createAnalyticsContext();
@@ -595,6 +588,49 @@ public class DefaultApiReactor extends AbstractApiReactor {
         log.debug("API reactor started in {} ms", (endTime - startTime));
 
         dumpAcceptors();
+    }
+
+    /**
+     * Refresh the security chain with the latest product plan definitions.
+     * Called when API Products change (deploy/update/undeploy) to refresh the chain
+     * without requiring API redeploy.
+     *
+     * @throws IllegalStateException if the reactor is not started
+     */
+    public void refreshSecurityChain() {
+        if (lifecycleState != Lifecycle.State.STARTED) {
+            log.debug("Cannot refresh security chain for API [{}] - reactor is not started (state: {})", api.getId(), lifecycleState);
+            return;
+        }
+        try {
+            refreshSecurityChainInternal();
+            log.debug("Security chain refreshed for API [{}] due to API Product change", api.getId());
+        } catch (Exception e) {
+            log.warn("Failed to refresh security chain for API [{}] on API Product change", api.getId(), e);
+            // Don't throw - keep using old chain to avoid breaking running API
+        }
+    }
+
+    /**
+     * Internal method to refresh the security chain.
+     * Rebuilds the chain with latest product plan definitions from the cache.
+     */
+    private void refreshSecurityChainInternal() {
+        HttpSecurityChain newChain = new HttpSecurityChain(
+            api.getDefinition(),
+            policyManager,
+            ExecutionPhase.REQUEST,
+            api.getEnvironmentId(),
+            apiProductRegistry,
+            productPlanDefinitionCache
+        );
+
+        // Re-apply hooks if they were set
+        if (analyticsContext != null && analyticsContext.isTracingEnabled()) {
+            newChain.addHooks(new TracingHook("Security"));
+        }
+
+        this.httpSecurityChain = newChain;
     }
 
     protected void addInvokerHooks(List<InvokerHook> invokerHooks) {}
