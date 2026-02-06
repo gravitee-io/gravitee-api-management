@@ -16,7 +16,7 @@
 package io.gravitee.gateway.services.sync.process.repository.service;
 
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
-import io.gravitee.repository.management.model.PlanReferenceType;
+import io.gravitee.repository.management.model.Plan;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -58,13 +58,13 @@ public class PlanService {
     }
 
     public boolean isDeployed(final String apiId, final String planId) {
-        return isDeployed(apiId, planId, PlanReferenceType.API);
+        return isDeployed(apiId, planId, Plan.PlanReferenceType.API);
     }
 
     /**
      * Check if a plan is deployed for the given reference (API or API Product).
      */
-    public boolean isDeployed(final String referenceId, final String planId, final PlanReferenceType referenceType) {
+    public boolean isDeployed(final String referenceId, final String planId, final Plan.PlanReferenceType referenceType) {
         if (referenceId == null || planId == null || referenceType == null) {
             return false;
         }

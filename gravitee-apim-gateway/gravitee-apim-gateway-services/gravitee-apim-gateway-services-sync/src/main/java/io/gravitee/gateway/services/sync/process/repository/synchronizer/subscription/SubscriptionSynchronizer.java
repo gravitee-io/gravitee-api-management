@@ -23,7 +23,7 @@ import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.SubscriptionFetcher;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
-import io.gravitee.repository.management.model.PlanReferenceType;
+import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.reactivex.rxjava3.core.Completable;
@@ -134,14 +134,16 @@ public class SubscriptionSynchronizer implements RepositorySynchronizer {
 
     private boolean isPlanDeployed(Subscription subscription) {
         String referenceId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
-        PlanReferenceType referenceType = subscription.getReferenceType() != null
+        Plan.PlanReferenceType referenceType = subscription.getReferenceType() != null
             ? toPlanReferenceType(subscription.getReferenceType())
-            : PlanReferenceType.API;
+            : Plan.PlanReferenceType.API;
         return planCache.isDeployed(referenceId, subscription.getPlan(), referenceType);
     }
 
-    private static PlanReferenceType toPlanReferenceType(SubscriptionReferenceType subscriptionReferenceType) {
-        return subscriptionReferenceType == SubscriptionReferenceType.API_PRODUCT ? PlanReferenceType.API_PRODUCT : PlanReferenceType.API;
+    private static Plan.PlanReferenceType toPlanReferenceType(SubscriptionReferenceType subscriptionReferenceType) {
+        return subscriptionReferenceType == SubscriptionReferenceType.API_PRODUCT
+            ? Plan.PlanReferenceType.API_PRODUCT
+            : Plan.PlanReferenceType.API;
     }
 
     @Override
