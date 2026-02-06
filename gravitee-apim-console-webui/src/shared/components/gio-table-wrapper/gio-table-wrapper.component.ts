@@ -21,6 +21,7 @@ import {
   EventEmitter,
   Input,
   OnChanges,
+  OnDestroy,
   Output,
   SimpleChanges,
   ViewChild,
@@ -65,7 +66,7 @@ const INITIAL_FILTERS_VALUE: GioTableWrapperFilters = {
   styleUrls: ['./gio-table-wrapper.component.scss'],
   standalone: false,
 })
-export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
+export class GioTableWrapperComponent implements AfterViewInit, OnChanges, OnDestroy {
   // Change filters value
   // Emit filtersChange on change
   @Input()
@@ -85,6 +86,9 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   @Input()
   disablePageSize = false;
 
+  @Input()
+  hideTopPagination = false;
+
   /** Pagination available page size options */
   @Input()
   paginationPageSizeOptions = [5, 10, 25, 100];
@@ -94,7 +98,7 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   @Output()
   filtersChange = new EventEmitter<GioTableWrapperFilters>();
 
-  @ViewChild('paginatorTop') paginatorTop: MatPaginator;
+  @ViewChild('paginatorTop') paginatorTop?: MatPaginator;
   @ViewChild('paginatorBottom') paginatorBottom: MatPaginator;
 
   inputSearch = new UntypedFormControl(this.filters.searchTerm ?? INITIAL_FILTERS_VALUE.searchTerm);
@@ -122,43 +126,47 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   }
 
   ngAfterViewInit() {
-    // Init values with filters or default initial values
-    this.initPaginator(this.filters?.pagination ?? INITIAL_FILTERS_VALUE.pagination);
+    const initialPagination = this.filters?.pagination ?? INITIAL_FILTERS_VALUE.pagination;
+
+    this.initPaginator(initialPagination);
 
     this.initSearch(this.filters?.searchTerm ?? INITIAL_FILTERS_VALUE.searchTerm);
     this.initSort(this.filters?.sort ?? INITIAL_FILTERS_VALUE.sort);
     this.changeDetectorRef.detectChanges();
 
-    // Keep top and bottom paginator in sync.
-    this.paginatorTop.page.pipe(takeUntil(this.unsubscribe$)).subscribe((page) => {
-      this.paginatorBottom.pageIndex = page.pageIndex;
-      this.paginatorBottom.pageSize = page.pageSize;
-    });
+    if (this.paginatorTop) {
+      this.paginatorTop.page.pipe(takeUntil(this.unsubscribe$)).subscribe((page) => {
+        this.paginatorBottom.pageIndex = page.pageIndex;
+        this.paginatorBottom.pageSize = page.pageSize;
+      });
+    }
+
     this.paginatorBottom.page.pipe(takeUntil(this.unsubscribe$)).subscribe((page) => {
-      this.paginatorTop.pageIndex = page.pageIndex;
-      this.paginatorTop.pageSize = page.pageSize;
+      if (this.paginatorTop) {
+        this.paginatorTop.pageIndex = page.pageIndex;
+        this.paginatorTop.pageSize = page.pageSize;
+      }
     });
 
-    // Merge : stateChange, paginator, sort, inputSearch into single observable
     const observableToMerge = [
       this.stateChanges,
       this.inputSearch.valueChanges,
       this.paginatorBottom.page,
-      this.paginatorTop.page,
+      this.paginatorTop?.page,
       this.sort?.sortChange,
     ];
 
     merge(...observableToMerge.filter((observable) => !!observable))
       .pipe(
         map(() => {
-          // In each event get all values
+          const paginatorMaster = this.paginatorTop ?? this.paginatorBottom;
+
           const filters: GioTableWrapperFilters = {
             searchTerm: this.inputSearch.value,
             ...(this.sort ? { sort: { active: this.sort.active, direction: this.sort.direction } } : {}),
             pagination: {
-              // paginatorTop is used as master. keep it in sync before
-              index: this.paginatorTop.pageIndex + 1,
-              size: this.paginatorTop.pageSize,
+              index: paginatorMaster.pageIndex + 1,
+              size: paginatorMaster.pageSize,
             },
           };
           return filters;
@@ -179,7 +187,6 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
           return curr;
         }),
         debounceTime(300),
-        // Alway start with initial filters values
         startWith(this.filters ?? INITIAL_FILTERS_VALUE),
         takeUntil(this.unsubscribe$),
       )
@@ -201,11 +208,14 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   }
 
   private initPaginator(pagination: GioTableWrapperFilters['pagination']) {
-    if (this.paginatorTop && this.paginatorBottom && pagination) {
-      this.paginatorTop.pageIndex = pagination.index - 1;
-      this.paginatorTop.pageSize = pagination.size;
+    if (this.paginatorBottom && pagination) {
       this.paginatorBottom.pageIndex = pagination.index - 1;
       this.paginatorBottom.pageSize = pagination.size;
+    }
+
+    if (this.paginatorTop && pagination) {
+      this.paginatorTop.pageIndex = pagination.index - 1;
+      this.paginatorTop.pageSize = pagination.size;
     }
   }
 

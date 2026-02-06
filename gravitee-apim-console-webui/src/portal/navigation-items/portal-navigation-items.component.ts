@@ -151,10 +151,6 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   panelWidth = signal(350);
   initialContent = signal('');
 
-  private resizing = false;
-  private startX = 0;
-  private startWidth = 0;
-
   readonly contentLoadError = signal(false);
 
   @HostListener('window:beforeunload', ['$event'])
@@ -193,7 +189,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   onAddSection(sectionType: PortalNavigationItemType) {
     this.checkUnsavedChangesAndRun(() => {
       if (sectionType === 'API') {
-        this.manageApiSection('create', 'TOP_NAVBAR');
+        this.manageApiSection();
         return;
       }
       this.manageSection(sectionType, 'create', 'TOP_NAVBAR');
@@ -214,7 +210,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           break;
         default:
           if (event.itemType === 'API') {
-            this.manageApiSection(event.action, 'TOP_NAVBAR', event.node.data);
+            this.manageApiSection(event.node.data);
             return;
           }
           this.manageSection(event.itemType, event.action, 'TOP_NAVBAR', event.node.data);
@@ -223,7 +219,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     });
   }
 
-  private manageApiSection(_mode: SectionEditorDialogMode, _area: PortalArea, existingItem?: PortalNavigationItem): void {
+  private manageApiSection(existingItem?: PortalNavigationItem): void {
     const data: ApiSectionEditorDialogData = { mode: 'create' };
 
     this.matDialog
@@ -269,27 +265,31 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   onResizeStart(event: MouseEvent): void {
     event.preventDefault();
-    this.resizing = true;
-    this.startX = event.clientX;
-    this.startWidth = this.panelWidth();
 
-    const onMouseMove = (moveEvent: MouseEvent) => {
-      if (!this.resizing) {
-        return;
-      }
-      const delta = moveEvent.clientX - this.startX;
-      const newWidth = Math.min(this.MAX_PANEL_WIDTH, Math.max(this.MIN_PANEL_WIDTH, this.startWidth + delta));
-      this.ngZone.run(() => this.panelWidth.set(newWidth));
-    };
+    const startX = event.clientX;
+    const startWidth = this.panelWidth();
 
-    const onMouseUp = () => {
-      this.resizing = false;
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-    };
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
 
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
+    this.ngZone.runOutsideAngular(() => {
+      const onMove = (e: MouseEvent) => {
+        const deltaX = e.clientX - startX;
+        const newWidth = Math.max(this.MIN_PANEL_WIDTH, Math.min(this.MAX_PANEL_WIDTH, startWidth + deltaX));
+
+        this.ngZone.run(() => this.panelWidth.set(newWidth));
+      };
+
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      };
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
   }
 
   private setupPageContentSubscription(): void {
@@ -482,7 +482,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       }
       const navItem = selectedItem.data;
       if (navItem.type === 'API') {
-        this.manageApiSection('edit', navItem.area, navItem);
+        this.manageApiSection(navItem);
         return;
       }
       this.manageSection(navItem.type, 'edit', navItem.area, navItem);

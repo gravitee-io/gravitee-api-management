@@ -24,12 +24,17 @@ import { LowerCasePipe, TitleCasePipe } from '@angular/common';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
-import { PortalNavigationItem, PortalNavigationItemType, PortalVisibility } from '../../../entities/management-api-v2';
+import {
+  PortalNavigationItem,
+  PortalNavigationItemType,
+  PortalNavigationLink,
+  PortalVisibility,
+} from '../../../entities/management-api-v2';
 import { urlValidator } from '../../../shared/validators/url.validator';
 
 export type SectionEditorDialogMode = 'create' | 'edit';
 
-type SectionEditorDialogItemType = Exclude<PortalNavigationItemType, 'API'>;
+export type SectionEditorDialogItemType = Exclude<PortalNavigationItemType, 'API'>;
 
 interface SectionEditorDialogCreateData {
   mode: 'create';
@@ -53,7 +58,7 @@ export interface SectionEditorDialogResult {
 interface SectionFormControls {
   title: FormControl<string>;
   isPrivate: FormControl<boolean>;
-  url?: FormControl<string>;
+  url?: FormControl<string>; // Optional for 'LINK' type
 }
 
 interface SectionFormValues {
@@ -81,7 +86,10 @@ type SectionForm = FormGroup<SectionFormControls>;
   styleUrls: ['./section-editor-dialog.component.scss'],
 })
 export class SectionEditorDialogComponent implements OnInit {
-  form!: SectionForm;
+  form: SectionForm = new FormGroup<SectionFormControls>({
+    title: new FormControl<string>('', { validators: [Validators.required], nonNullable: true }),
+    isPrivate: new FormControl(false),
+  });
   public initialFormValues: SectionFormValues;
 
   public type: SectionEditorDialogItemType;
@@ -95,14 +103,11 @@ export class SectionEditorDialogComponent implements OnInit {
   constructor() {
     this.type = this.data.type;
     this.mode = this.data.mode;
-
-    const typeLabel = this.type.toLowerCase();
-
     if (this.data.mode === 'create') {
-      this.title = `Add ${typeLabel}`;
+      this.title = `Add ${this.type.toLowerCase()}`;
       this.buttonTitle = 'Add';
     } else {
-      this.title = `Edit "${this.data.existingItem.title}" ${typeLabel}`;
+      this.title = `Edit "${this.data.existingItem.title}" ${this.type.toLowerCase()}`;
       this.buttonTitle = 'Save';
     }
   }
@@ -117,16 +122,7 @@ export class SectionEditorDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.form = new FormGroup<SectionFormControls>({
-      title: new FormControl<string>('', { nonNullable: true }),
-      isPrivate: new FormControl(false),
-    });
-
     this.addTypeSpecificControls();
-
-    this.form.controls.title.addValidators([Validators.required]);
-    this.form.controls.title.updateValueAndValidity({ emitEvent: false });
-
     this.prefillExistingItem();
 
     this.initialFormValues = this.form.getRawValue();
@@ -147,7 +143,7 @@ export class SectionEditorDialogComponent implements OnInit {
   private prefillExistingItem(): void {
     if (this.data.mode === 'edit') {
       this.form.patchValue({
-        ...(this.data.existingItem.type === 'LINK' ? { url: (this.data.existingItem as any).url } : {}),
+        ...(this.data.existingItem.type === 'LINK' ? { url: (this.data.existingItem as PortalNavigationLink).url } : {}),
         title: this.data.existingItem.title,
         isPrivate: this.data.existingItem.visibility === 'PRIVATE',
       });

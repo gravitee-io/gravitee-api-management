@@ -130,12 +130,15 @@ describe('ApiSectionEditorDialogComponent', () => {
     tick();
 
     let checkboxes: MatCheckboxHarness[] = [];
-    rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid="api-picker-checkbox"]' })).then((c) => (checkboxes = c));
+    rootLoader
+      .getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' }))
+      .then((c) => (checkboxes = c));
     tick();
 
-    expect(checkboxes.length).toBeGreaterThan(0);
+    expect(checkboxes.length).toBeGreaterThan(1);
 
     checkboxes[0].check();
+    checkboxes[1].check();
     tick();
 
     dialog.clickSubmitButton();
@@ -143,7 +146,7 @@ describe('ApiSectionEditorDialogComponent', () => {
 
     expect(component.dialogValue?.visibility).toEqual('PUBLIC');
     expect(Array.isArray(component.dialogValue?.apiIds)).toEqual(true);
-    expect(component.dialogValue?.apiIds?.length).toBeGreaterThan(0);
+    expect(component.dialogValue?.apiIds?.length).toBeGreaterThan(1);
     expect(component.dialogValue?.apiId).toEqual(component.dialogValue?.apiIds?.[0]);
   }));
 });

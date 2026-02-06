@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, DestroyRef, HostListener, inject, OnInit, computed, signal } from '@angular/core';
+import { Component, HostListener, inject, OnInit, computed, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -23,16 +23,16 @@ import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { isEqual } from 'lodash';
-import { Observable, Subject, of } from 'rxjs';
+import { Observable, Subject, of, BehaviorSubject } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api, ApiV2, ApiV4, PortalVisibility, ApisResponse } from '../../../entities/management-api-v2';
 import { getApiAccess } from '../../../shared/utils';
+import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 export interface ApiSectionEditorDialogData {
   mode: 'create';
@@ -78,15 +78,14 @@ type ApiSectionForm = FormGroup<ApiSectionFormControls>;
     MatIconModule,
     MatCheckboxModule,
     MatTableModule,
-    MatPaginatorModule,
     MatChipsModule,
     AsyncPipe,
+    GioTableWrapperModule,
   ],
   templateUrl: './api-section-editor-dialog.component.html',
   styleUrls: ['./api-section-editor-dialog.component.scss'],
 })
 export class ApiSectionEditorDialogComponent implements OnInit {
-  private readonly destroyRef = inject(DestroyRef);
   private readonly apiService = inject(ApiV2Service);
 
   form!: ApiSectionForm;
@@ -94,20 +93,22 @@ export class ApiSectionEditorDialogComponent implements OnInit {
 
   public title = 'Add APIs';
 
-  searchControl = new FormControl<string>('', { nonNullable: true });
+  displayedColumns = ['select', 'name', 'path', 'labels'];
 
-  pageIndex = signal(0);
-  pageSize = signal(10);
-  total = signal(0);
+  filters: GioTableWrapperFilters = {
+    pagination: { index: 1, size: 10 },
+    searchTerm: '',
+  };
 
+  total = 0;
+  isLoading = false;
+
+  private readonly filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
   private readonly refresh$ = new Subject<void>();
 
   private selectedOrderedApis = signal<SelectedApi[]>([]);
   selectedCount = computed(() => this.selectedOrderedApis().length);
   selectedApis = computed(() => this.selectedOrderedApis());
-  selectedIds = computed(() => new Set(this.selectedOrderedApis().map((a) => a.id)));
-
-  displayedColumns = ['select', 'name', 'path', 'labels'];
 
   rows$: Observable<ApiRow[]>;
 
@@ -135,24 +136,33 @@ export class ApiSectionEditorDialogComponent implements OnInit {
     const initialApiIds = this.form.controls.apiIds.value ?? [];
     this.selectedOrderedApis.set(initialApiIds.map((id) => ({ id, name: id })));
 
+    this.form.controls.apiIds.valueChanges.pipe(distinctUntilChanged(isEqual)).subscribe((apiIds) => {
+      const ids = apiIds ?? [];
+      const current = this.selectedOrderedApis();
+      this.selectedOrderedApis.set(current.filter((a) => ids.includes(a.id)));
+    });
+
     const disabledSet = new Set<string>([]);
 
-    this.rows$ = this.searchControl.valueChanges.pipe(
-      startWith(this.searchControl.value),
-      debounceTime(300),
-      distinctUntilChanged(),
-      switchMap((query) =>
+    this.rows$ = this.filters$.pipe(
+      debounceTime(100),
+      distinctUntilChanged(isEqual),
+      switchMap((filters) =>
         this.refresh$.pipe(
           startWith(undefined),
-          switchMap(() => this.apiService.search({ query }, undefined, this.pageIndex() + 1, this.pageSize(), false)),
+          tap(() => (this.isLoading = true)),
+          switchMap(() =>
+            this.apiService.search({ query: filters.searchTerm }, undefined, filters.pagination.index, filters.pagination.size, false),
+          ),
           catchError((): Observable<ApisResponse> => {
-            this.total.set(0);
+            this.total = 0;
             return of({ data: [], pagination: undefined, links: undefined });
           }),
+          tap(() => (this.isLoading = false)),
         ),
       ),
       tap((resp) => {
-        this.total.set(resp.pagination?.totalCount ?? 0);
+        this.total = resp.pagination?.totalCount ?? 0;
       }),
       map((resp) =>
         (resp.data ?? []).map((api: Api) => {
@@ -168,50 +178,57 @@ export class ApiSectionEditorDialogComponent implements OnInit {
           };
         }),
       ),
-      takeUntilDestroyed(this.destroyRef),
     );
 
     this.initialFormValues = this.form.getRawValue();
   }
 
-  clearSearch(): void {
-    this.searchControl.setValue('');
-    this.pageIndex.set(0);
+  onFiltersChanged(filters: GioTableWrapperFilters): void {
+    this.filters = { ...this.filters, ...filters };
+    this.filters$.next(this.filters);
     this.refresh$.next();
   }
 
   isChecked(apiId: string): boolean {
-    return this.selectedIds().has(apiId);
+    return (this.form.controls.apiIds.value ?? []).includes(apiId);
   }
 
-  toggle(apiId: string, checked: boolean, apiName?: string): void {
-    const current = this.selectedOrderedApis();
-
+  toggleApiSelection(apiId: string, checked: boolean, apiName?: string): void {
     if (checked) {
-      if (!current.some((a) => a.id === apiId)) {
-        const next = [...current, { id: apiId, name: apiName ?? apiId }];
-        this.selectedOrderedApis.set(next);
-        this.form.controls.apiIds.setValue(next.map((a) => a.id));
-      }
+      this.addApiId(apiId, apiName);
     } else {
-      const next = current.filter((a) => a.id !== apiId);
-      this.selectedOrderedApis.set(next);
-      this.form.controls.apiIds.setValue(next.map((a) => a.id));
+      this.removeApiId(apiId);
     }
   }
 
   removeSelected(apiId: string): void {
-    this.toggle(apiId, false);
+    this.removeApiId(apiId);
   }
 
-  onPage(event: PageEvent): void {
-    this.pageIndex.set(event.pageIndex);
-    this.pageSize.set(event.pageSize);
-    this.refresh$.next();
+  private addApiId(apiId: string, apiName?: string): void {
+    const currentIds = this.form.controls.apiIds.value ?? [];
+    if (currentIds.includes(apiId)) {
+      return;
+    }
+
+    const nextIds = [...currentIds, apiId];
+    this.form.controls.apiIds.setValue(nextIds);
+
+    const current = this.selectedOrderedApis();
+    this.selectedOrderedApis.set([...current, { id: apiId, name: apiName ?? apiId }]);
   }
 
-  trackSelectedById(_index: number, api: SelectedApi): string {
-    return api.id;
+  private removeApiId(apiId: string): void {
+    const currentIds = this.form.controls.apiIds.value ?? [];
+    if (!currentIds.includes(apiId)) {
+      return;
+    }
+
+    const nextIds = currentIds.filter((id) => id !== apiId);
+    this.form.controls.apiIds.setValue(nextIds);
+
+    const current = this.selectedOrderedApis();
+    this.selectedOrderedApis.set(current.filter((a) => a.id !== apiId));
   }
 
   toggleSelectedPanel(): void {

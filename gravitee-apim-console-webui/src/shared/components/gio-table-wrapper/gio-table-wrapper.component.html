@@ -30,6 +30,7 @@
     </div>
 
     <mat-paginator
+      *ngIf="!hideTopPagination"
       class="gio-table-wrapper__header-bar__paginator"
       #paginatorTop
       [length]="length"
@@ -47,7 +48,7 @@
   <mat-paginator
     #paginatorBottom
     class="gio-table-wrapper__footer-bar__paginator"
-    [class.hidden]="length <= paginatorBottom.pageSize"
+    [class.hidden]="length <= (filters?.pagination?.size ?? 0)"
     [length]="length"
     [hidePageSize]="true"
     aria-label="Select page"
