@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -182,6 +183,17 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         }
 
         return acceptorsType;
+    }
+
+    @Override
+    public Optional<ReactorHandler> getReactorHandler(Reactable reactable) {
+        List<ReactableAcceptors> reactableAcceptors = reactables.get(reactable);
+        if (reactableAcceptors == null || reactableAcceptors.isEmpty()) {
+            return Optional.empty();
+        }
+        // For a given Reactable, there is typically a single handler; if multiple exist,
+        // the first one is considered the primary handler.
+        return Optional.ofNullable(reactableAcceptors.get(0).handler);
     }
 
     private Class<? extends Acceptor<?>> resolve(Class<? extends Acceptor> acceptor) {
