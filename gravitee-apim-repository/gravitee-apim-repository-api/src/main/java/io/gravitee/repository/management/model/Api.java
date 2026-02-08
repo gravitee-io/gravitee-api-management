@@ -167,6 +167,10 @@ public class Api {
     /**
      */
     private boolean disableMembershipNotifications;
+    /**
+     * When true, allows an application to subscribe to more than one JWT/OAuth2 plan of this API (V4 only).
+     */
+    private boolean allowMultiJwtOauth2Subscriptions;
     private ApiLifecycleState apiLifecycleState = ApiLifecycleState.CREATED;
     private String background;
 
@@ -195,6 +199,7 @@ public class Api {
         this.labels = cloned.labels;
         this.apiLifecycleState = cloned.apiLifecycleState;
         this.disableMembershipNotifications = cloned.disableMembershipNotifications;
+        this.allowMultiJwtOauth2Subscriptions = cloned.allowMultiJwtOauth2Subscriptions;
         this.integrationId = cloned.integrationId;
         this.syncFrom = cloned.syncFrom;
     }

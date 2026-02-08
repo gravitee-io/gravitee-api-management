@@ -132,6 +132,12 @@ public class Api {
 
     private boolean disableMembershipNotifications;
 
+    /**
+     * When true, allows an application to subscribe to more than one JWT/OAuth2 plan of this API.
+     * Only applies to V4 APIs. Selection rules or sharding tags should be used to avoid ambiguous plan selection.
+     */
+    private boolean allowMultiJwtOauth2Subscriptions;
+
     @Builder.Default
     private ApiLifecycleState apiLifecycleState = ApiLifecycleState.CREATED;
 

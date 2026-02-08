@@ -57,6 +57,7 @@ public class ApiWithFlows extends Api {
             api.getCategories(),
             api.getLabels(),
             api.isDisableMembershipNotifications(),
+            api.isAllowMultiJwtOauth2Subscriptions(),
             api.getApiLifecycleState(),
             api.getBackground()
         );

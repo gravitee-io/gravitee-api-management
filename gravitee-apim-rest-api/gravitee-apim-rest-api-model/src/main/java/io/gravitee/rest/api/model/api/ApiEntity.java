@@ -255,6 +255,9 @@ public class ApiEntity implements GenericApiEntity {
     @JsonIgnore
     private String referenceId;
 
+    @JsonProperty("allow_multi_JWTOauth2_subscriptions")
+    private boolean allowMultiJwtOauth2Subscriptions;
+
     @JsonIgnore
     public void setProperties(Properties properties) {
         this.properties = properties;

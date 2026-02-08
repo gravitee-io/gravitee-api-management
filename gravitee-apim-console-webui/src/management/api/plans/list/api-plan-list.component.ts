@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
@@ -65,6 +65,7 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
     private readonly permissionService: GioPermissionService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   public ngOnInit(): void {
@@ -410,5 +411,65 @@ ${ifSubscriptionContent}`;
       this.api.definitionVersion,
       this.api.definitionVersion === 'V4' ? this.api.listeners.map((l) => l.type) : null,
     );
+  }
+
+  public onAllowMultiJwtOauth2SubscriptionsChange(checked: boolean): void {
+    if (checked) {
+      this.api.allowMultiJwtOauth2Subscriptions = true;
+      this.matDialog
+        .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+          width: '450px',
+          data: {
+            title: 'Allow multi JWT/OAuth2 subscriptions',
+            content: `By turning on this option, you will allow an application to subscribe to more than one JWT/OAuth2 plan. Be sure you understand the consequences, and you have configured Selection rules or Sharding Tags on plans. Otherwise, we cannot predict which plan will be used to secure requests.
+Do you want to continue?`,
+            confirmButton: 'Continue',
+          },
+        })
+        .afterClosed()
+        .pipe(
+          tap((confirm) => {
+            if (confirm !== true) {
+              this.api.allowMultiJwtOauth2Subscriptions = false;
+              this.cdr.markForCheck();
+            }
+          }),
+          filter((confirm) => confirm === true),
+          switchMap(() =>
+            this.apiService.update(this.api.id, {
+              ...this.api,
+              allowMultiJwtOauth2Subscriptions: true,
+            }),
+          ),
+          tap((api) => {
+            this.api = api;
+            this.snackBarService.success('API updated successfully');
+          }),
+          catchError(({ error }) => {
+            this.snackBarService.error(error?.message ?? 'An error occurred');
+            return EMPTY;
+          }),
+          takeUntil(this.unsubscribe$),
+        )
+        .subscribe();
+    } else {
+      this.apiService
+        .update(this.api.id, {
+          ...this.api,
+          allowMultiJwtOauth2Subscriptions: false,
+        })
+        .pipe(
+          tap((api) => {
+            this.api = api;
+            this.snackBarService.success('API updated successfully');
+          }),
+          catchError(({ error }) => {
+            this.snackBarService.error(error?.message ?? 'An error occurred');
+            return EMPTY;
+          }),
+          takeUntil(this.unsubscribe$),
+        )
+        .subscribe();
+    }
   }
 }

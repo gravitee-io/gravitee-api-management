@@ -550,18 +550,32 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
 
                 // Then, if user is subscribing to an oauth2 or jwt plan.
-                // Check that there is no existing subscription based on an OAuth2 or JWT plan
+                // Check that there is no existing subscription based on an OAuth2 or JWT plan,
+                // unless the API allows multiple JWT/OAuth2 subscriptions (V4 only).
                 if (planSecurityType == PlanSecurityType.OAUTH2 || planSecurityType == PlanSecurityType.JWT) {
-                    long count = countSubscriptionMatchingPredicate(
+                    GenericApiEntity apiEntity = apiSearchService.findGenericById(
                         executionContext,
-                        subscriptions,
-                        onlyValidSubs,
-                        subPlanSecurityType -> subPlanSecurityType == PlanSecurityType.OAUTH2 || subPlanSecurityType == PlanSecurityType.JWT
+                        genericPlanEntity.getApiId(),
+                        false,
+                        false,
+                        false
                     );
-                    if (count > 0) {
-                        throw new PlanOAuth2OrJWTAlreadySubscribedException(
-                            "An other OAuth2 or JWT plan is already subscribed by the same application."
+                    boolean allowMulti =
+                        apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4 &&
+                        apiEntity.isAllowMultiJwtOauth2Subscriptions();
+                    if (!allowMulti) {
+                        long count = countSubscriptionMatchingPredicate(
+                            executionContext,
+                            subscriptions,
+                            onlyValidSubs,
+                            subPlanSecurityType ->
+                                subPlanSecurityType == PlanSecurityType.OAUTH2 || subPlanSecurityType == PlanSecurityType.JWT
                         );
+                        if (count > 0) {
+                            throw new PlanOAuth2OrJWTAlreadySubscribedException(
+                                "An other OAuth2 or JWT plan is already subscribed by the same application."
+                            );
+                        }
                     }
                 }
 
