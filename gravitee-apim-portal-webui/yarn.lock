@@ -3296,7 +3296,7 @@ __metadata:
     "@ngx-translate/http-loader": "npm:7.0.0"
     "@types/jest": "npm:29.5.14"
     "@types/js-yaml": "npm:4.0.9"
-    "@types/node": "npm:20.17.30"
+    "@types/node": "npm:20.19.33"
     "@types/swagger-ui": "npm:3.52.4"
     "@typescript-eslint/eslint-plugin": "npm:6.21.0"
     "@typescript-eslint/parser": "npm:6.21.0"
@@ -6792,12 +6792,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:20.17.30":
-  version: 20.17.30
-  resolution: "@types/node@npm:20.17.30"
+"@types/node@npm:20.19.33":
+  version: 20.19.33
+  resolution: "@types/node@npm:20.19.33"
   dependencies:
-    undici-types: "npm:~6.19.2"
-  checksum: 10c0/649782c7822367d751472d70c948bcc50cded1a4744610f706f81cd54e1fc015523567d7e3e17f6b19e3e2797f6f23b653e898bdb4a2f21f8759ceba49976310
+    undici-types: "npm:~6.21.0"
+  checksum: 10c0/a1a6234a2b6fa577fbb1ccc471e5e54a79c6e1a51be10a67b034461b752a50017854810e943494f20b3c3c6d14df84c93757e0a2ec57aa81c830d6faeab72cf2
   languageName: node
   linkType: hard
 
@@ -17267,13 +17267,6 @@ __metadata:
     has-symbols: "npm:^1.1.0"
     which-boxed-primitive: "npm:^1.1.1"
   checksum: 10c0/7dbd35ab02b0e05fe07136c72cb9355091242455473ec15057c11430129bab38b7b3624019b8778d02a881c13de44d63cd02d122ee782fb519e1de7775b5b982
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:~6.19.2":
-  version: 6.19.8
-  resolution: "undici-types@npm:6.19.8"
-  checksum: 10c0/078afa5990fba110f6824823ace86073b4638f1d5112ee26e790155f481f2a868cc3e0615505b6f4282bdf74a3d8caad715fd809e870c2bb0704e3ea6082f344
   languageName: node
   linkType: hard
 
