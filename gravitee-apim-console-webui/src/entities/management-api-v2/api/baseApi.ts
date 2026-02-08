@@ -66,6 +66,7 @@ export interface GenericApi extends BaseApi {
    * Disable membership notifications.
    */
   disableMembershipNotifications?: boolean;
+
   /**
    * API's groups. Used to add team in your API.
    */
