@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
@@ -32,7 +32,7 @@ import { GioPermissionService } from '../../../../shared/components/gio-permissi
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ConstantsService, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { Api, Plan, PLAN_STATUS, PlanStatus } from '../../../../entities/management-api-v2';
+import { Api, ApiV4, Plan, PLAN_STATUS, PlanStatus, UpdateApiV4 } from '../../../../entities/management-api-v2';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 import { PlanActionEvent, PlanDS } from '../../component/plan/plan-list/plan-list.component';
 
@@ -63,6 +63,7 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
     private readonly permissionService: GioPermissionService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   public ngOnInit(): void {
@@ -433,5 +434,69 @@ ${ifSubscriptionContent}`;
       this.api.definitionVersion,
       this.api.definitionVersion === 'V4' ? this.api.listeners.map(l => l.type) : null,
     );
+  }
+
+  public onAllowMultiJwtOauth2SubscriptionsChange(checked: boolean): void {
+    if (checked) {
+      (this.api as ApiV4).allowMultiJwtOauth2Subscriptions = true;
+      this.matDialog
+        .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+          width: '450px',
+          data: {
+            title: 'Allow multi JWT/OAuth2 subscriptions',
+            content: `By turning on this option, you will allow an application to subscribe to more than one JWT/OAuth2 plan. Be sure you understand the consequences, and you have configured Selection rules or Sharding Tags on plans. Otherwise, we cannot predict which plan will be used to secure requests.
+Do you want to continue?`,
+            confirmButton: 'Continue',
+          },
+        })
+        .afterClosed()
+        .pipe(
+          tap(confirm => {
+            if (confirm !== true) {
+              (this.api as ApiV4).allowMultiJwtOauth2Subscriptions = false;
+              this.cdr.markForCheck();
+            }
+          }),
+          filter(confirm => confirm === true),
+          switchMap(() => {
+            const updateApi: UpdateApiV4 = {
+              ...(this.api as ApiV4),
+              allowMultiJwtOauth2Subscriptions: true,
+            };
+            return this.apiService.update(this.api.id, updateApi);
+          }),
+          tap(api => {
+            this.api = api;
+            this.snackBarService.success('API updated successfully');
+          }),
+          catchError(({ error }) => {
+            this.snackBarService.error(error?.message ?? 'An error occurred');
+            (this.api as ApiV4).allowMultiJwtOauth2Subscriptions = false;
+            this.cdr.markForCheck();
+            return EMPTY;
+          }),
+          takeUntil(this.unsubscribe$),
+        )
+        .subscribe();
+    } else {
+      const updateApi: UpdateApiV4 = {
+        ...(this.api as ApiV4),
+        allowMultiJwtOauth2Subscriptions: false,
+      };
+      this.apiService
+        .update(this.api.id, updateApi)
+        .pipe(
+          tap(api => {
+            this.api = api;
+            this.snackBarService.success('API updated successfully');
+          }),
+          catchError(({ error }) => {
+            this.snackBarService.error(error?.message ?? 'An error occurred');
+            return EMPTY;
+          }),
+          takeUntil(this.unsubscribe$),
+        )
+        .subscribe();
+    }
   }
 }
