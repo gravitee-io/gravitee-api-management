@@ -27,3 +27,14 @@
   (actionSelected)="onActionSelected($event)"
   (statusFilterChanged)="searchPlansByStatus($event)"
 ></plan-list>
+@if (api && api.definitionVersion === 'V4' && !isReadOnly) {
+  <div class="plans__header__allow-multi-jwt" [attr.aria-label]="'Allow multi JWT/OAuth2 subscriptions per application'">
+    <mat-slide-toggle
+      [checked]="api.allowMultiJwtOauth2Subscriptions"
+      (change)="onAllowMultiJwtOauth2SubscriptionsChange($event.checked)"
+      data-testid="api_plans_allow_multi_jwt_oauth2_toggle"
+    >
+      Allow multi JWT/OAuth2 subscriptions per application
+    </mat-slide-toggle>
+  </div>
+}
