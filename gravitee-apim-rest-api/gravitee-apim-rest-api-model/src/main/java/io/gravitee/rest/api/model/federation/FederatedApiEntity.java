@@ -93,6 +93,8 @@ public class FederatedApiEntity implements GenericApiEntity {
 
     private String integrationName;
 
+    private boolean allowMultiJwtOauth2Subscriptions;
+
     @JsonIgnore
     private String referenceType;
 

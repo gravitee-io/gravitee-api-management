@@ -24,9 +24,10 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { GioConfirmAndValidateDialogHarness } from '@gravitee/ui-particles-angular';
+import { GioConfirmAndValidateDialogHarness, GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { castArray, set } from 'lodash';
 import { MatMenuHarness } from '@angular/material/menu/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiPlanListComponent } from './api-plan-list.component';
@@ -697,6 +698,135 @@ describe('ApiPlanListComponent', () => {
         });
       });
     });
+  });
+
+  describe('Allow multi JWT/OAuth2 subscriptions toggle', () => {
+    it('should not display toggle for V2 API', fakeAsync(async () => {
+      await initComponent([]);
+
+      const toggle = await loader.getHarnessOrNull(
+        MatSlideToggleHarness.with({ selector: '[data-testid="api_plans_allow_multi_jwt_oauth2_toggle"]' }),
+      );
+      expect(toggle).toBeNull();
+    }));
+
+    it('should display toggle for V4 API', fakeAsync(async () => {
+      const v4Api = fakeApiV4({ id: API_ID, listeners: [{ type: 'HTTP' }, { type: 'SUBSCRIPTION' }] });
+      await initComponent([], v4Api);
+
+      const toggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[data-testid="api_plans_allow_multi_jwt_oauth2_toggle"]' }),
+      );
+      expect(toggle).toBeTruthy();
+      expect(await toggle.isChecked()).toBe(false);
+    }));
+
+    it('should display toggle as checked when already enabled', fakeAsync(async () => {
+      const v4Api = fakeApiV4({ id: API_ID, allowMultiJwtOauth2Subscriptions: true, listeners: [{ type: 'HTTP' }] });
+      await initComponent([], v4Api);
+
+      const toggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[data-testid="api_plans_allow_multi_jwt_oauth2_toggle"]' }),
+      );
+      expect(await toggle.isChecked()).toBe(true);
+    }));
+
+    it('should enable multi JWT subscriptions when confirming dialog', fakeAsync(async () => {
+      const v4Api = fakeApiV4({ id: API_ID, allowMultiJwtOauth2Subscriptions: false, listeners: [{ type: 'HTTP' }] });
+      await initComponent([], v4Api);
+
+      const toggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[data-testid="api_plans_allow_multi_jwt_oauth2_toggle"]' }),
+      );
+      await toggle.check();
+
+      const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await dialog.confirm();
+
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+      expect(req.request.body.allowMultiJwtOauth2Subscriptions).toBe(true);
+      req.flush(fakeApiV4({ ...v4Api, allowMultiJwtOauth2Subscriptions: true }));
+      fixture.detectChanges();
+    }));
+
+    it('should revert toggle when cancelling dialog', fakeAsync(async () => {
+      const v4Api = fakeApiV4({ id: API_ID, allowMultiJwtOauth2Subscriptions: false, listeners: [{ type: 'HTTP' }] });
+      await initComponent([], v4Api);
+
+      const toggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[data-testid="api_plans_allow_multi_jwt_oauth2_toggle"]' }),
+      );
+      await toggle.check();
+
+      const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await dialog.cancel();
+
+      expect(await toggle.isChecked()).toBe(false);
+      httpTestingController.expectNone({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+    }));
+
+    it('should disable multi JWT subscriptions without dialog', fakeAsync(async () => {
+      const v4Api = fakeApiV4({ id: API_ID, allowMultiJwtOauth2Subscriptions: true, listeners: [{ type: 'HTTP' }] });
+      await initComponent([], v4Api);
+
+      const toggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[data-testid="api_plans_allow_multi_jwt_oauth2_toggle"]' }),
+      );
+      expect(await toggle.isChecked()).toBe(true);
+      await toggle.uncheck();
+
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+      expect(req.request.body.allowMultiJwtOauth2Subscriptions).toBe(false);
+      req.flush(fakeApiV4({ ...v4Api, allowMultiJwtOauth2Subscriptions: false }));
+      fixture.detectChanges();
+    }));
+
+    it('should show error and revert toggle when API update fails on enable', fakeAsync(async () => {
+      const v4Api = fakeApiV4({ id: API_ID, allowMultiJwtOauth2Subscriptions: false, listeners: [{ type: 'HTTP' }] });
+      await initComponent([], v4Api);
+      const snackBarSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+
+      const toggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[data-testid="api_plans_allow_multi_jwt_oauth2_toggle"]' }),
+      );
+      await toggle.check();
+
+      const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await dialog.confirm();
+
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+      req.flush({ message: 'Update failed' }, { status: 400, statusText: 'Bad Request' });
+      fixture.detectChanges();
+
+      expect(snackBarSpy).toHaveBeenCalled();
+    }));
+
+    it('should show error when API update fails on disable', fakeAsync(async () => {
+      const v4Api = fakeApiV4({ id: API_ID, allowMultiJwtOauth2Subscriptions: true, listeners: [{ type: 'HTTP' }] });
+      await initComponent([], v4Api);
+      const snackBarSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+
+      const toggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[data-testid="api_plans_allow_multi_jwt_oauth2_toggle"]' }),
+      );
+      await toggle.uncheck();
+
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+      req.flush({ message: 'Update failed' }, { status: 400, statusText: 'Bad Request' });
+      fixture.detectChanges();
+
+      expect(snackBarSpy).toHaveBeenCalled();
+    }));
+
+    it('should not display toggle for Federated API', fakeAsync(async () => {
+      const federatedApi = fakeApiFederated({ id: API_ID });
+      await initComponent([], federatedApi);
+
+      const toggle = await loader.getHarnessOrNull(
+        MatSlideToggleHarness.with({ selector: '[data-testid="api_plans_allow_multi_jwt_oauth2_toggle"]' }),
+      );
+      expect(toggle).toBeNull();
+    }));
   });
 
   describe('With a Federated API', () => {
