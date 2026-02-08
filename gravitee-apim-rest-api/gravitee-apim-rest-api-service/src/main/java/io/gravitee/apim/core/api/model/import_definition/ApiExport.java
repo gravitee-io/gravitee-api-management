@@ -109,6 +109,7 @@ public class ApiExport {
     private ApiLifecycleState lifecycleState;
     private WorkflowState workflowState;
     private boolean disableMembershipNotifications;
+    private boolean allowMultiJwtOauth2Subscriptions;
     private String background;
     private String backgroundUrl;
 
@@ -135,7 +136,8 @@ public class ApiExport {
             .groups(groups == null ? null : new HashSet<>(groups))
             .categories(categories == null ? null : new HashSet<>(categories))
             .labels(labels == null ? null : new ArrayList<>(labels))
-            .disableMembershipNotifications(disableMembershipNotifications);
+            .disableMembershipNotifications(disableMembershipNotifications)
+            .allowMultiJwtOauth2Subscriptions(allowMultiJwtOauth2Subscriptions);
     }
 
     public io.gravitee.definition.model.v4.Api.ApiBuilder<?, ?> toApiDefinitionBuilder() {

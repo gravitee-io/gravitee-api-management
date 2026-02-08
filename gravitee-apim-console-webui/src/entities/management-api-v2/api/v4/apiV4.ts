@@ -38,4 +38,5 @@ export interface ApiV4 extends GenericApi {
   flows?: FlowV4[];
   services?: ApiServices;
   failover?: Failover;
+  allowMultiJwtOauth2Subscriptions?: boolean;
 }

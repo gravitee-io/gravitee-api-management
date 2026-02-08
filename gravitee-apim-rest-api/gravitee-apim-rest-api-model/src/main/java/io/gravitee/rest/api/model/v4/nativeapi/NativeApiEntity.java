@@ -180,6 +180,8 @@ public class NativeApiEntity implements GenericApiEntity {
 
     private boolean disableMembershipNotifications;
 
+    private boolean allowMultiJwtOauth2Subscriptions;
+
     @Schema(description = "the API background encoded in base64")
     private String background;
 
@@ -197,4 +199,12 @@ public class NativeApiEntity implements GenericApiEntity {
 
     @Schema(description = "Analytics settings")
     private NativeAnalytics analytics;
+
+    public boolean isAllowMultiJwtOauth2Subscriptions() {
+        return allowMultiJwtOauth2Subscriptions;
+    }
+
+    public void setAllowMultiJwtOauth2Subscriptions(boolean allowMultiJwtOauth2Subscriptions) {
+        this.allowMultiJwtOauth2Subscriptions = allowMultiJwtOauth2Subscriptions;
+    }
 }

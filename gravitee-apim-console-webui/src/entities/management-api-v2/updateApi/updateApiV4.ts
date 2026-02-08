@@ -29,4 +29,5 @@ export interface UpdateApiV4 extends UpdateBaseApi {
   flows?: FlowV4[];
   services?: ApiServices;
   failover?: Failover;
+  allowMultiJwtOauth2Subscriptions?: boolean;
 }

@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.11.0-add-allow-multi-jwt-oauth2-subscriptions
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}apis
+            columns:
+              - column:
+                  name: allow_multi_jwt_oauth2_subscriptions
+                  type: boolean
