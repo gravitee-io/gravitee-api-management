@@ -18,6 +18,7 @@ package io.gravitee.apim.core.logs_engine.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.logs_engine.domain_service.FilterContext;
 import io.gravitee.apim.core.logs_engine.model.ApiLog;
@@ -173,6 +174,9 @@ public class SearchEnvironmentLogsUseCase {
 
     private void applyNumericFilter(NumericFilter filter, FilterContext filterContext) {
         if (filter.name() == FilterName.RESPONSE_TIME) {
+            if (filter.value() == null) {
+                throw new ValidationDomainException("Filter RESPONSE_TIME requires a non-null value");
+            }
             if (filter.operator() == Operator.GTE) {
                 filterContext.limitByResponseTimeFrom(filter.value().longValue());
             } else if (filter.operator() == Operator.LTE) {
