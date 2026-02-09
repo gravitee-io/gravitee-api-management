@@ -15,12 +15,10 @@
     limitations under the License.
 
 -->
-<div mat-dialog-title class="title">
-  {{ title }}
-</div>
+<div mat-dialog-title class="title">{{ title }}</div>
 
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
-  <mat-dialog-content>
+  <mat-dialog-content class="mat-elevation-z0">
     <div class="api-search-description-box">
       <div class="selected-panel__title">APIs</div>
       <div class="api-search-description">Pick the unpublished APIs you want to add to your navigation menu.</div>
@@ -78,32 +76,29 @@
       </table>
     </gio-table-wrapper>
 
-    <div class="selected-panel" [class.selected-panel--collapsed]="!selectedPanelExpanded()">
-      <div class="selected-panel__header">
-        <div class="selected-panel__badge" [class.selected-panel__badge--zero]="selectedCount() === 0">{{ selectedCount() }}</div>
-        <div class="selected-panel__title">APIs selected</div>
-        <button mat-icon-button type="button" (click)="toggleSelectedPanel()" aria-label="Toggle selected APIs">
-          <mat-icon>{{ selectedPanelExpanded() ? 'expand_more' : 'chevron_right' }}</mat-icon>
-        </button>
-      </div>
+    <mat-expansion-panel class="selected-panel" [expanded]="selectedPanelExpanded()" (expandedChange)="selectedPanelExpanded.set($event)">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <div class="selected-panel__badge" [class.selected-panel__badge--zero]="selectedCount() === 0">{{ selectedCount() }}</div>
+          <div>APIs selected</div>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
 
-      @if (selectedPanelExpanded()) {
-        <div class="selected-panel__content">
-          @if (selectedCount() === 0) {
-            <div class="selected-panel__empty">Select an unpublished API to add it to your navigation.</div>
-          } @else {
-            <mat-chip-set class="selected-panel__chips">
-              @for (api of selectedApis(); track api.id) {
-                <mat-chip [removable]="true" (removed)="removeSelected(api.id)">
-                  {{ api.name }}
-                  <mat-icon matChipRemove>cancel</mat-icon>
-                </mat-chip>
-              }
-            </mat-chip-set>
-          }
-        </div>
-      }
-    </div>
+      <div>
+        @if (selectedCount() === 0) {
+          <div>Select an unpublished API to add it to your navigation.</div>
+        } @else {
+          <mat-chip-set>
+            @for (api of selectedApis(); track api.id) {
+              <mat-chip [removable]="true" (removed)="removeSelected(api.id)">
+                {{ api.name }}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+            }
+          </mat-chip-set>
+        }
+      </div>
+    </mat-expansion-panel>
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">

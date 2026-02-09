@@ -36,49 +36,6 @@ mat-dialog-content {
   @include mat.m2-typography-level($typography, caption);
 }
 
-.filters {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-
-  &__search {
-    flex: 1;
-  }
-}
-
-:host ::ng-deep gio-table-wrapper {
-  border-top: 0;
-  box-shadow: none;
-  border-radius: 0;
-
-  .gio-table-wrapper {
-    border-radius: 0;
-
-    &__header-bar,
-    &__footer-bar {
-      border-radius: 0;
-    }
-  }
-
-  table {
-    width: 100%;
-    border-radius: 8px;
-    border: 1px solid mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter20');
-    overflow: hidden;
-  }
-
-  th.mat-mdc-header-cell {
-    background: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter60');
-    border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter20');
-  }
-
-  td.mat-mdc-cell,
-  th.mat-mdc-header-cell {
-    padding: 10px 16px;
-  }
-}
-
 .disabled {
   color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker40');
 }
@@ -88,54 +45,17 @@ mat-dialog-content {
 }
 
 .selected-panel {
-  margin-top: 16px;
-  padding: 8px 16px;
-  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter20');
-  border-radius: 8px;
-
-  &__header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
   &__badge {
     min-width: 26px;
     padding: 4px 8px;
     border-radius: 16px;
     background: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default');
     color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
-    font-weight: 700;
-    font-size: 12px;
-    line-height: 16px;
     @include gio.caption-2();
     text-align: center;
 
     &--zero {
       background: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default');
-    }
-  }
-
-  &__title {
-    flex: 1;
-    @include mat.m2-typography-level($typography, subtitle-2);
-  }
-
-  &__content {
-    padding: 8px 0;
-  }
-
-  &__chips {
-    display: block;
-  }
-
-  &__empty {
-    @include mat.m2-typography-level($typography, body-2);
-  }
-
-  &--collapsed {
-    .selected-panel__content {
-      display: none;
     }
   }
 }

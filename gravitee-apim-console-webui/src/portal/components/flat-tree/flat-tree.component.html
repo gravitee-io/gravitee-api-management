@@ -131,6 +131,10 @@
             <mat-icon svgIcon="gio:page"></mat-icon>
             Add Page
           </button>
+          <button mat-menu-item (click)="onCreate(node, 'API')">
+            <mat-icon svgIcon="gio:folder-api"></mat-icon>
+            Add API
+          </button>
           <button mat-menu-item (click)="onCreate(node, 'FOLDER')">
             <mat-icon svgIcon="gio:folder"></mat-icon>
             Add Folder
@@ -138,10 +142,6 @@
           <button mat-menu-item (click)="onCreate(node, 'LINK')">
             <mat-icon svgIcon="gio:link"></mat-icon>
             Add Link
-          </button>
-          <button mat-menu-item (click)="onCreate(node, 'API')">
-            <mat-icon svgIcon="gio:link"></mat-icon>
-            Add API
           </button>
           @if (canUpdate || canDelete) {
             <mat-divider></mat-divider>

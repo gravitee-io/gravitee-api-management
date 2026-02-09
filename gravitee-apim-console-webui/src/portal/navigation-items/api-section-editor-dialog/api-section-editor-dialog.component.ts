@@ -20,6 +20,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -79,6 +80,7 @@ type ApiSectionForm = FormGroup<ApiSectionFormControls>;
     MatCheckboxModule,
     MatTableModule,
     MatChipsModule,
+    MatExpansionModule,
     AsyncPipe,
     GioTableWrapperModule,
   ],
@@ -229,10 +231,6 @@ export class ApiSectionEditorDialogComponent implements OnInit {
 
     const current = this.selectedOrderedApis();
     this.selectedOrderedApis.set(current.filter((a) => a.id !== apiId));
-  }
-
-  toggleSelectedPanel(): void {
-    this.selectedPanelExpanded.set(!this.selectedPanelExpanded());
   }
 
   onSubmit(): void {
