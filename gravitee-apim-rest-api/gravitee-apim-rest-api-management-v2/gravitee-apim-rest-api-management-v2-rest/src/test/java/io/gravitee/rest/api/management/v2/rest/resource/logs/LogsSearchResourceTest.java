@@ -731,7 +731,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                         .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
                         .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
                 )
-                .addFiltersItem(new Filter(new NumericFilter().name(FilterName.RESPONSE_TIME_RANGE).operator(Operator.GTE).value(100)));
+                .addFiltersItem(new Filter(new NumericFilter().name(FilterName.RESPONSE_TIME).operator(Operator.GTE).value(100)));
 
             var response = searchTarget.request().post(Entity.json(request));
 
@@ -760,7 +760,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                         .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
                         .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
                 )
-                .addFiltersItem(new Filter(new NumericFilter().name(FilterName.RESPONSE_TIME_RANGE).operator(Operator.LTE).value(200)));
+                .addFiltersItem(new Filter(new NumericFilter().name(FilterName.RESPONSE_TIME).operator(Operator.LTE).value(200)));
 
             var response = searchTarget.request().post(Entity.json(request));
 
@@ -790,8 +790,8 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                         .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
                         .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
                 )
-                .addFiltersItem(new Filter(new NumericFilter().name(FilterName.RESPONSE_TIME_RANGE).operator(Operator.GTE).value(150)))
-                .addFiltersItem(new Filter(new NumericFilter().name(FilterName.RESPONSE_TIME_RANGE).operator(Operator.LTE).value(300)));
+                .addFiltersItem(new Filter(new NumericFilter().name(FilterName.RESPONSE_TIME).operator(Operator.GTE).value(150)))
+                .addFiltersItem(new Filter(new NumericFilter().name(FilterName.RESPONSE_TIME).operator(Operator.LTE).value(300)));
 
             var response = searchTarget.request().post(Entity.json(request));
 

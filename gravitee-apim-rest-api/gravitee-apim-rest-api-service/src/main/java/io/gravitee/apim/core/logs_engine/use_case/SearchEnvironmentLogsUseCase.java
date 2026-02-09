@@ -172,7 +172,7 @@ public class SearchEnvironmentLogsUseCase {
     }
 
     private void applyNumericFilter(NumericFilter filter, FilterContext filterContext) {
-        if (filter.name() == FilterName.RESPONSE_TIME_RANGE) {
+        if (filter.name() == FilterName.RESPONSE_TIME) {
             if (filter.operator() == Operator.GTE) {
                 filterContext.limitByResponseTimeFrom(filter.value().longValue());
             } else if (filter.operator() == Operator.LTE) {
