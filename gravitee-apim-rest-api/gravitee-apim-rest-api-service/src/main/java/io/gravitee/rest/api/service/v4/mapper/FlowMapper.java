@@ -76,6 +76,9 @@ public class FlowMapper {
         definitionFlow.setSubscribe(repositoryFlow.getSubscribe().stream().map(this::toDefinition).collect(Collectors.toList()));
         definitionFlow.setInteract(repositoryFlow.getInteract().stream().map(this::toDefinition).collect(Collectors.toList()));
         definitionFlow.setConnect(repositoryFlow.getConnect().stream().map(this::toDefinition).collect(Collectors.toList()));
+        definitionFlow.setEntrypointConnect(
+            repositoryFlow.getEntrypointConnect().stream().map(this::toDefinition).collect(Collectors.toList())
+        );
         definitionFlow.setTags(repositoryFlow.getTags());
         return definitionFlow;
     }

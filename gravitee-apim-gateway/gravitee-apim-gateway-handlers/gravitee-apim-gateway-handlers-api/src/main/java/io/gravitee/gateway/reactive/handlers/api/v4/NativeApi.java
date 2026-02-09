@@ -126,6 +126,7 @@ public class NativeApi extends AbstractReactableApi<io.gravitee.definition.model
             .stream()
             .filter(NativeFlow::isEnabled)
             .forEach(flow -> {
+                policies.addAll(getPolicies(flow.getEntrypointConnect()));
                 policies.addAll(getPolicies(flow.getConnect()));
                 policies.addAll(getPolicies(flow.getInteract()));
                 policies.addAll(getPolicies(flow.getSubscribe()));

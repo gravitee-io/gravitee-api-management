@@ -110,6 +110,33 @@ public class FlowMapperTest {
     }
 
     @Test
+    public void should_map_entrypoint_connect_steps() {
+        var repositoryFlow = new io.gravitee.repository.management.model.flow.Flow();
+        repositoryFlow.setName("test-flow");
+        repositoryFlow.setEnabled(true);
+
+        io.gravitee.repository.management.model.flow.FlowStep entrypointConnectStep =
+            new io.gravitee.repository.management.model.flow.FlowStep();
+        entrypointConnectStep.setEnabled(true);
+        entrypointConnectStep.setName("IPFiltering");
+        entrypointConnectStep.setPolicy("ip-filtering");
+        entrypointConnectStep.setCondition(POLICY_CONDITION);
+        entrypointConnectStep.setConfiguration("{\"blacklistIps\":[\"127.0.0.1\"]}");
+        repositoryFlow.setEntrypointConnect(List.of(entrypointConnectStep));
+
+        io.gravitee.definition.model.v4.nativeapi.NativeFlow nativeFlow = flowMapper.toNativeDefinition(repositoryFlow);
+
+        assertNotNull(nativeFlow.getEntrypointConnect());
+        assertFalse(nativeFlow.getEntrypointConnect().isEmpty());
+        assertEquals(1, nativeFlow.getEntrypointConnect().size());
+
+        Step mappedStep = nativeFlow.getEntrypointConnect().get(0);
+        assertEquals("ip-filtering", mappedStep.getPolicy());
+        assertEquals(POLICY_CONDITION, mappedStep.getCondition());
+        assertEquals("{\"blacklistIps\":[\"127.0.0.1\"]}", mappedStep.getConfiguration());
+    }
+
+    @Test
     public void toDefinitionShouldSetPathOperatorFromPathAndOperatorValues() {
         final List<Selector> selectors = selectors();
 

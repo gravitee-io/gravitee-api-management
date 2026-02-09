@@ -313,6 +313,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                 newFlow.setSubscribe(new ArrayList<>());
                 newFlow.setInteract(new ArrayList<>());
                 newFlow.setConnect(new ArrayList<>());
+                newFlow.setEntrypointConnect(new ArrayList<>());
                 newFlow.setMethods(new HashSet<>());
                 newFlow.setTags(new HashSet<>());
                 newFlow.setSelectors(new ArrayList<>());
@@ -360,6 +361,9 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                             break;
                         case CONNECT:
                             steps = flow.getConnect();
+                            break;
+                        case ENTRYPOINT_CONNECT:
+                            steps = flow.getEntrypointConnect();
                             break;
                         default:
                             throw new IllegalStateException("Unexpected value: " + phase);
@@ -626,6 +630,8 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         flow.setInteract(interactSteps);
         List<FlowStep> connectSteps = getPhaseSteps(flow.getId(), FlowStepPhase.CONNECT);
         flow.setConnect(connectSteps);
+        List<FlowStep> entrypointConnectSteps = getPhaseSteps(flow.getId(), FlowStepPhase.ENTRYPOINT_CONNECT);
+        flow.setEntrypointConnect(entrypointConnectSteps);
 
         // Deprecated
         List<FlowStep> preSteps = getPhaseSteps(flow.getId(), FlowStepPhase.PRE);
@@ -753,6 +759,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         storePhaseSteps(flow, flow.getPublish(), FlowStepPhase.PUBLISH);
         storePhaseSteps(flow, flow.getInteract(), FlowStepPhase.INTERACT);
         storePhaseSteps(flow, flow.getConnect(), FlowStepPhase.CONNECT);
+        storePhaseSteps(flow, flow.getEntrypointConnect(), FlowStepPhase.ENTRYPOINT_CONNECT);
     }
 
     private void storePhaseSteps(final Flow flow, final List<FlowStep> steps, final FlowStepPhase phase) {

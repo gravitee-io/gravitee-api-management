@@ -80,6 +80,13 @@ public class FlowNativeRepositoryTest extends AbstractManagementRepositoryTest {
         flow.setCreatedAt(new Date(1470157767000L));
         flow.setEnabled(false);
 
+        FlowStep entrypointConnectStep = new FlowStep();
+        entrypointConnectStep.setName("entrypoint-connect-step");
+        entrypointConnectStep.setPolicy("ip-filtering");
+        entrypointConnectStep.setCondition("entrypoint-connect-condition");
+        entrypointConnectStep.setOrder(1);
+        flow.setEntrypointConnect(List.of(entrypointConnectStep));
+
         FlowStep publishStep = new FlowStep();
         publishStep.setName("publish-step");
         publishStep.setPolicy("policy");
@@ -127,6 +134,7 @@ public class FlowNativeRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(flow.getTags().size(), flowCreated.getTags().size());
         assertEquals(flow.getTags(), flowCreated.getTags());
         assertEquals(flow.getOrder(), flowCreated.getOrder());
+        assertEquals(flow.getEntrypointConnect().get(0).getCondition(), flowCreated.getEntrypointConnect().get(0).getCondition());
         assertEquals(flow.getPublish().get(0).getCondition(), flowCreated.getPublish().get(0).getCondition());
         assertEquals(flow.getSubscribe().get(0).getCondition(), flowCreated.getSubscribe().get(0).getCondition());
         assertEquals(flow.getInteract().get(0).getCondition(), flowCreated.getInteract().get(0).getCondition());
