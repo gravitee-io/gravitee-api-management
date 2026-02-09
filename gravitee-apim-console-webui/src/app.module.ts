@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import * as angular from 'angular';
-
 import { CommonModule } from '@angular/common';
 import { provideHttpClient, withInterceptorsFromDi, withXsrfConfiguration } from '@angular/common/http';
 import { ApplicationRef, DoBootstrap, importProvidersFrom, NgModule } from '@angular/core';

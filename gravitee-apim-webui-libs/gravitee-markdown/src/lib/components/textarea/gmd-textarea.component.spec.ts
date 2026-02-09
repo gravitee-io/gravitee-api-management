@@ -35,7 +35,8 @@ import { GMD_FORM_STATE_STORE } from '../../services/gmd-form-state.store';
       [maxLength]="maxLength()"
       [rows]="rows()"
       [readonly]="readonly()"
-      [disabled]="disabled()" />
+      [disabled]="disabled()"
+    />
   `,
   standalone: true,
   imports: [GmdTextareaComponent],

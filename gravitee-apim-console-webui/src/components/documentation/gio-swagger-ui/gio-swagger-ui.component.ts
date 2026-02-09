@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import angular from 'angular';
-
 import { AfterViewInit, Component, ElementRef, Input, OnChanges, ViewChild } from '@angular/core';
 import SwaggerUI from 'swagger-ui';
 import * as yaml from 'js-yaml';

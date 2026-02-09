@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { isNumber } from 'angular';
-
 import { Component, inject, OnInit } from '@angular/core';
 import { map, shareReplay, switchMap, take, catchError, finalize } from 'rxjs/operators';
 import { ReplaySubject, of, Observable } from 'rxjs';

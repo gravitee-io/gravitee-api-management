@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { IScope } from 'angular';
-
 import { Router } from '@angular/router';
 import { cloneDeep, find, isEqual } from 'lodash';
 

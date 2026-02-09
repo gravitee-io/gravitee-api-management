@@ -16,8 +16,7 @@
 import '@gravitee/ui-components/wc/gv-policy-studio';
 import '@gravitee/ui-components/wc/gv-switch';
 import '@gravitee/ui-components/wc/gv-popover';
-import * as angular from 'angular';
-
+import angular from 'angular';
 import { ActivatedRoute } from '@angular/router';
 import { cloneDeep, isEmpty } from 'lodash';
 

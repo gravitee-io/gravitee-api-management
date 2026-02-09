@@ -35,7 +35,8 @@
         [owlDateTime]="fromDateTimePicker"
         [max]="form.controls.to.value || nowDate"
         formControlName="from"
-        (dateTimeChange)="onFromChange($event.value)" />
+        (dateTimeChange)="onFromChange($event.value)"
+      />
       <mat-icon [owlDateTimeTrigger]="fromDateTimePicker" matSuffix>edit_calendar</mat-icon>
       <owl-date-time #fromDateTimePicker />
     </mat-form-field>
@@ -48,7 +49,8 @@
         [min]="minDate"
         [max]="nowDate"
         formControlName="to"
-        (dateTimeChange)="onToChange($event.value)" />
+        (dateTimeChange)="onToChange($event.value)"
+      />
       <mat-icon [owlDateTimeTrigger]="toDateTimePicker" matSuffix>edit_calendar</mat-icon>
       <owl-date-time #toDateTimePicker />
       @if (form.hasError('dateRange')) {
@@ -61,7 +63,8 @@
       [disabled]="!form.controls.from.value || !form.controls.to.value || form.hasError('dateRange')"
       mat-stroked-button
       aria-label="Apply"
-      (click)="onApplyClicked()">
+      (click)="onApplyClicked()"
+    >
       Apply
     </button>
   } @else {

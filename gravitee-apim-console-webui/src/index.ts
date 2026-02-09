@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as angular from 'angular';
-
-import './app.module.ajs';
+import angular from 'angular';
 import { enableProdMode } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { loadDefaultTranslations } from '@gravitee/ui-components/src/lib/i18n';
 import { computeStyles, LicenseConfiguration } from '@gravitee/ui-particles-angular';
 import { toLower, toUpper } from 'lodash';
 
+import './app.module.ajs';
 import { AppModule } from './app.module';
 import { Build, Constants, DefaultPortal } from './entities/Constants';
 import { getFeatureInfoData } from './shared/components/gio-license/gio-license-data';

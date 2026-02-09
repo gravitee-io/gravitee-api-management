@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import angular from 'angular';
-
 import * as Highcharts from 'highcharts';
 import { mapChart } from 'highcharts';
 import 'highcharts/modules/map';

@@ -37,13 +37,15 @@
         tabindex="-1"
         [class.disabled-option]="option.disabled"
         (click)="toggleOption(option)"
-        (keyup)="toggleOption(option)">
+        (keyup)="toggleOption(option)"
+      >
         <mat-checkbox
           [checked]="selectedValues.includes(option.value)"
           [disabled]="option.disabled"
           [value]="option.value"
           class="gio-select-search__option-checkbox"
-          color="primary" />
+          color="primary"
+        />
         <span class="gio-select-search__option-label">
           {{ option.label }}
           @if (option.context) {
@@ -69,7 +71,8 @@
       type="button"
       [disabled]="selectedValues.length === 0"
       (click)="clearSelection()"
-      [attr.aria-label]="'Clear selection'">
+      [attr.aria-label]="'Clear selection'"
+    >
       Clear Selection
       @if (selectedValues.length > 0) {
         ({{ selectedValues.length }})

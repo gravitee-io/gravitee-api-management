@@ -41,7 +41,8 @@
     [attr.aria-invalid]="hasErrors() ? 'true' : null"
     [attr.aria-describedby]="hasErrors() ? errorId() : null"
     (input)="onInput($event)"
-    (blur)="onBlur()" />
+    (blur)="onBlur()"
+  />
 
   @if (touched() && errorMessages().length) {
     <div [id]="errorId()" class="gmd-input__errors" role="alert">

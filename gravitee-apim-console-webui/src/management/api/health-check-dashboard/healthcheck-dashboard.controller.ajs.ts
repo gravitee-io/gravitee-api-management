@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { IQService, IRootScopeService } from 'angular';
-
 import moment from 'moment';
 import { ActivatedRoute, Router } from '@angular/router';
 import { assign, forEach } from 'lodash';

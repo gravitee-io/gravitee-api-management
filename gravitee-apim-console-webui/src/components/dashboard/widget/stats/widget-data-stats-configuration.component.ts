@@ -15,7 +15,6 @@
  */
 
 import { IOnInit } from 'angular';
-
 import { merge } from 'lodash';
 
 import DashboardService, { AverageableField } from '../../../../services/dashboard.service';

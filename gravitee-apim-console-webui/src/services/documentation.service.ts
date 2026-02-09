@@ -15,7 +15,6 @@
  */
 
 import { IHttpPromise, IPromise } from 'angular';
-
 import { Injector } from '@angular/core';
 
 import { Constants } from '../entities/Constants';

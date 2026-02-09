@@ -9,13 +9,5 @@ The `gmd-md` component is used to wrap markdown content within the Gravitee mark
 ### Basic Example
 
 ```html
-<gmd-md>
-  # Hello World
-  
-  This is a **markdown** block with:
-  - Lists
-  - **Bold text**
-  - [Links](https://gravitee.io)
-</gmd-md>
+<gmd-md> # Hello World This is a **markdown** block with: - Lists - **Bold text** - [Links](https://gravitee.io) </gmd-md>
 ```
-

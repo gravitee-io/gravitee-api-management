@@ -5,6 +5,7 @@
 Gravitee-Dashboard is a library that provides a set of Angular components to build dashboards.
 
 Dashboards are composed of several components:
+
 - Grid: a layout system
 - Widget : a reusable component to display data
 - Chart: a set of charts components
@@ -17,6 +18,7 @@ Gravitee-Dashboard is based on top of two libraries.
 - [Highcharts](https://api.highcharts.com/highcharts): provides a set of charts components.
 
 ### Peer Dependencies
+
 - @angular/common: 19.2.0
 - @angular/core: 19.2.0
 - tslib: 2.3.1

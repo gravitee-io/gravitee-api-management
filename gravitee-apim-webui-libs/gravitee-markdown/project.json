@@ -32,9 +32,7 @@
     "lint": {
       "executor": "@nx/eslint:lint",
       "options": {
-        "lintFilePatterns": [
-          "gravitee-apim-webui-libs/gravitee-markdown/**/*.ts"
-        ]
+        "lintFilePatterns": ["gravitee-apim-webui-libs/gravitee-markdown/**/*.ts"]
       }
     }
   },

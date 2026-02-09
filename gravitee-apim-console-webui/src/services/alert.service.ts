@@ -15,7 +15,6 @@
  */
 
 import { IHttpPromise } from 'angular';
-
 import { Injector } from '@angular/core';
 
 import { Alert, Scope } from '../entities/alert';

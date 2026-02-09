@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { isNumber, isObject } from 'angular';
-
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';

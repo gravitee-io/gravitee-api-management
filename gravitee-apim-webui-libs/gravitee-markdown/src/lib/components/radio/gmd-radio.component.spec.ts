@@ -32,7 +32,8 @@ import { GMD_FORM_STATE_STORE } from '../../services/gmd-form-state.store';
       [required]="required()"
       [options]="options()"
       [readonly]="readonly()"
-      [disabled]="disabled()" />
+      [disabled]="disabled()"
+    />
   `,
   standalone: true,
   imports: [GmdRadioComponent],
