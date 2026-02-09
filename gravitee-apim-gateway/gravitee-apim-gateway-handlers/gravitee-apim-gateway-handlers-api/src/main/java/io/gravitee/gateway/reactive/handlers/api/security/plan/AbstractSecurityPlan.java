@@ -26,7 +26,6 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
-import io.gravitee.gateway.handlers.api.services.SubscriptionUtils;
 import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
@@ -164,14 +163,10 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
 
             if (subscriptionOpt.isPresent()) {
                 Subscription subscription = subscriptionOpt.get();
-                boolean planMatches = planContext.planId().equals(subscription.getPlan());
-                boolean isApiProductSubscription = SubscriptionUtils.isApiProductSubscription(subscription);
-                if ((planMatches || isApiProductSubscription) && subscription.isTimeValid(ctx.timestamp())) {
+
+                if (planContext.planId().equals(subscription.getPlan()) && subscription.isTimeValid(ctx.timestamp())) {
                     ctx.setAttribute(ATTR_APPLICATION, subscription.getApplication());
                     ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscription.getId());
-                    if (isApiProductSubscription) {
-                        ctx.setAttribute(ATTR_PLAN, subscription.getPlan());
-                    }
                     ctx.setInternalAttribute(ATTR_INTERNAL_SUBSCRIPTION, subscription);
                     return true;
                 }

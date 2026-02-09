@@ -16,10 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.v4.security;
 
 import io.gravitee.definition.model.v4.Api;
-import io.gravitee.definition.model.v4.plan.AbstractPlan;
-import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
-import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
@@ -43,32 +40,51 @@ import java.util.stream.Stream;
  */
 public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api.security.HttpSecurityChain {
 
+    // Store constructor parameters for refresh
+    private final Api api;
+    private final PolicyManager policyManager;
+    private final ExecutionPhase executionPhase;
+    private final String environmentId;
+    private final ApiProductRegistry apiProductRegistry;
+
     public HttpSecurityChain(
         @Nonnull final Api api,
         @Nonnull final PolicyManager policyManager,
         @Nonnull final ExecutionPhase executionPhase
     ) {
-        this(api, policyManager, executionPhase, null, null, null);
+        this(api, policyManager, executionPhase, null, null);
     }
 
     /**
-     * Constructor with API Product support. When apiProductRegistry and productPlanDefinitionCache
-     * are provided, product plans are iterated first (product-first validation per PRD).
+     * Constructor with API Product support. When apiProductRegistry is provided,
+     * product plans are iterated first (product-first validation per PRD).
      */
     public HttpSecurityChain(
         @Nonnull final Api api,
         @Nonnull final PolicyManager policyManager,
         @Nonnull final ExecutionPhase executionPhase,
         @Nullable final String environmentId,
-        @Nullable final ApiProductRegistry apiProductRegistry,
-        @Nullable final ProductPlanDefinitionCache productPlanDefinitionCache
+        @Nullable final ApiProductRegistry apiProductRegistry
     ) {
         super(
-            Flowable.fromIterable(
-                buildSecurityPlans(api, policyManager, executionPhase, environmentId, apiProductRegistry, productPlanDefinitionCache)
-            ),
+            Flowable.fromIterable(buildSecurityPlans(api, policyManager, executionPhase, environmentId, apiProductRegistry)),
             executionPhase
         );
+        this.api = api;
+        this.policyManager = policyManager;
+        this.executionPhase = executionPhase;
+        this.environmentId = environmentId;
+        this.apiProductRegistry = apiProductRegistry;
+    }
+
+    /**
+     * Create a new HttpSecurityChain with current state from ApiProductRegistry.
+     * Used to refresh the security chain when API Products are deployed/updated/undeployed.
+     *
+     * @return new HttpSecurityChain instance built from current registry state
+     */
+    public HttpSecurityChain refresh() {
+        return new HttpSecurityChain(api, policyManager, executionPhase, environmentId, apiProductRegistry);
     }
 
     private static List<HttpSecurityPlan> buildSecurityPlans(
@@ -76,21 +92,12 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
         PolicyManager policyManager,
         ExecutionPhase executionPhase,
         String environmentId,
-        ApiProductRegistry apiProductRegistry,
-        ProductPlanDefinitionCache productPlanDefinitionCache
+        ApiProductRegistry apiProductRegistry
     ) {
         List<HttpSecurityPlan> productPlans = new ArrayList<>();
         List<HttpSecurityPlan> apiPlans = new ArrayList<>();
 
-        addProductPlansFirst(
-            productPlans,
-            api,
-            environmentId,
-            apiProductRegistry,
-            productPlanDefinitionCache,
-            policyManager,
-            executionPhase
-        );
+        addProductPlansFirst(productPlans, api, environmentId, apiProductRegistry, policyManager, executionPhase);
         addApiPlans(apiPlans, api, policyManager, executionPhase);
 
         // Product plans must be tried before API plans (PRD product-first).
@@ -109,38 +116,21 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
         Api api,
         String environmentId,
         ApiProductRegistry apiProductRegistry,
-        ProductPlanDefinitionCache productPlanDefinitionCache,
         PolicyManager policyManager,
         ExecutionPhase executionPhase
     ) {
-        if (environmentId == null || apiProductRegistry == null || productPlanDefinitionCache == null) {
+        if (environmentId == null || apiProductRegistry == null) {
             return;
         }
-        Collection<ReactableApiProduct> allProducts = apiProductRegistry.getAll();
-        if (allProducts == null) {
-            return;
-        }
-        for (ReactableApiProduct product : allProducts) {
-            if (
-                product.getEnvironmentId() != null &&
-                product.getEnvironmentId().equals(environmentId) &&
-                product.getApiIds() != null &&
-                product.getApiIds().contains(api.getId())
-            ) {
-                List<? extends AbstractPlan> plans = productPlanDefinitionCache.getByApiProductId(product.getId());
-                if (plans != null) {
-                    for (AbstractPlan plan : plans) {
-                        HttpSecurityPlan httpSecurityPlan = HttpSecurityPlanFactory.forPlan(
-                            api.getId(),
-                            plan,
-                            policyManager,
-                            executionPhase
-                        );
-                        if (httpSecurityPlan != null) {
-                            out.add(httpSecurityPlan);
-                        }
-                    }
-                }
+
+        // Get product plan entries for this API from the registry
+        List<ApiProductRegistry.ApiProductPlanEntry> entries = apiProductRegistry.getProductPlanEntriesForApi(api.getId(), environmentId);
+
+        // Build security plans from the entries
+        for (ApiProductRegistry.ApiProductPlanEntry entry : entries) {
+            HttpSecurityPlan httpSecurityPlan = HttpSecurityPlanFactory.forPlan(api.getId(), entry.plan(), policyManager, executionPhase);
+            if (httpSecurityPlan != null) {
+                out.add(httpSecurityPlan);
             }
         }
     }

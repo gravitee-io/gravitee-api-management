@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.local.LocalSyncManager;
@@ -73,8 +74,8 @@ public class LocalSyncConfiguration {
     }
 
     @Bean
-    public SubscriptionMapper localSubscriptionMapper(ObjectMapper objectMapper) {
-        return new SubscriptionMapper(objectMapper);
+    public SubscriptionMapper localSubscriptionMapper(ObjectMapper objectMapper, ApiProductRegistry apiProductRegistry) {
+        return new SubscriptionMapper(objectMapper, apiProductRegistry);
     }
 
     @Bean

@@ -16,16 +16,12 @@
 package io.gravitee.gateway.handlers.api.spring;
 
 import io.gravitee.common.event.EventManager;
-import io.gravitee.gateway.handlers.api.event.ApiProductChangeListener;
-import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
-import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiProductManagerImpl;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
 import io.gravitee.gateway.handlers.api.registry.impl.ApiProductRegistryImpl;
 import io.gravitee.gateway.handlers.api.registry.impl.ProductPlanDefinitionCacheImpl;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.node.api.license.LicenseManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -39,8 +35,8 @@ import org.springframework.context.annotation.Configuration;
 public class ApiProductConfiguration {
 
     @Bean
-    public ApiProductRegistry apiProductRegistry() {
-        return new ApiProductRegistryImpl();
+    public ApiProductRegistry apiProductRegistry(ProductPlanDefinitionCache productPlanDefinitionCache) {
+        return new ApiProductRegistryImpl(productPlanDefinitionCache);
     }
 
     @Bean
@@ -51,19 +47,9 @@ public class ApiProductConfiguration {
     @Bean
     public ApiProductManager apiProductManager(
         ApiProductRegistry apiProductRegistry,
-        @Autowired(required = false) LicenseManager licenseManager
-    ) {
-        return new ApiProductManagerImpl(apiProductRegistry, licenseManager);
-    }
-
-    @Bean
-    public ApiProductChangeListener apiProductChangeListener(
-        ApiManager apiManager,
-        ReactorHandlerRegistry reactorHandlerRegistry,
+        @Autowired(required = false) LicenseManager licenseManager,
         EventManager eventManager
     ) {
-        ApiProductChangeListener listener = new ApiProductChangeListener(apiManager, reactorHandlerRegistry);
-        eventManager.subscribeForEvents(listener, ApiProductEventType.class);
-        return listener;
+        return new ApiProductManagerImpl(apiProductRegistry, licenseManager, eventManager);
     }
 }
