@@ -18,7 +18,7 @@ package io.gravitee.apim.core.application_certificate.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -31,7 +31,7 @@ public class DeleteClientCertificateUseCase {
     public void execute(Input input) {
         ClientCertificate certificate = clientCertificateCrudService.findById(input.clientCertificateId());
         clientCertificateCrudService.delete(input.clientCertificateId());
-        applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(certificate.applicationId());
+        applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(certificate.getApplicationId());
     }
 
     public record Input(String clientCertificateId) {}

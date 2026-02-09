@@ -20,7 +20,7 @@ import static org.mockito.Mockito.verify;
 
 import inmemory.ClientCertificateCrudServiceInMemory;
 import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
-import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,14 +50,23 @@ class CreateClientCertificateUseCaseTest {
     @Test
     void should_create_client_certificate() {
         var appId = "app-id";
-        var createRequest = new CreateClientCertificate("Test Certificate", new Date(), new Date(), "PEM_CONTENT");
 
-        var result = createClientCertificateUseCase.execute(new CreateClientCertificateUseCase.Input(appId, createRequest));
+        var result = createClientCertificateUseCase.execute(
+            new CreateClientCertificateUseCase.Input(
+                appId,
+                ClientCertificate.builder()
+                    .name("Test Certificate")
+                    .startsAt(new Date())
+                    .endsAt(new Date())
+                    .certificate("PEM_CONTENT")
+                    .build()
+            )
+        );
 
         assertThat(result.clientCertificate()).isNotNull();
-        assertThat(result.clientCertificate().id()).isNotNull();
-        assertThat(result.clientCertificate().applicationId()).isEqualTo(appId);
-        assertThat(result.clientCertificate().name()).isEqualTo("Test Certificate");
+        assertThat(result.clientCertificate().getId()).isNotNull();
+        assertThat(result.clientCertificate().getApplicationId()).isEqualTo(appId);
+        assertThat(result.clientCertificate().getName()).isEqualTo("Test Certificate");
         assertThat(clientCertificateCrudService.storage()).hasSize(1);
         verify(applicationCertificatesUpdateDomainService).updateActiveMTLSSubscriptions(appId);
     }

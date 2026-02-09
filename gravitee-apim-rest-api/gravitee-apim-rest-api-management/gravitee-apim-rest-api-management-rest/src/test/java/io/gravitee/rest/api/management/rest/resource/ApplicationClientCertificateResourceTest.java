@@ -23,11 +23,11 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.apim.core.application_certificate.use_case.DeleteClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.UpdateClientCertificateUseCase;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
 import io.gravitee.rest.api.model.clientcertificate.UpdateClientCertificate;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
 import jakarta.ws.rs.client.Entity;
@@ -56,7 +56,7 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
 
     @Test
     public void should_get_client_certificate() {
-        ClientCertificate certificate = createClientCertificate(CERT_ID, "My Certificate");
+        var certificate = createClientCertificate(CERT_ID, "My Certificate");
 
         when(getClientCertificateUseCase.execute(any(GetClientCertificateUseCase.Input.class))).thenReturn(
             new GetClientCertificateUseCase.Output(certificate)
@@ -66,7 +66,7 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-            ClientCertificate result = response.readEntity(ClientCertificate.class);
+            var result = response.readEntity(io.gravitee.rest.api.model.clientcertificate.ClientCertificate.class);
             soft.assertThat(result.id()).isEqualTo(CERT_ID);
             soft.assertThat(result.name()).isEqualTo("My Certificate");
         });
@@ -102,7 +102,7 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-            ClientCertificate result = response.readEntity(ClientCertificate.class);
+            var result = response.readEntity(io.gravitee.rest.api.model.clientcertificate.ClientCertificate.class);
             soft.assertThat(result.name()).isEqualTo("Updated Certificate Name");
         });
         verify(updateClientCertificateUseCase).execute(any(UpdateClientCertificateUseCase.Input.class));

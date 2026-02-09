@@ -19,6 +19,7 @@ import io.gravitee.apim.core.application_certificate.use_case.CreateClientCertif
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificatesUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.mapper.ClientCertificateMapper;
 import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
@@ -81,9 +82,11 @@ public class ApplicationClientCertificatesResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public PagedResult<ClientCertificate> getApplicationClientCertificates(@Valid @BeanParam Pageable pageable) {
-        Page<ClientCertificate> page = getClientCertificatesUseCase
-            .execute(new GetClientCertificatesUseCase.Input(application, pageable.toPageable()))
-            .clientCertificates();
+        Page<ClientCertificate> page = ClientCertificateMapper.INSTANCE.map(
+            getClientCertificatesUseCase
+                .execute(new GetClientCertificatesUseCase.Input(application, pageable.toPageable()))
+                .clientCertificates()
+        );
         return new PagedResult<>(page, pageable.getSize());
     }
 
@@ -102,10 +105,12 @@ public class ApplicationClientCertificatesResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.CREATE) })
     public Response createApplicationClientCertificate(@Valid @NotNull final CreateClientCertificate createClientCertificate) {
-        ClientCertificate created = createClientCertificateUseCase
-            .execute(new CreateClientCertificateUseCase.Input(application, createClientCertificate))
+        var created = createClientCertificateUseCase
+            .execute(
+                new CreateClientCertificateUseCase.Input(application, ClientCertificateMapper.INSTANCE.toDomain(createClientCertificate))
+            )
             .clientCertificate();
-        return Response.created(this.getLocationHeader(created.id())).entity(created).build();
+        return Response.created(this.getLocationHeader(created.getId())).entity(ClientCertificateMapper.INSTANCE.toDto(created)).build();
     }
 
     @Path("{certId}")

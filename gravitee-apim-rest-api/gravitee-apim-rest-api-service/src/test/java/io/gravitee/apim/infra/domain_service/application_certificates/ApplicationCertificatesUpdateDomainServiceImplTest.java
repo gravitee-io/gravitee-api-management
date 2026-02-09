@@ -21,14 +21,14 @@ import inmemory.ClientCertificateCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.common.security.PKCS7Utils;
 import io.gravitee.common.util.KeyStoreUtils;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificateStatus;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
@@ -393,22 +393,22 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
         String pemCertificate,
         Date createdAt
     ) {
-        return new ClientCertificate(
-            id,
-            "cross-id-" + id,
-            applicationId,
-            "Test Certificate " + id,
-            null,
-            null,
-            createdAt,
-            new Date(),
-            pemCertificate,
-            Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
-            "CN=localhost",
-            "CN=localhost",
-            "fingerprint-" + id,
-            ENVIRONMENT_ID,
-            status
-        );
+        return ClientCertificate.builder()
+            .id(id)
+            .crossId("cross-id-" + id)
+            .applicationId(applicationId)
+            .name("Test Certificate " + id)
+            .startsAt(null)
+            .endsAt(null)
+            .createdAt(createdAt)
+            .updatedAt(new Date())
+            .certificate(pemCertificate)
+            .certificateExpiration(Date.from(Instant.now().plus(365, ChronoUnit.DAYS)))
+            .subject("CN=localhost")
+            .issuer("CN=localhost")
+            .fingerprint("fingerprint-" + id)
+            .environmentId(ENVIRONMENT_ID)
+            .status(status)
+            .build();
     }
 }

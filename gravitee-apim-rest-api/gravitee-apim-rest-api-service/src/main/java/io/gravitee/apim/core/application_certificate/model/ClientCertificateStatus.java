@@ -13,27 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.exceptions;
-
-import java.util.Map;
+package io.gravitee.apim.core.application_certificate.model;
 
 /**
+ * Status of a client certificate.
+ *
  * @author GraviteeSource Team
  */
-public class ClientCertificateAuthorityException extends AbstractClientCertificateException {
-
-    @Override
-    public String getMessage() {
-        return "Certificate Authorities are not supported, requires a client certificate";
-    }
-
-    @Override
-    public String getTechnicalCode() {
-        return "application.certificate.ca";
-    }
-
-    @Override
-    public Map<String, String> getParameters() {
-        return Map.of();
-    }
+public enum ClientCertificateStatus {
+    ACTIVE,
+    ACTIVE_WITH_END,
+    SCHEDULED,
+    REVOKED,
 }

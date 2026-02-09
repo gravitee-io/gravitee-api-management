@@ -18,8 +18,12 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.infra.crud_service.application_certificates.ClientCertificateCrudServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -40,15 +44,32 @@ import io.gravitee.rest.api.model.configuration.application.ApplicationGrantType
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.converter.ApplicationConverter;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.ApplicationGrantTypesNotAllowedException;
+import io.gravitee.rest.api.service.exceptions.ApplicationGrantTypesNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApplicationRedirectUrisNotFound;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateAlreadyUsedException;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateAuthorityException;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateEmptyException;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateInvalidException;
+import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -415,7 +436,7 @@ public class ApplicationService_CreateTest {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Assertions.assertThatThrownBy(() -> applicationService.create(executionContext, newApplication, USER_NAME))
             .isInstanceOf(ClientCertificateAlreadyUsedException.class)
-            .hasMessage("Certificate is currently in use by another application");
+            .hasMessageContaining("is already used by another active application");
     }
 
     @SneakyThrows

@@ -15,11 +15,9 @@
  */
 package io.gravitee.apim.core.application_certificate.crud_service;
 
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificateStatus;
-import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
-import io.gravitee.rest.api.model.clientcertificate.UpdateClientCertificate;
 import io.gravitee.rest.api.model.common.Pageable;
 import java.util.Collection;
 import java.util.Optional;
@@ -43,19 +41,19 @@ public interface ClientCertificateCrudService {
      * Create a new client certificate.
      *
      * @param applicationId the application ID
-     * @param createClientCertificate the client certificate to create
+     * @param clientCertificate the client certificate to create
      * @return the created client certificate
      */
-    ClientCertificate create(String applicationId, CreateClientCertificate createClientCertificate);
+    ClientCertificate create(String applicationId, ClientCertificate clientCertificate);
 
     /**
      * Update an existing client certificate.
      *
      * @param clientCertificateId the client certificate ID
-     * @param updateClientCertificate the client certificate data to update
+     * @param clientCertificate the client certificate data to update
      * @return the updated client certificate
      */
-    ClientCertificate update(String clientCertificateId, UpdateClientCertificate updateClientCertificate);
+    ClientCertificate update(String clientCertificateId, ClientCertificate clientCertificate);
 
     /**
      * Delete a client certificate by its ID.

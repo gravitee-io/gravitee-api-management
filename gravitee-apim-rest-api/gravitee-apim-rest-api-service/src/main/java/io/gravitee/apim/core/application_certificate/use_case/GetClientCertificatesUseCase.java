@@ -17,8 +17,8 @@ package io.gravitee.apim.core.application_certificate.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
 import io.gravitee.rest.api.model.common.Pageable;
 import lombok.RequiredArgsConstructor;
 

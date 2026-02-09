@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import io.gravitee.common.http.HttpStatusCode;
 import java.util.Collections;
 import java.util.Map;
 
@@ -23,7 +24,7 @@ import java.util.Map;
  *
  * @author GraviteeSource Team
  */
-public class ClientCertificateAlreadyUsedException extends AbstractValidationException {
+public class ClientCertificateAlreadyUsedException extends AbstractManagementException {
 
     private final String fingerprint;
 
@@ -32,27 +33,22 @@ public class ClientCertificateAlreadyUsedException extends AbstractValidationExc
     }
 
     @Override
-    public String getMessage() {
-        return "Certificate is currently in use by another application";
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
     }
 
     @Override
-    public String getDetailMessage() {
+    public String getMessage() {
         return "Client certificate with fingerprint [" + fingerprint + "] is already used by another active application.";
     }
 
     @Override
     public String getTechnicalCode() {
-        return "clientCertificate.alreadyUsed";
+        return "application.certificate.alreadyUsed";
     }
 
     @Override
     public Map<String, String> getParameters() {
         return Collections.singletonMap("fingerprint", fingerprint);
-    }
-
-    @Override
-    public Map<String, String> getConstraints() {
-        return Collections.emptyMap();
     }
 }

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
@@ -25,16 +26,12 @@ import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Application;
-import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
-import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.AbstractClientCertificateException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateInvalidException;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -100,13 +97,11 @@ public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
             GraviteeContext.setCurrentEnvironment(application.getEnvironmentId());
 
             // Create a new ClientCertificate named after the Application
-            CreateClientCertificate createClientCertificate = new CreateClientCertificate(
-                applicationName,
-                null,
-                null,
-                decodeCert(base64Certificate)
+
+            clientCertificateCrudService.create(
+                applicationId,
+                ClientCertificate.builder().name(applicationName).certificate(decodeCert(base64Certificate)).build()
             );
-            clientCertificateCrudService.create(applicationId, createClientCertificate);
 
             log.debug("Created ClientCertificate for application {} ({})", applicationName, applicationId);
         } catch (AbstractClientCertificateException e) {

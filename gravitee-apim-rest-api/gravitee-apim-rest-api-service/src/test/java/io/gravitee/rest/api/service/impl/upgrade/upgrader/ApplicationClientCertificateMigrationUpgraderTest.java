@@ -29,6 +29,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -36,8 +37,6 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Application;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
-import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateInvalidException;
 import java.util.Base64;
 import java.util.HashMap;
@@ -136,9 +135,7 @@ class ApplicationClientCertificateMigrationUpgraderTest {
 
         Page<Application> page = new Page<>(List.of(appWithCert), 1, 100, 1);
         when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page);
-        when(clientCertificateCrudService.create(eq("app-1"), any(CreateClientCertificate.class))).thenReturn(
-            mock(ClientCertificate.class)
-        );
+        when(clientCertificateCrudService.create(eq("app-1"), any(ClientCertificate.class))).thenReturn(mock(ClientCertificate.class));
 
         // When
         boolean result = upgrader.upgrade();
@@ -147,7 +144,7 @@ class ApplicationClientCertificateMigrationUpgraderTest {
         assertThat(result).isTrue();
         verify(clientCertificateCrudService).create(
             eq("app-1"),
-            argThat(createCert -> createCert.name().equals("App 1") && createCert.certificate().equals(VALID_PEM_CERTIFICATE))
+            argThat(createCert -> createCert.getName().equals("App 1") && createCert.getCertificate().equals(VALID_PEM_CERTIFICATE))
         );
         verify(applicationRepository).update(
             argThat(app -> app.getId().equals("app-1") && !app.getMetadata().containsKey(METADATA_CLIENT_CERTIFICATE))
@@ -171,14 +168,14 @@ class ApplicationClientCertificateMigrationUpgraderTest {
         Page<Application> page2 = new Page<>(List.of(app2), 2, 1, 2);
 
         when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page1).thenReturn(page2);
-        when(clientCertificateCrudService.create(any(), any(CreateClientCertificate.class))).thenReturn(mock(ClientCertificate.class));
+        when(clientCertificateCrudService.create(any(), any(ClientCertificate.class))).thenReturn(mock(ClientCertificate.class));
 
         // When
         boolean result = upgrader.upgrade();
 
         // Then
         assertThat(result).isTrue();
-        verify(clientCertificateCrudService, times(2)).create(any(), any(CreateClientCertificate.class));
+        verify(clientCertificateCrudService, times(2)).create(any(), any(ClientCertificate.class));
         verify(applicationRepository, times(2)).update(any(Application.class));
     }
 
@@ -198,7 +195,7 @@ class ApplicationClientCertificateMigrationUpgraderTest {
 
         // Then
         assertThat(result).isTrue();
-        verify(clientCertificateCrudService, never()).create(any(), any(CreateClientCertificate.class));
+        verify(clientCertificateCrudService, never()).create(any(), any(ClientCertificate.class));
         verify(applicationRepository).update(
             argThat(app -> app.getId().equals("app-1") && !app.getMetadata().containsKey(METADATA_CLIENT_CERTIFICATE))
         );
@@ -216,7 +213,7 @@ class ApplicationClientCertificateMigrationUpgraderTest {
 
         Page<Application> page = new Page<>(List.of(appWithInvalidPem), 1, 100, 1);
         when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page);
-        when(clientCertificateCrudService.create(eq("app-1"), any(CreateClientCertificate.class))).thenThrow(
+        when(clientCertificateCrudService.create(eq("app-1"), any(ClientCertificate.class))).thenThrow(
             new ClientCertificateInvalidException()
         );
 
@@ -225,7 +222,7 @@ class ApplicationClientCertificateMigrationUpgraderTest {
 
         // Then
         assertThat(result).isTrue();
-        verify(clientCertificateCrudService).create(eq("app-1"), any(CreateClientCertificate.class));
+        verify(clientCertificateCrudService).create(eq("app-1"), any(ClientCertificate.class));
         verify(applicationRepository).update(
             argThat(app -> app.getId().equals("app-1") && !app.getMetadata().containsKey(METADATA_CLIENT_CERTIFICATE))
         );
@@ -242,7 +239,7 @@ class ApplicationClientCertificateMigrationUpgraderTest {
 
         Page<Application> page = new Page<>(List.of(appWithCert), 1, 100, 1);
         when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page);
-        when(clientCertificateCrudService.create(eq("app-1"), any(CreateClientCertificate.class))).thenThrow(
+        when(clientCertificateCrudService.create(eq("app-1"), any(ClientCertificate.class))).thenThrow(
             new RuntimeException("Database connection failed")
         );
 
@@ -262,9 +259,7 @@ class ApplicationClientCertificateMigrationUpgraderTest {
 
         Page<Application> page = new Page<>(List.of(appWithCert), 1, 100, 1);
         when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page);
-        when(clientCertificateCrudService.create(eq("app-1"), any(CreateClientCertificate.class))).thenReturn(
-            mock(ClientCertificate.class)
-        );
+        when(clientCertificateCrudService.create(eq("app-1"), any(ClientCertificate.class))).thenReturn(mock(ClientCertificate.class));
         when(applicationRepository.update(any(Application.class))).thenThrow(new TechnicalException("Database update failed"));
 
         // When / Then

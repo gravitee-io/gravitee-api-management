@@ -16,11 +16,9 @@
 package inmemory;
 
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificateStatus;
-import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
-import io.gravitee.rest.api.model.clientcertificate.UpdateClientCertificate;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
 import java.time.Instant;
@@ -44,65 +42,65 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
     public ClientCertificate findById(String clientCertificateId) {
         return storage
             .stream()
-            .filter(cert -> clientCertificateId.equals(cert.id()))
+            .filter(cert -> clientCertificateId.equals(cert.getId()))
             .findFirst()
             .orElseThrow(() -> new ClientCertificateNotFoundException(clientCertificateId));
     }
 
     @Override
-    public ClientCertificate create(String applicationId, CreateClientCertificate createClientCertificate) {
+    public ClientCertificate create(String applicationId, ClientCertificate clientCertificate) {
         Date now = new Date();
-        ClientCertificateStatus status = computeStatus(createClientCertificate.startsAt(), createClientCertificate.endsAt());
+        ClientCertificateStatus status = computeStatus(clientCertificate.getStartsAt(), clientCertificate.getEndsAt());
 
-        ClientCertificate certificate = new ClientCertificate(
-            UUID.randomUUID().toString(),
-            UUID.randomUUID().toString(),
-            applicationId,
-            createClientCertificate.name(),
-            createClientCertificate.startsAt(),
-            createClientCertificate.endsAt(),
-            now,
-            now,
-            createClientCertificate.certificate(),
-            null, // certificateExpiration - would be parsed from PEM in real impl
-            null, // subject - would be parsed from PEM in real impl
-            null, // issuer - would be parsed from PEM in real impl
-            null, // fingerprint - would be computed from PEM in real impl
-            null, // environmentId - would come from GraviteeContext in real impl
-            status
-        );
+        ClientCertificate certificate = ClientCertificate.builder()
+            .id(UUID.randomUUID().toString())
+            .crossId(UUID.randomUUID().toString())
+            .applicationId(applicationId)
+            .name(clientCertificate.getName())
+            .startsAt(clientCertificate.getStartsAt())
+            .endsAt(clientCertificate.getEndsAt())
+            .createdAt(now)
+            .updatedAt(now)
+            .certificate(clientCertificate.getCertificate())
+            .certificateExpiration(null) // would be parsed from PEM in real impl
+            .subject(null) // would be parsed from PEM in real impl
+            .issuer(null) // would be parsed from PEM in real impl
+            .fingerprint(null) // would be computed from PEM in real impl
+            .environmentId(null) // would come from GraviteeContext in real impl
+            .status(status)
+            .build();
 
         storage.add(certificate);
         return certificate;
     }
 
     @Override
-    public ClientCertificate update(String clientCertificateId, UpdateClientCertificate updateClientCertificate) {
-        OptionalInt index = findIndex(storage, cert -> cert.id().equals(clientCertificateId));
+    public ClientCertificate update(String clientCertificateId, ClientCertificate clientCertificateToUpdate) {
+        OptionalInt index = findIndex(storage, cert -> cert.getId().equals(clientCertificateId));
         if (index.isEmpty()) {
             throw new ClientCertificateNotFoundException(clientCertificateId);
         }
 
         ClientCertificate existing = storage.get(index.getAsInt());
-        ClientCertificateStatus status = computeStatus(updateClientCertificate.startsAt(), updateClientCertificate.endsAt());
+        ClientCertificateStatus status = computeStatus(clientCertificateToUpdate.getStartsAt(), clientCertificateToUpdate.getEndsAt());
 
-        ClientCertificate updated = new ClientCertificate(
-            existing.id(),
-            existing.crossId(),
-            existing.applicationId(),
-            updateClientCertificate.name(),
-            updateClientCertificate.startsAt(),
-            updateClientCertificate.endsAt(),
-            existing.createdAt(),
-            new Date(),
-            existing.certificate(),
-            existing.certificateExpiration(),
-            existing.subject(),
-            existing.issuer(),
-            existing.fingerprint(),
-            existing.environmentId(),
-            status
-        );
+        ClientCertificate updated = ClientCertificate.builder()
+            .id(existing.getId())
+            .crossId(existing.getCrossId())
+            .applicationId(existing.getApplicationId())
+            .name(clientCertificateToUpdate.getName())
+            .startsAt(clientCertificateToUpdate.getStartsAt())
+            .endsAt(clientCertificateToUpdate.getEndsAt())
+            .createdAt(existing.getCreatedAt())
+            .updatedAt(new Date())
+            .certificate(existing.getCertificate())
+            .certificateExpiration(existing.getCertificateExpiration())
+            .subject(existing.getSubject())
+            .issuer(existing.getIssuer())
+            .fingerprint(existing.getFingerprint())
+            .environmentId(existing.getEnvironmentId())
+            .status(status)
+            .build();
 
         storage.set(index.getAsInt(), updated);
         return updated;
@@ -110,18 +108,18 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
 
     @Override
     public void delete(String clientCertificateId) {
-        boolean found = storage.stream().anyMatch(cert -> clientCertificateId.equals(cert.id()));
+        boolean found = storage.stream().anyMatch(cert -> clientCertificateId.equals(cert.getId()));
         if (!found) {
             throw new ClientCertificateNotFoundException(clientCertificateId);
         }
-        storage.removeIf(cert -> clientCertificateId.equals(cert.id()));
+        storage.removeIf(cert -> clientCertificateId.equals(cert.getId()));
     }
 
     @Override
     public Page<ClientCertificate> findByApplicationId(String applicationId, Pageable pageable) {
         List<ClientCertificate> filtered = storage
             .stream()
-            .filter(cert -> applicationId.equals(cert.applicationId()))
+            .filter(cert -> applicationId.equals(cert.getApplicationId()))
             .toList();
 
         int pageNumber = pageable.getPageNumber();
@@ -140,8 +138,8 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
         Set<ClientCertificateStatus> statusSet = Set.of(statuses);
         return storage
             .stream()
-            .filter(cert -> applicationId.equals(cert.applicationId()))
-            .filter(cert -> statusSet.contains(cert.status()))
+            .filter(cert -> applicationId.equals(cert.getApplicationId()))
+            .filter(cert -> statusSet.contains(cert.getStatus()))
             .collect(Collectors.toSet());
     }
 
@@ -150,23 +148,25 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
         Set<ClientCertificateStatus> statusSet = Set.of(statuses);
         return storage
             .stream()
-            .filter(cert -> applicationIds.contains(cert.applicationId()))
-            .filter(cert -> statusSet.contains(cert.status()))
+            .filter(cert -> applicationIds.contains(cert.getApplicationId()))
+            .filter(cert -> statusSet.contains(cert.getStatus()))
             .collect(Collectors.toSet());
     }
 
     @Override
     public void deleteByApplicationId(String applicationId) {
-        storage.removeIf(cert -> applicationId.equals(cert.applicationId()));
+        storage.removeIf(cert -> applicationId.equals(cert.getApplicationId()));
     }
 
     @Override
     public Optional<ClientCertificate> findMostRecentActiveByApplicationId(String applicationId) {
         return storage
             .stream()
-            .filter(cert -> applicationId.equals(cert.applicationId()))
-            .filter(cert -> cert.status() == ClientCertificateStatus.ACTIVE || cert.status() == ClientCertificateStatus.ACTIVE_WITH_END)
-            .max(Comparator.comparing(ClientCertificate::createdAt));
+            .filter(cert -> applicationId.equals(cert.getApplicationId()))
+            .filter(
+                cert -> cert.getStatus() == ClientCertificateStatus.ACTIVE || cert.getStatus() == ClientCertificateStatus.ACTIVE_WITH_END
+            )
+            .max(Comparator.comparing(ClientCertificate::getCreatedAt));
     }
 
     @Override
