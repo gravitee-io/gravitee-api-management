@@ -369,6 +369,19 @@ public class FlowValidationDomainServiceTest {
         }
 
         @Test
+        public void should_accept_flow_with_entrypoint_connect_steps() {
+            var flow = NativeFlow.builder()
+                .entrypointConnect(
+                    List.of(Step.builder().policy("ip-filtering").configuration("{\"blacklistIps\":[\"127.0.0.1\"]}").build())
+                )
+                .build();
+
+            var result = service.validateAndSanitizeNativeV4(List.of(flow));
+
+            assertThat(result).hasSize(1).containsExactly(flow);
+        }
+
+        @Test
         public void should_throw_exception_with_incorrect_policy_configuration() {
             when(policyValidationDomainService.validateAndSanitizeConfiguration(eq("my-policy"), eq("incorrect-configuration"))).thenThrow(
                 InvalidDataException.class

@@ -76,6 +76,17 @@ public class PolicyValidationDomainServiceLegacyWrapper implements PolicyValidat
                         policyNamesUnexpected.add(policy.getName());
                     }
                 }
+                if (apiType.equals(ApiType.NATIVE)) {
+                    if (
+                        policy.getFlowPhaseCompatibility(ApiProtocolType.NATIVE_KAFKA) == null ||
+                        policy
+                            .getFlowPhaseCompatibility(ApiProtocolType.NATIVE_KAFKA)
+                            .stream()
+                            .noneMatch(p -> p.name().equals(phase.name()))
+                    ) {
+                        policyNamesUnexpected.add(policy.getName());
+                    }
+                }
             }
         });
 

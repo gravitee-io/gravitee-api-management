@@ -116,8 +116,14 @@ public class FlowValidationDomainService {
                 throw new NativeApiWithMultipleFlowsException();
             }
             flows.forEach(flow -> {
-                // Validate policy
-                var steps = Stream.of(flow.getInteract(), flow.getConnect(), flow.getPublish(), flow.getSubscribe())
+                // Validate policy configuration
+                var steps = Stream.of(
+                    flow.getEntrypointConnect(),
+                    flow.getInteract(),
+                    flow.getConnect(),
+                    flow.getPublish(),
+                    flow.getSubscribe()
+                )
                     .filter(Objects::nonNull)
                     .flatMap(Collection::stream)
                     .toList();

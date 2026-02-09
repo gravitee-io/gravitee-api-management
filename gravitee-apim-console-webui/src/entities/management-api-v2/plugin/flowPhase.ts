@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export type FlowPhase = 'REQUEST' | 'RESPONSE' | 'INTERACT' | 'CONNECT' | 'PUBLISH' | 'SUBSCRIBE';
+export type FlowPhase = 'REQUEST' | 'RESPONSE' | 'ENTRYPOINT_CONNECT' | 'INTERACT' | 'PUBLISH' | 'SUBSCRIBE';
 
 export const toReadableFlowPhase = (flowPhase: FlowPhase): string => {
   switch (flowPhase) {

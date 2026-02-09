@@ -135,5 +135,66 @@ class PolicyValidationDomainServiceTest {
                 .isInstanceOf(UnexpectedPoliciesException.class)
                 .hasMessage("Unexpected policies [Policy 2, Policy 3] for API type MESSAGE and phase SUBSCRIBE");
         }
+
+        @Test
+        void should_validate_native_kafka_policy_for_entrypoint_connect_phase() {
+            // Given
+            when(policyPluginService.findAll()).thenReturn(
+                Set.of(
+                    PolicyPluginEntity.builder()
+                        .id("ip-filtering")
+                        .name("IP Filtering")
+                        .flowPhaseCompatibility(
+                            Map.of(
+                                ApiProtocolType.NATIVE_KAFKA,
+                                Set.of(FlowPhase.ENTRYPOINT_CONNECT, FlowPhase.PUBLISH, FlowPhase.SUBSCRIBE)
+                            )
+                        )
+                        .build()
+                )
+            );
+
+            // When
+            service.validatePoliciesFlowPhase(
+                List.of("ip-filtering"),
+                ApiType.NATIVE,
+                io.gravitee.apim.core.plugin.model.FlowPhase.ENTRYPOINT_CONNECT
+            );
+
+            // Then - no exception thrown
+        }
+
+        @Test
+        void should_throw_exception_when_policy_not_compatible_with_native_kafka_phase() {
+            // Given
+            when(policyPluginService.findAll()).thenReturn(
+                Set.of(
+                    PolicyPluginEntity.builder()
+                        .id("http-only-policy")
+                        .name("HTTP Only Policy")
+                        .flowPhaseCompatibility(Map.of(ApiProtocolType.HTTP_PROXY, Set.of(FlowPhase.REQUEST)))
+                        .build(),
+                    PolicyPluginEntity.builder()
+                        .id("native-policy")
+                        .name("Native Policy")
+                        .flowPhaseCompatibility(Map.of(ApiProtocolType.NATIVE_KAFKA, Set.of(FlowPhase.PUBLISH, FlowPhase.SUBSCRIBE)))
+                        .build()
+                )
+            );
+
+            // When
+            var throwable = Assertions.catchThrowable(() ->
+                service.validatePoliciesFlowPhase(
+                    List.of("http-only-policy", "native-policy"),
+                    ApiType.NATIVE,
+                    io.gravitee.apim.core.plugin.model.FlowPhase.ENTRYPOINT_CONNECT
+                )
+            );
+
+            // Then
+            Assertions.assertThat(throwable)
+                .isInstanceOf(UnexpectedPoliciesException.class)
+                .hasMessage("Unexpected policies [HTTP Only Policy, Native Policy] for API type NATIVE and phase ENTRYPOINT_CONNECT");
+        }
     }
 }
