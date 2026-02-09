@@ -66,7 +66,7 @@ public class SubscriptionSynchronizer implements RepositorySynchronizer {
                     Flowable.just(subscriptions)
                         .flatMapIterable(s -> s)
                         .filter(this::isPlanDeployed)
-                        .flatMapMaybe(subscription -> Maybe.fromCallable(() -> subscriptionMapper.to(subscription)))
+                        .flatMapIterable(subscription -> subscriptionMapper.to(subscription))
                         .map(subscription ->
                             SingleSubscriptionDeployable.builder()
                                 .subscription(subscription)

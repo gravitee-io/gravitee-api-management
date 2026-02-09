@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.event;
 
 /**
  * Event type for API Product related events.
+ * Aligned with SharedPolicyGroup pattern for consistency.
  *
  * Used with {@link io.gravitee.common.event.EventManager} where the first
  * generic type parameter must be an enum.
@@ -24,5 +25,18 @@ package io.gravitee.gateway.handlers.api.event;
  * @author GraviteeSource Team
  */
 public enum ApiProductEventType {
-    CHANGED,
+    /**
+     * API Product deployed
+     */
+    DEPLOY,
+
+    /**
+     * API Product updated
+     */
+    UPDATE,
+
+    /**
+     * API Product undeployed
+     */
+    UNDEPLOY,
 }

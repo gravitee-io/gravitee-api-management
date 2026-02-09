@@ -44,6 +44,8 @@ import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.event.crud_service.EventCrudService;
+import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.exception.UnauthorizedPlanSecurityTypeException;
@@ -101,6 +103,8 @@ class UpdatePlanDomainServiceTest {
 
     PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
     PlanSynchronizationService planSynchronizationService = mock(PlanSynchronizationService.class);
+    EventCrudService eventCrudService = mock(EventCrudService.class);
+    EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory(planCrudService);

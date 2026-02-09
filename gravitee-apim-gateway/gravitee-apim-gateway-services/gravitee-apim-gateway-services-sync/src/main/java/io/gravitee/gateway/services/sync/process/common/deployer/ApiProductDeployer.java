@@ -15,10 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.common.deployer;
 
-import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
-import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
-import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
 import io.gravitee.gateway.services.sync.process.common.mapper.RepositoryPlanToDefinitionMapper;
@@ -48,7 +45,6 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
     private final PlanService planService;
     private final DistributedSyncService distributedSyncService;
     private final ProductPlanDefinitionCache productPlanDefinitionCache;
-    private final EventManager eventManager;
 
     @Override
     public Completable deploy(ApiProductReactorDeployable deployable) {
@@ -62,9 +58,6 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
 
                 // Register API Product plans in PlanService for subscription validation
                 registerApiProductPlans(apiProductId);
-
-                // Emit event to trigger security chain refresh for affected APIs
-                emitProductChangedEvent(reactableApiProduct, ApiProductChangedEvent.ChangeType.DEPLOY);
 
                 log.debug("API Product [{}] deployed successfully", apiProductId);
             } catch (Exception e) {
@@ -106,56 +99,10 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
         }
     }
 
-    /**
-     * Emit ApiProductChangedEvent to trigger security chain refresh for affected APIs.
-     *
-     * @param reactableApiProduct the API Product that changed
-     * @param changeType the type of change (DEPLOY, UPDATE, UNDEPLOY)
-     */
-    private void emitProductChangedEvent(ReactableApiProduct reactableApiProduct, ApiProductChangedEvent.ChangeType changeType) {
-        if (eventManager != null && reactableApiProduct != null) {
-            Set<String> apiIds = reactableApiProduct.getApiIds();
-            String environmentId = reactableApiProduct.getEnvironmentId();
-            if (apiIds != null && !apiIds.isEmpty() && environmentId != null) {
-                ApiProductChangedEvent event = new ApiProductChangedEvent(reactableApiProduct.getId(), environmentId, apiIds, changeType);
-                try {
-                    eventManager.publishEvent(ApiProductEventType.CHANGED, event);
-                    log.debug(
-                        "Emitted ApiProductChangedEvent for product [{}] affecting {} APIs",
-                        reactableApiProduct.getId(),
-                        apiIds.size()
-                    );
-                } catch (Exception e) {
-                    log.warn("Failed to emit ApiProductChangedEvent for product [{}]", reactableApiProduct.getId(), e);
-                    // Don't fail deployment if event emission fails
-                }
-            }
-        }
-    }
-
-    /**
-     * Emit ApiProductChangedEvent when product is not available (e.g., during undeploy).
-     *
-     * @param apiProductId the API Product ID
-     * @param environmentId the environment ID
-     * @param apiIds the set of API IDs affected
-     * @param changeType the type of change
-     */
-    private void emitProductChangedEvent(
-        String apiProductId,
-        String environmentId,
-        Set<String> apiIds,
-        ApiProductChangedEvent.ChangeType changeType
-    ) {
-        if (eventManager != null && apiProductId != null && environmentId != null && apiIds != null && !apiIds.isEmpty()) {
-            ApiProductChangedEvent event = new ApiProductChangedEvent(apiProductId, environmentId, apiIds, changeType);
-            try {
-                eventManager.publishEvent(ApiProductEventType.CHANGED, event);
-                log.debug("Emitted ApiProductChangedEvent for product [{}] affecting {} APIs", apiProductId, apiIds.size());
-            } catch (Exception e) {
-                log.warn("Failed to emit ApiProductChangedEvent for product [{}]", apiProductId, e);
-                // Don't fail undeployment if event emission fails
-            }
+    private void unregisterApiProductPlans(String apiProductId) {
+        planService.unregisterForApiProduct(apiProductId);
+        if (productPlanDefinitionCache != null) {
+            productPlanDefinitionCache.unregister(apiProductId);
         }
     }
 
@@ -167,30 +114,27 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
     @Override
     public Completable undeploy(ApiProductReactorDeployable deployable) {
         return Completable.fromRunnable(() -> {
+            ReactableApiProduct reactableApiProduct = deployable.reactableApiProduct();
             String apiProductId = deployable.apiProductId();
 
             try {
                 log.debug("Undeploying API Product [{}]", apiProductId);
 
-                // Get API IDs before unregistering (needed for event)
-                ReactableApiProduct product = apiProductManager.get(apiProductId);
-                Set<String> apiIds = product != null && product.getApiIds() != null ? product.getApiIds() : Set.of();
-                String environmentId = product != null ? product.getEnvironmentId() : null;
-
                 apiProductManager.unregister(apiProductId);
-                planService.unregisterForApiProduct(apiProductId);
-                if (productPlanDefinitionCache != null) {
-                    productPlanDefinitionCache.unregister(apiProductId);
-                }
 
-                // Emit event to trigger security chain refresh for affected APIs
-                if (environmentId != null && !apiIds.isEmpty()) {
-                    emitProductChangedEvent(apiProductId, environmentId, apiIds, ApiProductChangedEvent.ChangeType.UNDEPLOY);
-                }
+                // Unregister plans from PlanService
+                unregisterApiProductPlans(apiProductId);
 
                 log.debug("API Product [{}] undeployed successfully", apiProductId);
             } catch (Exception e) {
-                throw new SyncException(String.format("An error occurred when trying to undeploy API Product [%s].", apiProductId), e);
+                throw new SyncException(
+                    String.format(
+                        "An error occurred when trying to undeploy API Product %s [%s].",
+                        reactableApiProduct.getName(),
+                        apiProductId
+                    ),
+                    e
+                );
             }
         });
     }
