@@ -774,7 +774,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_filter_logs_by_response_time_range() {
+        void should_filter_logs_by_response_time() {
             connectionLogsCrudService.initWith(
                 List.of(
                     connectionLogFixtures.aConnectionLog("req1").toBuilder().gatewayResponseTime(50).build(),
