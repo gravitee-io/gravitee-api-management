@@ -35,9 +35,10 @@ describe('Login Feature', () => {
 
     cy.getByDataTestId('sign-in-button').click();
     cy.url().should('contain', '/home/overview');
-    cy.contains('Overview').should('be.visible');
-    cy.contains('API Health Check').should('be.visible');
-    cy.contains('Tasks').should('be.visible');
+    cy.getByDataTestId('home-tab-overview').should('be.visible');
+    cy.getByDataTestId('home-tab-api-health-check').should('be.visible');
+    cy.getByDataTestId('home-tab-tasks').should('be.visible');
+    cy.getByDataTestId('home-tab-broadcasts').should('be.visible');
     cy.contains('h2', 'API Events').should('be.visible');
   });
 });
