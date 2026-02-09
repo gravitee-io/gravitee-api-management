@@ -1,13 +1,15 @@
 {
+  "extends": "../tsconfig.base.json",
   "compileOnSave": false,
   "compilerOptions": {
+    "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitOverride": true,
     "paths": {
-      "@gravitee/gravitee-markdown": ["./projects/gravitee-markdown/src/public-api.ts"],
-      "@gravitee/gravitee-dashboard": ["./projects/gravitee-dashboard/src/public-api.ts"]
+      "@gravitee/gravitee-markdown": ["../gravitee-apim-webui-libs/gravitee-markdown/src/public-api.ts"],
+      "@gravitee/gravitee-dashboard": ["../gravitee-apim-webui-libs/gravitee-dashboard/src/public-api.ts"]
     },
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,

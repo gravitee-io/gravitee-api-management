@@ -2,11 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/app",
-    "types": ["@angular/localize"],
-    "paths": {
-      "@gravitee/gravitee-markdown": ["./dist/gravitee-markdown"],
-      "@gravitee/gravitee-dashboard": ["./dist/gravitee-dashboard"]
-    }
+    "types": ["@angular/localize"]
   },
   "files": ["src/main.ts"],
   "include": ["src/**/*.d.ts"]

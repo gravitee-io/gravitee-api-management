@@ -204,6 +204,10 @@ export class DropdownSearchComponent implements ControlValueAccessor, OnDestroy 
     this.componentRef = this.overlayRef.attach(portal);
     const componentRef = this.componentRef;
 
+    if (!componentRef) {
+      return;
+    }
+
     // Pass data to overlay component
     this.updateOverlayData(componentRef);
 
