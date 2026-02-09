@@ -608,8 +608,8 @@ class SearchEnvironmentLogsUseCaseTest {
         }
 
         @ParameterizedTest
-        @MethodSource("responseTimeRangeFiltersProvider")
-        void should_map_response_time_range_filters(List<Filter> filters, List<Range> expectedRanges) {
+        @MethodSource("responseTimeFiltersProvider")
+        void should_map_response_time_filters(List<Filter> filters, List<Range> expectedRanges) {
             var request = new SearchLogsRequest(null, filters, 1, 10);
 
             when_searching(request);
@@ -620,7 +620,7 @@ class SearchEnvironmentLogsUseCaseTest {
             assertThat(filtersCaptor.getValue().responseTimeRanges()).isEqualTo(expectedRanges);
         }
 
-        static Stream<Arguments> responseTimeRangeFiltersProvider() {
+        static Stream<Arguments> responseTimeFiltersProvider() {
             return Stream.of(
                 // Single GTE filter -> range with from only
                 Arguments.of(
