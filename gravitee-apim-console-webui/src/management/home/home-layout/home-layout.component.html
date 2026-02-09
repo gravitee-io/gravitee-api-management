@@ -16,7 +16,15 @@
 
 -->
 <nav mat-tab-nav-bar [tabPanel]="tabPanel">
-  <a *ngFor="let tab of tabs" mat-tab-link routerLinkActive #rla="routerLinkActive" [active]="rla.isActive" [routerLink]="tab.routerLink">
+  <a
+    *ngFor="let tab of tabs"
+    mat-tab-link
+    routerLinkActive
+    #rla="routerLinkActive"
+    [active]="rla.isActive"
+    [routerLink]="tab.routerLink"
+    [attr.data-testid]="tab.dataTestId"
+  >
     <span [innerHTML]="tab.label | async"></span>
   </a>
 </nav>

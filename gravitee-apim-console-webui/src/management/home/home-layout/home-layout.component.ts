@@ -35,22 +35,26 @@ export class HomeLayoutComponent {
     shareReplay(1),
   );
 
-  public tabs: { label: Observable<string>; routerLink: string }[] = [
+  public tabs: { label: Observable<string>; routerLink: string; dataTestId: string }[] = [
     {
       label: of('Overview'),
       routerLink: './overview',
+      dataTestId: 'home-tab-overview',
     },
     {
       label: of('API Health Check'),
       routerLink: './apiHealthCheck',
+      dataTestId: 'home-tab-api-health-check',
     },
     {
       label: this.taskLabel,
       routerLink: './tasks',
+      dataTestId: 'home-tab-tasks',
     },
     {
       label: of('Broadcasts'),
       routerLink: './broadcasts',
+      dataTestId: 'home-tab-broadcasts',
     },
   ];
 
