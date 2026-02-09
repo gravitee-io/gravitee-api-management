@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.logs_engine.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -24,6 +25,7 @@ import fixtures.core.model.AuditInfoFixtures;
 import fixtures.repository.ConnectionLogFixtures;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.logs_engine.model.ApiLogDiagnostic;
 import io.gravitee.apim.core.logs_engine.model.ArrayFilter;
@@ -688,6 +690,24 @@ class SearchEnvironmentLogsUseCaseTest {
             verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
 
             assertThat(filtersCaptor.getValue().responseTimeRanges()).isEmpty();
+        }
+
+        @Test
+        void should_throw_validation_exception_when_response_time_filter_value_is_null() {
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+            );
+
+            var request = new SearchLogsRequest(
+                null,
+                List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, null))),
+                1,
+                10
+            );
+
+            assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Filter RESPONSE_TIME requires a non-null value");
         }
     }
 
