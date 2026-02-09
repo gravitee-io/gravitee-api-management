@@ -267,11 +267,7 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
 
     @Override
     public TemplateEngine getTemplateEngine(Message message) {
-        final TemplateEngine engine = TemplateEngine.templateEngine();
-        prepareTemplateEngine(engine);
-        if (templateVariableProviders != null) {
-            templateVariableProviders.forEach(templateVariableProvider -> templateVariableProvider.provide(engine.getTemplateContext()));
-        }
+        final TemplateEngine engine = TemplateEngine.fromTemplateEngine(this.getTemplateEngine());
         engine.getTemplateContext().setVariable(TEMPLATE_ATTRIBUTE_MESSAGE, new EvaluableMessage(message));
         return engine;
     }
