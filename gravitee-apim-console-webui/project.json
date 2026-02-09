@@ -90,7 +90,7 @@
           },
           {
             "glob": "**/*",
-            "input": "node_modules/@gravitee/gravitee-markdown/src/lib/assets/homepage",
+            "input": "gravitee-apim-webui-libs/gravitee-markdown/src/lib/assets/homepage",
             "output": "assets/homepage"
           }
         ],
@@ -110,7 +110,11 @@
           }
         ],
         "stylePreprocessorOptions": {
-          "includePaths": ["node_modules/"]
+          "includePaths": [
+            "node_modules/",
+            "gravitee-apim-webui-libs/",
+            "dist/"
+          ]
         },
         "preserveSymlinks": true
       },

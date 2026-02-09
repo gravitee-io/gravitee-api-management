@@ -1,0 +1,42 @@
+{
+  "name": "gravitee-markdown",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "gravitee-apim-webui-libs/gravitee-markdown/src",
+  "prefix": "gio",
+  "targets": {
+    "build": {
+      "executor": "@angular-devkit/build-angular:ng-packagr",
+      "outputs": ["{workspaceRoot}/dist/@gravitee/gravitee-markdown"],
+      "options": {
+        "project": "gravitee-apim-webui-libs/gravitee-markdown/ng-package.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "gravitee-apim-webui-libs/gravitee-markdown/tsconfig.lib.prod.json"
+        },
+        "development": {
+          "tsConfig": "gravitee-apim-webui-libs/gravitee-markdown/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "options": {
+        "jestConfig": "gravitee-apim-webui-libs/gravitee-markdown/jest.config.js",
+        "passWithNoTests": true
+      },
+      "outputs": ["{workspaceRoot}/coverage/gravitee-markdown"]
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": [
+          "gravitee-apim-webui-libs/gravitee-markdown/**/*.ts"
+        ]
+      }
+    }
+  },
+  "tags": ["type:lib", "scope:shared"]
+}
