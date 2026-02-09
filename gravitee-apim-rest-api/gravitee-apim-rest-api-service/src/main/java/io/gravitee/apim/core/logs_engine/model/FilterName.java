@@ -26,5 +26,5 @@ public enum FilterName {
     TRANSACTION_ID,
     REQUEST_ID,
     URI,
-    RESPONSE_TIME_RANGE,
+    RESPONSE_TIME,
 }

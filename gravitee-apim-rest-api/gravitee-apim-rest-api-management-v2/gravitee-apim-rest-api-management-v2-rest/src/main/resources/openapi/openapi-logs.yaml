@@ -69,10 +69,10 @@ paths:
                     from: "2025-01-01T00:00:00Z"
                     to: "2025-01-31T23:59:59Z"
                   filters:
-                    - name: "RESPONSE_TIME_RANGE"
+                    - name: "RESPONSE_TIME"
                       operator: "GTE"
                       value: 100
-                    - name: "RESPONSE_TIME_RANGE"
+                    - name: "RESPONSE_TIME"
                       operator: "LTE"
                       value: 500
               filter-by-entrypoint:
@@ -221,7 +221,7 @@ components:
         value:
           type: integer
           description: Filter value (number for GTE/LTE)
-      example: { name: "RESPONSE_TIME_RANGE", operator: "GTE", value: 100 }
+      example: { name: "RESPONSE_TIME", operator: "GTE", value: 100 }
 
     FilterName:
       type: string
@@ -236,7 +236,7 @@ components:
         - TRANSACTION_ID
         - REQUEST_ID
         - URI
-        - RESPONSE_TIME_RANGE
+        - RESPONSE_TIME
       description: Available filter names for filtering analytics data
 
     Operator:
