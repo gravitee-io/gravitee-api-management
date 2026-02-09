@@ -173,7 +173,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ampproject/remapping@npm:2.3.0, @ampproject/remapping@npm:^2.2.0":
+"@ampproject/remapping@npm:2.3.0, @ampproject/remapping@npm:^2.2.0, @ampproject/remapping@npm:^2.3.0":
   version: 2.3.0
   resolution: "@ampproject/remapping@npm:2.3.0"
   dependencies:
@@ -3878,50 +3878,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/gravitee-dashboard@portal:dist-lib/gravitee-dashboard::locator=gravitee-apim-workspace%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "@gravitee/gravitee-dashboard@portal:dist-lib/gravitee-dashboard::locator=gravitee-apim-workspace%40workspace%3A."
-  dependencies:
-    tslib: "npm:2.3.1"
-  peerDependencies:
-    "@angular/cdk": 20.2.14
-    "@angular/common": 20.3.16
-    "@angular/core": 20.3.16
-    "@angular/material": 20.2.14
-    "@danielmoncada/angular-datetime-picker": ^20.0.1
-    "@danielmoncada/angular-datetime-picker-moment-adapter": ^7.0.1
-    angular-gridster2: 20.2.3
-    chart.js: 4.3.0
-    chartjs-adapter-date-fns: ^3.0.0
-    date-fns: ^4.1.0
-    moment: ^2.30.1
-    ng2-charts: 8.0.0
-  languageName: node
-  linkType: soft
-
-"@gravitee/gravitee-markdown@portal:dist-lib/gravitee-markdown::locator=gravitee-apim-workspace%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "@gravitee/gravitee-markdown@portal:dist-lib/gravitee-markdown::locator=gravitee-apim-workspace%40workspace%3A."
-  dependencies:
-    marked-gfm-heading-id: "npm:3.2.0"
-    ngx-dynamic-hooks: "npm:3.1.2"
-    tslib: "npm:2.8.1"
-  peerDependencies:
-    "@angular/common": 20.3.16
-    "@angular/core": 20.3.16
-    dompurify: 3.2.7
-  languageName: node
-  linkType: soft
-
-"@gravitee/ui-analytics@npm:16.4.0":
-  version: 16.4.0
-  resolution: "@gravitee/ui-analytics@npm:16.4.0"
+"@gravitee/ui-analytics@npm:17.3.0":
+  version: 17.3.0
+  resolution: "@gravitee/ui-analytics@npm:17.3.0"
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
     "@angular/common": ^20.3.4
     "@angular/core": ^20.3.4
-  checksum: 10c0/689bdf23f5b4c64c8eb0a6c0e259b738d2f298478b49cc9bd399105b3f5fc302ba45a8851e4800198a93e1d37d7f7ed83456b96735931218f1e00ab6e5d8281c
+  checksum: 10c0/1e54db68f04a960cf09d36ecc05a1641b70918f990b82853cb194d3185e478aa9cf4be5850572b7b1631ddf9c75920dd3371277047e13988a62170576cffca60
   languageName: node
   linkType: hard
 
@@ -3970,9 +3935,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-particles-angular@npm:17.1.0":
-  version: 17.1.0
-  resolution: "@gravitee/ui-particles-angular@npm:17.1.0"
+"@gravitee/ui-particles-angular@npm:17.3.0":
+  version: 17.3.0
+  resolution: "@gravitee/ui-particles-angular@npm:17.3.0"
   dependencies:
     "@fontsource/fira-mono": "npm:5.0.14"
     "@fontsource/kanit": "npm:^5.2.6"
@@ -4001,13 +3966,13 @@ __metadata:
       optional: true
     prismjs:
       optional: true
-  checksum: 10c0/6a75af246a1751808adc145e85299f4941d83c5d1a07e2cb0f0a0ccc7dd57a7f8005d8cc53cfc1ae7c5cae9b71c9eae302367c16281d3ff3be77ee6baabbf422
+  checksum: 10c0/5e3e0197b599b87c1609cdb5eaa8321f2c538d872de12f97756ba85f2d295f664eb725dc959722a3d586668d09940ff0d0b602bd85fc0bb2ac1a29d16eaad261
   languageName: node
   linkType: hard
 
-"@gravitee/ui-policy-studio-angular@npm:16.4.0":
-  version: 16.4.0
-  resolution: "@gravitee/ui-policy-studio-angular@npm:16.4.0"
+"@gravitee/ui-policy-studio-angular@npm:17.3.0":
+  version: 17.3.0
+  resolution: "@gravitee/ui-policy-studio-angular@npm:17.3.0"
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
@@ -4020,19 +3985,19 @@ __metadata:
     "@gravitee/ui-particles-angular": "*"
     lodash: ^4.17.21
     ngx-markdown: ^19.1.1
-  checksum: 10c0/8d47df4b8e37141394abbbd42bfad0920535646606fef79b9c26ada8029b0f20f8b2c3936c83964b84d0837be9de03b78c7d95e50b4ff7e4de22abbfb9328594
+  checksum: 10c0/0cf0726d8c8b05086832ccf15f03813d6de283cf27fe175d19e6712b2b5259df78b77b9cadfc6cc712dd2c3de63f63b4d4fabfa65c9f33658d6b4b5a0abe51ee
   languageName: node
   linkType: hard
 
-"@gravitee/ui-schematics@npm:16.4.0":
-  version: 16.4.0
-  resolution: "@gravitee/ui-schematics@npm:16.4.0"
+"@gravitee/ui-schematics@npm:17.3.0":
+  version: 17.3.0
+  resolution: "@gravitee/ui-schematics@npm:17.3.0"
   dependencies:
     tslib: "npm:^2.6.3"
   peerDependencies:
     "@angular/common": ^20.3.4
     "@angular/core": ^20.3.4
-  checksum: 10c0/94f6fb9c014a206110a3e9b71f4d990d9a617cb696cdea1bd1eff5e8863a407d1dd759a09fc0b76cef5dc8be2d0211b5dae4cdf868c3cc49bf58431e8d29cb46
+  checksum: 10c0/276fdcbe713d8b35d42d0f6edc8106fb0b89d828010e9f67558978fdd9ef120a6b0d545c9e1d9ab695de288639cea06d4dcac55156482316373e3ef088a42c89
   languageName: node
   linkType: hard
 
@@ -7412,6 +7377,36 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@rollup/plugin-json@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "@rollup/plugin-json@npm:6.1.0"
+  dependencies:
+    "@rollup/pluginutils": "npm:^5.1.0"
+  peerDependencies:
+    rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
+  peerDependenciesMeta:
+    rollup:
+      optional: true
+  checksum: 10c0/9400c431b5e0cf3088ba2eb2d038809a2b0fb2a84ed004997da85582f48cd64958ed3168893c4f2c8109e38652400ed68282d0c92bf8ec07a3b2ef2e1ceab0b7
+  languageName: node
+  linkType: hard
+
+"@rollup/pluginutils@npm:^5.1.0":
+  version: 5.3.0
+  resolution: "@rollup/pluginutils@npm:5.3.0"
+  dependencies:
+    "@types/estree": "npm:^1.0.0"
+    estree-walker: "npm:^2.0.2"
+    picomatch: "npm:^4.0.2"
+  peerDependencies:
+    rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
+  peerDependenciesMeta:
+    rollup:
+      optional: true
+  checksum: 10c0/001834bf62d7cf5bac424d2617c113f7f7d3b2bf3c1778cbcccb72cdc957b68989f8e7747c782c2b911f1dde8257f56f8ac1e779e29e74e638e3f1e2cac2bcd0
+  languageName: node
+  linkType: hard
+
 "@rollup/rollup-android-arm-eabi@npm:4.52.3":
   version: 4.52.3
   resolution: "@rollup/rollup-android-arm-eabi@npm:4.52.3"
@@ -7738,6 +7733,21 @@ __metadata:
   version: 4.57.1
   resolution: "@rollup/rollup-win32-x64-msvc@npm:4.57.1"
   conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@rollup/wasm-node@npm:^4.24.0":
+  version: 4.57.1
+  resolution: "@rollup/wasm-node@npm:4.57.1"
+  dependencies:
+    "@types/estree": "npm:1.0.8"
+    fsevents: "npm:~2.3.2"
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    rollup: dist/bin/rollup
+  checksum: 10c0/586a6b8440b8e455e0af0e7714df68eafa55bd5dcb3906b72b217d49935677b568536b59d67482797e5269195ec20c018a956bf4287f9c3285f922eff369c8d5
   languageName: node
   linkType: hard
 
@@ -11983,7 +11993,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"browserslist@npm:^4.0.0, browserslist@npm:^4.21.4, browserslist@npm:^4.21.5, browserslist@npm:^4.23.0, browserslist@npm:^4.24.0, browserslist@npm:^4.24.4, browserslist@npm:^4.28.1":
+"browserslist@npm:^4.0.0, browserslist@npm:^4.21.4, browserslist@npm:^4.21.5, browserslist@npm:^4.22.1, browserslist@npm:^4.23.0, browserslist@npm:^4.24.0, browserslist@npm:^4.24.4, browserslist@npm:^4.28.1":
   version: 4.28.1
   resolution: "browserslist@npm:4.28.1"
   dependencies:
@@ -12370,7 +12380,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chokidar@npm:^4.0.0":
+"chokidar@npm:^4.0.0, chokidar@npm:^4.0.1":
   version: 4.0.3
   resolution: "chokidar@npm:4.0.3"
   dependencies:
@@ -12724,6 +12734,13 @@ __metadata:
   version: 10.0.1
   resolution: "commander@npm:10.0.1"
   checksum: 10c0/53f33d8927758a911094adadda4b2cbac111a5b377d8706700587650fd8f45b0bbe336de4b5c3fe47fd61f420a3d9bd452b6e0e6e5600a7e74d7bf0174f6efe3
+  languageName: node
+  linkType: hard
+
+"commander@npm:^14.0.0":
+  version: 14.0.3
+  resolution: "commander@npm:14.0.3"
+  checksum: 10c0/755652564bbf56ff2ff083313912b326450d3f8d8c85f4b71416539c9a05c3c67dbd206821ca72635bf6b160e2afdefcb458e86b317827d5cb333b69ce7f1a24
   languageName: node
   linkType: hard
 
@@ -14063,6 +14080,13 @@ __metadata:
   version: 0.11.0
   resolution: "dependency-graph@npm:0.11.0"
   checksum: 10c0/9e6968d1534fdb502f7f3a25a3819b499f9d60f8389193950ed0b4d1618f1341b36b5d039f2cee256cfe10c9e8198ace16b271e370df06a93fac206e81602e7c
+  languageName: node
+  linkType: hard
+
+"dependency-graph@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "dependency-graph@npm:1.0.0"
+  checksum: 10c0/10d1e248ab68a33654335559bae5ec142c51959cbff1cba8b35cdccfdc12eb8d136227df85c31b71b9ee9fed1b2bfbd01721661b4f927e12d890d13c4230788f
   languageName: node
   linkType: hard
 
@@ -15469,6 +15493,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"estree-walker@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "estree-walker@npm:2.0.2"
+  checksum: 10c0/53a6c54e2019b8c914dc395890153ffdc2322781acf4bd7d1a32d7aedc1710807bdcd866ac133903d5629ec601fbb50abe8c2e5553c7f5a0afdd9b6af6c945af
+  languageName: node
+  linkType: hard
+
 "estree-walker@npm:^3.0.3":
   version: 3.0.3
   resolution: "estree-walker@npm:3.0.3"
@@ -15883,6 +15914,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"find-cache-directory@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "find-cache-directory@npm:6.0.0"
+  dependencies:
+    common-path-prefix: "npm:^3.0.0"
+    pkg-dir: "npm:^8.0.0"
+  checksum: 10c0/a4ac657f63bc3aac120f71d90dde0fe471b80d8d7572f2cd2c38499a27f30d87526b4590d217fb3732f5bf4a2d11e15d85e39ea12965731824e3e4da0e01b246
+  languageName: node
+  linkType: hard
+
 "find-file-up@npm:^2.0.1":
   version: 2.0.1
   resolution: "find-file-up@npm:2.0.1"
@@ -15898,6 +15939,13 @@ __metadata:
   dependencies:
     find-file-up: "npm:^2.0.1"
   checksum: 10c0/27a8935ad7da313fe66d4d527bbcafc05137df73253f10109fcc50ce285d93ae15f787a625e096e68fdbc32d716fd234efdb003559059978896e17a7846a70a4
+  languageName: node
+  linkType: hard
+
+"find-up-simple@npm:^1.0.0":
+  version: 1.0.1
+  resolution: "find-up-simple@npm:1.0.1"
+  checksum: 10c0/ad34de157b7db925d50ff78302fefb28e309f3bc947c93ffca0f9b0bccf9cf1a2dc57d805d5c94ec9fc60f4838f5dbdfd2a48ecd77c23015fa44c6dd5f60bc40
   languageName: node
   linkType: hard
 
@@ -16576,13 +16624,11 @@ __metadata:
     "@danielmoncada/angular-datetime-picker": "npm:20.0.1"
     "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:7.0.1"
     "@fontsource/libre-franklin": "npm:4.5.11"
-    "@gravitee/gravitee-dashboard": "portal:dist-lib/gravitee-dashboard"
-    "@gravitee/gravitee-markdown": "portal:dist-lib/gravitee-markdown"
-    "@gravitee/ui-analytics": "npm:16.4.0"
+    "@gravitee/ui-analytics": "npm:17.3.0"
     "@gravitee/ui-components": "npm:4.4.0"
-    "@gravitee/ui-particles-angular": "npm:17.1.0"
-    "@gravitee/ui-policy-studio-angular": "npm:16.4.0"
-    "@gravitee/ui-schematics": "npm:16.4.0"
+    "@gravitee/ui-particles-angular": "npm:17.3.0"
+    "@gravitee/ui-policy-studio-angular": "npm:17.3.0"
+    "@gravitee/ui-schematics": "npm:17.3.0"
     "@highcharts/map-collection": "npm:1.1.4"
     "@ngx-formly/core": "npm:6.3.12"
     "@ngx-formly/material": "npm:6.3.12"
@@ -16665,14 +16711,17 @@ __metadata:
     license-check-and-add: "npm:4.0.5"
     lodash: "npm:4.17.21"
     marked: "npm:10.0.0"
+    marked-gfm-heading-id: "npm:3.2.0"
     marked-highlight: "npm:2.2.1"
     md-color-picker: "npm:0.2.6"
     md-steppers: "npm:0.4.1"
     moment: "npm:2.30.1"
     monaco-editor: "npm:0.46.0"
     ng-file-upload: "npm:12.2.13"
+    ng-packagr: "npm:^20.0.0"
     ng2-charts: "npm:8.0.0"
     ngclipboard: "npm:2.0.0"
+    ngx-dynamic-hooks: "npm:3.1.2"
     ngx-file-helpers: "npm:14.0.1"
     ngx-markdown: "npm:20.1.0"
     nx: "npm:^21.1.0"
@@ -16684,6 +16733,7 @@ __metadata:
     storybook: "npm:9.1.17"
     swagger-ui: "npm:5.20.1"
     tinycolor2: "npm:1.6.0"
+    tslib: "npm:^2.8.0"
     typescript: "npm:5.9.3"
     url: "npm:0.11.4"
     v-accordion: "npm:1.6.0"
@@ -17394,6 +17444,15 @@ __metadata:
   version: 1.3.8
   resolution: "ini@npm:1.3.8"
   checksum: 10c0/ec93838d2328b619532e4f1ff05df7909760b6f66d9c9e2ded11e5c1897d6f2f9980c54dd638f88654b00919ce31e827040631eab0a3969e4d1abefa0719516a
+  languageName: node
+  linkType: hard
+
+"injection-js@npm:^2.4.0":
+  version: 2.6.1
+  resolution: "injection-js@npm:2.6.1"
+  dependencies:
+    tslib: "npm:^2.0.0"
+  checksum: 10c0/8947b3382c5e9e9aab2e80a010ae339cdfda1fd5d8116138bb3098a1e99316f5bc09d057ea57627707b56527e24119d3e8c5afdb01a82911d80025a4fe4c3b92
   languageName: node
   linkType: hard
 
@@ -19267,7 +19326,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonc-parser@npm:3.3.1":
+"jsonc-parser@npm:3.3.1, jsonc-parser@npm:^3.3.1":
   version: 3.3.1
   resolution: "jsonc-parser@npm:3.3.1"
   checksum: 10c0/269c3ae0a0e4f907a914bf334306c384aabb9929bd8c99f909275ebd5c2d3bc70b9bcd119ad794f339dec9f24b6a4ee9cd5a8ab2e6435e730ad4075388fc2ab6
@@ -19588,7 +19647,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"less@npm:^4.1.3":
+"less@npm:^4.1.3, less@npm:^4.2.0":
   version: 4.5.1
   resolution: "less@npm:4.5.1"
   dependencies:
@@ -20048,7 +20107,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"magic-string@npm:^0.30.17, magic-string@npm:^0.30.5, magic-string@npm:~0.30.2":
+"magic-string@npm:^0.30.17, magic-string@npm:^0.30.21, magic-string@npm:^0.30.5, magic-string@npm:~0.30.2":
   version: 0.30.21
   resolution: "magic-string@npm:0.30.21"
   dependencies:
@@ -20856,6 +20915,49 @@ __metadata:
   version: 12.2.13
   resolution: "ng-file-upload@npm:12.2.13"
   checksum: 10c0/812a11b5c2388dc550d6b4a68c83c570f191ec4acaf458951f3a1e0705bdc0d015bef90dddf2ec96b9e5fc7a5ece2387a2fc7a7239b614c7fdf9b51bdb4826bd
+  languageName: node
+  linkType: hard
+
+"ng-packagr@npm:^20.0.0":
+  version: 20.3.2
+  resolution: "ng-packagr@npm:20.3.2"
+  dependencies:
+    "@ampproject/remapping": "npm:^2.3.0"
+    "@rollup/plugin-json": "npm:^6.1.0"
+    "@rollup/wasm-node": "npm:^4.24.0"
+    ajv: "npm:^8.17.1"
+    ansi-colors: "npm:^4.1.3"
+    browserslist: "npm:^4.22.1"
+    chokidar: "npm:^4.0.1"
+    commander: "npm:^14.0.0"
+    dependency-graph: "npm:^1.0.0"
+    esbuild: "npm:^0.25.0"
+    find-cache-directory: "npm:^6.0.0"
+    injection-js: "npm:^2.4.0"
+    jsonc-parser: "npm:^3.3.1"
+    less: "npm:^4.2.0"
+    ora: "npm:^8.2.0"
+    piscina: "npm:^5.0.0"
+    postcss: "npm:^8.4.47"
+    rollup: "npm:^4.24.0"
+    rollup-plugin-dts: "npm:^6.2.0"
+    rxjs: "npm:^7.8.1"
+    sass: "npm:^1.81.0"
+    tinyglobby: "npm:^0.2.12"
+  peerDependencies:
+    "@angular/compiler-cli": ^20.0.0
+    tailwindcss: ^2.0.0 || ^3.0.0 || ^4.0.0
+    tslib: ^2.3.0
+    typescript: ">=5.8 <6.0"
+  dependenciesMeta:
+    rollup:
+      optional: true
+  peerDependenciesMeta:
+    tailwindcss:
+      optional: true
+  bin:
+    ng-packagr: src/cli/main.js
+  checksum: 10c0/1bfc63fa91e281ff95e5e13b3bce2ac8588a83be28649184717c5b559186de45885f94f0264027fbfa1d4a8b0ac33b17099a392ee60b22dad146b7a9e00f55fe
   languageName: node
   linkType: hard
 
@@ -21757,7 +21859,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ora@npm:8.2.0":
+"ora@npm:8.2.0, ora@npm:^8.2.0":
   version: 8.2.0
   resolution: "ora@npm:8.2.0"
   dependencies:
@@ -22214,6 +22316,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"piscina@npm:^5.0.0":
+  version: 5.1.4
+  resolution: "piscina@npm:5.1.4"
+  dependencies:
+    "@napi-rs/nice": "npm:^1.0.4"
+  dependenciesMeta:
+    "@napi-rs/nice":
+      optional: true
+  checksum: 10c0/5de5673bfea6ed045e4fe5b63c1bfab0f287862d689a3ebfb15848ff20b78ecff0735fe673edb209a921b113bb0b3b3455f8bb710cb3b78f66178f8785686e8f
+  languageName: node
+  linkType: hard
+
 "pkce-challenge@npm:^5.0.0":
   version: 5.0.1
   resolution: "pkce-challenge@npm:5.0.1"
@@ -22236,6 +22350,15 @@ __metadata:
   dependencies:
     find-up: "npm:^6.3.0"
   checksum: 10c0/1afb23d2efb1ec9d8b2c4a0c37bf146822ad2774f074cb05b853be5dca1b40815c5960dd126df30ab8908349262a266f31b771e877235870a3b8fd313beebec5
+  languageName: node
+  linkType: hard
+
+"pkg-dir@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "pkg-dir@npm:8.0.0"
+  dependencies:
+    find-up-simple: "npm:^1.0.0"
+  checksum: 10c0/244c6af67540b7eeab823c56f61a6ca414fe48108a484bcb3b0743acc0dfaf106705555c353d65608ccd8ac3d9f696110e9b6bf55ef08f5f6a8d535a72a418e8
   languageName: node
   linkType: hard
 
@@ -22754,7 +22877,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:8.5.6, postcss@npm:^8.2.14, postcss@npm:^8.4.24, postcss@npm:^8.4.33, postcss@npm:^8.4.38, postcss@npm:^8.4.49, postcss@npm:^8.5.6":
+"postcss@npm:8.5.6, postcss@npm:^8.2.14, postcss@npm:^8.4.24, postcss@npm:^8.4.33, postcss@npm:^8.4.38, postcss@npm:^8.4.47, postcss@npm:^8.4.49, postcss@npm:^8.5.6":
   version: 8.5.6
   resolution: "postcss@npm:8.5.6"
   dependencies:
@@ -23942,6 +24065,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rollup-plugin-dts@npm:^6.2.0":
+  version: 6.3.0
+  resolution: "rollup-plugin-dts@npm:6.3.0"
+  dependencies:
+    "@babel/code-frame": "npm:^7.27.1"
+    magic-string: "npm:^0.30.21"
+  peerDependencies:
+    rollup: ^3.29.4 || ^4
+    typescript: ^4.5 || ^5.0
+  dependenciesMeta:
+    "@babel/code-frame":
+      optional: true
+  checksum: 10c0/7eae726f0a15651a4705d49771cc02d2c7fb35fe107ada03cdacade5ed8bf026af066f1fc8936dde2c07da269d03dd790110589cd3b0c7062ed3bedc0f3c75ee
+  languageName: node
+  linkType: hard
+
 "rollup@npm:4.52.3":
   version: 4.52.3
   resolution: "rollup@npm:4.52.3"
@@ -24023,7 +24162,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:^4.43.0":
+"rollup@npm:^4.24.0, rollup@npm:^4.43.0":
   version: 4.57.1
   resolution: "rollup@npm:4.57.1"
   dependencies:
@@ -24192,7 +24331,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:7.8.2, rxjs@npm:^7.4.0, rxjs@npm:^7.8.0":
+"rxjs@npm:7.8.2, rxjs@npm:^7.4.0, rxjs@npm:^7.8.0, rxjs@npm:^7.8.1":
   version: 7.8.2
   resolution: "rxjs@npm:7.8.2"
   dependencies:
@@ -24541,7 +24680,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass@npm:1.97.3, sass@npm:^1.85.0":
+"sass@npm:1.97.3, sass@npm:^1.81.0, sass@npm:^1.85.0":
   version: 1.97.3
   resolution: "sass@npm:1.97.3"
   dependencies:
@@ -26186,13 +26325,6 @@ __metadata:
     minimist: "npm:^1.2.6"
     strip-bom: "npm:^3.0.0"
   checksum: 10c0/09a5877402d082bb1134930c10249edeebc0211f36150c35e1c542e5b91f1047b1ccf7da1e59babca1ef1f014c525510f4f870de7c9bda470c73bb4e2721b3ea
-  languageName: node
-  linkType: hard
-
-"tslib@npm:2.3.1":
-  version: 2.3.1
-  resolution: "tslib@npm:2.3.1"
-  checksum: 10c0/4efd888895bdb3b987086b2b7793ad1013566f882b0eb7a328384e5ecc0d71cafb16bbeab3196200cbf7f01a73ccc25acc2f131d4ea6ee959be7436a8a306482
   languageName: node
   linkType: hard
 

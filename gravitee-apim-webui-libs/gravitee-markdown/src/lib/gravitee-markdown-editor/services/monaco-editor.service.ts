@@ -27,6 +27,9 @@ declare global {
   }
 }
 
+// Export to ensure the global declaration is included in generated typings
+export {};
+
 @Injectable({
   providedIn: 'root',
 })

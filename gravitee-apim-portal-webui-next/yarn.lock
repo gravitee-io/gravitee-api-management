@@ -3300,6 +3300,41 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@gravitee/gravitee-dashboard@portal:dist-lib/gravitee-dashboard::locator=gravitee-apim-portal-webui-next%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "@gravitee/gravitee-dashboard@portal:dist-lib/gravitee-dashboard::locator=gravitee-apim-portal-webui-next%40workspace%3A."
+  dependencies:
+    tslib: "npm:2.3.1"
+  peerDependencies:
+    "@angular/cdk": 20.2.14
+    "@angular/common": 20.3.16
+    "@angular/core": 20.3.16
+    "@angular/material": 20.2.14
+    "@danielmoncada/angular-datetime-picker": ^20.0.1
+    "@danielmoncada/angular-datetime-picker-moment-adapter": ^7.0.1
+    angular-gridster2: 20.2.3
+    chart.js: 4.3.0
+    chartjs-adapter-date-fns: ^3.0.0
+    date-fns: ^4.1.0
+    moment: ^2.30.1
+    ng2-charts: 8.0.0
+  languageName: node
+  linkType: soft
+
+"@gravitee/gravitee-markdown@portal:dist-lib/gravitee-markdown::locator=gravitee-apim-portal-webui-next%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "@gravitee/gravitee-markdown@portal:dist-lib/gravitee-markdown::locator=gravitee-apim-portal-webui-next%40workspace%3A."
+  dependencies:
+    marked-gfm-heading-id: "npm:3.2.0"
+    ngx-dynamic-hooks: "npm:3.1.2"
+    tslib: "npm:2.8.1"
+  peerDependencies:
+    "@angular/common": 20.3.16
+    "@angular/core": 20.3.16
+    dompurify: 3.2.7
+  languageName: node
+  linkType: soft
+
 "@hono/node-server@npm:^1.19.7":
   version: 1.19.9
   resolution: "@hono/node-server@npm:1.19.9"
@@ -12120,6 +12155,8 @@ __metadata:
     "@fontsource/material-icons-two-tone": "npm:5.2.5"
     "@fontsource/montserrat": "npm:5.2.5"
     "@fontsource/roboto": "npm:5.2.5"
+    "@gravitee/gravitee-dashboard": "portal:dist-lib/gravitee-dashboard"
+    "@gravitee/gravitee-markdown": "portal:dist-lib/gravitee-markdown"
     "@storybook/addon-docs": "npm:9.1.17"
     "@storybook/addon-links": "npm:9.1.17"
     "@storybook/angular": "npm:9.1.17"

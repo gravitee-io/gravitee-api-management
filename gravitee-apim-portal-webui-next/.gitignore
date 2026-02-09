@@ -49,3 +49,6 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# TODO(tar): to remove after angular new archi
+dist-lib

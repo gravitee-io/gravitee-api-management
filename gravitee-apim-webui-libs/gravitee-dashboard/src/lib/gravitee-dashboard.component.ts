@@ -50,6 +50,9 @@ import { GraviteeDashboardService } from './gravitee-dashboard.service';
   `,
 })
 export class GraviteeDashboardComponent {
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly dashboardService = inject(GraviteeDashboardService);
   baseURL = input.required<string>();
   filters = input.required<Filter[]>();
   widgetConfigs = input.required<Widget[]>();
@@ -74,10 +77,6 @@ export class GraviteeDashboardComponent {
   );
 
   private readonly refreshTrigger = signal(0);
-  private readonly router = inject(Router);
-  private readonly dashboardService = inject(GraviteeDashboardService);
-
-  constructor(private readonly activatedRoute: ActivatedRoute) {}
 
   onSelectedFilters($event: SelectedFilter[]) {
     const queryParams: Record<string, string> = {};
