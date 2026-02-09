@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import angular from 'angular';
-
 import { Router } from '@angular/router';
 import { cloneDeep, every, forEach, isEqual, merge } from 'lodash';
 

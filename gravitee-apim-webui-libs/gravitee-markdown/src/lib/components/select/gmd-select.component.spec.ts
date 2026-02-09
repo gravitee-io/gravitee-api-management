@@ -31,7 +31,8 @@ import { GMD_FORM_STATE_STORE } from '../../services/gmd-form-state.store';
       [value]="value()"
       [required]="required()"
       [options]="options()"
-      [disabled]="disabled()" />
+      [disabled]="disabled()"
+    />
   `,
   standalone: true,
   imports: [GmdSelectComponent],

@@ -15,7 +15,6 @@
  */
 
 import { IController, IScope } from 'angular';
-
 import { ActivatedRoute, Router } from '@angular/router';
 import { concat, Dictionary, filter, keyBy, orderBy, reduceRight } from 'lodash';
 

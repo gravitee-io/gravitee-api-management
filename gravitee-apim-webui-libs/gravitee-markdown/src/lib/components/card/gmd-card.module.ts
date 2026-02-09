@@ -16,10 +16,10 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 
-import { GmdCardTitleComponent } from './components/card-title/gmd-card-title.component';
-import { GmdCardComponent } from './gmd-card.component';
 import { GmdMdComponent } from '../block/gmd-md.component';
 import { GmdCardSubtitleComponent } from './components/card-subtitle/gmd-card-subtitle.component';
+import { GmdCardTitleComponent } from './components/card-title/gmd-card-title.component';
+import { GmdCardComponent } from './gmd-card.component';
 
 @NgModule({
   imports: [CommonModule, GmdMdComponent, GmdCardTitleComponent, GmdCardSubtitleComponent],

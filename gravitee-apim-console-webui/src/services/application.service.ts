@@ -15,7 +15,6 @@
  */
 
 import { IHttpResponse } from 'angular';
-
 import { clone, forEach, startsWith } from 'lodash';
 
 import { PagedResult } from '../entities/pagedResult';

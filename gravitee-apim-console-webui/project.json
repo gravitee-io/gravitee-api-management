@@ -110,11 +110,7 @@
           }
         ],
         "stylePreprocessorOptions": {
-          "includePaths": [
-            "node_modules/",
-            "gravitee-apim-webui-libs/",
-            "dist/"
-          ]
+          "includePaths": ["node_modules/", "gravitee-apim-webui-libs/", "dist/"]
         },
         "preserveSymlinks": true
       },
@@ -180,10 +176,7 @@
     "lint": {
       "executor": "@nx/eslint:lint",
       "options": {
-        "lintFilePatterns": [
-          "gravitee-apim-console-webui/**/*.ts",
-          "gravitee-apim-console-webui/**/*.json"
-        ]
+        "lintFilePatterns": ["gravitee-apim-console-webui/**/*.ts", "gravitee-apim-console-webui/**/*.json"]
       }
     },
     "storybook": {

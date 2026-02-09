@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import angular, { IController } from 'angular';
-
 import * as yaml from 'js-yaml';
 import { ActivatedRoute } from '@angular/router';
 import { isNaN } from 'lodash';

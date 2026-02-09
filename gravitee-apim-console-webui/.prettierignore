@@ -22,3 +22,4 @@ Jenkinsfile
 !.eslintrc.js
 
 storybook-static/
+src/docs

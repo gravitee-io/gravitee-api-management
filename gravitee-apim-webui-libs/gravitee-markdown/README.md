@@ -85,7 +85,8 @@ src/
 The library supports theming through CSS variables. You can customize the appearance of the components by overriding the default CSS variables in your application's global styles.
 
 ### Editor Theming
-To customize the editor's appearance, you can override components using the pertinent mixin. 
+
+To customize the editor's appearance, you can override components using the pertinent mixin.
 
 For example, to change the outline color of the editor containers, you can add the following CSS to your global styles:
 
@@ -93,9 +94,6 @@ For example, to change the outline color of the editor containers, you can add t
 @use '@gravitee/gravitee-markdown' as gmd;
 
 .my-container {
-  @include gmd.editor-overrides((
-    container-outline-color: red,
-  ))
+  @include gmd.editor-overrides((container-outline-color: red));
 }
-
 ```

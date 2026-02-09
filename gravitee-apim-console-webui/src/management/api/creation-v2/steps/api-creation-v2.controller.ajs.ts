@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { IPromise } from 'angular';
-
 import { ActivatedRoute, Router } from '@angular/router';
 import { forEach, remove, some } from 'lodash';
 import { SimpleChange } from '@angular/core';

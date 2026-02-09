@@ -15,7 +15,6 @@
  */
 
 import angular from 'angular';
-
 import { ActivatedRoute, Router } from '@angular/router';
 import { cloneDeep, filter, forEach } from 'lodash';
 

@@ -1,6 +1,18 @@
+arrowParens: avoid
+bracketSpacing: true
 printWidth: 140
+semi: true
+singleQuote: true
 tabWidth: 4
+trailingComma: all
+useTabs: false
 overrides:
   - files: "gravitee-apim-repository/gravitee-apim-repository-mongodb/**/upgrader/index/**/*.java"
     options:
       printWidth: 90
+  - files: "gravitee-apim-webui-libs/**/*"
+    options:
+      tabWidth: 2
+  - files: "gravitee-apim-console-webui/**/*"
+    options:
+      tabWidth: 2

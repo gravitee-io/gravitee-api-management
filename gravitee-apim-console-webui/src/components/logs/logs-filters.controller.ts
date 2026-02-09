@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { ILogService, IScope, ITimeoutService } from 'angular';
-
 import { ActivatedRoute, Router } from '@angular/router';
 import { filter, forEach, isEmpty } from 'lodash';
 

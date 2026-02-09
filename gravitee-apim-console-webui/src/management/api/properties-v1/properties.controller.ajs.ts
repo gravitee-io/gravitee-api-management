@@ -15,7 +15,6 @@
  */
 
 import angular from 'angular';
-
 import { cloneDeep, filter, forEach, remove } from 'lodash';
 
 import { ApiService } from '../../../services/api.service';

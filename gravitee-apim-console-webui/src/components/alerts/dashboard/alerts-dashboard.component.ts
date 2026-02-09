@@ -15,7 +15,6 @@
  */
 
 import { IPromise, IScope } from 'angular';
-
 import { ActivatedRoute, Router } from '@angular/router';
 import '@gravitee/ui-components/wc/gv-chart-bar';
 

@@ -14,9 +14,9 @@ A responsive grid component that provides flexible layout capabilities for organ
 
 ## Properties
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `columns` | `number` | `1` | Number of columns (1-6) |
+| Property  | Type     | Default | Description             |
+| --------- | -------- | ------- | ----------------------- |
+| `columns` | `number` | `1`     | Number of columns (1-6) |
 
 ## Responsive Behavior
 
@@ -29,6 +29,7 @@ The grid automatically adjusts to different screen sizes:
 ## Examples
 
 ### Basic Grid
+
 ```html
 <gmd-grid columns="2">
   <gmd-cell>Left content</gmd-cell>
@@ -37,6 +38,7 @@ The grid automatically adjusts to different screen sizes:
 ```
 
 ### Three Column Layout
+
 ```html
 <gmd-grid columns="3">
   <gmd-cell>Column 1</gmd-cell>
@@ -60,9 +62,11 @@ You can customize the grid spacing using SCSS by importing and using the `overri
 
 // Custom grid theme
 .my-custom-grid {
-  @include gmd.grid-overrides((
-    spacing: 24px,
-  ));
+  @include gmd.grid-overrides(
+    (
+      spacing: 24px,
+    )
+  );
 }
 ```
 

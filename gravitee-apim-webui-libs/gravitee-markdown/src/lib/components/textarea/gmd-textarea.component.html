@@ -39,7 +39,8 @@
     [attr.aria-describedby]="hasErrors() ? errorId() : null"
     [value]="internalValue()"
     (input)="onInput($event)"
-    (blur)="onBlur()"></textarea>
+    (blur)="onBlur()"
+  ></textarea>
 
   @if (touched() && errorMessages().length) {
     <div [id]="errorId()" class="gmd-textarea__errors" role="alert">

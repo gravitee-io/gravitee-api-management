@@ -1,8 +1,8 @@
 // Import all styles of the app
 import { applicationConfig } from '@storybook/angular';
 import { importProvidersFrom } from '@angular/core';
-import { provideAnimations} from '@angular/platform-browser/animations';
-import { provideHttpClient} from '@angular/common/http';
+import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { CONSTANTS_TESTING } from '../src/shared/testing';
 import { Constants } from '../src/entities/Constants';

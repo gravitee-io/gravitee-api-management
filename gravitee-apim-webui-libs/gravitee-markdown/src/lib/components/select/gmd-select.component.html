@@ -35,7 +35,8 @@
     [attr.aria-invalid]="hasErrors() ? 'true' : null"
     [attr.aria-describedby]="hasErrors() ? errorId() : null"
     (change)="onChange($event)"
-    (blur)="onBlur()">
+    (blur)="onBlur()"
+  >
     <option value="">-- Select --</option>
     @for (option of optionsVM(); track option) {
       <option [value]="option">{{ option }}</option>

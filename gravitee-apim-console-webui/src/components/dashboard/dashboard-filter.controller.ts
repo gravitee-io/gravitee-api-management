@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { IOnDestroy, IOnInit, IRootScopeService } from 'angular';
-
 import { ActivatedRoute, Router } from '@angular/router';
 import { isEmpty, keys, map, remove, uniqBy } from 'lodash';
 

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { IQService } from 'angular';
-
 import { ActivatedRoute, Router } from '@angular/router';
 import { filter, find, forEach, merge } from 'lodash';
 

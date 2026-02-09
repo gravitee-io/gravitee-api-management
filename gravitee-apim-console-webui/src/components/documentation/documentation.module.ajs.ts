@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as angular from 'angular';
+import angular from 'angular';
 
 import { DocumentationManagementComponentAjs } from './documentation-management.component.ajs';
 import { DocumentationEditPageComponentAjs } from './edit-page.component.ajs';
