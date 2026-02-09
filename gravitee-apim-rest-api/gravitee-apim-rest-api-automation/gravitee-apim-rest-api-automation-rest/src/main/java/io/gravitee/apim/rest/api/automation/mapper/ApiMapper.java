@@ -41,6 +41,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.OriginContextMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
+import io.gravitee.rest.api.management.v2.rest.model.PlanType;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -259,7 +260,16 @@ public interface ApiMapper {
         }
 
         Comparator<PlanCRD> comparator = comparingInt(PlanCRD::getOrder).thenComparing(PlanCRD::getStatus);
-        return apiCRD.getPlans().values().stream().sorted(comparator).map(this::map).toList();
+        return apiCRD
+            .getPlans()
+            .values()
+            .stream()
+            .sorted(comparator)
+            .map(planCRD -> {
+                planCRD.setType(planCRD.getType() == null ? PlanType.API : planCRD.getType());
+                return this.map(planCRD);
+            })
+            .toList();
     }
 
     default Map<String, PageCRD> mapApiV4SpecPages(ApiV4Spec apiV4Spec) {
