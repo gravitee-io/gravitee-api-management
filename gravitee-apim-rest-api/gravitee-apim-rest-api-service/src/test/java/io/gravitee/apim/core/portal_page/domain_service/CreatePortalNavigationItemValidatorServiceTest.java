@@ -15,18 +15,21 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.API1_FOLDER_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.InvalidUrlFormatException;
 import io.gravitee.apim.core.portal_page.exception.ItemAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
@@ -144,6 +147,141 @@ class CreatePortalNavigationItemValidatorServiceTest {
             // Then
             Exception exception = assertThrows(InvalidUrlFormatException.class, throwing);
             assertThat(exception.getMessage()).isEqualTo("Provided url is invalid");
+        }
+
+        @Test
+        void should_fail_when_api_item_has_null_api_id() {
+            // Given
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.API)
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(PortalNavigationItemId.of(APIS_ID))
+                .apiId(null)
+                .build();
+
+            // When
+            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+
+            // Then
+            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo("The apiId field is required and cannot be blank.");
+        }
+
+        @Test
+        void should_fail_when_api_item_has_empty_api_id() {
+            // Given
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.API)
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(PortalNavigationItemId.of(APIS_ID))
+                .apiId("")
+                .build();
+
+            // When
+            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+
+            // Then
+            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo("The apiId field is required and cannot be blank.");
+        }
+
+        @Test
+        void should_fail_when_api_item_has_null_parent_id() {
+            // Given
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.API)
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiId("api-id")
+                .build();
+
+            // When
+            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+
+            // Then
+            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo("The parentId field is required and cannot be blank.");
+        }
+
+        @Test
+        void should_fail_when_api_item_is_not_in_top_navbar_area() {
+            // Given
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.API)
+                .title("title")
+                .area(PortalArea.HOMEPAGE)
+                .order(0)
+                .parentId(PortalNavigationItemId.of(APIS_ID))
+                .apiId("api-id")
+                .build();
+
+            // When
+            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+
+            // Then
+            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo("API items can only be added to TOP_NAVBAR area.");
+        }
+
+        @Test
+        void should_fail_when_api_item_has_duplicate_api_id() {
+            // Given
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.API)
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(PortalNavigationItemId.of(APIS_ID))
+                .apiId("api-1")
+                .build();
+
+            // When
+            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+
+            // Then
+            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo("The apiId api-1 is already used by another API navigation item.");
+        }
+
+        @Test
+        void should_fail_when_api_item_parent_hierarchy_contains_api() {
+            // Given
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.API)
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(PortalNavigationItemId.of(API1_FOLDER_ID))
+                .apiId("api-id")
+                .build();
+
+            // When
+            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+
+            // Then
+            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo("Parent hierarchy cannot include API items.");
+        }
+
+        @Test
+        void should_validate_api_item_when_payload_is_valid() {
+            // Given
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.API)
+                .title("API 2")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(PortalNavigationItemId.of(APIS_ID))
+                .apiId("api-2")
+                .build();
+
+            // Then
+            assertDoesNotThrow(() -> validatorService.validate(createPortalNavigationItem, ENV_ID));
         }
     }
 

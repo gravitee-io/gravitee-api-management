@@ -40,6 +40,8 @@ public class PortalNavigationItemFixtures {
     public static final String PAGE11_ID = "00000000-0000-0000-0000-000000000007";
     public static final String PAGE12_ID = "00000000-0000-0000-0000-000000000008";
     public static final String LINK1_ID = "00000000-0000-0000-0000-000000000009";
+    public static final String API1_ID = "00000000-0000-0000-0000-000000000010";
+    public static final String API1_FOLDER_ID = "00000000-0000-0000-0000-000000000011";
 
     public static PortalNavigationFolder aFolder(String id, String title) {
         return aFolder(id, title, null);
@@ -168,6 +170,10 @@ public class PortalNavigationItemFixtures {
         gettingStarted.setOrder(1);
         var category1 = aFolder(CATEGORY1_ID, "Category1", apis.getId());
         category1.setOrder(2);
+        var api1 = anApi(API1_ID, "API 1", apis.getId(), "api-1");
+        api1.setOrder(3);
+        var api1Folder = aFolder(API1_FOLDER_ID, "API 1 Folder", api1.getId());
+        api1Folder.setOrder(0);
 
         var page11 = aPage(PAGE11_ID, "page11", category1.getId());
         page11.setOrder(0);
@@ -177,6 +183,6 @@ public class PortalNavigationItemFixtures {
         page12.setPublished(true);
         page12.setVisibility(PortalVisibility.PRIVATE);
 
-        return List.of(apis, guides, support, overview, gettingStarted, category1, page11, page12, link1);
+        return List.of(apis, guides, support, overview, gettingStarted, category1, api1, api1Folder, page11, page12, link1);
     }
 }

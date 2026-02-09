@@ -32,4 +32,18 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
             "Navigation item type cannot be changed or is mismatched (expected %s, got %s).".formatted(expected, received)
         );
     }
+
+    public static InvalidPortalNavigationItemDataException apiMustBeInTopNavbar() {
+        return new InvalidPortalNavigationItemDataException("API items can only be added to TOP_NAVBAR area.");
+    }
+
+    public static InvalidPortalNavigationItemDataException apiIdAlreadyExists(String apiId) {
+        return new InvalidPortalNavigationItemDataException(
+            "The apiId %s is already used by another API navigation item.".formatted(apiId)
+        );
+    }
+
+    public static InvalidPortalNavigationItemDataException parentHierarchyContainsApi() {
+        return new InvalidPortalNavigationItemDataException("Parent hierarchy cannot include API items.");
+    }
 }

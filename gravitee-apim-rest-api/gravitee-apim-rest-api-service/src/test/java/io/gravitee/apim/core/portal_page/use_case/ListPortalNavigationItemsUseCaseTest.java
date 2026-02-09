@@ -66,9 +66,20 @@ class ListPortalNavigationItemsUseCaseTest {
 
         // Then
         assertThat(result.items())
-            .hasSize(9)
+            .hasSize(10)
             .extracting(PortalNavigationItem::getTitle)
-            .containsExactly("APIs", "Example Link", "Guides", "Support", "Overview", "Getting Started", "Category1", "page11", "page12");
+            .containsExactly(
+                "APIs",
+                "Example Link",
+                "Guides",
+                "Support",
+                "Overview",
+                "Getting Started",
+                "Category1",
+                "API 1",
+                "page11",
+                "page12"
+            );
     }
 
     @Test
@@ -89,9 +100,9 @@ class ListPortalNavigationItemsUseCaseTest {
 
         // Then
         assertThat(result.items())
-            .hasSize(3)
+            .hasSize(4)
             .extracting(PortalNavigationItem::getTitle)
-            .containsExactly("Overview", "Getting Started", "Category1");
+            .containsExactly("Overview", "Getting Started", "Category1", "API 1");
     }
 
     @Test
@@ -112,9 +123,9 @@ class ListPortalNavigationItemsUseCaseTest {
 
         // Then
         assertThat(result.items())
-            .hasSize(5)
+            .hasSize(6)
             .extracting(PortalNavigationItem::getTitle)
-            .containsExactly("Overview", "Getting Started", "Category1", "page11", "page12");
+            .containsExactly("Overview", "Getting Started", "Category1", "API 1", "page11", "page12");
     }
 
     @Test
@@ -135,9 +146,9 @@ class ListPortalNavigationItemsUseCaseTest {
 
         // Then
         assertThat(result.items())
-            .hasSize(8)
+            .hasSize(9)
             .extracting(PortalNavigationItem::getTitle)
-            .containsExactly("APIs", "Example Link", "Guides", "Support", "Overview", "Getting Started", "Category1", "page12");
+            .containsExactly("APIs", "Example Link", "Guides", "Support", "Overview", "Getting Started", "Category1", "API 1", "page12");
     }
 
     @Test
