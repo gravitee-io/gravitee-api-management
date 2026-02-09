@@ -1,0 +1,42 @@
+{
+  "name": "gravitee-dashboard",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "gravitee-apim-webui-libs/gravitee-dashboard/src",
+  "prefix": "gio",
+  "targets": {
+    "build": {
+      "executor": "@angular-devkit/build-angular:ng-packagr",
+      "outputs": ["{workspaceRoot}/dist/@gravitee/gravitee-dashboard"],
+      "options": {
+        "project": "gravitee-apim-webui-libs/gravitee-dashboard/ng-package.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "gravitee-apim-webui-libs/gravitee-dashboard/tsconfig.lib.prod.json"
+        },
+        "development": {
+          "tsConfig": "gravitee-apim-webui-libs/gravitee-dashboard/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "options": {
+        "jestConfig": "gravitee-apim-webui-libs/gravitee-dashboard/jest.config.js",
+        "passWithNoTests": true
+      },
+      "outputs": ["{workspaceRoot}/coverage/gravitee-dashboard"]
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": [
+          "gravitee-apim-webui-libs/gravitee-dashboard/**/*.ts"
+        ]
+      }
+    }
+  },
+  "tags": ["type:lib", "scope:shared"]
+}

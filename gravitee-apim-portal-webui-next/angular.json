@@ -59,7 +59,7 @@
             ],
             "styles": ["src/styles.scss", "node_modules/swagger-ui/dist/swagger-ui.css"],
             "stylePreprocessorOptions": {
-              "includePaths": ["projects"]
+              "includePaths": ["projects", "dist-lib"]
             },
             "i18nMissingTranslation": "warning"
           },
@@ -140,75 +140,6 @@
             "browserTarget": "gravitee-apim-portal-webui-next:build",
             "compodoc": false,
             "outputDir": "storybook-static"
-          }
-        }
-      }
-    },
-    "gravitee-markdown": {
-      "projectType": "library",
-      "root": "projects/gravitee-markdown",
-      "sourceRoot": "projects/gravitee-markdown/src",
-      "prefix": "gmd",
-      "architect": {
-        "build": {
-          "builder": "@angular/build:ng-packagr",
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/gravitee-markdown/tsconfig.lib.prod.json",
-              "project": "projects/gravitee-markdown/ng-package.portal-next.json"
-            },
-            "development": {
-              "tsConfig": "projects/gravitee-markdown/tsconfig.lib.json",
-              "project": "projects/gravitee-markdown/ng-package.portal-next.json"
-            },
-            "console": {
-              "tsConfig": "projects/gravitee-markdown/tsconfig.lib.prod.json",
-              "project": "projects/gravitee-markdown/ng-package.console.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "lint": {
-          "builder": "@angular-eslint/builder:lint",
-          "options": {
-            "lintFilePatterns": ["projects/gravitee-markdown/**/*.ts", "projects/gravitee-markdown/**/*.html"]
-          }
-        }
-      }
-    },
-    "gravitee-dashboard": {
-      "projectType": "library",
-      "schematics": {
-        "@schematics/angular:component": {
-          "style": "scss"
-        }
-      },
-      "root": "projects/gravitee-dashboard",
-      "sourceRoot": "projects/gravitee-dashboard/src",
-      "prefix": "gd",
-      "architect": {
-        "build": {
-          "builder": "@angular/build:ng-packagr",
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/gravitee-dashboard/tsconfig.lib.prod.json",
-              "project": "projects/gravitee-dashboard/ng-package.portal-next.json"
-            },
-            "development": {
-              "tsConfig": "projects/gravitee-dashboard/tsconfig.lib.json",
-              "project": "projects/gravitee-dashboard/ng-package.portal-next.json"
-            },
-            "console": {
-              "tsConfig": "projects/gravitee-dashboard/tsconfig.lib.prod.json",
-              "project": "projects/gravitee-dashboard/ng-package.console.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "lint": {
-          "builder": "@angular-eslint/builder:lint",
-          "options": {
-            "lintFilePatterns": ["projects/gravitee-dashboard/**/*.ts", "projects/gravitee-dashboard/**/*.html"]
           }
         }
       }

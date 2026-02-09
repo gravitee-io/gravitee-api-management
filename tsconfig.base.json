@@ -13,8 +13,12 @@
     "lib": ["ES2022", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
+    "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@gravitee/gravitee-markdown": ["gravitee-apim-webui-libs/gravitee-markdown/src/public-api.ts"],
+      "@gravitee/gravitee-dashboard": ["gravitee-apim-webui-libs/gravitee-dashboard/src/public-api.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }

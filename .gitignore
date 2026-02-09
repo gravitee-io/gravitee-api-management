@@ -77,6 +77,3 @@ gravitee-apim-e2e/ui-test/screenshots/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
-
-# TODO(tar): to remove after angular new archi
-dist-lib/*
