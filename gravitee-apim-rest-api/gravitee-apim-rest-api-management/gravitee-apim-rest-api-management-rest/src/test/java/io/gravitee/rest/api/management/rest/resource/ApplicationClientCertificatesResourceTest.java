@@ -20,11 +20,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.apim.core.application_certificate.use_case.CreateClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificatesUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
 import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;

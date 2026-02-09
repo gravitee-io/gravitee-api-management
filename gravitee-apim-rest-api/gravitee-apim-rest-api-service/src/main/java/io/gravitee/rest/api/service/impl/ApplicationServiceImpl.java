@@ -32,6 +32,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.utils.CollectionUtils;
@@ -71,10 +73,6 @@ import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.application.TlsSettings;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificateStatus;
-import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
-import io.gravitee.rest.api.model.clientcertificate.UpdateClientCertificate;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.configuration.application.ApplicationGrantTypeEntity;
@@ -133,7 +131,6 @@ import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.xml.bind.DatatypeConverter;
 import java.io.IOException;
-import java.security.cert.Certificate;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
@@ -152,9 +149,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.cert.cmp.CertificateStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -526,7 +521,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             if (clientCertificate != null) {
                 clientCertificateCrudService.create(
                     application.getId(),
-                    new CreateClientCertificate(application.getName(), null, null, clientCertificate)
+                    ClientCertificate.builder().name(application.getName()).certificate(clientCertificate).build()
                 );
             }
 
@@ -658,15 +653,20 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 );
 
                 boolean certificateChanged = existingCertOpt
-                    .map(existingCert -> !newCertificate.equals(existingCert.certificate()))
+                    .map(existingCert -> !newCertificate.equals(existingCert.getCertificate()))
                     .orElse(true);
 
                 if (certificateChanged) {
                     // Expire the current active certificate if exists
                     existingCertOpt.ifPresent(existingCert ->
+                        // update no validation as end-date is after now since the cert is active
                         clientCertificateCrudService.update(
-                            existingCert.id(),
-                            new UpdateClientCertificate(existingCert.name(), existingCert.startsAt(), new Date())
+                            existingCert.getId(),
+                            ClientCertificate.builder()
+                                .name(existingCert.getName())
+                                .startsAt(existingCert.getStartsAt())
+                                .endsAt(new Date())
+                                .build()
                         )
                     );
                     // Mark new certificate for creation after application update
@@ -810,7 +810,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         if (newCertificateToCreate != null) {
             clientCertificateCrudService.create(
                 applicationId,
-                new CreateClientCertificate(updateApplicationEntity.getName(), null, null, newCertificateToCreate)
+                ClientCertificate.builder().name(updateApplicationEntity.getName()).certificate(newCertificateToCreate).build()
             );
             return Optional.of(newCertificateToCreate);
         }
@@ -1291,8 +1291,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         );
     }
 
-    private Page<ApplicationListItem> convertToList(final ExecutionContext executionContext, Page<Application> applications)
-        throws TechnicalException {
+    private Page<ApplicationListItem> convertToList(final ExecutionContext executionContext, Page<Application> applications) {
         Set<ApplicationListItem> applicationListItems = convertToList(executionContext, applications.getContent());
         return new Page<>(
             List.copyOf(applicationListItems),
@@ -1346,8 +1345,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             .stream()
             .collect(
                 Collectors.groupingBy(
-                    ClientCertificate::applicationId,
-                    Collectors.collectingAndThen(Collectors.maxBy(Comparator.comparing(ClientCertificate::createdAt)), opt ->
+                    ClientCertificate::getApplicationId,
+                    Collectors.collectingAndThen(Collectors.maxBy(Comparator.comparing(ClientCertificate::getCreatedAt)), opt ->
                         opt.orElse(null)
                     )
                 )
@@ -1357,7 +1356,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         apps.forEach(app -> {
             ClientCertificate mostRecent = mostRecentCertificates.get(app.getId());
             if (mostRecent != null) {
-                app.getSettings().setTls(TlsSettings.builder().clientCertificate(mostRecent.certificate()).build());
+                app.getSettings().setTls(TlsSettings.builder().clientCertificate(mostRecent.getCertificate()).build());
             }
         });
 
@@ -1413,7 +1412,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Fetch the most recent active certificate from ClientCertificateCrudService
             clientCertificateCrudService
                 .findMostRecentActiveByApplicationId(application.getId())
-                .ifPresent(cert -> settings.setTls(TlsSettings.builder().clientCertificate(cert.certificate()).build()));
+                .ifPresent(cert -> settings.setTls(TlsSettings.builder().clientCertificate(cert.getCertificate()).build()));
         }
 
         return settings;

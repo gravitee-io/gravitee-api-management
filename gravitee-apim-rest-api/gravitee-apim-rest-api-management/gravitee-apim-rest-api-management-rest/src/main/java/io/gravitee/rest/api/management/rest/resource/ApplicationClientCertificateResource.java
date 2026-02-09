@@ -19,6 +19,7 @@ import io.gravitee.apim.core.application_certificate.use_case.DeleteClientCertif
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.UpdateClientCertificateUseCase;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.mapper.ClientCertificateMapper;
 import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
 import io.gravitee.rest.api.model.clientcertificate.UpdateClientCertificate;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -81,7 +82,8 @@ public class ApplicationClientCertificateResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public ClientCertificate getApplicationClientCertificate() {
-        return getClientCertificateUseCase.execute(new GetClientCertificateUseCase.Input(certId)).clientCertificate();
+        var clientCertificate = getClientCertificateUseCase.execute(new GetClientCertificateUseCase.Input(certId)).clientCertificate();
+        return ClientCertificateMapper.INSTANCE.toDto(clientCertificate);
     }
 
     @PUT
@@ -100,10 +102,10 @@ public class ApplicationClientCertificateResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response updateApplicationClientCertificate(@Valid @NotNull final UpdateClientCertificate updateClientCertificate) {
-        ClientCertificate updated = updateClientCertificateUseCase
-            .execute(new UpdateClientCertificateUseCase.Input(certId, updateClientCertificate))
+        var updated = updateClientCertificateUseCase
+            .execute(new UpdateClientCertificateUseCase.Input(certId, ClientCertificateMapper.INSTANCE.toDomain(updateClientCertificate)))
             .clientCertificate();
-        return Response.ok(updated).build();
+        return Response.ok(ClientCertificateMapper.INSTANCE.toDto(updated)).build();
     }
 
     @DELETE

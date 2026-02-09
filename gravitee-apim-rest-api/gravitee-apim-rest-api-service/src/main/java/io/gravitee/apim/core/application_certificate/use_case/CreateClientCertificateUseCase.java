@@ -18,8 +18,7 @@ package io.gravitee.apim.core.application_certificate.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
-import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -30,12 +29,12 @@ public class CreateClientCertificateUseCase {
     private final ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService;
 
     public Output execute(Input input) {
-        ClientCertificate certificate = clientCertificateCrudService.create(input.applicationId(), input.createClientCertificate());
+        ClientCertificate certificate = clientCertificateCrudService.create(input.applicationId(), input.toCreate());
         applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(input.applicationId());
         return new Output(certificate);
     }
 
-    public record Input(String applicationId, CreateClientCertificate createClientCertificate) {}
+    public record Input(String applicationId, ClientCertificate toCreate) {}
 
     public record Output(ClientCertificate clientCertificate) {}
 }

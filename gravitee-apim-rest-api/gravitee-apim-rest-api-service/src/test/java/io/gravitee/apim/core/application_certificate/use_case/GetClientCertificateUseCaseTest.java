@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.ClientCertificateCrudServiceInMemory;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificateStatus;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
 import java.util.Date;
 import java.util.List;
@@ -41,30 +41,30 @@ class GetClientCertificateUseCaseTest {
     @Test
     void should_return_client_certificate_when_found() {
         var certId = "cert-id";
-        var certificate = new ClientCertificate(
-            certId,
-            "cross-id",
-            "app-id",
-            "Test Certificate",
-            new Date(),
-            new Date(),
-            new Date(),
-            new Date(),
-            "PEM_CONTENT",
-            new Date(),
-            "CN=Test",
-            "CN=Issuer",
-            "fingerprint",
-            "env-id",
-            ClientCertificateStatus.ACTIVE
-        );
+        var certificate = ClientCertificate.builder()
+            .id(certId)
+            .crossId("cross-id")
+            .applicationId("app-id")
+            .name("Test Certificate")
+            .startsAt(new Date())
+            .endsAt(new Date())
+            .createdAt(new Date())
+            .updatedAt(new Date())
+            .certificate("PEM_CONTENT")
+            .certificateExpiration(new Date())
+            .subject("CN=Test")
+            .issuer("CN=Issuer")
+            .fingerprint("fingerprint")
+            .environmentId("env-id")
+            .status(ClientCertificateStatus.ACTIVE)
+            .build();
         clientCertificateCrudService.initWith(List.of(certificate));
 
         var result = getClientCertificateUseCase.execute(new GetClientCertificateUseCase.Input(certId));
 
         assertThat(result.clientCertificate()).isNotNull();
-        assertThat(result.clientCertificate().id()).isEqualTo(certId);
-        assertThat(result.clientCertificate().name()).isEqualTo("Test Certificate");
+        assertThat(result.clientCertificate().getId()).isEqualTo(certId);
+        assertThat(result.clientCertificate().getName()).isEqualTo("Test Certificate");
     }
 
     @Test

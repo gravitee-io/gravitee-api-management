@@ -56,6 +56,7 @@ import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
@@ -1085,5 +1086,10 @@ public class ResourceContextConfiguration {
     @Bean
     public UserContextLoader userContextLoader() {
         return mock(UserContextLoader.class);
+    }
+
+    @Bean
+    ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService() {
+        return mock(ApplicationCertificatesUpdateDomainService.class);
     }
 }

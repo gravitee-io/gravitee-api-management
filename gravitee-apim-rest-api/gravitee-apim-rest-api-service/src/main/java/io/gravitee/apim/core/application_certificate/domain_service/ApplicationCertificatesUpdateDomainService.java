@@ -15,14 +15,12 @@
  */
 package io.gravitee.apim.core.application_certificate.domain_service;
 
-import io.gravitee.apim.core.DomainService;
-
 /**
  * Domain service for updating application certificates on mTLS subscriptions.
  *
  * @author GraviteeSource Team
  */
-@DomainService
+
 public interface ApplicationCertificatesUpdateDomainService {
     /**
      * Updates the client certificates for all active mTLS subscriptions of the given application.

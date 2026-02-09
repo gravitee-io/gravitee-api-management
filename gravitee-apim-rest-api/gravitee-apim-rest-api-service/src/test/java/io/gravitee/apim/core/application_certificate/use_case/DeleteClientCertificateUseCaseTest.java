@@ -21,8 +21,8 @@ import static org.mockito.Mockito.verify;
 
 import inmemory.ClientCertificateCrudServiceInMemory;
 import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificateStatus;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
 import java.util.Date;
 import java.util.List;
@@ -55,23 +55,23 @@ class DeleteClientCertificateUseCaseTest {
     void should_delete_client_certificate() {
         var certId = "cert-id";
         var appId = "app-id";
-        var certificate = new ClientCertificate(
-            certId,
-            "cross-id",
-            appId,
-            "Test Certificate",
-            new Date(),
-            new Date(),
-            new Date(),
-            new Date(),
-            "PEM_CONTENT",
-            new Date(),
-            "CN=Test",
-            "CN=Issuer",
-            "fingerprint",
-            "env-id",
-            ClientCertificateStatus.ACTIVE
-        );
+        var certificate = ClientCertificate.builder()
+            .id(certId)
+            .crossId("cross-id")
+            .applicationId(appId)
+            .name("Test Certificate")
+            .startsAt(new Date())
+            .endsAt(new Date())
+            .createdAt(new Date())
+            .updatedAt(new Date())
+            .certificate("PEM_CONTENT")
+            .certificateExpiration(new Date())
+            .subject("CN=Test")
+            .issuer("CN=Issuer")
+            .fingerprint("fingerprint")
+            .environmentId("env-id")
+            .status(ClientCertificateStatus.ACTIVE)
+            .build();
         clientCertificateCrudService.initWith(List.of(certificate));
 
         deleteClientCertificateUseCase.execute(new DeleteClientCertificateUseCase.Input(certId));

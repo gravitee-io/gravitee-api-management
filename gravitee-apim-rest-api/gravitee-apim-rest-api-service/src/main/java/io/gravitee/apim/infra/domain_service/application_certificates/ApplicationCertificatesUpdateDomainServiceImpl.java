@@ -17,21 +17,21 @@ package io.gravitee.apim.infra.domain_service.application_certificates;
 
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.security.PKCS7Utils;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificateStatus;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 /**
  * Implementation of ApplicationCertificatesUpdateDomainService.
@@ -39,22 +39,13 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Slf4j
-@Component
+@RequiredArgsConstructor
+@Service
 public class ApplicationCertificatesUpdateDomainServiceImpl implements ApplicationCertificatesUpdateDomainService {
 
     private final SubscriptionQueryService subscriptionQueryService;
     private final SubscriptionCrudService subscriptionCrudService;
     private final ClientCertificateCrudService clientCertificateCrudService;
-
-    public ApplicationCertificatesUpdateDomainServiceImpl(
-        SubscriptionQueryService subscriptionQueryService,
-        SubscriptionCrudService subscriptionCrudService,
-        ClientCertificateCrudService clientCertificateCrudService
-    ) {
-        this.subscriptionQueryService = subscriptionQueryService;
-        this.subscriptionCrudService = subscriptionCrudService;
-        this.clientCertificateCrudService = clientCertificateCrudService;
-    }
 
     @Override
     public void updateActiveMTLSSubscriptions(String applicationId) {
@@ -73,7 +64,7 @@ public class ApplicationCertificatesUpdateDomainServiceImpl implements Applicati
         List<ClientCertificate> activeCertificates = clientCertificateCrudService
             .findByApplicationIdAndStatuses(applicationId, ClientCertificateStatus.ACTIVE, ClientCertificateStatus.ACTIVE_WITH_END)
             .stream()
-            .sorted(Comparator.comparing(ClientCertificate::createdAt))
+            .sorted(Comparator.comparing(ClientCertificate::getCreatedAt))
             .toList();
 
         if (activeCertificates.isEmpty()) {
@@ -88,10 +79,10 @@ public class ApplicationCertificatesUpdateDomainServiceImpl implements Applicati
 
     private String createEncodedCertificate(List<ClientCertificate> certificates) {
         if (certificates.size() == 1) {
-            String pem = certificates.getFirst().certificate();
+            String pem = certificates.getFirst().getCertificate();
             return Base64.getEncoder().encodeToString(pem.getBytes(StandardCharsets.UTF_8));
         } else {
-            byte[] pkcs7Bundle = PKCS7Utils.createBundle(certificates.stream().map(ClientCertificate::certificate).toList());
+            byte[] pkcs7Bundle = PKCS7Utils.createBundle(certificates.stream().map(ClientCertificate::getCertificate).toList());
             return Base64.getEncoder().encodeToString(pkcs7Bundle);
         }
     }

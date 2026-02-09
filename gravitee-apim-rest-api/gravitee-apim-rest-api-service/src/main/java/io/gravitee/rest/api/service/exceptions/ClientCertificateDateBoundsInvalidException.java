@@ -15,33 +15,25 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import static java.util.Collections.singletonMap;
-
 import java.util.Map;
 
 /**
  * @author GraviteeSource Team
  */
-public class ClientCertificateNotFoundException extends AbstractNotFoundException {
-
-    private final String id;
-
-    public ClientCertificateNotFoundException(String id) {
-        this.id = id;
-    }
+public class ClientCertificateDateBoundsInvalidException extends AbstractClientCertificateException {
 
     @Override
     public String getMessage() {
-        return "Client certificate [" + id + "] cannot be found.";
+        return "Start date must be before end date";
     }
 
     @Override
     public String getTechnicalCode() {
-        return "application.certificate.notFound";
+        return "application.certificate.dates";
     }
 
     @Override
     public Map<String, String> getParameters() {
-        return singletonMap("created", id);
+        return Map.of();
     }
 }

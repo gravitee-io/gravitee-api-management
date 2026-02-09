@@ -16,30 +16,30 @@
 package io.gravitee.apim.infra.crud_service.application_certificates;
 
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
+import io.gravitee.apim.infra.adapter.ClientCertificateAdapter;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.security.CertificateUtils;
 import io.gravitee.common.util.KeyStoreUtils;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClientCertificateRepository;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificate;
-import io.gravitee.rest.api.model.clientcertificate.ClientCertificateStatus;
-import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
-import io.gravitee.rest.api.model.clientcertificate.UpdateClientCertificate;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.exceptions.ApplicationInvalidCertificateException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateAlreadyUsedException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateAuthorityException;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateDateBoundsInvalidException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateEmptyException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateInvalidException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
-import jakarta.xml.bind.DatatypeConverter;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -72,7 +72,7 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
             log.debug("Find client certificate by ID: {}", clientCertificateId);
             return clientCertificateRepository
                 .findById(clientCertificateId)
-                .map(this::toModel)
+                .map(ClientCertificateAdapter.INSTANCE::toDomain)
                 .orElseThrow(() -> new ClientCertificateNotFoundException(clientCertificateId));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
@@ -83,11 +83,11 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
     }
 
     @Override
-    public ClientCertificate create(String applicationId, CreateClientCertificate createClientCertificate) {
+    public ClientCertificate create(String applicationId, ClientCertificate clientCertificateToCreate) {
         try {
             log.debug("Create client certificate for application: {}", applicationId);
 
-            X509Certificate x509Certificate = parseCertificate(createClientCertificate.certificate());
+            X509Certificate x509Certificate = parseCertificate(clientCertificateToCreate.getCertificate());
             String fingerprint = CertificateUtils.generateThumbprint(x509Certificate, "SHA-256");
             if (fingerprint == null) {
                 throw new ClientCertificateInvalidException();
@@ -97,27 +97,22 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
             if (clientCertificateRepository.existsByFingerprintAndActiveApplication(fingerprint, environmentId)) {
                 throw new ClientCertificateAlreadyUsedException(fingerprint);
             }
+            validateDateBounds(clientCertificateToCreate);
 
-            io.gravitee.repository.management.model.ClientCertificate clientCertificate =
-                new io.gravitee.repository.management.model.ClientCertificate();
+            var clientCertificate = ClientCertificateAdapter.INSTANCE.toRepo(clientCertificateToCreate);
 
             clientCertificate.setId(UuidString.generateRandom());
             clientCertificate.setCrossId(UuidString.generateRandom());
             clientCertificate.setApplicationId(applicationId);
-            clientCertificate.setName(createClientCertificate.name());
-            clientCertificate.setStartsAt(createClientCertificate.startsAt());
-            clientCertificate.setEndsAt(createClientCertificate.endsAt());
-            clientCertificate.setCertificate(createClientCertificate.certificate());
             clientCertificate.setCertificateExpiration(x509Certificate.getNotAfter());
             clientCertificate.setSubject(x509Certificate.getSubjectX500Principal().getName());
             clientCertificate.setIssuer(x509Certificate.getIssuerX500Principal().getName());
             clientCertificate.setFingerprint(fingerprint);
             clientCertificate.setEnvironmentId(environmentId);
             clientCertificate.setCreatedAt(new Date());
-            clientCertificate.setStatus(computeStatus(createClientCertificate.startsAt(), createClientCertificate.endsAt()));
+            clientCertificate.setStatus(computeStatus(clientCertificateToCreate.getStartsAt(), clientCertificateToCreate.getEndsAt()));
 
-            io.gravitee.repository.management.model.ClientCertificate created = clientCertificateRepository.create(clientCertificate);
-            return toModel(created);
+            return ClientCertificateAdapter.INSTANCE.toDomain(clientCertificateRepository.create(clientCertificate));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 "An error occurs while trying to create client certificate for application " + applicationId,
@@ -126,23 +121,35 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
         }
     }
 
+    private void validateDateBounds(ClientCertificate clientCertificate) {
+        if (
+            !Duration.between(
+                Optional.ofNullable(clientCertificate.getStartsAt()).map(Date::toInstant).orElse(Instant.ofEpochMilli(Long.MIN_VALUE)),
+                Optional.ofNullable(clientCertificate.getEndsAt()).map(Date::toInstant).orElse(Instant.ofEpochMilli(Long.MAX_VALUE))
+            ).isPositive()
+        ) {
+            throw new ClientCertificateDateBoundsInvalidException();
+        }
+    }
+
     @Override
-    public ClientCertificate update(String clientCertificateId, UpdateClientCertificate updateClientCertificate) {
+    public ClientCertificate update(String clientCertificateId, ClientCertificate update) {
         try {
             log.debug("Update client certificate: {}", clientCertificateId);
 
-            io.gravitee.repository.management.model.ClientCertificate existingCertificate = clientCertificateRepository
+            var existingCertificate = clientCertificateRepository
                 .findById(clientCertificateId)
                 .orElseThrow(() -> new ClientCertificateNotFoundException(clientCertificateId));
 
-            existingCertificate.setName(updateClientCertificate.name());
-            existingCertificate.setStartsAt(updateClientCertificate.startsAt());
-            existingCertificate.setEndsAt(updateClientCertificate.endsAt());
-            existingCertificate.setUpdatedAt(new Date());
-            existingCertificate.setStatus(computeStatus(updateClientCertificate.startsAt(), updateClientCertificate.endsAt()));
+            validateDateBounds(update);
 
-            io.gravitee.repository.management.model.ClientCertificate updated = clientCertificateRepository.update(existingCertificate);
-            return toModel(updated);
+            existingCertificate.setName(update.getName());
+            existingCertificate.setStartsAt(update.getStartsAt());
+            existingCertificate.setEndsAt(update.getEndsAt());
+            existingCertificate.setUpdatedAt(new Date());
+            existingCertificate.setStatus(computeStatus(update.getStartsAt(), update.getEndsAt()));
+
+            return ClientCertificateAdapter.INSTANCE.toDomain(clientCertificateRepository.update(existingCertificate));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to update client certificate " + clientCertificateId, e);
         }
@@ -164,19 +171,16 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
     }
 
     @Override
-    public Page<ClientCertificate> findByApplicationId(String applicationId, io.gravitee.rest.api.model.common.Pageable pageable) {
+    public Page<ClientCertificate> findByApplicationId(String applicationId, Pageable pageable) {
         try {
             log.debug("Find client certificates by application ID: {}", applicationId);
 
             var repoPageable = new PageableBuilder().pageNumber(pageable.getPageNumber()).pageSize(pageable.getPageSize()).build();
 
-            Page<io.gravitee.repository.management.model.ClientCertificate> page = clientCertificateRepository.findByApplicationId(
-                applicationId,
-                repoPageable
-            );
+            var page = clientCertificateRepository.findByApplicationId(applicationId, repoPageable);
 
             return new Page<>(
-                page.getContent().stream().map(this::toModel).toList(),
+                page.getContent().stream().map(ClientCertificateAdapter.INSTANCE::toDomain).toList(),
                 page.getPageNumber(),
                 (int) page.getPageElements(),
                 page.getTotalElements()
@@ -194,9 +198,9 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
         try {
             log.debug("Find client certificates by application ID {} and statuses {}", applicationId, statuses);
             return clientCertificateRepository
-                .findByApplicationIdAndStatuses(applicationId, mapStatuses(statuses))
+                .findByApplicationIdAndStatuses(applicationId, ClientCertificateAdapter.INSTANCE.toRepoStatus(statuses))
                 .stream()
-                .map(this::toModel)
+                .map(ClientCertificateAdapter.INSTANCE::toDomain)
                 .collect(Collectors.toSet());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
@@ -211,9 +215,9 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
         try {
             log.debug("Find client certificates by application IDs {} and statuses {}", applicationIds.size(), statuses);
             return clientCertificateRepository
-                .findByApplicationIdsAndStatuses(applicationIds, mapStatuses(statuses))
+                .findByApplicationIdsAndStatuses(applicationIds, ClientCertificateAdapter.INSTANCE.toRepoStatus(statuses))
                 .stream()
-                .map(this::toModel)
+                .map(ClientCertificateAdapter.INSTANCE::toDomain)
                 .collect(Collectors.toSet());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
@@ -221,14 +225,6 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
                 e
             );
         }
-    }
-
-    private static io.gravitee.repository.management.model.ClientCertificateStatus@NotNull [] mapStatuses(
-        ClientCertificateStatus[] statuses
-    ) {
-        return Arrays.stream(statuses)
-            .map(status -> io.gravitee.repository.management.model.ClientCertificateStatus.valueOf(status.name()))
-            .toArray(io.gravitee.repository.management.model.ClientCertificateStatus[]::new);
     }
 
     private X509Certificate parseCertificate(String pemCertificate) {
@@ -300,32 +296,12 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
             return certificates
                 .stream()
                 .max(Comparator.comparing(io.gravitee.repository.management.model.ClientCertificate::getCreatedAt))
-                .map(this::toModel);
+                .map(ClientCertificateAdapter.INSTANCE::toDomain);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 "An error occurs while trying to find most recent active client certificate for application " + applicationId,
                 e
             );
         }
-    }
-
-    private ClientCertificate toModel(io.gravitee.repository.management.model.ClientCertificate entity) {
-        return new ClientCertificate(
-            entity.getId(),
-            entity.getCrossId(),
-            entity.getApplicationId(),
-            entity.getName(),
-            entity.getStartsAt(),
-            entity.getEndsAt(),
-            entity.getCreatedAt(),
-            entity.getUpdatedAt(),
-            entity.getCertificate(),
-            entity.getCertificateExpiration(),
-            entity.getSubject(),
-            entity.getIssuer(),
-            entity.getFingerprint(),
-            entity.getEnvironmentId(),
-            entity.getStatus() != null ? ClientCertificateStatus.valueOf(entity.getStatus().name()) : null
-        );
     }
 }

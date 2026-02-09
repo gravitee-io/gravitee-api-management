@@ -194,24 +194,16 @@ public class ApplicationService_UpdateTest {
         when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
 
         // Mock the certificate service to return the certificate
-        io.gravitee.rest.api.model.clientcertificate.ClientCertificate mockCert =
-            new io.gravitee.rest.api.model.clientcertificate.ClientCertificate(
-                "cert-id",
-                null,
-                APPLICATION_ID,
-                "cert-name",
-                null,
-                null,
-                new java.util.Date(),
-                new java.util.Date(),
-                VALID_PEM_1,
-                null,
-                null,
-                null,
-                null,
-                null,
-                io.gravitee.rest.api.model.clientcertificate.ClientCertificateStatus.ACTIVE
-            );
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate mockCert =
+            io.gravitee.apim.core.application_certificate.model.ClientCertificate.builder()
+                .id("cert-id")
+                .applicationId(APPLICATION_ID)
+                .name("cert-name")
+                .createdAt(new java.util.Date())
+                .updatedAt(new java.util.Date())
+                .certificate(VALID_PEM_1)
+                .status(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE)
+                .build();
         when(clientCertificateCrudService.findMostRecentActiveByApplicationId(any())).thenReturn(java.util.Optional.of(mockCert));
 
         final ApplicationEntity applicationEntity = applicationService.update(
@@ -802,24 +794,16 @@ public class ApplicationService_UpdateTest {
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
 
         // Existing certificate with different content
-        io.gravitee.rest.api.model.clientcertificate.ClientCertificate existingCert =
-            new io.gravitee.rest.api.model.clientcertificate.ClientCertificate(
-                "old-cert-id",
-                null,
-                APPLICATION_ID,
-                "old-cert-name",
-                null,
-                null,
-                new java.util.Date(),
-                new java.util.Date(),
-                "old certificate content",
-                null,
-                null,
-                null,
-                null,
-                null,
-                io.gravitee.rest.api.model.clientcertificate.ClientCertificateStatus.ACTIVE
-            );
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate existingCert =
+            io.gravitee.apim.core.application_certificate.model.ClientCertificate.builder()
+                .id("old-cert-id")
+                .applicationId(APPLICATION_ID)
+                .name("old-cert-name")
+                .createdAt(new java.util.Date())
+                .updatedAt(new java.util.Date())
+                .certificate("old certificate content")
+                .status(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE)
+                .build();
         when(clientCertificateCrudService.findMostRecentActiveByApplicationId(any())).thenReturn(java.util.Optional.of(existingCert));
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
