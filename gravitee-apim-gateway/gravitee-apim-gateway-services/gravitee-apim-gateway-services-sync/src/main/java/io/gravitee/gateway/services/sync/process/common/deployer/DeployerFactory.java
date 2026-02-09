@@ -124,13 +124,6 @@ public class DeployerFactory {
     }
 
     public ApiProductDeployer createApiProductDeployer() {
-        return new ApiProductDeployer(
-            apiProductManager,
-            planRepository,
-            planCache,
-            distributedSyncService,
-            productPlanDefinitionCache,
-            eventManager
-        );
+        return new ApiProductDeployer(apiProductManager, planRepository, planCache, distributedSyncService, productPlanDefinitionCache);
     }
 }

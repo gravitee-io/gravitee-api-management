@@ -16,9 +16,13 @@
 package io.gravitee.gateway.handlers.api.registry.impl;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.CustomLog;
@@ -32,6 +36,12 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
 
     @VisibleForTesting
     protected final Map<ApiProductRegistryKey, ReactableApiProduct> registry = new ConcurrentHashMap<>();
+
+    private final ProductPlanDefinitionCache productPlanDefinitionCache;
+
+    public ApiProductRegistryImpl(ProductPlanDefinitionCache productPlanDefinitionCache) {
+        this.productPlanDefinitionCache = productPlanDefinitionCache;
+    }
 
     @Override
     public ReactableApiProduct get(String apiProductId, String environmentId) {
@@ -80,6 +90,35 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
     public void clear() {
         log.debug("Clearing all API Products from registry");
         registry.clear();
+    }
+
+    @Override
+    public List<ApiProductPlanEntry> getProductPlanEntriesForApi(String apiId, String environmentId) {
+        List<ApiProductPlanEntry> entries = new ArrayList<>();
+
+        if (apiId == null || environmentId == null) {
+            return entries;
+        }
+
+        // Iterate all registered products in the environment
+        for (ReactableApiProduct product : registry.values()) {
+            if (
+                product.getEnvironmentId() != null &&
+                product.getEnvironmentId().equals(environmentId) &&
+                product.getApiIds() != null &&
+                product.getApiIds().contains(apiId)
+            ) {
+                // Get plans for this product from cache
+                List<? extends AbstractPlan> plans = productPlanDefinitionCache.getByApiProductId(product.getId());
+                if (plans != null) {
+                    for (AbstractPlan plan : plans) {
+                        entries.add(new ApiProductPlanEntry(product.getId(), plan));
+                    }
+                }
+            }
+        }
+
+        return entries;
     }
 
     /**

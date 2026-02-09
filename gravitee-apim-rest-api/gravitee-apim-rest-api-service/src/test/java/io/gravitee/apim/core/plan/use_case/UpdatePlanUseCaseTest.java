@@ -38,6 +38,8 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.event.crud_service.EventCrudService;
+import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.json.JsonDiffProcessor;
@@ -108,6 +110,8 @@ class UpdatePlanUseCaseTest {
     JsonDiffProcessor jsonDiffProcessor = new JacksonJsonDiffProcessor();
     AuditDomainService auditDomainService = new AuditDomainService(auditCrudService, userCrudService, jsonDiffProcessor);
     ReorderPlanDomainService reorderPlanDomainService = new ReorderPlanDomainService(planQueryService, planCrudService);
+    EventCrudService eventCrudService = mock(EventCrudService.class);
+    EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
     UpdatePlanDomainService updatePlanDomainService = new UpdatePlanDomainService(
         planQueryService,
         planCrudService,

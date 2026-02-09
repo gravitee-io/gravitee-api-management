@@ -72,14 +72,7 @@ class ApiProductDeployerTest {
 
     @BeforeEach
     void setUp() throws TechnicalException {
-        cut = new ApiProductDeployer(
-            apiProductManager,
-            planRepository,
-            planService,
-            distributedSyncService,
-            productPlanDefinitionCache,
-            eventManager
-        );
+        cut = new ApiProductDeployer(apiProductManager, planRepository, planService, distributedSyncService, productPlanDefinitionCache);
         lenient()
             .when(distributedSyncService.distributeIfNeeded(any(ApiProductReactorDeployable.class)))
             .thenReturn(Completable.complete());

@@ -31,6 +31,8 @@ import inmemory.PlanQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.core.event.crud_service.EventCrudService;
+import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
@@ -53,6 +55,8 @@ public class ImportDefinitionPlanDomainServiceTestInitializer {
     public final ApiService apiService = mock(ApiService.class);
     public final PlanSynchronizationService planSynchronizationService = mock(PlanSynchronizationService.class);
     public final PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
+    public final EventCrudService eventCrudService = mock(EventCrudService.class);
+    public final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
 
     // In Memory
     public final AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();

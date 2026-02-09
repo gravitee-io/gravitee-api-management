@@ -15,8 +15,10 @@
  */
 package io.gravitee.gateway.handlers.api.registry;
 
+import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Arpit Mishra (arpit.mishra at graviteesource.com)
@@ -53,4 +55,23 @@ public interface ApiProductRegistry {
      * @param environmentId the environment ID
      */
     void remove(String apiProductId, String environmentId);
+
+    /**
+     * Returns product plan entries for a given API, packaged with their API Product IDs.
+     * Used by HttpSecurityChain to build security plans with API Product context.
+     *
+     * @param apiId the API ID to find product plans for
+     * @param environmentId the environment ID
+     * @return List of entries pairing API Product ID with plan definition
+     */
+    List<ApiProductPlanEntry> getProductPlanEntriesForApi(String apiId, String environmentId);
+
+    /**
+     * Entry pairing an API Product ID with one of its plans.
+     * Used to build security plans with proper API Product context.
+     *
+     * @param apiProductId the API Product ID that owns this plan
+     * @param plan the plan definition
+     */
+    record ApiProductPlanEntry(String apiProductId, AbstractPlan plan) {}
 }
