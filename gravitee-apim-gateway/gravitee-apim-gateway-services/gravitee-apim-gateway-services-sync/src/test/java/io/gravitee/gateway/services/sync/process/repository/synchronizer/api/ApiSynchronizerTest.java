@@ -125,7 +125,13 @@ class ApiSynchronizerTest {
             apiManager,
             new ApiMapper(objectMapper, new EnvironmentService(environmentRepository, organizationRepository)),
             new PlanAppender(objectMapper, planRepository, gatewayConfiguration),
-            new SubscriptionAppender(subscriptionRepository, new SubscriptionMapper(objectMapper)),
+            new SubscriptionAppender(
+                subscriptionRepository,
+                new SubscriptionMapper(
+                    objectMapper,
+                    org.mockito.Mockito.mock(io.gravitee.gateway.handlers.api.registry.ApiProductRegistry.class)
+                )
+            ),
             new ApiKeyAppender(apiKeyRepository, new ApiKeyMapper()),
             deployerFactory,
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),

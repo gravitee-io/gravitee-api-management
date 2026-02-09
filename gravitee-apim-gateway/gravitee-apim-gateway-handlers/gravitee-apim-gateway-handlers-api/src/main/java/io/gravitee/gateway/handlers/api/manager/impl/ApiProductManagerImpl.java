@@ -15,7 +15,10 @@
  */
 package io.gravitee.gateway.handlers.api.manager.impl;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
+import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.node.api.license.LicenseManager;
@@ -23,19 +26,24 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.CustomLog;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Arpit Mishra (arpit.mishra at graviteesource.com)
  * @author GraviteeSource Team
  */
 @CustomLog
-@RequiredArgsConstructor
 public class ApiProductManagerImpl implements ApiProductManager {
 
     private final ApiProductRegistry apiProductRegistry;
     private final LicenseManager licenseManager;
+    private final EventManager eventManager;
     private final Map<String, ReactableApiProduct> apiProducts = new ConcurrentHashMap<>();
+
+    public ApiProductManagerImpl(ApiProductRegistry apiProductRegistry, LicenseManager licenseManager, EventManager eventManager) {
+        this.apiProductRegistry = apiProductRegistry;
+        this.licenseManager = licenseManager;
+        this.eventManager = eventManager;
+    }
 
     @Override
     public void register(ReactableApiProduct apiProduct) {
@@ -91,6 +99,9 @@ public class ApiProductManagerImpl implements ApiProductManager {
         apiProducts.put(apiProduct.getId(), apiProduct);
         apiProductRegistry.register(apiProduct);
 
+        // Emit DEPLOY event after successful registration
+        emitProductEvent(ApiProductEventType.DEPLOY, apiProduct);
+
         log.info("API Product [{}] has been deployed", apiProduct.getId());
     }
 
@@ -100,6 +111,9 @@ public class ApiProductManagerImpl implements ApiProductManager {
         apiProducts.put(apiProduct.getId(), apiProduct);
         apiProductRegistry.register(apiProduct);
 
+        // Emit UPDATE event after successful registration
+        emitProductEvent(ApiProductEventType.UPDATE, apiProduct);
+
         log.info("API Product [{}] has been updated", apiProduct.getId());
     }
 
@@ -108,11 +122,32 @@ public class ApiProductManagerImpl implements ApiProductManager {
         if (currentApiProduct != null) {
             log.debug("Undeploying API Product [{}] from environment [{}]", apiProductId, currentApiProduct.getEnvironmentId());
 
+            // Emit UNDEPLOY event before removal from registry
+            emitProductEvent(ApiProductEventType.UNDEPLOY, currentApiProduct);
+
             apiProductRegistry.remove(apiProductId, currentApiProduct.getEnvironmentId());
 
             log.info("API Product [{}] has been undeployed", apiProductId);
         } else {
             log.debug("API Product [{}] was not found for undeployment", apiProductId);
+        }
+    }
+
+    /**
+     * Emit API Product event to trigger security chain refresh in affected reactors.
+     */
+    private void emitProductEvent(ApiProductEventType eventType, ReactableApiProduct apiProduct) {
+        try {
+            ApiProductChangedEvent event = new ApiProductChangedEvent(
+                apiProduct.getId(),
+                apiProduct.getEnvironmentId(),
+                apiProduct.getApiIds()
+            );
+            eventManager.publishEvent(eventType, event);
+            log.debug("Emitted {} event for API Product [{}]", eventType, apiProduct.getId());
+        } catch (Exception e) {
+            log.warn("Failed to emit {} event for API Product [{}]", eventType, apiProduct.getId(), e);
+            // Don't fail the operation if event emission fails
         }
     }
 }

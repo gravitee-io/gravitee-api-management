@@ -103,14 +103,8 @@ public class SubscriptionAppender {
             return subscriptionRepository
                 .search(criteriaBuilder.build(), new SortableBuilder().field("updatedAt").order(Order.ASC).build())
                 .stream()
-                .map(subscription -> {
-                    Subscription subscriptionConverted = subscriptionMapper.to(subscription);
-                    if (subscriptionConverted != null) {
-                        subscriptionConverted.setForceDispatch(true);
-                    }
-                    return subscriptionConverted;
-                })
-                .filter(Objects::nonNull)
+                .flatMap(subscription -> subscriptionMapper.to(subscription).stream())
+                .peek(subscriptionConverted -> subscriptionConverted.setForceDispatch(true))
                 .collect(groupingBy(Subscription::getApi));
         } catch (Exception ex) {
             throw new SyncException("Error occurred when retrieving subscriptions", ex);

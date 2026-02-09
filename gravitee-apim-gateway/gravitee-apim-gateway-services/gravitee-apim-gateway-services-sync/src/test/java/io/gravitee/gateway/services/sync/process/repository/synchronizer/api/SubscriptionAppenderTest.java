@@ -62,7 +62,10 @@ class SubscriptionAppenderTest {
 
     @BeforeEach
     public void beforeEach() {
-        SubscriptionMapper subscriptionMapper = new SubscriptionMapper(objectMapper);
+        SubscriptionMapper subscriptionMapper = new SubscriptionMapper(
+            objectMapper,
+            org.mockito.Mockito.mock(io.gravitee.gateway.handlers.api.registry.ApiProductRegistry.class)
+        );
         cut = new SubscriptionAppender(subscriptionRepository, subscriptionMapper);
         memoryAppender.reset();
     }

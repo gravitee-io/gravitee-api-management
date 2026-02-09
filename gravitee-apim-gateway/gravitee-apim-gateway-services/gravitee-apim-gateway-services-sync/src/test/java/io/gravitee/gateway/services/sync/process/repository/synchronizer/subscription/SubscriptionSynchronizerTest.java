@@ -17,12 +17,14 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.subscr
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.SubscriptionDeployer;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
@@ -74,7 +76,7 @@ class SubscriptionSynchronizerTest {
         planCache = new PlanService();
         cut = new SubscriptionSynchronizer(
             subscriptionFetcher,
-            new SubscriptionMapper(objectMapper),
+            new SubscriptionMapper(objectMapper, mock(ApiProductRegistry.class)),
             deployerFactory,
             planCache,
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),

@@ -23,8 +23,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PlanFixtures;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.event.crud_service.EventCrudService;
+import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.ClosePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeprecatePlanDomainService;
@@ -85,6 +88,15 @@ class PlanOperationsDomainServiceTest {
 
     @Mock
     CloseSubscriptionDomainService closeSubscriptionDomainService;
+
+    @Mock
+    EventCrudService eventCrudService;
+
+    @Mock
+    EventLatestCrudService eventLatestCrudService;
+
+    @Mock
+    ApiProductQueryService apiProductQueryService;
 
     PublishPlanDomainServiceImpl publicationsService;
     ClosePlanDomainService closePlanDomainService;

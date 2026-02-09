@@ -15,9 +15,8 @@
  */
 package io.gravitee.apim.infra.domain_service.plan;
 
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CLOSED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_DEPRECATED;
 import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_PUBLISHED;
+import static java.util.Map.entry;
 
 import io.gravitee.apim.core.membership.domain_service.PublishPlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
@@ -32,16 +31,16 @@ import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyPublishedException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
-import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -52,6 +51,7 @@ public class PublishPlanDomainServiceImpl implements PublishPlanDomainService {
     private final PlanRepository planRepository;
     private final AuditService auditService;
 
+    @Autowired
     public PublishPlanDomainServiceImpl(@Lazy PlanRepository planRepository, @Lazy AuditService auditService) {
         this.planRepository = planRepository;
         this.auditService = auditService;

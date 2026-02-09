@@ -50,11 +50,14 @@ class ApiProductManagerImplTest {
     @Mock
     private io.gravitee.node.api.license.LicenseManager licenseManager;
 
+    @Mock
+    private io.gravitee.common.event.EventManager eventManager;
+
     private ApiProductManagerImpl manager;
 
     @BeforeEach
     void setUp() {
-        manager = new ApiProductManagerImpl(apiProductRegistry, null);
+        manager = new ApiProductManagerImpl(apiProductRegistry, null, eventManager);
     }
 
     @Nested

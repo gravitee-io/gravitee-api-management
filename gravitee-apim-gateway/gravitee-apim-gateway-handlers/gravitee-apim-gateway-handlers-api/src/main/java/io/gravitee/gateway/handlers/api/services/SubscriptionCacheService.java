@@ -20,9 +20,7 @@ import static io.gravitee.repository.management.model.Subscription.Status.ACCEPT
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
-import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
-import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -41,20 +39,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SubscriptionCacheService implements SubscriptionService {
 
-    private static final String METADATA_REFERENCE_ID = "referenceId";
-    private static final String METADATA_REFERENCE_TYPE = "referenceType";
-    private static final String REFERENCE_TYPE_API_PRODUCT = "API_PRODUCT";
-
     private final ApiKeyService apiKeyService;
     private final SubscriptionTrustStoreLoaderManager subscriptionTrustStoreLoaderManager;
     private final ApiManager apiManager;
-    private final ApiProductRegistry apiProductRegistry;
 
     // Caches only contains active subscriptions
     private final Map<String, Subscription> cacheByApiClientId = new ConcurrentHashMap<>();
     private final Map<String, Subscription> cacheByApiClientCertificate = new ConcurrentHashMap<>();
     private final Map<String, Subscription> cacheBySubscriptionId = new ConcurrentHashMap<>();
-    private final Map<String, Subscription> cacheByApiAndSubscriptionId = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> cacheByApiId = new ConcurrentHashMap<>();
 
     @Override
@@ -62,37 +54,19 @@ public class SubscriptionCacheService implements SubscriptionService {
         return switch (SecurityToken.TokenType.valueOfOrNone(securityToken.getTokenType())) {
             case API_KEY -> apiKeyService
                 .getByApiAndKey(api, securityToken.getTokenValue())
-                .flatMap(apiKey ->
-                    getByApiAndSubscriptionId(api, apiKey.getSubscription()).or(() ->
-                        getById(apiKey.getSubscription()).filter(sub -> sub.getApi().equals(api))
-                    )
-                );
+                .flatMap(apiKey -> getById(apiKey.getSubscription()));
             case MD5_API_KEY -> apiKeyService
                 .getByApiAndMd5Key(api, securityToken.getTokenValue())
-                .flatMap(apiKey ->
-                    getByApiAndSubscriptionId(api, apiKey.getSubscription()).or(() ->
-                        getById(apiKey.getSubscription()).filter(sub -> sub.getApi().equals(api))
-                    )
-                );
+                .flatMap(apiKey -> getById(apiKey.getSubscription()));
             case CLIENT_ID -> getByApiAndClientIdAndPlan(api, securityToken.getTokenValue(), plan);
-            case CERTIFICATE -> getByCertificateProductFirst(api, securityToken.getTokenValue(), plan);
+            case CERTIFICATE -> subscriptionTrustStoreLoaderManager.getByCertificate(api, securityToken.getTokenValue(), plan);
             default -> Optional.empty();
         };
     }
 
     @Override
     public Optional<Subscription> getByApiAndClientIdAndPlan(String api, String clientId, String plan) {
-        Optional<Subscription> byPlan = Optional.ofNullable(cacheByApiClientId.get(buildCacheKeyFromClientInfo(api, clientId, plan)));
-        if (byPlan.isPresent()) {
-            return byPlan;
-        }
-        // Fallback: lookup with null plan. This entry exists for ALL subscriptions (not API Product-specific).
-        // registerFromClientId() creates both (api, clientId, plan) and (api, clientId, null) entries
-        // to allow plan-agnostic search. API Product lookup leverages this existing behavior.
-        Optional<Subscription> byApiProduct = Optional.ofNullable(
-            cacheByApiClientId.get(buildCacheKeyFromClientInfo(api, clientId, null))
-        ).filter(SubscriptionUtils::isApiProductSubscription);
-        return byApiProduct;
+        return Optional.ofNullable(cacheByApiClientId.get(buildCacheKeyFromClientInfo(api, clientId, plan)));
     }
 
     @Override
@@ -103,9 +77,7 @@ public class SubscriptionCacheService implements SubscriptionService {
     @Override
     public void register(final Subscription subscription) {
         if (ACCEPTED.name().equals(subscription.getStatus())) {
-            if (SubscriptionUtils.isApiProductSubscription(subscription)) {
-                registerApiProductSubscription(subscription);
-            } else if (subscription.getClientCertificate() != null) {
+            if (subscription.getClientCertificate() != null) {
                 registerFromClientCertificate(subscription);
             } else if (subscription.getClientId() != null) {
                 registerFromClientId(subscription);
@@ -115,84 +87,6 @@ public class SubscriptionCacheService implements SubscriptionService {
         } else {
             unregister(subscription);
         }
-    }
-
-    private Optional<Subscription> getByCertificateProductFirst(String api, String certificateDigest, String plan) {
-        Optional<Subscription> byPlan = subscriptionTrustStoreLoaderManager.getByCertificate(api, certificateDigest, plan);
-        if (byPlan.isPresent()) {
-            return byPlan;
-        }
-        return Optional.ofNullable(cacheByApiClientCertificate.get(buildCacheKeyFromClientInfo(api, certificateDigest, null))).filter(
-            SubscriptionUtils::isApiProductSubscription
-        );
-    }
-
-    private Optional<Subscription> getByApiAndSubscriptionId(String api, String subscriptionId) {
-        return Optional.ofNullable(cacheByApiAndSubscriptionId.get(buildApiSubscriptionKey(api, subscriptionId)));
-    }
-
-    private static String buildApiSubscriptionKey(String api, String subscriptionId) {
-        return api + "." + subscriptionId;
-    }
-
-    private void registerApiProductSubscription(Subscription subscription) {
-        Map<String, String> metadata = subscription.getMetadata();
-        String apiProductId = metadata != null ? metadata.get(METADATA_REFERENCE_ID) : null;
-        String environmentId = subscription.getEnvironmentId();
-        if (apiProductId == null || environmentId == null) {
-            log.warn("API Product subscription [{}] missing referenceId or environmentId, skipping", subscription.getId());
-            return;
-        }
-        ReactableApiProduct apiProduct = apiProductRegistry.get(apiProductId, environmentId);
-        if (apiProduct == null || apiProduct.getApiIds() == null || apiProduct.getApiIds().isEmpty()) {
-            log.debug("API Product [{}] not found or has no APIs for subscription [{}], skipping", apiProductId, subscription.getId());
-            return;
-        }
-        for (String apiId : apiProduct.getApiIds()) {
-            Subscription subscriptionForApi = createSubscriptionWithApi(subscription, apiId);
-            final String apiSubscriptionKey = buildApiSubscriptionKey(apiId, subscription.getId());
-            cacheByApiAndSubscriptionId.put(apiSubscriptionKey, subscriptionForApi);
-            addKeyForApi(apiId, apiSubscriptionKey);
-            if (subscription.getClientCertificate() != null) {
-                registerFromClientCertificate(subscriptionForApi);
-            } else if (subscription.getClientId() != null) {
-                registerFromClientId(subscriptionForApi);
-            } else {
-                registerFromId(subscriptionForApi);
-            }
-        }
-    }
-
-    /**
-     * Creates a copy of a subscription with a different API ID.
-     *
-     * <p>Note: Manual field-by-field copy is used. If Subscription class
-     * (io.gravitee.gateway.api.service.Subscription) supports builder pattern (toBuilder()),
-     * consider refactoring to: source.toBuilder().api(apiId).build()
-     *
-     * <p>Fields copied (must be kept in sync if Subscription class changes):
-     * - id, api (set to apiId), plan, application, applicationName
-     * - clientId, clientCertificate, status, consumerStatus
-     * - startingAt, endingAt, configuration, metadata, type, environmentId
-     */
-    private Subscription createSubscriptionWithApi(Subscription source, String apiId) {
-        Subscription copy = new Subscription();
-        copy.setId(source.getId());
-        copy.setApi(apiId);
-        copy.setPlan(source.getPlan());
-        copy.setApplication(source.getApplication());
-        copy.setApplicationName(source.getApplicationName());
-        copy.setClientId(source.getClientId());
-        copy.setClientCertificate(source.getClientCertificate());
-        copy.setStatus(source.getStatus());
-        copy.setConsumerStatus(source.getConsumerStatus());
-        copy.setStartingAt(source.getStartingAt());
-        copy.setEndingAt(source.getEndingAt());
-        copy.setConfiguration(source.getConfiguration());
-        copy.setMetadata(source.getMetadata());
-        copy.setType(source.getType());
-        copy.setEnvironmentId(source.getEnvironmentId());
-        return copy;
     }
 
     private void registerFromClientCertificate(final Subscription subscription) {
@@ -312,41 +206,15 @@ public class SubscriptionCacheService implements SubscriptionService {
             subscription.getApi()
         );
         final String idKey = subscription.getId();
-        if (SubscriptionUtils.isApiProductSubscription(subscription)) {
-            unregisterApiProductSubscription(subscription);
-        } else {
-            Subscription removeSubscription = cacheBySubscriptionId.remove(idKey);
-            if (removeSubscription != null) {
-                removeKeyForApi(subscription.getApi(), idKey);
-                unregisterFromClientId(removeSubscription);
-                unregisterFromClientCertificate(removeSubscription);
-            }
-            unregisterFromClientId(subscription);
-            unregisterFromClientCertificate(subscription);
+        Subscription removeSubscription = cacheBySubscriptionId.remove(idKey);
+        if (removeSubscription != null) {
+            removeKeyForApi(subscription.getApi(), idKey);
+            unregisterFromClientId(removeSubscription);
+            unregisterFromClientCertificate(removeSubscription);
         }
-    }
-
-    private void unregisterApiProductSubscription(Subscription subscription) {
-        Map<String, String> metadata = subscription.getMetadata();
-        String apiProductId = metadata != null ? metadata.get(METADATA_REFERENCE_ID) : null;
-        String environmentId = subscription.getEnvironmentId();
-        final String idKey = subscription.getId();
-        cacheBySubscriptionId.remove(idKey);
-        if (apiProductId != null && environmentId != null) {
-            ReactableApiProduct apiProduct = apiProductRegistry.get(apiProductId, environmentId);
-            if (apiProduct != null && apiProduct.getApiIds() != null) {
-                for (String apiId : apiProduct.getApiIds()) {
-                    Subscription subscriptionForApi = createSubscriptionWithApi(subscription, apiId);
-                    final String apiSubscriptionKey = buildApiSubscriptionKey(apiId, idKey);
-                    cacheByApiAndSubscriptionId.remove(apiSubscriptionKey);
-                    removeKeyForApi(apiId, apiSubscriptionKey);
-                    removeKeyForApi(apiId, idKey);
-                    unregisterFromClientId(subscriptionForApi);
-                    unregisterFromClientCertificate(subscriptionForApi);
-                }
-            }
-        }
-        // Removed redundant calls - loop already handles cleanup for each API
+        // In case new one has different client id than the one in cache
+        unregisterFromClientId(subscription);
+        unregisterFromClientCertificate(subscription);
     }
 
     private void unregisterFromClientId(final Subscription subscription) {
@@ -397,7 +265,6 @@ public class SubscriptionCacheService implements SubscriptionService {
                     );
                 }
                 cacheByApiClientId.remove(cacheKey);
-                cacheByApiAndSubscriptionId.remove(cacheKey);
             });
         }
     }

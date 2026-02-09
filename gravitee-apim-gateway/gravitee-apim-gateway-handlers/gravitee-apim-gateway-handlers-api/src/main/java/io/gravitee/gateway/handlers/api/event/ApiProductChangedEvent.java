@@ -20,8 +20,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Event emitted when an API Product is deployed, updated, or undeployed.
+ * Event payload emitted when an API Product is deployed, updated, or undeployed.
  * This event triggers security chain refresh for all APIs that are part of the product.
+ * Event type is specified via {@link ApiProductEventType} enum.
  *
  * @author GraviteeSource Team
  */
@@ -43,26 +44,4 @@ public class ApiProductChangedEvent {
      * Set of API IDs that are part of this product and need security chain refresh
      */
     private final Set<String> apiIds;
-
-    /**
-     * Type of change that occurred
-     */
-    private final ChangeType changeType;
-
-    public enum ChangeType {
-        /**
-         * API Product was deployed
-         */
-        DEPLOY,
-
-        /**
-         * API Product was updated (e.g., plans changed)
-         */
-        UPDATE,
-
-        /**
-         * API Product was undeployed
-         */
-        UNDEPLOY,
-    }
 }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.plan.domain_service;
 
+import static java.util.Map.entry;
 import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.DomainService;
@@ -296,6 +297,7 @@ public class UpdatePlanDomainService {
         Plan updated = orderAwareUpdateForApiProduct(existingPlan, updatePlan);
 
         createApiProductAuditLog(existingPlan, updated, auditInfo);
+
         return updated;
     }
 
