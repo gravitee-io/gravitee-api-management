@@ -30,6 +30,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
@@ -37,6 +38,11 @@ import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -80,6 +86,24 @@ public class PortalNavigationItemValidatorService {
             }
         }
 
+        if (item.getType() == PortalNavigationItemType.API) {
+            if (item.getParentId() == null) {
+                throw InvalidPortalNavigationItemDataException.fieldIsEmpty("parentId");
+            }
+
+            if (item.getArea() != PortalArea.TOP_NAVBAR) {
+                throw InvalidPortalNavigationItemDataException.apiMustBeInTopNavbar();
+            }
+            if (item.getApiId() == null || item.getApiId().isBlank()) {
+                throw InvalidPortalNavigationItemDataException.fieldIsEmpty("apiId");
+            }
+            List<PortalNavigationItem> navigationItems = fetchAllNavigationItems(environmentId);
+            if (isApiIdAlreadyUsed(item.getApiId(), navigationItems)) {
+                throw InvalidPortalNavigationItemDataException.apiIdAlreadyExists(item.getApiId());
+            }
+            ensureNoApiInAncestors(item.getParentId(), navigationItems);
+        }
+
         if (item.getType() == PortalNavigationItemType.LINK) {
             if (!isValidUrl(item.getUrl())) {
                 throw new InvalidUrlFormatException();
@@ -112,6 +136,42 @@ public class PortalNavigationItemValidatorService {
         }
     }
 
+    private List<PortalNavigationItem> fetchAllNavigationItems(String environmentId) {
+        var criteria = PortalNavigationItemQueryCriteria.builder().environmentId(environmentId).root(false).build();
+        return this.navigationItemsQueryService.search(criteria);
+    }
+
+    private boolean isApiIdAlreadyUsed(String apiId, List<PortalNavigationItem> navigationItems) {
+        if (apiId == null) {
+            return false;
+        }
+        return navigationItems
+            .stream()
+            .filter(PortalNavigationApi.class::isInstance)
+            .map(PortalNavigationApi.class::cast)
+            .anyMatch(apiItem -> apiId.equals(apiItem.getApiId()));
+    }
+
+    private void ensureNoApiInAncestors(PortalNavigationItemId parentId, List<PortalNavigationItem> navigationItems) {
+        if (parentId == null) {
+            return;
+        }
+        Map<PortalNavigationItemId, PortalNavigationItem> itemsById = navigationItems
+            .stream()
+            .collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
+        var currentId = parentId;
+        while (currentId != null) {
+            var currentItem = itemsById.get(currentId);
+            if (currentItem == null) {
+                return;
+            }
+            if (currentItem.getType() == PortalNavigationItemType.API) {
+                throw InvalidPortalNavigationItemDataException.parentHierarchyContainsApi();
+            }
+            currentId = currentItem.getParentId();
+        }
+    }
+
     public void validateToUpdate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem) {
         enforceTypeConsistency(existingItem, toUpdate.getType());
         var payloadParentId = toUpdate.getParentId();
@@ -124,6 +184,12 @@ public class PortalNavigationItemValidatorService {
         if (toUpdate.getType() == PortalNavigationItemType.LINK) {
             if (!isValidUrl(toUpdate.getUrl())) {
                 throw new InvalidUrlFormatException();
+            }
+        }
+
+        if (toUpdate.getType() == PortalNavigationItemType.API) {
+            if (payloadParentId == null) {
+                throw InvalidPortalNavigationItemDataException.fieldIsEmpty("parentId");
             }
         }
     }

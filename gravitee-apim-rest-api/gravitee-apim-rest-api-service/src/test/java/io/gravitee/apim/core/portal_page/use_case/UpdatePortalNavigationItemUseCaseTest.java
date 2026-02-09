@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.API1_FOLDER_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.API1_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
@@ -30,8 +33,10 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -308,5 +313,37 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(output.updatedItem()).isNotNull();
         assertThat(output.updatedItem().getId()).isEqualTo(originalId);
         assertThat(output.updatedItem().getOrder()).isEqualTo(2);
+    }
+
+    @Test
+    void should_fail_when_api_item_has_null_parent_id() {
+        var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID));
+        assertThat(existing).isNotNull();
+
+        var toUpdate = UpdatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.API)
+            .title("Title")
+            .parentId(null)
+            .published(existing.getPublished())
+            .visibility(existing.getVisibility())
+            .build();
+
+        var input = UpdatePortalNavigationItemUseCase.Input.builder()
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .navigationItemId(existing.getId().toString())
+            .updatePortalNavigationItem(toUpdate)
+            .build();
+
+        useCase = buildUseCaseWithRealValidator();
+
+        var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
+        assertThat(exception.getMessage()).isEqualTo("The parentId field is required and cannot be blank.");
+    }
+
+    private UpdatePortalNavigationItemUseCase buildUseCaseWithRealValidator() {
+        var pageContentQueryService = new PortalPageContentQueryServiceInMemory();
+        var realValidator = new PortalNavigationItemValidatorService(queryService, pageContentQueryService);
+        return new UpdatePortalNavigationItemUseCase(queryService, realValidator, domainService);
     }
 }

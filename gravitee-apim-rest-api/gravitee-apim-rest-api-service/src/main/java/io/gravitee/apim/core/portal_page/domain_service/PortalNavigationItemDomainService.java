@@ -59,7 +59,7 @@ public class PortalNavigationItemDomainService {
             createPortalNavigationItem.setPortalPageContentId(defaultPageContent.getId());
         }
 
-        if (createPortalNavigationItem.getType() == PortalNavigationItemType.API && createPortalNavigationItem.getApiId() != null) {
+        if (createPortalNavigationItem.getType() == PortalNavigationItemType.API) {
             Api api = apiCrudService.get(createPortalNavigationItem.getApiId());
             createPortalNavigationItem.setTitle(api.getName());
         }
