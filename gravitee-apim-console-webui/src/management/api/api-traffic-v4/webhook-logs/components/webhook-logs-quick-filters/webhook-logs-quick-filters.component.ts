@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { isNumber } from 'angular';
-
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, DestroyRef, effect, EventEmitter, inject, Input, OnInit, Output, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';

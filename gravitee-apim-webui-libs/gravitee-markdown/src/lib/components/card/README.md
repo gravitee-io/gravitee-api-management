@@ -1,6 +1,6 @@
 # Card Component
 
-A flexible card component for displaying structured content with optional title, subtitle, and markdown content. 
+A flexible card component for displaying structured content with optional title, subtitle, and markdown content.
 The component uses a token-based theming system that allows for easy customization through CSS custom properties and input properties.
 
 ## Features
@@ -19,9 +19,7 @@ The card component provides:
 
 ```html
 <gmd-card>
-  <gmd-md>
-    This is a simple card with markdown content.
-  </gmd-md>
+  <gmd-md> This is a simple card with markdown content. </gmd-md>
 </gmd-card>
 ```
 
@@ -30,9 +28,7 @@ The card component provides:
 ```html
 <gmd-card>
   <gmd-card-title>Card Title</gmd-card-title>
-  <gmd-md>
-    This card has a title and content.
-  </gmd-md>
+  <gmd-md> This card has a title and content. </gmd-md>
 </gmd-card>
 ```
 
@@ -42,9 +38,7 @@ The card component provides:
 <gmd-card>
   <gmd-card-title>Card Title</gmd-card-title>
   <gmd-card-subtitle>Card Subtitle</gmd-card-subtitle>
-  <gmd-md>
-    This card has both a title and subtitle.
-  </gmd-md>
+  <gmd-md> This card has both a title and subtitle. </gmd-md>
 </gmd-card>
 ```
 
@@ -54,9 +48,7 @@ The card component provides:
 <gmd-card backgroundColor="#ffffff" textColor="#333333">
   <gmd-card-title>Custom Styled Card</gmd-card-title>
   <gmd-card-subtitle>Version: 2.0</gmd-card-subtitle>
-  <gmd-md>
-    This card has custom background and text colors.
-  </gmd-md>
+  <gmd-md> This card has custom background and text colors. </gmd-md>
 </gmd-card>
 ```
 
@@ -72,10 +64,10 @@ The card component consists of:
 
 The card component supports the following input properties for dynamic styling:
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `backgroundColor` | `string \| null` | `null` | Override the card background color |
-| `textColor` | `string \| null` | `null` | Override the card text color |
+| Property          | Type             | Default | Description                        |
+| ----------------- | ---------------- | ------- | ---------------------------------- |
+| `backgroundColor` | `string \| null` | `null`  | Override the card background color |
+| `textColor`       | `string \| null` | `null`  | Override the card text color       |
 
 ### Input Usage Examples
 
@@ -105,10 +97,10 @@ The card component uses CSS custom properties for theming. You can override any 
 
 ### Card Tokens
 
-| Token                    | CSS Variable                      | Default Value | Description | Example |
-|--------------------------|-----------------------------------|---------------|-------------|---------|
-| **Container Color**      | `--gmd-card-container-color`      | `#f4f7fd` | Background color of card | `#ffffff` (white) |
-| **Text Color**           | `--gmd-card-text-color`           | `#1d192b` | Text color for card content | `#333333` (dark gray) |
+| Token               | CSS Variable                 | Default Value | Description                 | Example               |
+| ------------------- | ---------------------------- | ------------- | --------------------------- | --------------------- |
+| **Container Color** | `--gmd-card-container-color` | `#f4f7fd`     | Background color of card    | `#ffffff` (white)     |
+| **Text Color**      | `--gmd-card-text-color`      | `#1d192b`     | Text color for card content | `#333333` (dark gray) |
 
 ### Inline Style Overrides
 
@@ -158,16 +150,18 @@ You can also customize the card tokens using SCSS by importing and using the `ov
 
 // Custom card theme
 .my-custom-cards {
-  @include gmd.card-overrides((
-    container-color: #ffffff,
-    outline-color: #e0e0e0,
-    text-color: #333333,
-    title-text-weight: 600,
-    title-text-size: 18px,
-    subtitle-text-size: 16px,
-    container-shape: 8px,
-    text-align: center,
-  ));
+  @include gmd.card-overrides(
+    (
+      container-color: #ffffff,
+      outline-color: #e0e0e0,
+      text-color: #333333,
+      title-text-weight: 600,
+      title-text-size: 18px,
+      subtitle-text-size: 16px,
+      container-shape: 8px,
+      text-align: center,
+    )
+  );
 }
 ```
 

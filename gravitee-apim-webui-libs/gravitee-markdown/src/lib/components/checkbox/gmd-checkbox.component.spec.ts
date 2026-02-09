@@ -30,7 +30,8 @@ import { GMD_FORM_STATE_STORE } from '../../services/gmd-form-state.store';
       [value]="value()"
       [required]="required()"
       [readonly]="readonly()"
-      [disabled]="disabled()" />
+      [disabled]="disabled()"
+    />
   `,
   standalone: true,
   imports: [GmdCheckboxComponent],

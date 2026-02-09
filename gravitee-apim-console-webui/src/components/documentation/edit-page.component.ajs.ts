@@ -15,7 +15,6 @@
  */
 
 import angular, { IController, IScope } from 'angular';
-
 import { ActivatedRoute, Router } from '@angular/router';
 import { Dictionary, keyBy } from 'lodash';
 import { deepClone } from '@gravitee/ui-components/src/lib/utils';

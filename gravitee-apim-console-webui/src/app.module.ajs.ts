@@ -217,7 +217,7 @@ import CustomUserFieldsService from './services/custom-user-fields.service';
 import FlowService from './services/flow.service';
 import AlertsDashboardComponent from './components/alerts/dashboard/alerts-dashboard.component';
 import WidgetChartCountComponent from './components/dashboard/widget/count/widget-chart-count.component';
-import * as angular from 'angular';
+import angular from 'angular';
 
 import { ApiAlertsDashboardComponentAjs } from './management/api/analytics/alerts/api-alerts-dashboard.component.ajs';
 

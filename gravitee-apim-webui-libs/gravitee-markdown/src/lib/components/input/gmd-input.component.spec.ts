@@ -33,7 +33,8 @@ import { GMD_FORM_STATE_STORE } from '../../services/gmd-form-state.store';
       [required]="required()"
       [minLength]="minLength()"
       [maxLength]="maxLength()"
-      [pattern]="pattern()" />
+      [pattern]="pattern()"
+    />
   `,
   standalone: true,
   imports: [GmdInputComponent],

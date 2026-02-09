@@ -1,4 +1,4 @@
-import * as angular from 'angular';
+import angular from 'angular';
 
 const initTemplateCacheRun = ($templateCache: angular.ITemplateCacheService) => {
   $templateCache.put(

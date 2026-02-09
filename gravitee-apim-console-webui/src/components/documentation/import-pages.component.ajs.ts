@@ -15,7 +15,6 @@
  */
 
 import angular, { IController, IScope } from 'angular';
-
 import { ActivatedRoute, Router } from '@angular/router';
 import { forEach, isNil } from 'lodash';
 

@@ -15,7 +15,6 @@
  */
 
 import { IHttpResponse } from 'angular';
-
 import { forEach } from 'lodash';
 
 import { IdentityProviderActivation } from '../entities/identity-provider';

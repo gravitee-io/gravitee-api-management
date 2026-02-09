@@ -38,7 +38,8 @@ import { GraviteeDashboardService } from './gravitee-dashboard.service';
       [defaultPeriod]="'5m'"
       (selectedFilters)="onSelectedFilters($event)"
       (refresh)="onRefresh()"
-      class="filterBar" />
+      class="filterBar"
+    />
 
     <gd-grid [items]="dashboardWidgets()" />
   </div>`,

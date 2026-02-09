@@ -29,7 +29,8 @@
     [attr.aria-invalid]="hasErrors() ? 'true' : null"
     [attr.aria-describedby]="hasErrors() ? errorId() : null"
     (change)="onChange($event)"
-    (blur)="onBlur()" />
+    (blur)="onBlur()"
+  />
   @if (label()) {
     <span class="gmd-checkbox__label-text">
       {{ label() }}

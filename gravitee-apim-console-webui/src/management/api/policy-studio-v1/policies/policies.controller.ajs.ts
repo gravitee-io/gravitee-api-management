@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import angular from 'angular';
-
 import { ActivatedRoute, Router } from '@angular/router';
 import { clone, cloneDeep, forEach, forOwn, includes, isArray, keys, map, reduce, remove, sortBy } from 'lodash';
 

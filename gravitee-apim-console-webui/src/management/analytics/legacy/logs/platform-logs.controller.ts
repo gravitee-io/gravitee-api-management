@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { IScope } from 'angular';
-
 import { ActivatedRoute, Router } from '@angular/router';
 import { now } from 'lodash';
 

@@ -20,7 +20,8 @@
   [attr.aria-labelledby]="label() ? groupLabelId() : null"
   [attr.aria-required]="required() ? 'true' : null"
   [attr.aria-invalid]="hasErrors() ? 'true' : null"
-  [attr.aria-describedby]="hasErrors() ? errorId() : null">
+  [attr.aria-describedby]="hasErrors() ? errorId() : null"
+>
   @if (label()) {
     <legend [id]="groupLabelId()" class="gmd-radio__group-label">
       {{ label() }}
@@ -41,7 +42,8 @@
           [readonly]="readonly()"
           [disabled]="disabled()"
           (change)="onChange($event)"
-          (blur)="onBlur()" />
+          (blur)="onBlur()"
+        />
         <span class="gmd-radio__option-label">{{ option }}</span>
       </label>
     }

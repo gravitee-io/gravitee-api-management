@@ -15,7 +15,6 @@
  */
 
 import { IController, IPromise, IScope } from 'angular';
-
 import { ActivatedRoute, Router } from '@angular/router';
 import { Dictionary, keyBy } from 'lodash';
 

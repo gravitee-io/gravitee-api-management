@@ -10,15 +10,25 @@
     "importHelpers": true,
     "target": "ES2022",
     "module": "ES2022",
-    "lib": ["ES2022", "dom"],
+    "lib": [
+      "ES2022",
+      "dom"
+    ],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "paths": {
-      "@gravitee/gravitee-markdown": ["gravitee-apim-webui-libs/gravitee-markdown/src/public-api.ts"],
-      "@gravitee/gravitee-dashboard": ["gravitee-apim-webui-libs/gravitee-dashboard/src/public-api.ts"]
+      "@gravitee/gravitee-dashboard": [
+        "gravitee-apim-webui-libs/gravitee-dashboard/src/public-api.ts"
+      ],
+      "@gravitee/gravitee-markdown": [
+        "gravitee-apim-webui-libs/gravitee-markdown/src/public-api.ts"
+      ]
     }
   },
-  "exclude": ["node_modules", "tmp"]
+  "exclude": [
+    "node_modules",
+    "tmp"
+  ]
 }
