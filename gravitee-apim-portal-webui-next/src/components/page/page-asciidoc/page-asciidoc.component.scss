@@ -19,7 +19,7 @@
 @use '../../../scss/theme';
 
 // Default Asciidoctor CSS
-@import '../../../../node_modules/@asciidoctor/core/dist/css/asciidoctor.css';
+@import '../../../../../node_modules/@asciidoctor/core/dist/css/asciidoctor.css';
 
 // Override Asciidoctor CSS
 h1,

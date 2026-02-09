@@ -1,0 +1,109 @@
+module.exports = {
+  settings: {
+    'import/resolver': {
+      typescript: {
+        project: [__dirname + '/tsconfig.json'],
+        alwaysTryTypes: true,
+      },
+    },
+  },
+  plugins: ['unused-imports'],
+  overrides: [
+    {
+      files: ['*.ts'],
+      extends: [
+        'eslint:recommended',
+        'plugin:@typescript-eslint/recommended',
+        'plugin:@angular-eslint/recommended',
+        'plugin:@angular-eslint/template/process-inline-templates',
+        'plugin:prettier/recommended',
+        'plugin:import/recommended',
+        'plugin:import/typescript',
+      ],
+      rules: {
+        '@angular-eslint/directive-selector': [
+          'error',
+          {
+            type: 'attribute',
+            prefix: 'app',
+            style: 'camelCase',
+          },
+        ],
+        '@angular-eslint/component-selector': [
+          'error',
+          {
+            type: 'element',
+            prefix: 'app',
+            style: 'kebab-case',
+          },
+        ],
+        '@angular-eslint/prefer-inject': 'off', // TODO: enable this rule when all constructor injections are replaced by Angular injection
+        '@typescript-eslint/member-ordering': [
+          'error',
+          {
+            default: [
+              'signature',
+              'call-signature',
+              'public-static-field',
+              'protected-static-field',
+              'private-static-field',
+              'instance-field',
+              'constructor',
+              'public-static-method',
+              'protected-static-method',
+              'private-static-method',
+              'public-instance-method',
+              'protected-instance-method',
+              'private-instance-method',
+            ],
+          },
+        ],
+        '@typescript-eslint/no-unused-vars': 'off',
+        'unused-imports/no-unused-imports': 'error',
+        'unused-imports/no-unused-vars': [
+          'error',
+          {
+            vars: 'all',
+            argsIgnorePattern: '^_',
+            varsIgnorePattern: '^_',
+            caughtErrorsIgnorePattern: '^_',
+            args: 'after-used',
+          },
+        ],
+        'import/no-unresolved': 'error',
+        'import/order': [
+          'error',
+          {
+            groups: ['builtin', 'external', 'internal', ['sibling', 'parent'], 'index', 'unknown'],
+            'newlines-between': 'always',
+            alphabetize: {
+              order: 'asc',
+              caseInsensitive: true,
+            },
+          },
+        ],
+      },
+    },
+    {
+      files: ['*.html'],
+      extends: ['plugin:@angular-eslint/template/recommended', 'plugin:@angular-eslint/template/accessibility'],
+      rules: {
+        '@angular-eslint/template/prefer-self-closing-tags': ['error'],
+      },
+    },
+    {
+      files: ['*.html'],
+      excludedFiles: ['*inline-template-*.component.html'],
+      extends: ['plugin:prettier/recommended'],
+      rules: {
+        'prettier/prettier': [
+          'error',
+          {
+            parser: 'angular',
+          },
+        ],
+      },
+    },
+  ],
+  extends: ['plugin:storybook/recommended'],
+};
