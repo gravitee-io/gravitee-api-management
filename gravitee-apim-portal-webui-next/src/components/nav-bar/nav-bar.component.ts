@@ -17,12 +17,12 @@ import { Component, computed, inject, input, InputSignal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { isEmpty } from 'lodash';
 
+import { DesktopNavBarComponent } from './desktop-nav-bar/desktop-nav-bar.component';
+import { MobileNavBarComponent } from './mobile-nav-bar/mobile-nav-bar.component';
 import { PortalNavigationItem } from '../../entities/portal-navigation/portal-navigation-item';
 import { User } from '../../entities/user/user';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
 import { CompanyTitleComponent } from '../company-title/company-title.component';
-import { DesktopNavBarComponent } from './desktop-nav-bar/desktop-nav-bar.component';
-import { MobileNavBarComponent } from './mobile-nav-bar/mobile-nav-bar.component';
 
 @Component({
   selector: 'app-nav-bar',
