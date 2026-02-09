@@ -108,7 +108,7 @@ public class LocalApiSynchronizer implements LocalSynchronizer {
                     Set<Subscription> subscriptionsToDeploy = fileDefinition
                         .getRepositorySubscriptionList()
                         .stream()
-                        .map(subscriptionMapper::to)
+                        .flatMap(sub -> subscriptionMapper.to(sub).stream())
                         .collect(Collectors.toSet());
                     subscriptionsToDeploy.forEach(subscriptionService::register);
 

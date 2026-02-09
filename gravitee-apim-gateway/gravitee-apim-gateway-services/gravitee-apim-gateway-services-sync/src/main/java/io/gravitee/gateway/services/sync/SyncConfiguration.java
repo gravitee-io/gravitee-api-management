@@ -24,6 +24,7 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
 import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
@@ -130,8 +131,8 @@ public class SyncConfiguration {
     }
 
     @Bean
-    public SubscriptionMapper subscriptionMapper(ObjectMapper objectMapper) {
-        return new SubscriptionMapper(objectMapper);
+    public SubscriptionMapper subscriptionMapper(ObjectMapper objectMapper, ApiProductRegistry apiProductRegistry) {
+        return new SubscriptionMapper(objectMapper, apiProductRegistry);
     }
 
     @Bean

@@ -18,9 +18,13 @@ package io.gravitee.gateway.services.sync.process.common.mapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionConfiguration;
+import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -32,52 +36,114 @@ public class SubscriptionMapper {
     public static final String METADATA_REFERENCE_TYPE = "referenceType";
 
     private final ObjectMapper objectMapper;
+    private final ApiProductRegistry apiProductRegistry;
 
-    public Subscription to(io.gravitee.repository.management.model.Subscription subscriptionModel) {
+    public List<Subscription> to(io.gravitee.repository.management.model.Subscription subscriptionModel) {
         try {
-            Subscription subscription = new Subscription();
-            // For API subscriptions: api=referenceId or legacy api. For API Product: api may be null
-            String api = subscriptionModel.getReferenceType() == SubscriptionReferenceType.API
-                ? (subscriptionModel.getReferenceId() != null ? subscriptionModel.getReferenceId() : subscriptionModel.getApi())
-                : subscriptionModel.getApi();
-            subscription.setApi(api);
-            subscription.setApplication(subscriptionModel.getApplication());
-            subscription.setApplicationName(subscriptionModel.getApplicationName());
-            subscription.setClientId(subscriptionModel.getClientId());
-            subscription.setClientCertificate(subscriptionModel.getClientCertificate());
-            subscription.setStartingAt(subscriptionModel.getStartingAt());
-            subscription.setEndingAt(subscriptionModel.getEndingAt());
-            subscription.setId(subscriptionModel.getId());
-            subscription.setPlan(subscriptionModel.getPlan());
-            if (subscriptionModel.getStatus() != null) {
-                subscription.setStatus(subscriptionModel.getStatus().name());
+            // Check if API Product subscription
+            if (subscriptionModel.getReferenceType() == SubscriptionReferenceType.API_PRODUCT) {
+                return explodeApiProductSubscription(subscriptionModel);
             }
-            if (subscriptionModel.getConsumerStatus() != null) {
-                subscription.setConsumerStatus(Subscription.ConsumerStatus.valueOf(subscriptionModel.getConsumerStatus().name()));
-            }
-            if (subscriptionModel.getType() != null) {
-                subscription.setType(Subscription.Type.valueOf(subscriptionModel.getType().name().toUpperCase()));
-            }
-            if (subscriptionModel.getConfiguration() != null) {
+
+            // Regular API subscription - return as single-item list
+            return List.of(mapToGatewaySubscription(subscriptionModel));
+        } catch (Exception e) {
+            log.error("Unable to map subscription from model [{}].", subscriptionModel.getId(), e);
+            return List.of(); // Return empty list on error
+        }
+    }
+
+    private List<Subscription> explodeApiProductSubscription(io.gravitee.repository.management.model.Subscription subscriptionModel) {
+        String productId = subscriptionModel.getReferenceId();
+        if (productId == null) {
+            log.warn("API Product subscription [{}] has null referenceId, skipping", subscriptionModel.getId());
+            return List.of();
+        }
+
+        // Get product from registry (requires productId and environmentId)
+        String environmentId = subscriptionModel.getEnvironmentId();
+        if (environmentId == null) {
+            log.warn("API Product subscription [{}] has null environmentId, skipping", subscriptionModel.getId());
+            return List.of();
+        }
+        ReactableApiProduct product = apiProductRegistry.get(productId, environmentId);
+        if (product == null) {
+            log.debug("API Product [{}] not found for subscription [{}], will retry on next sync", productId, subscriptionModel.getId());
+            return List.of(); // Product not deployed yet - skip for now
+        }
+
+        Set<String> apiIds = product.getApiIds();
+
+        if (apiIds == null || apiIds.isEmpty()) {
+            log.warn("API Product [{}] has no APIs, subscription [{}] not deployed", productId, subscriptionModel.getId());
+            return List.of();
+        }
+
+        // Create one subscription per API in product
+        return apiIds
+            .stream()
+            .map(apiId -> {
+                Subscription sub = mapToGatewaySubscription(subscriptionModel);
+                sub.setApi(apiId); // Override with individual API
+
+                // Preserve product info in metadata for debugging/tracking
+                Map<String, String> metadata = sub.getMetadata();
+                if (metadata == null) {
+                    metadata = new HashMap<>();
+                    sub.setMetadata(metadata);
+                }
+                metadata.put("productId", productId);
+                metadata.put("exploded", "true");
+
+                return sub;
+            })
+            .toList();
+    }
+
+    private Subscription mapToGatewaySubscription(io.gravitee.repository.management.model.Subscription subscriptionModel) {
+        Subscription subscription = new Subscription();
+        // For API subscriptions: api=referenceId or legacy api. For API Product: api may be null
+        String api = subscriptionModel.getReferenceType() == SubscriptionReferenceType.API
+            ? (subscriptionModel.getReferenceId() != null ? subscriptionModel.getReferenceId() : subscriptionModel.getApi())
+            : subscriptionModel.getApi();
+        subscription.setApi(api);
+        subscription.setApplication(subscriptionModel.getApplication());
+        subscription.setApplicationName(subscriptionModel.getApplicationName());
+        subscription.setClientId(subscriptionModel.getClientId());
+        subscription.setClientCertificate(subscriptionModel.getClientCertificate());
+        subscription.setStartingAt(subscriptionModel.getStartingAt());
+        subscription.setEndingAt(subscriptionModel.getEndingAt());
+        subscription.setId(subscriptionModel.getId());
+        subscription.setPlan(subscriptionModel.getPlan());
+        if (subscriptionModel.getStatus() != null) {
+            subscription.setStatus(subscriptionModel.getStatus().name());
+        }
+        if (subscriptionModel.getConsumerStatus() != null) {
+            subscription.setConsumerStatus(Subscription.ConsumerStatus.valueOf(subscriptionModel.getConsumerStatus().name()));
+        }
+        if (subscriptionModel.getType() != null) {
+            subscription.setType(Subscription.Type.valueOf(subscriptionModel.getType().name().toUpperCase()));
+        }
+        if (subscriptionModel.getConfiguration() != null) {
+            try {
                 subscription.setConfiguration(
                     objectMapper.readValue(subscriptionModel.getConfiguration(), SubscriptionConfiguration.class)
                 );
+            } catch (Exception e) {
+                log.error("Unable to parse subscription configuration for [{}]", subscriptionModel.getId(), e);
             }
-            Map<String, String> metadata = subscriptionModel.getMetadata() != null
-                ? new HashMap<>(subscriptionModel.getMetadata())
-                : new HashMap<>();
-            if (subscriptionModel.getReferenceId() != null) {
-                metadata.put(METADATA_REFERENCE_ID, subscriptionModel.getReferenceId());
-            }
-            if (subscriptionModel.getReferenceType() != null) {
-                metadata.put(METADATA_REFERENCE_TYPE, subscriptionModel.getReferenceType().name());
-            }
-            subscription.setMetadata(metadata);
-            subscription.setEnvironmentId(subscriptionModel.getEnvironmentId());
-            return subscription;
-        } catch (Exception e) {
-            log.error("Unable to map subscription from model [{}].", subscriptionModel.getId(), e);
-            return null;
         }
+        Map<String, String> metadata = subscriptionModel.getMetadata() != null
+            ? new HashMap<>(subscriptionModel.getMetadata())
+            : new HashMap<>();
+        if (subscriptionModel.getReferenceId() != null) {
+            metadata.put(METADATA_REFERENCE_ID, subscriptionModel.getReferenceId());
+        }
+        if (subscriptionModel.getReferenceType() != null) {
+            metadata.put(METADATA_REFERENCE_TYPE, subscriptionModel.getReferenceType().name());
+        }
+        subscription.setMetadata(metadata);
+        subscription.setEnvironmentId(subscriptionModel.getEnvironmentId());
+        return subscription;
     }
 }

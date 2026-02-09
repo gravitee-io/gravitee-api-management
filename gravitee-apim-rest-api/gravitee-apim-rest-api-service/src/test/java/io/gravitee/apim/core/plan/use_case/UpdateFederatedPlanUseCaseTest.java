@@ -35,6 +35,8 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
+import io.gravitee.apim.core.event.crud_service.EventCrudService;
+import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
@@ -102,6 +104,8 @@ class UpdateFederatedPlanUseCaseTest {
             policyValidationDomainService,
             new EntrypointPluginQueryServiceInMemory()
         );
+        var eventCrudService = mock(EventCrudService.class);
+        var eventLatestCrudService = mock(EventLatestCrudService.class);
         var updatePlanDomainService = new UpdatePlanDomainService(
             planQueryService,
             planCrudService,

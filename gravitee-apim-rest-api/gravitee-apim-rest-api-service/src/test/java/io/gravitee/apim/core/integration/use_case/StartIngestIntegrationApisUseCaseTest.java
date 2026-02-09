@@ -62,6 +62,8 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.event.crud_service.EventCrudService;
+import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.integration.exception.FederatedAgentIngestionException;
@@ -215,6 +217,8 @@ class StartIngestIntegrationApisUseCaseTest {
         pageCrudService
     );
     ReorderPlanDomainService reorderPlanDomainService = new ReorderPlanDomainService(planQueryService, planCrudService);
+    EventCrudService eventCrudService = mock(EventCrudService.class);
+    EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
     UpdatePlanDomainService updatePlanDomainService = new UpdatePlanDomainService(
         planQueryService,
         planCrudService,
