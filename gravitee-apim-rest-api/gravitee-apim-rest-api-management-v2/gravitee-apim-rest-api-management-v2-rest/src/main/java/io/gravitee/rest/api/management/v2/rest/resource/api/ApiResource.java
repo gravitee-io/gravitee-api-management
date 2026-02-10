@@ -125,6 +125,7 @@ import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -238,9 +239,6 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     MigrateApiUseCase migrateApiUseCase;
-
-    @Inject
-    CreatePromotionUseCase promotionUseCase;
 
     @Inject
     private DetachAutomatedApiUseCase detachAutomatedApiUseCase;
@@ -921,16 +919,6 @@ public class ApiResource extends AbstractResource {
                     .map(issue -> new MigrationReportResponsesIssuesInner().message(issue.message()).state(mapState(issue.state())))
                     .toList()
             );
-    }
-
-    @POST
-    @Path("_promote")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response promoteAPI(@RequestBody @Valid @NotNull final PromotionRequest promotionRequest, @PathParam("apiId") String apiId) {
-        var input = new CreatePromotionUseCase.Input(apiId, PromotionMapper.INSTANCE.map(promotionRequest), getAuditInfo());
-        var output = promotionUseCase.execute(input);
-        return Response.ok(PromotionMapper.INSTANCE.map(output.promotion())).build();
     }
 
     @POST
