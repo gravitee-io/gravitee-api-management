@@ -16,7 +16,7 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { NodeLtsExecutor } from '../../executors';
-import { InstallYarnCommand, NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
+import { InstallYarnCommand, NotifyOnFailureCommand, WorkspaceInstallCommand } from '../../commands';
 import { CircleCIEnvironment } from '../../pipelines';
 import { computeApimVersion } from '../../utils';
 import { config } from '../../config';
@@ -28,8 +28,8 @@ export class ConsoleWebuiBuildJob {
     const installYarnCmd = InstallYarnCommand.get();
     dynamicConfig.addReusableCommand(installYarnCmd);
 
-    const webUiInstallCommand = WebuiInstallCommand.get();
-    dynamicConfig.addReusableCommand(webUiInstallCommand);
+    const workspaceInstallCommand = WorkspaceInstallCommand.get();
+    dynamicConfig.addReusableCommand(workspaceInstallCommand);
 
     const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
@@ -43,18 +43,14 @@ export class ConsoleWebuiBuildJob {
       new commands.workspace.Attach({ at: '.' }),
       new commands.SetupRemoteDocker({ version: config.docker.version }),
       new reusable.ReusedCommand(installYarnCmd),
-      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': `${config.components.console.project}` }),
+      new reusable.ReusedCommand(workspaceInstallCommand),
       new commands.Run({
         name: 'Update Build version',
         command: `sed -i 's/"version": ".*"/"version": "${apimVersion}"/' ${config.components.console.project}/build.json`,
       }),
       new commands.Run({
-        name: 'Build',
-        command: 'yarn build:prod',
-        environment: {
-          NODE_OPTIONS: '--max_old_space_size=4086',
-        },
-        working_directory: `${config.components.console.project}`,
+        name: 'Build Console',
+        command: `NODE_OPTIONS=--max_old_space_size=4086 yarn console:build:prod`,
       }),
     ];
 

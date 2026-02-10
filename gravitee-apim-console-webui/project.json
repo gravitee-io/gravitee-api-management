@@ -153,14 +153,14 @@
         "proxyConfig": "gravitee-apim-console-webui/proxy.conf.mjs",
         "disableHostCheck": true,
         "port": 4000,
-        "buildTarget": "gravitee-apim-console-webui:build"
+        "buildTarget": "console:build"
       },
       "configurations": {
         "production": {
-          "buildTarget": "gravitee-apim-console-webui:build:production"
+          "buildTarget": "console:build:production"
         },
         "development": {
-          "buildTarget": "gravitee-apim-console-webui:build:development"
+          "buildTarget": "console:build:development"
         }
       },
       "defaultConfiguration": "development"
@@ -189,7 +189,7 @@
     "storybook": {
       "executor": "@storybook/angular:start-storybook",
       "options": {
-        "browserTarget": "gravitee-apim-console-webui:build",
+        "browserTarget": "console:build",
         "compodoc": false,
         "port": 9008,
         "configDir": "gravitee-apim-console-webui/.storybook"
@@ -198,11 +198,13 @@
     "build-storybook": {
       "executor": "@storybook/angular:build-storybook",
       "options": {
-        "browserTarget": "gravitee-apim-console-webui:build",
+        "browserTarget": "console:build",
         "compodoc": false,
-        "configDir": "gravitee-apim-console-webui/.storybook"
+        "configDir": "gravitee-apim-console-webui/.storybook",
+        "outputDir": "gravitee-apim-console-webui/storybook-static"
       }
     }
   },
-  "tags": ["type:app", "scope:console"]
+  "tags": ["type:app", "scope:console"],
+  "implicitDependencies": ["markdown", "dashboard"]
 }

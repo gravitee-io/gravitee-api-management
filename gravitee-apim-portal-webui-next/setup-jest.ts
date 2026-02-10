@@ -28,3 +28,21 @@ globalThis.ResizeObserver =
   }));
 
 window.HTMLElement.prototype.scrollIntoView = jest.fn();
+
+// Hide the following error:
+// "Could not parse CSS stylesheet"
+const originalError = console.error;
+beforeAll(() => {
+  jest.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
+    const firstArg = args[0];
+    // jsdom CSS parsing
+    if (firstArg instanceof Error && firstArg.message.includes('Could not parse CSS stylesheet')) {
+      return;
+    }
+    // jsdom structured error
+    if (typeof firstArg === 'object' && firstArg !== null && 'type' in firstArg && (firstArg as any).type === 'css parsing') {
+      return;
+    }
+    originalError.call(console, ...args);
+  });
+});

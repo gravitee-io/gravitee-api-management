@@ -17,15 +17,23 @@ import { commands, Config, Job, parameters, reusable } from '@circleci/circleci-
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { CommandParameterLiteral } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Parameters/types/CustomParameterLiterals.types';
 import { NodeLtsExecutor } from '../../executors';
-import { InstallYarnCommand, NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
+import { InstallYarnCommand, NotifyOnFailureCommand, WebuiInstallCommand, WorkspaceInstallCommand } from '../../commands';
 import { CircleCIEnvironment } from '../../pipelines';
 
 export class WebuiLintTestJob {
   private static jobName = 'job-webui-lint-test';
+  private static jobNameNx = 'job-nx-webui-lint-test';
 
   private static customParametersList = new parameters.CustomParametersList<CommandParameterLiteral>([
-    new parameters.CustomParameter('apim-ui-project', 'string', '', 'the name of the UI project to build'),
+    new parameters.CustomParameter('apim-ui-project', 'string', '', 'the directory name of the UI project'),
     new parameters.CustomParameter('resource_class', 'string', 'medium', 'Resource class to use for executor'),
+  ]);
+
+  private static customParametersListNx = new parameters.CustomParametersList<CommandParameterLiteral>([
+    new parameters.CustomParameter('apim-ui-project', 'string', '', 'the directory name of the UI project'),
+    new parameters.CustomParameter('nx-project', 'string', '', 'the Nx project name'),
+    new parameters.CustomParameter('resource_class', 'string', 'medium', 'Resource class to use for executor'),
+    new parameters.CustomParameter('max-workers', 'string', '35%', 'Maximum number of workers for Jest tests'),
   ]);
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
@@ -80,5 +88,107 @@ export class WebuiLintTestJob {
       WebuiLintTestJob.customParametersList,
       steps,
     );
+  }
+
+  public static createNx(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
+    const installYarnCmd = InstallYarnCommand.get();
+    dynamicConfig.addReusableCommand(installYarnCmd);
+
+    const workspaceInstallCommand = WorkspaceInstallCommand.get();
+    dynamicConfig.addReusableCommand(workspaceInstallCommand);
+
+    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
+    dynamicConfig.addReusableCommand(notifyOnFailureCommand);
+
+    const steps: Command[] = [
+      new commands.Checkout(),
+      new reusable.ReusedCommand(installYarnCmd),
+      new reusable.ReusedCommand(workspaceInstallCommand),
+      new commands.workspace.Attach({ at: '.' }),
+      new commands.Run({
+        name: 'Check License',
+        command: 'yarn nx run << parameters.nx-project >>:lint-license',
+      }),
+      new commands.Run({
+        name: 'Run Prettier and ESLint',
+        command: 'yarn nx lint << parameters.nx-project >>',
+      }),
+      new commands.Run({
+        name: 'Run unit tests',
+        command: 'yarn nx test << parameters.nx-project >> --coverage --maxWorkers=<< parameters.max-workers >>',
+      }),
+      new reusable.ReusedCommand(notifyOnFailureCommand),
+      // For Sonar analysis
+      new commands.workspace.Persist({
+        root: '.',
+        paths: ['<< parameters.apim-ui-project >>/coverage/lcov.info'],
+      }),
+      // For direct access in CircleCI UI
+      new commands.StoreArtifacts({
+        path: '<< parameters.apim-ui-project >>/coverage/lcov.info',
+      }),
+      // For Test tab in CircleCI UI
+      new commands.StoreTestResults({
+        path: '<< parameters.apim-ui-project >>/coverage/junit.xml',
+      }),
+    ];
+
+    return new reusable.ParameterizedJob(
+      WebuiLintTestJob.jobNameNx,
+      NodeLtsExecutor.create('<< parameters.resource_class >>'),
+      WebuiLintTestJob.customParametersListNx,
+      steps,
+    );
+  }
+
+  public static createNxLibs(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
+    const installYarnCmd = InstallYarnCommand.get();
+    dynamicConfig.addReusableCommand(installYarnCmd);
+
+    const workspaceInstallCommand = WorkspaceInstallCommand.get();
+    dynamicConfig.addReusableCommand(workspaceInstallCommand);
+
+    const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
+    dynamicConfig.addReusableCommand(notifyOnFailureCommand);
+
+    const steps: Command[] = [
+      new commands.Checkout(),
+      new reusable.ReusedCommand(installYarnCmd),
+      new reusable.ReusedCommand(workspaceInstallCommand),
+      new commands.workspace.Attach({ at: '.' }),
+      new commands.Run({
+        name: 'Lint APIM Libs (affected)',
+        command: 'yarn nx affected -t lint --exclude=console,portal-next',
+      }),
+      new commands.Run({
+        name: 'Test APIM Libs (affected)',
+        command: 'yarn nx affected -t test --exclude=console,portal-next --coverage --maxWorkers=2',
+      }),
+      new reusable.ReusedCommand(notifyOnFailureCommand),
+      // Store artifacts and test results for markdown
+      new commands.workspace.Persist({
+        root: '.',
+        paths: ['gravitee-apim-webui-libs/gravitee-markdown/coverage/lcov.info'],
+      }),
+      new commands.StoreArtifacts({
+        path: 'gravitee-apim-webui-libs/gravitee-markdown/coverage/lcov.info',
+      }),
+      new commands.StoreTestResults({
+        path: 'gravitee-apim-webui-libs/gravitee-markdown/coverage/junit.xml',
+      }),
+      // Store artifacts and test results for dashboard
+      new commands.workspace.Persist({
+        root: '.',
+        paths: ['gravitee-apim-webui-libs/gravitee-dashboard/coverage/lcov.info'],
+      }),
+      new commands.StoreArtifacts({
+        path: 'gravitee-apim-webui-libs/gravitee-dashboard/coverage/lcov.info',
+      }),
+      new commands.StoreTestResults({
+        path: 'gravitee-apim-webui-libs/gravitee-dashboard/coverage/junit.xml',
+      }),
+    ];
+
+    return new Job('job-webui-libs-lint-test', NodeLtsExecutor.create('medium'), steps);
   }
 }

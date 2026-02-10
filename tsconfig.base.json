@@ -14,11 +14,7 @@
         "skipLibCheck": true,
         "skipDefaultLibCheck": true,
         "allowSyntheticDefaultImports": true,
-        "baseUrl": ".",
-        "paths": {
-            "@gravitee/gravitee-dashboard": ["gravitee-apim-webui-libs/gravitee-dashboard/src/public-api.ts"],
-            "@gravitee/gravitee-markdown": ["gravitee-apim-webui-libs/gravitee-markdown/src/public-api.ts"]
-        }
+        "baseUrl": "."
     },
     "exclude": ["node_modules", "tmp"]
 }

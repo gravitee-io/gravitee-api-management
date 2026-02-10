@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use 'gravitee-markdown' as gmd;
+@use '@gravitee/gravitee-markdown' as gmd;
 @use './theme' as theme;
-@use 'gravitee-markdown/src/lib/scss/theme' as gmd-theme;
+@use '@gravitee/gravitee-markdown/src/lib/scss/theme' as gmd-theme;
 
 :root {
   @include gmd.theme-overrides(

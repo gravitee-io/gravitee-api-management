@@ -26,6 +26,13 @@ parameters:
     default: /home/circleci/project/pom.xml
     description: Path to pom.xml with APIM version
 commands:
+  cmd-install-yarn:
+    steps:
+      - run:
+          name: Enable Corepack and Set Yarn Version
+          command: |-
+            corepack enable || sudo corepack enable
+                    yarn set version 4.1.1
   cmd-notify-on-failure:
     steps:
       - keeper/env-export:
@@ -43,12 +50,13 @@ jobs:
     resource_class: small
     steps:
       - checkout
+      - cmd-install-yarn
       - keeper/env-export:
           secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
           var-name: DANGER_GITHUB_API_TOKEN
       - run:
           name: Run Danger JS
-          command: cd .circleci/danger && yarn run danger
+          command: cd .circleci/danger && yarn install && yarn run danger
   job-test-apim-charts:
     parameters:
       helmClientVersion:

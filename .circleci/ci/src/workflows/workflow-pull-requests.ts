@@ -312,8 +312,20 @@ export class PullRequestsWorkflow {
       }
     }
 
+    // Lint & Test APIM Libs
+    if (!filterJobs || shouldBuildWebuiLibs(environment.changedFiles)) {
+      const webuiLibsLintTestJob = WebuiLintTestJob.createNxLibs(dynamicConfig, environment);
+      dynamicConfig.addJob(webuiLibsLintTestJob);
+      jobs.push(
+        new workflow.WorkflowJob(webuiLibsLintTestJob, {
+          name: 'Lint & test APIM Libs',
+          context: config.jobContext,
+        }),
+      );
+    }
+
     if (!filterJobs || shouldBuildConsole(environment.changedFiles)) {
-      const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig, environment);
+      const webuiLintTestJob = WebuiLintTestJob.createNx(dynamicConfig, environment);
       dynamicConfig.addJob(webuiLintTestJob);
 
       const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment);
@@ -333,7 +345,9 @@ export class PullRequestsWorkflow {
           name: 'Lint & test APIM Console',
           context: config.jobContext,
           'apim-ui-project': config.components.console.project,
+          'nx-project': 'console',
           resource_class: 'xlarge',
+          'max-workers': '4',
         }),
         new workflow.WorkflowJob(consoleWebuiBuildJob, {
           name: 'Build APIM Console',
@@ -380,6 +394,9 @@ export class PullRequestsWorkflow {
     }
 
     if (!filterJobs || shouldBuildPortal(environment.changedFiles)) {
+      const webuiLintTestJobNx = WebuiLintTestJob.createNx(dynamicConfig, environment);
+      dynamicConfig.addJob(webuiLintTestJobNx);
+
       const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(webuiLintTestJob);
 
@@ -390,10 +407,12 @@ export class PullRequestsWorkflow {
       dynamicConfig.addJob(sonarCloudAnalysisJob);
 
       jobs.push(
-        new workflow.WorkflowJob(webuiLintTestJob, {
+        new workflow.WorkflowJob(webuiLintTestJobNx, {
           name: 'Lint & test APIM Portal Next',
           context: config.jobContext,
           'apim-ui-project': config.components.portal.next.project,
+          'nx-project': 'portal-next',
+          'max-workers': '2',
         }),
         new workflow.WorkflowJob(webuiLintTestJob, {
           name: 'Lint & test APIM Portal',
@@ -636,6 +655,10 @@ function shouldBuildAll(changedFiles: string[]): boolean {
 
 function shouldBuildHelm(changedFiles: string[]): boolean {
   return shouldBuildAll(changedFiles) || changedFiles.some((file) => file.includes('helm'));
+}
+
+function shouldBuildWebuiLibs(changedFiles: string[]): boolean {
+  return shouldBuildAll(changedFiles) || changedFiles.some((file) => file.includes('gravitee-apim-webui-libs'));
 }
 
 function shouldBuildConsole(changedFiles: string[]): boolean {
