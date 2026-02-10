@@ -295,6 +295,9 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
             // Portal Menu Links
             .requestMatchers(HttpMethod.GET, uriPrefix + "/portal-menu-links")
             .permitAll()
+            // Portal Navigation Items
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/portal-navigation-items/**")
+            .permitAll()
             /* Others requests
              * i.e. :
              *   - /auth/login
