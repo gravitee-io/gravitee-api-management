@@ -197,7 +197,7 @@ public interface MembershipService {
     void transferApiOwnership(
         ExecutionContext executionContext,
         String apiId,
-        MembershipMember member,
+        MembershipMember newApiOwnerMember,
         List<RoleEntity> newPrimaryOwnerRoles
     );
 
