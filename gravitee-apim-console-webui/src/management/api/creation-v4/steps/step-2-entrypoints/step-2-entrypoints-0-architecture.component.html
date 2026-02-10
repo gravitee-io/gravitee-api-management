@@ -125,13 +125,13 @@
               </div>
             </gio-selection-list-option-layout-body>
           </gio-selection-list-option-layout>
-          <div *ngIf="isMissingMessageReactor$ | async">
+          @if (isMissingLlmProxyReactor$ | async) {
             <gio-license-banner
               [license]="license$ | async"
               [isOEM]="isOEM$ | async"
-              (onRequestUpgrade)="onRequestMessageUpgrade()"
+              (onRequestUpgrade)="onRequestLlmProxyUpgrade()"
             ></gio-license-banner>
-          </div>
+          }
         </mat-radio-button>
       </mat-radio-group>
 
