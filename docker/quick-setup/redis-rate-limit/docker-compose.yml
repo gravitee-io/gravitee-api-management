@@ -14,167 +14,167 @@
 # limitations under the License.
 #
 
-version: '3.8'
+version: "3.8"
 
 networks:
-  frontend:
-    name: frontend
-  storage:
-    name: storage
+    frontend:
+        name: frontend
+    storage:
+        name: storage
 
 volumes:
-  data-elasticsearch:
-  data-mongo:
-  data-redis:
-  data-redis-client:
+    data-elasticsearch:
+    data-mongo:
+    data-redis:
+    data-redis-client:
 
 services:
-  mongodb:
-    image: mongo:${MONGODB_VERSION:-6.0}
-    container_name: gio_apim_mongodb
-    restart: always
-    volumes:
-      - data-mongo:/data/db
-      - ./.logs/apim-mongodb:/var/log/mongodb
-    healthcheck:
-      test: mongosh --eval 'db.runCommand({serverStatus:1}).ok' --quiet | grep 1
-      interval: 5s
-      timeout: 3s
-      retries: 10
-    networks:
-      - storage
+    mongodb:
+        image: mongo:${MONGODB_VERSION:-6.0}
+        container_name: gio_apim_mongodb
+        restart: always
+        volumes:
+            - data-mongo:/data/db
+            - ./.logs/apim-mongodb:/var/log/mongodb
+        healthcheck:
+            test: mongosh --eval 'db.runCommand({serverStatus:1}).ok' --quiet | grep 1
+            interval: 5s
+            timeout: 3s
+            retries: 10
+        networks:
+            - storage
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.6.2}
-    container_name: gio_apim_elasticsearch
-    restart: always
-    volumes:
-      - data-elasticsearch:/usr/share/elasticsearch/data
-    environment:
-      - http.host=0.0.0.0
-      - transport.host=0.0.0.0
-      - xpack.security.enabled=false
-      - cluster.name=elasticsearch
-      - bootstrap.memory_lock=true
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile: 65536
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s" ]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-    networks:
-      - storage
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.6.2}
+        container_name: gio_apim_elasticsearch
+        restart: always
+        volumes:
+            - data-elasticsearch:/usr/share/elasticsearch/data
+        environment:
+            - http.host=0.0.0.0
+            - transport.host=0.0.0.0
+            - xpack.security.enabled=false
+            - cluster.name=elasticsearch
+            - bootstrap.memory_lock=true
+            - discovery.type=single-node
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+            nofile: 65536
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s"]
+            interval: 5s
+            timeout: 3s
+            retries: 10
+        networks:
+            - storage
 
-  redis_rate_limit:
-    image: redis:7.4-alpine
-    container_name: gio_redis_ratelimit
-    restart: always
-    command: redis-server --rename-command FLUSHDB "" --rename-command FLUSHALL ""
-    ports:
-      - "6379:6379"
-    volumes:
-      - data-redis:/data
-    networks:
-      - storage
+    redis_rate_limit:
+        image: redis:7.4-alpine
+        container_name: gio_redis_ratelimit
+        restart: always
+        command: redis-server --rename-command FLUSHDB "" --rename-command FLUSHALL ""
+        ports:
+            - "6379:6379"
+        volumes:
+            - data-redis:/data
+        networks:
+            - storage
 
-  redis_client:
-    image: redislabs/redisinsight:latest
-    container_name: gio_redis_client
-    ports:
-      - "5540:5540"
-    depends_on:
-      - redis_rate_limit
-    volumes:
-      - data-redis-client:/db
+    redis_client:
+        image: redislabs/redisinsight:latest
+        container_name: gio_redis_client
+        ports:
+            - "5540:5540"
+        depends_on:
+            - redis_rate_limit
+        volumes:
+            - data-redis-client:/db
 
-  gateway:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}
-    container_name: gio_apim_gateway
-    restart: always
-    ports:
-      - "8082:8082"
-    depends_on:
-      mongodb:
-        condition: service_started
-      elasticsearch:
-        condition: service_healthy
-      redis_rate_limit:
-        condition: service_started
-    links:
-      - "redis_rate_limit:redis-rate-limit"
-    volumes:
-      - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
-      - ./.plugins:/opt/graviteeio-gateway/plugins-ext
-      - ./.license:/opt/graviteeio-gateway/license
-    environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_ratelimit_type=redis
-      - gravitee_ratelimit_redis_host=redis-rate-limit
-      - gravitee_ratelimit_redis_port=6379
-      - gravitee_ratelimit_redis_timeout=2000
-      - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
-      - gravitee_plugins_path_0=$${gravitee.home}/plugins
-      - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext
-    networks:
-      - storage
-      - frontend
+    gateway:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}
+        container_name: gio_apim_gateway
+        restart: always
+        ports:
+            - "8082:8082"
+        depends_on:
+            mongodb:
+                condition: service_started
+            elasticsearch:
+                condition: service_healthy
+            redis_rate_limit:
+                condition: service_started
+        links:
+            - "redis_rate_limit:redis-rate-limit"
+        volumes:
+            - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
+            - ./.plugins:/opt/graviteeio-gateway/plugins-ext
+            - ./.license:/opt/graviteeio-gateway/license
+        environment:
+            - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+            - gravitee_ratelimit_type=redis
+            - gravitee_ratelimit_redis_host=redis-rate-limit
+            - gravitee_ratelimit_redis_port=6379
+            - gravitee_ratelimit_redis_timeout=2000
+            - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+            - gravitee_plugins_path_0=$${gravitee.home}/plugins
+            - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext
+        networks:
+            - storage
+            - frontend
 
-  management_api:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_VERSION:-latest}
-    container_name: gio_apim_management_api
-    restart: always
-    ports:
-      - "8083:8083"
-    links:
-      - mongodb
-      - elasticsearch
-    depends_on:
-      mongodb:
-        condition: service_started
-      elasticsearch:
-        condition: service_healthy
-    volumes:
-      - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
-      - ./.license:/opt/graviteeio-management-api/license
-    environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
-    networks:
-      - storage
-      - frontend
+    management_api:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_VERSION:-latest}
+        container_name: gio_apim_management_api
+        restart: always
+        ports:
+            - "8083:8083"
+        links:
+            - mongodb
+            - elasticsearch
+        depends_on:
+            mongodb:
+                condition: service_started
+            elasticsearch:
+                condition: service_healthy
+        volumes:
+            - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
+            - ./.license:/opt/graviteeio-management-api/license
+        environment:
+            - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+            - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
+        networks:
+            - storage
+            - frontend
 
-  management_ui:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_VERSION:-latest}
-    container_name: gio_apim_management_ui
-    restart: always
-    ports:
-      - "8084:8080"
-    depends_on:
-      - management_api
-    environment:
-      - MGMT_API_URL=http://localhost:8083/management/
-    volumes:
-      - ./.logs/apim-management-ui:/var/log/nginx
-    networks:
-      - frontend
+    management_ui:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_VERSION:-latest}
+        container_name: gio_apim_management_ui
+        restart: always
+        ports:
+            - "8084:8080"
+        depends_on:
+            - management_api
+        environment:
+            - MGMT_API_URL=http://localhost:8083/management/
+        volumes:
+            - ./.logs/apim-management-ui:/var/log/nginx
+        networks:
+            - frontend
 
-  portal_ui:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_VERSION:-latest}
-    container_name: gio_apim_portal_ui
-    restart: always
-    ports:
-      - "8085:8080"
-    depends_on:
-      - management_api
-    environment:
-      - PORTAL_API_URL=http://localhost:8083/portal
-    volumes:
-      - ./.logs/apim-portal-ui:/var/log/nginx
-    networks:
-      - frontend
+    portal_ui:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_VERSION:-latest}
+        container_name: gio_apim_portal_ui
+        restart: always
+        ports:
+            - "8085:8080"
+        depends_on:
+            - management_api
+        environment:
+            - PORTAL_API_URL=http://localhost:8083/portal
+        volumes:
+            - ./.logs/apim-portal-ui:/var/log/nginx
+        networks:
+            - frontend
