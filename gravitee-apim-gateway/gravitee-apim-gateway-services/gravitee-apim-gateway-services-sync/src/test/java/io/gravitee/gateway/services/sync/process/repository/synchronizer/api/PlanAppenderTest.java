@@ -63,7 +63,7 @@ class PlanAppenderTest {
 
     @BeforeEach
     public void beforeEach() {
-        cut = new PlanAppender(objectMapper, planRepository, gatewayConfiguration);
+        cut = new PlanAppender(objectMapper, planRepository, gatewayConfiguration, null);
     }
 
     @Nested

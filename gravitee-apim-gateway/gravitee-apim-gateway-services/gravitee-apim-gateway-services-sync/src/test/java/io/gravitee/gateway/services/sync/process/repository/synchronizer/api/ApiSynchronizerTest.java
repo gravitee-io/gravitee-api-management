@@ -124,13 +124,14 @@ class ApiSynchronizerTest {
             eventsFetcher,
             apiManager,
             new ApiMapper(objectMapper, new EnvironmentService(environmentRepository, organizationRepository)),
-            new PlanAppender(objectMapper, planRepository, gatewayConfiguration),
+            new PlanAppender(objectMapper, planRepository, gatewayConfiguration, null),
             new SubscriptionAppender(
                 subscriptionRepository,
                 new SubscriptionMapper(
                     objectMapper,
                     org.mockito.Mockito.mock(io.gravitee.gateway.handlers.api.registry.ApiProductRegistry.class)
-                )
+                ),
+                org.mockito.Mockito.mock(io.gravitee.gateway.handlers.api.registry.ApiProductRegistry.class)
             ),
             new ApiKeyAppender(apiKeyRepository, new ApiKeyMapper()),
             deployerFactory,

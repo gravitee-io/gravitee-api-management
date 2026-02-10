@@ -81,9 +81,13 @@ public class ApiKeyAppender {
         final Set<String> environments
     ) {
         try {
-            Map<String, Subscription> subscriptionsById = subscriptions.stream().collect(Collectors.toMap(Subscription::getId, s -> s));
+            // Group subscriptions by ID to handle exploded API Product subscriptions (multiple subscriptions with same ID for different APIs)
+            Map<String, List<Subscription>> subscriptionsByIdMulti = subscriptions
+                .stream()
+                .collect(Collectors.groupingBy(Subscription::getId));
+
             ApiKeyCriteria.ApiKeyCriteriaBuilder criteriaBuilder = ApiKeyCriteria.builder()
-                .subscriptions(subscriptionsById.keySet())
+                .subscriptions(subscriptionsByIdMulti.keySet())
                 .environments(environments);
             if (initialSync) {
                 criteriaBuilder.includeRevoked(false).expireAfter(Instant.now().toEpochMilli()).includeWithoutExpiration(true);
@@ -100,9 +104,15 @@ public class ApiKeyAppender {
                     apiKey
                         .getSubscriptions()
                         .stream()
-                        .map(subscriptionsById::get)
-                        .filter(Objects::nonNull)
-                        .map(subscription -> apiKeyMapper.to(apiKey, subscription))
+                        .flatMap(subscriptionId -> {
+                            // Get all exploded subscriptions for this ID (handles API Product subscriptions)
+                            List<Subscription> subsForId = subscriptionsByIdMulti.get(subscriptionId);
+                            if (subsForId == null || subsForId.isEmpty()) {
+                                return java.util.stream.Stream.empty();
+                            }
+                            // Create an API key for each exploded subscription
+                            return subsForId.stream().map(subscription -> apiKeyMapper.to(apiKey, subscription));
+                        })
                 )
                 .collect(groupingBy(ApiKey::getApi));
         } catch (Exception ex) {
