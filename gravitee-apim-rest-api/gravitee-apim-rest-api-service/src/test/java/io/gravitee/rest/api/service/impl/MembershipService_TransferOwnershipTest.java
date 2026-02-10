@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -404,5 +405,111 @@ public class MembershipService_TransferOwnershipTest {
 
         // Verify that removeGroup was called with the GROUP_ID (not the membership ID)
         verify(apiGroupService).removeGroup(EXECUTION_CONTEXT, API_ID, GROUP_ID);
+    }
+
+    @Test
+    public void shouldDoNothingWhenTransferringOwnershipToSameOwner() throws TechnicalException {
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId(API_PRIMARY_OWNER_ROLE_ID);
+        poRole.setScope(RoleScope.API);
+        poRole.setName(SystemRole.PRIMARY_OWNER.name());
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION_ID, RoleScope.API)).thenReturn(poRole);
+        when(roleService.findScopeByMembershipReferenceType(any())).thenReturn(RoleScope.API);
+
+        // Current primary owner is USER_ID
+        Membership userPoMembership = new Membership();
+        userPoMembership.setReferenceType(MembershipReferenceType.API);
+        userPoMembership.setRoleId(API_PRIMARY_OWNER_ROLE_ID);
+        userPoMembership.setReferenceId(API_ID);
+        userPoMembership.setMemberId(USER_ID);
+        userPoMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.USER);
+
+        when(membershipRepository.findByReferenceAndRoleId(MembershipReferenceType.API, API_ID, API_PRIMARY_OWNER_ROLE_ID)).thenReturn(
+            Set.of(userPoMembership)
+        );
+
+        // Attempt to transfer ownership to the same user (USER_ID)
+        membershipService.transferApiOwnership(
+            EXECUTION_CONTEXT,
+            API_ID,
+            new MembershipService.MembershipMember(USER_ID, null, MembershipMemberType.USER),
+            List.of(newPrimaryOwnerRole)
+        );
+
+        // Verify no membership was created (early return)
+        verify(membershipRepository, never()).create(any());
+    }
+
+    @Test
+    public void shouldFilterOutPrimaryOwnerRoleWhenAssigningNewRolesToPreviousOwner() throws TechnicalException {
+        String newOwnerId = "new-owner-id";
+
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId(API_PRIMARY_OWNER_ROLE_ID);
+        poRole.setScope(RoleScope.API);
+        poRole.setName(SystemRole.PRIMARY_OWNER.name());
+
+        RoleEntity userRole = new RoleEntity();
+        userRole.setId(USER_ROLE_ID);
+        userRole.setName(USER_ROLE_NAME);
+        userRole.setScope(RoleScope.API);
+
+        // This should be filtered out
+        RoleEntity primaryOwnerRoleInList = new RoleEntity();
+        primaryOwnerRoleInList.setId("another-po-role-id");
+        primaryOwnerRoleInList.setName(SystemRole.PRIMARY_OWNER.name());
+        primaryOwnerRoleInList.setScope(RoleScope.API);
+
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORGANIZATION_ID)).thenReturn(
+            Optional.of(poRole)
+        );
+        when(roleService.findByScopeAndName(RoleScope.API, USER_ROLE_NAME, ORGANIZATION_ID)).thenReturn(Optional.of(userRole));
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION_ID, RoleScope.API)).thenReturn(poRole);
+        when(roleService.findScopeByMembershipReferenceType(any())).thenReturn(RoleScope.API);
+        lenient().when(roleService.findById(API_PRIMARY_OWNER_ROLE_ID)).thenReturn(poRole);
+
+        UserEntity newOwner = new UserEntity();
+        newOwner.setId(newOwnerId);
+        lenient().when(userService.findByIds(EXECUTION_CONTEXT, Collections.singletonList(newOwnerId), false)).thenReturn(Set.of(newOwner));
+        lenient().when(userService.findById(EXECUTION_CONTEXT, newOwnerId)).thenReturn(newOwner);
+
+        // Current primary owner is USER_ID
+        Membership userPoMembership = new Membership();
+        userPoMembership.setReferenceType(MembershipReferenceType.API);
+        userPoMembership.setRoleId(API_PRIMARY_OWNER_ROLE_ID);
+        userPoMembership.setReferenceId(API_ID);
+        userPoMembership.setMemberId(USER_ID);
+        userPoMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.USER);
+
+        when(membershipRepository.findByReferenceAndRoleId(MembershipReferenceType.API, API_ID, API_PRIMARY_OWNER_ROLE_ID)).thenReturn(
+            Set.of(userPoMembership)
+        );
+
+        GenericApiEntity mockApi = mock(GenericApiEntity.class);
+        when(apiSearchService.findGenericById(EXECUTION_CONTEXT, API_ID, false, false, true)).thenReturn(mockApi);
+        when(apiMetadataService.fetchMetadataForApi(EXECUTION_CONTEXT, mockApi)).thenReturn(mockApi);
+
+        // Transfer ownership to new owner, with newPrimaryOwnerRoles containing both a USER role and a PRIMARY_OWNER role
+        membershipService.transferApiOwnership(
+            EXECUTION_CONTEXT,
+            API_ID,
+            new MembershipService.MembershipMember(newOwnerId, null, MembershipMemberType.USER),
+            List.of(userRole, primaryOwnerRoleInList)
+        );
+
+        // Verify memberships were created
+        ArgumentCaptor<Membership> membershipCaptor = ArgumentCaptor.forClass(Membership.class);
+        verify(membershipRepository, times(2)).create(membershipCaptor.capture());
+        assertThat(membershipCaptor.getAllValues()).hasSize(2);
+
+        // First is the new primary owner membership
+        Membership newPoMembership = membershipCaptor.getAllValues().get(0);
+        assertThat(newPoMembership.getRoleId()).isEqualTo(API_PRIMARY_OWNER_ROLE_ID);
+        assertThat(newPoMembership.getMemberId()).isEqualTo(newOwnerId);
+
+        // Second is the previous owner getting USER role only (PRIMARY_OWNER should be filtered out)
+        Membership previousOwnerMembership = membershipCaptor.getAllValues().get(1);
+        assertThat(previousOwnerMembership.getRoleId()).isEqualTo(USER_ROLE_ID);
+        assertThat(previousOwnerMembership.getMemberId()).isEqualTo(USER_ID);
     }
 }
