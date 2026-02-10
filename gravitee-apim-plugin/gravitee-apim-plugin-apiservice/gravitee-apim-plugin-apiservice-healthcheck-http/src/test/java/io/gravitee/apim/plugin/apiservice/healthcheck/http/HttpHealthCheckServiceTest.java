@@ -21,6 +21,7 @@ import static io.gravitee.apim.plugin.apiservice.healthcheck.http.HttpHealthChec
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -117,6 +118,7 @@ public class HttpHealthCheckServiceTest {
     public void setup() {
         when(deploymentContext.getComponent(EndpointManager.class)).thenReturn(endpointManager);
         when(deploymentContext.getComponent(PluginConfigurationHelper.class)).thenReturn(pluginConfigurationHelper);
+        lenient().when(gatewayConfig.healthCheckJitterInMs()).thenReturn(900);
 
         apiDefinition.setId(API_ID);
     }
