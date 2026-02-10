@@ -21,6 +21,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -29,6 +31,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author GraviteeSource Team
  */
 public class GatewayConfiguration implements InitializingBean {
+
+    private static final Logger log = LoggerFactory.getLogger(GatewayConfiguration.class);
 
     static final String SHARDING_TAGS_SYSTEM_PROPERTY = "tags";
     private static final String SHARDING_TAGS_SEPARATOR = ",";
@@ -46,11 +50,16 @@ public class GatewayConfiguration implements InitializingBean {
 
     private static final String ALLOW_OVERLAPPING_API_CONTEXTS_PROPERTY = "api.allowOverlappingContext";
 
+    static final String HEALTHCHECK_JITTER_PROPERTY = "services.healthcheck.jitterInMs";
+    static final int DEFAULT_HEALTHCHECK_JITTER_MS = 900;
+    private static final int MAX_HEALTHCHECK_JITTER_MS = 5000;
+
     private Optional<List<String>> shardingTags;
     private Optional<String> zone;
     private Optional<String> tenant;
     private Optional<List<String>> environments;
     private Optional<List<String>> organizations;
+    private int healthCheckJitterMs;
 
     @Autowired
     private Configuration configuration;
@@ -62,6 +71,7 @@ public class GatewayConfiguration implements InitializingBean {
         this.initOrganizations();
         this.initEnvironments();
         this.initVertxWebsocket();
+        this.initHealthCheckJitter();
     }
 
     private void initVertxWebsocket() {
@@ -155,6 +165,31 @@ public class GatewayConfiguration implements InitializingBean {
 
     public Optional<List<String>> environments() {
         return environments;
+    }
+
+    private void initHealthCheckJitter() {
+        int value = configuration.getProperty(HEALTHCHECK_JITTER_PROPERTY, Integer.class, DEFAULT_HEALTHCHECK_JITTER_MS);
+        if (value < 0 || value > MAX_HEALTHCHECK_JITTER_MS) {
+            log.warn(
+                "Invalid {} value: {}. Must be between 0 and {}. Falling back to default: {}.",
+                HEALTHCHECK_JITTER_PROPERTY,
+                value,
+                MAX_HEALTHCHECK_JITTER_MS,
+                DEFAULT_HEALTHCHECK_JITTER_MS
+            );
+            value = DEFAULT_HEALTHCHECK_JITTER_MS;
+        }
+        healthCheckJitterMs = value;
+    }
+
+    /**
+     * Maximum scheduling offset in milliseconds applied per API.
+     * Health check timers are randomly shifted within [0, JITTER_MS] to prevent
+     * large numbers of checks from executing at the same cron boundary, which could
+     * otherwise overload system resources and temporarily increase API response times.
+     */
+    public int healthCheckJitterInMs() {
+        return healthCheckJitterMs;
     }
 
     public boolean hasMatchingTags(Set<String> tags) {

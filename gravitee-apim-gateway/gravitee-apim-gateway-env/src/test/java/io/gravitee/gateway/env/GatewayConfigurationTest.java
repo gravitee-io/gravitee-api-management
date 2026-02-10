@@ -46,6 +46,7 @@ public class GatewayConfigurationTest {
         System.clearProperty(GatewayConfiguration.MULTI_TENANT_SYSTEM_PROPERTY);
         System.clearProperty("vertx.disableWebsockets");
         when(configuration.getProperty("http.websocket.enabled", Boolean.class, false)).thenReturn(false);
+        when(configuration.getProperty("services.healthcheck.jitterInMs", Integer.class, 900)).thenReturn(900);
     }
 
     @Test
