@@ -1425,6 +1425,19 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.entrypoint</groupId>
+                    <artifactId>gravitee-entrypoint-a2a-proxy</artifactId>
+                    <version>${gravitee-reactor-a2a-proxy.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
                 <!-- Endpoints -->
                 <dependency>
@@ -1531,6 +1544,20 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.endpoint</groupId>
+                    <artifactId>gravitee-endpoint-a2a-proxy</artifactId>
+                    <version>${gravitee-reactor-a2a-proxy.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
 
                 <!-- Reporters -->
                 <dependency>
@@ -1830,6 +1857,19 @@
                     <groupId>com.graviteesource.reactor</groupId>
                     <artifactId>gravitee-reactor-llm-proxy</artifactId>
                     <version>${gravitee-reactor-llm-proxy.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.reactor</groupId>
+                    <artifactId>gravitee-reactor-a2a-proxy</artifactId>
+                    <version>${gravitee-reactor-a2a-proxy.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
