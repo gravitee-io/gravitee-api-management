@@ -62,6 +62,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -190,7 +191,10 @@ public class HttpHealthCheckService implements ApiService {
         final AtomicLong errorCount = new AtomicLong(0);
         final AtomicReference<HttpHealthCheckExecutionContext> lastCtx = new AtomicReference<>();
 
-        return Observable.defer(() -> Observable.timer(cron.nextExecutionIn(), TimeUnit.MILLISECONDS))
+        final int jitterMs = gatewayConfiguration.healthCheckJitterInMs();
+        final int spreadOffsetMs = Math.floorMod(Objects.hash(api.getId(), endpoint.getDefinition().getName()), jitterMs + 1);
+
+        return Observable.defer(() -> Observable.timer(cron.nextExecutionIn() + spreadOffsetMs, TimeUnit.MILLISECONDS))
             .switchMapCompletable(aLong -> {
                 final HttpHealthCheckExecutionContext ctx = new HttpHealthCheckExecutionContext(hcConfiguration, deploymentContext);
                 lastCtx.set(ctx);
