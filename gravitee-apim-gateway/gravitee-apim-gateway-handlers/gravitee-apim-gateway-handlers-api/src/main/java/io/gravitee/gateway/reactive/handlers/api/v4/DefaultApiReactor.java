@@ -161,6 +161,8 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
     protected List<Acceptor<?>> acceptors;
     protected final LogGuardService logGuardService;
     private final ApiProductRegistry apiProductRegistry;
+    private final ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory;
+    private PolicyManager apiProductPlanPolicyManager;
 
     public DefaultApiReactor(
         final Api api,
@@ -184,7 +186,8 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
         final HttpAcceptorFactory httpAcceptorFactory,
         final TracingContext tracingContext,
         final LogGuardService logGuardService,
-        final ApiProductRegistry apiProductRegistry
+        final ApiProductRegistry apiProductRegistry,
+        final ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory
     ) {
         // apiProductRegistry may be null when API Product support is not loaded
         super(
@@ -206,6 +209,7 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
         this.httpAcceptorFactory = httpAcceptorFactory;
         this.logGuardService = logGuardService;
         this.apiProductRegistry = apiProductRegistry;
+        this.apiProductPlanPolicyManagerFactory = apiProductPlanPolicyManagerFactory;
 
         this.defaultInvoker = endpointInvoker(endpointManager);
 
@@ -554,6 +558,14 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
         resourceLifecycleManager.start();
         policyManager.start();
 
+        // Create and start ApiProductPlanPolicyManager when API Product support is enabled
+        if (apiProductPlanPolicyManagerFactory != null) {
+            apiProductPlanPolicyManager = apiProductPlanPolicyManagerFactory.create(api);
+            if (apiProductPlanPolicyManager != null) {
+                apiProductPlanPolicyManager.start();
+            }
+        }
+
         // Create httpSecurityChain once policy manager has been started.
         refreshSecurityChainInternal();
 
@@ -609,7 +621,17 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
             return;
         }
         try {
-            this.httpSecurityChain = this.httpSecurityChain.refresh();
+            // Stop old ApiProductPlanPolicyManager, create new one, start it, then refresh chain
+            if (apiProductPlanPolicyManager != null) {
+                apiProductPlanPolicyManager.stop();
+            }
+            if (apiProductPlanPolicyManagerFactory != null) {
+                apiProductPlanPolicyManager = apiProductPlanPolicyManagerFactory.create(api);
+                if (apiProductPlanPolicyManager != null) {
+                    apiProductPlanPolicyManager.start();
+                }
+            }
+            refreshSecurityChainInternal();
             log.debug("Security chain refreshed for API [{}] due to API Product change", api.getId());
         } catch (Exception e) {
             log.warn("Failed to refresh security chain for API [{}] on API Product change", api.getId(), e);
@@ -645,7 +667,8 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
             policyManager,
             ExecutionPhase.REQUEST,
             api.getEnvironmentId(),
-            apiProductRegistry
+            apiProductRegistry,
+            apiProductPlanPolicyManager
         );
 
         // Re-apply hooks if they were set
@@ -705,6 +728,9 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
 
         entrypointConnectorResolver.stop();
         endpointManager.stop();
+        if (apiProductPlanPolicyManager != null) {
+            apiProductPlanPolicyManager.stop();
+        }
         policyManager.stop();
         resourceLifecycleManager.stop();
         tracingContext.stop();

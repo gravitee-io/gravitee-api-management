@@ -22,6 +22,7 @@ import static io.gravitee.repository.management.model.Subscription.Status.PENDIN
 import static java.util.stream.Collectors.groupingBy;
 
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -32,9 +33,10 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -46,6 +48,7 @@ public class SubscriptionAppender {
     private static final List<String> INCREMENTAL_STATUS = List.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name());
     private final SubscriptionRepository subscriptionRepository;
     private final SubscriptionMapper subscriptionMapper;
+    private final ApiProductRegistry apiProductRegistry;
 
     /**
      * Fetching subscriptions for given deployables
@@ -61,12 +64,33 @@ public class SubscriptionAppender {
             .stream()
             .collect(Collectors.toMap(ApiReactorDeployable::apiId, d -> d));
 
+        // Collect API plans
         List<String> allPlans = deployableByApi
             .values()
             .stream()
             .map(ApiReactorDeployable::subscribablePlans)
             .flatMap(Collection::stream)
             .collect(Collectors.toList());
+
+        // Also collect API Product plans for these APIs
+        deployableByApi.forEach((apiId, deployable) -> {
+            var envs = environments != null && !environments.isEmpty()
+                ? environments
+                : Optional.ofNullable(deployable.reactableApi())
+                    .map(a -> a.getEnvironmentId())
+                    .map(Set::of)
+                    .orElse(Set.of());
+            var productPlans = envs
+                .stream()
+                .flatMap(envId -> Stream.ofNullable(apiProductRegistry.getProductPlanEntriesForApi(apiId, envId)).flatMap(List::stream))
+                .map(e -> e.plan().getId())
+                .distinct()
+                .toList();
+            deployable.subscribablePlans().addAll(productPlans);
+            deployable.apiKeyPlans().addAll(productPlans);
+            allPlans.addAll(productPlans);
+        });
+
         if (!allPlans.isEmpty()) {
             Map<String, List<Subscription>> subscriptionsByApi = loadSubscriptions(initialSync, allPlans, environments);
             subscriptionsByApi.forEach((api, subscriptions) -> {
