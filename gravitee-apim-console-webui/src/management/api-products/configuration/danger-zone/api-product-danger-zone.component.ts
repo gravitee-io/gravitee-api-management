@@ -43,7 +43,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiProductV2Service } from '../../../../services-ngx/api-product-v2.service';
-import {ApiProduct} from "../../../../entities/management-api-v2/api-product";
+import { ApiProduct } from '../../../../entities/management-api-v2/api-product';
 
 @Component({
   selector: 'api-product-danger-zone',
@@ -70,8 +70,7 @@ export class ApiProductDangerZoneComponent implements OnInit, OnDestroy {
     private readonly apiProductV2Service: ApiProductV2Service,
   ) {}
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   ngOnDestroy(): void {
     this.unsubscribe$.next(true);
