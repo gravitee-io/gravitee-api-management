@@ -650,6 +650,9 @@ services:
 #      gc-pressure: 1 # Default is 15%
 
 
+#  healthcheck:
+#    jitterInMs: 900
+
   # Synchronization daemon used to keep the gateway state in sync with the configuration from the management repository
   # Be aware that, by disabling it, the gateway will not be sync with the configuration done through management API
   # and management UI
