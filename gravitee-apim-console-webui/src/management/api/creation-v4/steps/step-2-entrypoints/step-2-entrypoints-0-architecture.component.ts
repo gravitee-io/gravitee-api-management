@@ -47,9 +47,11 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
   public isMissingNativeKafkaReactor$: Observable<boolean>;
+  public isMissingLlmProxyReactor$: Observable<boolean>;
 
   private messageLicenseOptions = { feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_TRY_MESSAGE };
   private nativeKafkaLicenseOptions = { feature: ApimFeature.APIM_NATIVE_KAFKA_REACTOR, context: UTMTags.API_CREATION_TRY_MESSAGE };
+  private llmProxyLicenseOptions = { feature: ApimFeature.APIM_LLM_PROXY_REACTOR, context: UTMTags.API_CREATION_LLM_ENTRYPOINT };
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -71,6 +73,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
 
     this.isMissingMessageReactor$ = this.licenseService.isMissingFeature$(this.messageLicenseOptions.feature);
     this.isMissingNativeKafkaReactor$ = this.licenseService.isMissingFeature$(this.nativeKafkaLicenseOptions.feature);
+    this.isMissingLlmProxyReactor$ = this.licenseService.isMissingFeature$(this.llmProxyLicenseOptions.feature);
 
     this.license$ = this.licenseService.getLicense$();
     this.isOEM$ = this.licenseService.isOEM$();
@@ -218,5 +221,9 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
 
   public onRequestNativeKafkaUpgrade() {
     this.licenseService.openDialog(this.nativeKafkaLicenseOptions);
+  }
+
+  public onRequestLlmProxyUpgrade() {
+    this.licenseService.openDialog(this.llmProxyLicenseOptions);
   }
 }
