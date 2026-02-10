@@ -13,42 +13,59 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, inject, signal } from '@angular/core';
-import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { Component, computed, DestroyRef, effect, inject } from '@angular/core';
+import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
-import { MatOption, MatSelect } from '@angular/material/select';
-import { map } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import { merge } from 'rxjs';
+import { debounceTime, map } from 'rxjs/operators';
 
+import {
+  DropdownSearchComponent,
+  ResultsLoaderInput,
+  ResultsLoaderOutput,
+} from '../../../components/dropdown-search/dropdown-search.component';
 import { LoaderComponent } from '../../../components/loader/loader.component';
 import { PaginatedTableComponent, TableColumn } from '../../../components/paginated-table/paginated-table.component';
-import { SubscriptionMetadata, SubscriptionsResponse, SubscriptionStatusEnum } from '../../../entities/subscription';
-import { CapitalizeFirstPipe } from '../../../pipe/capitalize-first.pipe';
+import { SubscriptionMetadata, SubscriptionStatusEnum } from '../../../entities/subscription';
+import { ApiService } from '../../../services/api.service';
 import { ApplicationService } from '../../../services/application.service';
 import { SubscriptionService } from '../../../services/subscription.service';
+import { areFiltersEqual, parseArrayParam, parsePageParam, parseSizeParam, toTitleCase } from '../../../utils/common.utils';
+
+type SubscriptionFilters = {
+  apiIds: string[] | undefined;
+  applicationIds: string[] | undefined;
+  statuses: SubscriptionStatusEnum[] | null;
+  page: number;
+  size: number;
+};
 
 @Component({
   selector: 'app-subscriptions',
   standalone: true,
-  imports: [
-    MatButton,
-    MatFormField,
-    MatLabel,
-    MatSelect,
-    MatOption,
-    ReactiveFormsModule,
-    LoaderComponent,
-    CapitalizeFirstPipe,
-    PaginatedTableComponent,
-  ],
+  imports: [MatButton, ReactiveFormsModule, LoaderComponent, PaginatedTableComponent, DropdownSearchComponent],
   templateUrl: './subscriptions.component.html',
   styleUrl: './subscriptions.component.scss',
 })
 export default class SubscriptionsComponent {
+  private static readonly DEFAULT_PAGE_SIZE = 10;
+  private static readonly DEFAULT_PAGE = 1;
+  private static readonly MAX_PAGE_SIZE = 100;
+
   private subscriptionService = inject(SubscriptionService);
   private applicationService = inject(ApplicationService);
+  private apiService = inject(ApiService);
+  private router = inject(Router);
+  private activatedRoute = inject(ActivatedRoute);
+  private destroyRef = inject(DestroyRef);
+
   subscriptionStatusesList = Object.values(SubscriptionStatusEnum);
+  statusOptions = this.subscriptionStatusesList.map(status => ({
+    value: status,
+    label: toTitleCase(status),
+  }));
   tableColumns: TableColumn[] = [
     { id: 'api', label: 'Subscribed API' },
     { id: 'plan', label: 'Plan' },
@@ -57,95 +74,50 @@ export default class SubscriptionsComponent {
     { id: 'status', label: 'Status' },
   ];
 
-  // Form controls for filters
-  apiFilter = new FormControl<string | null>(null);
-  applicationFilter = new FormControl<string | null>(null);
+  // Form controls for filters (UI view of URL state)
+  apiFilter = new FormControl<string[] | null>(null);
+  applicationFilter = new FormControl<string[] | null>(null);
   statusFilter = new FormControl<SubscriptionStatusEnum[] | null>([]);
 
-  // Pagination state
-  pageSize = signal<number>(20);
-  currentPage = signal<number>(1);
+  private queryParams = toSignal(this.activatedRoute.queryParams, { initialValue: {} as Record<string, unknown> });
+
+  filters = computed(() => this.parseParamsToFilters(this.queryParams()));
+
+  pageSize = computed(() => this.filters().size);
+  currentPage = computed(() => this.filters().page);
 
   // Available options for filters
-  availableApplications = toSignal(this.applicationService.list(1, -1).pipe(map(response => response.data ?? [])));
+  private availableApplicationsResource = rxResource({
+    stream: () => this.applicationService.list(1, -1),
+  });
+  availableApplications = computed(() => this.availableApplicationsResource.value()?.data ?? []);
+  applicationOptions = computed(() =>
+    (this.availableApplications() ?? []).map(app => ({
+      value: app.id,
+      label: app.name,
+    })),
+  );
 
-  // Filter signals
-  private apiFilterSignal = toSignal(this.apiFilter.valueChanges.pipe(map(v => v ?? undefined)), {
-    initialValue: this.apiFilter.value ?? undefined,
-  });
-  private applicationFilterSignal = toSignal(this.applicationFilter.valueChanges.pipe(map(v => v ?? undefined)), {
-    initialValue: this.applicationFilter.value ?? undefined,
-  });
-  private statusFilterSignal = toSignal(this.statusFilter.valueChanges.pipe(map(v => v ?? [])), {
-    initialValue: this.statusFilter.value ?? [],
-  });
+  isLoadingSubscriptions = computed(() => this.subscriptionsResource.isLoading());
 
-  // Subscriptions Resource
   subscriptionsResource = rxResource({
-    params: () => ({
-      apiId: this.apiFilterSignal(),
-      applicationId: this.applicationFilterSignal(),
-      statuses: this.statusFilterSignal(),
-      size: this.pageSize(),
-      page: this.currentPage(),
-    }),
-    stream: (params: {
-      params: {
-        apiId?: string;
-        applicationId?: string;
-        statuses: SubscriptionStatusEnum[] | null;
-        size?: number;
-        page?: number;
-      };
-    }) => this.subscriptionService.list(params.params),
+    params: () => this.filters(),
+    stream: ({ params }) => this.subscriptionService.list(params),
   });
 
   totalElements = computed(() => {
-    const response = this.subscriptionsResource.value() as SubscriptionsResponse | undefined;
+    const response = this.subscriptionsResource.value();
     return response?.metadata?.['paginateMetaData']?.totalElements ?? response?.data?.length ?? 0;
   });
 
-  rows = computed(() => {
-    const response = this.subscriptionsResource.value() as SubscriptionsResponse | undefined;
-    if (!response?.data) {
-      return [];
-    }
-
-    const statusMap: Record<string, string> = {
-      ACCEPTED: 'Active',
-      PAUSED: 'Suspended',
-      CLOSED: 'Closed',
-      PENDING: 'Pending',
-      REJECTED: 'Rejected',
-    };
-
-    return response.data.map(sub => ({
-      id: sub.id,
-      api: this.retrieveMetadataName(sub.api, response.metadata),
-      plan: this.retrieveMetadataName(sub.plan, response.metadata),
-      application: this.retrieveMetadataName(sub.application, response.metadata),
-      created_at: sub.created_at ?? '',
-      status: statusMap[sub.status] ?? sub.status,
-    }));
-  });
-
-  availableApis = computed(() => {
-    const response = this.subscriptionsResource.value() as SubscriptionsResponse | undefined;
-    const apis: { id: string; name: string }[] = [];
-    if (response?.metadata) {
-      for (const [key, value] of Object.entries(response.metadata)) {
-        // APIs are identified by the presence of 'apiVersion' in their metadata
-        if (typeof value === 'object' && value !== null && 'apiVersion' in value && 'name' in value) {
-          apis.push({ id: key, name: value.name as string });
-        }
-      }
-    }
-    return apis;
-  });
-
   hasSubscriptions = computed(() => {
-    const response = this.subscriptionsResource.value() as SubscriptionsResponse | undefined;
-    const isFiltered = !!this.apiFilterSignal() || !!this.applicationFilterSignal() || (this.statusFilterSignal()?.length ?? 0) > 0;
+    const response = this.subscriptionsResource.value();
+    const { apiIds, applicationIds, statuses } = this.filters();
+    const isFiltered = (apiIds?.length ?? 0) > 0 || (applicationIds?.length ?? 0) > 0 || (statuses?.length ?? 0) > 0;
+
+    if (this.isLoadingSubscriptions()) {
+      return true;
+    }
 
     if (!isFiltered) {
       return (response?.data?.length ?? 0) > 0 || this.totalElements() > 0;
@@ -153,28 +125,127 @@ export default class SubscriptionsComponent {
     return true;
   });
 
-  retrieveMetadataName(id: string, metadata: SubscriptionMetadata | undefined): string {
+  rows = computed(() => {
+    const response = this.subscriptionsResource.value();
+    if (!response?.data) {
+      return [];
+    }
+
+    return response.data.map(sub => ({
+      id: sub.id,
+      api: this.retrieveMetadataName(sub.api, response.metadata),
+      plan: this.retrieveMetadataName(sub.plan, response.metadata),
+      application: this.retrieveMetadataName(sub.application, response.metadata),
+      created_at: sub.created_at ?? '',
+      status: toTitleCase(sub.status),
+    }));
+  });
+
+  constructor() {
+    this.setupUrlSync();
+  }
+
+  apiResultsLoader = ({ searchTerm, page }: ResultsLoaderInput) =>
+    this.apiService.search(page, 'all', searchTerm ?? '', 10).pipe(
+      map(
+        (response): ResultsLoaderOutput => ({
+          data: (response.data ?? []).map(api => ({ value: api.id, label: api.name })),
+          hasNextPage: (response.metadata?.pagination?.current_page ?? 1) < (response.metadata?.pagination?.total_pages ?? 1),
+        }),
+      ),
+    );
+
+  retrieveMetadataName(id: string, metadata?: SubscriptionMetadata): string {
     return metadata?.[id]?.name ?? id;
   }
 
   onPageChange(page: number): void {
-    this.currentPage.set(page);
+    this.updateQueryParams({ page });
   }
 
   onPageSizeChange(size: number): void {
-    this.pageSize.set(size);
-    // Reset to page 1 when page size changes
-    this.currentPage.set(1);
+    this.updateQueryParams({ size, page: 1 });
   }
 
   clearFilters(): void {
-    this.apiFilter.reset();
-    this.applicationFilter.reset();
-    this.statusFilter.reset();
-    this.currentPage.set(1);
+    this.updateQueryParams({
+      apiIds: null,
+      applicationIds: null,
+      statuses: null,
+      page: 1,
+    });
   }
 
-  get currentSelectedPage(): number {
-    return this.currentPage();
+  private setupUrlSync() {
+    effect(() => {
+      this.applyFiltersToForm(this.filters());
+    });
+
+    merge(this.apiFilter.valueChanges, this.applicationFilter.valueChanges, this.statusFilter.valueChanges)
+      .pipe(debounceTime(0), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.syncUrlToForm());
+  }
+
+  private applyFiltersToForm(filters: SubscriptionFilters) {
+    this.apiFilter.setValue(filters.apiIds ?? null, { emitEvent: false });
+    this.applicationFilter.setValue(filters.applicationIds ?? null, { emitEvent: false });
+    this.statusFilter.setValue(filters.statuses ?? [], { emitEvent: false });
+  }
+
+  private syncUrlToForm() {
+    const currentFilters = this.filters();
+    const apiIds = this.apiFilter.value ?? [];
+    const applicationIds = this.applicationFilter.value ?? [];
+    const statuses = this.statusFilter.value ?? [];
+
+    const nextFilters: SubscriptionFilters = {
+      apiIds: apiIds.length ? apiIds : undefined,
+      applicationIds: applicationIds.length ? applicationIds : undefined,
+      statuses: statuses.length ? statuses : null,
+      page: currentFilters.page,
+      size: currentFilters.size,
+    };
+
+    if (!areFiltersEqual(currentFilters, nextFilters)) {
+      this.updateQueryParams(this.toRouterQueryParams(nextFilters), true);
+    }
+  }
+
+  private updateQueryParams(queryParams: Record<string, unknown>, replaceUrl = false): void {
+    this.router.navigate([], {
+      relativeTo: this.activatedRoute,
+      queryParams,
+      queryParamsHandling: 'merge',
+      replaceUrl,
+    });
+  }
+
+  private parseParamsToFilters(params: Record<string, unknown>): SubscriptionFilters {
+    const apiIds = parseArrayParam(params['apiIds']);
+    const applicationIds = parseArrayParam(params['applicationIds']);
+    const statuses = this.parseStatusParam(params['statuses']);
+
+    return {
+      apiIds: apiIds.length ? apiIds : undefined,
+      applicationIds: applicationIds.length ? applicationIds : undefined,
+      statuses: statuses.length ? statuses : null,
+      page: parsePageParam(params['page'], SubscriptionsComponent.DEFAULT_PAGE),
+      size: parseSizeParam(params['size'], SubscriptionsComponent.DEFAULT_PAGE_SIZE, SubscriptionsComponent.MAX_PAGE_SIZE),
+    };
+  }
+
+  private toRouterQueryParams(filters: SubscriptionFilters): Record<string, unknown> {
+    return {
+      apiIds: filters.apiIds ?? null,
+      applicationIds: filters.applicationIds ?? null,
+      statuses: filters.statuses ?? null,
+      page: filters.page,
+      size: filters.size,
+    };
+  }
+
+  private parseStatusParam(param: unknown): SubscriptionStatusEnum[] {
+    const values = parseArrayParam(param);
+    return values.filter((v): v is SubscriptionStatusEnum => Object.values(SubscriptionStatusEnum).includes(v as SubscriptionStatusEnum));
   }
 }

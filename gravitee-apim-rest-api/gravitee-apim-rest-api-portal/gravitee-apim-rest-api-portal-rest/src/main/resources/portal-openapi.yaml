@@ -2007,6 +2007,8 @@ paths:
             parameters:
                 - $ref: "#/components/parameters/apiIdQueryParam"
                 - $ref: "#/components/parameters/applicationIdQueryParam"
+                - $ref: "#/components/parameters/apiIdsQueryParam"
+                - $ref: "#/components/parameters/applicationIdsQueryParam"
                 - $ref: "#/components/parameters/subscriptionStatusesQueryParam"
                 - $ref: "#/components/parameters/pageNumberParam"
                 - $ref: "#/components/parameters/pageSizeParam"
@@ -3383,16 +3385,38 @@ components:
             name: apiId
             in: query
             required: false
-            description: Id of an api.
+            deprecated: true
+            description: |
+                Id of an api. Deprecated. Use apiIds instead for multi-select filtering.
             schema:
                 type: string
         applicationIdQueryParam:
             name: applicationId
             in: query
             required: false
-            description: Id of an application.
+            deprecated: true
+            description: |
+                Id of an application. Deprecated. Use applicationIds instead for multi-select filtering.
             schema:
                 type: string
+        apiIdsQueryParam:
+            name: apiIds
+            in: query
+            required: false
+            description: List of API IDs to filter subscriptions.
+            schema:
+                type: array
+                items:
+                    type: string
+        applicationIdsQueryParam:
+            name: applicationIds
+            in: query
+            required: false
+            description: List of application IDs to filter subscriptions.
+            schema:
+                type: array
+                items:
+                    type: string
         mineQueryParam:
             name: mine
             in: query

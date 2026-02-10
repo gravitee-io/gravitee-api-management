@@ -204,7 +204,7 @@ export class ApplicationLogTableComponent implements OnInit {
     );
 
     this.applicationApis$ = this.subscriptionService
-      .list({ applicationId: this.application.id, size: -1, statuses: ['ACCEPTED', 'PAUSED'] })
+      .list({ applicationIds: [this.application.id], size: -1, statuses: ['ACCEPTED', 'PAUSED'] })
       .pipe(
         map(response => {
           const apiIds = [...new Set(response.data.map(s => s.api))];
