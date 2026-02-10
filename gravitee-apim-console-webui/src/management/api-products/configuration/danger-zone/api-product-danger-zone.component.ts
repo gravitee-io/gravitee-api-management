@@ -43,6 +43,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiProductV2Service } from '../../../../services-ngx/api-product-v2.service';
+import {ApiProduct} from "../../../../entities/management-api-v2/api-product";
 
 @Component({
   selector: 'api-product-danger-zone',
@@ -54,7 +55,7 @@ export class ApiProductDangerZoneComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   @Input()
-  public apiProduct: any; // TODO: Replace with proper ApiProduct type
+  public apiProduct: ApiProduct;
 
   @Output()
   public reloadDetails = new EventEmitter<void>();
@@ -70,12 +71,11 @@ export class ApiProductDangerZoneComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // TODO: Check permissions for read-only
   }
 
   ngOnDestroy(): void {
     this.unsubscribe$.next(true);
-    this.unsubscribe$.unsubscribe();
+    this.unsubscribe$.complete();
   }
 
   removeApis(): void {
@@ -86,7 +86,6 @@ export class ApiProductDangerZoneComponent implements OnInit, OnDestroy {
           title: 'Remove all APIs',
           content: 'Are you sure you want to remove all the APIs from this API Product?',
           confirmButton: 'Yes, remove them',
-          // warning: 'This operation is irreversible.',
         },
         role: 'alertdialog',
         id: 'removeApisDialog',

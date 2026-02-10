@@ -157,11 +157,18 @@ describe('ApiProductListComponent', () => {
   }));
 
   it('should update filters and reload data', fakeAsync(async () => {
-    await initComponent([]);
+    const apiProduct: ApiProduct = {
+      id: 'product-1',
+      name: 'Test Product',
+      version: '1.0',
+      apiIds: [],
+      primaryOwner: { displayName: 'Jane Doe' } as any,
+    };
+    await initComponent([apiProduct]);
 
     const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
     await tableWrapper.setSearchValue('test');
-    tick(200);
+    tick(500);
 
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products?page=1&perPage=10`);
     req.flush({ data: [], pagination: { totalCount: 0 } });
