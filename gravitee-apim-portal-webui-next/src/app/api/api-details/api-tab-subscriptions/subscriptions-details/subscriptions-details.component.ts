@@ -31,14 +31,15 @@ import { SubscriptionConsumerConfigurationComponent } from './subscription-consu
 import { ApiAccessComponent } from '../../../../../components/api-access/api-access.component';
 import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { SubscriptionInfoComponent } from '../../../../../components/subscription-info/subscription-info.component';
-import { ApiType } from '../../../../../entities/api/api';
+import { Api } from '../../../../../entities/api/api';
+import { Application } from '../../../../../entities/application/application';
 import { UserApiPermissions } from '../../../../../entities/permission/permission';
 import { PlanMode, PlanSecurityEnum, PlanUsageConfiguration } from '../../../../../entities/plan/plan';
 import {
   SubscriptionConsumerStatusEnum,
   SubscriptionConsumerConfiguration,
   SubscriptionsResponse,
-  SubscriptionStatusEnum,
+  Subscription,
 } from '../../../../../entities/subscription';
 import { CapitalizeFirstPipe } from '../../../../../pipe/capitalize-first.pipe';
 import { ApiService } from '../../../../../services/api.service';
@@ -53,11 +54,11 @@ interface SubscriptionDetailsVM {
 }
 
 interface SubscriptionDetailsData {
-  applicationName: string;
+  application: Application;
   planName: string;
   planSecurity: PlanSecurityEnum;
   planUsageConfiguration: PlanUsageConfiguration;
-  subscriptionStatus: SubscriptionStatusEnum;
+  subscription: Subscription;
   consumerStatus: SubscriptionConsumerStatusEnum;
   failureCause?: string;
   createdAt?: string;
@@ -67,7 +68,7 @@ interface SubscriptionDetailsData {
   entrypointUrls?: string[];
   clientId?: string;
   clientSecret?: string;
-  apiType?: ApiType;
+  api?: Api;
   consumerConfiguration?: SubscriptionConsumerConfiguration;
 }
 
@@ -153,13 +154,13 @@ export class SubscriptionsDetailsComponent implements OnInit {
       ),
       map(({ subscription, plan, api, application }) => {
         const subscriptionDetails: SubscriptionDetailsData = {
-          applicationName: application.name ?? '',
+          application,
+          subscription,
+          api,
           planName: plan.name,
           planSecurity: plan.securityType,
           planUsageConfiguration: plan.usageConfiguration,
-          subscriptionStatus: subscription.status,
           consumerStatus: subscription.consumerStatus,
-          apiType: api.type,
           failureCause: subscription.failureCause,
           createdAt: subscription.created_at,
           updatedAt: subscription.updated_at,

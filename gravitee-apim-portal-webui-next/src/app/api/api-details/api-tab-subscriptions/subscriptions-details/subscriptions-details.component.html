@@ -15,11 +15,6 @@
     limitations under the License.
 
 -->
-<div class="subscriptions-details__navigate-back m3-title-small" i18n="@@subscriptionDetailsBackButton" [routerLink]="['../']">
-  <mat-icon class="subscriptions-details__arrow_backward">arrow_backward</mat-icon>
-  Manage subscriptions
-</div>
-
 @if (subscriptionDetails$ | async; as detailsVM) {
   @if (detailsVM.error) {
     <div i18n="@@subscriptionDetailsError" class="m3-body-medium subscriptions-details__error">
@@ -29,12 +24,12 @@
     <div class="subscriptions-details__container">
       <app-subscription-info
         class="subscriptions-details__subscription-info"
-        [applicationName]="detailsVM.result.applicationName"
+        [application]="detailsVM.result.application"
         [planName]="detailsVM.result.planName"
         [planSecurity]="detailsVM.result.planSecurity"
-        [subscriptionStatus]="detailsVM.result.subscriptionStatus"
+        [subscription]="detailsVM.result.subscription"
         [planUsageConfiguration]="detailsVM.result.planUsageConfiguration"
-        [apiType]="detailsVM.result.apiType"
+        [api]="detailsVM.result.api"
         [consumerStatus]="detailsVM.result.consumerStatus"
         [failureCause]="detailsVM.result.failureCause"
         [createdAt]="detailsVM.result.createdAt"
@@ -43,12 +38,12 @@
         (resumeConsumerStatus)="resumeConsumerStatus()" />
       <app-api-access
         [planSecurity]="detailsVM.result.planSecurity"
-        [subscriptionStatus]="detailsVM.result.subscriptionStatus"
+        [subscription]="detailsVM.result.subscription"
         [entrypointUrls]="detailsVM.result.entrypointUrls"
         [apiKey]="detailsVM.result.apiKey"
         [clientId]="detailsVM.result.clientId"
         [clientSecret]="detailsVM.result.clientSecret"
-        [apiType]="detailsVM.result.apiType"
+        [apiType]="detailsVM.result.api?.type"
         [apiKeyConfigUsername]="detailsVM.result.apiKeyConfigUsername" />
     </div>
   }
@@ -56,7 +51,7 @@
   @if (detailsVM.result && !!detailsVM.result.consumerConfiguration) {
     <app-subscription-consumer-configuration
       [consumerConfiguration]="detailsVM.result.consumerConfiguration"
-      [canConfigure]="!['CLOSED', 'REJECTED'].includes(detailsVM.result.subscriptionStatus)" />
+      [canConfigure]="!['CLOSED', 'REJECTED'].includes(detailsVM.result.subscription.status)" />
   }
 } @else {
   <app-loader />

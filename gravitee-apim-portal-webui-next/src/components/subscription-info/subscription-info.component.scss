@@ -17,19 +17,37 @@
   height: 100%;
 
   &__header {
-    padding: 8px 0 24px;
+    padding-bottom: 24px;
   }
 
   &__content-row {
+    display: contents;
+
     span:first-child {
+      display: flex;
+      align-items: center;
       margin-right: 5px;
+      white-space: nowrap;
     }
   }
 
   &__content {
     display: flex;
     flex-flow: column;
-    gap: 32px;
+    gap: 15px;
+
+    &__subsections {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px 100px;
+    }
+
+    &__grid {
+      display: grid;
+      grid-auto-rows: 22px;
+      grid-gap: 15px 10px;
+      grid-template-columns: min-content 1fr;
+    }
   }
 }
 

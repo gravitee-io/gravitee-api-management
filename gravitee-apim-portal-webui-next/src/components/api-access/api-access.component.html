@@ -16,7 +16,7 @@
 
 -->
 <mat-card appearance="outlined" class="api-access">
-  @if (subscriptionStatus === 'ACCEPTED' || planSecurity === 'KEY_LESS') {
+  @if (subscription?.status === 'ACCEPTED' || planSecurity === 'KEY_LESS') {
     <mat-card-header>
       <div class="m3-title-medium api-access__header" i18n="@@subscriptionDetailsApiAccessHeader">API access</div>
     </mat-card-header>
@@ -67,7 +67,7 @@
     </mat-card-content>
   } @else {
     <mat-card-content class="api-access__message">
-      @switch (subscriptionStatus) {
+      @switch (subscription?.status) {
         @case ('PENDING') {
           <div class="m3-title-large" i18n="@@subscriptionDetailsPendingHeader">Subscription in progress</div>
           <div class="m3-body-large" i18n="@@subscriptionDetailsPendingContent">

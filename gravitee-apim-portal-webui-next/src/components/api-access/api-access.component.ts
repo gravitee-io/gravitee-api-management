@@ -21,7 +21,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { NativeKafkaApiAccessComponent } from './native-kafka-api-access/native-kafka-api-access.component';
 import { ApiType } from '../../entities/api/api';
 import { PlanSecurityEnum } from '../../entities/plan/plan';
-import { SubscriptionStatusEnum } from '../../entities/subscription/subscription';
+import { Subscription } from '../../entities/subscription/subscription';
 import { ConfigService } from '../../services/config.service';
 import { CopyCodeIconComponent } from '../copy-code/copy-code-icon/copy-code-icon/copy-code-icon.component';
 import { CopyCodeComponent } from '../copy-code/copy-code.component';
@@ -46,7 +46,7 @@ export class ApiAccessComponent {
   planSecurity!: PlanSecurityEnum;
 
   @Input()
-  subscriptionStatus?: SubscriptionStatusEnum;
+  subscription?: Subscription;
 
   @Input()
   apiKey?: string;
