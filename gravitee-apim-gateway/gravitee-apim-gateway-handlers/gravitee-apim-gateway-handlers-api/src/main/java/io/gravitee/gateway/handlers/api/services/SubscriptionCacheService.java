@@ -25,6 +25,8 @@ import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.security.core.SubscriptionTrustStoreLoaderManager;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -47,6 +49,7 @@ public class SubscriptionCacheService implements SubscriptionService {
     private final Map<String, Subscription> cacheByApiClientId = new ConcurrentHashMap<>();
     private final Map<String, Subscription> cacheByApiClientCertificate = new ConcurrentHashMap<>();
     private final Map<String, Subscription> cacheBySubscriptionId = new ConcurrentHashMap<>();
+    private final Map<String, Set<Subscription>> cacheBySubscriptionIdAll = new ConcurrentHashMap<>(); // exploded subscriptions
     private final Map<String, Set<String>> cacheByApiId = new ConcurrentHashMap<>();
 
     @Override
@@ -54,10 +57,10 @@ public class SubscriptionCacheService implements SubscriptionService {
         return switch (SecurityToken.TokenType.valueOfOrNone(securityToken.getTokenType())) {
             case API_KEY -> apiKeyService
                 .getByApiAndKey(api, securityToken.getTokenValue())
-                .flatMap(apiKey -> getById(apiKey.getSubscription()));
+                .flatMap(apiKey -> getByApiAndId(api, apiKey.getSubscription()));
             case MD5_API_KEY -> apiKeyService
                 .getByApiAndMd5Key(api, securityToken.getTokenValue())
-                .flatMap(apiKey -> getById(apiKey.getSubscription()));
+                .flatMap(apiKey -> getByApiAndId(api, apiKey.getSubscription()));
             case CLIENT_ID -> getByApiAndClientIdAndPlan(api, securityToken.getTokenValue(), plan);
             case CERTIFICATE -> subscriptionTrustStoreLoaderManager.getByCertificate(api, securityToken.getTokenValue(), plan);
             default -> Optional.empty();
@@ -72,6 +75,25 @@ public class SubscriptionCacheService implements SubscriptionService {
     @Override
     public Optional<Subscription> getById(String subscriptionId) {
         return Optional.ofNullable(cacheBySubscriptionId.get(subscriptionId));
+    }
+
+    /** Returns all subscriptions for the given ID (multiple for exploded API Product subscriptions). */
+    public Collection<Subscription> getAllById(String subscriptionId) {
+        Set<Subscription> subscriptions = cacheBySubscriptionIdAll.get(subscriptionId);
+        return subscriptions != null ? Set.copyOf(subscriptions) : Collections.emptySet();
+    }
+
+    /** Returns subscription for the given API and ID (for exploded subscriptions). */
+    public Optional<Subscription> getByApiAndId(String api, String subscriptionId) {
+        Set<Subscription> subscriptions = cacheBySubscriptionIdAll.get(subscriptionId);
+        if (subscriptions == null || subscriptions.isEmpty()) {
+            // Fallback to old cache for backward compatibility
+            return getById(subscriptionId);
+        }
+        return subscriptions
+            .stream()
+            .filter(sub -> sub.getApi().equals(api))
+            .findFirst();
     }
 
     @Override
@@ -121,6 +143,7 @@ public class SubscriptionCacheService implements SubscriptionService {
         subscriptionTrustStoreLoaderManager.registerSubscription(subscription, servers);
         // Update subscription
         cacheBySubscriptionId.put(idKey, subscription);
+        cacheBySubscriptionIdAll.computeIfAbsent(idKey, k -> ConcurrentHashMap.newKeySet()).add(subscription);
         addKeyForApi(subscription.getApi(), idKey);
         // Put new client_id
         cacheByApiClientCertificate.put(clientCertificateKey, subscription);
@@ -155,6 +178,7 @@ public class SubscriptionCacheService implements SubscriptionService {
         );
         // Update subscription
         cacheBySubscriptionId.put(idKey, subscription);
+        cacheBySubscriptionIdAll.computeIfAbsent(idKey, k -> ConcurrentHashMap.newKeySet()).add(subscription);
         addKeyForApi(subscription.getApi(), idKey);
         // Put new client_id
         cacheByApiClientId.put(clientIdKey, subscription);
@@ -173,6 +197,7 @@ public class SubscriptionCacheService implements SubscriptionService {
             subscription.getApi()
         );
         cacheBySubscriptionId.put(cacheKey, subscription);
+        cacheBySubscriptionIdAll.computeIfAbsent(cacheKey, k -> ConcurrentHashMap.newKeySet()).add(subscription);
         addKeyForApi(subscription.getApi(), cacheKey);
     }
 
@@ -207,6 +232,14 @@ public class SubscriptionCacheService implements SubscriptionService {
         );
         final String idKey = subscription.getId();
         Subscription removeSubscription = cacheBySubscriptionId.remove(idKey);
+        // Remove from exploded subscriptions cache
+        Set<Subscription> allSubscriptions = cacheBySubscriptionIdAll.get(idKey);
+        if (allSubscriptions != null) {
+            allSubscriptions.removeIf(s -> s.getApi().equals(subscription.getApi()));
+            if (allSubscriptions.isEmpty()) {
+                cacheBySubscriptionIdAll.remove(idKey);
+            }
+        }
         if (removeSubscription != null) {
             removeKeyForApi(subscription.getApi(), idKey);
             unregisterFromClientId(removeSubscription);
@@ -254,6 +287,11 @@ public class SubscriptionCacheService implements SubscriptionService {
         Set<String> subscriptionsByApi = cacheByApiId.remove(apiId);
         if (subscriptionsByApi != null) {
             subscriptionsByApi.forEach(cacheKey -> {
+                Set<Subscription> all = cacheBySubscriptionIdAll.get(cacheKey);
+                if (all != null) {
+                    all.removeIf(s -> s.getApi().equals(apiId));
+                    if (all.isEmpty()) cacheBySubscriptionIdAll.remove(cacheKey);
+                }
                 Subscription subscription = cacheBySubscriptionId.remove(cacheKey);
                 if (subscription != null) {
                     log.debug(

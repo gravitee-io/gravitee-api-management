@@ -154,13 +154,22 @@ public class SyncConfiguration {
     }
 
     @Bean
-    public PlanAppender planAppender(ObjectMapper objectMapper, PlanRepository planRepository, GatewayConfiguration gatewayConfiguration) {
-        return new PlanAppender(objectMapper, planRepository, gatewayConfiguration);
+    public PlanAppender planAppender(
+        ObjectMapper objectMapper,
+        PlanRepository planRepository,
+        GatewayConfiguration gatewayConfiguration,
+        @Autowired(required = false) ApiProductRegistry apiProductRegistry
+    ) {
+        return new PlanAppender(objectMapper, planRepository, gatewayConfiguration, apiProductRegistry);
     }
 
     @Bean
-    public SubscriptionAppender subscriptionAppender(SubscriptionRepository subscriptionRepository, SubscriptionMapper subscriptionMapper) {
-        return new SubscriptionAppender(subscriptionRepository, subscriptionMapper);
+    public SubscriptionAppender subscriptionAppender(
+        SubscriptionRepository subscriptionRepository,
+        SubscriptionMapper subscriptionMapper,
+        ApiProductRegistry apiProductRegistry
+    ) {
+        return new SubscriptionAppender(subscriptionRepository, subscriptionMapper, apiProductRegistry);
     }
 
     @Bean
