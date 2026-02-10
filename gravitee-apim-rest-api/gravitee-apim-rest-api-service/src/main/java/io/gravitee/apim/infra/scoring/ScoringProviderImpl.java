@@ -21,7 +21,6 @@ import io.gravitee.apim.core.scoring.service_provider.ScoringProvider;
 import io.gravitee.cockpit.api.CockpitConnector;
 import io.gravitee.cockpit.api.command.v1.scoring.request.ScoringRequestCommand;
 import io.gravitee.cockpit.api.command.v1.scoring.request.ScoringRequestCommandPayload;
-import io.gravitee.cockpit.api.command.v1.scoring.request.ScoringRequestReply;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.scoring.api.model.ScoringRequest;
@@ -32,6 +31,7 @@ import io.gravitee.scoring.api.model.asset.Format;
 import io.gravitee.scoring.api.model.functions.CustomFunction;
 import io.gravitee.scoring.api.model.ruleset.CustomRuleset;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -89,16 +89,14 @@ public class ScoringProviderImpl implements ScoringProvider {
         log.debug("send scoring request command: {}", command);
         return cockpitConnector
             .sendCommand(command)
-            .onErrorReturn(error ->
-                new ScoringRequestReply(command.getId(), error.getMessage() != null ? error.getMessage() : error.toString())
+            .onErrorResumeNext(error ->
+                Single.error(new TechnicalDomainException(error.getMessage() != null ? error.getMessage() : error.toString(), error))
             )
-            .cast(ScoringRequestReply.class)
-            .flatMapCompletable(reply -> {
-                if (reply.getCommandStatus() == CommandStatus.ERROR) {
-                    return Completable.error(new TechnicalDomainException(reply.getErrorDetails()));
-                }
-                return Completable.complete();
-            });
+            .flatMapCompletable(reply ->
+                reply.getCommandStatus() == CommandStatus.ERROR
+                    ? Completable.error(new TechnicalDomainException(reply.getErrorDetails()))
+                    : Completable.complete()
+            );
     }
 
     private AssetType assetType(ScoreRequest.AssetType source) {

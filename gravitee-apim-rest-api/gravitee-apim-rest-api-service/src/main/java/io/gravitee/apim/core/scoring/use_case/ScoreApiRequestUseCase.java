@@ -115,12 +115,11 @@ public class ScoreApiRequestUseCase {
                 var job = entry.getValue();
                 return scoringProvider
                     .requestScore(request)
-                    .onErrorResumeNext(throwable -> {
-                        log.error("An error occurs while triggering scoring API [{}]", input.apiId, throwable);
-                        return Completable.fromRunnable(() -> asyncJobCrudService.update(job.error(throwable.getMessage()))).andThen(
+                    .onErrorResumeNext(throwable ->
+                        Completable.fromRunnable(() -> asyncJobCrudService.update(job.error(throwable.getMessage()))).andThen(
                             Completable.error(throwable)
-                        );
-                    });
+                        )
+                    );
             });
     }
 
