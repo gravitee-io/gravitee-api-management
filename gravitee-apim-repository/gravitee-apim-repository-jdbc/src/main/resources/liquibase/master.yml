@@ -308,3 +308,5 @@ databaseChangeLog:
 
     - include:
         - file: liquibase/changelogs/v4_11_0/06_add_reference_fields_to_subscriptions_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_0/08_add_subscription_forms_table.yml

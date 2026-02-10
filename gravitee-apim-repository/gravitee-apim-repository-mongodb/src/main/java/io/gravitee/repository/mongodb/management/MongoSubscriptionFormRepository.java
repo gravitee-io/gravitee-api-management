@@ -83,12 +83,12 @@ public class MongoSubscriptionFormRepository implements SubscriptionFormReposito
     @Override
     public SubscriptionForm update(SubscriptionForm subscriptionForm) throws TechnicalException {
         if (subscriptionForm == null) {
-            throw new IllegalStateException("Subscription form must not be null");
+            throw new TechnicalException("Subscription form must not be null");
         }
 
         SubscriptionFormMongo existingMongo = internalSubscriptionFormRepo.findById(subscriptionForm.getId()).orElse(null);
         if (existingMongo == null) {
-            throw new IllegalStateException(String.format("No subscription form found with id [%s]", subscriptionForm.getId()));
+            throw new TechnicalException(String.format("Subscription form not found with id [%s]", subscriptionForm.getId()));
         }
 
         try {
