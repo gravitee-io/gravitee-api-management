@@ -8,7 +8,7 @@ module.exports = {
   ],
   moduleNameMapper: {
     '^html-loader!.*\\.html$': '<rootDir>/src/__mocks__/htmlLoaderMock.js',
-    '@gravitee/gravitee-markdown': '<rootDir>/../gravitee-apim-portal-webui-next/projects/gravitee-markdown/src/public-api.ts',
-    '@gravitee/gravitee-dashboard': '<rootDir>/../gravitee-apim-portal-webui-next/projects/gravitee-dashboard/src/public-api.ts',
+    '^@gravitee/gravitee-dashboard$': '<rootDir>/../gravitee-apim-webui-libs/gravitee-dashboard/src/public-api.ts',
+    '^@gravitee/gravitee-markdown$': '<rootDir>/../gravitee-apim-webui-libs/gravitee-markdown/src/public-api.ts',
   },
 };

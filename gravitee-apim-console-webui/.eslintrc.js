@@ -17,7 +17,7 @@ module.exports = {
       },
     },
   },
-  ignorePatterns: ['**/*.js', '**/*.json', '**/*.html'],
+  ignorePatterns: ['dist', '**/*.js', '**/*.json', '**/*.html'],
   plugins: ['@typescript-eslint', 'eslint-plugin-import', 'rxjs', 'unused-imports'],
   extends: [
     'angular',

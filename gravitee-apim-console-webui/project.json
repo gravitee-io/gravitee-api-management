@@ -1,5 +1,5 @@
 {
-  "name": "gravitee-apim-console-webui",
+  "name": "console",
   "$schema": "../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "gravitee-apim-console-webui/src",
@@ -177,6 +177,13 @@
       "executor": "@nx/eslint:lint",
       "options": {
         "lintFilePatterns": ["gravitee-apim-console-webui/**/*.ts", "gravitee-apim-console-webui/**/*.json"]
+      }
+    },
+    "lint-license": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "license-check-and-add check -f license-check-config.json",
+        "cwd": "gravitee-apim-console-webui"
       }
     },
     "storybook": {

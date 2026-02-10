@@ -15,7 +15,7 @@
  */
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 
@@ -96,7 +96,7 @@ describe('GraviteeDashboardComponent', () => {
     expect(dashboardWidgets[0].response).toBeUndefined();
   });
 
-  it('should reload data for widgets even if they have existing response', waitForAsync(() => {
+  it('should reload data for widgets even if they have existing response', fakeAsync(() => {
     const mockResponse: MeasuresResponse = {
       metrics: [
         {
@@ -126,22 +126,20 @@ describe('GraviteeDashboardComponent', () => {
 
     fixture.componentRef.setInput('widgetConfigs', widgets);
     fixture.detectChanges();
+    tick();
 
-    fixture.whenStable().then(() => {
-      const req = httpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
-      expect(req.request.method).toBe('POST');
-      req.flush(mockResponse);
+    const req = httpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
+    expect(req.request.method).toBe('POST');
+    req.flush(mockResponse);
+    tick();
 
-      fixture.whenStable().then(() => {
-        const updatedWidgets = component.dashboardWidgets();
-        expect(updatedWidgets.length).toBe(1);
-        expect(updatedWidgets[0].response).toBeDefined();
-        expect(updatedWidgets[0].response).toEqual(mockResponse);
-      });
-    });
+    const updatedWidgets = component.dashboardWidgets();
+    expect(updatedWidgets.length).toBe(1);
+    expect(updatedWidgets[0].response).toBeDefined();
+    expect(updatedWidgets[0].response).toEqual(mockResponse);
   }));
 
-  it('should load data for widgets with request but no response', waitForAsync(() => {
+  it('should load data for widgets with request but no response', fakeAsync(() => {
     const mockResponse: MeasuresResponse = {
       metrics: [
         {
@@ -169,22 +167,20 @@ describe('GraviteeDashboardComponent', () => {
     ];
     fixture.componentRef.setInput('widgetConfigs', widgets);
     fixture.detectChanges();
+    tick();
 
-    fixture.whenStable().then(() => {
-      const req = httpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
-      expect(req.request.method).toBe('POST');
-      req.flush(mockResponse);
+    const req = httpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
+    expect(req.request.method).toBe('POST');
+    req.flush(mockResponse);
+    tick();
 
-      fixture.whenStable().then(() => {
-        const updatedWidgets = component.dashboardWidgets();
-        expect(updatedWidgets.length).toBe(1);
-        expect(updatedWidgets[0].response).toBeDefined();
-        expect(updatedWidgets[0].response).toEqual(mockResponse);
-      });
-    });
+    const updatedWidgets = component.dashboardWidgets();
+    expect(updatedWidgets.length).toBe(1);
+    expect(updatedWidgets[0].response).toBeDefined();
+    expect(updatedWidgets[0].response).toEqual(mockResponse);
   }));
 
-  it('should load data for widgets with facets request', waitForAsync(() => {
+  it('should load data for widgets with facets request', fakeAsync(() => {
     const mockResponse: FacetsResponse = {
       metrics: [
         {
@@ -217,22 +213,20 @@ describe('GraviteeDashboardComponent', () => {
 
     fixture.componentRef.setInput('widgetConfigs', widgets);
     fixture.detectChanges();
+    tick();
 
-    fixture.whenStable().then(() => {
-      const req = httpTestingController.expectOne(`${mockBaseURL}/analytics/facets`);
-      expect(req.request.method).toBe('POST');
-      req.flush(mockResponse);
+    const req = httpTestingController.expectOne(`${mockBaseURL}/analytics/facets`);
+    expect(req.request.method).toBe('POST');
+    req.flush(mockResponse);
+    tick();
 
-      fixture.whenStable().then(() => {
-        const updatedWidgets = component.dashboardWidgets();
-        expect(updatedWidgets.length).toBe(1);
-        expect(updatedWidgets[0].response).toBeDefined();
-        expect(updatedWidgets[0].response).toEqual(mockResponse);
-      });
-    });
+    const updatedWidgets = component.dashboardWidgets();
+    expect(updatedWidgets.length).toBe(1);
+    expect(updatedWidgets[0].response).toBeDefined();
+    expect(updatedWidgets[0].response).toEqual(mockResponse);
   }));
 
-  it('should handle multiple widgets with different request types', waitForAsync(() => {
+  it('should handle multiple widgets with different request types', fakeAsync(() => {
     const mockMeasuresResponse: MeasuresResponse = {
       metrics: [
         {
@@ -285,21 +279,19 @@ describe('GraviteeDashboardComponent', () => {
 
     fixture.componentRef.setInput('widgetConfigs', widgets);
     fixture.detectChanges();
+    tick();
 
-    fixture.whenStable().then(() => {
-      const measuresReq = httpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
-      measuresReq.flush(mockMeasuresResponse);
+    const measuresReq = httpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
+    measuresReq.flush(mockMeasuresResponse);
 
-      const facetsReq = httpTestingController.expectOne(`${mockBaseURL}/analytics/facets`);
-      facetsReq.flush(mockFacetsResponse);
+    const facetsReq = httpTestingController.expectOne(`${mockBaseURL}/analytics/facets`);
+    facetsReq.flush(mockFacetsResponse);
+    tick();
 
-      fixture.whenStable().then(() => {
-        const updatedWidgets = component.dashboardWidgets();
-        expect(updatedWidgets.length).toBe(2);
-        expect(updatedWidgets[0].response).toEqual(mockMeasuresResponse);
-        expect(updatedWidgets[1].response).toEqual(mockFacetsResponse);
-      });
-    });
+    const updatedWidgets = component.dashboardWidgets();
+    expect(updatedWidgets.length).toBe(2);
+    expect(updatedWidgets[0].response).toEqual(mockMeasuresResponse);
+    expect(updatedWidgets[1].response).toEqual(mockFacetsResponse);
   }));
 
   it('should navigate with query params when filters are selected', () => {
@@ -341,7 +333,7 @@ describe('GraviteeDashboardComponent', () => {
     });
   });
 
-  it('should trigger refresh when onRefresh is called', waitForAsync(() => {
+  it('should trigger refresh when onRefresh is called', fakeAsync(() => {
     const mockResponse: MeasuresResponse = {
       metrics: [
         {
@@ -370,22 +362,20 @@ describe('GraviteeDashboardComponent', () => {
 
     fixture.componentRef.setInput('widgetConfigs', widgets);
     fixture.detectChanges();
+    tick();
 
-    fixture.whenStable().then(() => {
-      const req1 = httpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
-      req1.flush(mockResponse);
+    const req1 = httpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
+    req1.flush(mockResponse);
+    tick();
 
-      fixture.whenStable().then(() => {
-        component.onRefresh();
-        fixture.detectChanges();
+    component.onRefresh();
+    fixture.detectChanges();
+    tick();
 
-        fixture.whenStable().then(() => {
-          const req2 = httpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
-          expect(req2.request.method).toBe('POST');
-          req2.flush(mockResponse);
-        });
-      });
-    });
+    const req2 = httpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
+    expect(req2.request.method).toBe('POST');
+    req2.flush(mockResponse);
+    tick();
   }));
 
   it('should parse query params and initialize selected filters', () => {
@@ -471,7 +461,7 @@ describe('GraviteeDashboardComponent', () => {
     expect(selectedFilters.length).toBe(0);
   });
 
-  it('should apply filters to widget requests', waitForAsync(() => {
+  it('should apply filters to widget requests', fakeAsync(() => {
     const queryParams = {
       period: '1d',
       API: 'api-1,api-2',
@@ -520,26 +510,26 @@ describe('GraviteeDashboardComponent', () => {
       },
     ]);
     newFixture.detectChanges();
+    tick();
 
-    newFixture.whenStable().then(() => {
-      const req = newHttpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
-      expect(req.request.method).toBe('POST');
-      const requestBody = req.request.body as MeasuresRequest;
-      expect(requestBody.filters).toBeDefined();
-      expect(requestBody.filters!.length).toBeGreaterThan(0);
-      const apiFilter = requestBody.filters!.find((f: RequestFilter) => f.name === 'API');
-      expect(apiFilter).toBeDefined();
-      expect(apiFilter!.value).toEqual(['api-1', 'api-2']);
+    const req = newHttpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
+    expect(req.request.method).toBe('POST');
+    const requestBody = req.request.body as MeasuresRequest;
+    expect(requestBody.filters).toBeDefined();
+    expect(requestBody.filters!.length).toBeGreaterThan(0);
+    const apiFilter = requestBody.filters!.find((f: RequestFilter) => f.name === 'API');
+    expect(apiFilter).toBeDefined();
+    expect(apiFilter!.value).toEqual(['api-1', 'api-2']);
 
-      req.flush({
-        metrics: [
-          {
-            name: 'HTTP_REQUESTS',
-            measures: [{ name: 'COUNT', value: 100 }],
-          },
-        ],
-      });
+    req.flush({
+      metrics: [
+        {
+          name: 'HTTP_REQUESTS',
+          measures: [{ name: 'COUNT', value: 100 }],
+        },
+      ],
     });
+    tick();
   }));
 
   it('should handle null or undefined query param values', () => {

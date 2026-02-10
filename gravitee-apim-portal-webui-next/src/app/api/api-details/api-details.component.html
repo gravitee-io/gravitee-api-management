@@ -40,7 +40,8 @@
             [disabled]="!isAuthenticated() || !plans.length"
             i18n="@@logInOrSignUpToSubscribe"
             mat-stroked-button
-            class="secondary-button">
+            class="secondary-button"
+          >
             {{ isAuthenticated() ? 'Subscribe' : 'Log in to subscribe' }}
           </button>
         </div>

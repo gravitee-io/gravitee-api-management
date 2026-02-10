@@ -52,7 +52,8 @@
           <app-consumer-configuration-retry [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.retry" />
 
           <app-consumer-configuration-authentication
-            [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.auth" />
+            [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.auth"
+          />
 
           <app-consumer-configuration-ssl [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.ssl" />
         </form>
@@ -72,7 +73,8 @@
               [disabled]="consumerConfigurationForm.invalid || (formUnchanged$ | async)"
               i18n="@@saveSubscriptionConfiguration"
               aria-label="Save subscription configuration"
-              data-testId="save">
+              data-testId="save"
+            >
               Save
             </button>
             <button
@@ -81,7 +83,8 @@
               [disabled]="formUnchanged$ | async"
               i18n="@@discardSubscriptionConfigurationChanges"
               aria-label="Discard changes"
-              data-testId="discard">
+              data-testId="discard"
+            >
               Discard changes
             </button>
           </div>

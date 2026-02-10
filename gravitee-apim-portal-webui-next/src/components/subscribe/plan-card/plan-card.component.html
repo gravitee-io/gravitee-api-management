@@ -21,7 +21,8 @@
   [disabledMessage]="'Plan not available yet'"
   [value]="plan"
   [title]="plan().name"
-  (selectItem)="onSelectPlan()">
+  (selectItem)="onSelectPlan()"
+>
   <div class="m3-body-medium">Plan includes:</div>
   <ul class="plan-card__content">
     <li class="m3-body-medium">Authentication: {{ authentication() }}</li>

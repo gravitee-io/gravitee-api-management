@@ -34,7 +34,8 @@
           [planSecurity]="planSecurity"
           [apiKey]="apiKey ?? ''"
           [apiKeyConfigUsername]="apiKeyConfigUsername ?? ''"
-          [clientId]="clientId ?? ''" />
+          [clientId]="clientId ?? ''"
+        />
       } @else {
         @if (planSecurity === 'API_KEY') {
           <app-copy-code id="api-key" title="Active API key" [text]="apiKey ?? ''" />
@@ -56,7 +57,8 @@
                 matSuffix
                 (click)="$event.stopPropagation()"
                 [contentToCopy]="selectedEntrypointUrl()"
-                [label]="selectedEntrypointUrl()" />
+                [label]="selectedEntrypointUrl()"
+              />
             </mat-form-field>
           }
 

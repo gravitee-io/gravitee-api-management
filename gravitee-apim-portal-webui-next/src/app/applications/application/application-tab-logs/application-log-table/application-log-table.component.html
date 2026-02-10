@@ -46,7 +46,8 @@
           (selectionChange)="selectResponseTimes($event)"
           multiple
           [value]="filters().responseTimes"
-          aria-label="Filter by Response Time">
+          aria-label="Filter by Response Time"
+        >
           @for (responseTime of responseTimes; track responseTime.value) {
             <mat-option [value]="responseTime">
               @if (responseTime.min === 0) {
@@ -68,7 +69,8 @@
           (selectionChange)="selectPeriod($event)"
           [value]="filters().period"
           aria-label="Filter by Period"
-          [disabled]="!!filters().from">
+          [disabled]="!!filters().from"
+        >
           @for (period of periods; track period.value) {
             <mat-option [value]="period">
               <span i18n="@@applicationLogsLast">Last </span>
@@ -202,7 +204,8 @@
         *matRowDef="let log; columns: displayedColumns"
         [routerLink]="['./', log.id]"
         [queryParams]="{ timestamp: log.timestamp }"
-        queryParamsHandling="merge"></tr>
+        queryParamsHandling="merge"
+      ></tr>
     </table>
     <app-pagination [currentPage]="currentLogsPage()" [totalResults]="totalLogs()" (selectPage)="goToPage($event)" />
   } @else {

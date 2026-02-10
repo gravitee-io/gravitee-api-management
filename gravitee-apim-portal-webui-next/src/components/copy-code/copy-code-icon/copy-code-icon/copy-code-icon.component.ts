@@ -27,7 +27,8 @@ import { MatIconButton } from '@angular/material/button';
       [attr.aria-label]="label"
       [class.clicked]="clicked"
       [cdkCopyToClipboard]="contentToCopy"
-      (cdkCopyToClipboardCopied)="onCopied()">
+      (cdkCopyToClipboardCopied)="onCopied()"
+    >
       <span class="material-icons icon-small">{{ clicked ? 'check' : 'content_copy' }}</span>
     </button>
   `,

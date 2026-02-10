@@ -54,7 +54,8 @@
             @if (customFields.length > 0) {
               <ng-container
                 [ngTemplateOutlet]="customFieldsTemplate"
-                [ngTemplateOutletContext]="{ customFields: customFields, customFieldsGroup: customFieldsGroup() }" />
+                [ngTemplateOutletContext]="{ customFields: customFields, customFieldsGroup: customFieldsGroup() }"
+              />
             }
 
             @if (error() === 401) {
@@ -71,7 +72,8 @@
               type="submit"
               mat-flat-button
               i18n="@@registrationAction"
-              class="registration__form__submit">
+              class="registration__form__submit"
+            >
               Sign up
             </button>
             <div class="registration__form__login m3-label-large">

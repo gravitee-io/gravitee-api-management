@@ -28,7 +28,8 @@ import { toSvg } from 'jdenticon';
       [height]="size"
       [width]="size"
       (error)="useGeneratedPicture()"
-      placeholder="assets/images/logo.png" />
+      placeholder="assets/images/logo.png"
+    />
   `,
   styleUrl: './picture.component.scss',
 })

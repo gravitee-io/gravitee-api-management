@@ -65,7 +65,8 @@
           mat-row
           class="api-tab-subscriptions__table-row"
           *matRowDef="let subscription; columns: displayedColumns"
-          [routerLink]="['./', subscription.id]"></tr>
+          [routerLink]="['./', subscription.id]"
+        ></tr>
       </table>
     </div>
   }

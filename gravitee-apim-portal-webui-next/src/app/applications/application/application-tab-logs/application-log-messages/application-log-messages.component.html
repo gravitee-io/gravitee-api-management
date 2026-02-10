@@ -54,7 +54,8 @@
         mat-row
         class="application-message-logs__table-row"
         *matRowDef="let log; columns: displayedColumns"
-        (click)="showMessageLogDetails(log)"></tr>
+        (click)="showMessageLogDetails(log)"
+      ></tr>
       <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
         <td [attr.colspan]="this.displayedColumns.length">
           <div class="no-logs-found m3-body-medium" i18n="@@applicationMessageLogsNoMessageLogs">No message logs found.</div>

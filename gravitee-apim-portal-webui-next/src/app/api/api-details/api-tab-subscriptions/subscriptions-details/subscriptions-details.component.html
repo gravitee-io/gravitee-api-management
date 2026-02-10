@@ -35,7 +35,8 @@
         [createdAt]="detailsVM.result.createdAt"
         [updatedAt]="detailsVM.result.updatedAt"
         [isLoadingStatus]="isLoadingStatus"
-        (resumeConsumerStatus)="resumeConsumerStatus()" />
+        (resumeConsumerStatus)="resumeConsumerStatus()"
+      />
       <app-api-access
         [planSecurity]="detailsVM.result.planSecurity"
         [subscription]="detailsVM.result.subscription"
@@ -44,14 +45,16 @@
         [clientId]="detailsVM.result.clientId"
         [clientSecret]="detailsVM.result.clientSecret"
         [apiType]="detailsVM.result.api?.type"
-        [apiKeyConfigUsername]="detailsVM.result.apiKeyConfigUsername" />
+        [apiKeyConfigUsername]="detailsVM.result.apiKeyConfigUsername"
+      />
     </div>
   }
 
   @if (detailsVM.result && !!detailsVM.result.consumerConfiguration) {
     <app-subscription-consumer-configuration
       [consumerConfiguration]="detailsVM.result.consumerConfiguration"
-      [canConfigure]="!['CLOSED', 'REJECTED'].includes(detailsVM.result.subscription.status)" />
+      [canConfigure]="!['CLOSED', 'REJECTED'].includes(detailsVM.result.subscription.status)"
+    />
   }
 } @else {
   <app-loader />

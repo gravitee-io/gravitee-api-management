@@ -1,5 +1,5 @@
 {
-  "name": "gravitee-markdown",
+  "name": "markdown",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
   "sourceRoot": "gravitee-apim-webui-libs/gravitee-markdown/src",
@@ -33,6 +33,33 @@
       "executor": "@nx/eslint:lint",
       "options": {
         "lintFilePatterns": ["gravitee-apim-webui-libs/gravitee-markdown/**/*.ts"]
+      }
+    },
+    "lint-license": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "license-check-and-add check -f license-check-config.json",
+        "cwd": "gravitee-apim-webui-libs/gravitee-markdown"
+      }
+    },
+    "storybook": {
+      "executor": "@storybook/angular:start-storybook",
+      "options": {
+        "configDir": "gravitee-apim-webui-libs/gravitee-markdown/.storybook",
+        "browserTarget": "markdown:build",
+        "styles": ["gravitee-apim-webui-libs/gravitee-markdown/.storybook/index.scss"],
+        "compodoc": false,
+        "port": 6007
+      }
+    },
+    "build-storybook": {
+      "executor": "@storybook/angular:build-storybook",
+      "options": {
+        "configDir": "gravitee-apim-webui-libs/gravitee-markdown/.storybook",
+        "browserTarget": "markdown:build",
+        "styles": ["gravitee-apim-webui-libs/gravitee-markdown/.storybook/index.scss"],
+        "compodoc": false,
+        "outputDir": "gravitee-apim-webui-libs/gravitee-markdown/storybook-static"
       }
     }
   },
