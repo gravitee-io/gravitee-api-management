@@ -788,6 +788,7 @@ class SearchEnvironmentLogsUseCaseTest {
         void should_map_response_payload_fully() {
             var timestamp = OffsetDateTime.parse("2024-01-01T10:00:00Z");
             var connectionLog = BaseConnectionLog.builder()
+                .apiId("my-api-id")
                 .timestamp(timestamp.toString())
                 .requestId("req-id")
                 .clientIdentifier("client-id")
@@ -821,6 +822,7 @@ class SearchEnvironmentLogsUseCaseTest {
             var log = response.data().getFirst();
 
             SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(log.apiId()).isEqualTo("my-api-id");
                 soft.assertThat(log.requestId()).isEqualTo("req-id");
                 soft.assertThat(log.timestamp()).isEqualTo(timestamp);
                 soft.assertThat(log.clientIdentifier()).isEqualTo("client-id");

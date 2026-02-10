@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 public record ApiLog(
+    String apiId,
     OffsetDateTime timestamp,
     String id,
     String requestId,
