@@ -45,6 +45,25 @@ data:
         {{- end }}
     {{- end }}
 
+    {{/* 1. NEW HIERARCHY: Only renders if explicit hierarchical values exist */}}
+    {{- if .Values.repositories }}
+    repositories:
+      {{- if .Values.repositories.management }}
+      management:
+        {{- toYaml .Values.repositories.management | nindent 8 }}
+      {{- end }}
+      {{- if .Values.repositories.analytics }}
+      analytics:
+        {{- toYaml .Values.repositories.analytics | nindent 8 }}
+      {{- end }}
+      {{- if .Values.repositories.ratelimit }}
+      ratelimit:
+        {{- toYaml .Values.repositories.ratelimit | nindent 8 }}
+      {{- end }}
+    {{- end }}
+
+    {{/* 2. LEGACY MANAGEMENT: Renders at ROOT ONLY if missing in new hierarchy */}}
+    {{- if not (and .Values.repositories .Values.repositories.management) }}
     management:
       type: {{ .Values.management.type | default "mongodb" }}
       {{- if or (eq .Values.management.type "mongodb") (kindIs "invalid" .Values.management.type) }}
@@ -89,6 +108,19 @@ data:
           {{ toYaml .Values.jdbc.pool | nindent 10 | trim -}}
         {{- end }}
       {{- end }}
+    {{- end }}
+
+    {{/* 3. LEGACY RATELIMIT: Only rendered at ROOT if missing in new hierarchy */}}
+    {{- if not (and .Values.repositories .Values.repositories.ratelimit) }}
+    ratelimit:
+      type: {{ .Values.ratelimit.type | default "mongodb" }}
+      {{- if or (eq .Values.ratelimit.type "mongodb") (kindIs "invalid" .Values.ratelimit.type) }}
+      mongodb:
+        dbhost: {{ .Values.mongo.dbhost }}
+        dbname: {{ .Values.mongo.dbname }}
+        dbport: {{ .Values.mongo.dbport }}
+      {{- end }}
+    {{- end }}
 
     # Secret Manager configuration
     {{- if .Values.secrets }}
@@ -238,6 +270,8 @@ data:
     {{- end }}
     {{- end }}
 
+    {{/* 4. LEGACY ANALYTICS: Only rendered at ROOT if missing in new hierarchy */}}
+    {{- if not (and .Values.repositories .Values.repositories.analytics) }}
     analytics:
       {{- if (eq .Values.api.analytics.type "elasticsearch") }}
       type: elasticsearch
@@ -277,6 +311,8 @@ data:
       {{- else if (eq .Values.api.analytics.type "none") }}
       type: none
       {{- end }}
+    {{- end }}
+
     {{- if .Values.api.configuration.logging }}
     logging: {{- toYaml .Values.api.configuration.logging | nindent 6 }}
     {{- end }}
@@ -582,12 +618,13 @@ data:
       hazelcast:
         config-path: "${gravitee.home}/config/hazelcast-cache.xml"
     {{- end }}
-    {{- end }}
+
     {{- if .Values.api.newtai.elgen.enabled }}
     newtai:
       elgen:
         enabled: true
     {{- end }}
+
     {{- if .Values.kafkaConsole.enabled }}
     kafka:
       console:
@@ -598,7 +635,7 @@ data:
           scheme: http
     {{- end }}
 
-    {{- if .Values.api.federation.enabled }}
+{{- if .Values.api.federation.enabled }}
   hazelcast-cluster.xml: |-
     <?xml version="1.0" encoding="UTF-8"?>
     <hazelcast xmlns="http://www.hazelcast.com/schema/config"
@@ -674,9 +711,10 @@ data:
             </join>
         </network>
     </hazelcast>
-    {{- end }}
+  {{- end }}
+{{- end }}
 
-    {{- if .Values.api.logging.debug }}
+{{- if .Values.api.logging.debug }}
   logback.xml: |
     <?xml version="1.0" encoding="UTF-8"?>
     <!--
@@ -717,9 +755,10 @@ data:
               <encoder>
                   <pattern>{{ .Values.api.logging.stdout.encoderPattern }}</pattern>
               </encoder>
-             {{- end}}
-             {{- end }}
+              {{- end}}
+              {{- end }}
           </appender>
+
           {{- if .Values.api.logging.file.enabled }}
           <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
               <file>${gravitee.home}/logs/gravitee.log</file>
@@ -751,5 +790,5 @@ data:
               {{- end }}
           </root>
       </configuration>
-  {{- end }}
+{{- end }}
 {{- end -}}

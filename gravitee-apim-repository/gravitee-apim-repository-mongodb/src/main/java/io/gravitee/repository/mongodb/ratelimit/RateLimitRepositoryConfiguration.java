@@ -44,17 +44,22 @@ public class RateLimitRepositoryConfiguration {
     private MongoFactory mongoFactory;
 
     protected String getDatabaseName() {
-        String uri = environment.getProperty("ratelimit.mongodb.uri");
+        String newUriKey = "repositories." + Scope.RATE_LIMIT.getName() + ".mongodb.uri";
+        String oldUriKey = Scope.RATE_LIMIT.getName() + ".mongodb.uri";
+        String uri = environment.getProperty(newUriKey, environment.getProperty(oldUriKey));
+
         if (uri != null && !uri.isEmpty()) {
             return URI.create(uri).getPath().substring(1);
         }
 
-        return environment.getProperty("ratelimit.mongodb.dbname", "gravitee");
+        String newDbNameKey = "repositories." + Scope.RATE_LIMIT.getName() + ".mongodb.dbname";
+        String oldDbNameKey = Scope.RATE_LIMIT.getName() + ".mongodb.dbname";
+        return environment.getProperty(newDbNameKey, environment.getProperty(oldDbNameKey, "gravitee"));
     }
 
     @Bean(name = "rateLimitMongo")
     public static MongoFactory mongoFactory(Environment environment) {
-        return new MongoFactory(environment, Scope.RATE_LIMIT.getName());
+        return new MongoFactory(environment, "repositories." + Scope.RATE_LIMIT.getName());
     }
 
     @Bean(name = "rateLimitMongoTemplate")

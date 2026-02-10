@@ -61,7 +61,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
         }
     };
 
-    JdbcPlanRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcPlanRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "plans");
         APIS = getTableNameFor("apis");
         PLAN_TAGS = getTableNameFor("plan_tags");

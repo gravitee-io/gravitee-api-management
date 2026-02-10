@@ -63,7 +63,10 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
     private final String EVENT_ENVIRONMENTS;
     private final String EVENT_ORGANIZATIONS;
 
-    JdbcEventLatestRepository(@Value("${management.jdbc.prefix:}") String tablePrefix, @Autowired JdbcTemplate jdbcTemplate) {
+    JdbcEventLatestRepository(
+        @Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix,
+        @Autowired JdbcTemplate jdbcTemplate
+    ) {
         super(tablePrefix, "events_latest");
         this.jdbcTemplate = jdbcTemplate;
         EVENT_PROPERTIES = getTableNameFor("events_latest_properties");

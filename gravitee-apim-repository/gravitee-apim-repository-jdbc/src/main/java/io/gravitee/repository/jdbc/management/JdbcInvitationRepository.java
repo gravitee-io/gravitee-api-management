@@ -37,7 +37,7 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
 
     private final Logger LOGGER = LoggerFactory.getLogger(JdbcInvitationRepository.class);
 
-    JdbcInvitationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcInvitationRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "invitations");
     }
 

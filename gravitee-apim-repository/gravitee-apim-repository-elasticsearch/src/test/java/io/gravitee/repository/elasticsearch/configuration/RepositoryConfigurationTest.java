@@ -71,4 +71,37 @@ public class RepositoryConfigurationTest {
     public void shouldHaveKeystoreKeys() {
         Assertions.assertThat(configuration.getSslPemKeys()).hasSize(1).containsExactly("unique-key");
     }
+
+    @Test
+    public void shouldHaveIndexSettings() {
+        assertThat(configuration.getIndexName()).isEqualTo("gravitee");
+        assertThat(configuration.isPerTypeIndex()).isFalse();
+        assertThat(configuration.getIndexMode()).isEqualTo("daily");
+        assertThat(configuration.isILMIndex()).isFalse();
+    }
+
+    @Test
+    public void shouldHaveProxySettings() {
+        assertThat(configuration.getProxyType()).isEqualTo("HTTP");
+
+        assertThat(configuration.getProxyHttpHost()).isEqualTo("localhost");
+        assertThat(configuration.getProxyHttpPort()).isEqualTo(3128);
+        assertThat(configuration.getProxyHttpsHost()).isEqualTo("localhost");
+        assertThat(configuration.getProxyHttpsPort()).isEqualTo(3128);
+
+        assertThat(configuration.isProxyConfigured()).isFalse();
+    }
+
+    @Test
+    public void shouldHaveSecuritySettings() {
+        assertThat(configuration.getUsername()).isNull();
+        assertThat(configuration.getPassword()).isNull();
+    }
+
+    @Test
+    public void shouldHaveSslKeystoreSettings() {
+        assertThat(configuration.getSslKeystoreType()).isNull();
+        assertThat(configuration.getSslKeystore()).isNull();
+        assertThat(configuration.getSslKeystorePassword()).isNull();
+    }
 }

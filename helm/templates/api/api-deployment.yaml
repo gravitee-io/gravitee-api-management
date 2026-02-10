@@ -115,12 +115,18 @@ spec:
       {{- end -}}
 
       {{- $pluginParams := dict "plugins" $plugins "appName" "graviteeio-management-api" "initContainers" $initContainers -}}
-      {{- if or .Values.api.extraInitContainers $plugins .Values.jdbc.driver }}
+
+      {{- $isJdbc := false -}}
+      {{- if and .Values.jdbc.driver (or (eq .Values.management.type "jdbc") (and .Values.repositories .Values.repositories.management (eq .Values.repositories.management.type "jdbc"))) -}}
+        {{- $isJdbc = true -}}
+      {{- end -}}
+
+      {{- if or .Values.api.extraInitContainers $plugins $isJdbc }}
       initContainers:
-        {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
+        {{- if $isJdbc }}
         - name: get-repository-jdbc-ext
           {{- toYaml .Values.initContainers | nindent 10 }}
-          command: [ 'sh', '-c', "mkdir -p /tmp/plugins-ext && cd /tmp/plugins-ext && wget  {{ .Values.jdbc.driver }}" ]
+          command: [ 'sh', '-c', "mkdir -p /tmp/plugins-ext && cd /tmp/plugins-ext && wget {{ .Values.jdbc.driver }}" ]
           volumeMounts:
             - name: graviteeio-apim-repository-jdbc-ext
               mountPath: /tmp/plugins-ext
@@ -207,7 +213,9 @@ spec:
             {{- end }}
             {{- else }}
             - name: portal.entrypoint
+              {{- if and .Values.gateway.ingress .Values.gateway.ingress.hosts }}
               value: "https://{{ index .Values.gateway.ingress.hosts 0 }}{{ .Values.gateway.ingress.path }}"
+              {{- end }}
             {{- end }}
             {{- end }}
             {{- with .Values.kafkaConsole.jwt.secret }}
@@ -278,7 +286,7 @@ spec:
               mountPath: /opt/graviteeio-management-api/config/logback.xml
               subPath: logback.xml
           {{- end }}
-          {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
+          {{- if $isJdbc }}
             - name: graviteeio-apim-repository-jdbc-ext
               mountPath: /opt/graviteeio-management-api/plugins/ext/repository-jdbc
           {{- end }}
@@ -338,7 +346,7 @@ spec:
           configMap:
             name: {{ template "gravitee.api.fullname" . }}
         {{- end }}
-        {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
+        {{- if $isJdbc }}
         - name: graviteeio-apim-repository-jdbc-ext
           emptyDir: { }
         {{- end }}

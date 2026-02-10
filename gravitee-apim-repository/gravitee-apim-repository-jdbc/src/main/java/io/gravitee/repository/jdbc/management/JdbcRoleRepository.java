@@ -47,7 +47,7 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
     private static final String SCOPE_FIELD = "scope";
     private final String ROLE_PERMISSIONS;
 
-    JdbcRoleRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcRoleRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "roles");
         ROLE_PERMISSIONS = getTableNameFor("role_permissions");
     }

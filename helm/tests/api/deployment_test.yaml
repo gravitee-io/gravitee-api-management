@@ -334,3 +334,30 @@ tests:
           value:
             - name: portal.entrypoint
               value: https://my.custom.gateway.host/
+
+  - it: should enable JDBC support using new hierarchical repositories prefix
+    template: api/api-deployment.yaml
+    set:
+      jdbc:
+        driver: "https://repo1.maven.org/maven2/org/postgresql/postgresql/42.2.24/postgresql-42.2.24.jar"
+      repositories:
+        management:
+          type: "jdbc"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: get-repository-jdbc-ext
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: graviteeio-apim-repository-jdbc-ext
+            emptyDir: {}
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: graviteeio-apim-repository-jdbc-ext
+            mountPath: /opt/graviteeio-management-api/plugins/ext/repository-jdbc

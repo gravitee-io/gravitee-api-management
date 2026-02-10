@@ -45,7 +45,7 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcIntegrationRepository.class);
     private final String INTEGRATION_GROUPS;
 
-    JdbcIntegrationRepository(@Value("${management.jdbc.prefix:}") String prefix) {
+    JdbcIntegrationRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String prefix) {
         super(prefix, "integrations");
         INTEGRATION_GROUPS = getTableNameFor("integration_groups");
     }

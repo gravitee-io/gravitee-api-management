@@ -67,14 +67,20 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoClien
 
     @Override
     protected String getDatabaseName() {
-        String uri = environment.getProperty("management.mongodb.uri");
+        String scope = getScope();
+        String newUriKey = "repositories." + scope + ".mongodb.uri";
+        String oldUriKey = scope + ".mongodb.uri";
+
+        String uri = environment.getProperty(newUriKey, environment.getProperty(oldUriKey));
         if (uri != null && !uri.isEmpty()) {
             // Remove user:password from the URI as it can contain special characters and isn't needed for the database name
             String uriWithoutCredentials = uri.replaceAll("://.*@", "://");
             return URI.create(uriWithoutCredentials).getPath().substring(1);
         }
 
-        return environment.getProperty("management.mongodb.dbname", "gravitee");
+        String newDbNameKey = "repositories." + scope + ".mongodb.dbname";
+        String oldDbNameKey = scope + ".mongodb.dbname";
+        return environment.getProperty(newDbNameKey, environment.getProperty(oldDbNameKey, "gravitee"));
     }
 
     @Bean
@@ -106,4 +112,6 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoClien
     protected void configureConverters(MongoCustomConversions.MongoConverterConfigurationAdapter adapter) {
         adapter.registerPropertyValueConverterFactory(PropertyValueConverterFactory.beanFactoryAware(applicationContext));
     }
+
+    public abstract String getScope();
 }

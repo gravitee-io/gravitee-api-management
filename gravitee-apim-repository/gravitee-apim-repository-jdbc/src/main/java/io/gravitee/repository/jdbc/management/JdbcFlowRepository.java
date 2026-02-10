@@ -73,7 +73,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     private final String FLOW_TAGS;
     private final JdbcObjectMapper<FlowStep> stepsOrm;
 
-    JdbcFlowRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcFlowRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "flows");
         FLOWS = getTableNameFor("flows");
         FLOW_METHODS = getTableNameFor("flow_methods");

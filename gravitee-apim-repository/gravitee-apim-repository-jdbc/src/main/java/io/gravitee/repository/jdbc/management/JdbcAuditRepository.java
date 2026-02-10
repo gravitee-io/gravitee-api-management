@@ -51,7 +51,7 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
 
     private final String AUDIT_PROPERTIES;
 
-    JdbcAuditRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcAuditRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "audits");
         AUDIT_PROPERTIES = getTableNameFor("audit_properties");
     }

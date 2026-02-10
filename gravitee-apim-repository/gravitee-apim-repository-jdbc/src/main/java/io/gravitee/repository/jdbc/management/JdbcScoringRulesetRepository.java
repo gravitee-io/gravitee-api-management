@@ -30,7 +30,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcScoringRulesetRepository extends JdbcAbstractCrudRepository<ScoringRuleset, String> implements ScoringRulesetRepository {
 
-    JdbcScoringRulesetRepository(@Value("${management.jdbc.prefix:}") String prefix) {
+    JdbcScoringRulesetRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String prefix) {
         super(prefix, "scoring_rulesets");
     }
 

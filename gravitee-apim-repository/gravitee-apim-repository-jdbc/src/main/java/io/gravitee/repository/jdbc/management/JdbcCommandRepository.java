@@ -45,7 +45,7 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
     private final String COMMAND_ACKNOWLEDGMENTS;
     private final String COMMAND_TAGS;
 
-    JdbcCommandRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcCommandRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "commands");
         COMMAND_ACKNOWLEDGMENTS = getTableNameFor("command_acknowledgments");
         COMMAND_TAGS = getTableNameFor("command_tags");

@@ -43,49 +43,49 @@ public class RepositoryConfiguration {
     /**
      * Prefix index name.
      */
-    @Value("${analytics.elasticsearch.index:gravitee}")
+    @Value("${repositories.analytics.elasticsearch.index:${analytics.elasticsearch.index:gravitee}}")
     private String indexName;
 
     /**
      * Single index or index per type?
      */
-    @Value("${analytics.elasticsearch.index_per_type:false}")
+    @Value("${repositories.analytics.elasticsearch.index_per_type:${analytics.elasticsearch.index_per_type:false}}")
     private boolean perTypeIndex;
 
     /**
      * Index mode normal (daily index) vs ILM (managed by ILM)
      */
-    @Value("${analytics.elasticsearch.index_mode:daily}")
+    @Value("${repositories.analytics.elasticsearch.index_mode:${analytics.elasticsearch.index_mode:daily}}")
     private String indexMode;
 
     /**
      * Elasticsearch basic oauth login.
      */
-    @Value("${analytics.elasticsearch.security.username:#{null}}")
+    @Value("${repositories.analytics.elasticsearch.security.username:${analytics.elasticsearch.security.username:#{null}}}")
     private String username;
 
     /**
      * Elasticsearch basic oauth password.
      */
-    @Value("${analytics.elasticsearch.security.password:#{null}}")
+    @Value("${repositories.analytics.elasticsearch.security.password:${analytics.elasticsearch.security.password:#{null}}}")
     private String password;
 
     /**
      * Elasticsearch ssl keystore type. (jks, pkcs12,)
      */
-    @Value("${analytics.elasticsearch.ssl.keystore.type:#{null}}")
+    @Value("${repositories.analytics.elasticsearch.ssl.keystore.type:${analytics.elasticsearch.ssl.keystore.type:#{null}}}")
     private String sslKeystoreType;
 
     /**
      * Elasticsearch ssl keystore path.
      */
-    @Value("${analytics.elasticsearch.ssl.keystore.path:#{null}}")
+    @Value("${repositories.analytics.elasticsearch.ssl.keystore.path:${analytics.elasticsearch.ssl.keystore.path:#{null}}}")
     private String sslKeystore;
 
     /**
      * Elasticsearch ssl keystore password.
      */
-    @Value("${analytics.elasticsearch.ssl.keystore.password:#{null}}")
+    @Value("${repositories.analytics.elasticsearch.ssl.keystore.password:${analytics.elasticsearch.ssl.keystore.password:#{null}}}")
     private String sslKeystorePassword;
 
     /**
@@ -101,34 +101,45 @@ public class RepositoryConfiguration {
     /**
      * Configurable request timeout for http requests to elasticsearch
      */
-    @Value("${analytics.elasticsearch.http.timeout:10000}")
+    @Value("${repositories.analytics.elasticsearch.http.timeout:${analytics.elasticsearch.http.timeout:10000}}")
     private Long requestTimeout;
 
-    @Value("${analytics.elasticsearch.http.proxy.type:HTTP}")
+    /**
+     * Proxy settings
+     */
+    @Value("${repositories.analytics.elasticsearch.http.proxy.type:${analytics.elasticsearch.http.proxy.type:HTTP}}")
     private String proxyType;
 
-    @Value("${analytics.elasticsearch.http.proxy.http.host:#{systemProperties['http.proxyHost'] ?: 'localhost'}}")
+    @Value(
+        "${repositories.analytics.elasticsearch.http.proxy.http.host:${analytics.elasticsearch.http.proxy.http.host:#{systemProperties['http.proxyHost'] ?: 'localhost'}}}"
+    )
     private String proxyHttpHost;
 
-    @Value("${analytics.elasticsearch.http.proxy.http.port:#{systemProperties['http.proxyPort'] ?: 3128}}")
+    @Value(
+        "${repositories.analytics.elasticsearch.http.proxy.http.port:${analytics.elasticsearch.http.proxy.http.port:#{systemProperties['http.proxyPort'] ?: 3128}}}"
+    )
     private int proxyHttpPort;
 
-    @Value("${analytics.elasticsearch.http.proxy.http.username:#{null}}")
+    @Value("${repositories.analytics.elasticsearch.http.proxy.http.username:${analytics.elasticsearch.http.proxy.http.username:#{null}}}")
     private String proxyHttpUsername;
 
-    @Value("${analytics.elasticsearch.http.proxy.http.password:#{null}}")
+    @Value("${repositories.analytics.elasticsearch.http.proxy.http.password:${analytics.elasticsearch.http.proxy.http.password:#{null}}}")
     private String proxyHttpPassword;
 
-    @Value("${analytics.elasticsearch.http.proxy.https.host:#{systemProperties['https.proxyHost'] ?: 'localhost'}}")
+    @Value(
+        "${repositories.analytics.elasticsearch.http.proxy.https.host:${analytics.elasticsearch.http.proxy.https.host:#{systemProperties['https.proxyHost'] ?: 'localhost'}}}"
+    )
     private String proxyHttpsHost;
 
-    @Value("${analytics.elasticsearch.http.proxy.https.port:#{systemProperties['https.proxyPort'] ?: 3128}}")
+    @Value(
+        "${repositories.analytics.elasticsearch.http.proxy.https.port:${analytics.elasticsearch.http.proxy.https.port:#{systemProperties['https.proxyPort'] ?: 3128}}}"
+    )
     private int proxyHttpsPort;
 
-    @Value("${analytics.elasticsearch.http.proxy.https.username:#{null}}")
+    @Value("${repositories.analytics.elasticsearch.http.proxy.https.username:${analytics.elasticsearch.http.proxy.https.username:#{null}}}")
     private String proxyHttpsUsername;
 
-    @Value("${analytics.elasticsearch.http.proxy.https.password:#{null}}")
+    @Value("${repositories.analytics.elasticsearch.http.proxy.https.password:${analytics.elasticsearch.http.proxy.https.password:#{null}}}")
     private String proxyHttpsPassword;
 
     /**
@@ -264,12 +275,16 @@ public class RepositoryConfiguration {
     private Map<String, String> initializeCrossClusterMapping() {
         crossClusterInitialized = true;
 
-        Map<String, Object> tenantMapping = EnvironmentUtils.getPropertiesStartingWith(
-            (ConfigurableEnvironment) environment,
-            "analytics.elasticsearch.cross_cluster.mapping."
-        );
+        String newPrefix = "repositories.analytics.elasticsearch.cross_cluster.mapping.";
+        String oldPrefix = "analytics.elasticsearch.cross_cluster.mapping.";
 
-        if (tenantMapping != null) {
+        Map<String, Object> tenantMapping = EnvironmentUtils.getPropertiesStartingWith((ConfigurableEnvironment) environment, newPrefix);
+
+        if (tenantMapping.isEmpty()) {
+            tenantMapping = EnvironmentUtils.getPropertiesStartingWith((ConfigurableEnvironment) environment, oldPrefix);
+        }
+
+        if (tenantMapping != null && !tenantMapping.isEmpty()) {
             Map<String, String> mapping = new HashMap<>(tenantMapping.size());
             tenantMapping.forEach((s, o) -> mapping.put(s.substring(s.lastIndexOf('.') + 1), (String) o));
 
@@ -284,6 +299,30 @@ public class RepositoryConfiguration {
     }
 
     private List<String> readPropertyAsList(String property) {
+        String newPrefix = "repositories.analytics.elasticsearch." + property;
+        String oldPrefix = property;
+
+        List<String> properties = readPropertyAsListFromKey(newPrefix);
+
+        if (properties.isEmpty()) {
+            properties = readPropertyAsListFromKey(oldPrefix);
+        }
+
+        // fallback to single value style for backward compatibility
+        if (properties.isEmpty()) {
+            String newValue = environment.getProperty(newPrefix);
+            String oldValue = environment.getProperty(oldPrefix);
+            if (newValue != null) {
+                properties.add(newValue);
+            } else if (oldValue != null) {
+                properties.add(oldValue);
+            }
+        }
+
+        return properties;
+    }
+
+    private List<String> readPropertyAsListFromKey(String property) {
         String key = String.format("%s[%s]", property, 0);
         List<String> properties = new ArrayList<>();
 
@@ -293,31 +332,38 @@ public class RepositoryConfiguration {
 
             key = String.format("%s[%s]", property, properties.size());
         }
-
-        // fallback to single value style for backward compatibility
-        if (properties.isEmpty()) {
-            properties.add(environment.getProperty(property));
-        }
-
         return properties;
     }
 
     private List<Endpoint> initializeEndpoints() {
-        String key = String.format("analytics.elasticsearch.endpoints[%s]", 0);
-        List<Endpoint> endpoints = new ArrayList<>();
+        String newPrefix = "repositories.analytics.elasticsearch.endpoints";
+        String oldPrefix = "analytics.elasticsearch.endpoints";
 
-        while (environment.containsProperty(key)) {
-            String url = environment.getProperty(key);
-            endpoints.add(new Endpoint(url));
+        // Try to read from new path first
+        List<Endpoint> endpoints = readEndpointsFromKey(newPrefix);
 
-            key = String.format("analytics.elasticsearch.endpoints[%s]", endpoints.size());
+        // Fallback to legacy path
+        if (endpoints.isEmpty()) {
+            endpoints = readEndpointsFromKey(oldPrefix);
         }
 
-        // Use default host if required
+        // Use default host if still empty
         if (endpoints.isEmpty()) {
             endpoints.add(new Endpoint(DEFAULT_ELASTICSEARCH_ENDPOINT));
         }
 
+        return endpoints;
+    }
+
+    private List<Endpoint> readEndpointsFromKey(String baseKey) {
+        List<Endpoint> endpoints = new ArrayList<>();
+        int i = 0;
+        String key = String.format("%s[%s]", baseKey, i);
+
+        while (environment.containsProperty(key)) {
+            endpoints.add(new Endpoint(environment.getProperty(key)));
+            key = String.format("%s[%s]", baseKey, ++i);
+        }
         return endpoints;
     }
 
@@ -398,10 +444,13 @@ public class RepositoryConfiguration {
     }
 
     public boolean isProxyConfigured() {
-        return !EnvironmentUtils.getPropertiesStartingWith(
-            (ConfigurableEnvironment) environment,
-            "analytics.elasticsearch.http.proxy"
-        ).isEmpty();
+        String newPrefix = "repositories.analytics.elasticsearch.http.proxy";
+        String oldPrefix = "analytics.elasticsearch.http.proxy";
+
+        return (
+            !EnvironmentUtils.getPropertiesStartingWith((ConfigurableEnvironment) environment, newPrefix).isEmpty() ||
+            !EnvironmentUtils.getPropertiesStartingWith((ConfigurableEnvironment) environment, oldPrefix).isEmpty()
+        );
     }
 
     public boolean isCrossClusterInitialized() {

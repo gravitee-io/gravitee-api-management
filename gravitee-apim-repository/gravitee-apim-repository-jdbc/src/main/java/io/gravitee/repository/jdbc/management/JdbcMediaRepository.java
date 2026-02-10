@@ -42,7 +42,7 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcMediaRepository.class);
 
-    JdbcMediaRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcMediaRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "media");
     }
 

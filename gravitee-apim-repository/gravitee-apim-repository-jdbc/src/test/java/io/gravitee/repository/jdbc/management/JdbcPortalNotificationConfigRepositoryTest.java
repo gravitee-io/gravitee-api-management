@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -59,10 +60,15 @@ public class JdbcPortalNotificationConfigRepositoryTest {
         PortalNotificationCriteria criteria = PortalNotificationCriteria.builder().hook("hook1").organizationId("org1").build();
         String query = repository.generateQuery(criteria);
         String expectedQuery =
-            "select pnc.`user`, pnc.reference_type, pnc.reference_id, pnc.created_at, pnc.updated_at, pnc.origin from " +
+            "select pnc." +
+            escapeReservedWord("user") +
+            ", pnc.reference_type, pnc.reference_id, pnc.created_at, pnc.updated_at, pnc.origin from " +
             "table_prefix_portal_notification_configs pnc left join table_prefix_portal_notification_config_hooks pnch on " +
-            "pnc.reference_type = pnch.reference_type and pnc.reference_id = pnch.reference_id and pnc.`user` = pnch.`user` " +
-            "where 1=1 and pnch.hook = ? and pnc.organization_id = ?";
+            "pnc.reference_type = pnch.reference_type and pnc.reference_id = pnch.reference_id and pnc." +
+            escapeReservedWord("user") +
+            " = pnch." +
+            escapeReservedWord("user") +
+            " where 1=1 and pnch.hook = ? and pnc.organization_id = ?";
         assertThat(query).isEqualTo(expectedQuery);
     }
 
@@ -75,10 +81,15 @@ public class JdbcPortalNotificationConfigRepositoryTest {
             .build();
         String query = repository.generateQuery(criteria);
         String expectedQuery =
-            "select pnc.`user`, pnc.reference_type, pnc.reference_id, pnc.created_at, pnc.updated_at, pnc.origin from " +
+            "select pnc." +
+            escapeReservedWord("user") +
+            ", pnc.reference_type, pnc.reference_id, pnc.created_at, pnc.updated_at, pnc.origin from " +
             "table_prefix_portal_notification_configs pnc left join table_prefix_portal_notification_config_hooks pnch on " +
-            "pnc.reference_type = pnch.reference_type and pnc.reference_id = pnch.reference_id and pnc.`user` = pnch.`user` " +
-            "where 1=1 and pnc.reference_type = ? and pnc.reference_id = ? and pnch.hook = ?";
+            "pnc.reference_type = pnch.reference_type and pnc.reference_id = pnch.reference_id and pnc." +
+            escapeReservedWord("user") +
+            " = pnch." +
+            escapeReservedWord("user") +
+            " where 1=1 and pnc.reference_type = ? and pnc.reference_id = ? and pnch.hook = ?";
         assertThat(query).isEqualTo(expectedQuery);
     }
 

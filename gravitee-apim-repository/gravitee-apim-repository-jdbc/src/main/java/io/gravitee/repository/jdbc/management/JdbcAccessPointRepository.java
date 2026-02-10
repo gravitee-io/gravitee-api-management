@@ -45,7 +45,7 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
 
     static String createdStatusClause = " and status = '" + AccessPointStatus.CREATED.name() + "'";
 
-    JdbcAccessPointRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcAccessPointRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "access_points");
     }
 

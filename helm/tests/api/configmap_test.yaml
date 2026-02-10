@@ -1,181 +1,258 @@
 suite: Test Management API default configmap
 templates:
-  - "api/api-configmap.yaml"
+    - "api/api-configmap.yaml"
 tests:
-  - it: Set jwt attributes with default values if not set
-    template: api/api-configmap.yaml
-    set:
-      jwt:
-        key: value
-    asserts:
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: "expire-after: 604800"
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: "email-registration-expire-after: 86400"
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: "issuer: gravitee-management-auth"
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: "cookie-path: /"
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: "cookie-domain: apim.example.com"
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: "cookie-secure: false"
-  - it: Set jwt attributes with provided values
-    template: api/api-configmap.yaml
-    set:
-      jwt:
-        expireAfter: 1000
-        emailRegistrationExpireAfter: 2000
-        issuer: "gravitee-management-auth-test"
-        cookie:
-          path: "/test"
-          domain: "apim.test"
-          secure: true
-    asserts:
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: "expire-after: 1000"
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: "email-registration-expire-after: 2000"
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: "issuer: gravitee-management-auth-test"
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: "cookie-path: /test"
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: "cookie-domain: apim.test"
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: "cookie-secure: true"
-  - it: Set console Pendo analytics attributes with provided values
-    template: api/api-configmap.yaml
-    set:
-      ui:
-        analytics:
-          pendo:
-            enabled: true
-            apiKey: "myPendoKey"
-    asserts:
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: "apiKey: myPendoKey"
-  - it: Set user password policy pattern
-    template: api/api-configmap.yaml
-    set:
-      api:
-        user:
-          password:
-            policy:
-              pattern: ^regex$
-    asserts:
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: "pattern: \\^regex\\$"
-  - it: Check DB Less mode
-    set:
-      global:
-        kubeVersion: 1.23.0
-      apim:
-        dbLess: true
-    asserts:
-      - hasDocuments:
-          count: 0
+    - it: Set jwt attributes with default values if not set
+      template: api/api-configmap.yaml
+      set:
+          jwt:
+              key: value
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "expire-after: 604800"
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "email-registration-expire-after: 86400"
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "issuer: gravitee-management-auth"
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "cookie-path: /"
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "cookie-domain: apim.example.com"
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "cookie-secure: false"
+    - it: Set jwt attributes with provided values
+      template: api/api-configmap.yaml
+      set:
+          jwt:
+              expireAfter: 1000
+              emailRegistrationExpireAfter: 2000
+              issuer: "gravitee-management-auth-test"
+              cookie:
+                  path: "/test"
+                  domain: "apim.test"
+                  secure: true
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "expire-after: 1000"
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "email-registration-expire-after: 2000"
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "issuer: gravitee-management-auth-test"
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "cookie-path: /test"
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "cookie-domain: apim.test"
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "cookie-secure: true"
+    - it: Set console Pendo analytics attributes with provided values
+      template: api/api-configmap.yaml
+      set:
+          ui:
+              analytics:
+                  pendo:
+                      enabled: true
+                      apiKey: "myPendoKey"
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "apiKey: myPendoKey"
+    - it: Set user password policy pattern
+      template: api/api-configmap.yaml
+      set:
+          api:
+              user:
+                  password:
+                      policy:
+                          pattern: ^regex$
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "pattern: \\^regex\\$"
+    - it: Check DB Less mode
+      set:
+          global:
+              kubeVersion: 1.23.0
+          apim:
+              dbLess: true
+      asserts:
+          - hasDocuments:
+                count: 0
 
-  - it: Set adminAccountEnable to false
-    template: api/api-configmap.yaml
-    set:
-      adminAccountEnable: false
-    asserts:
-      - notMatchRegex:
-          path: data["gravitee.yml"]
-          pattern: |
-            \s users:
-            \s   - user:
-            \s   - user:"
+    - it: Set adminAccountEnable to false
+      template: api/api-configmap.yaml
+      set:
+          adminAccountEnable: false
+      asserts:
+          - notMatchRegex:
+                path: data["gravitee.yml"]
+                pattern: |
+                    \s users:
+                    \s   - user:
+                    \s   - user:"
 
-  - it: check default api.gateway.unknownExpireAfter
-    template: api/api-configmap.yaml
-    asserts:
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: |
-            gateway:
-              unknown-expire-after: 604800
+    - it: check default api.gateway.unknownExpireAfter
+      template: api/api-configmap.yaml
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: |
+                    gateway:
+                      unknown-expire-after: 604800
 
-  - it: Set api.gateway.unknownExpireAfter to 60
-    template: api/api-configmap.yaml
-    set:
-      api:
-        gateway:
-          unknownExpireAfter: 60
-    asserts:
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: |
-            gateway:
-              unknown-expire-after: 60
-  - it: Set configuration logging message sampling
-    template: api/api-configmap.yaml
-    set:
-      api:
-        configuration:
-          logging:
-            messageSampling:
-              count:
-                default: 500
-                limit: 100
-    asserts:
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: |
-            logging:
-              messageSampling:
-                count:
-                  default: 500
-                  limit: 100
+    - it: Set api.gateway.unknownExpireAfter to 60
+      template: api/api-configmap.yaml
+      set:
+          api:
+              gateway:
+                  unknownExpireAfter: 60
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: |
+                    gateway:
+                      unknown-expire-after: 60
+    - it: Set configuration logging message sampling
+      template: api/api-configmap.yaml
+      set:
+          api:
+              configuration:
+                  logging:
+                      messageSampling:
+                          count:
+                              default: 500
+                              limit: 100
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: |
+                    logging:
+                      messageSampling:
+                        count:
+                          default: 500
+                          limit: 100
 
-  - it: Enable External Authentication
-    template: api/api-configmap.yaml
-    set:
-      api:
-        auth:
-          external:
-            enabled: true
-            algorithm: HS256
-            key: ozhbx5HJCS41NzKrBSQ0vZU1WOmG0Uhm
-            issuer: test
-    asserts:
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: "auth:\n
+    - it: Enable External Authentication
+      template: api/api-configmap.yaml
+      set:
+          api:
+              auth:
+                  external:
+                      enabled: true
+                      algorithm: HS256
+                      key: ozhbx5HJCS41NzKrBSQ0vZU1WOmG0Uhm
+                      issuer: test
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "auth:\n
                     * external:\n
                     *   algorithm: HS256\n
                     *   enabled: true\n
                     *   issuer: test\n
                     *   key: ozhbx5HJCS41NzKrBSQ0vZU1WOmG0Uhm"
 
-  - it: Configure Integration
-    template: api/api-configmap.yaml
-    set:
-      api:
-        federation:
-          enabled: true
-    asserts:
-      - matchRegex:
-          path: data["gravitee.yml"]
-          pattern: |
-            integration:
-              enabled: true
-              
-              controller:
-                ws:
-                  port: 8072
+    - it: Configure Integration
+      template: api/api-configmap.yaml
+      set:
+          api:
+              federation:
+                  enabled: true
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: |
+                    integration:
+                      enabled: true
+                      
+                      controller:
+                        ws:
+                          port: 8072
+
+    - it: Hierarchical structure should render when explicitly enabled
+      template: api/api-configmap.yaml
+      set:
+          repositories:
+              management:
+                  type: mongodb
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "repositories:[\\s\\S]*management:"
+
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "repositories:[\\s\\S]*management:[\\s\\S]*type: mongodb"
+
+    - it: Explicit repositories configuration should be rendered
+      template: api/api-configmap.yaml
+      set:
+          repositories:
+              management:
+                  type: jdbc
+                  jdbc:
+                      url: "jdbc:postgresql://localhost:5432/gravitee"
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "repositories:[\\s\\S]*management:"
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "repositories:[\\s\\S]*management:[\\s\\S]*type: jdbc"
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "url: jdbc:postgresql://localhost:5432/gravitee"
+
+    - it: Legacy management configuration should render if repositories is null
+      template: api/api-configmap.yaml
+      set:
+          repositories: null
+          management:
+              type: jdbc
+          jdbc:
+              url: "jdbc:mysql://legacy:3306/gravitee"
+      asserts:
+          - notMatchRegex:
+                path: data["gravitee.yml"]
+                pattern: "repositories:\\n\\s+management:"
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "management:\\n\\s+type: jdbc\\n\\s+jdbc:"
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "url: jdbc:mysql://legacy:3306/gravitee"
+
+    - it: Mixed configuration - New structure takes precedence over legacy
+      template: api/api-configmap.yaml
+      set:
+          repositories:
+              management:
+                  type: mongodb
+                  mongodb:
+                      dbname: "new_db"
+          management:
+              type: jdbc
+          jdbc:
+              url: "jdbc:legacy"
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "repositories:\\n\\s+management:"
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: "dbname: new_db"
+          # Legacy jdbc url should NOT appear because new structure takes precedence
+          - notMatchRegex:
+                path: data["gravitee.yml"]
+                pattern: "url: jdbc:legacy"

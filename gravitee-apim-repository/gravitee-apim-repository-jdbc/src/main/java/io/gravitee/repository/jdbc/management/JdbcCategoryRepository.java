@@ -40,7 +40,7 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcCategoryRepository.class);
 
-    JdbcCategoryRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcCategoryRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "categories");
     }
 

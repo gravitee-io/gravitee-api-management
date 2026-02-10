@@ -67,7 +67,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         }
     };
 
-    JdbcApiKeyRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcApiKeyRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "keys");
         keySubscriptions = getTableNameFor("key_subscriptions");
         subscription = getTableNameFor("subscriptions");

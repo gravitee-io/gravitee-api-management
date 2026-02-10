@@ -42,7 +42,7 @@ public class JdbcNotificationTemplateRepository
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcNotificationTemplateRepository.class);
 
-    JdbcNotificationTemplateRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcNotificationTemplateRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "notification_templates");
     }
 

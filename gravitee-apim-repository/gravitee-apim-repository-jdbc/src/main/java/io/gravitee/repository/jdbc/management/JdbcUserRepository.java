@@ -43,7 +43,7 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
 
     private static final String STATUS_FIELD = "status";
 
-    JdbcUserRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcUserRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "users");
     }
 

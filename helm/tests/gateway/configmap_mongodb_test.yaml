@@ -98,26 +98,7 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: |
-            management:
-              type: mongodb
-              mongodb:
-              (.|\n)*
-                keystore:
-                  keyPassword: keyPassword
-                  password: keystorePassword
-                  path: /path/to/keystore.p12
-                  type: pkcs12
-            (.|\n)*
-            ratelimit:
-              type: mongodb
-              mongodb:
-              (.|\n)*
-                keystore:
-                  keyPassword: keyPassword
-                  password: keystorePassword
-                  path: /path/to/keystore.p12
-                  type: pkcs12
+          pattern: "management:[\\s\\S]*mongodb:[\\s\\S]*keystore:[\\s\\S]*keyPassword: keyPassword[\\s\\S]*password: keystorePassword[\\s\\S]*path: /path/to/keystore.p12[\\s\\S]*type: pkcs12[\\s\\S]*ratelimit:[\\s\\S]*mongodb:[\\s\\S]*keystore:[\\s\\S]*keyPassword: keyPassword[\\s\\S]*password: keystorePassword[\\s\\S]*path: /path/to/keystore.p12[\\s\\S]*type: pkcs12"
   - it: Set mongo truststore attributes with provided values
     template: gateway/gateway-configmap.yaml
     set:
@@ -129,21 +110,4 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: |
-            management:
-              type: mongodb
-              mongodb:
-              (.|\n)*
-                truststore:
-                  password: truststorePassword
-                  path: /path/to/truststore.jks
-                  type: jks
-            (.|\n)*
-            ratelimit:
-              type: mongodb
-              mongodb:
-              (.|\n)*
-                truststore:
-                  password: truststorePassword
-                  path: /path/to/truststore.jks
-                  type: jks
+          pattern: "management:[\\s\\S]*mongodb:[\\s\\S]*truststore:[\\s\\S]*password: truststorePassword[\\s\\S]*path: /path/to/truststore.jks[\\s\\S]*type: jks[\\s\\S]*ratelimit:[\\s\\S]*mongodb:[\\s\\S]*truststore:[\\s\\S]*password: truststorePassword[\\s\\S]*path: /path/to/truststore.jks[\\s\\S]*type: jks"

@@ -60,10 +60,8 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
     @Autowired
     private Environment env;
 
-    @Value("${management.jdbc.prefix:}")
     private String prefix;
 
-    @Value("${ratelimit.jdbc.prefix:}")
     private String rateLimitPrefix;
 
     // Default escape char for reserved keywords
@@ -139,7 +137,8 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
         dsConfig.setJdbcUrl(jdbcUrl);
         dsConfig.setUsername(readPropertyValue("jdbc.username"));
         dsConfig.setPassword(readPropertyValue("jdbc.password", false));
-        final String schema = env.getProperty(getScope() + "." + "jdbc.schema", String.class);
+        final String schema = readPropertyValue("jdbc.schema", String.class, null);
+
         if (schema != null) {
             dsConfig.setSchema(schema);
         }
@@ -155,7 +154,8 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
 
         final DataSource dataSource = new HikariDataSource(dsConfig);
 
-        // Upgrader framework may also set this value in the runtime to skip running Liquibase scripts in upgrade mode
+        // Upgrader framework may also set this value in the runtime to skip running
+        // Liquibase scripts in upgrade mode
         Boolean liquibase = readPropertyValue("jdbc.liquibase", Boolean.class, LIQUIBASE_ENABLED);
         if (liquibase) {
             runLiquibase(dataSource);
@@ -201,6 +201,9 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
     private void runLiquibase(DataSource dataSource) {
         LOGGER.debug("Running Liquibase on {}", dataSource);
 
+        this.prefix = readPropertyValue("jdbc.prefix", String.class, "");
+        this.rateLimitPrefix = readPropertyValue("ratelimit.jdbc.prefix", String.class, "");
+
         System.setProperty("liquibase.databaseChangeLogTableName", prefix + "databasechangelog");
         System.setProperty("liquibase.databaseChangeLogLockTableName", prefix + "databasechangeloglock");
         System.setProperty("gravitee_prefix", prefix);
@@ -232,8 +235,27 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
 
     private <T> T readPropertyValue(String propertyName, Class<T> propertyType, T defaultValue, final boolean displayOnLog) {
         final String scope = getScope();
-        final T value = env.getProperty(scope + "." + propertyName, propertyType, defaultValue);
-        LOGGER.debug("Reading property {}: {}", propertyName, displayOnLog ? value : "********");
+
+        String newKey = "repositories." + scope + "." + propertyName;
+        T value = env.getProperty(newKey, propertyType);
+
+        if (value != null) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Reading property {}: {}", newKey, displayOnLog ? value : "********");
+            }
+            return value;
+        }
+
+        String oldKey = scope + "." + propertyName;
+        value = env.getProperty(oldKey, propertyType, defaultValue);
+
+        if (value == null) {
+            value = defaultValue;
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Reading property {}: {}", oldKey, displayOnLog ? value : "********");
+        }
         return value;
     }
 }

@@ -273,6 +273,24 @@ secrets:
 # This is the default configuration using MongoDB (single server)
 # For more information about MongoDB configuration, please have a look to:
 # - http://mongodb.github.io/mongo-java-driver/4.1/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html
+#  # New way to configure repositories with scope (preferred)
+#  repositories:
+#    management:
+#      type: mongodb
+#      mongodb:
+#        dbname: ${ds.mongodb.dbname}
+#        host: ${ds.mongodb.host}
+#        port: ${ds.mongodb.port}
+#    ratelimit:
+#      type: mongodb
+#      mongodb:
+#        uri: mongodb://${ds.mongodb.host}:${ds.mongodb.port}/${ds.mongodb.dbname}
+#    analytics:
+#      type: elasticsearch
+#      elasticsearch:
+#        endpoints:
+#          - http://${ds.elastic.host}:${ds.elastic.port}
+
 management:
   type: mongodb                  # repository type
   mongodb:                       # mongodb repository

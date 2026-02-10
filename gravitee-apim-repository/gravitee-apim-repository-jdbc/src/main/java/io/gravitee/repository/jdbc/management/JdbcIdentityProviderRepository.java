@@ -49,7 +49,7 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcIdentityProviderRepository.class);
 
-    JdbcIdentityProviderRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcIdentityProviderRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "identity_providers");
     }
 

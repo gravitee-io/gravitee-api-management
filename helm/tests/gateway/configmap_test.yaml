@@ -104,3 +104,218 @@ tests:
             \s*dictionaries:
             \s*multi-tenant:
             \s*enabled: false
+
+  - it: should configure management repository using new prefix(repositories) with mongodb
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        ratelimit:
+          redis:
+            host: "dummy"
+            port: 6379
+      management:
+        type: none
+      ratelimit:
+        type: none
+
+
+      repositories:
+        management:
+          type: mongodb
+          mongodb:
+            dbname: gravitee
+            dbhost: mongo-host
+            dbport: 27017
+    asserts:
+      - matchSnapshot:
+          path: data["gravitee.yml"]
+
+  - it: should configure analytics repository using new prefix(repositories) with elasticsearch
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        ratelimit:
+          redis:
+            host: "dummy"
+            port: 6379
+      management:
+        type: none
+      ratelimit:
+        type: none
+
+      repositories:
+        analytics:
+          type: elasticsearch
+          elasticsearch:
+            endpoints:
+              - http://elasticsearch:9200
+            index: gravitee
+    asserts:
+      - matchSnapshot:
+          path: data["gravitee.yml"]
+
+  - it: should configure ratelimit repository using new prefix(repositories) with redis
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        ratelimit:
+          redis:
+            host: "test host"
+            port: 6379
+      management:
+        type: none
+      ratelimit:
+        type: none
+
+      repositories:
+        ratelimit:
+          type: redis
+          mongodb: null
+          redis:
+            host: redis-host
+            port: 6379
+    asserts:
+      - matchSnapshot:
+          path: data["gravitee.yml"]
+
+  - it: should configure all repositories using prefix(matchSnapshot) structure
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        ratelimit:
+          redis:
+            host: "dummy"
+            port: 6379
+      management:
+        type: none
+      ratelimit:
+        type: none
+
+      repositories:
+        management:
+          type: mongodb
+          mongodb:
+            dbname: gravitee-mgmt
+            dbhost: mongo-mgmt
+            dbport: 27017
+        analytics:
+          type: elasticsearch
+          elasticsearch:
+            endpoints:
+              - http://es-analytics:9200
+            index: gravitee-analytics
+        ratelimit:
+          type: mongodb
+          mongodb:
+            dbname: gravitee-ratelimit
+            dbhost: mongo-ratelimit
+            dbport: 27017
+    asserts:
+      - matchSnapshot:
+          path: data["gravitee.yml"]
+
+  - it: should configure management repository using prefix(matchSnapshot) with JDBC
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        ratelimit:
+          redis:
+            host: "test host"
+            port: 6379
+      management:
+        type: none
+      ratelimit:
+        type: none
+
+      repositories:
+        management:
+          type: jdbc
+          mongodb: null
+          jdbc:
+            url: jdbc:postgresql://new-postgres:5432/gravitee
+            username: new-user
+    asserts:
+      - matchSnapshot:
+          path: data["gravitee.yml"]
+
+  - it: Hierarchical structure should render when explicitly enabled
+    template: gateway/gateway-configmap.yaml
+    set:
+      repositories:
+        management:
+          type: mongodb
+    asserts:
+      # Verify repositories block exists with management key (keys may be in any order)
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "repositories:[\\s\\S]*management:"
+      # Verify type: mongodb exists under management
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "repositories:[\\s\\S]*management:[\\s\\S]*type: mongodb"
+
+  - it: Explicit repositories configuration should be rendered
+    template: gateway/gateway-configmap.yaml
+    set:
+      repositories:
+        management:
+          type: jdbc
+          jdbc:
+            url: "jdbc:postgresql://localhost:5432/gravitee"
+    asserts:
+      # Verify repositories block exists with management key
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "repositories:[\\s\\S]*management:"
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "repositories:[\\s\\S]*management:[\\s\\S]*type: jdbc"
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "url: jdbc:postgresql://localhost:5432/gravitee"
+
+  - it: Legacy management configuration should render if repositories is null
+    template: gateway/gateway-configmap.yaml
+    set:
+      repositories: null
+      management:
+        type: jdbc
+      jdbc:
+        url: "jdbc:mysql://legacy:3306/gravitee"
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "repositories:\\n\\s+management:"
+      # Verify legacy management block renders with jdbc type
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "management:\\n\\s+type: jdbc\\n\\s+jdbc:"
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "url: jdbc:mysql://legacy:3306/gravitee"
+
+  - it: Mixed configuration - New structure takes precedence over legacy
+    template: gateway/gateway-configmap.yaml
+    set:
+      repositories:
+        management:
+          type: mongodb
+          mongodb:
+            dbname: "new_db"
+      management:
+        type: jdbc
+      jdbc:
+        url: "jdbc:legacy"
+    asserts:
+      # Verify repositories block exists with management key
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "repositories:[\\s\\S]*management:"
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "dbname: new_db"
+      # Legacy jdbc url should NOT appear because new structure takes precedence
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "url: jdbc:legacy"
+
