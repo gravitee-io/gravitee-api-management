@@ -1746,17 +1746,18 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     public void transferApiOwnership(
         ExecutionContext executionContext,
         String apiId,
-        MembershipMember member,
+        MembershipMember newApiOwnerMember,
         List<RoleEntity> newPrimaryOwnerRoles
     ) {
+        // If the new PO is a group but this group has no API PO member, we throw an exception.
         if (
-            MembershipMemberType.GROUP.equals(member.getMemberType()) &&
-            !this.hasApiPrimaryOwnerMemberInGroup(executionContext, member.getMemberId())
+            MembershipMemberType.GROUP.equals(newApiOwnerMember.getMemberType()) &&
+            !this.hasApiPrimaryOwnerMemberInGroup(executionContext, newApiOwnerMember.getMemberId())
         ) {
             throw new ApiOwnershipTransferException(apiId);
         }
 
-        this.transferOwnership(executionContext, MembershipReferenceType.API, RoleScope.API, apiId, member, newPrimaryOwnerRoles);
+        this.transferOwnership(executionContext, MembershipReferenceType.API, RoleScope.API, apiId, newApiOwnerMember, newPrimaryOwnerRoles);
         GenericApiEntity apiEntity = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), apiId);
         GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(GraviteeContext.getExecutionContext(), apiEntity);
         searchEngineService.index(GraviteeContext.getExecutionContext(), genericApiEntity, false);
@@ -1784,7 +1785,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         MembershipReferenceType membershipReferenceType,
         RoleScope roleScope,
         String itemId,
-        MembershipMember member,
+        MembershipMember newOwnerMember,
         List<RoleEntity> newPrimaryOwnerRoles
     ) {
         List<RoleEntity> newRoles;
@@ -1794,57 +1795,57 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             newRoles = newPrimaryOwnerRoles;
         }
 
-        MembershipEntity primaryOwner = this.getPrimaryOwner(executionContext.getOrganizationId(), membershipReferenceType, itemId);
+        MembershipEntity previousPrimaryOwner = this.getPrimaryOwner(executionContext.getOrganizationId(), membershipReferenceType, itemId);
 
         this.addRoleToMemberOnReference(
             executionContext,
             new MembershipReference(membershipReferenceType, itemId),
-            new MembershipMember(member.getMemberId(), member.getReference(), member.getMemberType()),
+            new MembershipMember(newOwnerMember.getMemberId(), newOwnerMember.getReference(), newOwnerMember.getMemberType()),
             new MembershipRole(roleScope, PRIMARY_OWNER.name())
         );
 
-        //If the new PO is a group and the reference is an API, add the group as a member of the API
-        if (membershipReferenceType == MembershipReferenceType.API && member.getMemberType() == MembershipMemberType.GROUP) {
-            apiGroupService.addGroup(executionContext, itemId, member.getMemberId());
+        // If the new PO is a group and the reference is an API, add the group as a member of the API
+        if (membershipReferenceType == MembershipReferenceType.API && newOwnerMember.getMemberType() == MembershipMemberType.GROUP) {
+            apiGroupService.addGroup(executionContext, itemId, newOwnerMember.getMemberId());
         }
 
         RoleEntity poRoleEntity = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), roleScope);
         if (poRoleEntity != null) {
             // if the new primary owner is a user, remove its previous role
-            if (member.getMemberType() == MembershipMemberType.USER) this.getRoles(
+            if (newOwnerMember.getMemberType() == MembershipMemberType.USER) this.getRoles(
                 membershipReferenceType,
                 itemId,
-                member.getMemberType(),
-                member.getMemberId()
+                newOwnerMember.getMemberType(),
+                newOwnerMember.getMemberId()
             ).forEach(role -> {
                 if (!role.getId().equals(poRoleEntity.getId())) {
-                    this.removeRole(membershipReferenceType, itemId, member.getMemberType(), member.getMemberId(), role.getId());
+                    this.removeRole(membershipReferenceType, itemId, newOwnerMember.getMemberType(), newOwnerMember.getMemberId(), role.getId());
                 }
             });
 
-            // remove role of the previous  primary owner
+            // remove role of the previous primary owner
             this.removeRole(
                 membershipReferenceType,
                 itemId,
-                primaryOwner.getMemberType(),
-                primaryOwner.getMemberId(),
+                previousPrimaryOwner.getMemberType(),
+                previousPrimaryOwner.getMemberId(),
                 poRoleEntity.getId()
             );
 
             // if the previous primary owner was a user
-            if (primaryOwner.getMemberType() == MembershipMemberType.USER) {
+            if (previousPrimaryOwner.getMemberType() == MembershipMemberType.USER) {
                 // set the new role
                 for (RoleEntity newRole : newRoles) {
                     this.addRoleToMemberOnReference(
                         executionContext,
                         new MembershipReference(membershipReferenceType, itemId),
-                        new MembershipMember(primaryOwner.getMemberId(), null, primaryOwner.getMemberType()),
+                        new MembershipMember(previousPrimaryOwner.getMemberId(), null, previousPrimaryOwner.getMemberType()),
                         new MembershipRole(roleScope, newRole.getName())
                     );
                 }
-            } else if (primaryOwner.getMemberType() == MembershipMemberType.GROUP) {
+            } else if (previousPrimaryOwner.getMemberType() == MembershipMemberType.GROUP) {
                 // remove this group from the api's group list
-                apiGroupService.removeGroup(executionContext, itemId, primaryOwner.getId());
+                apiGroupService.removeGroup(executionContext, itemId, previousPrimaryOwner.getMemberId());
             }
         }
     }
