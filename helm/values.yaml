@@ -1546,6 +1546,9 @@ gateway:
       #distributed:
       #  enabled: true
 
+    healthcheck:
+      jitterInMs: 900
+
     heartbeat:
       enabled: true
       delay: 5000

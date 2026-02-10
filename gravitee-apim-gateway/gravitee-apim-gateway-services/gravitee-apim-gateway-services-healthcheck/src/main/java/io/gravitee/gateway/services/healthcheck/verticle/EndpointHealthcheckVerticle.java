@@ -21,6 +21,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.ChangeListener;
 import io.gravitee.common.util.ObservableSet;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
@@ -72,6 +73,9 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
 
     @Autowired
     private Environment environment;
+
+    @Autowired
+    private GatewayConfiguration gatewayConfiguration;
 
     @Override
     public void start(final Promise<Void> startPromise) {
@@ -139,7 +143,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
             runner.setStatusHandler(statusReporter);
             runner.setAlertEventProducer(alertEventProducer);
             runner.setNode(node);
-            EndpointRuleCronHandler cronHandler = new EndpointRuleCronHandler(vertx, rule);
+            EndpointRuleCronHandler cronHandler = new EndpointRuleCronHandler(vertx, rule, gatewayConfiguration.healthCheckJitterInMs());
             cronHandler.schedule(runner);
 
             apiHandlers.get(api).add(cronHandler);
