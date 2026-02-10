@@ -22,7 +22,8 @@
         class="api-tab-documentation__side-bar__tree"
         [activePage]="pageId()"
         [pages]="pageNodes"
-        (openFile)="showPage($event)" />
+        (openFile)="showPage($event)"
+      />
     </app-drawer>
   </div>
   @if (apiId && pageId(); as pageId) {

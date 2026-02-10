@@ -28,7 +28,8 @@
             [plans]="plans"
             [selectedPlan]="currentPlan"
             [api]="api"
-            (selectPlan)="currentPlan.set($event)" />
+            (selectPlan)="currentPlan.set($event)"
+          />
         }
       } @else {
         <app-loader />
@@ -50,7 +51,8 @@
           [pagination]="applicationsData.pagination"
           (selectApplication)="currentApplication.set($event)"
           (previousPage)="onPreviousApplicationPage()"
-          (nextPage)="onNextApplicationPage()" />
+          (nextPage)="onNextApplicationPage()"
+        />
       } @else {
         <app-loader />
       }
@@ -62,7 +64,8 @@
     <mat-card-content>
       <app-consumer-configuration
         (consumerConfigurationFormDataChange)="consumerConfigurationFormChanges($event)"
-        [consumerConfigurationFormValues]="consumerConfigurationFormData().value" />
+        [consumerConfigurationFormValues]="consumerConfigurationFormData().value"
+      />
     </mat-card-content>
   } @else if (currentStep() === 4) {
     <mat-card-header class="subscribe-to-api__header">
@@ -83,7 +86,8 @@
             [message]="message"
             [apiKeyMode]="applicationApiKeyMode"
             [showApiKeyModeSelection]="showApiKeyModeSelection()"
-            [applicationApiKeySubscriptions]="checkoutData.applicationApiKeySubscriptions" />
+            [applicationApiKeySubscriptions]="checkoutData.applicationApiKeySubscriptions"
+          />
         } @else {
           <app-loader />
         }
@@ -104,7 +108,8 @@
           mat-stroked-button
           color="primary"
           i18n="@@subscribeToApiPrevious"
-          [disabled]="subscriptionInProgress()">
+          [disabled]="subscriptionInProgress()"
+        >
           Previous
         </button>
       }
@@ -128,7 +133,8 @@
             mat-flat-button
             class="secondary-button"
             [disabled]="stepIsInvalid()"
-            i18n="@@subscribeToApiNext">
+            i18n="@@subscribeToApiNext"
+          >
             Next
           </button>
         </div>

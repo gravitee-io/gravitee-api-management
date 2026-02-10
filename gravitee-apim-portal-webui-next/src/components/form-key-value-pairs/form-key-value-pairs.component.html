@@ -36,7 +36,8 @@
                 matInput
                 placeholder="Name..."
                 class="m3-body-medium"
-                (blur)="onTouched()" />
+                (blur)="onTouched()"
+              />
             </mat-form-field>
           </td>
 
@@ -48,7 +49,8 @@
                 matInput
                 placeholder="Value..."
                 class="m3-body-medium"
-                (blur)="onTouched()" />
+                (blur)="onTouched()"
+              />
             </mat-form-field>
           </td>
 
@@ -59,7 +61,8 @@
                 mat-icon-button
                 aria-label="Delete"
                 [disabled]="metadataFormArray.disabled"
-                (click)="onDeletePair(i)">
+                (click)="onDeletePair(i)"
+              >
                 <mat-icon>close_small</mat-icon>
               </button>
             }

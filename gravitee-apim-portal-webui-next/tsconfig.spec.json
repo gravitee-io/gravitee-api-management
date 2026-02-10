@@ -6,13 +6,6 @@
     "types": ["jest"],
     "target": "ES2016"
   },
-  "include": [
-    "src/**/*.spec.ts",
-    "src/**/*.d.ts",
-    "projects/gravitee-markdown/**/*.spec.ts",
-    "projects/gravitee-markdown/**/*.d.ts",
-    "projects/gravitee-dashboard/**/*.spec.ts",
-    "projects/gravitee-dashboard/**/*.d.ts"
-  ],
+  "include": ["src/**/*.spec.ts", "src/**/*.d.ts"],
   "exclude": []
 }

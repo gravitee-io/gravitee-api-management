@@ -22,7 +22,8 @@
         class="documentation-folder__sidenav__tree"
         [tree]="tree()"
         [selectedId]="pageId$ | async"
-        (selectNode)="onSelect($event)" />
+        (selectNode)="onSelect($event)"
+      />
     } @else {
       <div class="documentation-folder__sidenav__empty-state" i18n="@@emptyItemsLabel">No items to show</div>
     }
