@@ -73,6 +73,7 @@ import io.gravitee.repository.management.api.ScoringReportRepository;
 import io.gravitee.repository.management.api.ScoringRulesetRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupHistoryRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
+import io.gravitee.repository.management.api.SubscriptionFormRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.ThemeRepository;
 import io.gravitee.repository.management.api.TicketRepository;
@@ -330,6 +331,9 @@ public class DeleteEnvironmentCommandHandlerTest {
     @Mock
     private ClientCertificateRepository clientCertificateRepository;
 
+    @Mock
+    private SubscriptionFormRepository subscriptionFormRepository;
+
     private DeleteEnvironmentCommandHandler cut;
 
     @Before
@@ -453,6 +457,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             scoringFunctionRepository,
             sharedPolicyGroupRepository,
             sharedPolicyGroupHistoryRepository,
+            subscriptionFormRepository,
             subscriptionRepository,
             themeRepository,
             ticketRepository,
@@ -560,6 +565,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(clientRegistrationProviderRepository).deleteByEnvironmentId(ENV_ID);
         verify(qualityRuleRepository).deleteByReferenceIdAndReferenceType(ENV_ID, QualityRule.ReferenceType.ENVIRONMENT);
         verify(clusterRepository).deleteByEnvironmentId(ENV_ID);
+        verify(subscriptionFormRepository).deleteByEnvironmentId(ENV_ID);
     }
 
     @Test

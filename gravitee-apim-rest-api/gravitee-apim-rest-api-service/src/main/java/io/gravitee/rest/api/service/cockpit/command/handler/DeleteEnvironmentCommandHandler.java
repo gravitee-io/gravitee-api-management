@@ -70,6 +70,7 @@ import io.gravitee.repository.management.api.ScoringReportRepository;
 import io.gravitee.repository.management.api.ScoringRulesetRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupHistoryRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
+import io.gravitee.repository.management.api.SubscriptionFormRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.ThemeRepository;
 import io.gravitee.repository.management.api.TicketRepository;
@@ -173,6 +174,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final SearchEngineService searchEngineService;
     private final SharedPolicyGroupRepository sharedPolicyGroupRepository;
     private final SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository;
+    private final SubscriptionFormRepository subscriptionFormRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final ThemeRepository themeRepository;
     private final TicketRepository ticketRepository;
@@ -226,6 +228,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy ScoringFunctionRepository scoringFunctionRepository,
         @Lazy SharedPolicyGroupRepository sharedPolicyGroupRepository,
         @Lazy SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository,
+        @Lazy SubscriptionFormRepository subscriptionFormRepository,
         @Lazy SubscriptionRepository subscriptionRepository,
         @Lazy ThemeRepository themeRepository,
         @Lazy TicketRepository ticketRepository,
@@ -294,6 +297,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.searchEngineService = searchEngineService;
         this.sharedPolicyGroupRepository = sharedPolicyGroupRepository;
         this.sharedPolicyGroupHistoryRepository = sharedPolicyGroupHistoryRepository;
+        this.subscriptionFormRepository = subscriptionFormRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.themeRepository = themeRepository;
         this.ticketRepository = ticketRepository;
@@ -426,6 +430,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         clientRegistrationProviderRepository.deleteByEnvironmentId(environment.getId());
         qualityRuleRepository.deleteByReferenceIdAndReferenceType(environment.getId(), QualityRule.ReferenceType.ENVIRONMENT);
         clusterRepository.deleteByEnvironmentId(environment.getId());
+        subscriptionFormRepository.deleteByEnvironmentId(environment.getId());
     }
 
     private void deletePortalNavigationItems(EnvironmentEntity environment) throws TechnicalException {
