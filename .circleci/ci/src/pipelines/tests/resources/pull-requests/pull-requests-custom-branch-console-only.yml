@@ -29,29 +29,25 @@ commands:
   cmd-install-yarn:
     steps:
       - run:
-          name: Yarn Set Version Stable
-          command: yarn set version 4.1.1
-  cmd-webui-install:
-    parameters:
-      apim-ui-project:
-        type: string
-        default: ""
-        description: the name of the UI project to build
+          name: Enable Corepack and Set Yarn Version
+          command: |-
+            corepack enable || sudo corepack enable
+                    yarn set version 4.1.1
+  cmd-workspace-install:
     steps:
       - restore_cache:
-          name: Restore Yarn cache
+          name: Restore Yarn workspace cache
           keys:
-            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
-            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}
+            - gravitee-api-management-v14-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}
+            - gravitee-api-management-v14-workspace-{{ .Branch }}
       - run:
-          name: Install dependencies
-          command: yarn
-          working_directory: << parameters.apim-ui-project >>
+          name: Install workspace dependencies
+          command: yarn install --frozen-lockfile
       - save_cache:
-          name: Save Yarn cache
-          key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
+          name: Save Yarn workspace cache
+          key: gravitee-api-management-v14-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}
           paths:
-            - ./<< parameters.apim-ui-project >>/node_modules
+            - ./node_modules
   cmd-notify-on-failure:
     steps:
       - keeper/env-export:
@@ -98,44 +94,49 @@ jobs:
     resource_class: small
     steps:
       - checkout
+      - cmd-install-yarn
       - keeper/env-export:
           secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
           var-name: DANGER_GITHUB_API_TOKEN
       - run:
           name: Run Danger JS
-          command: cd .circleci/danger && yarn run danger
-  job-webui-lint-test:
+          command: cd .circleci/danger && yarn install && yarn run danger
+  job-nx-webui-lint-test:
     parameters:
       apim-ui-project:
         type: string
         default: ""
-        description: the name of the UI project to build
+        description: the directory name of the UI project
+      nx-project:
+        type: string
+        default: ""
+        description: the Nx project name
       resource_class:
         type: string
         default: medium
         description: Resource class to use for executor
+      max-workers:
+        type: string
+        default: 35%
+        description: Maximum number of workers for Jest tests
     docker:
       - image: cimg/node:22.12.0
     resource_class: << parameters.resource_class >>
     steps:
       - checkout
       - cmd-install-yarn
-      - cmd-webui-install:
-          apim-ui-project: << parameters.apim-ui-project >>
+      - cmd-workspace-install
       - attach_workspace:
           at: .
       - run:
           name: Check License
-          command: yarn lint:license
-          working_directory: << parameters.apim-ui-project >>
+          command: yarn nx run << parameters.nx-project >>:lint-license
       - run:
           name: Run Prettier and ESLint
-          command: yarn lint
-          working_directory: << parameters.apim-ui-project >>
+          command: yarn nx lint << parameters.nx-project >>
       - run:
           name: Run unit tests
-          command: yarn test:coverage
-          working_directory: << parameters.apim-ui-project >>
+          command: yarn nx test << parameters.nx-project >> --coverage --maxWorkers=<< parameters.max-workers >>
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
@@ -156,17 +157,13 @@ jobs:
       - setup_remote_docker:
           version: default
       - cmd-install-yarn
-      - cmd-webui-install:
-          apim-ui-project: gravitee-apim-console-webui
+      - cmd-workspace-install
       - run:
           name: Update Build version
           command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-console-webui/build.json"
       - run:
-          name: Build
-          command: yarn build:prod
-          environment:
-            NODE_OPTIONS: --max_old_space_size=4086
-          working_directory: gravitee-apim-console-webui
+          name: Build Console
+          command: NODE_OPTIONS=--max_old_space_size=4086 yarn console:build:prod
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
@@ -179,14 +176,10 @@ jobs:
     steps:
       - checkout
       - cmd-install-yarn
-      - cmd-webui-install:
-          apim-ui-project: gravitee-apim-console-webui
+      - cmd-workspace-install
       - run:
-          name: Build
-          command: yarn build-storybook
-          working_directory: gravitee-apim-console-webui
-          environment:
-            NODE_OPTIONS: --max_old_space_size=8192
+          name: Build Storybook Console
+          command: NODE_OPTIONS=--max_old_space_size=8192 yarn nx run console:build-storybook
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
@@ -202,8 +195,7 @@ jobs:
       - attach_workspace:
           at: .
       - cmd-install-yarn
-      - cmd-webui-install:
-          apim-ui-project: gravitee-apim-console-webui
+      - cmd-workspace-install
       - keeper/env-export:
           secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
           var-name: GITHUB_TOKEN
@@ -310,12 +302,14 @@ workflows:
           name: Run Danger JS
           context:
             - cicd-orchestrator
-      - job-webui-lint-test:
+      - job-nx-webui-lint-test:
           name: Lint & test APIM Console
           context:
             - cicd-orchestrator
           apim-ui-project: gravitee-apim-console-webui
+          nx-project: console
           resource_class: xlarge
+          max-workers: "4"
       - job-console-webui-build:
           name: Build APIM Console
           context:

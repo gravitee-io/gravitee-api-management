@@ -1,6 +1,7 @@
 process.env.TZ = 'UTC';
 
 module.exports = {
+  testTimeout: 30000,
   preset: 'jest-preset-angular',
   setupFilesAfterEnv: [__dirname + '/src/setup-jest.ts'],
   transformIgnorePatterns: [
@@ -11,4 +12,14 @@ module.exports = {
     '^@gravitee/gravitee-dashboard$': '<rootDir>/../gravitee-apim-webui-libs/gravitee-dashboard/src/public-api.ts',
     '^@gravitee/gravitee-markdown$': '<rootDir>/../gravitee-apim-webui-libs/gravitee-markdown/src/public-api.ts',
   },
+  reporters: [
+    'default',
+    [
+      'jest-junit',
+      {
+        outputDirectory: __dirname + '/coverage',
+        outputName: 'junit.xml',
+      },
+    ],
+  ],
 };

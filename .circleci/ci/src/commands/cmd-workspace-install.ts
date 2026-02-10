@@ -16,15 +16,26 @@
 import { commands, reusable } from '@circleci/circleci-config-sdk';
 import { config } from '../config';
 
-export class InstallYarnCommand {
-  private static commandName = 'cmd-install-yarn';
+export class WorkspaceInstallCommand {
+  private static commandName = 'cmd-workspace-install';
 
   public static get(): reusable.ReusableCommand {
-    return new reusable.ReusableCommand(InstallYarnCommand.commandName, [
+    return new reusable.ReusableCommand(WorkspaceInstallCommand.commandName, [
+      new commands.cache.Restore({
+        name: 'Restore Yarn workspace cache',
+        keys: [
+          `${config.cache.prefix}-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}`,
+          `${config.cache.prefix}-workspace-{{ .Branch }}`,
+        ],
+      }),
       new commands.Run({
-        name: 'Enable Corepack and Set Yarn Version',
-        command: ` corepack enable || sudo corepack enable
-        yarn set version ${config.yarn.version}`.trim(),
+        name: 'Install workspace dependencies',
+        command: 'yarn install --frozen-lockfile',
+      }),
+      new commands.cache.Save({
+        name: 'Save Yarn workspace cache',
+        key: `${config.cache.prefix}-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}`,
+        paths: ['./node_modules'],
       }),
     ]);
   }

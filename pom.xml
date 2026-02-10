@@ -374,6 +374,7 @@
                                     <exclude>**/.tmp/**</exclude>
                                     <exclude>**/node_modules/**</exclude>
                                     <exclude>**/.*</exclude>
+                                    <exclude>*.js</exclude>
                                     <exclude>**/.*/**</exclude>
                                     <exclude>**/*.adoc</exclude>
                                     <exclude>**/LICENSE_TEMPLATE.txt</exclude>
@@ -383,6 +384,7 @@
                                     <exclude>gravitee-apim-console-webui/**</exclude>
                                     <exclude>gravitee-apim-e2e/**</exclude>
                                     <exclude>gravitee-apim-perf/**</exclude>
+                                    <exclude>gravitee-apim-webui-libs/**</exclude>
                                     <exclude>helm/**</exclude>
                                 </excludes>
                             </licenseSet>

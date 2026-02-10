@@ -16,8 +16,7 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { NodeLtsExecutor } from '../../executors';
-import { InstallYarnCommand, NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
-import { config } from '../../config';
+import { InstallYarnCommand, NotifyOnFailureCommand, WorkspaceInstallCommand } from '../../commands';
 import { CircleCIEnvironment } from '../../pipelines';
 
 export class StorybookConsoleJob {
@@ -27,8 +26,8 @@ export class StorybookConsoleJob {
     const installYarnCmd = InstallYarnCommand.get();
     dynamicConfig.addReusableCommand(installYarnCmd);
 
-    const webUiInstallCommand = WebuiInstallCommand.get();
-    dynamicConfig.addReusableCommand(webUiInstallCommand);
+    const workspaceInstallCommand = WorkspaceInstallCommand.get();
+    dynamicConfig.addReusableCommand(workspaceInstallCommand);
 
     const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
@@ -36,14 +35,10 @@ export class StorybookConsoleJob {
     const steps: Command[] = [
       new commands.Checkout(),
       new reusable.ReusedCommand(installYarnCmd),
-      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': config.components.console.project }),
+      new reusable.ReusedCommand(workspaceInstallCommand),
       new commands.Run({
-        name: 'Build',
-        command: 'yarn build-storybook',
-        working_directory: config.components.console.project,
-        environment: {
-          NODE_OPTIONS: '--max_old_space_size=8192',
-        },
+        name: 'Build Storybook Console',
+        command: 'NODE_OPTIONS=--max_old_space_size=8192 yarn nx run console:build-storybook',
       }),
       new reusable.ReusedCommand(notifyOnFailureCommand),
       new commands.workspace.Persist({

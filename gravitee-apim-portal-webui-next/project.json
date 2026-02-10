@@ -51,7 +51,7 @@
         ],
         "styles": ["gravitee-apim-portal-webui-next/src/styles.scss", "node_modules/swagger-ui/dist/swagger-ui.css"],
         "stylePreprocessorOptions": {
-          "includePaths": ["gravitee-apim-webui-libs", "dist/@gravitee"]
+          "includePaths": ["node_modules/", "gravitee-apim-webui-libs/", "dist/"]
         },
         "i18nMissingTranslation": "warning"
       },
@@ -91,14 +91,14 @@
       "options": {
         "port": 4101,
         "proxyConfig": "gravitee-apim-portal-webui-next/src/proxy.conf.mjs",
-        "buildTarget": "gravitee-apim-portal-webui-next:build"
+        "buildTarget": "portal-next:build"
       },
       "configurations": {
         "production": {
-          "buildTarget": "gravitee-apim-portal-webui-next:build:production"
+          "buildTarget": "portal-next:build:production"
         },
         "development": {
-          "buildTarget": "gravitee-apim-portal-webui-next:build:development"
+          "buildTarget": "portal-next:build:development"
         }
       },
       "defaultConfiguration": "development"
@@ -106,7 +106,7 @@
     "extract-i18n": {
       "executor": "@angular/build:extract-i18n",
       "options": {
-        "buildTarget": "gravitee-apim-portal-webui-next:build"
+        "buildTarget": "portal-next:build"
       }
     },
     "test": {
@@ -134,7 +134,7 @@
       "options": {
         "configDir": "gravitee-apim-portal-webui-next/.storybook",
         "styles": ["gravitee-apim-portal-webui-next/.storybook/index.scss"],
-        "browserTarget": "gravitee-apim-portal-webui-next:build",
+        "browserTarget": "portal-next:build",
         "compodoc": false,
         "port": 6006
       }
@@ -143,11 +143,12 @@
       "executor": "@storybook/angular:build-storybook",
       "options": {
         "configDir": "gravitee-apim-portal-webui-next/.storybook",
-        "browserTarget": "gravitee-apim-portal-webui-next:build",
+        "browserTarget": "portal-next:build",
         "compodoc": false,
         "outputDir": "gravitee-apim-portal-webui-next/storybook-static"
       }
     }
   },
-  "tags": ["type:app", "scope:portal"]
+  "tags": ["type:app", "scope:portal"],
+  "implicitDependencies": ["markdown", "dashboard"]
 }
