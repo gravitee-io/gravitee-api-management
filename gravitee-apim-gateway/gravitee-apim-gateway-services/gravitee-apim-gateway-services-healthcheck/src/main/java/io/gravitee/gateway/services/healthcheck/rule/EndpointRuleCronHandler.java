@@ -20,6 +20,7 @@ import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -31,10 +32,12 @@ public class EndpointRuleCronHandler<T extends Endpoint> implements Handler<Long
     private final Endpoint endpoint;
     private transient EndpointRuleHandler<T> handler;
     private long timerId;
+    private final long spreadOffsetMs;
 
-    public EndpointRuleCronHandler(Vertx vertx, EndpointRule<T> rule) {
+    public EndpointRuleCronHandler(Vertx vertx, EndpointRule<T> rule, long jitterMs) {
         this.vertx = vertx;
         this.endpoint = rule.endpoint();
+        this.spreadOffsetMs = Math.floorMod(Objects.hash(rule.api().getId(), rule.endpoint().getName()), (int) (jitterMs + 1));
     }
 
     public EndpointRuleCronHandler<T> schedule(EndpointRuleHandler<T> handler) {
@@ -42,8 +45,8 @@ public class EndpointRuleCronHandler<T extends Endpoint> implements Handler<Long
             throw new IllegalArgumentException("Handler is null.");
         }
         this.handler = handler;
-        handler.setRescheduleHandler(v -> this.timerId = vertx.setTimer(handler.getDelayMillis(), this));
-        timerId = vertx.setTimer(handler.getDelayMillis(), this);
+        handler.setRescheduleHandler(v -> this.timerId = vertx.setTimer(handler.getDelayMillis() + spreadOffsetMs, this));
+        timerId = vertx.setTimer(handler.getDelayMillis() + spreadOffsetMs, this);
         return this;
     }
 
