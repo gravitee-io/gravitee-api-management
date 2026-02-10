@@ -535,4 +535,19 @@ public class InMemoryConfiguration {
     public ClientCertificateCrudServiceInMemory clientCertificateCrudService() {
         return new ClientCertificateCrudServiceInMemory();
     }
+
+    @Bean
+    public SubscriptionFormCrudServiceInMemory subscriptionFormCrudService() {
+        return new SubscriptionFormCrudServiceInMemory();
+    }
+
+    @Bean
+    public SubscriptionFormQueryServiceInMemory subscriptionFormQueryService() {
+        return new SubscriptionFormQueryServiceInMemory();
+    }
+
+    @Bean
+    public HtmlAttributeParserInMemory htmlAttributeParser() {
+        return new HtmlAttributeParserInMemory();
+    }
 }

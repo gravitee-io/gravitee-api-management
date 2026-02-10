@@ -40,6 +40,8 @@ tags:
     description: Everything about clusters
   - name: Newt Ai
     description: Everything about Newt Ai
+  - name: Subscription Forms
+    description: Everything about subscription forms for API consumers
 
 paths:
   # Environment Analytics
@@ -987,6 +989,154 @@ paths:
       responses:
         "204":
           description: Portal navigation item deleted
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Subscription Forms
+  /subscription-forms:
+    get:
+      tags:
+        - Subscription Forms
+      summary: Get subscription form for environment
+      description: |-
+        Get the subscription form for the environment. Returns the form definition used
+        by API consumers when subscribing to APIs in the Developer Portal.
+        
+        User must have the ENVIRONMENT_SETTINGS[READ] permission.
+      operationId: getSubscriptionForm
+      responses:
+        "200":
+          description: Subscription form retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionForm"
+        "404":
+          description: No subscription form exists for this environment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+  /subscription-forms/{subscriptionFormId}:
+    put:
+      tags:
+        - Subscription Forms
+      summary: Update subscription form
+      description: |-
+        Update the existing subscription form. The form content is defined using Gravitee Markdown (GMD)
+        syntax with form components.
+        
+        Note: This operation does NOT change the enabled state. Use _enable/_disable endpoints for that.
+        
+        User must have the ENVIRONMENT_SETTINGS[UPDATE] permission.
+      operationId: updateSubscriptionForm
+      parameters:
+        - name: subscriptionFormId
+          in: path
+          required: true
+          description: The unique ID of the subscription form
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrUpdateSubscriptionForm"
+      responses:
+        "200":
+          description: Subscription form saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionForm"
+        "400":
+          description: Invalid or unsafe GMD content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: No subscription form exists with this ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+  /subscription-forms/{subscriptionFormId}/_enable:
+    post:
+      tags:
+        - Subscription Forms
+      summary: Enable subscription form
+      description: |-
+        Enable the subscription form to make it visible to API consumers in the Developer Portal.
+        When enabled, the form will be displayed during the API subscription process.
+        
+        This operation is idempotent - enabling an already enabled form returns success.
+        
+        User must have the ENVIRONMENT_SETTINGS[UPDATE] permission.
+      operationId: enableSubscriptionForm
+      parameters:
+        - name: subscriptionFormId
+          in: path
+          required: true
+          description: The unique ID of the subscription form
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Subscription form enabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionForm"
+        "404":
+          description: No subscription form exists with this ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+  /subscription-forms/{subscriptionFormId}/_disable:
+    post:
+      tags:
+        - Subscription Forms
+      summary: Disable subscription form
+      description: |-
+        Disable the subscription form to hide it from API consumers in the Developer Portal.
+        When disabled, the form will not be displayed during the API subscription process.
+        
+        This operation is idempotent - disabling an already disabled form returns success.
+        
+        User must have the ENVIRONMENT_SETTINGS[UPDATE] permission.
+      operationId: disableSubscriptionForm
+      parameters:
+        - name: subscriptionFormId
+          in: path
+          required: true
+          description: The unique ID of the subscription form
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Subscription form disabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionForm"
+        "404":
+          description: No subscription form exists with this ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
 
@@ -2140,6 +2290,53 @@ components:
           description: The updated content for the page
       required: [ content ]
 
+    # Subscription Forms
+    SubscriptionForm:
+      type: object
+      description: Subscription form definition used by API consumers when subscribing to APIs
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the subscription form
+          example: 550e8400-e29b-41d4-a716-446655440000
+        gmdContent:
+          type: string
+          description: |-
+            Gravitee Markdown (GMD) content defining the form.
+            Supports form components like gmd-input, gmd-textarea, gmd-select, gmd-checkbox, gmd-radio.
+          example: |
+            # Subscription Information
+            
+            <gmd-input name="consumer_company_name" label="Company Name" required="true"/>
+            <gmd-textarea name="consumer_use_case" label="Use Case" required="true"/>
+        enabled:
+          type: boolean
+          description: Whether the form is enabled and visible to API consumers in the Developer Portal
+          example: false
+      required:
+        - id
+        - gmdContent
+        - enabled
+    CreateOrUpdateSubscriptionForm:
+      type: object
+      description: Payload for creating or updating a subscription form
+      properties:
+        gmdContent:
+          type: string
+          minLength: 1
+          description: |-
+            Gravitee Markdown (GMD) content defining the form.
+            Supports form components like gmd-input, gmd-textarea, gmd-select, gmd-checkbox, gmd-radio.
+            
+            Content is validated for security - malicious HTML/scripts will be rejected.
+          example: |
+            # Subscription Information
+            
+            <gmd-input name="consumer_company_name" label="Company Name" required="true"/>
+            <gmd-textarea name="consumer_use_case" label="Use Case" required="true"/>
+      required:
+        - gmdContent
 
   parameters:
     pageParam:

@@ -31,6 +31,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentS
 import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalNavigationItemsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalPageContentsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.SharedPolicyGroupsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.environment.SubscriptionFormsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.kafka_console.ProxyKafkaConsoleResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.PortalMenuLinksResource;
@@ -146,5 +147,10 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/logs")
     public EnvironmentLogsResource getEnvironmentLogsResource() {
         return resourceContext.getResource(EnvironmentLogsResource.class);
+    }
+
+    @Path("/subscription-forms")
+    public SubscriptionFormsResource getSubscriptionFormsResource() {
+        return resourceContext.getResource(SubscriptionFormsResource.class);
     }
 }
