@@ -16,7 +16,7 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { NodeLtsExecutor } from '../../executors';
-import { InstallYarnCommand, NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
+import { InstallYarnCommand, NotifyOnFailureCommand, WorkspaceInstallCommand } from '../../commands';
 import { orbs } from '../../orbs';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
@@ -31,8 +31,8 @@ export class ChromaticConsoleJob {
     const installYarnCommand = InstallYarnCommand.get();
     dynamicConfig.addReusableCommand(installYarnCommand);
 
-    const webUiInstallCommand = WebuiInstallCommand.get();
-    dynamicConfig.addReusableCommand(webUiInstallCommand);
+    const workspaceInstallCommand = WorkspaceInstallCommand.get();
+    dynamicConfig.addReusableCommand(workspaceInstallCommand);
 
     const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
@@ -41,7 +41,7 @@ export class ChromaticConsoleJob {
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(installYarnCommand),
-      new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': config.components.console.project }),
+      new reusable.ReusedCommand(workspaceInstallCommand),
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
         'secret-url': config.secrets.githubApiToken,
         'var-name': 'GITHUB_TOKEN',

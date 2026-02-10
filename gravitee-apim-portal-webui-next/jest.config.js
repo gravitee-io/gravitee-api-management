@@ -1,4 +1,5 @@
 module.exports = {
+  testTimeout: 30000,
   preset: 'jest-preset-angular',
   setupFiles: ['jest-canvas-mock'],
   setupFilesAfterEnv: ['<rootDir>/setup-jest.ts'],
@@ -9,4 +10,14 @@ module.exports = {
     '^@gravitee/gravitee-markdown$': '<rootDir>/../gravitee-apim-webui-libs/gravitee-markdown/src/public-api.ts',
     '^chartjs-adapter-date-fns$': '<rootDir>/__mocks__/chartjs-adapter-date-fns.js',
   },
+  reporters: [
+    'default',
+    [
+      'jest-junit',
+      {
+        outputDirectory: __dirname + '/coverage',
+        outputName: 'junit.xml',
+      },
+    ],
+  ],
 };
