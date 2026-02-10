@@ -14,158 +14,158 @@
 # limitations under the License.
 #
 
-version: '3.5'
+version: "3.5"
 
 networks:
-  frontend:
-    name: frontend
-  backend:
-    name: backend
+    frontend:
+        name: frontend
+    backend:
+        name: backend
 
 volumes:
-  data-elasticsearch:
-  data-mongo:
-  data-redis:
+    data-elasticsearch:
+    data-mongo:
+    data-redis:
 
 services:
-  mongodb:
-    image: mongo:${MONGODB_VERSION:-5}
-    container_name: gio_apim_mongodb
-    restart: always
-    ports:
-      - "27017:27017"
-    volumes:
-      - data-mongo:/data/db
-      - ./.logs/apim-mongodb:/var/log/mongodb
-    networks:
-      - backend
+    mongodb:
+        image: mongo:${MONGODB_VERSION:-5}
+        container_name: gio_apim_mongodb
+        restart: always
+        ports:
+            - "27017:27017"
+        volumes:
+            - data-mongo:/data/db
+            - ./.logs/apim-mongodb:/var/log/mongodb
+        networks:
+            - backend
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-7.14.0}
-    container_name: gio_apim_elasticsearch
-    restart: always
-    volumes:
-      - data-elasticsearch:/usr/share/elasticsearch/data
-    environment:
-      - http.host=0.0.0.0
-      - transport.host=0.0.0.0
-      - xpack.security.enabled=false
-      - xpack.monitoring.enabled=false
-      - cluster.name=elasticsearch
-      - bootstrap.memory_lock=true
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile: 65536
-    networks:
-      - backend
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-7.14.0}
+        container_name: gio_apim_elasticsearch
+        restart: always
+        volumes:
+            - data-elasticsearch:/usr/share/elasticsearch/data
+        environment:
+            - http.host=0.0.0.0
+            - transport.host=0.0.0.0
+            - xpack.security.enabled=false
+            - xpack.monitoring.enabled=false
+            - cluster.name=elasticsearch
+            - bootstrap.memory_lock=true
+            - discovery.type=single-node
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+            nofile: 65536
+        networks:
+            - backend
 
-  gateway:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}
-    container_name: gio_apim_gateway
-    restart: always
-    ports:
-      - "8082:8082"
-    depends_on:
-      - mongodb
-      - elasticsearch
-    volumes:
-      - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
-      - ./.license:/opt/graviteeio-gateway/license
-      - ../../config/ssl:/opt/graviteeio-gateway/config/ssl
-    environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_ratelimit_type=redis
-      - gravitee_ratelimit_redis_host=redis
-      - gravitee_ratelimit_redis_port=6379
-      - gravitee_ratelimit_redis_ssl=true
-      - gravitee_ratelimit_redis_trustAll=false
-      - gravitee_ratelimit_redis_keystore_type=jks
-      - gravitee_ratelimit_redis_keystore_path=/opt/graviteeio-gateway/config/ssl/client.jks
-      - gravitee_ratelimit_redis_keystore_password=${REDIS_CERTIFICATE_PASSWORD}
-      - gravitee_ratelimit_redis_keystore_alias=redis-client
-      - gravitee_ratelimit_redis_keystore_keyPassword=${REDIS_CERTIFICATE_PASSWORD}
-      - gravitee_ratelimit_redis_truststore_type=jks
-      - gravitee_ratelimit_redis_truststore_path=/opt/graviteeio-gateway/config/ssl/truststore.jks
-      - gravitee_ratelimit_redis_truststore_password=${REDIS_CERTIFICATE_PASSWORD}
-      - gravitee_ratelimit_redis_truststore_alias=redis-ca
-      - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
-    networks:
-      - backend
-      - frontend
+    gateway:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}
+        container_name: gio_apim_gateway
+        restart: always
+        ports:
+            - "8082:8082"
+        depends_on:
+            - mongodb
+            - elasticsearch
+        volumes:
+            - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
+            - ./.license:/opt/graviteeio-gateway/license
+            - ../../config/ssl:/opt/graviteeio-gateway/config/ssl
+        environment:
+            - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+            - gravitee_ratelimit_type=redis
+            - gravitee_ratelimit_redis_host=redis
+            - gravitee_ratelimit_redis_port=6379
+            - gravitee_ratelimit_redis_ssl=true
+            - gravitee_ratelimit_redis_trustAll=false
+            - gravitee_ratelimit_redis_keystore_type=jks
+            - gravitee_ratelimit_redis_keystore_path=/opt/graviteeio-gateway/config/ssl/client.jks
+            - gravitee_ratelimit_redis_keystore_password=${REDIS_CERTIFICATE_PASSWORD}
+            - gravitee_ratelimit_redis_keystore_alias=redis-client
+            - gravitee_ratelimit_redis_keystore_keyPassword=${REDIS_CERTIFICATE_PASSWORD}
+            - gravitee_ratelimit_redis_truststore_type=jks
+            - gravitee_ratelimit_redis_truststore_path=/opt/graviteeio-gateway/config/ssl/truststore.jks
+            - gravitee_ratelimit_redis_truststore_password=${REDIS_CERTIFICATE_PASSWORD}
+            - gravitee_ratelimit_redis_truststore_alias=redis-ca
+            - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+        networks:
+            - backend
+            - frontend
 
-  management_api:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_VERSION:-latest}
-    container_name: gio_apim_management_api
-    restart: always
-    ports:
-      - "8083:8083"
-    links:
-      - mongodb
-      - elasticsearch
-    depends_on:
-      - mongodb
-      - elasticsearch
-    volumes:
-      - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
-      - ./.license:/opt/graviteeio-management-api/license
-    environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
-      - gravitee_license=/opt/graviteeio-management-api/license/license.key
-    networks:
-      - backend
-      - frontend
+    management_api:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_VERSION:-latest}
+        container_name: gio_apim_management_api
+        restart: always
+        ports:
+            - "8083:8083"
+        links:
+            - mongodb
+            - elasticsearch
+        depends_on:
+            - mongodb
+            - elasticsearch
+        volumes:
+            - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
+            - ./.license:/opt/graviteeio-management-api/license
+        environment:
+            - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+            - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
+            - gravitee_license=/opt/graviteeio-management-api/license/license.key
+        networks:
+            - backend
+            - frontend
 
-  management_ui:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_VERSION:-latest}
-    container_name: gio_apim_management_ui
-    restart: always
-    ports:
-      - "8084:8080"
-    depends_on:
-      - management_api
-    environment:
-      - MGMT_API_URL=http://localhost:8083/management
-    volumes:
-      - ./.logs/apim-management-ui:/var/log/nginx
-    networks:
-      - frontend
+    management_ui:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_VERSION:-latest}
+        container_name: gio_apim_management_ui
+        restart: always
+        ports:
+            - "8084:8080"
+        depends_on:
+            - management_api
+        environment:
+            - MGMT_API_URL=http://localhost:8083/management
+        volumes:
+            - ./.logs/apim-management-ui:/var/log/nginx
+        networks:
+            - frontend
 
-  portal_ui:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_VERSION:-latest}
-    container_name: gio_apim_portal_ui
-    restart: always
-    ports:
-      - "8085:8080"
-    depends_on:
-      - management_api
-    environment:
-      - PORTAL_API_URL=http://localhost:8083/portal
-    volumes:
-      - ./.logs/apim-portal-ui:/var/log/nginx
-    networks:
-      - frontend
+    portal_ui:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_VERSION:-latest}
+        container_name: gio_apim_portal_ui
+        restart: always
+        ports:
+            - "8085:8080"
+        depends_on:
+            - management_api
+        environment:
+            - PORTAL_API_URL=http://localhost:8083/portal
+        volumes:
+            - ./.logs/apim-portal-ui:/var/log/nginx
+        networks:
+            - frontend
 
-  redis:
-    image: docker.io/bitnami/redis:7.4.2
-    container_name: gio_apim_redis
-    environment:
-      - ALLOW_EMPTY_PASSWORD=true
-      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
-      - REDIS_TLS_CERT_FILE=/tls/redis-server.cer
-      - REDIS_TLS_KEY_FILE=/tls/redis-server.key
-      - REDIS_TLS_KEY_FILE_PASS=${REDIS_CERTIFICATE_PASSWORD}
-      - REDIS_TLS_CA_FILE=/tls/ca.pem
-      - REDIS_TLS_AUTH_CLIENTS=yes
-      - REDIS_TLS_ENABLED=yes
-    ports:
-      - "6379:6379"
-    volumes:
-      - data-redis:/bitnami/redis/data
-      - ../../config/ssl:/tls
-    networks: 
-      - backend
+    redis:
+        image: docker.io/bitnami/redis:7.4.2
+        container_name: gio_apim_redis
+        environment:
+            - ALLOW_EMPTY_PASSWORD=true
+            - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+            - REDIS_TLS_CERT_FILE=/tls/redis-server.cer
+            - REDIS_TLS_KEY_FILE=/tls/redis-server.key
+            - REDIS_TLS_KEY_FILE_PASS=${REDIS_CERTIFICATE_PASSWORD}
+            - REDIS_TLS_CA_FILE=/tls/ca.pem
+            - REDIS_TLS_AUTH_CLIENTS=yes
+            - REDIS_TLS_ENABLED=yes
+        ports:
+            - "6379:6379"
+        volumes:
+            - data-redis:/bitnami/redis/data
+            - ../../config/ssl:/tls
+        networks:
+            - backend

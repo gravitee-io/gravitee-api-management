@@ -14,161 +14,161 @@
 # limitations under the License.
 #
 
-version: '3.5'
+version: "3.5"
 
 networks:
-  frontend:
-    name: frontend
-  storage:
-    name: storage
+    frontend:
+        name: frontend
+    storage:
+        name: storage
 
 volumes:
-  data-elasticsearch:
-  data-mongo:
+    data-elasticsearch:
+    data-mongo:
 
 services:
-  download-plugins:
-    image: mwendler/wget
-    container_name: download-plugins
-    volumes:
-      - ./.plugins:/tmp
-    command: wget --no-check-certificate -O /tmp/gravitee-service-discovery-eureka-1.2.1.zip https://github.com/gravitee-io-community/gravitee-service-discovery-eureka/releases/download/1.2.1/gravitee-service-discovery-eureka-1.2.1.zip
+    download-plugins:
+        image: mwendler/wget
+        container_name: download-plugins
+        volumes:
+            - ./.plugins:/tmp
+        command: wget --no-check-certificate -O /tmp/gravitee-service-discovery-eureka-1.2.1.zip https://github.com/gravitee-io-community/gravitee-service-discovery-eureka/releases/download/1.2.1/gravitee-service-discovery-eureka-1.2.1.zip
 
-  eureka-server:
-    image: springcloud/eureka
-    container_name: eureka-server
-    restart: always
-    ports:
-      - "8761:8761"
-    networks:
-      - frontend
+    eureka-server:
+        image: springcloud/eureka
+        container_name: eureka-server
+        restart: always
+        ports:
+            - "8761:8761"
+        networks:
+            - frontend
 
-  echo-api:
-    image: graviteeio/gravitee-echo-api
-    container_name: echo-api
-    restart: always
-    networks:
-      - frontend
+    echo-api:
+        image: graviteeio/gravitee-echo-api
+        container_name: echo-api
+        restart: always
+        networks:
+            - frontend
 
-  wtii-api:
-    image: graviteeio/gravitee-whattimeisit-api
-    container_name: wtii-api
-    restart: always
-    networks:
-      - frontend
+    wtii-api:
+        image: graviteeio/gravitee-whattimeisit-api
+        container_name: wtii-api
+        restart: always
+        networks:
+            - frontend
 
-  mongodb:
-    image: mongo:${MONGODB_VERSION:-4.0.28}
-    container_name: gio_apim_mongodb
-    restart: always
-    volumes:
-      - data-mongo:/data/db
-      - ./.logs/apim-mongodb:/var/log/mongodb
-    networks:
-      - storage
+    mongodb:
+        image: mongo:${MONGODB_VERSION:-4.0.28}
+        container_name: gio_apim_mongodb
+        restart: always
+        volumes:
+            - data-mongo:/data/db
+            - ./.logs/apim-mongodb:/var/log/mongodb
+        networks:
+            - storage
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.17.2}
-    container_name: gio_apim_elasticsearch
-    restart: always
-    volumes:
-      - data-elasticsearch:/usr/share/elasticsearch/data
-    environment:
-      - http.host=0.0.0.0
-      - transport.host=0.0.0.0
-      - xpack.security.enabled=false
-      - cluster.name=elasticsearch
-      - bootstrap.memory_lock=true
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile: 65536
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s" ]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-    networks:
-      - storage
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.17.2}
+        container_name: gio_apim_elasticsearch
+        restart: always
+        volumes:
+            - data-elasticsearch:/usr/share/elasticsearch/data
+        environment:
+            - http.host=0.0.0.0
+            - transport.host=0.0.0.0
+            - xpack.security.enabled=false
+            - cluster.name=elasticsearch
+            - bootstrap.memory_lock=true
+            - discovery.type=single-node
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+            nofile: 65536
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s"]
+            interval: 5s
+            timeout: 3s
+            retries: 10
+        networks:
+            - storage
 
-  management_api:
-    image: graviteeio/apim-management-api:${APIM_VERSION:-latest}
-    container_name: gio_apim_management_api
-    restart: always
-    ports:
-      - "8083:8083"
-    links:
-      - mongodb
-      - elasticsearch
-    depends_on:
-      - mongodb
-      - elasticsearch
-    volumes:
-      - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
-      - ./.plugins:/opt/graviteeio-management-api/plugins-ext
-    environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
-      - gravitee_plugins_path_0=$${gravitee.home}/plugins
-      - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext
-    networks:
-      - storage
-      - frontend
+    management_api:
+        image: graviteeio/apim-management-api:${APIM_VERSION:-latest}
+        container_name: gio_apim_management_api
+        restart: always
+        ports:
+            - "8083:8083"
+        links:
+            - mongodb
+            - elasticsearch
+        depends_on:
+            - mongodb
+            - elasticsearch
+        volumes:
+            - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
+            - ./.plugins:/opt/graviteeio-management-api/plugins-ext
+        environment:
+            - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+            - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
+            - gravitee_plugins_path_0=$${gravitee.home}/plugins
+            - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext
+        networks:
+            - storage
+            - frontend
 
-  gateway:
-    image: graviteeio/apim-gateway:${APIM_VERSION:-latest}
-    container_name: gio_apim_gateway
-    restart: always
-    ports:
-      - "8082:8082"
+    gateway:
+        image: graviteeio/apim-gateway:${APIM_VERSION:-latest}
+        container_name: gio_apim_gateway
+        restart: always
+        ports:
+            - "8082:8082"
 
-    depends_on:
-      - mongodb
-      - elasticsearch
-      - management_api
-    volumes:
-      - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
-      - ./.plugins:/opt/graviteeio-gateway/plugins-ext
-    environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
-      - gravitee_plugins_path_0=$${gravitee.home}/plugins
-      - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext
-      - gravitee_service-discovery_eureka_serviceUrl_default=http://eureka-server:8761/eureka
-    networks:
-      - storage
-      - frontend
+        depends_on:
+            - mongodb
+            - elasticsearch
+            - management_api
+        volumes:
+            - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
+            - ./.plugins:/opt/graviteeio-gateway/plugins-ext
+        environment:
+            - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+            - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+            - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+            - gravitee_plugins_path_0=$${gravitee.home}/plugins
+            - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext
+            - gravitee_service-discovery_eureka_serviceUrl_default=http://eureka-server:8761/eureka
+        networks:
+            - storage
+            - frontend
 
-  management_ui:
-    image: graviteeio/apim-management-ui:${APIM_VERSION:-latest}
-    container_name: gio_apim_management_ui
-    restart: always
-    ports:
-      - "8084:8080"
-    depends_on:
-      - management_api
-    environment:
-      - MGMT_API_URL=http://localhost:8083/management/
-    volumes:
-      - ./.logs/apim-management-ui:/var/log/nginx
-    networks:
-      - frontend
+    management_ui:
+        image: graviteeio/apim-management-ui:${APIM_VERSION:-latest}
+        container_name: gio_apim_management_ui
+        restart: always
+        ports:
+            - "8084:8080"
+        depends_on:
+            - management_api
+        environment:
+            - MGMT_API_URL=http://localhost:8083/management/
+        volumes:
+            - ./.logs/apim-management-ui:/var/log/nginx
+        networks:
+            - frontend
 
-  portal_ui:
-    image: graviteeio/apim-portal-ui:${APIM_VERSION:-latest}
-    container_name: gio_apim_portal_ui
-    restart: always
-    ports:
-      - "8085:8080"
-    depends_on:
-      - management_api
-    environment:
-      - PORTAL_API_URL=http://localhost:8083/portal
-    volumes:
-      - ./.logs/apim-portal-ui:/var/log/nginx
-    networks:
-      - frontend
+    portal_ui:
+        image: graviteeio/apim-portal-ui:${APIM_VERSION:-latest}
+        container_name: gio_apim_portal_ui
+        restart: always
+        ports:
+            - "8085:8080"
+        depends_on:
+            - management_api
+        environment:
+            - PORTAL_API_URL=http://localhost:8083/portal
+        volumes:
+            - ./.logs/apim-portal-ui:/var/log/nginx
+        networks:
+            - frontend
