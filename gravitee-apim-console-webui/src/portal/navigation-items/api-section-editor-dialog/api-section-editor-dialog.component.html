@@ -1,0 +1,102 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div mat-dialog-title class="title">{{ title }}</div>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <mat-dialog-content class="mat-elevation-z0">
+    <div class="api-search-description-box">
+      <div class="selected-panel__title">APIs</div>
+      <div class="api-search-description">Pick the unpublished APIs you want to add to your navigation menu.</div>
+    </div>
+
+    <gio-table-wrapper [searchLabel]="'Search'" [length]="total" [filters]="filters" (filtersChange)="onFiltersChanged($event)">
+      <table mat-table [dataSource]="rows$ | async" aria-label="APIs picker table">
+        <ng-container matColumnDef="select">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let row">
+            <mat-checkbox
+              [disabled]="row.isDisabled"
+              [checked]="isChecked(row.id)"
+              (change)="toggleApiSelection(row.id, $event.checked, row.name)"
+              [attr.data-testid]="'api-picker-checkbox-' + row.id"
+            ></mat-checkbox>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>API name</th>
+          <td mat-cell *matCellDef="let row" [class.disabled]="row.isDisabled">{{ row.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="path">
+          <th mat-header-cell *matHeaderCellDef>API path</th>
+          <td mat-cell *matCellDef="let row" [class.disabled]="row.isDisabled">{{ row.path }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="labels">
+          <th mat-header-cell *matHeaderCellDef>Labels</th>
+          <td mat-cell *matCellDef="let row" [class.disabled]="row.isDisabled">
+            {{ row.labels }}
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns" [class.disabled-row]="row.isDisabled"></tr>
+
+        <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+          <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+            @if (isLoading) {
+              Loading...
+            } @else if (total === 0) {
+              No data to display.
+            }
+          </td>
+        </tr>
+      </table>
+    </gio-table-wrapper>
+
+    <mat-expansion-panel class="selected-panel" [expanded]="selectedPanelExpanded()" (expandedChange)="selectedPanelExpanded.set($event)">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <div class="selected-panel__badge" [class.selected-panel__badge--zero]="selectedCount() === 0">{{ selectedCount() }}</div>
+          <div>APIs selected</div>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <div>
+        @if (selectedCount() === 0) {
+          <div>Select an unpublished API to add it to your navigation.</div>
+        } @else {
+          <mat-chip-set>
+            @for (api of selectedApis(); track api.id) {
+              <mat-chip [removable]="true" (removed)="removeSelected(api.id)">
+                {{ api.name }}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+            }
+          </mat-chip-set>
+        }
+      </div>
+    </mat-expansion-panel>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="close()">Cancel</button>
+    <button mat-flat-button color="primary" type="submit" [disabled]="!form.valid || formIsUnchanged()">Add</button>
+  </mat-dialog-actions>
+</form>

@@ -24,12 +24,13 @@ import { SectionEditorDialogHarness } from './section-editor-dialog.harness';
 import {
   SectionEditorDialogComponent,
   SectionEditorDialogData,
+  SectionEditorDialogItemType,
   SectionEditorDialogMode,
   SectionEditorDialogResult,
 } from './section-editor-dialog.component';
 
 import { GioTestingModule } from '../../../shared/testing';
-import { PortalNavigationItemType, fakePortalNavigationLink, fakePortalNavigationPage } from '../../../entities/management-api-v2';
+import { fakePortalNavigationLink, fakePortalNavigationPage } from '../../../entities/management-api-v2';
 
 @Component({
   selector: 'test-host-component',
@@ -37,7 +38,7 @@ import { PortalNavigationItemType, fakePortalNavigationLink, fakePortalNavigatio
 })
 class TestHostComponent {
   mode = input<SectionEditorDialogMode>('create');
-  type = input<PortalNavigationItemType>('PAGE');
+  type = input<SectionEditorDialogItemType>('PAGE');
   existingItem = input<any>();
 
   dialogValue: SectionEditorDialogResult;

@@ -98,7 +98,6 @@ export function fakePortalNavigationLink(overrides?: Partial<PortalNavigationLin
     ...overrides,
   };
 }
-
 export function fakePortalNavigationItemsResponse(overrides?: Partial<PortalNavigationItemsResponse>): PortalNavigationItemsResponse {
   const base: PortalNavigationItemsResponse = {
     items: [fakePortalNavigationPage()],
@@ -168,7 +167,6 @@ export function fakeNewLinkPortalNavigationItem(overrides?: Partial<NewLinkPorta
     ...overrides,
   };
 }
-
 export function fakeUpdatePagePortalNavigationItem(overrides?: Partial<UpdatePagePortalNavigationItem>): UpdatePagePortalNavigationItem {
   const base: UpdatePagePortalNavigationItem = {
     published: false,

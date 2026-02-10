@@ -24,19 +24,26 @@ import { LowerCasePipe, TitleCasePipe } from '@angular/common';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
-import { PortalNavigationItem, PortalNavigationItemType, PortalVisibility } from '../../../entities/management-api-v2';
+import {
+  PortalNavigationItem,
+  PortalNavigationItemType,
+  PortalNavigationLink,
+  PortalVisibility,
+} from '../../../entities/management-api-v2';
 import { urlValidator } from '../../../shared/validators/url.validator';
 
 export type SectionEditorDialogMode = 'create' | 'edit';
 
+export type SectionEditorDialogItemType = Exclude<PortalNavigationItemType, 'API'>;
+
 interface SectionEditorDialogCreateData {
   mode: 'create';
-  type: PortalNavigationItemType;
+  type: SectionEditorDialogItemType;
 }
 
 interface SectionEditorDialogEditData {
   mode: 'edit';
-  type: PortalNavigationItemType;
+  type: SectionEditorDialogItemType;
   existingItem: PortalNavigationItem;
 }
 
@@ -85,7 +92,7 @@ export class SectionEditorDialogComponent implements OnInit {
   });
   public initialFormValues: SectionFormValues;
 
-  public type: PortalNavigationItemType;
+  public type: SectionEditorDialogItemType;
   public mode: SectionEditorDialogMode;
   public title: string;
 
@@ -136,8 +143,7 @@ export class SectionEditorDialogComponent implements OnInit {
   private prefillExistingItem(): void {
     if (this.data.mode === 'edit') {
       this.form.patchValue({
-        ...(this.data.existingItem.type === 'LINK' ? { url: this.data.existingItem.url } : {}),
-
+        ...(this.data.existingItem.type === 'LINK' ? { url: (this.data.existingItem as PortalNavigationLink).url } : {}),
         title: this.data.existingItem.title,
         isPrivate: this.data.existingItem.visibility === 'PRIVATE',
       });
@@ -147,6 +153,7 @@ export class SectionEditorDialogComponent implements OnInit {
   onSubmit(): void {
     if (this.form.valid) {
       const formValues = this.form.getRawValue();
+
       this.dialogRef.close({
         title: formValues.title,
         visibility: formValues.isPrivate ? 'PRIVATE' : 'PUBLIC',

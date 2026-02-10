@@ -36,15 +36,13 @@ import {
   ApiState,
   ApiV2,
   ApiV4,
-  HttpListener,
-  KafkaListener,
   Listener,
   ListenerType,
   Origin,
   PagedResult,
-  TcpListener,
 } from '../../../entities/management-api-v2';
 import { CategoryService } from '../../../services-ngx/category.service';
+import { getApiAccess } from '../../../shared/utils';
 
 export enum FilterType {
   API_TYPE,
@@ -377,7 +375,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
           if (api.definitionVersion === 'V4') {
             return {
               ...tableDS,
-              access: this.getApiAccess(api),
+              access: getApiAccess(api),
               isNotSynced$: undefined,
               qualityScore$: null,
             };
@@ -393,7 +391,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             const apiv2 = api as ApiV2;
             return {
               ...tableDS,
-              access: this.getApiAccess(apiv2),
+              access: getApiAccess(apiv2),
               isNotSynced$: this.apiService.isAPISynchronized(apiv2.id).pipe(map((a) => !a.is_synchronized)),
               qualityScore$: this.isQualityDisplayed
                 ? this.apiService.getQualityMetrics(apiv2.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
@@ -473,34 +471,5 @@ export class ApiListComponent implements OnInit, OnDestroy {
       }
     }
     return { score, class: qualityClass };
-  }
-
-  private getApiAccess(api: ApiV4 | ApiV2): string[] | null {
-    if (api.definitionVersion === 'V4') {
-      if (api.type === 'NATIVE') {
-        const kafkaListenerHosts = api.listeners
-          .filter((listener) => listener.type === 'KAFKA')
-          .map((kafkaListener: KafkaListener) => {
-            const host = kafkaListener.host ?? '';
-            const port = kafkaListener.port ? `:${kafkaListener.port}` : '';
-            return `${host}${port}`;
-          });
-
-        return kafkaListenerHosts.length > 0 ? kafkaListenerHosts : null;
-      }
-
-      const tcpListenerHosts = api.listeners
-        .filter((listener) => listener.type === 'TCP')
-        .flatMap((listener: TcpListener) => listener.hosts);
-
-      const httpListenerPaths = api.listeners
-        .filter((listener) => listener.type === 'HTTP')
-        .map((listener: HttpListener) => listener.paths.map((path) => `${path.host ?? ''}${path.path}`))
-        .flat();
-
-      return tcpListenerHosts.length > 0 ? tcpListenerHosts : httpListenerPaths.length > 0 ? httpListenerPaths : null;
-    }
-
-    return api.proxy.virtualHosts?.length > 0 ? api.proxy.virtualHosts.map((vh) => `${vh.host ?? ''}${vh.path}`) : [api.contextPath];
   }
 }
