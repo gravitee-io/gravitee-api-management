@@ -17,10 +17,12 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent, MatCardHeader } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 
-import { ApiType } from '../../entities/api/api';
+import { Api } from '../../entities/api/api';
+import { Application } from '../../entities/application/application';
 import { getPlanSecurityTypeLabel, PlanSecurityEnum, PlanUsageConfiguration, PlanValidationEnum } from '../../entities/plan/plan';
-import { SubscriptionConsumerStatusEnum } from '../../entities/subscription';
+import { Subscription, SubscriptionConsumerStatusEnum } from '../../entities/subscription';
 import { CapitalizeFirstPipe } from '../../pipe/capitalize-first.pipe';
 import { ToPeriodTimeUnitLabelPipe } from '../../pipe/time-unit.pipe';
 import { BannerComponent } from '../banner/banner.component';
@@ -38,13 +40,14 @@ import { LoaderComponent } from '../loader/loader.component';
     MatIcon,
     MatButton,
     LoaderComponent,
+    RouterLink,
   ],
   templateUrl: './subscription-info.component.html',
   styleUrl: './subscription-info.component.scss',
 })
 export class SubscriptionInfoComponent implements OnInit {
   @Input({ required: true })
-  applicationName: string = '';
+  application?: Application;
 
   @Input()
   planName: string = '';
@@ -59,10 +62,10 @@ export class SubscriptionInfoComponent implements OnInit {
   planValidation?: PlanValidationEnum;
 
   @Input()
-  apiType?: ApiType;
+  api?: Api;
 
   @Input()
-  subscriptionStatus: string = '';
+  subscription?: Subscription;
 
   @Input()
   isLoadingStatus: boolean = false;

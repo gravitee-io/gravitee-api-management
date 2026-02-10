@@ -23,6 +23,7 @@ import { By } from '@angular/platform-browser';
 
 import { ApiAccessComponent } from './api-access.component';
 import { Configuration } from '../../entities/configuration/configuration';
+import { Subscription } from '../../entities/subscription/subscription';
 import { ConfigService } from '../../services/config.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
 import { CopyCodeHarness } from '../copy-code/copy-code.harness';
@@ -92,7 +93,7 @@ describe('ApiAccessComponent', () => {
       describe('API Key', () => {
         it('should show api key, base url and command line', async () => {
           component.planSecurity = 'API_KEY';
-          component.subscriptionStatus = 'ACCEPTED';
+          component.subscription = { status: 'ACCEPTED' } as Subscription;
           component.entrypointUrls = ['my-entrypoint-url'];
           component.apiKey = 'api-key';
 
@@ -105,7 +106,7 @@ describe('ApiAccessComponent', () => {
       describe('OAuth2', () => {
         it('should show client id and secret', async () => {
           component.planSecurity = 'OAUTH2';
-          component.subscriptionStatus = 'ACCEPTED';
+          component.subscription = { status: 'ACCEPTED' } as Subscription;
           component.clientId = 'my-client-id';
           component.clientSecret = 'my-client-secret';
 
@@ -118,7 +119,7 @@ describe('ApiAccessComponent', () => {
       describe('JWT', () => {
         it('should show client id and secret', async () => {
           component.planSecurity = 'JWT';
-          component.subscriptionStatus = 'ACCEPTED';
+          component.subscription = { status: 'ACCEPTED' } as Subscription;
           component.clientId = 'my-client-id';
           component.clientSecret = 'my-client-secret';
 
@@ -133,7 +134,7 @@ describe('ApiAccessComponent', () => {
       beforeEach(() => {
         component.apiType = 'NATIVE';
         component.entrypointUrls = ['my-entrypoint-url'];
-        component.subscriptionStatus = 'ACCEPTED';
+        component.subscription = { status: 'ACCEPTED' } as Subscription;
       });
       describe('API Key', () => {
         it('should show api key, config, producer and consumer calls', async () => {
@@ -242,7 +243,7 @@ describe('ApiAccessComponent', () => {
   describe('Pending', () => {
     it('should show message', async () => {
       component.planSecurity = 'API_KEY';
-      component.subscriptionStatus = 'PENDING';
+      component.subscription = { status: 'PENDING' } as Subscription;
       component.entrypointUrls = ['my-entrypoint-url'];
       component.apiKey = 'api-key';
       fixture.detectChanges();
@@ -253,7 +254,7 @@ describe('ApiAccessComponent', () => {
   describe('Rejected', () => {
     it('should show message', async () => {
       component.planSecurity = 'API_KEY';
-      component.subscriptionStatus = 'REJECTED';
+      component.subscription = { status: 'REJECTED' } as Subscription;
       component.entrypointUrls = ['my-entrypoint-url'];
       component.apiKey = 'api-key';
 
@@ -264,7 +265,7 @@ describe('ApiAccessComponent', () => {
   describe('Paused', () => {
     it('should show message', async () => {
       component.planSecurity = 'API_KEY';
-      component.subscriptionStatus = 'PAUSED';
+      component.subscription = { status: 'PAUSED' } as Subscription;
       component.entrypointUrls = ['my-entrypoint-url'];
       component.apiKey = 'api-key';
 
@@ -275,7 +276,7 @@ describe('ApiAccessComponent', () => {
   describe('Closed', () => {
     it('should show message', async () => {
       component.planSecurity = 'API_KEY';
-      component.subscriptionStatus = 'CLOSED';
+      component.subscription = { status: 'CLOSED' } as Subscription;
       component.entrypointUrls = ['my-entrypoint-url'];
       component.apiKey = 'api-key';
 

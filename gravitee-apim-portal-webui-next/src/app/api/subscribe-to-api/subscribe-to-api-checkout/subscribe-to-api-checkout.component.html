@@ -18,12 +18,12 @@
 <div class="subscribe-to-api-checkout__container">
   <app-subscription-info
     class="subscribe-to-api-checkout__container__subscription-info"
-    [applicationName]="application ? application.name : ''"
+    [application]="application"
     [planName]="plan.name"
     [planUsageConfiguration]="plan.usage_configuration"
     [planSecurity]="plan.security"
     [planValidation]="plan.validation"
-    [apiType]="api.type" />
+    [api]="api" />
   @if (plan.security === 'KEY_LESS') {
     <app-api-access [planSecurity]="plan.security" [entrypointUrls]="api.entrypoints" [apiType]="api.type" />
   } @else {
