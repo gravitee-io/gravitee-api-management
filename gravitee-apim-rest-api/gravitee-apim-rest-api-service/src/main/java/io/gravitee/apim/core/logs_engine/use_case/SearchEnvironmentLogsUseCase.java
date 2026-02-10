@@ -246,6 +246,7 @@ public class SearchEnvironmentLogsUseCase {
 
     private ApiLog mapApiLog(BaseConnectionLog item) {
         return new ApiLog(
+            item.getApiId(),
             toOffsetDateTime(item.getTimestamp()),
             item.getRequestId(),
             item.getRequestId(),

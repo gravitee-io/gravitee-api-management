@@ -154,11 +154,91 @@ components:
         data:
           type: array
           items:
-            $ref: "./openapi-apis.yaml#/components/schemas/ApiLog"
+            $ref: "#/components/schemas/ApiLog"
         pagination:
           $ref: "./openapi-apis.yaml#/components/schemas/Pagination"
         links:
           $ref: "./openapi-apis.yaml#/components/schemas/Links"
+
+    ApiLog:
+      type: object
+      properties:
+        apiId:
+          type: string
+          description: Id of the API.
+          example: 6c530064-0b2c-4004-9300-640b2ce0047b
+        timestamp:
+          type: string
+          format: date-time
+          description: The date (as timestamp) of the log.
+          example: 2023-05-18T12:40:46.184Z
+        id:
+          type: string
+          description: The internal UUID of the Log.
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        requestId:
+          type: string
+          description: The id of the request.
+          example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
+        method:
+          $ref: "./openapi-apis.yaml#/components/schemas/HttpMethod"
+        clientIdentifier:
+          type: string
+          description: The client identifier of the request.
+          example: 12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0
+        plan:
+          $ref: "./openapi-apis.yaml#/components/schemas/BasePlan"
+        application:
+          $ref: "./openapi-apis.yaml#/components/schemas/BaseApplication"
+        transactionId:
+          type: string
+          description: The id of the transaction.
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        status:
+          type: integer
+          description: The response's status.
+          example: 200
+        requestEnded:
+          type: boolean
+          description: The flag indicating if the request has ended.
+          example: true
+        gatewayResponseTime:
+          type: integer
+          description: The response time in ms
+          example: 12
+        uri:
+          type: string
+          description: URI of the request.
+          example: /my-api
+        endpoint:
+          type: string
+          description: The endpoint URL.
+          example: "https://my-api-example.com"
+        message:
+          type: string
+          description: The error message.
+          example: "The timeout period of 1000ms has been exceeded"
+        errorKey:
+          type: string
+          description: The error key.
+          example: "TIMEOUT_ERROR"
+        errorComponentName:
+          type: string
+          description: The name of the component that generated the error.
+          example: "security"
+        errorComponentType:
+          type: string
+          description: The type of the component that generated the error.
+          example: "ENDPOINT"
+        warnings:
+          type: array
+          description: The warning diagnostics
+          items:
+            $ref: "./openapi-apis.yaml#/components/schemas/ApiLogDiagnostic"
+        additionalMetrics:
+          type: object
+          additionalProperties: true
+          description: A map of string keys to values
 
     Filter:
       description: |
