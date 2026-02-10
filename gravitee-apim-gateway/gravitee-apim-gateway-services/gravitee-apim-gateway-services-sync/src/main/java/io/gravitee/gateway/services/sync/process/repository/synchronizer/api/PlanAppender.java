@@ -21,11 +21,11 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
-import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -48,6 +48,7 @@ public class PlanAppender {
     private final ObjectMapper objectMapper;
     private final PlanRepository planRepository;
     private final GatewayConfiguration gatewayConfiguration;
+    private final ApiProductRegistry apiProductRegistry;
 
     /**
      * Fetching plans for given deployables
@@ -85,10 +86,14 @@ public class PlanAppender {
                     hasPlan = api.getPlans() != null && !api.getPlans().isEmpty();
                 }
 
+                if (!hasPlan && apiProductRegistry != null && reactableApi.getEnvironmentId() != null) {
+                    var entries = apiProductRegistry.getProductPlanEntriesForApi(deployable.apiId(), reactableApi.getEnvironmentId());
+                    hasPlan = entries != null && !entries.isEmpty();
+                }
+
                 if (!hasPlan) {
                     log.warn("No plan found, skipping deployment for api: {}", deployable.apiId());
                 }
-
                 return hasPlan;
             })
             .collect(Collectors.toList());

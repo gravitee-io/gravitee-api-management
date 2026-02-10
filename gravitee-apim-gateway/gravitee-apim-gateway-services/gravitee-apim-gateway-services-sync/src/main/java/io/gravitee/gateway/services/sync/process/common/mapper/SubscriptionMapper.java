@@ -40,7 +40,6 @@ public class SubscriptionMapper {
 
     public List<Subscription> to(io.gravitee.repository.management.model.Subscription subscriptionModel) {
         try {
-            // Check if API Product subscription
             if (subscriptionModel.getReferenceType() == SubscriptionReferenceType.API_PRODUCT) {
                 return explodeApiProductSubscription(subscriptionModel);
             }
@@ -68,7 +67,6 @@ public class SubscriptionMapper {
         }
         ReactableApiProduct product = apiProductRegistry.get(productId, environmentId);
         if (product == null) {
-            log.debug("API Product [{}] not found for subscription [{}], will retry on next sync", productId, subscriptionModel.getId());
             return List.of(); // Product not deployed yet - skip for now
         }
 
