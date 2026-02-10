@@ -224,7 +224,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
     this.matDialog
       .open<ApiSectionEditorDialogComponent, ApiSectionEditorDialogData>(ApiSectionEditorDialogComponent, {
-        width: GIO_DIALOG_WIDTH.MEDIUM,
+        width: GIO_DIALOG_WIDTH.LARGE,
         data,
       })
       .afterClosed()

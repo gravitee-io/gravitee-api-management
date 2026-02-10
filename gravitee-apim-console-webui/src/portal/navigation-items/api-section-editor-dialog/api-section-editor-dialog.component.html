@@ -24,13 +24,7 @@
       <div class="api-search-description">Pick the unpublished APIs you want to add to your navigation menu.</div>
     </div>
 
-    <gio-table-wrapper
-      [searchLabel]="'Search'"
-      [length]="total"
-      [filters]="filters"
-      [hideTopPagination]="true"
-      (filtersChange)="onFiltersChanged($event)"
-    >
+    <gio-table-wrapper [searchLabel]="'Search'" [length]="total" [filters]="filters" (filtersChange)="onFiltersChanged($event)">
       <table mat-table [dataSource]="rows$ | async" aria-label="APIs picker table">
         <ng-container matColumnDef="select">
           <th mat-header-cell *matHeaderCellDef></th>

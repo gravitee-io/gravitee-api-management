@@ -48,6 +48,7 @@ mat-dialog-content {
   &__badge {
     min-width: 26px;
     padding: 4px 8px;
+    margin-right: 8px;
     border-radius: 16px;
     background: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default');
     color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
