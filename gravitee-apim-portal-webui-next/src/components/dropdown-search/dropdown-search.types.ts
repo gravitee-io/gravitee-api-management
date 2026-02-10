@@ -13,44 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../../scss/theme/index' as app-theme;
-@use '../../../scss/m3-adapter';
-
-:host {
-  display: block;
-  height: 100%;
-}
-
-.subscriptions {
-  padding: 24px;
-
-  &__filters {
-    display: flex;
-    max-width: 50rem;
-    align-items: center;
-    margin-bottom: 24px;
-    gap: 16px;
-  }
-
-  &__filter {
-    flex: 1 1 200px;
-  }
-
-  &__empty-state,
-  &__empty-filtered {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-
-    h2 {
-      margin-bottom: 8px;
-    }
-
-    p {
-      margin-bottom: 16px;
-      color: app-theme.$paragraph-color;
-    }
-  }
+export interface SelectOption {
+  value: string;
+  label: string;
+  context?: string;
+  disabled?: boolean;
 }

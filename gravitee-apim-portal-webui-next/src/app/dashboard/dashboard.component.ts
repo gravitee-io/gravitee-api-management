@@ -45,7 +45,13 @@ export class DashboardComponent {
       filter(event => event instanceof NavigationEnd),
       map(() => {
         const segments = this.router.url.split('/').filter(Boolean);
-        const relevantSegments = segments.filter(s => s !== 'dashboard');
+
+        const relevantSegments = segments
+          .filter(s => s !== 'dashboard')
+          .map(segment => {
+            const startOfQueryParam = segment.indexOf('?');
+            return startOfQueryParam >= 0 ? segment.substring(0, startOfQueryParam) : segment;
+          });
         const breadcrumbs: Breadcrumb[] = [];
         relevantSegments.forEach((segment, index) => {
           const isLast = index === relevantSegments.length - 1;

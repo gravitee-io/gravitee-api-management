@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, provideRouter, Router, Routes } from '@angular/router';
-import { of } from 'rxjs/internal/observable/of';
 
 import { routes } from '../app.routes';
 import { DashboardComponent } from './dashboard.component';
 import { DashboardComponentHarness } from './dashboard.component.harness';
-import { ApplicationService } from '../../services/application.service';
-import { SubscriptionService } from '../../services/subscription.service';
+import { AppTestingModule } from '../../testing/app-testing.module';
 
 describe('DashboardComponent', () => {
   let fixture: ComponentFixture<DashboardComponent>;
   let harness: DashboardComponentHarness;
   let router: Router;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
     const dashboardRoute = (routes as Routes).find(route => route.path === 'dashboard');
 
     await TestBed.configureTestingModule({
-      imports: [DashboardComponent, NoopAnimationsModule],
+      imports: [DashboardComponent, NoopAnimationsModule, AppTestingModule],
       providers: [
         provideRouter([
           {
@@ -43,25 +43,6 @@ describe('DashboardComponent', () => {
             children: dashboardRoute?.children ?? [],
           },
         ]),
-
-        {
-          provide: SubscriptionService,
-          useValue: {
-            list: () =>
-              of({
-                rows: [],
-                totalElements: 0,
-              }),
-          },
-        },
-
-        {
-          provide: ApplicationService,
-          useValue: {
-            list: () => of([]),
-          },
-        },
-
         {
           provide: ActivatedRoute,
           useValue: {
@@ -79,6 +60,11 @@ describe('DashboardComponent', () => {
     fixture = TestBed.createComponent(DashboardComponent);
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DashboardComponentHarness);
     router = TestBed.inject(Router);
+    httpTestingController = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   it('should create', async () => {
@@ -88,6 +74,12 @@ describe('DashboardComponent', () => {
   it('should display Subscriptions sidenav and breadcrumb', async () => {
     await router.navigate(['subscriptions']);
     fixture.detectChanges();
+
+    const applicationsReq = httpTestingController.expectOne(req => req.url.includes('/applications'));
+    applicationsReq.flush({ data: [] });
+
+    const subscriptionsReq = httpTestingController.expectOne(req => req.url.includes('/subscriptions'));
+    subscriptionsReq.flush({ data: [], links: { self: '' }, metadata: {} });
 
     const sidenav = await harness.getSidenav();
     expect(await sidenav?.getText()).toContain('Subscriptions');

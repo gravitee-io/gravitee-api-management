@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
+import { DropdownSearchComponentHarness } from '../../../components/dropdown-search/dropdown-search.component.harness';
 import { DivHarness } from '../../../testing/div.harness';
 
 export class SubscriptionsComponentHarness extends ComponentHarness {
@@ -25,12 +25,10 @@ export class SubscriptionsComponentHarness extends ComponentHarness {
   private getEmptyState = this.locatorForOptional(DivHarness.with({ selector: '.subscriptions__empty-state' }));
   private getEmptyFiltered = this.locatorForOptional(DivHarness.with({ selector: '.subscriptions__empty-filtered' }));
   private getTable = this.locatorForOptional(MatTableHarness);
-  private getApiFilter = this.locatorForOptional(MatSelectHarness.with({ selector: '#subscriptions-api-filter' }));
-  private getApplicationFilter = this.locatorForOptional(MatSelectHarness.with({ selector: '#subscriptions-application-filter' }));
-  private getStatusFilter = this.locatorForOptional(MatSelectHarness.with({ selector: '#subscriptions-status-filter' }));
+  private getAllDropdownFilters = this.locatorForAll(DropdownSearchComponentHarness);
 
   public async isEmptyStateDisplayed(): Promise<boolean> {
-    return !!(await this.getEmptyState());
+    return (await this.getEmptyState()) !== null;
   }
 
   public async isEmptyFilteredStateDisplayed(): Promise<boolean> {
@@ -57,39 +55,42 @@ export class SubscriptionsComponentHarness extends ComponentHarness {
     return Promise.all(cells.map(cell => cell.getText()));
   }
 
+  /** API filter dropdown (first app-dropdown-search). */
+  public async getApiFilter(): Promise<DropdownSearchComponentHarness> {
+    const dropdowns = await this.getAllDropdownFilters();
+    return dropdowns[0];
+  }
+
+  /** Application filter dropdown (second app-dropdown-search). */
+  public async getApplicationFilter(): Promise<DropdownSearchComponentHarness> {
+    const dropdowns = await this.getAllDropdownFilters();
+    return dropdowns[1];
+  }
+
+  /** Status filter dropdown (third app-dropdown-search). */
+  public async getStatusFilter(): Promise<DropdownSearchComponentHarness> {
+    const dropdowns = await this.getAllDropdownFilters();
+    return dropdowns[2];
+  }
+
+  /** Opens the API filter and selects the option at the given index. */
   public async selectApiFilter(index: number): Promise<void> {
     const filter = await this.getApiFilter();
-    if (filter) {
-      await filter.open();
-      const options = await filter.getOptions();
-      if (options[index]) {
-        await options[index].click();
-      }
-    }
+    const overlay = await filter.getOverlayHarness();
+    await overlay.selectOptionByIndex(index);
   }
 
+  /** Opens the Application filter and selects the option at the given index. */
   public async selectApplicationFilter(index: number): Promise<void> {
     const filter = await this.getApplicationFilter();
-    if (filter) {
-      await filter.open();
-      const options = await filter.getOptions();
-      if (options[index]) {
-        await options[index].click();
-      }
-    }
+    const overlay = await filter.getOverlayHarness();
+    await overlay.selectOptionByIndex(index);
   }
 
-  public async selectStatusFilter(values: string[]): Promise<void> {
+  /** Opens the Status filter and selects the options whose labels match the given values. */
+  public async selectStatusFilter(labels: string[]): Promise<void> {
     const filter = await this.getStatusFilter();
-    if (filter) {
-      await filter.open();
-      const options = await filter.getOptions();
-      for (const option of options) {
-        const text = await option.getText();
-        if (values.includes(text)) {
-          await option.click();
-        }
-      }
-    }
+    const overlay = await filter.getOverlayHarness();
+    await overlay.selectOptionsByLabels(labels);
   }
 }
