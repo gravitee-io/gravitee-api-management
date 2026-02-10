@@ -625,6 +625,7 @@ data:
       # Endpoint healthcheck service.
       healthcheck:
         threads: 3 # Threads core size used to check endpoint availability
+        jitterInMs: {{ .Values.gateway.services.healthcheck.jitterInMs | default 900 }}
 
       heartbeat: {{ toYaml .Values.gateway.services.heartbeat | nindent 8 }}
 

@@ -1470,6 +1470,9 @@ gateway:
       #delay: 5000
       #unit: MILLISECONDS
 
+    healthcheck:
+      jitterInMs: 900
+
     heartbeat:
       enabled: true
       delay: 5000
