@@ -77,7 +77,7 @@ export class SubscriptionsTableComponent implements OnInit {
   private loadSubscriptions$(): Observable<Subscription[]> {
     return this.subscriptionsStatus.valueChanges.pipe(
       startWith(this.subscriptionsStatus.value),
-      switchMap(status => this.subscriptionService.list({ apiId: this.apiId, statuses: status, size: -1 })),
+      switchMap(status => this.subscriptionService.list({ apiIds: [this.apiId], statuses: status, size: -1 })),
       map(response => {
         if (this.subscriptionsStatus.value?.length === 0 && response.data.length) {
           this.subscriptionsExist = true;

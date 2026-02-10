@@ -1,0 +1,77 @@
+<!--
+
+    Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="portal-dropdown-search-overlay">
+  <!-- Search input -->
+  <div class="portal-dropdown-search-overlay__search">
+    <mat-form-field class="portal-dropdown-search-overlay__search-field" appearance="outline">
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [formControl]="searchControl" [placeholder]="placeholder" #searchInput />
+      @if (searchControl.value) {
+        <button matSuffix mat-icon-button type="button" (click)="searchControl.setValue('')" aria-label="Clear search">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-form-field>
+  </div>
+
+  <!-- Options list -->
+  <div class="portal-dropdown-search-overlay__options" cdkScrollable>
+    @for (option of options(); track option.value) {
+      <div
+        class="portal-dropdown-search-overlay__option"
+        tabindex="-1"
+        [class.portal-dropdown-search-overlay__option--disabled]="option.disabled"
+        (click)="toggleOption(option)"
+        (keydown.enter)="toggleOption(option)"
+        (keydown.space)="$event.preventDefault(); toggleOption(option)"
+      >
+        <mat-checkbox
+          [checked]="selectedValues.includes(option.value)"
+          [disabled]="option.disabled"
+          [value]="option.value"
+          class="portal-dropdown-search-overlay__option-checkbox"
+          color="primary"
+        />
+        <span class="portal-dropdown-search-overlay__option-label">
+          {{ option.label }}
+          @if (option.context) {
+            <br />
+            <span class="portal-dropdown-search-overlay__option-context">{{ option.context }}</span>
+          }
+        </span>
+      </div>
+    }
+
+    @if (isLoading) {
+      <div class="portal-dropdown-search-overlay__loading">Loading...</div>
+    } @else if (options().length === 0) {
+      <div class="portal-dropdown-search-overlay__option portal-dropdown-search-overlay__option--disabled">
+        <span class="portal-dropdown-search-overlay__option-label">No Results Found</span>
+      </div>
+    }
+  </div>
+
+  <div class="portal-dropdown-search-overlay__clear">
+    <button mat-button type="button" [disabled]="selectedValues.length === 0" (click)="clearSelection()" aria-label="Clear selection">
+      Clear Selection
+      @if (selectedValues.length > 0) {
+        ({{ selectedValues.length }})
+      }
+    </button>
+  </div>
+</div>

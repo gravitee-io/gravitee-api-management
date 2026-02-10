@@ -20,7 +20,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatChipHarness } from '@angular/material/chips/testing';
 import { By } from '@angular/platform-browser';
-import { of } from 'rxjs/internal/observable/of';
+import { of } from 'rxjs';
 
 import { TermsAndConditionsDialogHarness } from './components/terms-and-conditions-dialog/terms-and-conditions-dialog.harness';
 import { SubscribeToApiCheckoutHarness } from './subscribe-to-api-checkout/subscribe-to-api-checkout.harness';
@@ -37,9 +37,13 @@ import { fakeApplication, fakeApplicationsResponse } from '../../../entities/app
 import { Page } from '../../../entities/page/page';
 import { fakePage } from '../../../entities/page/page.fixtures';
 import { fakePlan } from '../../../entities/plan/plan.fixture';
-import { CreateSubscription, Subscription } from '../../../entities/subscription/subscription';
-import { fakeSubscription, fakeSubscriptionResponse } from '../../../entities/subscription/subscription.fixture';
-import { SubscriptionsResponse } from '../../../entities/subscription/subscriptions-response';
+import {
+  CreateSubscription,
+  fakeSubscription,
+  fakeSubscriptionResponse,
+  Subscription,
+  SubscriptionsResponse,
+} from '../../../entities/subscription';
 import { ConfigService } from '../../../services/config.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../testing/app-testing.module';
 
@@ -104,8 +108,17 @@ describe('SubscribeToApiComponent', () => {
       data: [
         fakePlan({ id: KEYLESS_PLAN_ID, security: 'KEY_LESS' }),
         fakePlan({ id: API_KEY_PLAN_ID, security: 'API_KEY', comment_required: false, general_conditions: undefined }),
-        fakePlan({ id: API_KEY_PLAN_ID_COMMENT_REQUIRED, security: 'API_KEY', comment_required: true, general_conditions: undefined }),
-        fakePlan({ id: API_KEY_PLAN_ID_GENERAL_CONDITIONS, security: 'API_KEY', general_conditions: GENERAL_CONDITIONS_ID }),
+        fakePlan({
+          id: API_KEY_PLAN_ID_COMMENT_REQUIRED,
+          security: 'API_KEY',
+          comment_required: true,
+          general_conditions: undefined,
+        }),
+        fakePlan({
+          id: API_KEY_PLAN_ID_GENERAL_CONDITIONS,
+          security: 'API_KEY',
+          general_conditions: GENERAL_CONDITIONS_ID,
+        }),
         fakePlan({ id: OAUTH2_PLAN_ID, security: 'OAUTH2', general_conditions: undefined }),
         fakePlan({ id: JWT_PLAN_ID, security: 'JWT', general_conditions: undefined }),
         fakePlan({ id: MTLS_PLAN_ID, security: 'MTLS', general_conditions: undefined }),
@@ -120,7 +133,6 @@ describe('SubscribeToApiComponent', () => {
   });
 
   describe('User subscribes to Push plan', () => {
-    beforeEach(async () => {});
     describe('selects push plan', () => {
       it('should be able to go to consumer configuration form', async () => {
         await init(true);
@@ -196,7 +208,6 @@ describe('SubscribeToApiComponent', () => {
   });
 
   describe('User subscribes to Keyless plan', () => {
-    beforeEach(async () => {});
     describe('Step 1 -- Choose a plan', () => {
       it('should be able to go to step 3 once plan chosen', async () => {
         await init(true);
@@ -217,8 +228,6 @@ describe('SubscribeToApiComponent', () => {
       });
     });
     describe('Step 3 -- Checkout', () => {
-      beforeEach(async () => {});
-
       describe('V4 Proxy', () => {
         beforeEach(async () => {
           await init(true, fakeApi({ id: API_ID, type: 'PROXY', definitionVersion: 'V4', entrypoints: [ENTRYPOINT] }));
@@ -243,7 +252,15 @@ describe('SubscribeToApiComponent', () => {
       describe('V4 Native', () => {
         const KAFKA_ENTRYPOINT = 'my.kafka.entrypoint:9092';
         beforeEach(async () => {
-          await init(true, fakeApi({ id: API_ID, type: 'NATIVE', definitionVersion: 'V4', entrypoints: [KAFKA_ENTRYPOINT] }));
+          await init(
+            true,
+            fakeApi({
+              id: API_ID,
+              type: 'NATIVE',
+              definitionVersion: 'V4',
+              entrypoints: [KAFKA_ENTRYPOINT],
+            }),
+          );
 
           const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
           await step1.selectPlanByPlanId(KEYLESS_PLAN_ID);
@@ -474,7 +491,11 @@ describe('SubscribeToApiComponent', () => {
           expect(await subscribeButton?.isDisabled()).toEqual(false);
           await subscribeButton?.click();
 
-          expectPostCreateSubscription({ plan: API_KEY_PLAN_ID_COMMENT_REQUIRED, application: 'app-id', request: 'My new message' });
+          expectPostCreateSubscription({
+            plan: API_KEY_PLAN_ID_COMMENT_REQUIRED,
+            application: 'app-id',
+            request: 'My new message',
+          });
         });
       });
       describe('When terms and conditions need to be accepted', () => {
@@ -531,7 +552,13 @@ describe('SubscribeToApiComponent', () => {
             await selectPlan(API_KEY_PLAN_ID);
             await selectApplication(APP_ID_NO_SUBSCRIPTIONS);
 
-            expectGetSubscriptionsForApplication(APP_ID_NO_SUBSCRIPTIONS, fakeSubscriptionResponse({ data: [], metadata: {} }));
+            expectGetSubscriptionsForApplication(
+              APP_ID_NO_SUBSCRIPTIONS,
+              fakeSubscriptionResponse({
+                data: [],
+                metadata: {},
+              }),
+            );
             fixture.detectChanges();
           });
           it('should NOT show api key mode choice', async () => {
@@ -1144,7 +1171,15 @@ describe('SubscribeToApiComponent', () => {
 
   function expectGetSubscriptionsForApi(apiId: string, subscriptions: SubscriptionsResponse = fakeSubscriptionResponse({ data: [] })) {
     httpTestingController
-      .expectOne(`${TESTING_BASE_URL}/subscriptions?apiId=${apiId}&statuses=PENDING&statuses=ACCEPTED&size=-1`)
+      .expectOne(req => {
+        return (
+          req.url === `${TESTING_BASE_URL}/subscriptions` &&
+          req.params.get('apiId') === apiId &&
+          req.params.getAll('statuses')?.includes('PENDING') === true &&
+          req.params.getAll('statuses')?.includes('ACCEPTED') === true &&
+          req.params.get('size') === '-1'
+        );
+      })
       .flush(subscriptions);
   }
 
@@ -1153,9 +1188,16 @@ describe('SubscribeToApiComponent', () => {
     subscriptions: SubscriptionsResponse = fakeSubscriptionResponse({ data: [] }),
   ) {
     httpTestingController
-      .expectOne(
-        `${TESTING_BASE_URL}/subscriptions?applicationId=${applicationId}&statuses=PENDING&statuses=ACCEPTED&statuses=PAUSED&size=-1`,
-      )
+      .expectOne(req => {
+        return (
+          req.url === `${TESTING_BASE_URL}/subscriptions` &&
+          req.params.get('applicationId') === applicationId &&
+          req.params.getAll('statuses')?.includes('PENDING') === true &&
+          req.params.getAll('statuses')?.includes('ACCEPTED') === true &&
+          req.params.getAll('statuses')?.includes('PAUSED') === true &&
+          req.params.get('size') === '-1'
+        );
+      })
       .flush(subscriptions);
   }
 
@@ -1219,7 +1261,11 @@ describe('SubscribeToApiComponent', () => {
         data: [
           fakeApplication({ id: APP_ID, name: APP_ID }),
           fakeApplication({ id: APP_ID_NO_SUBSCRIPTIONS, name: APP_ID_NO_SUBSCRIPTIONS, api_key_mode: 'UNSPECIFIED' }),
-          fakeApplication({ id: APP_ID_ONE_API_KEY_SUBSCRIPTION, name: APP_ID_ONE_API_KEY_SUBSCRIPTION, api_key_mode: 'UNSPECIFIED' }),
+          fakeApplication({
+            id: APP_ID_ONE_API_KEY_SUBSCRIPTION,
+            name: APP_ID_ONE_API_KEY_SUBSCRIPTION,
+            api_key_mode: 'UNSPECIFIED',
+          }),
           fakeApplication({
             id: APP_ID_WITH_CLIENT_CERTIFICATE,
             name: APP_ID_WITH_CLIENT_CERTIFICATE,

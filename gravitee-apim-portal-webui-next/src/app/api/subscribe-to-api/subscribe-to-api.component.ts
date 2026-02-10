@@ -141,7 +141,7 @@ export class SubscribeToApiComponent implements OnInit {
       catchError(_ => of([])),
     );
 
-    this.applicationsData$ = this.subscriptionService.list({ apiId: this.api.id, statuses: ['PENDING', 'ACCEPTED'], size: -1 }).pipe(
+    this.applicationsData$ = this.subscriptionService.list({ apiIds: [this.api.id], statuses: ['PENDING', 'ACCEPTED'], size: -1 }).pipe(
       combineLatestWith(this.currentApplicationsPage),
       switchMap(([subscriptions, page]) => this.getApplicationsData$(page, subscriptions)),
       catchError(_ => of({ applications: [], pagination: { currentPage: 0, totalApplications: 0, start: 0, end: 0 } })),
@@ -420,7 +420,7 @@ export class SubscribeToApiComponent implements OnInit {
       switchMap(app => {
         if (!!app?.id && this.currentPlan()?.security === 'API_KEY' && app.api_key_mode !== 'EXCLUSIVE' && app.api_key_mode !== 'SHARED') {
           return this.subscriptionService.list({
-            applicationId: app.id,
+            applicationIds: [app.id],
             statuses: ['PENDING', 'ACCEPTED', 'PAUSED'],
             size: -1,
           });

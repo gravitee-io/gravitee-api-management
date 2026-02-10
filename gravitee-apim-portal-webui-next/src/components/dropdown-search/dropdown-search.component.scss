@@ -1,0 +1,73 @@
+/*
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../scss/theme/index' as app-theme;
+
+:host {
+  display: block;
+}
+
+.portal-dropdown-search {
+  &__trigger {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border: app-theme.$border-width solid app-theme.$border-color;
+    border-radius: app-theme.$container-shape;
+
+    &:focus {
+      outline: none;
+    }
+
+    &--disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    &--opened {
+      padding: 6px 10px;
+      border-width: 2px;
+    }
+
+    &-label {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      gap: 8px;
+    }
+
+    &-count {
+      display: inline-flex;
+      min-width: 24px;
+      height: 24px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 6px;
+      border-radius: 12px;
+      background-color: app-theme.$primary-main-color;
+      color: app-theme.$default-text-contrast-color;
+    }
+
+    &-icon {
+      margin-left: 8px;
+      color: app-theme.$paragraph-color;
+      transition:
+        color 0.2s ease,
+        transform 0.2s ease;
+    }
+  }
+}

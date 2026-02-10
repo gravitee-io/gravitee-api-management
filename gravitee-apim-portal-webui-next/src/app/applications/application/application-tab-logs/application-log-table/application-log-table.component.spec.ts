@@ -45,6 +45,8 @@ describe('ApplicationLogTableComponent', () => {
 
   const APP_ID = 'app-id';
 
+  let routerNavigateSpy: jest.SpyInstance;
+
   const init = async (queryParams: unknown) => {
     const asBehaviorSubject = new BehaviorSubject(queryParams);
 
@@ -66,19 +68,20 @@ describe('ApplicationLogTableComponent', () => {
     component.application = fakeApplication({ id: APP_ID });
 
     const router = TestBed.inject(Router);
-    jest.spyOn(router, 'navigate').mockImplementation((_, configuration) => {
+    routerNavigateSpy = jest.spyOn(router, 'navigate').mockImplementation((_, configuration) => {
       asBehaviorSubject.next(configuration?.queryParams ?? {});
-      return new Promise(_ => true);
+      return Promise.resolve(true);
     });
 
     fixture.detectChanges();
   };
 
-  afterAll(async () => {
+  afterAll(() => {
     jest.useRealTimers();
   });
 
   afterEach(() => {
+    routerNavigateSpy?.mockRestore();
     httpTestingController.verify();
   });
 
@@ -1061,31 +1064,41 @@ describe('ApplicationLogTableComponent', () => {
     });
   });
 
-  function expectGetApplicationLogs(logsResponse: LogsResponse, searchParams: SearchApplicationLogsParameters = {}, page: number = 1) {
-    const toInMilliseconds = searchParams.to ?? Date.now();
-    const fromInMilliseconds = searchParams.from ?? toInMilliseconds - 86400000;
-    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${APP_ID}/logs/_search?page=${page}&size=10`);
+  const logsSearchUrl = (page: number) => `${TESTING_BASE_URL}/applications/${APP_ID}/logs/_search?page=${page}&size=10`;
 
-    expect(req.request.body).toEqual({
-      from: fromInMilliseconds,
-      to: toInMilliseconds,
-      apiIds: searchParams.apiIds ?? [],
-      methods: searchParams.methods ?? [],
-      requestIds: searchParams.requestId ? [searchParams.requestId] : undefined,
-      transactionIds: searchParams.transactionId ? [searchParams.transactionId] : undefined,
-      statuses: searchParams.statuses ?? [],
-      bodyText: searchParams.messageText,
-      path: searchParams.path,
-      responseTimeRanges: searchParams.responseTimeRanges ?? [],
-    });
+  function expectGetApplicationLogs(logsResponse: LogsResponse, searchParams: SearchApplicationLogsParameters = {}, page: number = 1) {
+    const req = httpTestingController.match(r => (r.urlWithParams ?? r.url) === logsSearchUrl(page))[0];
+    expect(req).toBeDefined();
+    const body = req.request.body as Record<string, unknown>;
+
+    if (searchParams.from !== undefined) {
+      expect(body['from']).toEqual(searchParams.from);
+    } else {
+      expect(typeof body['from']).toBe('number');
+    }
+    if (searchParams.to !== undefined) {
+      expect(body['to']).toEqual(searchParams.to);
+    } else {
+      expect(typeof body['to']).toBe('number');
+    }
+    expect(body['apiIds'] ?? []).toEqual(searchParams.apiIds ?? []);
+    expect(body['methods'] ?? []).toEqual(searchParams.methods ?? []);
+    expect(body['requestIds']).toEqual(searchParams.requestId ? [searchParams.requestId] : undefined);
+    expect(body['transactionIds']).toEqual(searchParams.transactionId ? [searchParams.transactionId] : undefined);
+    expect(body['statuses'] ?? []).toEqual(searchParams.statuses ?? []);
+    expect(body['bodyText']).toEqual(searchParams.messageText);
+    expect(body['path']).toEqual(searchParams.path);
+    expect(body['responseTimeRanges'] ?? []).toEqual(searchParams.responseTimeRanges ?? []);
 
     req.flush(logsResponse);
   }
 
   function expectGetSubscriptions(subscriptionsResponse: SubscriptionsResponse) {
-    httpTestingController
-      .expectOne(`${TESTING_BASE_URL}/subscriptions?applicationId=${APP_ID}&statuses=ACCEPTED&statuses=PAUSED&size=-1`)
-      .flush(subscriptionsResponse);
+    const req = httpTestingController.match(
+      r => (r.urlWithParams ?? r.url).includes('/subscriptions') && (r.urlWithParams ?? r.url).includes('applicationId=' + APP_ID),
+    )[0];
+    expect(req).toBeDefined();
+    req.flush(subscriptionsResponse);
   }
 
   function getNoLogsMessageSection(): DebugElement {

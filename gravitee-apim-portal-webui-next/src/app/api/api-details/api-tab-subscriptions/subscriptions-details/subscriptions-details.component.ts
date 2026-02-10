@@ -264,7 +264,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
     usageConfiguration?: PlanUsageConfiguration;
     planMode?: PlanMode;
   }> {
-    return this.subscriptionService.list({ apiId: this.apiId, statuses: [] }).pipe(
+    return this.subscriptionService.list({ apiIds: [this.apiId], statuses: [] }).pipe(
       catchError(_ => of({ data: [], metadata: {}, links: {} } as SubscriptionsResponse)),
       map(({ metadata }) => {
         const planMetadata = metadata[planId];
