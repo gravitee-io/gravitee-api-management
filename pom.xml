@@ -393,6 +393,7 @@
                     <skip>${skip.validation}</skip>
                     <inputGlobs>
                         <inputGlob>src/{main,test}/**/*.java</inputGlob>
+                        <inputGlob>docker/**/docker-compose.yml</inputGlob>
                     </inputGlobs>
                 </configuration>
                 <executions>
