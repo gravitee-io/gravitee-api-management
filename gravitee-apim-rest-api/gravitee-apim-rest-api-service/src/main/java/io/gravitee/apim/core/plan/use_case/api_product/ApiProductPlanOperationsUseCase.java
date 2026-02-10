@@ -52,7 +52,6 @@ public class ApiProductPlanOperationsUseCase {
         if (
             plan.getReferenceType().equals(GenericPlanEntity.ReferenceType.API_PRODUCT) && !plan.getReferenceId().equals(input.apiProductId)
         ) {
-            log.debug("Plan {} not found for API Product {} (belongs to {})", input.planId, input.apiProductId, plan.getReferenceId());
             throw new PlanNotFoundException(input.planId);
         }
         if (input.operation.equals(Operation.DELETE.name())) {
