@@ -14,193 +14,193 @@
 # limitations under the License.
 #
 
-version: '3.8'
+version: "3.8"
 
 networks:
-  frontend:
-    name: frontend
-  storage:
-    name: storage
+    frontend:
+        name: frontend
+    storage:
+        name: storage
 
 volumes:
-  data-elasticsearch:
+    data-elasticsearch:
 
 services:
-  pg_database:
-    image: postgres:13
-    restart: always
-    environment:
-      POSTGRES_DB: gravitee
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      PGDATA: /var/lib/postgresql/data
-    volumes:
-      - ./.data/db-postgres:/var/lib/postgresql/data
-    ports:
-      - "0.0.0.0:5455:5432"
-    networks:
-      - storage
+    pg_database:
+        image: postgres:13
+        restart: always
+        environment:
+            POSTGRES_DB: gravitee
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: password
+            PGDATA: /var/lib/postgresql/data
+        volumes:
+            - ./.data/db-postgres:/var/lib/postgresql/data
+        ports:
+            - "0.0.0.0:5455:5432"
+        networks:
+            - storage
 
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: user@g.io
-      PGADMIN_DEFAULT_PASSWORD: pass
-    ports:
-      - "8091:80"
-    networks:
-      - storage
-    restart: unless-stopped
+    pgadmin:
+        image: dpage/pgadmin4
+        environment:
+            PGADMIN_DEFAULT_EMAIL: user@g.io
+            PGADMIN_DEFAULT_PASSWORD: pass
+        ports:
+            - "8091:80"
+        networks:
+            - storage
+        restart: unless-stopped
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.6.2}
-    restart: always
-    volumes:
-      - data-elasticsearch:/usr/share/elasticsearch/data
-    environment:
-      - http.host=0.0.0.0
-      - transport.host=0.0.0.0
-      - xpack.security.enabled=false
-      - cluster.name=elasticsearch
-      - bootstrap.memory_lock=true
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile: 65536
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s" ]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-    networks:
-      - storage
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.6.2}
+        restart: always
+        volumes:
+            - data-elasticsearch:/usr/share/elasticsearch/data
+        environment:
+            - http.host=0.0.0.0
+            - transport.host=0.0.0.0
+            - xpack.security.enabled=false
+            - cluster.name=elasticsearch
+            - bootstrap.memory_lock=true
+            - discovery.type=single-node
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+            nofile: 65536
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s"]
+            interval: 5s
+            timeout: 3s
+            retries: 10
+        networks:
+            - storage
 
-  gateway_server:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}
-    restart: always
-    ports:
-      - "18092:18092"
-    depends_on:
-      - pg_database
-    volumes:
-      - ./.logs/apim-gateway-server:/opt/graviteeio-gateway/logs
-      - ./.driver:/opt/graviteeio-gateway/plugins/ext/repository-jdbc
-      - ./.license:/opt/graviteeio-gateway/license
-    environment:
-      - gravitee_management_type=jdbc
-      - gravitee_management_jdbc_url=jdbc:postgresql://pg_database:5432/gravitee
-      - gravitee_management_jdbc_username=postgres
-      - gravitee_management_jdbc_password=password
-      - gravitee_ratelimit_type=jdbc
-      - gravitee_ratelimit_jdbc_uri=jdbc:postgresql://pg_database:5432/gravitee
-      - gravitee_ratelimit_jdbc_username=postgres
-      - gravitee_ratelimit_jdbc_password=password
-      - gravitee_reporters_elasticsearch_enabled=false
-      - gravitee_services_bridge_http_enabled=true
-      - gravitee_services_bridge_http_port=18092
-      - gravitee_services_bridge_http_host=0.0.0.0
-      - gravitee_services_bridge_http_authentication_type=basic
-      - gravitee_services_bridge_http_authentication_users_admin=adminadmin
-      - gravitee_services_bridge_http_secured=false
-      - gravitee_services_bridge_http_ssl_clientAuth=false
-      - gravitee_services_heartbeat_enabled=true
-      - gravitee_services_heartbeat_delay=5000
-    networks:
-      - storage
-      - frontend
+    gateway_server:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}
+        restart: always
+        ports:
+            - "18092:18092"
+        depends_on:
+            - pg_database
+        volumes:
+            - ./.logs/apim-gateway-server:/opt/graviteeio-gateway/logs
+            - ./.driver:/opt/graviteeio-gateway/plugins/ext/repository-jdbc
+            - ./.license:/opt/graviteeio-gateway/license
+        environment:
+            - gravitee_management_type=jdbc
+            - gravitee_management_jdbc_url=jdbc:postgresql://pg_database:5432/gravitee
+            - gravitee_management_jdbc_username=postgres
+            - gravitee_management_jdbc_password=password
+            - gravitee_ratelimit_type=jdbc
+            - gravitee_ratelimit_jdbc_uri=jdbc:postgresql://pg_database:5432/gravitee
+            - gravitee_ratelimit_jdbc_username=postgres
+            - gravitee_ratelimit_jdbc_password=password
+            - gravitee_reporters_elasticsearch_enabled=false
+            - gravitee_services_bridge_http_enabled=true
+            - gravitee_services_bridge_http_port=18092
+            - gravitee_services_bridge_http_host=0.0.0.0
+            - gravitee_services_bridge_http_authentication_type=basic
+            - gravitee_services_bridge_http_authentication_users_admin=adminadmin
+            - gravitee_services_bridge_http_secured=false
+            - gravitee_services_bridge_http_ssl_clientAuth=false
+            - gravitee_services_heartbeat_enabled=true
+            - gravitee_services_heartbeat_delay=5000
+        networks:
+            - storage
+            - frontend
 
-  gateway_client:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}
-    restart: always
-    ports:
-      - "8075-8082:8082"
-    links:
-      # Workaround used because of call to URI.create(uri) in WebClientFactory. If host contains "_", then host is null and the connection cannot be done.
-      - "gateway_server:gateway-server"
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-      gateway_server:
-        condition: service_started
-      pg_database:
-        condition: service_started
-    volumes:
-      - ./.logs/apim-gateway-client:/opt/graviteeio-gateway/logs
-      - ./.driver:/opt/graviteeio-gateway/plugins/ext/repository-jdbc
-      - ./.license:/opt/graviteeio-gateway/license
-    environment:
-      - gravitee_management_type=http
-      - gravitee_management_http_url=http://gateway-server:18092
-      - gravitee_ratelimit_type=jdbc
-      - gravitee_ratelimit_jdbc_url=jdbc:postgresql://pg_database:5432/gravitee
-      - gravitee_ratelimit_jdbc_username=postgres
-      - gravitee_ratelimit_jdbc_password=password
-      - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
-      - gravitee_ds_mongodb_host=mongodb
-      - gravitee_reporters_elasticsearch_enabled=true
-      - gravitee_management_http_authentication_basic_username=admin
-      - gravitee_management_http_authentication_basic_password=adminadmin
-      - gravitee_management_http_ssl_verifyHostName=false
-      - gravitee_services_heartbeat_enabled=true
-      - gravitee_services_heartbeat_delay=5000
-    networks:
-      - storage
-      - frontend
+    gateway_client:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}
+        restart: always
+        ports:
+            - "8075-8082:8082"
+        links:
+            # Workaround used because of call to URI.create(uri) in WebClientFactory. If host contains "_", then host is null and the connection cannot be done.
+            - "gateway_server:gateway-server"
+        depends_on:
+            elasticsearch:
+                condition: service_healthy
+            gateway_server:
+                condition: service_started
+            pg_database:
+                condition: service_started
+        volumes:
+            - ./.logs/apim-gateway-client:/opt/graviteeio-gateway/logs
+            - ./.driver:/opt/graviteeio-gateway/plugins/ext/repository-jdbc
+            - ./.license:/opt/graviteeio-gateway/license
+        environment:
+            - gravitee_management_type=http
+            - gravitee_management_http_url=http://gateway-server:18092
+            - gravitee_ratelimit_type=jdbc
+            - gravitee_ratelimit_jdbc_url=jdbc:postgresql://pg_database:5432/gravitee
+            - gravitee_ratelimit_jdbc_username=postgres
+            - gravitee_ratelimit_jdbc_password=password
+            - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+            - gravitee_ds_mongodb_host=mongodb
+            - gravitee_reporters_elasticsearch_enabled=true
+            - gravitee_management_http_authentication_basic_username=admin
+            - gravitee_management_http_authentication_basic_password=adminadmin
+            - gravitee_management_http_ssl_verifyHostName=false
+            - gravitee_services_heartbeat_enabled=true
+            - gravitee_services_heartbeat_delay=5000
+        networks:
+            - storage
+            - frontend
 
-  management_api:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_VERSION:-latest}
-    restart: always
-    ports:
-      - "8083:8083"
-    links:
-      - pg_database
-      - elasticsearch
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-      pg_database:
-        condition: service_started
-    volumes:
-      - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
-      - ./.driver:/opt/graviteeio-management-api/plugins/ext/repository-jdbc
-      - ./.license:/opt/graviteeio-management-api/license
-    environment:
-      - gravitee_management_type=jdbc
-      - gravitee_management_jdbc_url=jdbc:postgresql://pg_database:5432/gravitee
-      - gravitee_management_jdbc_username=postgres
-      - gravitee_management_jdbc_password=password
-      - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
-    networks:
-      - storage
-      - frontend
+    management_api:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_VERSION:-latest}
+        restart: always
+        ports:
+            - "8083:8083"
+        links:
+            - pg_database
+            - elasticsearch
+        depends_on:
+            elasticsearch:
+                condition: service_healthy
+            pg_database:
+                condition: service_started
+        volumes:
+            - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
+            - ./.driver:/opt/graviteeio-management-api/plugins/ext/repository-jdbc
+            - ./.license:/opt/graviteeio-management-api/license
+        environment:
+            - gravitee_management_type=jdbc
+            - gravitee_management_jdbc_url=jdbc:postgresql://pg_database:5432/gravitee
+            - gravitee_management_jdbc_username=postgres
+            - gravitee_management_jdbc_password=password
+            - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
+        networks:
+            - storage
+            - frontend
 
-  management_ui:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_VERSION:-latest}
-    restart: always
-    ports:
-      - "8084:8080"
-    depends_on:
-      - management_api
-    environment:
-      - MGMT_API_URL=http://localhost:8083/management/
-    volumes:
-      - ./.logs/apim-management-ui:/var/log/nginx
-    networks:
-      - frontend
+    management_ui:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_VERSION:-latest}
+        restart: always
+        ports:
+            - "8084:8080"
+        depends_on:
+            - management_api
+        environment:
+            - MGMT_API_URL=http://localhost:8083/management/
+        volumes:
+            - ./.logs/apim-management-ui:/var/log/nginx
+        networks:
+            - frontend
 
-  portal_ui:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_VERSION:-latest}
-    restart: always
-    ports:
-      - "8085:8080"
-    depends_on:
-      - management_api
-    environment:
-      - PORTAL_API_URL=http://localhost:8083/portal
-    volumes:
-      - ./.logs/apim-portal-ui:/var/log/nginx
-    networks:
-      - frontend
+    portal_ui:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_VERSION:-latest}
+        restart: always
+        ports:
+            - "8085:8080"
+        depends_on:
+            - management_api
+        environment:
+            - PORTAL_API_URL=http://localhost:8083/portal
+        volumes:
+            - ./.logs/apim-portal-ui:/var/log/nginx
+        networks:
+            - frontend
