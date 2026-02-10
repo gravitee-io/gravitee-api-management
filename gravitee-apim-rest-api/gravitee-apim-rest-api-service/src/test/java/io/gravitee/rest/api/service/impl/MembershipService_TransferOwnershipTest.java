@@ -361,4 +361,48 @@ public class MembershipService_TransferOwnershipTest {
         verify(apiMetadataService).fetchMetadataForApi(EXECUTION_CONTEXT, mockApi);
         verify(searchEngineService).index(EXECUTION_CONTEXT, mockApiWithMetadata, false);
     }
+
+    @Test
+    public void shouldRemoveGroupFromApiWhenTransferringOwnershipFromGroup() throws TechnicalException {
+        String membershipId = "membership-id-123";
+
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId(API_PRIMARY_OWNER_ROLE_ID);
+        poRole.setScope(RoleScope.API);
+        poRole.setName(SystemRole.PRIMARY_OWNER.name());
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORGANIZATION_ID)).thenReturn(
+            Optional.of(poRole)
+        );
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION_ID, RoleScope.API)).thenReturn(poRole);
+        lenient().when(roleService.findScopeByMembershipReferenceType(any())).thenReturn(RoleScope.API);
+        lenient().when(roleService.findById(API_PRIMARY_OWNER_ROLE_ID)).thenReturn(poRole);
+
+        // Group is the current primary owner of the API
+        Membership groupPoMembership = new Membership();
+        groupPoMembership.setId(membershipId);
+        groupPoMembership.setReferenceType(MembershipReferenceType.API);
+        groupPoMembership.setRoleId(API_PRIMARY_OWNER_ROLE_ID);
+        groupPoMembership.setReferenceId(API_ID);
+        groupPoMembership.setMemberId(GROUP_ID);
+        groupPoMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.GROUP);
+
+        when(membershipRepository.findByReferenceAndRoleId(MembershipReferenceType.API, API_ID, API_PRIMARY_OWNER_ROLE_ID)).thenReturn(
+            Set.of(groupPoMembership)
+        );
+
+        GenericApiEntity mockApi = mock(GenericApiEntity.class);
+        when(apiSearchService.findGenericById(EXECUTION_CONTEXT, API_ID, false, false, true)).thenReturn(mockApi);
+        when(apiMetadataService.fetchMetadataForApi(EXECUTION_CONTEXT, mockApi)).thenReturn(mockApi);
+
+        // Transfer ownership from group to a user
+        membershipService.transferApiOwnership(
+            EXECUTION_CONTEXT,
+            API_ID,
+            new MembershipService.MembershipMember(USER_ID, null, MembershipMemberType.USER),
+            List.of(newPrimaryOwnerRole)
+        );
+
+        // Verify that removeGroup was called with the GROUP_ID (not the membership ID)
+        verify(apiGroupService).removeGroup(EXECUTION_CONTEXT, API_ID, GROUP_ID);
+    }
 }
