@@ -35,6 +35,7 @@ import io.gravitee.apim.core.logs_engine.model.Pagination;
 import io.gravitee.apim.core.logs_engine.model.SearchLogsRequest;
 import io.gravitee.apim.core.logs_engine.model.SearchLogsResponse;
 import io.gravitee.apim.core.logs_engine.model.StringFilter;
+import io.gravitee.apim.core.logs_engine.model.TimeRange;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -138,10 +139,18 @@ public class SearchEnvironmentLogsUseCase {
         builder.responseTimeRanges(buildResponseTimeRanges(filterContext));
 
         if (request.timeRange() != null) {
+            if (isTimeRangeInvalid(request.timeRange())) {
+                throw new ValidationDomainException("Invalid time range: 'from' must be before 'to'.");
+            }
+
             builder.from(toEpochMilli(request.timeRange().from()));
             builder.to(toEpochMilli(request.timeRange().to()));
         }
         return builder.build();
+    }
+
+    private static boolean isTimeRangeInvalid(TimeRange timeRange) {
+        return (timeRange.from() != null && timeRange.to() != null && timeRange.from().isAfter(timeRange.to()));
     }
 
     private void applyStringFilter(StringFilter filter, FilterContext filterContext) {
@@ -177,6 +186,9 @@ public class SearchEnvironmentLogsUseCase {
             if (filter.value() == null) {
                 throw new ValidationDomainException("Filter RESPONSE_TIME requires a non-null value");
             }
+            if (filter.value() < 0) {
+                throw new ValidationDomainException("Filter RESPONSE_TIME does not accept negative values.");
+            }
             if (filter.operator() == Operator.GTE) {
                 filterContext.limitByResponseTimeFrom(filter.value().longValue());
             } else if (filter.operator() == Operator.LTE) {
@@ -190,6 +202,9 @@ public class SearchEnvironmentLogsUseCase {
         var to = filterContext.responseTimeTo().orElse(null);
         if (from == null && to == null) {
             return List.of();
+        }
+        if (from != null && to != null && from > to) {
+            throw new ValidationDomainException("Invalid RESPONSE_TIME range: 'from' (gte) must not be greater than 'to' (lte).");
         }
         return List.of(new Range(from, to));
     }

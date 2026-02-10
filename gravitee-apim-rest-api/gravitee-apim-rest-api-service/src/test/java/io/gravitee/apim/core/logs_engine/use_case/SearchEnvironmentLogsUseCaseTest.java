@@ -709,6 +709,115 @@ class SearchEnvironmentLogsUseCaseTest {
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage("Filter RESPONSE_TIME requires a non-null value");
         }
+
+        @Test
+        void should_throw_validation_exception_when_time_range_from_is_after_to() {
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+            );
+
+            var timeRange = new TimeRange(
+                OffsetDateTime.of(2024, 1, 2, 10, 0, 0, 0, ZoneOffset.UTC),
+                OffsetDateTime.of(2024, 1, 1, 10, 0, 0, 0, ZoneOffset.UTC)
+            );
+            var request = new SearchLogsRequest(timeRange, null, 1, 10);
+
+            assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Invalid time range: 'from' must be before 'to'.");
+        }
+
+        @Test
+        void should_allow_time_range_when_from_equals_to() {
+            var sameTime = OffsetDateTime.of(2024, 1, 1, 10, 0, 0, 0, ZoneOffset.UTC);
+            var timeRange = new TimeRange(sameTime, sameTime);
+            var request = new SearchLogsRequest(timeRange, null, 1, 10);
+
+            when_searching(request);
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().from()).isEqualTo(sameTime.toInstant().toEpochMilli());
+            assertThat(filtersCaptor.getValue().to()).isEqualTo(sameTime.toInstant().toEpochMilli());
+        }
+
+        @Test
+        void should_throw_validation_exception_when_response_time_gte_is_negative() {
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+            );
+
+            var request = new SearchLogsRequest(
+                null,
+                List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, -1))),
+                1,
+                10
+            );
+
+            assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Filter RESPONSE_TIME does not accept negative values.");
+        }
+
+        @Test
+        void should_throw_validation_exception_when_response_time_lte_is_negative() {
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+            );
+
+            var request = new SearchLogsRequest(
+                null,
+                List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, -5))),
+                1,
+                10
+            );
+
+            assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Filter RESPONSE_TIME does not accept negative values.");
+        }
+
+        @Test
+        void should_throw_validation_exception_when_response_time_gte_is_greater_than_lte() {
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+            );
+
+            var request = new SearchLogsRequest(
+                null,
+                List.of(
+                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 500)),
+                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, 100))
+                ),
+                1,
+                10
+            );
+
+            assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Invalid RESPONSE_TIME range: 'from' (gte) must not be greater than 'to' (lte).");
+        }
+
+        @Test
+        void should_allow_response_time_filter_with_zero_value() {
+            var request = new SearchLogsRequest(
+                null,
+                List.of(
+                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.GTE, 0)),
+                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.LTE, 0))
+                ),
+                1,
+                10
+            );
+
+            when_searching(request);
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().responseTimeRanges()).isEqualTo(List.of(new Range(0L, 0L)));
+        }
     }
 
     @Nested
