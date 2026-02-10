@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.11.0_08_add_subscription_forms_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}subscription_forms
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: gmd_content, type: nclob, constraints: { nullable: false } }
+              - column: {name: enabled, type: boolean, constraints: { nullable: false } }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}subscription_forms
+            columnNames: id
+            tableName: ${gravitee_prefix}subscription_forms
+        - addUniqueConstraint:
+            constraintName: uc_${gravitee_prefix}subscription_forms_environment_id
+            columnNames: environment_id
+            tableName: ${gravitee_prefix}subscription_forms

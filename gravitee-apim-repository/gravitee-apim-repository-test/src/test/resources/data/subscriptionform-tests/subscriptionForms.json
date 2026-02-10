@@ -1,0 +1,32 @@
+[
+   {
+      "id": "sub-form-find-by-id",
+      "environmentId": "env-1",
+      "gmdContent": "<gmd-grid columns=\"2\"><gmd-card><gmd-card-title>Info</gmd-card-title><gmd-input name=\"email\" label=\"Email\" required=\"true\"/></gmd-card></gmd-grid>",
+      "enabled": true
+   },
+   {
+      "id": "sub-form-update",
+      "environmentId": "env-update",
+      "gmdContent": "<gmd-card><gmd-input name=\"name\" label=\"Name\"/></gmd-card>",
+      "enabled": false
+   },
+   {
+      "id": "sub-form-delete",
+      "environmentId": "env-delete",
+      "gmdContent": "<gmd-card><gmd-input name=\"test\" label=\"Test\"/></gmd-card>",
+      "enabled": true
+   },
+   {
+      "id": "sub-form-find-by-env",
+      "environmentId": "env-find",
+      "gmdContent": "<gmd-grid columns=\"1\"><gmd-card><gmd-card-title>Subscription</gmd-card-title><gmd-textarea name=\"useCase\" label=\"Use case\"/></gmd-card></gmd-grid>",
+      "enabled": true
+   },
+   {
+      "id": "sub-form-delete-by-env",
+      "environmentId": "env-delete-by-env",
+      "gmdContent": "<gmd-card><gmd-input name=\"field\" label=\"Field\"/></gmd-card>",
+      "enabled": true
+   }
+]
