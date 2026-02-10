@@ -18,9 +18,12 @@ package io.gravitee.rest.api.service.cockpit.command;
 import io.gravitee.cockpit.api.CockpitConnector;
 import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommand;
 import io.gravitee.cockpit.api.command.v1.bridge.BridgeReply;
+import io.reactivex.rxjava3.core.Single;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class CockpitCommandServiceImpl implements CockpitCommandService {
 
@@ -37,8 +40,15 @@ public class CockpitCommandServiceImpl implements CockpitCommandService {
     public BridgeReply send(BridgeCommand command) {
         return cockpitConnector
             .sendCommand(command)
-            .onErrorReturn(error -> new BridgeReply(command.getId(), error.getMessage() != null ? error.getMessage() : error.toString()))
-            .cast(BridgeReply.class)
+            .onErrorResumeNext(error -> {
+                log.debug("Failed on call of cockpit", error);
+                return Single.just(new BridgeReply(command.getId(), error.getMessage() != null ? error.getMessage() : error.toString()));
+            })
+            .flatMap(reply ->
+                reply instanceof BridgeReply bridgeReply
+                    ? Single.just(bridgeReply)
+                    : Single.just(new BridgeReply(command.getId(), "Unknown reply type: " + reply.getClass().getName()))
+            )
             .blockingGet();
     }
 }
