@@ -55,12 +55,6 @@ public class UpdateApiProductPlanUseCase {
             planEntity.getReferenceType().equals(GenericPlanEntity.ReferenceType.API_PRODUCT) &&
             !planEntity.getReferenceId().equals(input.apiProductId)
         ) {
-            log.debug(
-                "Plan {} not found for API Product {} (belongs to {})",
-                input.planToUpdate.getId(),
-                input.apiProductId,
-                planEntity.getReferenceId()
-            );
             throw new PlanNotFoundException(input.planToUpdate.getId());
         }
         if (planEntity.getValidation() == null) {

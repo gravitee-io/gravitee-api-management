@@ -22,11 +22,11 @@ import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import fixtures.PlanFixtures;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.use_case.api_product.CreateApiProductPlanUseCase;
 import io.gravitee.apim.core.plan.use_case.api_product.GetApiProductPlansUseCase;
@@ -36,11 +36,12 @@ import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.management.v2.rest.model.ApiProductPlansResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiProductPlan;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.inject.Inject;
@@ -210,7 +211,7 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
             CreateApiProductPlan createPayload = new CreateApiProductPlan();
             createPayload.setName("My plan");
             createPayload.setDescription("Description");
-
+            createPayload.setSecurity(new io.gravitee.rest.api.management.v2.rest.model.PlanSecurity().type(PlanSecurityType.API_KEY));
             Response response = rootTarget().request().post(json(createPayload));
 
             assertThat(response.getStatus()).isEqualTo(CREATED_201);
@@ -237,6 +238,7 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
             when(createApiProductPlanUseCase.execute(any())).thenThrow(new InvalidDataException("Name is required."));
 
             CreateApiProductPlan createPayload = new CreateApiProductPlan();
+            createPayload.setSecurity(new io.gravitee.rest.api.management.v2.rest.model.PlanSecurity().type(PlanSecurityType.API_KEY));
             try (Response response = rootTarget().request().post(json(createPayload))) {
                 assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
             }
@@ -247,6 +249,25 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
             try (Response response = rootTarget().request().post(json(""))) {
                 assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
             }
+        }
+
+        @Test
+        void should_return_400_when_creating_plan_with_keyless_security() {
+            CreateApiProductPlan createPayload = new CreateApiProductPlan();
+            createPayload.setName("Keyless plan");
+            createPayload.setDescription("Keyless plan description");
+            io.gravitee.rest.api.management.v2.rest.model.PlanSecurity planSecurity =
+                new io.gravitee.rest.api.management.v2.rest.model.PlanSecurity();
+            planSecurity.setType(PlanSecurityType.KEY_LESS);
+            createPayload.setSecurity(planSecurity);
+
+            Response response = rootTarget().request().post(json(createPayload));
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+            Error error = response.readEntity(Error.class);
+            assertThat(error.getMessage()).isEqualTo("Plan Security Type KeyLess is not allowed.");
+            assertThat(error.getTechnicalCode()).isEqualTo("planSecurity.invalid");
+            verify(createApiProductPlanUseCase, never()).execute(any());
         }
     }
 }

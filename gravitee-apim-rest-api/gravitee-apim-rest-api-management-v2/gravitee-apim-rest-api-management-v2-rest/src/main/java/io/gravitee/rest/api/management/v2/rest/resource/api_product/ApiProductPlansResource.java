@@ -25,6 +25,7 @@ import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiProductPlanMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiProductPlansResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiProductPlan;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
 import io.gravitee.rest.api.management.v2.rest.model.PlanStatus;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
@@ -135,6 +136,9 @@ public class ApiProductPlansResource extends AbstractResource {
         log.debug("Creating Plan for API Product {}", apiProductId);
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
+        if (PlanSecurityType.KEY_LESS.equals(createPlan.getSecurity().getType())) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(planSecurityInvalid()).build();
+        }
         var output = createProductPlanUseCase.execute(
             new CreateApiProductPlanUseCase.Input(
                 apiProductId,
@@ -161,5 +165,12 @@ public class ApiProductPlansResource extends AbstractResource {
     public ApiProductPlanResource getApiProductPlanResource() {
         log.debug("Getting ApiProductPlanResource for API Product {}", apiProductId);
         return resourceContext.getResource(ApiProductPlanResource.class);
+    }
+
+    private io.gravitee.rest.api.management.v2.rest.model.Error planSecurityInvalid() {
+        return new Error()
+            .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+            .message("Plan Security Type KeyLess is not allowed.")
+            .technicalCode("planSecurity.invalid");
     }
 }
