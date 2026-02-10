@@ -46,28 +46,34 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
     private final ExecutionPhase executionPhase;
     private final String environmentId;
     private final ApiProductRegistry apiProductRegistry;
+    private final PolicyManager apiProductPlanPolicyManager;
 
     public HttpSecurityChain(
         @Nonnull final Api api,
         @Nonnull final PolicyManager policyManager,
         @Nonnull final ExecutionPhase executionPhase
     ) {
-        this(api, policyManager, executionPhase, null, null);
+        this(api, policyManager, executionPhase, null, null, null);
     }
 
     /**
      * Constructor with API Product support. When apiProductRegistry is provided,
      * product plans are iterated first (product-first validation per PRD).
+     * When apiProductPlanPolicyManager is provided, it is used for product plan security
+     * instead of policyManager (SPG pattern).
      */
     public HttpSecurityChain(
         @Nonnull final Api api,
         @Nonnull final PolicyManager policyManager,
         @Nonnull final ExecutionPhase executionPhase,
         @Nullable final String environmentId,
-        @Nullable final ApiProductRegistry apiProductRegistry
+        @Nullable final ApiProductRegistry apiProductRegistry,
+        @Nullable final PolicyManager apiProductPlanPolicyManager
     ) {
         super(
-            Flowable.fromIterable(buildSecurityPlans(api, policyManager, executionPhase, environmentId, apiProductRegistry)),
+            Flowable.fromIterable(
+                buildSecurityPlans(api, policyManager, executionPhase, environmentId, apiProductRegistry, apiProductPlanPolicyManager)
+            ),
             executionPhase
         );
         this.api = api;
@@ -75,6 +81,7 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
         this.executionPhase = executionPhase;
         this.environmentId = environmentId;
         this.apiProductRegistry = apiProductRegistry;
+        this.apiProductPlanPolicyManager = apiProductPlanPolicyManager;
     }
 
     /**
@@ -84,7 +91,7 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
      * @return new HttpSecurityChain instance built from current registry state
      */
     public HttpSecurityChain refresh() {
-        return new HttpSecurityChain(api, policyManager, executionPhase, environmentId, apiProductRegistry);
+        return new HttpSecurityChain(api, policyManager, executionPhase, environmentId, apiProductRegistry, apiProductPlanPolicyManager);
     }
 
     private static List<HttpSecurityPlan> buildSecurityPlans(
@@ -92,12 +99,21 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
         PolicyManager policyManager,
         ExecutionPhase executionPhase,
         String environmentId,
-        ApiProductRegistry apiProductRegistry
+        ApiProductRegistry apiProductRegistry,
+        PolicyManager apiProductPlanPolicyManager
     ) {
         List<HttpSecurityPlan> productPlans = new ArrayList<>();
         List<HttpSecurityPlan> apiPlans = new ArrayList<>();
 
-        addProductPlansFirst(productPlans, api, environmentId, apiProductRegistry, policyManager, executionPhase);
+        addProductPlansFirst(
+            productPlans,
+            api,
+            environmentId,
+            apiProductRegistry,
+            policyManager,
+            apiProductPlanPolicyManager,
+            executionPhase
+        );
         addApiPlans(apiPlans, api, policyManager, executionPhase);
 
         // Product plans must be tried before API plans (PRD product-first).
@@ -117,18 +133,25 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
         String environmentId,
         ApiProductRegistry apiProductRegistry,
         PolicyManager policyManager,
+        PolicyManager apiProductPlanPolicyManager,
         ExecutionPhase executionPhase
     ) {
         if (environmentId == null || apiProductRegistry == null) {
             return;
         }
 
-        // Get product plan entries for this API from the registry
+        // Use apiProductPlanPolicyManager for product plans when available (SPG pattern), else fallback to policyManager
+        PolicyManager productPlanPolicyManager = apiProductPlanPolicyManager != null ? apiProductPlanPolicyManager : policyManager;
+
         List<ApiProductRegistry.ApiProductPlanEntry> entries = apiProductRegistry.getProductPlanEntriesForApi(api.getId(), environmentId);
 
-        // Build security plans from the entries
         for (ApiProductRegistry.ApiProductPlanEntry entry : entries) {
-            HttpSecurityPlan httpSecurityPlan = HttpSecurityPlanFactory.forPlan(api.getId(), entry.plan(), policyManager, executionPhase);
+            HttpSecurityPlan httpSecurityPlan = HttpSecurityPlanFactory.forPlan(
+                api.getId(),
+                entry.plan(),
+                productPlanPolicyManager,
+                executionPhase
+            );
             if (httpSecurityPlan != null) {
                 out.add(httpSecurityPlan);
             }

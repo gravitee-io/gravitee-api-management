@@ -409,6 +409,7 @@ class DefaultApiReactorTest {
                 new HttpAcceptorFactory(false),
                 tracingContext,
                 logGuardService,
+                null,
                 null
             );
             ReflectionTestUtils.setField(defaultApiReactor, "entrypointConnectorResolver", entrypointConnectorResolver);

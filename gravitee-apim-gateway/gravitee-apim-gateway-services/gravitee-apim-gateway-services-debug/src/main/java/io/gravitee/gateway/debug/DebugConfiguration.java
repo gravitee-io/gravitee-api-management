@@ -38,6 +38,7 @@ import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.platform.organization.flow.OrganizationFlowResolver;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.platform.organization.policy.OrganizationPolicyChainFactoryManager;
@@ -92,6 +93,7 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.vertx.core.Vertx;
 import java.util.List;
 import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -452,7 +454,8 @@ public class DebugConfiguration {
         EventManager eventManager,
         GatewayConfiguration gatewayConfiguration,
         final DictionaryManager dictionaryManager,
-        ConnectionDrainManager connectionDrainManager
+        ConnectionDrainManager connectionDrainManager,
+        @Autowired(required = false) ApiProductRegistry apiProductRegistry
     ) {
         return new DebugV4ApiReactorHandlerFactory(
             applicationContext.getParent(),
@@ -472,7 +475,8 @@ public class DebugConfiguration {
             new HttpAcceptorFactory(false),
             gatewayConfiguration,
             dictionaryManager,
-            connectionDrainManager
+            connectionDrainManager,
+            apiProductRegistry
         );
     }
 }
