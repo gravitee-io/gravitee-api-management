@@ -34,7 +34,8 @@
             i18n="@@deletePictureApplicationSettings"
             [disabled]="!this.applicationSettingsForm.controls.picture.value"
             aria-label="Delete picture"
-            data-testId="deletePicture">
+            data-testId="deletePicture"
+          >
             Delete
           </button>
         </div>
@@ -84,7 +85,8 @@
               title="Client Secret"
               [text]="application.settings.oauth.client_secret ?? ''"
               [mode]="'PASSWORD'"
-              data-testId="clientSecret" />
+              data-testId="clientSecret"
+            />
           </div>
           @if (applicationTypeConfiguration.requires_redirect_uris) {
             <mat-form-field appearance="outline">
@@ -103,7 +105,8 @@
                   placeholder="Add redirect URI..."
                   [matChipInputFor]="redirectURIChipGrid"
                   [matChipInputAddOnBlur]="true"
-                  (matChipInputTokenEnd)="addRedirectUri($event)" />
+                  (matChipInputTokenEnd)="addRedirectUri($event)"
+                />
               </mat-chip-grid>
               <mat-hint i18n="@@hintRedirectUrisApplicationSettings"
                 >URIs where the authorization server will send OAuth responses</mat-hint
@@ -132,7 +135,8 @@
         [disabled]="applicationSettingsForm.invalid || (formUnchanged$ | async)"
         i18n="@@saveApplicationSettings"
         aria-label="Save application"
-        data-testId="save">
+        data-testId="save"
+      >
         Save
       </button>
       <button
@@ -141,7 +145,8 @@
         [disabled]="formUnchanged$ | async"
         i18n="@@discardChangesApplicationSettings"
         aria-label="Discard changes"
-        data-testId="discard">
+        data-testId="discard"
+      >
         Discard changes
       </button>
       <ng-content select="[additionalActions]" />

@@ -16,3 +16,6 @@ overrides:
   - files: "gravitee-apim-console-webui/**/*"
     options:
       tabWidth: 2
+  - files: "gravitee-apim-portal-webui-next/**/*"
+    options:
+      tabWidth: 2

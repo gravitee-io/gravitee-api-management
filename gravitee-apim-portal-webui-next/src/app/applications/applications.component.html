@@ -44,7 +44,8 @@
             class="app-list__container"
             [ngClass]="appListContainerClasses()"
             infiniteScroll
-            (scrolled)="loadMoreApplications(applications)">
+            (scrolled)="loadMoreApplications(applications)"
+          >
             @for (application of applications.data; track application.id) {
               <app-application-card [application]="application" />
             }

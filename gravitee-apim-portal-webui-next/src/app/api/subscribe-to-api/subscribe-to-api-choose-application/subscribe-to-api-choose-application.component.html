@@ -27,7 +27,8 @@
         [displayPicture]="true"
         [pictureUrl]="application._links ? application._links.picture : undefined"
         [pictureHashValue]="application.name"
-        (selectItem)="selectApplication.emit(application)">
+        (selectItem)="selectApplication.emit(application)"
+      >
         <div class="applications__description">{{ application.description }}</div>
       </app-radio-card>
     }
@@ -43,7 +44,8 @@
       mat-icon-button
       [disabled]="pagination.end >= pagination.totalApplications"
       (click)="nextPage.emit()"
-      aria-label="Next page of applications">
+      aria-label="Next page of applications"
+    >
       <mat-icon class="breadcrumb-icon">chevron_right</mat-icon>
     </button>
   </div>

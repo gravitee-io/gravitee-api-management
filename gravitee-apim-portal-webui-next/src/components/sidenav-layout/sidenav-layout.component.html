@@ -19,7 +19,8 @@
   class="sidenav-layout__sidenav"
   [class.collapsed]="sidenavCollapsed()"
   appIsMobile="sidenav-layout__sidenav__mobile"
-  (triggerBreakpoint)="onTriggerResponsiveBreakpoint($event)">
+  (triggerBreakpoint)="onTriggerResponsiveBreakpoint($event)"
+>
   <div class="sidenav-layout__sidenav__content">
     <ng-content select="[sidenavContent]" />
   </div>

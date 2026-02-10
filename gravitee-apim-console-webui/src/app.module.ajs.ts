@@ -21,7 +21,7 @@ import 'angular-material';
 import 'angular-sanitize';
 import { marked } from 'marked';
 
-import * as hljs from 'highlight.js';
+import hljs from 'highlight.js';
 // Codemirror
 import * as CodeMirror from 'codemirror';
 import moment from 'moment';

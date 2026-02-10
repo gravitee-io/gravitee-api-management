@@ -1,5 +1,0 @@
-nodeLinker: node-modules
-defaultSemverRangePrefix: ""
-plugins:
-  - path: .yarn/plugins/build-dashboard.js
-  - path: .yarn/plugins/build-portal.js

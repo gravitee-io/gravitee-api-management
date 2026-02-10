@@ -106,7 +106,8 @@
                           <mat-slide-toggle
                             [checked]="isGrantTypeSelected(grantType.type)"
                             [disabled]="grantType.isDisabled"
-                            (change)="toggleGrantType(grantType.type, $event.checked)">
+                            (change)="toggleGrantType(grantType.type, $event.checked)"
+                          >
                             <span class="grant-type-label">{{ grantType.name }}</span>
                           </mat-slide-toggle>
                         </div>
@@ -130,7 +131,8 @@
                         <input
                           [matChipInputFor]="redirectURIChipGrid"
                           [matChipInputAddOnBlur]="true"
-                          (matChipInputTokenEnd)="addRedirectUri($event)" />
+                          (matChipInputTokenEnd)="addRedirectUri($event)"
+                        />
                       </mat-chip-grid>
                       <mat-hint i18n="@@applicationRedirectUrisHint">
                         The URI where the authorization server sends OAuth responses.
@@ -184,7 +186,8 @@
           type="button"
           [disabled]="form.invalid || !selectedType()"
           (click)="onCreate()"
-          i18n="@@createApplicationCreateButton">
+          i18n="@@createApplicationCreateButton"
+        >
           Create
         </button>
         <button mat-flat-button type="button" (click)="onCancel()" i18n="@@createApplicationCancelButton">Cancel</button>

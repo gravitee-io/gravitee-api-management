@@ -32,7 +32,8 @@
                 matInput
                 placeholder="Name..."
                 [matAutocomplete]="headerNamesAutocomplete"
-                [matAutocompleteDisabled]="autocompleteDisabled()" />
+                [matAutocompleteDisabled]="autocompleteDisabled()"
+              />
               <mat-autocomplete #headerNamesAutocomplete="matAutocomplete">
                 @for (headerName of getFilteredHeaderNames(i, control.value.name) | async; track headerName) {
                   <mat-option [value]="headerName">{{ headerName }}</mat-option>
@@ -65,7 +66,8 @@
                 mat-icon-button
                 aria-label="Delete"
                 [disabled]="mainForm.disabled"
-                (click)="onDeleteHeader(i)">
+                (click)="onDeleteHeader(i)"
+              >
                 <mat-icon>cancel</mat-icon>
               </button>
             }

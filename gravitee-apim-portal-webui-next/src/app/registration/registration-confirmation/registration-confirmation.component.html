@@ -37,7 +37,8 @@
       <form
         [formGroup]="registrationConfirmationForm"
         (ngSubmit)="confirmRegistration()"
-        [appIsMobile]="'registrationConfirmation__form__container--mobile'">
+        [appIsMobile]="'registrationConfirmation__form__container--mobile'"
+      >
         <div class="registration-confirmation__form">
           <div class="registration-confirmation__form__section">
             <div class="registration-confirmation__form__section-title m3-title-small" i18n="@@registrationConfirmationDetailsTitle">
@@ -94,7 +95,8 @@
               type="submit"
               mat-flat-button
               i18n="@@registrationConfirmationAction"
-              class="registration-confirmation__form__submit">
+              class="registration-confirmation__form__submit"
+            >
               Complete registration
             </button>
             <div class="registration-confirmation__form__login m3-label-large">
@@ -119,7 +121,8 @@
         i18n="@@registrationConfirmationSuccessAction"
         class="registration-confirmation__success__action internal-link m3-label-large"
         data-testid="confirm-btn"
-        routerLink="/log-in">
+        routerLink="/log-in"
+      >
         Back to login
       </a>
     </mat-card-content>

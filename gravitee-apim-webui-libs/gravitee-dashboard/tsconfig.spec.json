@@ -4,7 +4,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "../../out-tsc/spec",
-    "types": ["jest"]
+    "types": ["jest"],
+    "esModuleInterop": true
   },
-  "include": ["**/*.spec.ts", "**/*.d.ts"]
+  "include": ["**/*.spec.ts", "**/*.d.ts", "src/test-setup.ts"]
 }
