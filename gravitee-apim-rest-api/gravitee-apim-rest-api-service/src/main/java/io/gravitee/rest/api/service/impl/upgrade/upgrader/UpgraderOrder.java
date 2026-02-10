@@ -60,6 +60,7 @@ public class UpgraderOrder {
     public static final int ENVIRONMENTS_DEFAULT_PORTAL_PAGE_UPGRADER = 711;
     public static final int ENVIRONMENTS_DEFAULT_PORTAL_NAVIGATION_ITEMS_UPGRADER = 712;
     public static final int APPLICATION_CLIENT_CERTIFICATE_MIGRATION_UPGRADER = 713;
+    public static final int ENVIRONMENTS_DEFAULT_SUBSCRIPTION_FORM_UPGRADER = 714;
     public static final int CLUSTER_ROLES_UPGRADER = 900;
     public static final int API_ENDPOINT_WEIGHT_UPGRADER = 560;
     public static final int API_PRODUCT_ROLES_UPGRADER = 950;
