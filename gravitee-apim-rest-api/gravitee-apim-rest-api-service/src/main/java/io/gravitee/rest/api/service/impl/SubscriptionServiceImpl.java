@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.API_PRODUCT;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_CREATED;
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_DELETED;
@@ -568,7 +569,16 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             subscription = subscriptionRepository.create(subscription);
 
-            createAudit(executionContext, apiId, application, SUBSCRIPTION_CREATED, subscription.getCreatedAt(), null, subscription);
+            createAudit(
+                executionContext,
+                referenceId,
+                subscription.getReferenceType(),
+                application,
+                SUBSCRIPTION_CREATED,
+                subscription.getCreatedAt(),
+                null,
+                subscription
+            );
 
             GenericApiModel api = null;
             PrimaryOwnerEntity apiOwner = null;
@@ -753,6 +763,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             createAudit(
                 executionContext,
                 referenceId,
+                subscription.getReferenceType(),
                 subscription.getApplication(),
                 SUBSCRIPTION_UPDATED,
                 subscription.getUpdatedAt(),
@@ -852,6 +863,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 createAudit(
                     executionContext,
                     referenceId,
+                    subscription.getReferenceType(),
                     subscription.getApplication(),
                     SUBSCRIPTION_UPDATED,
                     subscription.getUpdatedAt(),
@@ -1048,6 +1060,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 createAudit(
                     executionContext,
                     referenceId,
+                    subscription.getReferenceType(),
                     subscription.getApplication(),
                     SUBSCRIPTION_PAUSED_BY_CONSUMER,
                     subscription.getUpdatedAt(),
@@ -1121,6 +1134,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 createAudit(
                     executionContext,
                     referenceId,
+                    subscription.getReferenceType(),
                     subscription.getApplication(),
                     SUBSCRIPTION_PAUSED,
                     subscription.getUpdatedAt(),
@@ -1225,6 +1239,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         createAudit(
             executionContext,
             referenceId,
+            subscription.getReferenceType(),
             subscription.getApplication(),
             SUBSCRIPTION_RESUMED_BY_CONSUMER,
             subscription.getUpdatedAt(),
@@ -1317,6 +1332,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 createAudit(
                     executionContext,
                     referenceId,
+                    subscription.getReferenceType(),
                     subscription.getApplication(),
                     SUBSCRIPTION_RESUMED,
                     subscription.getUpdatedAt(),
@@ -1363,7 +1379,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
                 createAudit(
                     executionContext,
-                    subscription.getApi(),
+                    subscription.getReferenceId(),
+                    subscription.getReferenceType(),
                     subscription.getApplication(),
                     SUBSCRIPTION_RESUMED,
                     subscription.getUpdatedAt(),
@@ -1406,7 +1423,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscriptionRepository.delete(subscriptionId);
             createAudit(
                 executionContext,
-                subscription.getApi(),
+                subscription.getReferenceId(),
+                subscription.getReferenceType(),
                 subscription.getApplication(),
                 SUBSCRIPTION_DELETED,
                 subscription.getUpdatedAt(),
@@ -1659,6 +1677,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             createAudit(
                 executionContext,
                 referenceId,
+                subscription.getReferenceType(),
                 subscription.getApplication(),
                 SUBSCRIPTION_UPDATED,
                 subscription.getUpdatedAt(),
@@ -1930,28 +1949,33 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     private void createAudit(
         ExecutionContext executionContext,
-        String apiId,
+        String referenceId,
+        SubscriptionReferenceType referenceType,
         String applicationId,
         Audit.AuditEvent event,
         Date createdAt,
         Subscription oldValue,
         Subscription newValue
     ) {
-        auditService.createApiAuditLog(
-            executionContext,
-            AuditService.AuditLogData.builder()
-                .properties(Collections.singletonMap(APPLICATION, applicationId))
-                .event(event)
-                .createdAt(createdAt)
-                .oldValue(oldValue)
-                .newValue(newValue)
-                .build(),
-            apiId
-        );
+        final boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT == referenceType;
+
+        AuditService.AuditLogData auditData = AuditService.AuditLogData.builder()
+            .event(event)
+            .createdAt(createdAt)
+            .oldValue(oldValue)
+            .newValue(newValue)
+            .properties(Collections.singletonMap(APPLICATION, applicationId))
+            .build();
+
+        if (isApiProduct) {
+            auditService.createApiProductAuditLog(executionContext, auditData, referenceId);
+        } else {
+            auditService.createApiAuditLog(executionContext, auditData, referenceId);
+        }
         auditService.createApplicationAuditLog(
             executionContext,
             AuditService.AuditLogData.builder()
-                .properties(Collections.singletonMap(API, apiId))
+                .properties(Collections.singletonMap(isApiProduct ? API_PRODUCT : API, referenceId))
                 .event(event)
                 .createdAt(createdAt)
                 .oldValue(oldValue)

@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.subscription.model.crd;
 
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,7 +34,26 @@ public class SubscriptionCRDSpec {
 
     private String id;
     private String applicationId;
+
+    /**
+     * Reference ID (API ID or API Product ID).
+     * Use this with {@link #referenceType} to identify the subscribed API or API Product.
+     */
+    private String referenceId;
+
+    /**
+     * Reference type (API or API_PRODUCT).
+     * Use this with {@link #referenceId} to identify the subscribed API or API Product.
+     */
+    private SubscriptionReferenceType referenceType;
+
+    /**
+     * @deprecated since 4.11.0. Use {@link #referenceId} and {@link #referenceType} instead.
+     *             When referenceId/referenceType are not set, they default to this value and API.
+     */
+    @Deprecated(since = "4.11.0", forRemoval = true)
     private String apiId;
+
     private String planId;
     private ZonedDateTime endingAt;
 }

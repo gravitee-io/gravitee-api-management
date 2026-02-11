@@ -175,11 +175,7 @@ public class AcceptSubscriptionDomainService {
         }
         subscriptionCrudService.update(acceptedSubscription);
 
-        if (SubscriptionReferenceType.API_PRODUCT.equals(subscription.getReferenceType())) {
-            createApiProductAudit(subscription, acceptedSubscription, auditInfo);
-        } else {
-            createAudit(subscription, acceptedSubscription, auditInfo);
-        }
+        createAudit(subscription, acceptedSubscription, auditInfo);
 
         triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), acceptedSubscription);
 
@@ -222,11 +218,7 @@ public class AcceptSubscriptionDomainService {
             generateApiKeyDomainService.generateForFederated(acceptedSubscription, auditInfo, integrationSubscription.apiKey());
         }
 
-        if (SubscriptionReferenceType.API_PRODUCT.equals(subscription.getReferenceType())) {
-            createApiProductAudit(subscription, acceptedSubscription, auditInfo);
-        } else {
-            createAudit(subscription, acceptedSubscription, auditInfo);
-        }
+        createAudit(subscription, acceptedSubscription, auditInfo);
 
         triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), acceptedSubscription);
 
@@ -261,19 +253,41 @@ public class AcceptSubscriptionDomainService {
     }
 
     private void createAudit(SubscriptionEntity subscriptionEntity, SubscriptionEntity acceptedSubscriptionEntity, AuditInfo auditInfo) {
-        auditDomainService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
-                .actor(auditInfo.actor())
-                .organizationId(auditInfo.organizationId())
-                .environmentId(auditInfo.environmentId())
-                .apiId(subscriptionEntity.getApiId())
-                .event(SubscriptionAuditEvent.SUBSCRIPTION_UPDATED)
-                .oldValue(subscriptionEntity)
-                .newValue(acceptedSubscriptionEntity)
-                .createdAt(acceptedSubscriptionEntity.getProcessedAt())
-                .properties(Collections.singletonMap(AuditProperties.APPLICATION, subscriptionEntity.getApplicationId()))
-                .build()
-        );
+        String referenceId = subscriptionEntity.getReferenceId();
+        boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT == subscriptionEntity.getReferenceType();
+        var createdAt = acceptedSubscriptionEntity.getProcessedAt() != null
+            ? acceptedSubscriptionEntity.getProcessedAt()
+            : acceptedSubscriptionEntity.getClosedAt();
+
+        if (isApiProduct) {
+            auditDomainService.createApiProductAuditLog(
+                ApiProductAuditLogEntity.builder()
+                    .actor(auditInfo.actor())
+                    .organizationId(auditInfo.organizationId())
+                    .environmentId(auditInfo.environmentId())
+                    .apiProductId(referenceId)
+                    .event(SubscriptionAuditEvent.SUBSCRIPTION_UPDATED)
+                    .oldValue(subscriptionEntity)
+                    .newValue(acceptedSubscriptionEntity)
+                    .createdAt(createdAt)
+                    .properties(Collections.singletonMap(AuditProperties.APPLICATION, subscriptionEntity.getApplicationId()))
+                    .build()
+            );
+        } else {
+            auditDomainService.createApiAuditLog(
+                ApiAuditLogEntity.builder()
+                    .actor(auditInfo.actor())
+                    .organizationId(auditInfo.organizationId())
+                    .environmentId(auditInfo.environmentId())
+                    .apiId(referenceId)
+                    .event(SubscriptionAuditEvent.SUBSCRIPTION_UPDATED)
+                    .oldValue(subscriptionEntity)
+                    .newValue(acceptedSubscriptionEntity)
+                    .createdAt(createdAt)
+                    .properties(Collections.singletonMap(AuditProperties.APPLICATION, subscriptionEntity.getApplicationId()))
+                    .build()
+            );
+        }
         auditDomainService.createApplicationAuditLog(
             ApplicationAuditLogEntity.builder()
                 .actor(auditInfo.actor())
@@ -283,8 +297,8 @@ public class AcceptSubscriptionDomainService {
                 .event(SubscriptionAuditEvent.SUBSCRIPTION_UPDATED)
                 .oldValue(subscriptionEntity)
                 .newValue(acceptedSubscriptionEntity)
-                .createdAt(acceptedSubscriptionEntity.getProcessedAt())
-                .properties(Collections.singletonMap(AuditProperties.API, subscriptionEntity.getApiId()))
+                .createdAt(createdAt)
+                .properties(Collections.singletonMap(isApiProduct ? AuditProperties.API_PRODUCT : AuditProperties.API, referenceId))
                 .build()
         );
     }
@@ -331,38 +345,5 @@ public class AcceptSubscriptionDomainService {
                 additionalRecipients
             );
         }
-    }
-
-    private void createApiProductAudit(
-        SubscriptionEntity subscriptionEntity,
-        SubscriptionEntity acceptedSubscriptionEntity,
-        AuditInfo auditInfo
-    ) {
-        auditDomainService.createApiProductAuditLog(
-            ApiProductAuditLogEntity.builder()
-                .actor(auditInfo.actor())
-                .organizationId(auditInfo.organizationId())
-                .environmentId(auditInfo.environmentId())
-                .apiProductId(subscriptionEntity.getReferenceId())
-                .event(SubscriptionAuditEvent.SUBSCRIPTION_UPDATED)
-                .oldValue(subscriptionEntity)
-                .newValue(acceptedSubscriptionEntity)
-                .createdAt(acceptedSubscriptionEntity.getProcessedAt())
-                .properties(Collections.singletonMap(AuditProperties.APPLICATION, subscriptionEntity.getApplicationId()))
-                .build()
-        );
-        auditDomainService.createApplicationAuditLog(
-            ApplicationAuditLogEntity.builder()
-                .actor(auditInfo.actor())
-                .organizationId(auditInfo.organizationId())
-                .environmentId(auditInfo.environmentId())
-                .applicationId(subscriptionEntity.getApplicationId())
-                .event(SubscriptionAuditEvent.SUBSCRIPTION_UPDATED)
-                .oldValue(subscriptionEntity)
-                .newValue(acceptedSubscriptionEntity)
-                .createdAt(acceptedSubscriptionEntity.getProcessedAt())
-                .properties(Collections.singletonMap(AuditProperties.API_PRODUCT, subscriptionEntity.getReferenceId()))
-                .build()
-        );
     }
 }
