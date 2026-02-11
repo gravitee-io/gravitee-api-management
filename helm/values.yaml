@@ -485,6 +485,7 @@ api:
     contextualLoggingEnabled: false
     stdout:
       json: false
+      ecs: false
       encoderPattern: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
       contextualLoggingEncoderPattern: "%d{HH:mm:ss.SSS} [%thread] [%X{orgId} %X{envId}] %-5level %logger{36} - %msg%n"
     file:
@@ -1182,6 +1183,7 @@ gateway:
     debug: false
     stdout:
       json: false
+      ecs: false
       encoderPattern: "%d{HH:mm:ss.SSS} [%thread] [%X{api}] %-5level %logger{36} - %msg%n"
     file:
       enabled: false
