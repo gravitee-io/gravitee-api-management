@@ -45,6 +45,7 @@ paths:
         - $ref: "#/components/parameters/pageParam"
         - $ref: "#/components/parameters/perPageParam"
       requestBody:
+        description: Search criteria including time range and optional filters
         required: true
         content:
           application/json:
@@ -109,6 +110,22 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SearchLogsResponse"
+              example:
+                data:
+                  - requestId: "req-001"
+                    apiId: "7b6ebef3-6236-4ac5-815e-d3dcef83df5d"
+                    timestamp: "2025-01-15T10:30:00Z"
+                    status: 200
+                    method: "GET"
+                    path: "/echo"
+                    responseTime: 42
+                    entrypoint: "http-proxy"
+                pagination:
+                  page: 1
+                  perPage: 10
+                  pageCount: 1
+                  pageItemsCount: 1
+                  totalCount: 1
         "500":
           description: Internal server error
           content:
@@ -140,6 +157,7 @@ components:
         maximum: 100
   schemas:
     SearchLogsRequest:
+      description: Request body for searching API connection logs
       type: object
       required:
         - timeRange
@@ -151,18 +169,46 @@ components:
           items:
             $ref: "#/components/schemas/Filter"
           description: Top-level filters
+          example:
+            - name: "API"
+              operator: "EQ"
+              value: "7b6ebef3-6236-4ac5-815e-d3dcef83df5d"
+      example:
+        timeRange:
+          from: "2025-01-01T00:00:00Z"
+          to: "2025-01-31T23:59:59Z"
+        filters:
+          - name: "API"
+            operator: "EQ"
+            value: "7b6ebef3-6236-4ac5-815e-d3dcef83df5d"
 
     SearchLogsResponse:
+      description: Paginated response containing API connection logs
       type: object
       properties:
         data:
           type: array
           items:
             $ref: "#/components/schemas/ApiLog"
+          example:
+            - requestId: "req-001"
+              apiId: "7b6ebef3-6236-4ac5-815e-d3dcef83df5d"
+              timestamp: "2025-01-15T10:30:00Z"
+              status: 200
         pagination:
-          $ref: "./openapi-apis.yaml#/components/schemas/Pagination"
+          allOf:
+            - $ref: "./openapi-apis.yaml#/components/schemas/Pagination"
+          example:
+            page: 1
+            perPage: 10
+            pageCount: 1
+            pageItemsCount: 1
+            totalCount: 1
         links:
-          $ref: "./openapi-apis.yaml#/components/schemas/Links"
+          allOf:
+            - $ref: "./openapi-apis.yaml#/components/schemas/Links"
+          example:
+            self: "/environments/DEFAULT/logs/search?page=1&perPage=10"
 
     ApiLog:
       type: object
