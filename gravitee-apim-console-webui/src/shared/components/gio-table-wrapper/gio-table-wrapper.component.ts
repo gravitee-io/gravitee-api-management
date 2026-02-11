@@ -85,6 +85,9 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   @Input()
   disablePageSize = false;
 
+  @Input()
+  disablePaginator = false;
+
   /** Pagination available page size options */
   @Input()
   paginationPageSizeOptions = [5, 10, 25, 100];
@@ -131,21 +134,25 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
     });
 
     // Keep top and bottom paginator in sync.
-    this.paginatorTop.page.pipe(takeUntil(this.unsubscribe$)).subscribe(page => {
-      this.paginatorBottom.pageIndex = page.pageIndex;
-      this.paginatorBottom.pageSize = page.pageSize;
+    this.paginatorTop?.page?.pipe(takeUntil(this.unsubscribe$))?.subscribe(page => {
+      if (this.paginatorBottom) {
+        this.paginatorBottom.pageIndex = page.pageIndex;
+        this.paginatorBottom.pageSize = page.pageSize;
+      }
     });
-    this.paginatorBottom.page.pipe(takeUntil(this.unsubscribe$)).subscribe(page => {
-      this.paginatorTop.pageIndex = page.pageIndex;
-      this.paginatorTop.pageSize = page.pageSize;
+    this.paginatorBottom?.page?.pipe(takeUntil(this.unsubscribe$))?.subscribe(page => {
+      if (this.paginatorTop) {
+        this.paginatorTop.pageIndex = page.pageIndex;
+        this.paginatorTop.pageSize = page.pageSize;
+      }
     });
 
     // Merge : stateChange, paginator, sort, inputSearch into single observable
     const observableToMerge = [
       this.stateChanges,
       this.inputSearch.valueChanges,
-      this.paginatorBottom.page,
-      this.paginatorTop.page,
+      this.paginatorBottom?.page,
+      this.paginatorTop?.page,
       this.sort?.sortChange,
     ];
 
@@ -158,8 +165,8 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
             ...(this.sort ? { sort: { active: this.sort.active, direction: this.sort.direction } } : {}),
             pagination: {
               // paginatorTop is used as master. keep it in sync before
-              index: this.paginatorTop.pageIndex + 1,
-              size: this.paginatorTop.pageSize,
+              index: (this.paginatorTop?.pageIndex ?? 0) + 1,
+              size: this.paginatorTop?.pageSize ?? 10,
             },
           };
           return filters;

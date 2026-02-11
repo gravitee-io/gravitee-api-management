@@ -28,4 +28,58 @@ describe('DashboardService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
+
+  describe('sort by labels', () => {
+    it('should sort by labels ascending', done => {
+      service.list(undefined, { active: 'labels', direction: 'asc' }, 1, 100).subscribe(result => {
+        const labels = result.data.map(d => d.labels);
+        // Items without labels (empty string) should come first in ascending order
+        const withoutLabels = labels.filter(l => !l || Object.keys(l).length === 0);
+        const withLabels = labels.filter(l => l && Object.keys(l).length > 0);
+        expect(withoutLabels.length + withLabels.length).toBe(labels.length);
+
+        // Verify items with labels are sorted
+        const labelStrings = withLabels.map(l =>
+          Object.entries(l)
+            .map(([k, v]) => `${k}:${v}`)
+            .sort()
+            .join(','),
+        );
+        for (let i = 1; i < labelStrings.length; i++) {
+          expect(labelStrings[i] >= labelStrings[i - 1]).toBeTruthy();
+        }
+        done();
+      });
+    });
+
+    it('should sort by labels descending', done => {
+      service.list(undefined, { active: 'labels', direction: 'desc' }, 1, 100).subscribe(result => {
+        const labels = result.data.map(d => d.labels);
+        const labelStrings = labels
+          .filter(l => l && Object.keys(l).length > 0)
+          .map(l =>
+            Object.entries(l)
+              .map(([k, v]) => `${k}:${v}`)
+              .sort()
+              .join(','),
+          );
+        for (let i = 1; i < labelStrings.length; i++) {
+          expect(labelStrings[i] <= labelStrings[i - 1]).toBeTruthy();
+        }
+        done();
+      });
+    });
+
+    it('should handle items without labels when sorting', done => {
+      service.list(undefined, { active: 'labels', direction: 'asc' }, 1, 100).subscribe(result => {
+        expect(result.data.length).toBeGreaterThan(0);
+        // Should not throw an error and should return all items
+        const itemsWithLabels = result.data.filter(d => d.labels && Object.keys(d.labels).length > 0);
+        const itemsWithoutLabels = result.data.filter(d => !d.labels || Object.keys(d.labels).length === 0);
+        expect(itemsWithLabels.length).toBeGreaterThan(0);
+        expect(itemsWithoutLabels.length).toBeGreaterThan(0);
+        done();
+      });
+    });
+  });
 });
