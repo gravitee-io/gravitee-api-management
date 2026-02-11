@@ -15,240 +15,240 @@
 #
 
 networks:
-  frontend:
-    name: frontend
-  storage:
-    name: storage
-  kafka:
-    name: kafka
-  email:
-    name: email
-  gateway:
-    name: gateway
-  kafkaConsole:
-    name: kafkaConsole
+    frontend:
+        name: frontend
+    storage:
+        name: storage
+    kafka:
+        name: kafka
+    email:
+        name: email
+    gateway:
+        name: gateway
+    kafkaConsole:
+        name: kafkaConsole
 
 volumes:
-  data-elasticsearch:
-  data-mongo:
-  data-kafka: null
+    data-elasticsearch:
+    data-mongo:
+    data-kafka: null
 
 services:
-  mongodb:
-    image: mongo:${MONGODB_VERSION:-6.0}
-    container_name: gio_apim_mongodb
-    restart: always
-    volumes:
-      - data-mongo:/data/db
-      - ./.logs/apim-mongodb:/var/log/mongodb
-    healthcheck:
-      test: mongosh --eval 'db.runCommand({serverStatus:1}).ok' --quiet | grep 1
-      interval: 5s
-      timeout: 3s
-      retries: 10
-    networks:
-      - storage
+    mongodb:
+        image: mongo:${MONGODB_VERSION:-6.0}
+        container_name: gio_apim_mongodb
+        restart: always
+        volumes:
+            - data-mongo:/data/db
+            - ./.logs/apim-mongodb:/var/log/mongodb
+        healthcheck:
+            test: mongosh --eval 'db.runCommand({serverStatus:1}).ok' --quiet | grep 1
+            interval: 5s
+            timeout: 3s
+            retries: 10
+        networks:
+            - storage
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.17.2}
-    container_name: gio_apim_elasticsearch
-    restart: always
-    volumes:
-      - data-elasticsearch:/usr/share/elasticsearch/data
-    environment:
-      - http.host=0.0.0.0
-      - transport.host=0.0.0.0
-      - xpack.security.enabled=false
-      - cluster.name=elasticsearch
-      - bootstrap.memory_lock=true
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile: 65536
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s" ]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-    networks:
-      - storage
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.17.2}
+        container_name: gio_apim_elasticsearch
+        restart: always
+        volumes:
+            - data-elasticsearch:/usr/share/elasticsearch/data
+        environment:
+            - http.host=0.0.0.0
+            - transport.host=0.0.0.0
+            - xpack.security.enabled=false
+            - cluster.name=elasticsearch
+            - bootstrap.memory_lock=true
+            - discovery.type=single-node
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+            nofile: 65536
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s"]
+            interval: 5s
+            timeout: 3s
+            retries: 10
+        networks:
+            - storage
 
-  gateway:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}
-    container_name: gio_apim_gateway
-    restart: always
-    ports:
-      - "8082:8082"
-      - "9092:9092"
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
-    volumes:
-      - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
-      - ./.license:/opt/graviteeio-gateway/license
-      - ./.ssl:/opt/graviteeio-gateway/ssl
-    environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
-    networks:
-      storage:
-      frontend:
-      kafka:
-      gateway:
+    gateway:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}
+        container_name: gio_apim_gateway
+        restart: always
+        ports:
+            - "8082:8082"
+            - "9092:9092"
+        depends_on:
+            mongodb:
+                condition: service_healthy
+            elasticsearch:
+                condition: service_healthy
+        volumes:
+            - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
+            - ./.license:/opt/graviteeio-gateway/license
+            - ./.ssl:/opt/graviteeio-gateway/ssl
+        environment:
+            - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+            - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+            - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+        networks:
+            storage:
+            frontend:
+            kafka:
+            gateway:
 
-  management_api:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_VERSION:-latest}
-    container_name: gio_apim_management_api
-    restart: always
-    ports:
-      - "8083:8083"
-    links:
-      - mongodb
-      - elasticsearch
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
-    volumes:
-      - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
-      - ./.license:/opt/graviteeio-management-api/license
-    environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
-      - gravitee_email_enabled=true
-      - gravitee_email_host=mailhog
-      - gravitee_email_port=1025
-      - gravitee_email_subject="TEST"
-      - gravitee_email_from="user@my.domain"
-      - gravitee_kafka_console_enabled=true
-      - gravitee_kafka_console_server_host=kafkaConsole
-      - gravitee_kafka_console_server_port=8080
-      - gravitee_kafka_console_server_security_secret=TCkyfrr8F6c75mAGKpRtKPaBHt9LyJ7P
+    management_api:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_VERSION:-latest}
+        container_name: gio_apim_management_api
+        restart: always
+        ports:
+            - "8083:8083"
+        links:
+            - mongodb
+            - elasticsearch
+        depends_on:
+            mongodb:
+                condition: service_healthy
+            elasticsearch:
+                condition: service_healthy
+        volumes:
+            - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
+            - ./.license:/opt/graviteeio-management-api/license
+        environment:
+            - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+            - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
+            - gravitee_email_enabled=true
+            - gravitee_email_host=mailhog
+            - gravitee_email_port=1025
+            - gravitee_email_subject="TEST"
+            - gravitee_email_from="user@my.domain"
+            - gravitee_kafka_console_enabled=true
+            - gravitee_kafka_console_server_host=kafkaConsole
+            - gravitee_kafka_console_server_port=8080
+            - gravitee_kafka_console_server_security_secret=TCkyfrr8F6c75mAGKpRtKPaBHt9LyJ7P
 
-    networks:
-      - storage
-      - frontend
-      - email
-      - kafkaConsole
+        networks:
+            - storage
+            - frontend
+            - email
+            - kafkaConsole
 
-  management_ui:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_VERSION:-latest}
-    container_name: gio_apim_management_ui
-    restart: always
-    ports:
-      - "8084:8080"
-    depends_on:
-      - management_api
-    environment:
-      - MGMT_API_URL=http://localhost:8083/management/
-    volumes:
-      - ./.logs/apim-management-ui:/var/log/nginx
-    networks:
-      - frontend
+    management_ui:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_VERSION:-latest}
+        container_name: gio_apim_management_ui
+        restart: always
+        ports:
+            - "8084:8080"
+        depends_on:
+            - management_api
+        environment:
+            - MGMT_API_URL=http://localhost:8083/management/
+        volumes:
+            - ./.logs/apim-management-ui:/var/log/nginx
+        networks:
+            - frontend
 
-  portal_ui:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_VERSION:-latest}
-    container_name: gio_apim_portal_ui
-    restart: always
-    ports:
-      - "8085:8080"
-    depends_on:
-      - management_api
-    environment:
-      - PORTAL_API_URL=http://localhost:8083/portal
-    volumes:
-      - ./.logs/apim-portal-ui:/var/log/nginx
-    networks:
-      - frontend
+    portal_ui:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_VERSION:-latest}
+        container_name: gio_apim_portal_ui
+        restart: always
+        ports:
+            - "8085:8080"
+        depends_on:
+            - management_api
+        environment:
+            - PORTAL_API_URL=http://localhost:8083/portal
+        volumes:
+            - ./.logs/apim-portal-ui:/var/log/nginx
+        networks:
+            - frontend
 
-  mailhog:
-    image: mailhog/mailhog
-    container_name: gio_apim_mailhog
-    restart: always
-    ports:
-      - "8025:8025"
-      - "1025:1025"
-    networks:
-      - email
+    mailhog:
+        image: mailhog/mailhog
+        container_name: gio_apim_mailhog
+        restart: always
+        ports:
+            - "8025:8025"
+            - "1025:1025"
+        networks:
+            - email
 
-  kafkaConsole:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-kafka-console:${APIM_KAFKA_CONSOLE_VERSION:-latest}
-    container_name: gio_apim_kafka_console
-    networks:
-      - kafkaConsole
-    depends_on:
-      - management_api
-    links:
-      - management_api:mapi
-    environment:
-      - AUTH_JWT_TOKEN_SECRET=TCkyfrr8F6c75mAGKpRtKPaBHt9LyJ7P
-      - KAFKA_GRAVITEE_MANAGEMENTAPIURL=http://mapi:8083/management/v2/organizations/DEFAULT/environments/DEFAULT
-      - KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINUSERNAME=admin
-      - KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINPASSWORD=admin
+    kafkaConsole:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-kafka-console:${APIM_KAFKA_CONSOLE_VERSION:-latest}
+        container_name: gio_apim_kafka_console
+        networks:
+            - kafkaConsole
+        depends_on:
+            - management_api
+        links:
+            - management_api:mapi
+        environment:
+            - AUTH_JWT_TOKEN_SECRET=TCkyfrr8F6c75mAGKpRtKPaBHt9LyJ7P
+            - KAFKA_GRAVITEE_MANAGEMENTAPIURL=http://mapi:8083/management/v2/organizations/DEFAULT/environments/DEFAULT
+            - KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINUSERNAME=admin
+            - KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINPASSWORD=admin
 
-  kafka:
-    image: docker.io/bitnamilegacy/kafka:3.9
-    container_name: gio_apim_kafka
-    volumes:
-      - data-kafka:/bitnami/kafka
-      - "./.ssl/server.keystore.jks:/bitnami/kafka/config/certs/kafka.keystore.jks:ro"
-      - "./.ssl/server.truststore.jks:/bitnami/kafka/config/certs/kafka.truststore.jks:ro"
-    ports:
-      - "9091:9091"
-      - "9093:9093"
-      - "9094:9094"
-      - "9095:9095"
-      - "9096:9096"
-      - "9097:9097"
-    networks:
-      - kafka
-      - kafkaConsole
-    environment:
-      - BITNAMI_DEBUG=true
-      - ALLOW_PLAINTEXT_LISTENER=yes
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@localhost:9093
-      - KAFKA_CFG_NODE_ID=0
-      - KAFKA_CFG_PROCESS_ROLES=controller,broker
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9091,CONTROLLER://:9093,SSL://:9094,SASL_PLAINTEXT://:9095,SASL_SSL://:9096,KAFDROP://:9097
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9091,SSL://kafka:9094,SASL_PLAINTEXT://kafka:9095,SASL_SSL://kafka:9096,KAFDROP://kafka:9097
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL,KAFDROP:PLAINTEXT,CONTROLLER:PLAINTEXT
-      - KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL=PLAIN
-      - KAFKA_CFG_SASL_ENABLED_MECHANISMS=PLAIN,SCRAM-SHA-256,SCRAM-SHA-512,OAUTHBEARER
-      - KAFKA_CFG_LISTENER_NAME_SASL_PLAINTEXT_OAUTHBEARER_SASL_JAAS_CONFIG=org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required;
-      - KAFKA_CFG_LISTENER_NAME_SASL_PLAINTEXT_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS=org.apache.kafka.common.security.oauthbearer.OAuthBearerValidatorCallbackHandler
-      - KAFKA_CFG_LISTENER_NAME_SASL_SSL_OAUTHBEARER_SASL_JAAS_CONFIG=org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required;
-      - KAFKA_CFG_LISTENER_NAME_SASL_SSL_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS=org.apache.kafka.common.security.oauthbearer.OAuthBearerValidatorCallbackHandler
-      - KAFKA_CFG_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL=https://am.gateway.master.gravitee.dev/test-jh/oidc/.well-known/jwks.json
-      - KAFKA_CFG_SASL_OAUTHBEARER_EXPECTED_AUDIENCE=kafka-client
-      - KAFKA_NUM_PARTITIONS=1
-      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
-      # SASL settings
-      - KAFKA_CLIENT_USERS=gravitee_user
-      - KAFKA_CLIENT_PASSWORDS=gravitee_password
-      - KAFKA_CONTROLLER_USER=controller_user
-      - KAFKA_CONTROLLER_PASSWORD=controller_password
-      - KAFKA_INTER_BROKER_USER=inter_broker_user
-      - KAFKA_INTER_BROKER_PASSWORD=inter_broker_password
-      # Certificate credentials
-      - KAFKA_CFG_SSL_KEYSTORE_LOCATION=/opt/bitnami/kafka/config/certs/kafka.keystore.jks
-      - KAFKA_CFG_SSL_KEYSTORE_PASSWORD=gravitee
-      - KAFKA_CFG_SSL_TRUSTSTORE_LOCATION=/opt/bitnami/kafka/config/certs/kafka.truststore.jks
-      - KAFKA_CFG_SSL_TRUSTSTORE_PASSWORD=gravitee
-      - KAFKA_TLS_CLIENT_AUTH=requested
-      - KAFKA_CERTIFICATE_PASSWORD=gravitee
-      - KAFKA_TLS_TYPE=JKS
-      - KAFKA_CFG_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=
-    healthcheck:
-      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/9097"]
-      interval: 5s # Check every 10 seconds
-      timeout: 10s # Timeout after 10 seconds
-      retries: 5 # Retry up to 5 times
-      start_period: 10s # Wait 30 seconds before starting health checks
+    kafka:
+        image: docker.io/bitnamilegacy/kafka:3.9
+        container_name: gio_apim_kafka
+        volumes:
+            - data-kafka:/bitnami/kafka
+            - "./.ssl/server.keystore.jks:/bitnami/kafka/config/certs/kafka.keystore.jks:ro"
+            - "./.ssl/server.truststore.jks:/bitnami/kafka/config/certs/kafka.truststore.jks:ro"
+        ports:
+            - "9091:9091"
+            - "9093:9093"
+            - "9094:9094"
+            - "9095:9095"
+            - "9096:9096"
+            - "9097:9097"
+        networks:
+            - kafka
+            - kafkaConsole
+        environment:
+            - BITNAMI_DEBUG=true
+            - ALLOW_PLAINTEXT_LISTENER=yes
+            - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@localhost:9093
+            - KAFKA_CFG_NODE_ID=0
+            - KAFKA_CFG_PROCESS_ROLES=controller,broker
+            - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+            - KAFKA_CFG_LISTENERS=PLAINTEXT://:9091,CONTROLLER://:9093,SSL://:9094,SASL_PLAINTEXT://:9095,SASL_SSL://:9096,KAFDROP://:9097
+            - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9091,SSL://kafka:9094,SASL_PLAINTEXT://kafka:9095,SASL_SSL://kafka:9096,KAFDROP://kafka:9097
+            - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL,KAFDROP:PLAINTEXT,CONTROLLER:PLAINTEXT
+            - KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL=PLAIN
+            - KAFKA_CFG_SASL_ENABLED_MECHANISMS=PLAIN,SCRAM-SHA-256,SCRAM-SHA-512,OAUTHBEARER
+            - KAFKA_CFG_LISTENER_NAME_SASL_PLAINTEXT_OAUTHBEARER_SASL_JAAS_CONFIG=org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required;
+            - KAFKA_CFG_LISTENER_NAME_SASL_PLAINTEXT_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS=org.apache.kafka.common.security.oauthbearer.OAuthBearerValidatorCallbackHandler
+            - KAFKA_CFG_LISTENER_NAME_SASL_SSL_OAUTHBEARER_SASL_JAAS_CONFIG=org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required;
+            - KAFKA_CFG_LISTENER_NAME_SASL_SSL_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS=org.apache.kafka.common.security.oauthbearer.OAuthBearerValidatorCallbackHandler
+            - KAFKA_CFG_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL=https://am.gateway.master.gravitee.dev/test-jh/oidc/.well-known/jwks.json
+            - KAFKA_CFG_SASL_OAUTHBEARER_EXPECTED_AUDIENCE=kafka-client
+            - KAFKA_NUM_PARTITIONS=1
+            - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+            # SASL settings
+            - KAFKA_CLIENT_USERS=gravitee_user
+            - KAFKA_CLIENT_PASSWORDS=gravitee_password
+            - KAFKA_CONTROLLER_USER=controller_user
+            - KAFKA_CONTROLLER_PASSWORD=controller_password
+            - KAFKA_INTER_BROKER_USER=inter_broker_user
+            - KAFKA_INTER_BROKER_PASSWORD=inter_broker_password
+            # Certificate credentials
+            - KAFKA_CFG_SSL_KEYSTORE_LOCATION=/opt/bitnami/kafka/config/certs/kafka.keystore.jks
+            - KAFKA_CFG_SSL_KEYSTORE_PASSWORD=gravitee
+            - KAFKA_CFG_SSL_TRUSTSTORE_LOCATION=/opt/bitnami/kafka/config/certs/kafka.truststore.jks
+            - KAFKA_CFG_SSL_TRUSTSTORE_PASSWORD=gravitee
+            - KAFKA_TLS_CLIENT_AUTH=requested
+            - KAFKA_CERTIFICATE_PASSWORD=gravitee
+            - KAFKA_TLS_TYPE=JKS
+            - KAFKA_CFG_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=
+        healthcheck:
+            test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/9097"]
+            interval: 5s # Check every 10 seconds
+            timeout: 10s # Timeout after 10 seconds
+            retries: 5 # Retry up to 5 times
+            start_period: 10s # Wait 30 seconds before starting health checks
