@@ -35,7 +35,9 @@ import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.ClusterRepository;
 import io.gravitee.repository.management.api.CommandRepository;
+import io.gravitee.repository.management.api.CustomDashboardRepository;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
+import io.gravitee.repository.management.api.DashboardRepository;
 import io.gravitee.repository.management.api.EntrypointRepository;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.api.IdentityProviderActivationRepository;
@@ -146,6 +148,9 @@ public class DeleteOrganizationCommandHandlerTest {
     private CommandRepository commandRepository;
 
     @Mock
+    private CustomDashboardRepository customDashboardRepository;
+
+    @Mock
     private OrganizationService organizationService;
 
     @Mock
@@ -173,6 +178,9 @@ public class DeleteOrganizationCommandHandlerTest {
     private ClusterRepository clusterRepository;
 
     @Mock
+    private DashboardRepository dashboardRepository;
+
+    @Mock
     private DeleteEnvironmentCommandHandler deleteEnvironmentCommandHandler;
 
     private DeleteOrganizationCommandHandler cut;
@@ -195,6 +203,7 @@ public class DeleteOrganizationCommandHandlerTest {
             accessPointRepository,
             auditRepository,
             commandRepository,
+            customDashboardRepository,
             customUserFieldsRepository,
             entrypointRepository,
             flowRepository,
@@ -213,6 +222,7 @@ public class DeleteOrganizationCommandHandlerTest {
             tokenRepository,
             userRepository,
             clusterRepository,
+            dashboardRepository,
             accessPointService,
             environmentService,
             identityProviderActivationService,
@@ -355,6 +365,7 @@ public class DeleteOrganizationCommandHandlerTest {
             EntrypointReferenceType.ORGANIZATION
         );
         verify(clusterRepository).deleteByOrganizationId(executionContext.getOrganizationId());
+        verify(customDashboardRepository).deleteByOrganizationId(executionContext.getOrganizationId());
     }
 
     private void verifyDisableOrganization(ExecutionContext context) {

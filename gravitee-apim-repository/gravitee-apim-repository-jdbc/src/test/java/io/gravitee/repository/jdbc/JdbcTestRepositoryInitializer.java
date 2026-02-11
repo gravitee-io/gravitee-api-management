@@ -65,6 +65,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "client_certificates",
         "client_registration_providers",
         "client_registration_provider_scopes",
+        "custom_dashboards",
         "custom_user_fields",
         "custom_user_fields_values",
         "dictionaries",

@@ -137,6 +137,17 @@ public interface GraviteeMapper {
 
     Set<Dashboard> mapDashboards(Collection<DashboardMongo> toMap);
 
+    // CustomDashboard mapping
+    CustomDashboard map(CustomDashboardMongo toMap);
+
+    CustomDashboardMongo map(CustomDashboard toMap);
+
+    Set<CustomDashboard> mapCustomDashboards(Collection<CustomDashboardMongo> toMap);
+
+    CustomDashboardWidget map(CustomDashboardWidgetMongo toMap);
+
+    CustomDashboardWidgetMongo map(CustomDashboardWidget toMap);
+
     // Dictionary mapping
     Dictionary map(DictionaryMongo toMap);
 

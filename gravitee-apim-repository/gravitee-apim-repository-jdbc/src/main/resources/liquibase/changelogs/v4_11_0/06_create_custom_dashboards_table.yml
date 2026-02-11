@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.11.0_06_create_custom_dashboards_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}custom_dashboards
+            columns:
+              - column: { name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: name, type: nvarchar(512), constraints: { nullable: false } }
+              - column: { name: created_by, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: created_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: { name: last_modified, type: timestamp(6), constraints: { nullable: false } }
+              - column: { name: labels, type: nclob }
+              - column: { name: widgets, type: nclob }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}custom_dashboards
+            columnNames: id
+            tableName: ${gravitee_prefix}custom_dashboards
+        - createIndex:
+            tableName: ${gravitee_prefix}custom_dashboards
+            indexName: idx_${gravitee_prefix}custom_dashboards_organization_id
+            columns:
+              - column:
+                  name: organization_id
