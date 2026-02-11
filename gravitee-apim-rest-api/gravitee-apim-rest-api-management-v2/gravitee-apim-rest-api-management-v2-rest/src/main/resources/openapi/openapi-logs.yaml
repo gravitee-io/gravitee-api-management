@@ -26,6 +26,10 @@ servers:
         description: The unique ID of your organization
         default: DEFAULT
 
+tags:
+  - name: logs
+    description: Operations related to querying API connection logs
+
 paths:
   /environments/{envId}/logs/search:
     post:
