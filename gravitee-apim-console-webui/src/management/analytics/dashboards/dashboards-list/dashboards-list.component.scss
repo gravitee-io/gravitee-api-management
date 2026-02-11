@@ -1,5 +1,9 @@
 //@use 'index.d.ts' as gio;
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
 @use '../../../../scss/gio-layout' as gio-layout;
+
+$error-color: mat.m2-get-color-from-palette(gio.$mat-error-palette, default);
 
 :host {
   @include gio-layout.gio-responsive-content-container;
@@ -16,13 +20,47 @@
   h1 {
     margin: 0;
   }
+
+  button mat-icon {
+    order: 1;
+    margin-left: 8px;
+    margin-right: 0 !important;
+  }
 }
 
 .actions-buttons {
   display: flex;
   justify-content: flex-end;
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+
+  & > * {
+    pointer-events: auto;
+  }
 }
 
 table {
   width: 100%;
+}
+
+.clickable-row {
+  position: relative;
+  cursor: pointer;
+}
+
+.row-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+::ng-deep .delete-action {
+  button {
+    color: $error-color !important;
+  }
+
+  .mat-icon {
+    color: $error-color !important;
+  }
 }

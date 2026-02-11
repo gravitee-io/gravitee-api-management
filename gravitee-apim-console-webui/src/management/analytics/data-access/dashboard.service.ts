@@ -28,21 +28,34 @@ export interface DashboardListItem {
   name: string;
   createdBy: string;
   lastUpdated: string;
+  labels?: Record<string, string>;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class DashboardService {
-  private dashboards: DashboardListItem[] = [
-    { id: '1', name: 'V4 Proxy Dashboard', createdBy: 'Admin', lastUpdated: 'Aug 12, 2025' },
+  private readonly dashboards: DashboardListItem[] = [
+    {
+      id: '1',
+      name: 'V4 Proxy Dashboard',
+      createdBy: 'Admin',
+      lastUpdated: 'Aug 12, 2025',
+      labels: { Focus: 'HTTP / TCP', Theme: 'Proxy' },
+    },
     { id: '2', name: 'Kafka Dashboard', createdBy: 'Admin', lastUpdated: 'Aug 12, 2025' },
     { id: '3', name: 'Message API Dashboard', createdBy: 'Admin', lastUpdated: 'Aug 12, 2025' },
-    { id: '4', name: 'AI Dashboard', createdBy: 'Admin', lastUpdated: 'Aug 12, 2025' },
+    {
+      id: '4',
+      name: 'AI Dashboard',
+      createdBy: 'Thomas Pesquet',
+      lastUpdated: 'Aug 12, 2025',
+      labels: { Focus: 'LLM / MCP', Theme: 'AI' },
+    },
     { id: '5', name: 'LLM Dashboard', createdBy: 'Admin', lastUpdated: 'Aug 12, 2025' },
-    { id: '6', name: 'MCP Dashboard', createdBy: 'Admin', lastUpdated: 'Aug 12, 2025' },
+    { id: '6', name: 'MCP Dashboard', createdBy: 'Admin', lastUpdated: 'Aug 12, 2025', labels: { team: 'Ops', group: 'France' } },
     { id: '7', name: 'Adoption Dashboard', createdBy: 'Admin', lastUpdated: 'Aug 12, 2025' },
-    { id: '8', name: 'Application Dashboard', createdBy: 'Admin', lastUpdated: 'Aug 12, 2025' },
+    { id: '8', name: 'Application Dashboard', createdBy: 'Admin', lastUpdated: 'Aug 12, 2025', labels: { geo: 'EU-west' } },
   ];
 
   readonly overviewDashboard = computed(() => {
@@ -69,6 +82,17 @@ export class DashboardService {
             return this.compare(a.createdBy, b.createdBy, isAsc);
           case 'lastUpdated':
             return this.compare(a.lastUpdated, b.lastUpdated, isAsc);
+          case 'labels': {
+            const labelsA = Object.entries(a.labels ?? {})
+              .map(([k, v]) => `${k}:${v}`)
+              .sort((a, b) => a.localeCompare(b))
+              .join(',');
+            const labelsB = Object.entries(b.labels ?? {})
+              .map(([k, v]) => `${k}:${v}`)
+              .sort((a, b) => a.localeCompare(b))
+              .join(',');
+            return this.compare(labelsA, labelsB, isAsc);
+          }
           default:
             return 0;
         }
