@@ -1,0 +1,105 @@
+[
+  {
+    "id": "cd-1",
+    "organizationId": "DEFAULT",
+    "name": "Performance Overview",
+    "createdBy": "user-1",
+    "createdAt": 1000000000000,
+    "lastModified": 1111111111111,
+    "labels": {
+      "team": "backend",
+      "category": "performance"
+    },
+    "widgets": [
+      {
+        "id": "widget-1",
+        "title": "Request Count",
+        "type": "stats",
+        "layout": {
+          "cols": 6,
+          "rows": 4,
+          "x": 0,
+          "y": 0
+        },
+        "request": {
+          "type": "measures",
+          "timeRange": { "from": "2025-01-01T00:00:00Z", "to": "2025-01-02T00:00:00Z" },
+          "metrics": ["request_total_count"],
+          "by": [],
+          "limit": 10
+        }
+      },
+      {
+        "id": "widget-2",
+        "title": "Response Times",
+        "type": "line",
+        "layout": {
+          "cols": 6,
+          "rows": 4,
+          "x": 6,
+          "y": 0
+        },
+        "request": {
+          "type": "measures",
+          "timeRange": { "from": "2025-01-01T00:00:00Z", "to": "2025-01-08T00:00:00Z" },
+          "metrics": ["response_time_avg"],
+          "by": ["api"],
+          "limit": 5
+        }
+      }
+    ]
+  },
+  {
+    "id": "cd-2",
+    "organizationId": "DEFAULT",
+    "name": "API Metrics",
+    "createdBy": "user-2",
+    "createdAt": 1000000000000,
+    "lastModified": 1111111111111,
+    "labels": {
+      "team": "api"
+    },
+    "widgets": [
+      {
+        "id": "widget-3",
+        "title": "Top APIs",
+        "type": "doughnut",
+        "layout": {
+          "cols": 12,
+          "rows": 6,
+          "x": 0,
+          "y": 0
+        },
+        "request": {
+          "type": "facets",
+          "timeRange": { "from": "2025-01-01T00:00:00Z", "to": "2025-02-01T00:00:00Z" },
+          "metrics": ["request_total_count"],
+          "by": ["api"],
+          "limit": 10
+        }
+      }
+    ]
+  },
+  {
+    "id": "cd-3",
+    "organizationId": "DEFAULT",
+    "name": "Dashboard To Delete",
+    "createdBy": "user-1",
+    "createdAt": 1000000000000,
+    "lastModified": 1111111111111,
+    "labels": {},
+    "widgets": []
+  },
+  {
+    "id": "cd-4",
+    "organizationId": "OTHER_ORG",
+    "name": "Other Org Dashboard",
+    "createdBy": "user-3",
+    "createdAt": 1000000000000,
+    "lastModified": 1111111111111,
+    "labels": {
+      "org": "other"
+    },
+    "widgets": []
+  }
+]
