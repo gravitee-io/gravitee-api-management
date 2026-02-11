@@ -1,0 +1,159 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!--
+ *
+ *    Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *            http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *
+-->
+
+<div class="api-product-list">
+  <div class="api-product-list__header">
+    <div>
+      <h1>API Products</h1>
+      <p class="subtitle">Group together multiple APIs for consumers</p>
+    </div>
+    <button
+      [routerLink]="'./new'"
+      mat-raised-button
+      color="primary"
+      class="create-api-product-button"
+      aria-label="create-api-product"
+      *gioPermission="{ anyOf: ['environment-api_product-c'] }"
+      data-testid="api_product_list_create_button"
+    >
+      Create API Product
+    </button>
+  </div>
+
+  <!-- Empty State -->
+  <mat-card class="api-product-list__content-card" *ngIf="!hasApiProducts && !isLoadingData">
+    <mat-card-content>
+      <div class="api-product-list__card-header">
+        <h2>API Products</h2>
+      </div>
+      <mat-card class="api-product-list__content-card">
+        <mat-card-content>
+          <div class="api-products-empty-state">
+            <div class="empty-state-card">
+              <div class="empty-state-icon">
+                <mat-icon class="empty-state-icon__svg">search</mat-icon>
+              </div>
+              <h3>No API Product created yet</h3>
+              <p>Create API Products to group together your APIs.</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Table View -->
+  <gio-table-wrapper
+    *ngIf="hasApiProducts"
+    [searchLabel]="searchLabel"
+    [length]="apiProductsTableDSUnpaginatedLength"
+    [filters]="filters"
+    (filtersChange)="onFiltersChanged($event)"
+    [paginationPageSizeOptions]="[10, 25, 50, 100]"
+  >
+    <table mat-table matSort [dataSource]="apiProductsTableDS" id="apiProductsTable" aria-label="API Products table">
+      <!-- Picture Column -->
+      <ng-container matColumnDef="picture">
+        <th mat-header-cell *matHeaderCellDef id="picture"></th>
+        <td mat-cell *matCellDef="let element">
+          <gio-avatar
+            class="api-products__avatar"
+            [src]="element.picture"
+            [name]="element.name + ' ' + element.version"
+            [size]="32"
+            [roundedBorder]="true"
+          ></gio-avatar>
+        </td>
+      </ng-container>
+
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header id="name">Name</th>
+        <td mat-cell *matCellDef="let element" title="{{ element.name }}">
+          {{ element.name }}
+        </td>
+      </ng-container>
+
+      <!-- APIs Column -->
+      <ng-container matColumnDef="apis">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header id="apis">APIs</th>
+        <td mat-cell *matCellDef="let element">
+          <span class="apis__badge gio-badge-neutral">{{ element.numberOfApis }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Version Column -->
+      <ng-container matColumnDef="version">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header id="version">Version</th>
+        <td mat-cell *matCellDef="let element">
+          <span class="version__badge gio-badge-neutral">v{{ element.version }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Owner Column -->
+      <ng-container matColumnDef="owner">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header id="owner">Owner</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.owner }}
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef id="actions"></th>
+        <td mat-cell *matCellDef="let element">
+          <div class="actions__edit">
+            <!-- Edit button will be added in a future PR -->
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns" data-testid="api_product_list_table_header"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns" data-testid="api_product_list_table_row"></tr>
+
+      <!-- Row shown when there is no data -->
+      <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+        <td
+          *ngIf="!isLoadingData && apiProductsTableDS.length === 0"
+          class="mat-mdc-cell mdc-data-table__cell"
+          [attr.colspan]="displayedColumns.length"
+        >
+          No API Products found.
+        </td>
+        <td *ngIf="isLoadingData" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">Loading...</td>
+      </tr>
+    </table>
+  </gio-table-wrapper>
+</div>
