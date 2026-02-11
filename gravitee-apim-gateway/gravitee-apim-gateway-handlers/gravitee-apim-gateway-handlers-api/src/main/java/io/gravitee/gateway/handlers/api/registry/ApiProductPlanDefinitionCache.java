@@ -19,13 +19,13 @@ import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import java.util.List;
 
 /**
- * Cache of product plan definitions for APIs that are part of API Products.
+ * Cache of API Product plan definitions for APIs that are part of API Products.
  * Populated when API Products are deployed; used when building the security chain
  * to iterate product plans before API plans.
  *
  * @author GraviteeSource Team
  */
-public interface ProductPlanDefinitionCache {
+public interface ApiProductPlanDefinitionCache {
     /**
      * Register plan definitions for an API Product.
      *

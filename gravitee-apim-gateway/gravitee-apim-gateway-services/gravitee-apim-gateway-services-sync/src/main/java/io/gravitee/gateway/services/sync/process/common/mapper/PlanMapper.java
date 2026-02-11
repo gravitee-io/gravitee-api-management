@@ -27,9 +27,9 @@ import java.util.Set;
  *
  * @author GraviteeSource Team
  */
-public final class RepositoryPlanToDefinitionMapper {
+public final class PlanMapper {
 
-    private RepositoryPlanToDefinitionMapper() {}
+    private PlanMapper() {}
 
     public static Plan toDefinition(io.gravitee.repository.management.model.Plan repoPlan) {
         if (repoPlan == null) {

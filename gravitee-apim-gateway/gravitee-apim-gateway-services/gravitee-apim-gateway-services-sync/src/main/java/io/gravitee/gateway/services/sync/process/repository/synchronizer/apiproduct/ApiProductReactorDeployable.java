@@ -15,9 +15,12 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct;
 
+import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.services.sync.process.common.model.ApiProductDeployable;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import java.util.List;
+import java.util.Set;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -40,6 +43,8 @@ public class ApiProductReactorDeployable implements ApiProductDeployable {
     private String apiProductId;
     private ReactableApiProduct reactableApiProduct;
     private SyncAction syncAction;
+    private Set<String> subscribablePlans;
+    private List<Plan> definitionPlans;
 
     @Override
     public String id() {
@@ -47,9 +52,17 @@ public class ApiProductReactorDeployable implements ApiProductDeployable {
     }
 
     public String apiProductId() {
-        if (apiProductId == null) {
+        if (apiProductId == null && reactableApiProduct != null) {
             return reactableApiProduct.getId();
         }
         return apiProductId;
+    }
+
+    public Set<String> subscribablePlans() {
+        return subscribablePlans != null ? subscribablePlans : Set.of();
+    }
+
+    public List<Plan> definitionPlans() {
+        return definitionPlans != null ? definitionPlans : List.of();
     }
 }

@@ -50,6 +50,7 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
@@ -284,6 +285,12 @@ class DefaultApiReactorTest {
     @Mock
     private EventManager eventManager;
 
+    @Mock
+    private ApiProductRegistry apiProductRegistry;
+
+    @Mock
+    private ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory;
+
     private TestScheduler testScheduler;
 
     private DefaultApiReactor cut;
@@ -409,8 +416,8 @@ class DefaultApiReactorTest {
                 new HttpAcceptorFactory(false),
                 tracingContext,
                 logGuardService,
-                null,
-                null
+                apiProductRegistry,
+                apiProductPlanPolicyManagerFactory
             );
             ReflectionTestUtils.setField(defaultApiReactor, "entrypointConnectorResolver", entrypointConnectorResolver);
             ReflectionTestUtils.setField(defaultApiReactor, "defaultInvoker", defaultInvoker);

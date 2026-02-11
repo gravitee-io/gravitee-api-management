@@ -23,7 +23,7 @@ import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
-import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
+import io.gravitee.gateway.handlers.api.registry.ApiProductPlanDefinitionCache;
 import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
@@ -33,7 +33,6 @@ import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseFactory;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.CommandRepository;
-import io.gravitee.repository.management.api.PlanRepository;
 import java.util.function.Supplier;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -72,9 +71,7 @@ public class DeployerFactory {
 
     private final io.gravitee.gateway.handlers.api.manager.ApiProductManager apiProductManager;
 
-    private final PlanRepository planRepository;
-
-    private final ProductPlanDefinitionCache productPlanDefinitionCache;
+    private final ApiProductPlanDefinitionCache apiProductPlanDefinitionCache;
 
     public SubscriptionDeployer createSubscriptionDeployer() {
         return new SubscriptionDeployer(
@@ -124,6 +121,6 @@ public class DeployerFactory {
     }
 
     public ApiProductDeployer createApiProductDeployer() {
-        return new ApiProductDeployer(apiProductManager, planRepository, planCache, distributedSyncService, productPlanDefinitionCache);
+        return new ApiProductDeployer(apiProductManager, planCache, distributedSyncService, apiProductPlanDefinitionCache);
     }
 }

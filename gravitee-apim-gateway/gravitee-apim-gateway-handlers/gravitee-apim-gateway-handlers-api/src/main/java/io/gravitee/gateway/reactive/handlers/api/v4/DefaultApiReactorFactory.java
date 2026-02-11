@@ -404,7 +404,6 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
 
         DefaultClassLoader classLoader = applicationContext.getBean(DefaultClassLoader.class);
         PolicyClassLoaderFactory policyClassLoaderFactory = applicationContext.getBean(PolicyClassLoaderFactory.class);
-        ComponentProvider cp = componentProvider;
 
         return api ->
             new ApiProductPlanPolicyManager(
@@ -413,7 +412,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
                 new CachedPolicyConfigurationFactory(),
                 configurablePluginManager,
                 policyClassLoaderFactory,
-                cp,
+                componentProvider,
                 api.getId(),
                 api.getEnvironmentId(),
                 apiProductRegistry

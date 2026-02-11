@@ -29,9 +29,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
@@ -92,7 +95,7 @@ public class SubscriptionCacheService implements SubscriptionService {
         }
         return subscriptions
             .stream()
-            .filter(sub -> sub.getApi().equals(api))
+            .filter(sub -> Objects.equals(api, sub.getApi()))
             .findFirst();
     }
 
@@ -111,6 +114,17 @@ public class SubscriptionCacheService implements SubscriptionService {
         }
     }
 
+    private void unregisterStaleIfChanged(
+        Subscription cached,
+        Subscription updated,
+        BiPredicate<Subscription, Subscription> hasChanged,
+        Consumer<Subscription> unregister
+    ) {
+        if (cached != null && hasChanged.test(cached, updated)) {
+            unregister.accept(cached);
+        }
+    }
+
     private void registerFromClientCertificate(final Subscription subscription) {
         final String idKey = subscription.getId();
         final String clientCertificateKey = buildClientCertificateCacheKey(subscription);
@@ -122,15 +136,12 @@ public class SubscriptionCacheService implements SubscriptionService {
         );
 
         Subscription cachedSubscription = cacheBySubscriptionId.get(idKey);
-
-        // remove previous subscription client_id from cache if client_id has changed
-        if (
-            cachedSubscription != null &&
-            cachedSubscription.getClientCertificate() != null &&
-            !cachedSubscription.getClientCertificate().equals(subscription.getClientCertificate())
-        ) {
-            unregisterFromClientCertificate(cachedSubscription);
-        }
+        unregisterStaleIfChanged(
+            cachedSubscription,
+            subscription,
+            (cached, upd) -> cached.getClientCertificate() != null && !cached.getClientCertificate().equals(upd.getClientCertificate()),
+            this::unregisterFromClientCertificate
+        );
 
         log.debug(
             "Load accepted subscription with client Id  [id: {}] [api: {}] [plan: {}] [application: {}]",
@@ -159,15 +170,12 @@ public class SubscriptionCacheService implements SubscriptionService {
         final String clientIdKeyWithoutPlan = buildCacheKeyFromClientInfo(subscription.getApi(), subscription.getClientId(), null);
 
         Subscription cachedSubscription = cacheBySubscriptionId.get(idKey);
-
-        // remove previous subscription client_id from cache if client_id has changed
-        if (
-            cachedSubscription != null &&
-            cachedSubscription.getClientId() != null &&
-            !cachedSubscription.getClientId().equals(subscription.getClientId())
-        ) {
-            unregisterFromClientId(cachedSubscription);
-        }
+        unregisterStaleIfChanged(
+            cachedSubscription,
+            subscription,
+            (cached, upd) -> cached.getClientId() != null && !cached.getClientId().equals(upd.getClientId()),
+            this::unregisterFromClientId
+        );
 
         log.debug(
             "Load accepted subscription with client Id  [id: {}] [api: {}] [plan: {}] [application: {}]",
@@ -235,7 +243,7 @@ public class SubscriptionCacheService implements SubscriptionService {
         // Remove from exploded subscriptions cache
         Set<Subscription> allSubscriptions = cacheBySubscriptionIdAll.get(idKey);
         if (allSubscriptions != null) {
-            allSubscriptions.removeIf(s -> s.getApi().equals(subscription.getApi()));
+            allSubscriptions.removeIf(s -> Objects.equals(subscription.getApi(), s.getApi()));
             if (allSubscriptions.isEmpty()) {
                 cacheBySubscriptionIdAll.remove(idKey);
             }
@@ -289,7 +297,7 @@ public class SubscriptionCacheService implements SubscriptionService {
             subscriptionsByApi.forEach(cacheKey -> {
                 Set<Subscription> all = cacheBySubscriptionIdAll.get(cacheKey);
                 if (all != null) {
-                    all.removeIf(s -> s.getApi().equals(apiId));
+                    all.removeIf(s -> Objects.equals(apiId, s.getApi()));
                     if (all.isEmpty()) cacheBySubscriptionIdAll.remove(cacheKey);
                 }
                 Subscription subscription = cacheBySubscriptionId.remove(cacheKey);

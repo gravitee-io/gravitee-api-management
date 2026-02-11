@@ -1191,8 +1191,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 throw new SubscriptionFailureCustomerStatusRequiredException();
             }
 
-            // Use subscription's referenceId if available, otherwise fallback to deprecated api field
-            String referenceId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
+            String referenceId = subscription.getIdentifier();
             boolean isApiProduct = subscription.getReferenceType() == SubscriptionReferenceType.API_PRODUCT;
             GenericApiModel genericApiModel = null;
             if (!isApiProduct && referenceId != null) {
@@ -1610,7 +1609,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 .orElseThrow(() -> new SubscriptionNotFoundException(transferSubscription.getId()));
             GenericPlanEntity subscriptionGenericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
             String transferReferenceId = transferGenericPlanEntity.getReferenceId();
-            String subscriptionReferenceId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
+            String subscriptionReferenceId = subscription.getIdentifier();
             if (
                 !transferReferenceId.equals(subscriptionReferenceId) || //Don't transfer to another API/API Product
                 transferGenericPlanEntity.getPlanStatus() != PlanStatus.PUBLISHED || //Don't transfer to a non published plan

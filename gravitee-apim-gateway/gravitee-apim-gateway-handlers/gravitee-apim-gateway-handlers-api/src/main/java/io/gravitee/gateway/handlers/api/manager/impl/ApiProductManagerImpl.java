@@ -21,7 +21,6 @@ import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
 import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
-import io.gravitee.node.api.license.LicenseManager;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,13 +34,11 @@ import lombok.CustomLog;
 public class ApiProductManagerImpl implements ApiProductManager {
 
     private final ApiProductRegistry apiProductRegistry;
-    private final LicenseManager licenseManager;
     private final EventManager eventManager;
     private final Map<String, ReactableApiProduct> apiProducts = new ConcurrentHashMap<>();
 
-    public ApiProductManagerImpl(ApiProductRegistry apiProductRegistry, LicenseManager licenseManager, EventManager eventManager) {
+    public ApiProductManagerImpl(ApiProductRegistry apiProductRegistry, EventManager eventManager) {
         this.apiProductRegistry = apiProductRegistry;
-        this.licenseManager = licenseManager;
         this.eventManager = eventManager;
     }
 
@@ -92,15 +89,15 @@ public class ApiProductManagerImpl implements ApiProductManager {
     }
 
     private void deploy(ReactableApiProduct apiProduct) {
-        // TODO: When LicenseManager.validateFeature(orgId, "API_PRODUCTS") is available,
-        // add validation here to block deployment when the feature is not allowed by the license.
+        // TODO: When API_PRODUCTS license feature is available, inject LicenseManager and call
+        // validateFeature(apiProduct.getOrganizationId(), "API_PRODUCTS") to block deployment if not allowed.
         log.debug("Deploying API Product [{}]", apiProduct.getId());
 
         apiProducts.put(apiProduct.getId(), apiProduct);
         apiProductRegistry.register(apiProduct);
 
         // Emit DEPLOY event after successful registration
-        emitProductEvent(ApiProductEventType.DEPLOY, apiProduct);
+        emitApiProductChangedEvent(ApiProductEventType.DEPLOY, apiProduct);
 
         log.info("API Product [{}] has been deployed", apiProduct.getId());
     }
@@ -112,7 +109,7 @@ public class ApiProductManagerImpl implements ApiProductManager {
         apiProductRegistry.register(apiProduct);
 
         // Emit UPDATE event after successful registration
-        emitProductEvent(ApiProductEventType.UPDATE, apiProduct);
+        emitApiProductChangedEvent(ApiProductEventType.UPDATE, apiProduct);
 
         log.info("API Product [{}] has been updated", apiProduct.getId());
     }
@@ -123,7 +120,7 @@ public class ApiProductManagerImpl implements ApiProductManager {
             log.debug("Undeploying API Product [{}] from environment [{}]", apiProductId, currentApiProduct.getEnvironmentId());
 
             // Emit UNDEPLOY event before removal from registry
-            emitProductEvent(ApiProductEventType.UNDEPLOY, currentApiProduct);
+            emitApiProductChangedEvent(ApiProductEventType.UNDEPLOY, currentApiProduct);
 
             apiProductRegistry.remove(apiProductId, currentApiProduct.getEnvironmentId());
 
@@ -136,7 +133,7 @@ public class ApiProductManagerImpl implements ApiProductManager {
     /**
      * Emit API Product event to trigger security chain refresh in affected reactors.
      */
-    private void emitProductEvent(ApiProductEventType eventType, ReactableApiProduct apiProduct) {
+    private void emitApiProductChangedEvent(ApiProductEventType eventType, ReactableApiProduct apiProduct) {
         try {
             ApiProductChangedEvent event = new ApiProductChangedEvent(
                 apiProduct.getId(),
