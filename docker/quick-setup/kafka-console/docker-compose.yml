@@ -31,7 +31,7 @@ networks:
 volumes:
     data-elasticsearch:
     data-mongo:
-    data-kafka: null
+    data-kafka:
 
 services:
     mongodb:
@@ -193,6 +193,22 @@ services:
             - KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINUSERNAME=admin
             - KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINPASSWORD=admin
 
+    kafka-init:
+        image: apache/kafka:3.9.1
+        container_name: kafka-init
+        volumes:
+            - data-kafka:/var/lib/kafka/data
+            - ./.config/server.properties:/opt/kafka/config/kraft/server.properties
+        command: >
+            bash -c "
+            if [ ! -f /var/lib/kafka/data/meta.properties ]; then
+              echo 'Formatting Kafka storage...';
+              /opt/kafka/bin/kafka-storage.sh format -t my-static-cluster-id -c /opt/kafka/config/kraft/server.properties;
+            else
+              echo 'Kafka storage already formatted.';
+            fi
+            "
+
     kafka:
         image: apache/kafka:3.9.1
         container_name: gio_apim_kafka
@@ -200,6 +216,9 @@ services:
         networks:
             - kafka
             - kafkaConsole
+
+        depends_on:
+            - kafka-init
 
         ports:
             - "9091:9091"
@@ -211,7 +230,7 @@ services:
         volumes:
             - ./.config/server.properties:/opt/kafka/config/kraft/server.properties
             - ./.ssl:/etc/kafka/secrets
-            - ./.data:/var/lib/kafka/data
+            - data-kafka:/var/lib/kafka/data
 
         environment:
             SSL_KEYSTORE_PASSWORD: gravitee
