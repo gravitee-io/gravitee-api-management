@@ -60,9 +60,11 @@ Prepare APIM Console UI and Portal UI::
 First, be sure to have the correct version of node installed, there are .nvmrc files in the UI projects.
 If you've `nvm` installed, you can use `nvm use` to switch to the appropriate version of node.
 
-Then run `yarn` in the following directories:
- - `gravitee-api-management/gravitee-apim-console-webui`
- - `gravitee-api-management/gravitee-apim-portal-webui`
+NOTE: Console and Portal Next are part of an Nx workspace at the root. Portal remains independent.
+
+Then run `yarn`:
+ - At the **repository root** for Console and Portal Next (Nx workspace)
+ - In `gravitee-api-management/gravitee-apim-portal-webui` for Portal (independent project)
 
 === AI Agent Context (Docker Compose Full Stack)
 
@@ -75,20 +77,21 @@ Default behavior for AI tools:
 
 Full stack quickstart (MongoDB compose):
 
-0) (Optional) Build backend artifacts
+0) Setup environment (one-time)
+   - Use correct Node.js version: `nvm use` (reads from `.nvmrc`)
+   - Enable Corepack: `corepack enable` (recommended, included in Node.js 16.10+)
+   - OR install Yarn globally: `npm install -g yarn`
+1) (Optional) Build backend artifacts
    - `mvn clean install -T 2C -DskipTests=true -Dskip.validation=true`
-1) Build console UI
-   - `cd gravitee-apim-console-webui`
-   - `npx -y @yarnpkg/cli-dist@4.1.1 install`
-   - `npx -y @yarnpkg/cli-dist@4.1.1 build`
-2) Build portal UI
-   - `cd gravitee-apim-portal-webui`
-   - `npx -y @yarnpkg/cli-dist@4.1.1 install`
-   - `npx -y @yarnpkg/cli-dist@4.1.1 build`
-3) Build local UI Docker images (from repo root)
+2) Build console UI (Nx workspace at root)
+   - `yarn install`
+   - `yarn console:build:prod`
+3) Build portal UI (independent project)
+   - `cd gravitee-apim-portal-webui && yarn install && yarn build && cd ..`
+4) Build local UI Docker images (from repo root)
    - `docker build -t graviteeio/apim-management-ui:latest -f gravitee-apim-console-webui/docker/Dockerfile gravitee-apim-console-webui`
    - `docker build -t graviteeio/apim-portal-ui:latest -f gravitee-apim-portal-webui/docker/Dockerfile gravitee-apim-portal-webui`
-4) Start full stack with MongoDB compose
+5) Start full stack with MongoDB compose
    - `cd docker/quick-setup/mongodb`
    - `LICENSE_KEY=... docker compose up -d`
 
@@ -125,7 +128,7 @@ Notes:
 * If `LICENSE_KEY` is not set, compose will warn and proceed without enterprise features.
 * Docker Desktop on Apple Silicon may warn on amd64 images (e.g., Mailhog); it usually still runs.
 * Node 25.x is not supported (odd-numbered); use Node 22.12.x.
-* If Corepack is missing, do not use Yarn 1.x; use the `npx @yarnpkg/cli-dist@4.1.1` fallback.
+* **Yarn setup**: The `package.json` declares `packageManager: yarn@4.1.1`. Use Corepack (`corepack enable`) for automatic version management, or install Yarn globally. If neither is available, use the fallback: `npx -y @yarnpkg/cli-dist@4.1.1 <command>`.
 * If Docker pull/build fails, ensure Docker Desktop is running and you are logged in if required by the registry.
 
 Environment checks:
@@ -179,20 +182,26 @@ NOTE:  `${GRAVITEE_HOME}` refers to the `target/distribution` folder created bef
 
 ==== APIM Console (gravitee-apim-console-webui)
 
+NOTE: Console is part of an Nx workspace at the repository root.
+
 IntelliJ configuration::
 
 Create a new Run configuration in IntelliJ:
 
 . Click *Run -> Edit configurations -> ✚ -> npm*.
 . Name it as required.
-. Choose *package.json: gravitee-api-management/gravitee-apim-console-webui/package.json*.
+. Choose *package.json: gravitee-api-management/package.json* (root workspace).
 . Select *Command: run*.
-. Select *Script: serve*.
+. Select *Script: console:serve*.
 
 TIP: To run `yarn` from IntelliJ, you can duplicate this configuration and choose *Command > Install*.
 
 CLI Version::
-Run `yarn serve` from the `gravitee-api-management/gravitee-apim-console-webui` directory to start the UI.
+Run `yarn console:serve` from the **repository root** to start the Console UI.
+
+Alternative backends::
+- `yarn console:serve:apim-master` - Connect to apim-master backend
+- `yarn console:serve:apim-gko` - Connect to apim-gko backend
 
 
 ==== APIM Portal (gravitee-apim-portal-webui)

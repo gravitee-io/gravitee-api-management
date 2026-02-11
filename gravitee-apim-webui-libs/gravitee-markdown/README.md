@@ -12,48 +12,46 @@ Gravitee Markdown is an enriched markdown language that extends standard markdow
 
 ## Development
 
+**NOTE**: This library is now part of an **Nx workspace** at the repository root. All commands must be run from the repository root.
+
 ### Code Scaffolding
 
-To generate new components, directives, pipes, or other Angular artifacts, use the Angular CLI with the library prefix:
+To generate new components, directives, pipes, or other Angular artifacts, use Nx:
 
 ```bash
+# From repository root
+
 # Generate a new component
-ng generate component component-name --project=gravitee-markdown
+nx generate component component-name --project=markdown
 
 # Generate a new directive
-ng generate directive directive-name --project=gravitee-markdown
+nx generate directive directive-name --project=markdown
 
 # Generate a new pipe
-ng generate pipe pipe-name --project=gravitee-markdown
+nx generate pipe pipe-name --project=markdown
 
 # Generate a new service
-ng generate service service-name --project=gravitee-markdown
+nx generate service service-name --project=markdown
 ```
 
-**Important**: Always specify `--project=gravitee-markdown` to ensure the component is generated in the correct library project.
+**Important**: Always specify `--project=markdown` to ensure the component is generated in the correct library project.
 
 ### Building the Library
 
-To build the library, run:
+To build the library from the repository root:
 
 ```bash
 # Build the library
-ng build gravitee-markdown
+nx build markdown
 
 # Build with production configuration
-ng build gravitee-markdown --configuration=production
+nx build markdown --configuration=production
+
+# Build and watch for changes (useful during development)
+nx build markdown --watch
 ```
 
-This command will compile the project, and the build artifacts will be placed in the `dist/gravitee-markdown/` directory.
-
-**Console Configuration**
-
-To build the library for the Console application, run:
-
-```bash
-# Build with console configuration
-ng build gravitee-markdown --configuration=console
-```
+This command will compile the project, and the build artifacts will be placed in the `dist/@gravitee/gravitee-markdown/` directory.
 
 ## Testing
 
@@ -63,7 +61,7 @@ For testing the library components, run the tests from the parent project root:
 
 ```bash
 # From the parent project root
-yarn test
+yarn test markdown
 ```
 
 ## Project Structure
