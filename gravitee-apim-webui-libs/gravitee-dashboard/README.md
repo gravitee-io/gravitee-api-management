@@ -1,5 +1,7 @@
 # @gravitee/gravitee-dashboard
 
+**NOTE**: This library is part of an **Nx workspace** at the repository root. All commands must be run from the repository root.
+
 ## Overview
 
 Gravitee-Dashboard is a library that provides a set of Angular components to build dashboards.
