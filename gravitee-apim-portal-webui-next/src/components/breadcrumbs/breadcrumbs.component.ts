@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 import { Component, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 export interface Breadcrumb {
   id: string;
   label: string;
+  url?: string;
 }
 
 @Component({
@@ -27,7 +29,11 @@ export interface Breadcrumb {
       @if (i > 0) {
         <span class="breadcrumb-separator">/</span>
       }
-      <span class="breadcrumb-item">{{ breadcrumb.label }}</span>
+      @if (breadcrumb.url) {
+        <a class="internal-link" [routerLink]="breadcrumb.url">{{ breadcrumb.label }}</a>
+      } @else {
+        <span class="breadcrumb-item">{{ breadcrumb.label }}</span>
+      }
     }
   `,
   styles: [
@@ -39,6 +45,7 @@ export interface Breadcrumb {
       }
     `,
   ],
+  imports: [RouterLink],
 })
 export class BreadcrumbsComponent {
   breadcrumbs = input.required<Breadcrumb[]>();
