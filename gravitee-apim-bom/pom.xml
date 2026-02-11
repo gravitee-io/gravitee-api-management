@@ -44,6 +44,12 @@
                 <version>4.5.1</version>
             </dependency>
 
+            <dependency>
+                <groupId>co.elastic.logging</groupId>
+                <artifactId>logback-ecs-encoder</artifactId>
+                <version>${logback-ecs-encoder.version}</version>
+            </dependency>
+
             <!-- Gravitee dependencies -->
             <!-- Import bom to properly inherit all dependencies -->
             <dependency>

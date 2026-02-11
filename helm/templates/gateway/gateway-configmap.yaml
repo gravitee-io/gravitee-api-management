@@ -885,6 +885,10 @@ data:
                     <timestampFormat>yyyy-MM-dd'T'HH:mm:ss.SSSXX</timestampFormat>
                 </layout>
             </encoder>
+            {{- else if .Values.gateway.logging.stdout.ecs }}
+            <encoder class="co.elastic.logging.logback.EcsEncoder">
+                <serviceName>gravitee-gateway</serviceName>
+            </encoder>
             {{- else }}
             <!-- encoders are assigned the type
                 ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
