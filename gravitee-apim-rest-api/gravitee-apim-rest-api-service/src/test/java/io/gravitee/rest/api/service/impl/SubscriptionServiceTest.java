@@ -1610,6 +1610,7 @@ public class SubscriptionServiceTest {
         when(subscription.getPlan()).thenReturn(PLAN_ID);
         when(subscription.getStatus()).thenReturn(ACCEPTED);
         when(subscription.getApi()).thenReturn(API_ID);
+        when(subscription.getIdentifier()).thenReturn(API_ID);
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(subscriptionRepository.update(any())).thenReturn(subscription);
@@ -1646,6 +1647,7 @@ public class SubscriptionServiceTest {
         when(subscription.getPlan()).thenReturn(PLAN_ID);
         when(subscription.getStatus()).thenReturn(ACCEPTED);
         when(subscription.getApi()).thenReturn(API_ID);
+        when(subscription.getIdentifier()).thenReturn(API_ID);
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(subscriptionRepository.update(any())).thenReturn(subscription);
@@ -1689,6 +1691,7 @@ public class SubscriptionServiceTest {
         when(subscription.getPlan()).thenReturn(PLAN_ID);
         when(subscription.getStatus()).thenReturn(ACCEPTED);
         when(subscription.getApi()).thenReturn(API_ID);
+        when(subscription.getIdentifier()).thenReturn(API_ID);
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(subscriptionRepository.update(any())).thenReturn(subscription);
@@ -1726,7 +1729,7 @@ public class SubscriptionServiceTest {
         transferSubscription.setPlan(PLAN_ID);
 
         when(subscription.getPlan()).thenReturn(PLAN_ID);
-        when(subscription.getApi()).thenReturn(API_ID);
+        when(subscription.getIdentifier()).thenReturn(API_ID);
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         planEntity.setStatus(PlanStatus.PUBLISHED);
         planEntity.setGeneralConditions("SOME_PAGE");
@@ -1743,25 +1746,14 @@ public class SubscriptionServiceTest {
         transferSubscription.setPlan(PLAN_ID);
 
         when(subscription.getPlan()).thenReturn(PLAN_ID);
-        when(subscription.getReferenceId()).thenReturn(API_ID);
+        when(subscription.getIdentifier()).thenReturn(API_ID);
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         planEntity.setStatus(PlanStatus.PUBLISHED);
         planEntity.setSecurity(PlanSecurityType.API_KEY);
         planEntity.setApi("another");
         planEntity.setReferenceId("another");
         planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
-
-        PlanEntity subscriptionPlanEntity = new PlanEntity();
-        subscriptionPlanEntity.setId(PLAN_ID);
-        subscriptionPlanEntity.setStatus(PlanStatus.PUBLISHED);
-        subscriptionPlanEntity.setSecurity(PlanSecurityType.API_KEY);
-        subscriptionPlanEntity.setApi(API_ID);
-        subscriptionPlanEntity.setReferenceId(API_ID);
-        subscriptionPlanEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
-
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID)))
-            .thenReturn(planEntity)
-            .thenReturn(subscriptionPlanEntity);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
         subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
     }
@@ -1773,7 +1765,7 @@ public class SubscriptionServiceTest {
         transferSubscription.setPlan(PLAN_ID);
 
         when(subscription.getPlan()).thenReturn(PLAN_ID);
-        when(subscription.getApi()).thenReturn(API_ID);
+        when(subscription.getIdentifier()).thenReturn(API_ID);
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         planEntity.setStatus(PlanStatus.STAGING);
         planEntity.setSecurity(PlanSecurityType.API_KEY);
@@ -1790,7 +1782,7 @@ public class SubscriptionServiceTest {
         transferSubscription.setPlan(PLAN_ID);
 
         when(subscription.getPlan()).thenReturn("push-plan-id");
-        when(subscription.getApi()).thenReturn(API_ID);
+        when(subscription.getIdentifier()).thenReturn(API_ID);
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         planEntity.setStatus(PlanStatus.PUBLISHED);
         planEntity.setSecurity(PlanSecurityType.API_KEY);
@@ -1813,7 +1805,7 @@ public class SubscriptionServiceTest {
         transferSubscription.setPlan("push-plan-id");
 
         when(subscription.getPlan()).thenReturn(PLAN_ID);
-        when(subscription.getApi()).thenReturn(API_ID);
+        when(subscription.getIdentifier()).thenReturn(API_ID);
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         planEntity.setStatus(PlanStatus.PUBLISHED);
         planEntity.setSecurity(PlanSecurityType.API_KEY);
@@ -1837,7 +1829,7 @@ public class SubscriptionServiceTest {
         transferSubscription.setPlan(PLAN_ID);
 
         when(subscription.getPlan()).thenReturn("JWT-plan-id");
-        when(subscription.getApi()).thenReturn(API_ID);
+        when(subscription.getIdentifier()).thenReturn(API_ID);
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         planEntity.setStatus(PlanStatus.PUBLISHED);
         planEntity.setSecurity(PlanSecurityType.API_KEY);
