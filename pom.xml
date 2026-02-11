@@ -305,7 +305,7 @@
         <gravitee-apim-repository-bridge.version>7.1.0</gravitee-apim-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>2.1.0</gravitee-secretprovider-hc-vault.version>
         <gravitee-secretprovider-aws.version>2.0.0</gravitee-secretprovider-aws.version>
-        <gravitee-service-secrets.version>3.0.0</gravitee-service-secrets.version>
+        <gravitee-service-secrets.version>3.0.1</gravitee-service-secrets.version>
         <gravitee-policy-interops.version>1.1.3</gravitee-policy-interops.version>
         <gravitee-policy-kafka-quota.version>1.2.1</gravitee-policy-kafka-quota.version>
         <gravitee-policy-kafka-topic-mapping.version>2.0.0</gravitee-policy-kafka-topic-mapping.version>
