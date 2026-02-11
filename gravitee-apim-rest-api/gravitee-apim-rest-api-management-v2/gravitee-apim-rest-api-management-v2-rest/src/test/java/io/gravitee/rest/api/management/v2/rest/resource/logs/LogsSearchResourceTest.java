@@ -32,8 +32,8 @@ import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.apim.infra.domain_service.user.UserContextLoaderImpl;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.management.v2.rest.model.logs.engine.ApiLog;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.ArrayFilter;
+import io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.Filter;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.FilterName;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.NumericFilter;
@@ -413,7 +413,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 .asEntity(SearchLogsResponse.class)
                 .satisfies(r -> {
                     assertThat(r.getData()).hasSize(2);
-                    assertThat(r.getData().stream().map(ApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req2");
+                    assertThat(r.getData().stream().map(EnvironmentApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req2");
                 });
         }
 
@@ -444,7 +444,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 .asEntity(SearchLogsResponse.class)
                 .satisfies(r -> {
                     assertThat(r.getData()).hasSize(2);
-                    assertThat(r.getData().stream().map(ApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req2");
+                    assertThat(r.getData().stream().map(EnvironmentApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req2");
                 });
         }
 
@@ -473,7 +473,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 .asEntity(SearchLogsResponse.class)
                 .satisfies(r -> {
                     assertThat(r.getData()).hasSize(2);
-                    assertThat(r.getData().stream().map(ApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req2");
+                    assertThat(r.getData().stream().map(EnvironmentApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req2");
                 });
         }
 
@@ -566,7 +566,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 .asEntity(SearchLogsResponse.class)
                 .satisfies(r -> {
                     assertThat(r.getData()).hasSize(2);
-                    assertThat(r.getData().stream().map(ApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req2");
+                    assertThat(r.getData().stream().map(EnvironmentApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req2");
                 });
         }
 
@@ -662,7 +662,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 .asEntity(SearchLogsResponse.class)
                 .satisfies(r -> {
                     assertThat(r.getData()).hasSize(2);
-                    assertThat(r.getData().stream().map(ApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req2");
+                    assertThat(r.getData().stream().map(EnvironmentApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req2");
                 });
         }
 
@@ -693,7 +693,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 .asEntity(SearchLogsResponse.class)
                 .satisfies(r -> {
                     assertThat(r.getData()).hasSize(2);
-                    assertThat(r.getData().stream().map(ApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req3");
+                    assertThat(r.getData().stream().map(EnvironmentApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req3");
                 });
         }
 
@@ -722,7 +722,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 .asEntity(SearchLogsResponse.class)
                 .satisfies(r -> {
                     assertThat(r.getData()).hasSize(2);
-                    assertThat(r.getData().stream().map(ApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req3");
+                    assertThat(r.getData().stream().map(EnvironmentApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req3");
                 });
         }
 
@@ -751,7 +751,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 .asEntity(SearchLogsResponse.class)
                 .satisfies(r -> {
                     assertThat(r.getData()).hasSize(2);
-                    assertThat(r.getData().stream().map(ApiLog::getRequestId)).containsExactlyInAnyOrder("req2", "req3");
+                    assertThat(r.getData().stream().map(EnvironmentApiLog::getRequestId)).containsExactlyInAnyOrder("req2", "req3");
                 });
         }
 
@@ -780,7 +780,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 .asEntity(SearchLogsResponse.class)
                 .satisfies(r -> {
                     assertThat(r.getData()).hasSize(2);
-                    assertThat(r.getData().stream().map(ApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req2");
+                    assertThat(r.getData().stream().map(EnvironmentApiLog::getRequestId)).containsExactlyInAnyOrder("req1", "req2");
                 });
         }
 
@@ -811,7 +811,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                 .asEntity(SearchLogsResponse.class)
                 .satisfies(r -> {
                     assertThat(r.getData()).hasSize(2);
-                    assertThat(r.getData().stream().map(ApiLog::getRequestId)).containsExactlyInAnyOrder("req2", "req3");
+                    assertThat(r.getData().stream().map(EnvironmentApiLog::getRequestId)).containsExactlyInAnyOrder("req2", "req3");
                 });
         }
     }
