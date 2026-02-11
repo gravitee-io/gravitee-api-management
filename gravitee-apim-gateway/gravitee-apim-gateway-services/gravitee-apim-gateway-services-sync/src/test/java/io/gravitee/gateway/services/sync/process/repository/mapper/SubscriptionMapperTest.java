@@ -149,4 +149,71 @@ class SubscriptionMapperTest {
         assertThat(mapped).extracting(io.gravitee.gateway.api.service.Subscription::getApi).containsExactlyInAnyOrder("api1", "api2");
         assertThat(mapped).allMatch(s -> "id".equals(s.getId()) && "product-1".equals(s.getMetadata().get("productId")));
     }
+
+    @Test
+    void should_return_empty_list_when_api_product_subscription_has_null_reference_id() {
+        subscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT);
+        subscription.setReferenceId(null);
+        subscription.setEnvironmentId("env-1");
+        cut = new SubscriptionMapper(objectMapper, mock(ApiProductRegistry.class));
+
+        List<io.gravitee.gateway.api.service.Subscription> mapped = cut.to(subscription);
+
+        assertThat(mapped).isEmpty();
+    }
+
+    @Test
+    void should_return_empty_list_when_api_product_subscription_has_null_environment_id() {
+        subscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT);
+        subscription.setReferenceId("product-1");
+        subscription.setEnvironmentId(null);
+        cut = new SubscriptionMapper(objectMapper, mock(ApiProductRegistry.class));
+
+        List<io.gravitee.gateway.api.service.Subscription> mapped = cut.to(subscription);
+
+        assertThat(mapped).isEmpty();
+    }
+
+    @Test
+    void should_return_empty_list_when_api_product_has_empty_api_ids() {
+        subscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT);
+        subscription.setReferenceId("product-1");
+        subscription.setApi(null);
+        subscription.setEnvironmentId("env-1");
+        ApiProductRegistry registry = mock(ApiProductRegistry.class);
+        ReactableApiProduct product = ReactableApiProduct.builder().id("product-1").apiIds(Set.of()).build();
+        when(registry.get("product-1", "env-1")).thenReturn(product);
+        cut = new SubscriptionMapper(objectMapper, registry);
+
+        List<io.gravitee.gateway.api.service.Subscription> mapped = cut.to(subscription);
+
+        assertThat(mapped).isEmpty();
+    }
+
+    @Test
+    void should_return_empty_list_when_api_product_has_null_api_ids() {
+        subscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT);
+        subscription.setReferenceId("product-1");
+        subscription.setApi(null);
+        subscription.setEnvironmentId("env-1");
+        ApiProductRegistry registry = mock(ApiProductRegistry.class);
+        ReactableApiProduct product = ReactableApiProduct.builder().id("product-1").apiIds(null).build();
+        when(registry.get("product-1", "env-1")).thenReturn(product);
+        cut = new SubscriptionMapper(objectMapper, registry);
+
+        List<io.gravitee.gateway.api.service.Subscription> mapped = cut.to(subscription);
+
+        assertThat(mapped).isEmpty();
+    }
+
+    @Test
+    void should_return_empty_list_on_configuration_parse_error() throws JsonProcessingException {
+        subscription.setConfiguration("invalid-json");
+        cut = new SubscriptionMapper(objectMapper, mock(ApiProductRegistry.class));
+
+        List<io.gravitee.gateway.api.service.Subscription> mapped = cut.to(subscription);
+
+        assertThat(mapped).hasSize(1);
+        assertThat(mapped.get(0).getConfiguration()).isNull();
+    }
 }
