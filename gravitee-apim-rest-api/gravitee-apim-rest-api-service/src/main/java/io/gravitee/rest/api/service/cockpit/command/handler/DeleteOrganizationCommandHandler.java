@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.TokenReferenceType;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.cockpit.command.CockpitCommandService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
@@ -53,6 +54,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
     private final AccessPointRepository accessPointRepository;
     private final AuditRepository auditRepository;
     private final CommandRepository commandRepository;
+    private final CustomDashboardRepository customDashboardRepository;
     private final CustomUserFieldsRepository customUserFieldsRepository;
     private final EntrypointRepository entrypointRepository;
     private final EnvironmentService environmentService;
@@ -75,12 +77,14 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
     private final TokenRepository tokenRepository;
     private final UserRepository userRepository;
     private final ClusterRepository clusterRepository;
+    private final DashboardRepository dashboardRepository;
     private final DeleteEnvironmentCommandHandler deleteEnvironmentCommandHandler;
 
     public DeleteOrganizationCommandHandler(
         @Lazy AccessPointRepository accessPointRepository,
         @Lazy AuditRepository auditRepository,
         @Lazy CommandRepository commandRepository,
+        @Lazy CustomDashboardRepository customDashboardRepository,
         @Lazy CustomUserFieldsRepository customUserFieldsRepository,
         @Lazy EntrypointRepository entrypointRepository,
         @Lazy FlowRepository flowRepository,
@@ -99,6 +103,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         @Lazy TokenRepository tokenRepository,
         @Lazy UserRepository userRepository,
         @Lazy ClusterRepository clusterRepository,
+        @Lazy DashboardRepository dashboardRepository,
         AccessPointCrudService accessPointService,
         EnvironmentService environmentService,
         IdentityProviderActivationService identityProviderActivationService,
@@ -110,6 +115,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         this.accessPointService = accessPointService;
         this.auditRepository = auditRepository;
         this.commandRepository = commandRepository;
+        this.customDashboardRepository = customDashboardRepository;
         this.customUserFieldsRepository = customUserFieldsRepository;
         this.entrypointRepository = entrypointRepository;
         this.environmentService = environmentService;
@@ -132,6 +138,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         this.tokenRepository = tokenRepository;
         this.userRepository = userRepository;
         this.clusterRepository = clusterRepository;
+        this.dashboardRepository = dashboardRepository;
         this.deleteEnvironmentCommandHandler = deleteEnvironmentCommandHandler;
     }
 
@@ -229,5 +236,6 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         );
         entrypointRepository.deleteByReferenceIdAndReferenceType(organization.getId(), EntrypointReferenceType.ORGANIZATION);
         clusterRepository.deleteByOrganizationId(organization.getId());
+        customDashboardRepository.deleteByOrganizationId(organization.getId());
     }
 }

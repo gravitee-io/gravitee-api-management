@@ -42,6 +42,7 @@ import org.junit.runners.Suite;
         ClientRegistrationProviderRepositoryTest.class,
         CommandRepositoryTest.class,
         CustomUserFieldsRepositoryTest.class,
+        CustomDashboardRepositoryTest.class,
         DashboardRepositoryTest.class,
         DictionaryRepositoryTest.class,
         EntrypointRepositoryTest.class,
