@@ -194,6 +194,7 @@ services:
         container_name: kafka-init
         volumes:
             - data-kafka:/var/lib/kafka/data
+            - ./.config/server.properties:/opt/kafka/config/kraft/server.properties
         command: >
             bash -c "
             if [ ! -f /var/lib/kafka/data/meta.properties ]; then
