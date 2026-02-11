@@ -704,6 +704,10 @@ data:
                       <timestampFormat>yyyy-MM-dd'T'HH:mm:ss.SSSXX</timestampFormat>
                   </layout>
               </encoder>
+              {{- else if .Values.api.logging.stdout.ecs }}
+              <encoder class="co.elastic.logging.logback.EcsEncoder">
+                  <serviceName>gravitee-management-api</serviceName>
+              </encoder>
               {{- else }}
               <!-- encoders are assigned the type
                   ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
