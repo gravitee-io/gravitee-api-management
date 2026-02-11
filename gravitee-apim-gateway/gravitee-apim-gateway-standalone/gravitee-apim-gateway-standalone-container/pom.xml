@@ -261,6 +261,11 @@
             <artifactId>logback-json-core</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>co.elastic.logging</groupId>
+            <artifactId>logback-ecs-encoder</artifactId>
+            <scope>compile</scope>
+        </dependency>
 
         <!-- Kafka -->
         <dependency>
