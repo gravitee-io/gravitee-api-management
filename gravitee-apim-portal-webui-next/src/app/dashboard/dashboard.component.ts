@@ -16,7 +16,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
-import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
 
 import { Breadcrumb } from '../../components/breadcrumbs/breadcrumbs.component';
@@ -36,8 +36,7 @@ const MENU_ITEMS: MenuItem[] = [{ path: 'subscriptions', title: $localize`:@@sub
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent {
-  router = inject(Router);
-  activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   menuItems = signal<MenuItem[]>(MENU_ITEMS);
 
   breadcrumbs = toSignal<Breadcrumb[]>(
