@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.model.mapper;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static io.gravitee.definition.model.v4.flow.execution.FlowMode.BEST_MATCH;
 import static io.gravitee.definition.model.v4.flow.execution.FlowMode.DEFAULT;
+import static io.gravitee.plugin.configurations.http.ProtocolVersion.HTTP_1_1;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -57,6 +58,7 @@ import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
@@ -73,6 +75,36 @@ class ApiMigration {
     private final ObjectMapper jsonMapper;
     private final ApiServicesMigration apiServicesMigration;
     private final SharedConfigurationMigration sharedConfigurationMigration;
+    private static final Set<String> HTTP11_ALLOWED = Set.of(
+        "version",
+        "keepAlive",
+        "keepAliveTimeout",
+        "connectTimeout",
+        "pipelining",
+        "readTimeout",
+        "useCompression",
+        "propagateClientAcceptEncoding",
+        "propagateClientHost",
+        "idleTimeout",
+        "followRedirects",
+        "maxConcurrentConnections"
+    );
+    private static final Set<String> HTTP2_ALLOWED = Set.of(
+        "version",
+        "clearTextUpgrade",
+        "keepAlive",
+        "keepAliveTimeout",
+        "connectTimeout",
+        "pipelining",
+        "readTimeout",
+        "useCompression",
+        "propagateClientAcceptEncoding",
+        "propagateClientHost",
+        "idleTimeout",
+        "followRedirects",
+        "maxConcurrentConnections",
+        "http2MultiplexingLimit"
+    );
 
     public ApiMigration(ObjectMapper jsonMapper) {
         this.jsonMapper = jsonMapper;
@@ -361,6 +393,19 @@ class ApiMigration {
                     response.put("assertion", StringUtils.appendCurlyBraces(assertionsNode.get(0).asText()));
                 }
             }
+            JsonNode httpProxyNode = root.path("proxy");
+            System.out.println("httpProxyNode is = " + httpProxyNode);
+            if (httpProxyNode.isObject()) {
+                ObjectNode proxyObject = (ObjectNode) httpProxyNode;
+
+                boolean enabled = proxyObject.path("enabled").asBoolean(false);
+                boolean useSystemProxy = proxyObject.path("useSystemProxy").asBoolean(false);
+
+                if (enabled && useSystemProxy) {
+                    proxyObject.remove("port");
+                    proxyObject.remove("type");
+                }
+            }
             return MigrationResult.value(jsonMapper.writeValueAsString(root));
         } catch (JsonProcessingException e) {
             log.error("Unable to map configuration for endpoint", e);
@@ -398,6 +443,28 @@ class ApiMigration {
             var jsonNode = jsonMapper.readTree(lb.getConfiguration()).get("target");
             var target = jsonNode != null ? jsonNode.asText() : null;
             var target1 = jsonMapper.createObjectNode().put("target", target);
+            var proxyNode = jsonMapper.readTree(lb.getConfiguration()).get("proxy");
+            if (proxyNode != null) {
+                ObjectNode proxyObject = (ObjectNode) proxyNode;
+                boolean enabled = proxyNode.path("enabled").asBoolean(false);
+                boolean useSystemProxy = proxyNode.path("useSystemProxy").asBoolean(false);
+
+                if (enabled && useSystemProxy) {
+                    proxyObject.remove("port");
+                    proxyObject.remove("type");
+                }
+            }
+            //uncomment this for http issue
+            /*var httpNode = jsonMapper.readTree(lb.getConfiguration()).get("http");
+            if (httpNode != null) {
+                ObjectNode httpObject = (ObjectNode) httpNode;
+                String version = httpNode.path("version").asText();
+                if (version.equals(HTTP_1_1.name())) {
+                    httpObject.retain(HTTP11_ALLOWED);
+                } else {
+                    httpObject.retain(HTTP2_ALLOWED);
+                }
+            }*/
             return MigrationResult.value(jsonMapper.writeValueAsString(target1));
         } catch (JsonProcessingException e) {
             log.error("Unable to map configuration for endpoint {}", lb.getName(), e);

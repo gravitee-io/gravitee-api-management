@@ -78,7 +78,20 @@ public class SharedConfigurationMigration {
             sharedConfiguration.set("headers", objectMapper.valueToTree(source.getHeaders()));
         }
         if (source.getHttpProxy() != null) {
-            sharedConfiguration.set("proxy", objectMapper.valueToTree((source.getHttpProxy())));
+            ObjectNode proxyNode = (ObjectNode) objectMapper.valueToTree(source.getHttpProxy());
+            if (source.getHttpProxy().isEnabled() && source.getHttpProxy().isUseSystemProxy()) {
+                proxyNode.remove("host");
+                proxyNode.remove("port");
+                proxyNode.remove("type");
+                proxyNode.put("useSystemProxy", true);
+                proxyNode.remove("enabled");
+            } else {
+                String host = source.getHttpProxy().getHost();
+                if (host == null || host.isEmpty() || host.equals("null")) {
+                    proxyNode.put("host", String.valueOf("/"));
+                }
+            }
+            sharedConfiguration.set("proxy", proxyNode);
         }
         return objectMapper.writeValueAsString(sharedConfiguration);
     }
@@ -109,7 +122,6 @@ public class SharedConfigurationMigration {
         }
 
         ObjectNode node = objectMapper.valueToTree(v4);
-
         return versionV4 == HTTP_1_1 ? node.retain(HTTP11_ALLOWED) : node.retain(HTTP2_ALLOWED);
     }
 
