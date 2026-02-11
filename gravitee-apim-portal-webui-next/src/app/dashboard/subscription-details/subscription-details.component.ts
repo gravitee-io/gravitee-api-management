@@ -27,7 +27,7 @@ import { SubscriptionsDetailsComponent } from '../../api/api-details/api-tab-sub
   styleUrl: './subscription-details.component.scss',
 })
 export default class SubscriptionDetailsComponent {
-  subscriptionService = inject(SubscriptionService);
+  private readonly subscriptionService = inject(SubscriptionService);
   subscriptionId = input.required<string>();
   apiId = rxResource({
     params: this.subscriptionId,
