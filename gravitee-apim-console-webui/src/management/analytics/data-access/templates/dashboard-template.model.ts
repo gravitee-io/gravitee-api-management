@@ -18,6 +18,7 @@ import { Dashboard } from '@gravitee/gravitee-dashboard';
 export interface DashboardTemplate {
   id: string;
   name: string;
+  shortDescription: string;
   description: string;
   previewImage: string;
   initialConfig: Partial<Dashboard>;

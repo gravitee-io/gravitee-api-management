@@ -29,15 +29,17 @@
       </mat-form-field>
     </div>
 
-    <mat-paginator
-      class="gio-table-wrapper__header-bar__paginator"
-      #paginatorTop
-      [length]="length"
-      [pageSizeOptions]="paginationPageSizeOptions"
-      [hidePageSize]="disablePageSize"
-      aria-label="Select page"
-      data-testid="paginator-header"
-    ></mat-paginator>
+    @if (!disablePaginator) {
+      <mat-paginator
+        class="gio-table-wrapper__header-bar__paginator"
+        #paginatorTop
+        [length]="length"
+        [pageSizeOptions]="paginationPageSizeOptions"
+        [hidePageSize]="disablePageSize"
+        aria-label="Select page"
+        data-testid="paginator-header"
+      ></mat-paginator>
+    }
   </div>
 </div>
 
