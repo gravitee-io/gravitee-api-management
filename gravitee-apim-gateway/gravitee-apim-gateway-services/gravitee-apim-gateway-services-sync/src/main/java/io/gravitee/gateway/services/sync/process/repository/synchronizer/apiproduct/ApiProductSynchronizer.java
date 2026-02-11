@@ -48,6 +48,7 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
 
     private final LatestEventFetcher eventsFetcher;
     private final ApiProductMapper apiProductMapper;
+    private final ApiProductPlanAppender apiProductPlanAppender;
     private final DeployerFactory deployerFactory;
     private final ThreadPoolExecutor syncFetcherExecutor;
     private final ThreadPoolExecutor syncDeployerExecutor;
@@ -55,12 +56,14 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
     public ApiProductSynchronizer(
         final LatestEventFetcher eventsFetcher,
         final ApiProductMapper apiProductMapper,
+        final ApiProductPlanAppender apiProductPlanAppender,
         final DeployerFactory deployerFactory,
         final ThreadPoolExecutor syncFetcherExecutor,
         final ThreadPoolExecutor syncDeployerExecutor
     ) {
         this.eventsFetcher = eventsFetcher;
         this.apiProductMapper = apiProductMapper;
+        this.apiProductPlanAppender = apiProductPlanAppender;
         this.deployerFactory = deployerFactory;
         this.syncFetcherExecutor = syncFetcherExecutor;
         this.syncDeployerExecutor = syncDeployerExecutor;
@@ -80,7 +83,7 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
             )
             .subscribeOn(Schedulers.from(syncFetcherExecutor))
             .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
-            .compose(this::processEvents)
+            .compose(events -> processEvents(events, environments))
             .count()
             .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
             .doOnSuccess(count -> {
@@ -103,7 +106,10 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
         return Order.API_PRODUCT.index();
     }
 
-    private Flowable<ApiProductReactorDeployable> processEvents(final Flowable<List<Event>> eventsFlowable) {
+    private Flowable<ApiProductReactorDeployable> processEvents(
+        final Flowable<List<Event>> eventsFlowable,
+        final Set<String> environments
+    ) {
         return eventsFlowable
             // fetch per page
             .flatMap(events ->
@@ -113,7 +119,7 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
                     .groupBy(Event::getType)
                     .flatMap(eventsByType -> {
                         if (eventsByType.getKey() == EventType.DEPLOY_API_PRODUCT) {
-                            return prepareForDeployment(eventsByType);
+                            return prepareForDeployment(eventsByType, environments);
                         } else if (eventsByType.getKey() == EventType.UNDEPLOY_API_PRODUCT) {
                             return prepareForUndeployment(eventsByType);
                         } else {
@@ -140,7 +146,10 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
             });
     }
 
-    private Flowable<ApiProductReactorDeployable> prepareForDeployment(final GroupedFlowable<EventType, Event> eventsByType) {
+    private Flowable<ApiProductReactorDeployable> prepareForDeployment(
+        final GroupedFlowable<EventType, Event> eventsByType,
+        final Set<String> environments
+    ) {
         return eventsByType
             .flatMapMaybe(apiProductMapper::to)
             .map(reactableApiProduct ->
@@ -151,6 +160,7 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
                     .build()
             )
             .buffer(bulkEvents())
+            .map(deployables -> apiProductPlanAppender.appends(deployables, environments))
             .flatMapIterable(d -> d);
     }
 

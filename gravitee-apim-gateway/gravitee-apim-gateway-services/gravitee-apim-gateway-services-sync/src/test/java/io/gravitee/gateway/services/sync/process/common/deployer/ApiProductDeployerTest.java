@@ -16,22 +16,20 @@
 package io.gravitee.gateway.services.sync.process.common.deployer;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
-import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
+import io.gravitee.gateway.handlers.api.registry.ApiProductPlanDefinitionCache;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.PlanRepository;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -54,16 +52,13 @@ class ApiProductDeployerTest {
     private io.gravitee.gateway.handlers.api.manager.ApiProductManager apiProductManager;
 
     @Mock
-    private PlanRepository planRepository;
-
-    @Mock
     private PlanService planService;
 
     @Mock
     private DistributedSyncService distributedSyncService;
 
     @Mock
-    private ProductPlanDefinitionCache productPlanDefinitionCache;
+    private ApiProductPlanDefinitionCache apiProductPlanDefinitionCache;
 
     @Mock
     private EventManager eventManager;
@@ -71,19 +66,11 @@ class ApiProductDeployerTest {
     private ApiProductDeployer cut;
 
     @BeforeEach
-    void setUp() throws TechnicalException {
-        cut = new ApiProductDeployer(apiProductManager, planRepository, planService, distributedSyncService, productPlanDefinitionCache);
+    void setUp() {
+        cut = new ApiProductDeployer(apiProductManager, planService, distributedSyncService, apiProductPlanDefinitionCache);
         lenient()
             .when(distributedSyncService.distributeIfNeeded(any(ApiProductReactorDeployable.class)))
             .thenReturn(Completable.complete());
-        lenient()
-            .when(
-                planRepository.findByReferenceIdAndReferenceType(
-                    any(),
-                    eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT)
-                )
-            )
-            .thenReturn(Set.of());
     }
 
     @Nested
@@ -104,6 +91,8 @@ class ApiProductDeployerTest {
                 .syncAction(SyncAction.DEPLOY)
                 .apiProductId("api-product-123")
                 .reactableApiProduct(reactableApiProduct)
+                .subscribablePlans(Set.of())
+                .definitionPlans(List.of())
                 .build();
 
             cut.deploy(deployable).test().assertComplete();
@@ -125,6 +114,8 @@ class ApiProductDeployerTest {
                 .syncAction(SyncAction.DEPLOY)
                 .apiProductId("api-product-min")
                 .reactableApiProduct(reactableApiProduct)
+                .subscribablePlans(Set.of())
+                .definitionPlans(List.of())
                 .build();
 
             cut.deploy(deployable).test().assertComplete();
@@ -146,6 +137,8 @@ class ApiProductDeployerTest {
                 .syncAction(SyncAction.DEPLOY)
                 .apiProductId("api-product-123")
                 .reactableApiProduct(reactableApiProduct)
+                .subscribablePlans(Set.of())
+                .definitionPlans(List.of())
                 .build();
 
             cut.doAfterDeployment(deployable).test().assertComplete();
@@ -165,8 +158,8 @@ class ApiProductDeployerTest {
 
             cut.undeploy(deployable).test().assertComplete();
             verify(apiProductManager).unregister("api-product-123");
-            verify(planService).unregisterForApiProduct("api-product-123");
-            verify(productPlanDefinitionCache).unregister("api-product-123");
+            verify(planService).unregister(deployable);
+            verify(apiProductPlanDefinitionCache).unregister("api-product-123");
         }
 
         @Test
@@ -179,6 +172,7 @@ class ApiProductDeployerTest {
 
             cut.undeploy(deployable).test().assertComplete();
             verify(apiProductManager).unregister("api-product-456");
+            verify(planService).unregister(deployable);
         }
 
         @Test
@@ -280,6 +274,8 @@ class ApiProductDeployerTest {
                 .syncAction(action)
                 .apiProductId(product.getId())
                 .reactableApiProduct(product)
+                .subscribablePlans(Set.of())
+                .definitionPlans(List.of())
                 .build();
         }
 

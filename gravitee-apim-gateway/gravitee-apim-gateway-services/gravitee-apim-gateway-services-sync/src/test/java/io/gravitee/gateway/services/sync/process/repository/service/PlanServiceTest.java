@@ -58,7 +58,7 @@ class PlanServiceTest {
 
         @Test
         void should_not_register_null() {
-            cut.register(null);
+            cut.register((ApiReactorDeployable) null);
             ReflectionUtils.tryToReadFieldValue(PlanService.class, "plansPerApi", cut).andThen(plansPerApi -> {
                 Map<String, Set<String>> map = (Map<String, Set<String>>) plansPerApi;
                 assertThat(map).isEmpty();
@@ -98,7 +98,7 @@ class PlanServiceTest {
                     return Try.success(plansPerApi);
                 })
                 .andThen(plansPerApi -> {
-                    cut.unregister(null);
+                    cut.unregister((ApiReactorDeployable) null);
                     return Try.success(plansPerApi);
                 })
                 .andThen(plansPerApi -> {

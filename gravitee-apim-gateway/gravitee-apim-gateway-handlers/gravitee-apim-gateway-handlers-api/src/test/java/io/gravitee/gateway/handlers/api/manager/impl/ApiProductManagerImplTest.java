@@ -17,11 +17,11 @@ package io.gravitee.gateway.handlers.api.manager.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import java.util.Collection;
@@ -48,16 +48,13 @@ class ApiProductManagerImplTest {
     private ApiProductRegistry apiProductRegistry;
 
     @Mock
-    private io.gravitee.node.api.license.LicenseManager licenseManager;
-
-    @Mock
-    private io.gravitee.common.event.EventManager eventManager;
+    private EventManager eventManager;
 
     private ApiProductManagerImpl manager;
 
     @BeforeEach
     void setUp() {
-        manager = new ApiProductManagerImpl(apiProductRegistry, null, eventManager);
+        manager = new ApiProductManagerImpl(apiProductRegistry, eventManager);
     }
 
     @Nested

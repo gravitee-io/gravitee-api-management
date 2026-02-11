@@ -578,7 +578,6 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
 
             if (analyticsContext.isTracingEnabled()) {
                 invokerHooks.add(new InvokerTracingHook("Invoker"));
-                httpSecurityChain.addHooks(new TracingHook("Security"));
             }
         }
         addInvokerHooks(invokerHooks);
@@ -662,21 +661,23 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
      * Rebuilds the chain with latest product plan definitions from the registry.
      */
     private void refreshSecurityChainInternal() {
-        HttpSecurityChain newChain = new HttpSecurityChain(
-            api.getDefinition(),
-            policyManager,
-            ExecutionPhase.REQUEST,
-            api.getEnvironmentId(),
-            apiProductRegistry,
-            apiProductPlanPolicyManager
-        );
-
-        // Re-apply hooks if they were set
-        if (analyticsContext != null && analyticsContext.isTracingEnabled()) {
-            newChain.addHooks(new TracingHook("Security"));
+        HttpSecurityChain chain;
+        if (apiProductRegistry != null && apiProductPlanPolicyManager != null) {
+            chain = new HttpSecurityChain(
+                api.getDefinition(),
+                policyManager,
+                ExecutionPhase.REQUEST,
+                api.getEnvironmentId(),
+                apiProductRegistry,
+                apiProductPlanPolicyManager
+            );
+        } else {
+            chain = new HttpSecurityChain(api.getDefinition(), policyManager, ExecutionPhase.REQUEST);
         }
-
-        this.httpSecurityChain = newChain;
+        if (tracingContext != null && tracingContext.isEnabled()) {
+            chain.addHooks(List.of(new TracingHook("Security")));
+        }
+        this.httpSecurityChain = chain;
     }
 
     protected void addInvokerHooks(List<InvokerHook> invokerHooks) {}
