@@ -215,6 +215,11 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
           routerLink: './analytics/logs-explorer',
           category: 'Analytics',
         },
+        {
+          displayName: 'Classic view',
+          routerLink: './analytics/dashboard',
+          category: 'Analytics',
+        },
       ],
     });
 

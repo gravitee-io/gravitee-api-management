@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Component, computed, inject, signal } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { GioActionMenuComponent, GioActionMenuItemComponent } from '@gravitee/ui-particles-angular';
 import { MatButton } from '@angular/material/button';
 import {
@@ -31,10 +32,15 @@ import {
 } from '@angular/material/table';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
-import { MatTooltip } from '@angular/material/tooltip';
 import { MatIcon } from '@angular/material/icon';
 import { startWith, switchMap, map, debounceTime } from 'rxjs/operators';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { MatDivider } from '@angular/material/list';
+import { KeyValuePipe } from '@angular/common';
+import { MatTooltip } from '@angular/material/tooltip';
+import { RouterLink } from '@angular/router';
+
+import { TemplateSelectorDialogComponent } from './ui/template-selector-dialog/template-selector-dialog.component';
 
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
@@ -63,16 +69,20 @@ import { DashboardService } from '../../data-access/dashboard.service';
     MatSortHeader,
     MatTable,
     MatNoDataRow,
-    MatTooltip,
     MatMenuTrigger,
+    MatDivider,
+    KeyValuePipe,
+    MatTooltip,
+    RouterLink,
   ],
   templateUrl: './dashboards-list.component.html',
   styleUrls: ['./dashboards-list.component.scss'],
 })
 export class DashboardsListComponent {
   private readonly dashboardService = inject(DashboardService);
+  private readonly dialog = inject(MatDialog);
 
-  public displayedColumns = ['name', 'createdBy', 'lastUpdated', 'actions'];
+  public displayedColumns = ['name', 'createdBy', 'lastUpdated', 'labels', 'actions'];
 
   public filters = signal<GioTableWrapperFilters>({
     pagination: { index: 1, size: 10 },
@@ -93,7 +103,6 @@ export class DashboardsListComponent {
   );
 
   public dashboardItems = computed(() => this.dashboardsResource().result?.data ?? []);
-  public totalCount = computed(() => this.dashboardsResource().result?.pagination?.totalCount ?? 0);
   public isLoading = computed(() => this.dashboardsResource().isLoading);
 
   public onFiltersChanged(event: GioTableWrapperFilters) {
@@ -102,5 +111,15 @@ export class DashboardsListComponent {
 
   public onSortChanged(sort: { active: string; direction: string }) {
     this.filters.update(f => ({ ...f, sort: { active: sort.active, direction: sort.direction as 'asc' | 'desc' } }));
+  }
+
+  public openTemplateDialog(): void {
+    this.dialog.open(TemplateSelectorDialogComponent, {
+      panelClass: 'template-selector-dialog-panel',
+      width: '1300px',
+      maxWidth: '90vw',
+      height: '720px',
+      maxHeight: '80vh',
+    });
   }
 }

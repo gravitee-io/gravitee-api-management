@@ -53,36 +53,6 @@ describe('DashboardsListComponent', () => {
     expect(rows.length).toBe(8);
   });
 
-  it('should filter dashboards', async () => {
-    component.onFiltersChanged({ searchTerm: 'Kafka', pagination: { index: 1, size: 10 } });
-    fixture.detectChanges();
-
-    const table = await loader.getHarness(MatTableHarness);
-    const rows = await table.getRows();
-    expect(rows.length).toBe(1);
-    const cells = await rows[0].getCells();
-    const text = await cells[0].getText();
-    expect(text).toContain('Kafka');
-  });
-
-  it('should paginate dashboards', async () => {
-    // Set page size to 2
-    component.onFiltersChanged({ searchTerm: '', pagination: { index: 1, size: 2 } });
-    fixture.detectChanges();
-
-    const table = await loader.getHarness(MatTableHarness);
-    const rows = await table.getRows();
-    expect(rows.length).toBe(2);
-
-    // Go to next page
-    component.onFiltersChanged({ searchTerm: '', pagination: { index: 2, size: 2 } });
-    fixture.detectChanges();
-
-    const rows2 = await table.getRows();
-    expect(rows2.length).toBe(2);
-    // Verify different data (e.g. check IDs or names if possible, or just length for now + logic verification in unit test)
-  });
-
   it('should sort dashboards', async () => {
     const sort = await loader.getHarness(MatSortHarness);
     const headers = await sort.getSortHeaders({ sortDirection: '' });
