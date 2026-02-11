@@ -80,6 +80,7 @@ public abstract class SubscriptionAdapter {
     public abstract Subscription fromEntity(SubscriptionEntity subscription);
 
     @Mapping(source = "apiId", target = "api")
+    @Mapping(source = "referenceType", target = "referenceType", qualifiedByName = "coreReferenceTypeToRest")
     @Mapping(source = "planId", target = "plan")
     @Mapping(source = "applicationId", target = "application")
     @Mapping(source = "requestMessage", target = "request")
@@ -89,7 +90,7 @@ public abstract class SubscriptionAdapter {
     public abstract io.gravitee.rest.api.model.SubscriptionEntity map(SubscriptionEntity subscription);
 
     @Mapping(target = "type", ignore = true)
-    @Mapping(source = "api", target = "apiId")
+    @Mapping(target = "referenceType", source = "referenceType", qualifiedByName = "restReferenceTypeToCore")
     @Mapping(source = "plan", target = "planId")
     @Mapping(source = "application", target = "applicationId")
     @Mapping(source = "request", target = "requestMessage")
@@ -171,6 +172,19 @@ public abstract class SubscriptionAdapter {
             return null;
         }
         return io.gravitee.repository.management.model.SubscriptionReferenceType.valueOf(coreType.name());
+    }
+
+    @Named("coreReferenceTypeToRest")
+    protected String referenceTypeToRestString(SubscriptionReferenceType referenceType) {
+        return referenceType == null ? null : referenceType.name();
+    }
+
+    @Named("restReferenceTypeToCore")
+    protected SubscriptionReferenceType restReferenceTypeToCore(String referenceType) {
+        if (referenceType == null) {
+            return SubscriptionReferenceType.API;
+        }
+        return SubscriptionReferenceType.valueOf(referenceType);
     }
 
     @Named("serializeConfiguration")

@@ -1205,8 +1205,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 throw new SubscriptionFailureCustomerStatusRequiredException();
             }
 
-            // Use subscription's referenceId if available, otherwise fallback to deprecated api field
-            String referenceId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
+            String referenceId = subscription.getReferenceId();
             boolean isApiProduct = subscription.getReferenceType() == SubscriptionReferenceType.API_PRODUCT;
             GenericApiModel genericApiModel = null;
             if (!isApiProduct && referenceId != null) {
@@ -1508,7 +1507,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     .flatMap(apiKey -> findByIdIn(apiKey.getSubscriptionIds()).stream())
                     .filter(
                         subscription ->
-                            query.matchesApi(subscription.getApi()) &&
+                            query.matchesApi(subscription.getReferenceId()) &&
                             query.matchesApplication(subscription.getApplication()) &&
                             query.matchesPlan(subscription.getPlan()) &&
                             query.matchesStatus(subscription.getStatus())
@@ -1628,7 +1627,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 .orElseThrow(() -> new SubscriptionNotFoundException(transferSubscription.getId()));
             GenericPlanEntity subscriptionGenericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
             String transferReferenceId = transferGenericPlanEntity.getReferenceId();
-            String subscriptionReferenceId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
+            String subscriptionReferenceId = subscription.getReferenceId();
             if (
                 !transferReferenceId.equals(subscriptionReferenceId) || //Don't transfer to another API/API Product
                 transferGenericPlanEntity.getPlanStatus() != PlanStatus.PUBLISHED || //Don't transfer to a non published plan
@@ -1808,8 +1807,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .map(withApis -> {
                 Set<String> apiIds = subscriptions
                     .stream()
-                    .map(SubscriptionEntity::getApi)
-                    .filter(apiId -> apiId != null)
+                    .filter(sub -> "API".equals(sub.getReferenceType()) && sub.getReferenceId() != null)
+                    .map(SubscriptionEntity::getReferenceId)
                     .collect(toSet());
                 return apiSearchService
                     .findGenericByEnvironmentAndIdIn(executionContext, apiIds)
@@ -1878,8 +1877,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         SubscriptionEntity subscription,
         SubscriptionMetadataQuery query
     ) {
-        if (apis.containsKey(subscription.getApi())) {
-            GenericApiEntity api = apis.get(subscription.getApi());
+        if (subscription.getReferenceId() != null && apis.containsKey(subscription.getReferenceId())) {
+            GenericApiEntity api = apis.get(subscription.getReferenceId());
             metadata.put(api.getId(), "name", api.getName());
             metadata.put(api.getId(), "definitionVersion", api.getDefinitionVersion());
             metadata.put(api.getId(), "apiVersion", api.getApiVersion());
@@ -1908,7 +1907,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         SubscriptionEntity entity = new SubscriptionEntity();
 
         entity.setId(subscription.getId());
-        entity.setApi(subscription.getApi());
+        entity.setReferenceId(subscription.getReferenceId());
+        entity.setReferenceType(subscription.getReferenceType() != null ? subscription.getReferenceType().name() : null);
         entity.setPlan(subscription.getPlan());
         entity.setProcessedAt(subscription.getProcessedAt());
         entity.setStatus(SubscriptionStatus.valueOf(subscription.getStatus().name()));

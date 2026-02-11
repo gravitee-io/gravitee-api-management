@@ -63,7 +63,8 @@ public class ApiSubscriptionsResource_UpdateTest extends AbstractApiSubscription
         final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
             .toBuilder()
             .id(SUBSCRIPTION)
-            .api("ANOTHER-API")
+            .referenceId("ANOTHER-API")
+            .referenceType("API")
             .build();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
@@ -100,7 +101,8 @@ public class ApiSubscriptionsResource_UpdateTest extends AbstractApiSubscription
         final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
             .toBuilder()
             .id(SUBSCRIPTION)
-            .api(API)
+            .referenceId(API)
+            .referenceType("API")
             .plan(PLAN)
             .build();
         final UpdateSubscription updateSubscription = SubscriptionFixtures.anUpdateSubscription();

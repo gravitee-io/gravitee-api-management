@@ -293,6 +293,8 @@ public class ApiSubscriptionsResource extends AbstractResource {
         );
         subscription.setMetadata(subscriptionEntity.getMetadata());
         subscription.setConfiguration(subscriptionEntity.getConfiguration());
+        subscription.setReferenceId(subscriptionEntity.getReferenceId());
+        subscription.setReferenceType(subscriptionEntity.getReferenceType());
 
         GenericPlanEntity plan = planSearchService.findById(executionContext, subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));

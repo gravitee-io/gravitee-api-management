@@ -40,6 +40,12 @@ public class Subscription {
 
     private Api api;
 
+    /** Reference id (API id or API Product id). */
+    private String referenceId;
+
+    /** Reference type: API or API_PRODUCT. */
+    private String referenceType;
+
     private Plan plan;
 
     private Application application;
