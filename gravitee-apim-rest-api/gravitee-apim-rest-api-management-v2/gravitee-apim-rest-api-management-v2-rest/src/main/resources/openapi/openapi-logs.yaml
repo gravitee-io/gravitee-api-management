@@ -189,7 +189,7 @@ components:
         data:
           type: array
           items:
-            $ref: "#/components/schemas/ApiLog"
+            $ref: "#/components/schemas/EnvironmentApiLog"
           example:
             - requestId: "req-001"
               apiId: "7b6ebef3-6236-4ac5-815e-d3dcef83df5d"
@@ -210,7 +210,7 @@ components:
           example:
             self: "/environments/DEFAULT/logs/search?page=1&perPage=10"
 
-    ApiLog:
+    EnvironmentApiLog:
       type: object
       properties:
         apiId:
