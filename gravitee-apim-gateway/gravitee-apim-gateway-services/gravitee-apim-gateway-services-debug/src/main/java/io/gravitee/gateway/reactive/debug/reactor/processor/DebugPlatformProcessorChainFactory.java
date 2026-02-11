@@ -66,6 +66,13 @@ public class DebugPlatformProcessorChainFactory extends DefaultPlatformProcessor
     }
 
     @Override
+    protected List<Processor> buildPreProcessorList() {
+        List<Processor> processorList = super.buildPreProcessorList();
+        processorList.add(new DebugInitProcessor());
+        return processorList;
+    }
+
+    @Override
     protected List<Processor> buildPostProcessorList() {
         List<Processor> processorList = super.buildPostProcessorList();
         processorList.add(new DebugCompletionProcessor(eventRepository, objectMapper));
