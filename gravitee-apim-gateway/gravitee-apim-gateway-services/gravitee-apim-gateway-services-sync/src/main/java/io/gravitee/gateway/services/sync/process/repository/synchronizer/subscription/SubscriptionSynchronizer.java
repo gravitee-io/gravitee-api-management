@@ -133,11 +133,10 @@ public class SubscriptionSynchronizer implements RepositorySynchronizer {
     }
 
     private boolean isPlanDeployed(Subscription subscription) {
-        String referenceId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
         Plan.PlanReferenceType referenceType = subscription.getReferenceType() != null
             ? toPlanReferenceType(subscription.getReferenceType())
             : Plan.PlanReferenceType.API;
-        return planCache.isDeployed(referenceId, subscription.getPlan(), referenceType);
+        return planCache.isDeployed(subscription.getIdentifier(), subscription.getPlan(), referenceType);
     }
 
     private static Plan.PlanReferenceType toPlanReferenceType(SubscriptionReferenceType subscriptionReferenceType) {

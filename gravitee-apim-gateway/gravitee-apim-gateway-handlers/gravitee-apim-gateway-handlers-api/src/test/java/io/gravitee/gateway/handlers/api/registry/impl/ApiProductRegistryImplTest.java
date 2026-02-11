@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
-import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
+import io.gravitee.gateway.handlers.api.registry.ApiProductPlanDefinitionCache;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Set;
@@ -37,11 +37,11 @@ import org.junit.jupiter.api.Test;
 class ApiProductRegistryImplTest {
 
     private ApiProductRegistryImpl registry;
-    private ProductPlanDefinitionCache planCache;
+    private ApiProductPlanDefinitionCache planCache;
 
     @BeforeEach
     void setUp() {
-        planCache = mock(ProductPlanDefinitionCache.class);
+        planCache = mock(ApiProductPlanDefinitionCache.class);
         registry = new ApiProductRegistryImpl(planCache);
     }
 

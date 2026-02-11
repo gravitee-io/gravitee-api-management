@@ -100,11 +100,7 @@ public class SubscriptionMapper {
 
     private Subscription mapToGatewaySubscription(io.gravitee.repository.management.model.Subscription subscriptionModel) {
         Subscription subscription = new Subscription();
-        // For API subscriptions: api=referenceId or legacy api. For API Product: api may be null
-        String api = subscriptionModel.getReferenceType() == SubscriptionReferenceType.API
-            ? (subscriptionModel.getReferenceId() != null ? subscriptionModel.getReferenceId() : subscriptionModel.getApi())
-            : subscriptionModel.getApi();
-        subscription.setApi(api);
+        subscription.setApi(resolveApiId(subscriptionModel));
         subscription.setApplication(subscriptionModel.getApplication());
         subscription.setApplicationName(subscriptionModel.getApplicationName());
         subscription.setClientId(subscriptionModel.getClientId());
@@ -143,5 +139,13 @@ public class SubscriptionMapper {
         subscription.setMetadata(metadata);
         subscription.setEnvironmentId(subscriptionModel.getEnvironmentId());
         return subscription;
+    }
+
+    /** Resolve API id: API ref uses referenceId or legacy api; API Product uses api. */
+    private String resolveApiId(io.gravitee.repository.management.model.Subscription subscriptionModel) {
+        if (subscriptionModel.getReferenceType() == SubscriptionReferenceType.API) {
+            return subscriptionModel.getReferenceId() != null ? subscriptionModel.getReferenceId() : subscriptionModel.getApi();
+        }
+        return subscriptionModel.getApi();
     }
 }

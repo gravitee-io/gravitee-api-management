@@ -190,6 +190,14 @@ public class Subscription implements Serializable {
     }
 
     /**
+     * Returns the identifier for this subscription (referenceId if set, otherwise legacy api).
+     * Used for plan lookup and other operations that need the API or API Product id.
+     */
+    public String getIdentifier() {
+        return referenceId != null ? referenceId : api;
+    }
+
+    /**
      * Consumer can start subscription only if its consumer status is {@link this#consumerStatus} is {@link ConsumerStatus#STOPPED} or {@link ConsumerStatus#STARTED}
      * @return true when consumer can start the subscription
      */

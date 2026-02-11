@@ -16,7 +16,7 @@
 package io.gravitee.gateway.handlers.api.registry.impl;
 
 import io.gravitee.definition.model.v4.plan.AbstractPlan;
-import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
+import io.gravitee.gateway.handlers.api.registry.ApiProductPlanDefinitionCache;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,7 +26,7 @@ import lombok.CustomLog;
  * @author GraviteeSource Team
  */
 @CustomLog
-public class ProductPlanDefinitionCacheImpl implements ProductPlanDefinitionCache {
+public class ApiProductPlanDefinitionCacheImpl implements ApiProductPlanDefinitionCache {
 
     private final ConcurrentHashMap<String, List<? extends AbstractPlan>> cache = new ConcurrentHashMap<>();
 
