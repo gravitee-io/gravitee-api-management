@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.process.repository.service;
 
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
 import io.gravitee.repository.management.model.Plan;
 import java.util.Map;
 import java.util.Optional;
@@ -45,15 +46,15 @@ public class PlanService {
         }
     }
 
-    public void registerForApiProduct(final String apiProductId, final Set<String> planIds) {
-        if (apiProductId != null && planIds != null) {
-            plansPerApiProduct.put(apiProductId, Set.copyOf(planIds));
+    public void register(final ApiProductReactorDeployable apiProductReactorDeployable) {
+        if (apiProductReactorDeployable != null && apiProductReactorDeployable.apiProductId() != null) {
+            plansPerApiProduct.put(apiProductReactorDeployable.apiProductId(), Set.copyOf(apiProductReactorDeployable.subscribablePlans()));
         }
     }
 
-    public void unregisterForApiProduct(final String apiProductId) {
-        if (apiProductId != null) {
-            plansPerApiProduct.remove(apiProductId);
+    public void unregister(final ApiProductReactorDeployable apiProductReactorDeployable) {
+        if (apiProductReactorDeployable != null && apiProductReactorDeployable.apiProductId() != null) {
+            plansPerApiProduct.remove(apiProductReactorDeployable.apiProductId());
         }
     }
 

@@ -72,6 +72,9 @@ class ApiProductSynchronizerTest {
     private EnvironmentService environmentService;
 
     @Mock
+    private ApiProductPlanAppender apiProductPlanAppender;
+
+    @Mock
     private DeployerFactory deployerFactory;
 
     @Mock
@@ -84,10 +87,14 @@ class ApiProductSynchronizerTest {
         cut = new ApiProductSynchronizer(
             latestEventFetcher,
             new ApiProductMapper(objectMapper, environmentService),
+            apiProductPlanAppender,
             deployerFactory,
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
         );
+        lenient()
+            .when(apiProductPlanAppender.appends(any(), any()))
+            .thenAnswer(inv -> inv.getArgument(0));
 
         lenient().when(latestEventFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createApiProductDeployer()).thenReturn(apiProductDeployer);

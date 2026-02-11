@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -102,11 +103,9 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
         ApiProductRegistry apiProductRegistry,
         PolicyManager apiProductPlanPolicyManager
     ) {
-        List<HttpSecurityPlan> productPlans = new ArrayList<>();
-        List<HttpSecurityPlan> apiPlans = new ArrayList<>();
-
-        addProductPlansFirst(
-            productPlans,
+        // Sort each group by order individually (stream sorted + collect, like original).
+        // Do NOT sort the combined list—that would interleave by order and break product-first.
+        List<HttpSecurityPlan> productPlans = getProductPlans(
             api,
             environmentId,
             apiProductRegistry,
@@ -114,21 +113,16 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
             apiProductPlanPolicyManager,
             executionPhase
         );
-        addApiPlans(apiPlans, api, policyManager, executionPhase);
+        List<HttpSecurityPlan> apiPlans = getApiPlans(api, policyManager, executionPhase);
 
-        // Product plans must be tried before API plans (PRD product-first).
-        // Sort each group by plan order, then concatenate: product plans first, then API plans.
-        productPlans.sort(Comparator.comparingInt(HttpSecurityPlan::order));
-        apiPlans.sort(Comparator.comparingInt(HttpSecurityPlan::order));
-
+        // Product plans first, then API plans (each group already sorted by order).
         List<HttpSecurityPlan> result = new ArrayList<>(productPlans.size() + apiPlans.size());
         result.addAll(productPlans);
         result.addAll(apiPlans);
         return result;
     }
 
-    private static void addProductPlansFirst(
-        List<HttpSecurityPlan> out,
+    private static List<HttpSecurityPlan> getProductPlans(
         Api api,
         String environmentId,
         ApiProductRegistry apiProductRegistry,
@@ -137,32 +131,26 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
         ExecutionPhase executionPhase
     ) {
         if (environmentId == null || apiProductRegistry == null) {
-            return;
+            return List.of();
         }
 
-        // Use apiProductPlanPolicyManager for product plans when available (SPG pattern), else fallback to policyManager
         PolicyManager productPlanPolicyManager = apiProductPlanPolicyManager != null ? apiProductPlanPolicyManager : policyManager;
-
         List<ApiProductRegistry.ApiProductPlanEntry> entries = apiProductRegistry.getProductPlanEntriesForApi(api.getId(), environmentId);
 
-        for (ApiProductRegistry.ApiProductPlanEntry entry : entries) {
-            HttpSecurityPlan httpSecurityPlan = HttpSecurityPlanFactory.forPlan(
-                api.getId(),
-                entry.plan(),
-                productPlanPolicyManager,
-                executionPhase
-            );
-            if (httpSecurityPlan != null) {
-                out.add(httpSecurityPlan);
-            }
-        }
+        return entries
+            .stream()
+            .map(entry -> HttpSecurityPlanFactory.forPlan(api.getId(), entry.plan(), productPlanPolicyManager, executionPhase))
+            .filter(Objects::nonNull)
+            .sorted(Comparator.comparingInt(HttpSecurityPlan::order))
+            .collect(Collectors.toList());
     }
 
-    private static void addApiPlans(List<HttpSecurityPlan> out, Api api, PolicyManager policyManager, ExecutionPhase executionPhase) {
-        stream(api.getPlans())
+    private static List<HttpSecurityPlan> getApiPlans(Api api, PolicyManager policyManager, ExecutionPhase executionPhase) {
+        return stream(api.getPlans())
             .map(plan -> HttpSecurityPlanFactory.forPlan(api.getId(), plan, policyManager, executionPhase))
             .filter(Objects::nonNull)
-            .forEach(out::add);
+            .sorted(Comparator.comparingInt(HttpSecurityPlan::order))
+            .collect(Collectors.toList());
     }
 
     @Nonnull

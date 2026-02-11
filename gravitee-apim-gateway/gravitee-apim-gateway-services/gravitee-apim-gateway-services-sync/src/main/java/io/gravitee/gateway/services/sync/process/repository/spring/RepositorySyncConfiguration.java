@@ -51,6 +51,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Api
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.PlanAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.ApiKeySynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductPlanAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.debug.DebugSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionarySynchronizer;
@@ -68,6 +69,7 @@ import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.api.LicenseRepository;
+import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.vertx.ext.web.Router;
 import java.util.List;
@@ -323,14 +325,27 @@ public class RepositorySyncConfiguration {
     }
 
     @Bean
+    public ApiProductPlanAppender apiProductPlanAppender(PlanRepository planRepository) {
+        return new ApiProductPlanAppender(planRepository);
+    }
+
+    @Bean
     public ApiProductSynchronizer apiProductSynchronizer(
         LatestEventFetcher eventsFetcher,
         ApiProductMapper apiProductMapper,
+        ApiProductPlanAppender apiProductPlanAppender,
         DeployerFactory deployerFactory,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
     ) {
-        return new ApiProductSynchronizer(eventsFetcher, apiProductMapper, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
+        return new ApiProductSynchronizer(
+            eventsFetcher,
+            apiProductMapper,
+            apiProductPlanAppender,
+            deployerFactory,
+            syncFetcherExecutor,
+            syncDeployerExecutor
+        );
     }
 
     @Bean

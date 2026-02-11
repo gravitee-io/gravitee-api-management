@@ -24,8 +24,8 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
+import io.gravitee.gateway.handlers.api.registry.ApiProductPlanDefinitionCache;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
-import io.gravitee.gateway.handlers.api.registry.ProductPlanDefinitionCache;
 import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
@@ -203,8 +203,7 @@ public class SyncConfiguration {
         SharedPolicyGroupManager sharedPolicyGroupManager,
         DistributedSyncService distributedSyncService,
         ApiProductManager apiProductManager,
-        PlanRepository planRepository,
-        @Autowired(required = false) ProductPlanDefinitionCache productPlanDefinitionCache
+        @Autowired(required = false) ApiProductPlanDefinitionCache apiProductPlanDefinitionCache
     ) {
         Supplier<SubscriptionDispatcher> subscriptionDispatcherSupplier = provideSubscriptionDispatcher(subscriptionDispatcher);
         return new DeployerFactory(
@@ -226,8 +225,7 @@ public class SyncConfiguration {
             sharedPolicyGroupManager,
             distributedSyncService,
             apiProductManager,
-            planRepository,
-            productPlanDefinitionCache
+            apiProductPlanDefinitionCache
         );
     }
 
