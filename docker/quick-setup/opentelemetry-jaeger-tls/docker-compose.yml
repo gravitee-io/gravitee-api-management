@@ -14,184 +14,184 @@
 # limitations under the License.
 #
 
-version: '3.5'
+version: "3.5"
 
 networks:
-  frontend:
-    name: frontend
-  storage:
-    name: storage
-  jaeger:
-    name: jaeger
+    frontend:
+        name: frontend
+    storage:
+        name: storage
+    jaeger:
+        name: jaeger
 
 services:
-  mongodb:
-    image: mongo:${MONGODB_VERSION:-5}
-    command: [ "--quiet", "--logpath", "/dev/null" ]
-    restart: always
-    healthcheck:
-      test: echo 'db.runCommand({serverStatus:1}).ok' | mongo admin --quiet | grep 1
-      interval: 10s
-      timeout: 10s
-      retries: 5
-    networks:
-      - storage
+    mongodb:
+        image: mongo:${MONGODB_VERSION:-5}
+        command: ["--quiet", "--logpath", "/dev/null"]
+        restart: always
+        healthcheck:
+            test: echo 'db.runCommand({serverStatus:1}).ok' | mongo admin --quiet | grep 1
+            interval: 10s
+            timeout: 10s
+            retries: 5
+        networks:
+            - storage
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-7.17.8}
-    restart: always
-    environment:
-      - http.host=0.0.0.0
-      - transport.host=0.0.0.0
-      - xpack.security.enabled=false
-      - cluster.name=elasticsearch
-      - bootstrap.memory_lock=true
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile: 65536
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s" ]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-    networks:
-      - storage
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-7.17.8}
+        restart: always
+        environment:
+            - http.host=0.0.0.0
+            - transport.host=0.0.0.0
+            - xpack.security.enabled=false
+            - cluster.name=elasticsearch
+            - bootstrap.memory_lock=true
+            - discovery.type=single-node
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+            nofile: 65536
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s"]
+            interval: 5s
+            timeout: 3s
+            retries: 10
+        networks:
+            - storage
 
-  jaeger:
-    image: jaegertracing/all-in-one:1.60
-    volumes:
-      - ./ssl/:/certs/
-    environment:
-      - COLLECTOR_GRPC_TLS_ENABLED=true
-      - COLLECTOR_GRPC_TLS_CLIENT_CA=/certs/ca.pem
-      - COLLECTOR_GRPC_TLS_CERT=/certs/server.jaeger.crt
-      - COLLECTOR_GRPC_TLS_KEY=/certs/server.jaeger.key
-      - REPORTER_GRPC_TLS_ENABLED=true
-      - REPORTER_GRPC_TLS_CA=/certs/ca.pem
-      - REPORTER_GRPC_TLS_CERT=/certs/client.cer
-      - REPORTER_GRPC_TLS_KEY=/certs/client.key
-    ports:
-      - "5775:5775/udp"
-      - "6831:6831/udp"
-      - "6832:6832/udp"
-      - "5778:5778"
-      - "16686:16686"
-      - "14268:14268"
-      - "14250:14250"
-      - "9411:9411"
-      - "4317:4317"
-      - "4318:4318"
-    networks:
-      jaeger:
-        aliases:
-          - server.jaeger
+    jaeger:
+        image: jaegertracing/all-in-one:1.60
+        volumes:
+            - ./ssl/:/certs/
+        environment:
+            - COLLECTOR_GRPC_TLS_ENABLED=true
+            - COLLECTOR_GRPC_TLS_CLIENT_CA=/certs/ca.pem
+            - COLLECTOR_GRPC_TLS_CERT=/certs/server.jaeger.crt
+            - COLLECTOR_GRPC_TLS_KEY=/certs/server.jaeger.key
+            - REPORTER_GRPC_TLS_ENABLED=true
+            - REPORTER_GRPC_TLS_CA=/certs/ca.pem
+            - REPORTER_GRPC_TLS_CERT=/certs/client.cer
+            - REPORTER_GRPC_TLS_KEY=/certs/client.key
+        ports:
+            - "5775:5775/udp"
+            - "6831:6831/udp"
+            - "6832:6832/udp"
+            - "5778:5778"
+            - "16686:16686"
+            - "14268:14268"
+            - "14250:14250"
+            - "9411:9411"
+            - "4317:4317"
+            - "4318:4318"
+        networks:
+            jaeger:
+                aliases:
+                    - server.jaeger
 
-  gateway:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}
-    container_name: gio_apim_gateway
-    restart: always
-    ports:
-      - "8082:8082"
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-      jaeger:
-        condition: service_started
-    links:
-      - "jaeger:jaeger"
-    volumes:
-      - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
-      - ./.plugins:/opt/graviteeio-gateway/plugins-ext
-      - ./.license:/opt/graviteeio-gateway/license
-      - ./ssl:/opt/graviteeio-gateway/certs
-    environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
-      - gravitee_plugins_path_0=$${gravitee.home}/plugins
-      - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext
-      - gravitee_services_opentelemetry_enabled=true
-      - gravitee_services_opentelemetry_exporter_endpoint=http://server.jaeger:4317
-      - gravitee_services_opentelemetry_exporter_protocol=grpc
-      # With JKS
-      - gravitee_services_opentelemetry_exporter_ssl_keystore_type=JKS
-      - gravitee_services_opentelemetry_exporter_ssl_keystore_path=/opt/graviteeio-gateway/certs/client-keystore.jks
-      - gravitee_services_opentelemetry_exporter_ssl_keystore_password=gravitee
-      - gravitee_services_opentelemetry_exporter_ssl_truststore_type=JKS
-      - gravitee_services_opentelemetry_exporter_ssl_truststore_path=/opt/graviteeio-gateway/certs/client-truststore.jks
-      - gravitee_services_opentelemetry_exporter_ssl_truststore_password=gravitee
-      # With PKCS12
-      #- gravitee_services_tracing_jaeger_ssl_keystore_type=PKCS12
-      #- gravitee_services_tracing_jaeger_ssl_keystore_path=/opt/graviteeio-gateway/certs/client-keystore.p12
-      #- gravitee_services_tracing_jaeger_ssl_keystore_password=gravitee
-      #- gravitee_services_tracing_jaeger_ssl_truststore_type=PKCS12
-      #- gravitee_services_tracing_jaeger_ssl_truststore_path=/opt/graviteeio-gateway/certs/client-truststore.p12
-      #- gravitee_services_tracing_jaeger_ssl_truststore_password=gravitee
-      # With PEM
-      #- gravitee_services_tracing_jaeger_ssl_keystore_type=PEM
-      #- gravitee_services_tracing_jaeger_ssl_keystore_certs[0]=/opt/graviteeio-gateway/certs/client.cer
-      #- gravitee_services_tracing_jaeger_ssl_keystore_keys[0]=/opt/graviteeio-gateway/certs/client.key
-      #- gravitee_services_tracing_jaeger_ssl_truststore_type=PEM
-      #- gravitee_services_tracing_jaeger_ssl_truststore_path=/opt/graviteeio-gateway/certs/client-truststore.pem
-    networks:
-      - storage
-      - frontend
-      - jaeger
+    gateway:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}
+        container_name: gio_apim_gateway
+        restart: always
+        ports:
+            - "8082:8082"
+        depends_on:
+            elasticsearch:
+                condition: service_healthy
+            mongodb:
+                condition: service_healthy
+            jaeger:
+                condition: service_started
+        links:
+            - "jaeger:jaeger"
+        volumes:
+            - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
+            - ./.plugins:/opt/graviteeio-gateway/plugins-ext
+            - ./.license:/opt/graviteeio-gateway/license
+            - ./ssl:/opt/graviteeio-gateway/certs
+        environment:
+            - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+            - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+            - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+            - gravitee_plugins_path_0=$${gravitee.home}/plugins
+            - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext
+            - gravitee_services_opentelemetry_enabled=true
+            - gravitee_services_opentelemetry_exporter_endpoint=http://server.jaeger:4317
+            - gravitee_services_opentelemetry_exporter_protocol=grpc
+            # With JKS
+            - gravitee_services_opentelemetry_exporter_ssl_keystore_type=JKS
+            - gravitee_services_opentelemetry_exporter_ssl_keystore_path=/opt/graviteeio-gateway/certs/client-keystore.jks
+            - gravitee_services_opentelemetry_exporter_ssl_keystore_password=gravitee
+            - gravitee_services_opentelemetry_exporter_ssl_truststore_type=JKS
+            - gravitee_services_opentelemetry_exporter_ssl_truststore_path=/opt/graviteeio-gateway/certs/client-truststore.jks
+            - gravitee_services_opentelemetry_exporter_ssl_truststore_password=gravitee
+            # With PKCS12
+            #- gravitee_services_tracing_jaeger_ssl_keystore_type=PKCS12
+            #- gravitee_services_tracing_jaeger_ssl_keystore_path=/opt/graviteeio-gateway/certs/client-keystore.p12
+            #- gravitee_services_tracing_jaeger_ssl_keystore_password=gravitee
+            #- gravitee_services_tracing_jaeger_ssl_truststore_type=PKCS12
+            #- gravitee_services_tracing_jaeger_ssl_truststore_path=/opt/graviteeio-gateway/certs/client-truststore.p12
+            #- gravitee_services_tracing_jaeger_ssl_truststore_password=gravitee
+            # With PEM
+            #- gravitee_services_tracing_jaeger_ssl_keystore_type=PEM
+            #- gravitee_services_tracing_jaeger_ssl_keystore_certs[0]=/opt/graviteeio-gateway/certs/client.cer
+            #- gravitee_services_tracing_jaeger_ssl_keystore_keys[0]=/opt/graviteeio-gateway/certs/client.key
+            #- gravitee_services_tracing_jaeger_ssl_truststore_type=PEM
+            #- gravitee_services_tracing_jaeger_ssl_truststore_path=/opt/graviteeio-gateway/certs/client-truststore.pem
+        networks:
+            - storage
+            - frontend
+            - jaeger
 
-  management_api:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_VERSION:-latest}
-    container_name: gio_apim_management_api
-    restart: always
-    ports:
-      - "8083:8083"
-    links:
-      - mongodb
-      - elasticsearch
-    depends_on:
-      - mongodb
-      - elasticsearch
-    volumes:
-      - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
-      - ./.license:/opt/graviteeio-management-api/license
-    environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
-    networks:
-      - storage
-      - frontend
+    management_api:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_VERSION:-latest}
+        container_name: gio_apim_management_api
+        restart: always
+        ports:
+            - "8083:8083"
+        links:
+            - mongodb
+            - elasticsearch
+        depends_on:
+            - mongodb
+            - elasticsearch
+        volumes:
+            - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
+            - ./.license:/opt/graviteeio-management-api/license
+        environment:
+            - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+            - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
+        networks:
+            - storage
+            - frontend
 
-  management_ui:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_VERSION:-latest}
-    container_name: gio_apim_management_ui
-    restart: always
-    ports:
-      - "8084:8080"
-    depends_on:
-      - management_api
-    environment:
-      - MGMT_API_URL=http://localhost:8083/management/
-    volumes:
-      - ./.logs/apim-management-ui:/var/log/nginx
-    networks:
-      - frontend
+    management_ui:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_VERSION:-latest}
+        container_name: gio_apim_management_ui
+        restart: always
+        ports:
+            - "8084:8080"
+        depends_on:
+            - management_api
+        environment:
+            - MGMT_API_URL=http://localhost:8083/management/
+        volumes:
+            - ./.logs/apim-management-ui:/var/log/nginx
+        networks:
+            - frontend
 
-  portal_ui:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_VERSION:-latest}
-    container_name: gio_apim_portal_ui
-    restart: always
-    ports:
-      - "8085:8080"
-    depends_on:
-      - management_api
-    environment:
-      - PORTAL_API_URL=http://localhost:8083/portal
-    volumes:
-      - ./.logs/apim-portal-ui:/var/log/nginx
-    networks:
-      - frontend
+    portal_ui:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_VERSION:-latest}
+        container_name: gio_apim_portal_ui
+        restart: always
+        ports:
+            - "8085:8080"
+        depends_on:
+            - management_api
+        environment:
+            - PORTAL_API_URL=http://localhost:8083/portal
+        volumes:
+            - ./.logs/apim-portal-ui:/var/log/nginx
+        networks:
+            - frontend

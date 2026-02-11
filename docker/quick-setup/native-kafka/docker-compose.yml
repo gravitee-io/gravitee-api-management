@@ -14,246 +14,246 @@
 # limitations under the License.
 #
 
-version: '3.8'
+version: "3.8"
 
 networks:
-  frontend:
-    name: frontend
-  storage:
-    name: storage
-  kafka:
-    name: kafka
-    driver: bridge
-  email:
-    name: email
-  gateway:
-    name: gateway
+    frontend:
+        name: frontend
+    storage:
+        name: storage
+    kafka:
+        name: kafka
+        driver: bridge
+    email:
+        name: email
+    gateway:
+        name: gateway
 
 volumes:
-  data-elasticsearch:
-  data-mongo:
-  data-kafka: null
+    data-elasticsearch:
+    data-mongo:
+    data-kafka: null
 
 services:
-  mongodb:
-    image: mongo:${MONGODB_VERSION:-6.0}
-    container_name: gio_apim_mongodb
-    restart: always
-    volumes:
-      - data-mongo:/data/db
-      - ./.logs/apim-mongodb:/var/log/mongodb
-    healthcheck:
-      test: mongosh --eval 'db.runCommand({serverStatus:1}).ok' --quiet | grep 1
-      interval: 5s
-      timeout: 3s
-      retries: 10
-    networks:
-      - storage
+    mongodb:
+        image: mongo:${MONGODB_VERSION:-6.0}
+        container_name: gio_apim_mongodb
+        restart: always
+        volumes:
+            - data-mongo:/data/db
+            - ./.logs/apim-mongodb:/var/log/mongodb
+        healthcheck:
+            test: mongosh --eval 'db.runCommand({serverStatus:1}).ok' --quiet | grep 1
+            interval: 5s
+            timeout: 3s
+            retries: 10
+        networks:
+            - storage
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.17.2}
-    container_name: gio_apim_elasticsearch
-    restart: always
-    ports:
-      - "9200:9200"
-    volumes:
-      - data-elasticsearch:/usr/share/elasticsearch/data
-    environment:
-      - http.host=0.0.0.0
-      - transport.host=0.0.0.0
-      - xpack.security.enabled=false
-      - cluster.name=elasticsearch
-      - bootstrap.memory_lock=true
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile: 65536
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s" ]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-    networks:
-      - storage
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.17.2}
+        container_name: gio_apim_elasticsearch
+        restart: always
+        ports:
+            - "9200:9200"
+        volumes:
+            - data-elasticsearch:/usr/share/elasticsearch/data
+        environment:
+            - http.host=0.0.0.0
+            - transport.host=0.0.0.0
+            - xpack.security.enabled=false
+            - cluster.name=elasticsearch
+            - bootstrap.memory_lock=true
+            - discovery.type=single-node
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+            nofile: 65536
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s"]
+            interval: 5s
+            timeout: 3s
+            retries: 10
+        networks:
+            - storage
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.8.1-arm64
-    container_name: kibana
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - "5601:5601"
-    networks:
-      - storage
+    kibana:
+        image: docker.elastic.co/kibana/kibana:8.8.1-arm64
+        container_name: kibana
+        environment:
+            - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+        ports:
+            - "5601:5601"
+        networks:
+            - storage
 
-  gateway:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}
-    container_name: gio_apim_gateway
-    restart: always
-    ports:
-      - "8082:8082"
-      - "9092:9092"
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
-    volumes:
-      - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
-      - ./.license:/opt/graviteeio-gateway/license
-      - ./.ssl:/opt/graviteeio-gateway/ssl
-#      - ./.hosts:/etc/hosts
-      - ./.config/logback.xml:/opt/graviteeio-gateway/config/logback.xml
-    environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
-#      Enable Kafka
-      - gravitee_kafka_enabled=true
-      - gravitee_kafka_ssl_keystore_password=gravitee
-      - gravitee_kafka_ssl_keystore_path=$${gravitee.home}/ssl/server.keystore.jks
-      - gravitee_kafka_ssl_keystore_type=jks
-      - "gravitee_kafka_routingHostMode_defaultDomain=kafka.local"
-    networks:
-      storage:
-      frontend:
-      kafka:
-      gateway:
-        aliases:
-#          Configure Docker DNS for possible API host
-#          Only 2 API prefix hosts are possible by default in this example: foo and bar. And use the wildcard self-signed certificate matching *.kafka.local
-#          To add more, add the new 2 lines following the pattern. Limitation due to our simplified example in docker
-          - foo.kafka.local          # For kafka client this is the bootstrap server
-          - broker-0-foo.kafka.local # Used by the kafka client internally after the initial connection to produce/consume messages for example
-          - bar.kafka.local
-          - broker-0-bar.kafka.local
+    gateway:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}
+        container_name: gio_apim_gateway
+        restart: always
+        ports:
+            - "8082:8082"
+            - "9092:9092"
+        depends_on:
+            mongodb:
+                condition: service_healthy
+            elasticsearch:
+                condition: service_healthy
+        volumes:
+            - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
+            - ./.license:/opt/graviteeio-gateway/license
+            - ./.ssl:/opt/graviteeio-gateway/ssl
+            #      - ./.hosts:/etc/hosts
+            - ./.config/logback.xml:/opt/graviteeio-gateway/config/logback.xml
+        environment:
+            - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+            - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+            - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+            #      Enable Kafka
+            - gravitee_kafka_enabled=true
+            - gravitee_kafka_ssl_keystore_password=gravitee
+            - gravitee_kafka_ssl_keystore_path=$${gravitee.home}/ssl/server.keystore.jks
+            - gravitee_kafka_ssl_keystore_type=jks
+            - "gravitee_kafka_routingHostMode_defaultDomain=kafka.local"
+        networks:
+            storage:
+            frontend:
+            kafka:
+            gateway:
+                aliases:
+                    #          Configure Docker DNS for possible API host
+                    #          Only 2 API prefix hosts are possible by default in this example: foo and bar. And use the wildcard self-signed certificate matching *.kafka.local
+                    #          To add more, add the new 2 lines following the pattern. Limitation due to our simplified example in docker
+                    - foo.kafka.local # For kafka client this is the bootstrap server
+                    - broker-0-foo.kafka.local # Used by the kafka client internally after the initial connection to produce/consume messages for example
+                    - bar.kafka.local
+                    - broker-0-bar.kafka.local
 
-  management_api:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_VERSION:-latest}
-    container_name: gio_apim_management_api
-    restart: always
-    ports:
-      - "8083:8083"
-    links:
-      - mongodb
-      - elasticsearch
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
-    volumes:
-      - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
-      - ./.license:/opt/graviteeio-management-api/license
-    environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
-      - gravitee_email_enabled=true
-      - gravitee_email_host=mailhog
-      - gravitee_email_port=1025
-      - gravitee_email_subject="TEST"
-      - gravitee_email_from="user@my.domain"
-    networks:
-      - storage
-      - frontend
-      - email
+    management_api:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_VERSION:-latest}
+        container_name: gio_apim_management_api
+        restart: always
+        ports:
+            - "8083:8083"
+        links:
+            - mongodb
+            - elasticsearch
+        depends_on:
+            mongodb:
+                condition: service_healthy
+            elasticsearch:
+                condition: service_healthy
+        volumes:
+            - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
+            - ./.license:/opt/graviteeio-management-api/license
+        environment:
+            - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+            - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
+            - gravitee_email_enabled=true
+            - gravitee_email_host=mailhog
+            - gravitee_email_port=1025
+            - gravitee_email_subject="TEST"
+            - gravitee_email_from="user@my.domain"
+        networks:
+            - storage
+            - frontend
+            - email
 
-  management_ui:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_VERSION:-latest}
-    container_name: gio_apim_management_ui
-    restart: always
-    ports:
-      - "8084:8080"
-    depends_on:
-      - management_api
-    environment:
-      - MGMT_API_URL=http://localhost:8083/management/
-    volumes:
-      - ./.logs/apim-management-ui:/var/log/nginx
-    networks:
-      - frontend
+    management_ui:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_VERSION:-latest}
+        container_name: gio_apim_management_ui
+        restart: always
+        ports:
+            - "8084:8080"
+        depends_on:
+            - management_api
+        environment:
+            - MGMT_API_URL=http://localhost:8083/management/
+        volumes:
+            - ./.logs/apim-management-ui:/var/log/nginx
+        networks:
+            - frontend
 
-  portal_ui:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_VERSION:-latest}
-    container_name: gio_apim_portal_ui
-    restart: always
-    ports:
-      - "8085:8080"
-    depends_on:
-      - management_api
-    environment:
-      - PORTAL_API_URL=http://localhost:8083/portal
-    volumes:
-      - ./.logs/apim-portal-ui:/var/log/nginx
-    networks:
-      - frontend
+    portal_ui:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_VERSION:-latest}
+        container_name: gio_apim_portal_ui
+        restart: always
+        ports:
+            - "8085:8080"
+        depends_on:
+            - management_api
+        environment:
+            - PORTAL_API_URL=http://localhost:8083/portal
+        volumes:
+            - ./.logs/apim-portal-ui:/var/log/nginx
+        networks:
+            - frontend
 
-  mailhog:
-    image: mailhog/mailhog
-    container_name: gio_apim_mailhog
-    restart: always
-    ports:
-      - "8025:8025"
-      - "1025:1025"
-    networks:
-      - email
+    mailhog:
+        image: mailhog/mailhog
+        container_name: gio_apim_mailhog
+        restart: always
+        ports:
+            - "8025:8025"
+            - "1025:1025"
+        networks:
+            - email
 
-  kafka:
-    image: apache/kafka:3.9.1
-    container_name: gio_apim_kafka
-    hostname: kafka
-    networks:
-      - kafka
+    kafka:
+        image: apache/kafka:3.9.1
+        container_name: gio_apim_kafka
+        hostname: kafka
+        networks:
+            - kafka
 
-    ports:
-      - "9091:9091"
-      - "9093:9093"
-      - "9094:9094"
-      - "9095:9095"
-      - "9096:9096"
+        ports:
+            - "9091:9091"
+            - "9093:9093"
+            - "9094:9094"
+            - "9095:9095"
+            - "9096:9096"
 
-    volumes:
-      - ./.config/server.properties:/opt/kafka/config/kraft/server.properties
-      - ./.ssl:/etc/kafka/secrets
-      - ./.data:/var/lib/kafka/data
+        volumes:
+            - ./.config/server.properties:/opt/kafka/config/kraft/server.properties
+            - ./.ssl:/etc/kafka/secrets
+            - ./.data:/var/lib/kafka/data
 
-    environment:
-      SSL_KEYSTORE_PASSWORD: gravitee
-      SSL_KEY_PASSWORD: gravitee
-      SSL_TRUSTSTORE_PASSWORD: gravitee
-      KAFKA_OPTS: >
-        -Djava.security.auth.login.config=/etc/kafka/secrets/kafka_server_jaas.conf
+        environment:
+            SSL_KEYSTORE_PASSWORD: gravitee
+            SSL_KEY_PASSWORD: gravitee
+            SSL_TRUSTSTORE_PASSWORD: gravitee
+            KAFKA_OPTS: >
+                -Djava.security.auth.login.config=/etc/kafka/secrets/kafka_server_jaas.conf
 
-    command: >
-      /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/server.properties
+        command: >
+            /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/server.properties
 
-  kafka-ui:
-    container_name: gio_apim_kafka-ui
-    image: provectuslabs/kafka-ui:latest
-    ports:
-      - "9003:8080"
-    environment:
-      DYNAMIC_CONFIG_ENABLED: "true"
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9091
-    depends_on:
-      kafka:
-        condition: service_healthy
-    networks:
-      - kafka
+    kafka-ui:
+        container_name: gio_apim_kafka-ui
+        image: provectuslabs/kafka-ui:latest
+        ports:
+            - "9003:8080"
+        environment:
+            DYNAMIC_CONFIG_ENABLED: "true"
+            KAFKA_CLUSTERS_0_NAME: local
+            KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9091
+        depends_on:
+            kafka:
+                condition: service_healthy
+        networks:
+            - kafka
 
-  kafka-client:
-    image: apache/kafka:3.9.1
-    container_name: gio_apim_kafka-client
-    volumes:
-      - ./.kafka-client-config:/app/config
-      - ./.ssl:/app/.ssl
-    depends_on:
-      - gateway
-    entrypoint: ["tail", "-f", "/dev/null"]
-    working_dir: /app
-    networks:
-      - gateway
+    kafka-client:
+        image: apache/kafka:3.9.1
+        container_name: gio_apim_kafka-client
+        volumes:
+            - ./.kafka-client-config:/app/config
+            - ./.ssl:/app/.ssl
+        depends_on:
+            - gateway
+        entrypoint: ["tail", "-f", "/dev/null"]
+        working_dir: /app
+        networks:
+            - gateway
