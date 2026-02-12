@@ -55,7 +55,7 @@ commands:
           var-name: SLACK_ACCESS_TOKEN
       - slack/notify:
           channel: C02JENTV2AX
-          branch_pattern: master,[0-9]+\.[0-9]+\.x
+          branch_pattern: master,[0-9]+\.[0-9]+\.x,alpha-vertx5
           event: fail
           template: basic_fail_1
   cmd-webui-install:

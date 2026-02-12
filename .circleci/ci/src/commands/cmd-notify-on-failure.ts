@@ -37,7 +37,7 @@ export class NotifyOnFailureCommand {
       }),
       new reusable.ReusedCommand(slack.commands.notify, {
         channel: slackChannelToUse,
-        branch_pattern: 'master,[0-9]+\\.[0-9]+\\.x', // Slack orb only supports POSIX regex. So we must use [0-9] instead of \d.
+        branch_pattern: 'master,[0-9]+\\.[0-9]+\\.x,alpha-vertx5', // Slack orb only supports POSIX regex. So we must use [0-9] instead of \d.
         event: 'fail',
         template: 'basic_fail_1',
       }),
