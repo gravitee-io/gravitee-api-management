@@ -30,7 +30,6 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ApiEntrypointsV4AddDialogComponent, ApiEntrypointsV4AddDialogComponentData } from './edit/api-entrypoints-v4-add-dialog.component';
 
-import { AGENT_TO_AGENT } from '../../../entities/management-api-v2/api/v4/agentToAgent';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import {
   Api,
@@ -95,7 +94,6 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   public isReadOnly = false;
   public portalSettings$: Observable<PortalSettingsPortal>;
   public exposedEntrypoints$: Observable<ExposedEntrypoint[]>;
-  public isA2ASelected: boolean;
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -127,13 +125,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
           api.definitionContext?.origin === 'KUBERNETES' ||
           !this.permissionService.hasAllMatching(['api-definition-u', 'api-gateway_definition-u']);
         if (api.definitionVersion === 'V4') {
-          this.isA2ASelected = api.listeners?.some(listener => listener.entrypoints?.some(ep => ep.type === AGENT_TO_AGENT.id));
-          this.allEntrypoints = availableEntrypoints.filter(
-            ({ supportedApiType, id }) =>
-              supportedApiType === api.type &&
-              // only exclude the agent-to-agent id when agent to agent is not selcted
-              (this.isA2ASelected || id !== AGENT_TO_AGENT.id),
-          );
+          this.allEntrypoints = availableEntrypoints.filter(({ supportedApiType }) => supportedApiType === api.type);
           this.initForm(api);
         }
       });

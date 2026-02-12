@@ -175,6 +175,35 @@ describe('Installation Plugins Service', () => {
           .flush(entrypoint);
       });
     });
+
+    describe('listAIEntrypointPlugins', () => {
+      it('should filter entrypoints by LLM_PROXY, MCP_PROXY, and A2A_PROXY supportedApiType', done => {
+        const fakeConnectors = [
+          fakeConnectorPlugin({ id: 'llm-proxy', supportedApiType: 'LLM_PROXY' }),
+          fakeConnectorPlugin({ id: 'mcp-proxy', supportedApiType: 'MCP_PROXY' }),
+          fakeConnectorPlugin({ id: 'a2a-proxy', supportedApiType: 'A2A_PROXY' }),
+          fakeConnectorPlugin({ id: 'http-proxy', supportedApiType: 'PROXY' }),
+          fakeConnectorPlugin({ id: 'webhook', supportedApiType: 'MESSAGE' }),
+        ];
+
+        service.listAIEntrypointPlugins().subscribe(connectors => {
+          expect(connectors).toHaveLength(3);
+          expect(connectors).toMatchObject([
+            fakeConnectors[0], // LLM_PROXY
+            fakeConnectors[1], // MCP_PROXY
+            fakeConnectors[2], // A2A_PROXY
+          ]);
+          done();
+        });
+
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`,
+            method: 'GET',
+          })
+          .flush(fakeConnectors);
+      });
+    });
   });
 
   afterEach(() => {
