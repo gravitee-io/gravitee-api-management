@@ -31,126 +31,122 @@
       </app-loader>
     </div>
   } @else {
-    <div class="subscription-info__content__subsections">
-      <div class="subscription-info__content__grid">
-        @if (planSecurity !== 'KEY_LESS') {
-          <div class="subscription-info__content-row">
-            <span class="next-gen-body">
-              <span class="material-icons icon-small">check_circle</span>
-              <span i18n="@@subscriptionDetailsSubscription">Status:</span>
-            </span>
-            @if (!!subscription?.status) {
-              <span class="next-gen-body">{{ subscription!.status | capitalizeFirst }}</span>
-            } @else if (planValidation === 'MANUAL') {
-              <span class="next-gen-body" i18n="@@subscriptionDetailsReviewRequired">Under admin review</span>
-            } @else if (planValidation === 'AUTO') {
-              <span class="next-gen-body" i18n="@@subscriptionDetailsAutomatic">Automatic</span>
-            }
-          </div>
-        }
-
-        @if (api) {
-          <div class="subscription-info__content-row">
-            <span class="next-gen-body">
-              <span class="material-icons icon-small">api</span>
-              <span i18n="@@subscriptionDetailsHeaderApi">Subscribed API:</span>
-            </span>
-            <a class="internal-link next-gen-body" [routerLink]="['/catalog/api/' + api.id]">{{ api.name }}</a>
-          </div>
-        }
-
-        @if (application) {
-          <div class="subscription-info__content-row">
-            <span class="next-gen-body">
-              <span class="material-icons icon-small">web_asset</span>
-              <span i18n="@@subscriptionDetailsHeaderApp">Application:</span>
-            </span>
-            <a class="internal-link next-gen-body" [routerLink]="['/applications/' + application.id]">{{ application.name }}</a>
-          </div>
-        }
-
-        @if (createdAt) {
-          <div class="subscription-info__content-row">
-            <span class="next-gen-body">
-              <span class="material-icons icon-small">schedule</span>
-              <span i18n="@@createdAt">Created At:</span>
-            </span>
-            <span class="next-gen-body">{{ createdAt }}</span>
-          </div>
-        }
-        @if (updatedAt) {
-          <div class="subscription-info__content-row">
-            <span class="next-gen-body">
-              <span class="material-icons icon-small">restore</span>
-              <span i18n="@@updatedAt">Updated At:</span>
-            </span>
-            <span class="next-gen-body">{{ updatedAt }}</span>
-          </div>
-        }
-      </div>
-      <div class="subscription-info__content__grid">
-        @if (subscription) {
-          <div class="subscription-info__content-row">
-            <span class="next-gen-body">
-              <span class="material-icons icon-small">tag</span>
-              <span i18n="@@subscriptionDetailsHeaderId">ID:</span>
-            </span>
-            <span class="next-gen-body">{{ subscription.id }}</span>
-          </div>
-        }
+    <div class="subscription-info__content__grid">
+      @if (planSecurity !== 'KEY_LESS') {
         <div class="subscription-info__content-row">
           <span class="next-gen-body">
-            <span class="material-icons icon-small">star</span>
-            <span i18n="@@subscriptionDetailsHeaderPlan">Plan:</span>
+            <span class="material-icons icon-small">check_circle</span>
+            <span i18n="@@subscriptionDetailsSubscription">Status:</span>
           </span>
-          <span class="next-gen-body">{{ planName }}</span>
-        </div>
-        <div class="subscription-info__content-row">
-          <span class="next-gen-body">
-            <span class="material-icons icon-small">lock</span>
-            <span i18n="@@subscriptionDetailsHeaderAuthentication">Authentication:</span>
-          </span>
-          @if (api?.type === 'NATIVE') {
-            @if (planSecurity === 'API_KEY') {
-              <span class="next-gen-body" i18n="@@subscriptionDetailsAuthenticationSaslApiKey"
-                >SASL/SSL with SASL mechanisms PLAIN, SCRAM-256, and SCRAM-512</span
-              >
-            } @else if (planSecurity === 'OAUTH2' || planSecurity === 'JWT') {
-              <span class="next-gen-body" i18n="@@subscriptionDetailsAuthenticationSaslOauthbearer"
-                >SASL/SSL with SASL mechanism OAUTHBEARER</span
-              >
-            } @else if (planSecurity === 'KEY_LESS') {
-              <span class="next-gen-body" i18n="@@subscriptionDetailsAuthenticationKeyless">SSL</span>
-            }
-          } @else {
-            <span class="next-gen-body">{{ authentication }}</span>
+          @if (!!subscription?.status) {
+            <span class="next-gen-body">{{ subscription!.status | capitalizeFirst }}</span>
+          } @else if (planValidation === 'MANUAL') {
+            <span class="next-gen-body" i18n="@@subscriptionDetailsReviewRequired">Under admin review</span>
+          } @else if (planValidation === 'AUTO') {
+            <span class="next-gen-body" i18n="@@subscriptionDetailsAutomatic">Automatic</span>
           }
         </div>
-        @if (!!planUsageConfiguration?.quota?.limit) {
-          <div class="subscription-info__content-row">
-            <span class="next-gen-body">
-              <span class="material-icons icon-small">bar_chart</span>
-              <span i18n="@@subscriptionDetailsHeaderQuota">Quota:</span>
-            </span>
-            <span class="next-gen-body">
-              up to {{ planUsageConfiguration?.quota?.limit ?? 0 }} hits /
-              {{ planUsageConfiguration?.quota ?? {} | toPeriodTimeUnitLabelPipe }}
-            </span>
-          </div>
-        }
-        @if (!!planUsageConfiguration?.rate_limit?.limit) {
-          <div class="subscription-info__content-row">
-            <span class="next-gen-body">
-              <span class="material-icons icon-small">bar_chart</span>
-              <span i18n="@@subscriptionDetailsHeaderRateLimit">Rate-limit:</span>
-            </span>
-            <span class="next-gen-body">
-              up to {{ planUsageConfiguration?.rate_limit?.limit ?? 0 }} hits /
-              {{ planUsageConfiguration?.rate_limit ?? {} | toPeriodTimeUnitLabelPipe }}
-            </span>
-          </div>
+      }
+
+      @if (api) {
+        <div class="subscription-info__content-row">
+          <span class="next-gen-body">
+            <span class="material-icons icon-small">api</span>
+            <span i18n="@@subscriptionDetailsHeaderApi">Subscribed API:</span>
+          </span>
+          <a class="internal-link next-gen-body" [routerLink]="['/catalog/api/' + api.id]">{{ api.name }}</a>
+        </div>
+      }
+
+      @if (application) {
+        <div class="subscription-info__content-row">
+          <span class="next-gen-body">
+            <span class="material-icons icon-small">web_asset</span>
+            <span i18n="@@subscriptionDetailsHeaderApp">Application:</span>
+          </span>
+          <a class="internal-link next-gen-body" [routerLink]="['/applications/' + application.id]">{{ application.name }}</a>
+        </div>
+      }
+
+      @if (subscription) {
+        <div class="subscription-info__content-row">
+          <span class="next-gen-body">
+            <span class="material-icons icon-small">tag</span>
+            <span i18n="@@subscriptionDetailsHeaderId">ID:</span>
+          </span>
+          <span class="next-gen-body">{{ subscription.id }}</span>
+        </div>
+      }
+      <div class="subscription-info__content-row">
+        <span class="next-gen-body">
+          <span class="material-icons icon-small">star</span>
+          <span i18n="@@subscriptionDetailsHeaderPlan">Plan:</span>
+        </span>
+        <span class="next-gen-body">{{ planName }}</span>
+      </div>
+      <div class="subscription-info__content-row">
+        <span class="next-gen-body">
+          <span class="material-icons icon-small">lock</span>
+          <span i18n="@@subscriptionDetailsHeaderAuthentication">Authentication:</span>
+        </span>
+        @if (api?.type === 'NATIVE') {
+          @if (planSecurity === 'API_KEY') {
+            <span class="next-gen-body" i18n="@@subscriptionDetailsAuthenticationSaslApiKey"
+              >SASL/SSL with SASL mechanisms PLAIN, SCRAM-256, and SCRAM-512</span
+            >
+          } @else if (planSecurity === 'OAUTH2' || planSecurity === 'JWT') {
+            <span class="next-gen-body" i18n="@@subscriptionDetailsAuthenticationSaslOauthbearer"
+              >SASL/SSL with SASL mechanism OAUTHBEARER</span
+            >
+          } @else if (planSecurity === 'KEY_LESS') {
+            <span class="next-gen-body" i18n="@@subscriptionDetailsAuthenticationKeyless">SSL</span>
+          }
+        } @else {
+          <span class="next-gen-body">{{ authentication }}</span>
         }
       </div>
+      @if (createdAt) {
+        <div class="subscription-info__content-row">
+          <span class="next-gen-body">
+            <span class="material-icons icon-small">schedule</span>
+            <span i18n="@@createdAt">Created At:</span>
+          </span>
+          <span class="next-gen-body">{{ createdAt }}</span>
+        </div>
+      }
+      @if (updatedAt) {
+        <div class="subscription-info__content-row">
+          <span class="next-gen-body">
+            <span class="material-icons icon-small">restore</span>
+            <span i18n="@@updatedAt">Updated At:</span>
+          </span>
+          <span class="next-gen-body">{{ updatedAt }}</span>
+        </div>
+      }
+      @if (!!planUsageConfiguration?.quota?.limit) {
+        <div class="subscription-info__content-row">
+          <span class="next-gen-body">
+            <span class="material-icons icon-small">bar_chart</span>
+            <span i18n="@@subscriptionDetailsHeaderQuota">Quota:</span>
+          </span>
+          <span class="next-gen-body">
+            up to {{ planUsageConfiguration?.quota?.limit ?? 0 }} hits /
+            {{ planUsageConfiguration?.quota ?? {} | toPeriodTimeUnitLabelPipe }}
+          </span>
+        </div>
+      }
+      @if (!!planUsageConfiguration?.rate_limit?.limit) {
+        <div class="subscription-info__content-row">
+          <span class="next-gen-body">
+            <span class="material-icons icon-small">bar_chart</span>
+            <span i18n="@@subscriptionDetailsHeaderRateLimit">Rate-limit:</span>
+          </span>
+          <span class="next-gen-body">
+            up to {{ planUsageConfiguration?.rate_limit?.limit ?? 0 }} hits /
+            {{ planUsageConfiguration?.rate_limit ?? {} | toPeriodTimeUnitLabelPipe }}
+          </span>
+        </div>
+      }
     </div>
 
     @if (consumerStatus === SubscriptionConsumerStatusEnum.FAILURE) {
