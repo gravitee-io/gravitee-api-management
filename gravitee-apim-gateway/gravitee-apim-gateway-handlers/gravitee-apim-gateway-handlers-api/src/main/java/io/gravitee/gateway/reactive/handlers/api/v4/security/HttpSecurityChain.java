@@ -31,7 +31,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -105,7 +104,7 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
     ) {
         // Sort each group by order individually (stream sorted + collect, like original).
         // Do NOT sort the combined list—that would interleave by order and break product-first.
-        List<HttpSecurityPlan> productPlans = getProductPlans(
+        List<HttpSecurityPlan> apiProductPlans = getProductPlans(
             api,
             environmentId,
             apiProductRegistry,
@@ -116,8 +115,8 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
         List<HttpSecurityPlan> apiPlans = getApiPlans(api, policyManager, executionPhase);
 
         // Product plans first, then API plans (each group already sorted by order).
-        List<HttpSecurityPlan> result = new ArrayList<>(productPlans.size() + apiPlans.size());
-        result.addAll(productPlans);
+        List<HttpSecurityPlan> result = new ArrayList<>(apiProductPlans.size() + apiPlans.size());
+        result.addAll(apiProductPlans);
         result.addAll(apiPlans);
         return result;
     }
@@ -135,14 +134,17 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
         }
 
         PolicyManager productPlanPolicyManager = apiProductPlanPolicyManager != null ? apiProductPlanPolicyManager : policyManager;
-        List<ApiProductRegistry.ApiProductPlanEntry> entries = apiProductRegistry.getProductPlanEntriesForApi(api.getId(), environmentId);
+        List<ApiProductRegistry.ApiProductPlanEntry> entries = apiProductRegistry.getApiProductPlanEntriesForApi(
+            api.getId(),
+            environmentId
+        );
 
         return entries
             .stream()
             .map(entry -> HttpSecurityPlanFactory.forPlan(api.getId(), entry.plan(), productPlanPolicyManager, executionPhase))
             .filter(Objects::nonNull)
             .sorted(Comparator.comparingInt(HttpSecurityPlan::order))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     private static List<HttpSecurityPlan> getApiPlans(Api api, PolicyManager policyManager, ExecutionPhase executionPhase) {
@@ -150,7 +152,7 @@ public class HttpSecurityChain extends io.gravitee.gateway.reactive.handlers.api
             .map(plan -> HttpSecurityPlanFactory.forPlan(api.getId(), plan, policyManager, executionPhase))
             .filter(Objects::nonNull)
             .sorted(Comparator.comparingInt(HttpSecurityPlan::order))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Nonnull

@@ -74,7 +74,7 @@ public class ApiProductPlanPolicyManager extends AbstractPolicyManager {
             return Set.of();
         }
 
-        List<ApiProductRegistry.ApiProductPlanEntry> entries = apiProductRegistry.getProductPlanEntriesForApi(apiId, environmentId);
+        List<ApiProductRegistry.ApiProductPlanEntry> entries = apiProductRegistry.getApiProductPlanEntriesForApi(apiId, environmentId);
 
         // Deduplicate by policy name (multiple plans can share same security type)
         LinkedHashMap<String, Policy> byName = new LinkedHashMap<>();

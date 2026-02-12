@@ -567,7 +567,7 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
         }
 
         // Create httpSecurityChain once policy manager has been started.
-        refreshSecurityChainInternal();
+        refreshSecurityChain();
 
         tracingContext.start();
         analyticsContext = createAnalyticsContext();
@@ -608,13 +608,13 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
     }
 
     /**
-     * Refresh the security chain with the latest product plan definitions.
+     * Refresh the security chain with the latest api product plan definitions.
      * Called when API Products change (deploy/update/undeploy) to refresh the chain
      * without requiring API redeploy.
      *
      * @throws IllegalStateException if the reactor is not started
      */
-    public void refreshSecurityChain() {
+    public void restartApiProductPlanPolicyManager() {
         if (lifecycleState != Lifecycle.State.STARTED) {
             log.debug("Cannot refresh security chain for API [{}] - reactor is not started (state: {})", api.getId(), lifecycleState);
             return;
@@ -630,7 +630,7 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
                     apiProductPlanPolicyManager.start();
                 }
             }
-            refreshSecurityChainInternal();
+            refreshSecurityChain();
             log.debug("Security chain refreshed for API [{}] due to API Product change", api.getId());
         } catch (Exception e) {
             log.warn("Failed to refresh security chain for API [{}] on API Product change", api.getId(), e);
@@ -652,15 +652,15 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
                 payload.getProductId(),
                 event.type()
             );
-            refreshSecurityChain();
+            restartApiProductPlanPolicyManager();
         }
     }
 
     /**
-     * Internal method to refresh the security chain.
-     * Rebuilds the chain with latest product plan definitions from the registry.
+     * Refresh the security chain.
+     * Rebuilds the chain with latest api product plan definitions from the registry.
      */
-    private void refreshSecurityChainInternal() {
+    private void refreshSecurityChain() {
         HttpSecurityChain chain;
         if (apiProductRegistry != null && apiProductPlanPolicyManager != null) {
             chain = new HttpSecurityChain(

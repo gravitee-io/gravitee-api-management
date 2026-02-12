@@ -206,7 +206,7 @@ class ApiProductRegistryImplTest {
             registry.register(createApiProduct("product-1", "env-1"));
             when(planCache.getByApiProductId(anyString())).thenReturn((List) List.of(createPlan("plan-1")));
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getProductPlanEntriesForApi(null, "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi(null, "env-1");
 
             assertThat(entries).isEmpty();
         }
@@ -216,7 +216,7 @@ class ApiProductRegistryImplTest {
             registry.register(createApiProduct("product-1", "env-1"));
             when(planCache.getByApiProductId(anyString())).thenReturn((List) List.of(createPlan("plan-1")));
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getProductPlanEntriesForApi("api-1", null);
+            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", null);
 
             assertThat(entries).isEmpty();
         }
@@ -229,7 +229,7 @@ class ApiProductRegistryImplTest {
             Plan plan = createPlan("plan-1");
             when(planCache.getByApiProductId("product-1")).thenReturn((List) List.of(plan));
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getProductPlanEntriesForApi("api-1", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
 
             assertThat(entries).hasSize(1);
             assertThat(entries.get(0).apiProductId()).isEqualTo("product-1");
@@ -243,7 +243,7 @@ class ApiProductRegistryImplTest {
             registry.register(product);
             when(planCache.getByApiProductId(anyString())).thenReturn((List) List.of(createPlan("plan-1")));
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getProductPlanEntriesForApi("api-1", "env-2");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-2");
 
             assertThat(entries).isEmpty();
         }
@@ -254,7 +254,7 @@ class ApiProductRegistryImplTest {
             product.setApiIds(null);
             registry.register(product);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getProductPlanEntriesForApi("api-1", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
 
             assertThat(entries).isEmpty();
         }
@@ -265,7 +265,7 @@ class ApiProductRegistryImplTest {
             product.setApiIds(Set.of("other-api"));
             registry.register(product);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getProductPlanEntriesForApi("api-1", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
 
             assertThat(entries).isEmpty();
         }
@@ -277,7 +277,7 @@ class ApiProductRegistryImplTest {
             registry.register(product);
             when(planCache.getByApiProductId(anyString())).thenReturn((List) List.of(createPlan("plan-1"), createPlan("plan-2")));
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getProductPlanEntriesForApi("api-1", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
 
             assertThat(entries).hasSize(2);
         }
@@ -289,7 +289,7 @@ class ApiProductRegistryImplTest {
             registry.register(product);
             when(planCache.getByApiProductId(anyString())).thenReturn(null);
 
-            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getProductPlanEntriesForApi("api-1", "env-1");
+            List<ApiProductRegistry.ApiProductPlanEntry> entries = registry.getApiProductPlanEntriesForApi("api-1", "env-1");
 
             assertThat(entries).isEmpty();
         }
