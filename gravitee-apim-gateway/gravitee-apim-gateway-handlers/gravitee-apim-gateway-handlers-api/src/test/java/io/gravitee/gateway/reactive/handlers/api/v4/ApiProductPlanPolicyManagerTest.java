@@ -71,7 +71,7 @@ class ApiProductPlanPolicyManagerTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(apiProductRegistry.getProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(List.of());
+        lenient().when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(List.of());
     }
 
     @Test
@@ -95,7 +95,7 @@ class ApiProductPlanPolicyManagerTest {
 
     @Test
     void should_return_empty_dependencies_when_no_product_plans() {
-        when(apiProductRegistry.getProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(List.of());
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(List.of());
 
         ApiProductPlanPolicyManager manager = new ApiProductPlanPolicyManager(
             classLoader,
@@ -120,7 +120,7 @@ class ApiProductPlanPolicyManagerTest {
         plan1.setMode(PlanMode.STANDARD);
         plan1.setSecurity(new PlanSecurity("API_KEY", "{}"));
 
-        when(apiProductRegistry.getProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
             List.of(new ApiProductRegistry.ApiProductPlanEntry("product-1", plan1))
         );
 
@@ -152,7 +152,7 @@ class ApiProductPlanPolicyManagerTest {
         plan2.setMode(PlanMode.STANDARD);
         plan2.setSecurity(new PlanSecurity("API_KEY", "{\"different\":\"config\"}"));
 
-        when(apiProductRegistry.getProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
             List.of(
                 new ApiProductRegistry.ApiProductPlanEntry("product-1", plan1),
                 new ApiProductRegistry.ApiProductPlanEntry("product-2", plan2)
@@ -183,7 +183,7 @@ class ApiProductPlanPolicyManagerTest {
         plan.setMode(PlanMode.STANDARD);
         plan.setSecurity(new PlanSecurity("OAUTH2", "{}"));
 
-        when(apiProductRegistry.getProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
             List.of(new ApiProductRegistry.ApiProductPlanEntry("product-1", plan))
         );
 
