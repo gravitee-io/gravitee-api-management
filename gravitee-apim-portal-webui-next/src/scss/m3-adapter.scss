@@ -21,7 +21,7 @@ After migrating to Material 3, these classes can be deleted.
 
 @use './theme';
 
-// Typography
+// Legacy typography (next gen typography is in ./typography.scss)
 
 .m3-display-large {
   font-size: 57px;
