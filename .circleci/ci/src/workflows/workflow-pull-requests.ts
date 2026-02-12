@@ -16,7 +16,7 @@
 import { commands, Config, Job, reusable, workflow, Workflow } from '@circleci/circleci-config-sdk';
 
 import { CircleCIEnvironment } from '../pipelines';
-import { isE2EBranch, isMasterBranch, isSupportBranchOrMaster } from '../utils';
+import { isE2EBranch, isMasterBranch, isSupportBranchOrMasterOrAlphaVertx5 } from '../utils';
 import { config } from '../config';
 import { BaseExecutor } from '../executors';
 import {
@@ -58,10 +58,10 @@ import { orbs } from '../orbs';
 export class PullRequestsWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment): Workflow {
     let jobs: workflow.WorkflowJob[] = [];
-    const shouldBuildDockerImages: boolean = isSupportBranchOrMaster(environment.branch) || isE2EBranch(environment.branch);
+    const shouldBuildDockerImages: boolean = isSupportBranchOrMasterOrAlphaVertx5(environment.branch) || isE2EBranch(environment.branch);
     // Needed to publish helm chart in internal repository
     environment.isDryRun = true;
-    if (isSupportBranchOrMaster(environment.branch)) {
+    if (isSupportBranchOrMasterOrAlphaVertx5(environment.branch)) {
       jobs.push(
         ...this.getCommonJobs(dynamicConfig, environment, false, false, shouldBuildDockerImages),
         ...this.getE2EJobs(dynamicConfig, environment),

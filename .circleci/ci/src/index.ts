@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { changedFiles, isBlank, isSupportBranchOrMaster } from './utils';
+import { changedFiles, isBlank, isSupportBranchOrMasterOrAlphaVertx5 } from './utils';
 import { argv } from 'node:process';
 import { buildCIPipeline, CircleCIEnvironment } from './pipelines';
 import * as fs from 'fs';
@@ -41,7 +41,9 @@ if (isBlank(CIRCLE_SHA1)) {
  *     - if the branch is supported ( CIRCLE_BRANCH is master or a support branch )
  *     - if we are working on a branch with changes committed on the base branch
  */
-const changed = isSupportBranchOrMaster(CIRCLE_BRANCH) ? Promise.resolve([]) : changedFiles(GIT_COMMON_COMMIT_HASH ?? GIT_BASE_BRANCH);
+const changed = isSupportBranchOrMasterOrAlphaVertx5(CIRCLE_BRANCH)
+  ? Promise.resolve([])
+  : changedFiles(GIT_COMMON_COMMIT_HASH ?? GIT_BASE_BRANCH);
 
 changed
   .then(

@@ -54,7 +54,6 @@ commands:
           keys:
             - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
             - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}
-            - gravitee-api-management-v14-<< parameters.jobName >>-master
     description: Restore Maven cache for a dedicated job
   cmd-save-maven-job-cache:
     parameters:
@@ -727,9 +726,34 @@ jobs:
           name: Build docker image for << parameters.apim-project >>
           command: |-
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-run-e2e-784ff35 \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:alpha-vertx5-latest -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:alpha-vertx5-784ff35 \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project >>
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
+          var-name: AQUA_KEY
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret
+          var-name: AQUA_SECRET
+      - keeper/env-export:
+          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/login
+          var-name: AQUA_USERNAME
+      - keeper/env-export:
+          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/password
+          var-name: AQUA_PASSWORD
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/ScannerToken
+          var-name: SCANNER_TOKEN
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: GITHUB_TOKEN
+      - aquasec/install_billy
+      - aquasec/pull_aqua_scanner_image
+      - aquasec/register_artifact:
+          artifact_to_register: graviteeio.azurecr.io/<< parameters.docker-image-name >>:alpha-vertx5-latest
+      - aquasec/scan_docker_image:
+          docker_image_to_scan: graviteeio.azurecr.io/<< parameters.docker-image-name >>:alpha-vertx5-latest
+          scanner_url: https://82fb8f75da.cloud.aquasec.com
       - cmd-docker-logout
   job-webui-lint-test:
     parameters:
@@ -806,14 +830,6 @@ jobs:
           root: .
           paths:
             - gravitee-apim-portal-webui/dist
-  job-validate-workflow-status:
-    docker:
-      - image: cimg/base:stable
-    resource_class: small
-    steps:
-      - run:
-          name: Check workflow jobs
-          command: echo "Congratulations! If you can read this, everything is OK"
   job-build-docker-backend-image:
     parameters:
       apim-project:
@@ -863,16 +879,26 @@ jobs:
           name: Build docker image for << parameters.apim-project >>-alpine
           command: |-
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-run-e2e-784ff35 \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:alpha-vertx5-latest -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:alpha-vertx5-784ff35 \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project >>
+      - aquasec/register_artifact:
+          artifact_to_register: graviteeio.azurecr.io/<< parameters.docker-image-name >>:alpha-vertx5-latest
+      - aquasec/scan_docker_image:
+          docker_image_to_scan: graviteeio.azurecr.io/<< parameters.docker-image-name >>:alpha-vertx5-latest
+          scanner_url: https://82fb8f75da.cloud.aquasec.com
       - run:
           name: Build docker image for << parameters.apim-project >>-debian
           command: |-
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.debian \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-run-e2e-784ff35-debian \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:alpha-vertx5-latest-debian -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:alpha-vertx5-784ff35-debian \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project >>
+      - aquasec/register_artifact:
+          artifact_to_register: graviteeio.azurecr.io/<< parameters.docker-image-name >>:alpha-vertx5-latest-debian
+      - aquasec/scan_docker_image:
+          docker_image_to_scan: graviteeio.azurecr.io/<< parameters.docker-image-name >>:alpha-vertx5-latest-debian
+          scanner_url: https://82fb8f75da.cloud.aquasec.com
       - cmd-docker-logout
   job-e2e-generate-sdk:
     docker:
@@ -961,16 +987,16 @@ jobs:
               export V4_EMULATION_ENGINE_DEFAULT=no
             fi
             if [ -z "<< parameters.apim_client_tag >>" ]; then
-              APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=apim-1234-run-e2e-784ff35 APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=apim-1234-run-e2e-784ff35 yarn test:api:<< parameters.database >>
+              APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=alpha-vertx5-784ff35 APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=alpha-vertx5-784ff35 yarn test:api:<< parameters.database >>
             else 
               if [[ "<< parameters.apim_client_tag >>" == *"@"* ]]; then
                 echo "Using custom registry for client"
                 CLIENT_REGISTRY=$(echo "<< parameters.apim_client_tag >>" | cut -f1 -d@)
                 CLIENT_TAG=$(echo "<< parameters.apim_client_tag >>" | cut -f2 -d@)
-                APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=apim-1234-run-e2e-784ff35 APIM_CLIENT_REGISTRY=${CLIENT_REGISTRY} APIM_CLIENT_TAG=${CLIENT_TAG} yarn test:api:<< parameters.database >>
+                APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=alpha-vertx5-784ff35 APIM_CLIENT_REGISTRY=${CLIENT_REGISTRY} APIM_CLIENT_TAG=${CLIENT_TAG} yarn test:api:<< parameters.database >>
               else
                 echo "Using ACR registry for client"
-                APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=apim-1234-run-e2e-784ff35 APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=<< parameters.apim_client_tag >> yarn test:api:<< parameters.database >>
+                APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=alpha-vertx5-784ff35 APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=<< parameters.apim_client_tag >> yarn test:api:<< parameters.database >>
               fi
             fi
       - cmd-docker-logout
@@ -999,7 +1025,7 @@ jobs:
           name: Running UI tests
           command: |-
             cd gravitee-apim-e2e
-            APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=apim-1234-run-e2e-784ff35 yarn test:ui
+            APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=alpha-vertx5-784ff35 yarn test:ui
       - cmd-docker-logout
       - cmd-notify-on-failure
       - store_artifacts:
@@ -1032,6 +1058,203 @@ jobs:
           command: yarn build
           working_directory: gravitee-apim-perf
       - cmd-notify-on-failure
+  job-community-build:
+    docker:
+      - image: cimg/openjdk:21.0.5
+    resource_class: large
+    steps:
+      - checkout
+      - cmd-restore-maven-job-cache:
+          jobName: job-community-build
+      - run:
+          name: Build project
+          command: mvn clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 2C
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-community-build
+  job-publish-on-artifactory:
+    docker:
+      - image: cimg/openjdk:21.0.5
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-publish-on-artifactory
+      - run:
+          name: Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)
+          command: mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C -s .gravitee.settings.xml -U -P gio-artifactory-snapshot
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-publish-on-artifactory
+  job-publish-on-nexus:
+    docker:
+      - image: cimg/openjdk:21.0.5
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-publish-on-nexus
+      - run:
+          name: Maven Package and deploy to Nexus Snapshots
+          command: mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C -s .gravitee.settings.xml -U
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-publish-on-nexus
+  job-release-helm:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: medium
+    steps:
+      - checkout
+      - keeper/env-export:
+          secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
+          var-name: GIT_USER_NAME
+      - keeper/env-export:
+          secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
+          var-name: GIT_USER_EMAIL
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: GITHUB_TOKEN
+      - add_ssh_keys:
+          fingerprints:
+            - ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c
+      - run:
+          name: Git config
+          command: |-
+            git config --global user.name "${GIT_USER_NAME}"
+            git config --global user.email "${GIT_USER_EMAIL}"
+      - gh/setup
+      - helm/install_helm_client:
+          version: v3.12.3
+      - run:
+          name: build the Charts
+          working_directory: ./helm
+          command: |-
+            helm dependency update
+            cp -f "Chart.yaml" "../Chart.yaml.bak"
+            cp -f "values.yaml" "../values.yaml.bak"
+
+            mkdir -p charts/docker/io
+
+            helm package -d charts .
+            mv charts/apim-*.tgz charts/docker/io/
+
+            sed "s/^name:.*/name: apim3/" -i Chart.yaml
+            helm package -d charts .
+            mv charts/apim3-*.tgz charts/docker/io/
+
+            mkdir -p charts/aws/dev
+            cp -f "../Chart.yaml.bak" "Chart.yaml"
+            cp -f "../values.yaml.bak" "values.yaml"
+            sed -i -E "s|(repository: )graviteeio/apim-management-api|\1430630701098.dkr.ecr.eu-west-2.amazonaws.com/graviteedev/saas-apim-management-api|g" values.yaml
+            sed -i -E "s|(repository: )graviteeio/apim-gateway|\1430630701098.dkr.ecr.eu-west-2.amazonaws.com/graviteedev/saas-apim-gateway|g" values.yaml
+            sed -i -E "s|(repository: )graviteeio/apim-portal-ui|\1430630701098.dkr.ecr.eu-west-2.amazonaws.com/graviteedev/saas-apim-portal-ui|g" values.yaml
+            sed -i -E "s|(repository: )graviteeio/apim-management-ui|\1430630701098.dkr.ecr.eu-west-2.amazonaws.com/graviteedev/saas-apim-management-ui|g" values.yaml
+            helm package -d charts .
+            mv charts/apim-*.tgz charts/aws/dev/
+      - cmd-install-yarn
+      - run:
+          name: Install dependencies
+          command: yarn
+          working_directory: ./release
+      - run:
+          name: Install AWS CLI
+          command: |-
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                        unzip awscliv2.zip
+                        sudo ./aws/install
+                        aws --version
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
+          var-name: ACR_USER_NAME
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
+          var-name: ACR_PASSWORD
+      - run:
+          name: Publish helm chart release in azure repository DRY-RUN mode
+          working_directory: ./helm
+          command: |-
+            helm registry login graviteeio.azurecr.io --username $ACR_USER_NAME --password $ACR_PASSWORD
+            helm push charts/docker/io/apim-*.tgz oci://graviteeio.azurecr.io/helm/
+            helm push charts/docker/io/apim3-*.tgz oci://graviteeio.azurecr.io/helm/
+      - keeper/env-export:
+          secret-url: keeper://AEmKkeWZ4Zq758pvaPIE1A/custom_field/aws_access_key_id
+          var-name: AWS_ACCESS_KEY_ID
+      - keeper/env-export:
+          secret-url: keeper://AEmKkeWZ4Zq758pvaPIE1A/custom_field/aws_secret_access_key
+          var-name: AWS_SECRET_ACCESS_KEY
+      - keeper/env-export:
+          secret-url: keeper://AEmKkeWZ4Zq758pvaPIE1A/custom_field/aws_region
+          var-name: AWS_REGION
+      - run:
+          name: Login to AWS ECR for Helm OCI
+          command: aws ecr get-login-password --region $AWS_REGION | helm registry login --username AWS --password-stdin 430630701098.dkr.ecr.eu-west-2.amazonaws.com
+      - run:
+          name: Publish helm chart release in AWS ECR DRY-RUN mode
+          working_directory: ./helm
+          command: helm push charts/aws/dev/apim-*.tgz oci://430630701098.dkr.ecr.eu-west-2.amazonaws.com/graviteedev/helm/
+  job-deploy-on-azure-cluster:
+    docker:
+      - image: mcr.microsoft.com/azure-cli:2.34.1
+    resource_class: large
+    steps:
+      - attach_workspace:
+          at: .
+      - keeper/env-export:
+          secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/login
+          var-name: AZURE_APPLICATION_ID
+      - keeper/env-export:
+          secret-url: keeper://UryantA7MvZe8fkWwcUt8g/custom_field/tenant
+          var-name: AZURE_TENANT
+      - keeper/env-export:
+          secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/password
+          var-name: AZURE_APPLICATION_SECRET
+      - run:
+          name: Install Kubectl
+          command: |-
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+            chmod +x ./kubectl
+            mv ./kubectl /usr/local/bin/kubectl
+            kubectl version --client=true
+      - run:
+          name: Rollout pods on "gravitee-devs-preprod-aks-cluster"
+          command: |-
+            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+            az aks get-credentials --admin --resource-group Devs-Preprod-Hosted --name gravitee-devs-preprod-aks-cluster
+
+            kubectl rollout restart deployment -n apim-apim-alpha-vertx5
+            kubectl rollout restart deployment -n apim-apim-alpha-vertx5-ce
+            kubectl rollout restart deployment -n apim-apim-alpha-vertx5-oem
+      - cmd-notify-on-failure
+  job-trigger-saas-docker-images:
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - run:
+          name: Trigger SaaS Docker images pipeline
+          command: |-
+            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"dev", "branch-version":"alpha-vertx5", "sha1":"784ff35", "release-version":"", "dry-run":false, "os-distribution":"debian"}}' | jq -r '.id')
+            echo "Pipeline triggered with ID: $PIPELINE_ID"
+            waitForPipelineCompletion() {
+                while true; do
+                    STATUS=$(curl --request GET --url "https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow" --header "Circle-Token: ${CIRCLE_TOKEN}" | jq -r '.items[].status')
+                    echo "Current status: $STATUS"
+                    if [[ "$STATUS" == "success" ]]; then
+                        echo "Pipeline completed successfully."
+                        break
+                    elif [[ "$STATUS" == "failed" ]]; then
+                        echo "Pipeline failed."
+                        exit 1
+                    fi
+                    sleep 30
+                done
+            }  
+            waitForPipelineCompletion
 workflows:
   pull_requests:
     jobs:
@@ -1251,26 +1474,6 @@ workflows:
           apim-project: gravitee-apim-portal-webui
           docker-context: .
           docker-image-name: apim-portal-ui
-      - job-validate-workflow-status:
-          name: Validate workflow status
-          requires:
-            - Helm Chart - Lint & Test
-            - Test definition
-            - Test gateway
-            - Test rest-api
-            - Integration tests
-            - Test plugins
-            - Test reporters
-            - Test repository
-            - Check prettier formatting for nx projects
-            - Lint & test APIM Libs
-            - Lint & test APIM Console
-            - Build APIM Console
-            - Build APIM Console docker image
-            - Lint & test APIM Portal Next
-            - Lint & test APIM Portal
-            - Build APIM Portal
-            - Build APIM Portal docker image
       - job-build-docker-backend-image:
           context:
             - cicd-orchestrator
@@ -1330,6 +1533,63 @@ workflows:
           name: Run Cypress UI tests
           requires:
             - Lint & Build APIM e2e
+            - Build APIM Management API docker image
+            - Build APIM Gateway docker image
+            - Build APIM Console docker image
+            - Build APIM Portal docker image
+      - job-community-build:
+          name: Check build as Community user
+          context:
+            - cicd-orchestrator
+      - job-trigger-saas-docker-images:
+          context:
+            - cicd-orchestrator
+            - keeper-orb-publishing
+          name: Trigger SaaS Docker images creation
+          requires:
+            - Build APIM Management API docker image
+            - Build APIM Gateway docker image
+            - Build APIM Console docker image
+            - Build APIM Portal docker image
+      - job-release-helm:
+          name: Publish Helm chart (internal repo)
+          context:
+            - cicd-orchestrator
+          requires:
+            - Trigger SaaS Docker images creation
+      - job-publish-on-artifactory:
+          name: Publish on artifactory
+          context:
+            - cicd-orchestrator
+          requires:
+            - Test definition
+            - Test gateway
+            - Test plugins
+            - Test reporters
+            - Test repository
+            - Test rest-api
+      - job-publish-on-nexus:
+          name: Publish on nexus
+          context:
+            - cicd-orchestrator
+          requires:
+            - Test definition
+            - Test gateway
+            - Test plugins
+            - Test reporters
+            - Test repository
+            - Test rest-api
+      - job-deploy-on-azure-cluster:
+          name: Deploy on Azure cluster
+          context:
+            - cicd-orchestrator
+          requires:
+            - Test definition
+            - Test gateway
+            - Test plugins
+            - Test reporters
+            - Test repository
+            - Test rest-api
             - Build APIM Management API docker image
             - Build APIM Gateway docker image
             - Build APIM Console docker image
