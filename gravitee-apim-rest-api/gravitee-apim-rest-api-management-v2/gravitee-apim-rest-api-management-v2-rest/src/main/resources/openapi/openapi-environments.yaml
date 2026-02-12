@@ -919,6 +919,25 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /portal-navigation-items/_bulk:
+    post:
+      tags:
+        - Portal Navigation Items
+      summary: Create portal navigation items in bulk
+      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      operationId: createPortalNavigationItemsInBulk
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePortalNavigationItems"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/PortalNavigationItemsResponse"
+        default:
+          $ref: "#/components/responses/Error"
+
   /portal-navigation-items/{navId}:
     put:
       tags:
@@ -1992,6 +2011,26 @@ components:
           LINK: "#/components/schemas/CreatePortalNavigationLink"
           API: "#/components/schemas/CreatePortalNavigationApi"
 
+    CreatePortalNavigationItems:
+      type: object
+      description: Portal navigation items to create in bulk
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreatePortalNavigationItem"
+      required: [ items ]
+
+    BaseCreatePortalNavigationItems:
+      type: object
+      description: Portal navigation items to create in bulk
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
+      required: [ items ]
+
     BaseUpdatePortalNavigationItem:
       type: object
       description: Base portal navigation item for Update
@@ -2640,7 +2679,6 @@ components:
                 description: List of portal navigation items
                 items:
                   $ref: "#/components/schemas/PortalNavigationItem"
-
     PortalPageContentResponse:
       description: Portal page content
       content:

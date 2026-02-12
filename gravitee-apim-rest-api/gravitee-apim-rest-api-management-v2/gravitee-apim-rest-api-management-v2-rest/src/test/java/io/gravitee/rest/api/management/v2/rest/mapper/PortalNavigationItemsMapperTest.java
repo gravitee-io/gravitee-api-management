@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.PortalNavigationItemsFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
@@ -26,6 +27,8 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.rest.api.management.v2.rest.model.BasePortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
@@ -226,6 +229,28 @@ class PortalNavigationItemsMapperTest {
             assertThat(result.getOrder()).isEqualTo(3);
             assertThat(result.getParentId().id()).isEqualTo(link.getParentId());
             assertThat(result.getUrl()).isEqualTo(((CreatePortalNavigationLink) link).getUrl());
+        }
+
+        @Test
+        void should_map_bulk_create_portal_navigation_items() {
+            final var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
+            final var folder = PortalNavigationItemsFixtures.aCreatePortalNavigationFolder();
+            final var link = PortalNavigationItemsFixtures.aCreatePortalNavigationLink();
+            final var api = PortalNavigationItemsFixtures.aCreatePortalNavigationApi();
+
+            final var requestItems = java.util.List.of(page, folder, link, api);
+
+            final var result = mapper.mapCreatePortalNavigationItems(requestItems);
+
+            assertThat(result).hasSize(4);
+            assertThat(result)
+                .extracting(io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem::getType)
+                .containsExactly(
+                    io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.PAGE,
+                    io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.FOLDER,
+                    io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.LINK,
+                    io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API
+                );
         }
     }
 }
