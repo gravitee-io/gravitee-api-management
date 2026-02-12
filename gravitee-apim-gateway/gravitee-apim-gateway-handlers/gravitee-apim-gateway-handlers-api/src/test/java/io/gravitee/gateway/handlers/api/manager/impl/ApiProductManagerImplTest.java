@@ -17,13 +17,17 @@ package io.gravitee.gateway.handlers.api.manager.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Set;
@@ -50,11 +54,19 @@ class ApiProductManagerImplTest {
     @Mock
     private EventManager eventManager;
 
+    @Mock
+    private LicenseManager licenseManager;
+
+    @Mock
+    private License license;
+
     private ApiProductManagerImpl manager;
 
     @BeforeEach
     void setUp() {
-        manager = new ApiProductManagerImpl(apiProductRegistry, eventManager);
+        lenient().when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(license);
+        lenient().when(license.getTier()).thenReturn("universe");
+        manager = new ApiProductManagerImpl(apiProductRegistry, eventManager, licenseManager);
     }
 
     @Nested
@@ -305,6 +317,17 @@ class ApiProductManagerImplTest {
 
             assertThat(manager.get("product-1")).isNotNull();
             assertThat(manager.get("product-1").getApiIds()).isEmpty();
+        }
+
+        @Test
+        void should_not_register_when_license_does_not_allow_api_product() {
+            when(license.getTier()).thenReturn("enterprise");
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
+
+            manager.register(apiProduct);
+
+            assertThat(manager.get("product-1")).isNull();
+            verify(apiProductRegistry, never()).register(any());
         }
 
         @Test

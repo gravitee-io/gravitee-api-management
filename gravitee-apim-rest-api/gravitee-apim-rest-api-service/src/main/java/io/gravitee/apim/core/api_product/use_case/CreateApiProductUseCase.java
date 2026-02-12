@@ -32,11 +32,13 @@ import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +57,7 @@ public class CreateApiProductUseCase {
     private final ApiProductPrimaryOwnerFactory apiProductPrimaryOwnerFactory;
     private final EventCrudService eventCrudService;
     private final EventLatestCrudService eventLatestCrudService;
+    private final LicenseDomainService licenseDomainService;
 
     public record Input(CreateApiProduct createApiProduct, AuditInfo auditInfo) {}
 
@@ -62,6 +65,9 @@ public class CreateApiProductUseCase {
 
     public Output execute(Input input) {
         var auditInfo = input.auditInfo;
+        if (!licenseDomainService.isApiProductDeploymentAllowed(auditInfo.organizationId())) {
+            throw new ForbiddenFeatureException("api-product");
+        }
         var payload = input.createApiProduct;
         var now = ZonedDateTime.now();
 

@@ -32,8 +32,10 @@ import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -49,8 +51,12 @@ public class UpdateApiProductUseCase {
     private final ValidateApiProductService validateApiProductService;
     private final EventCrudService eventCrudService;
     private final EventLatestCrudService eventLatestCrudService;
+    private final LicenseDomainService licenseDomainService;
 
     public Output execute(Input input) {
+        if (!licenseDomainService.isApiProductDeploymentAllowed(input.auditInfo().organizationId())) {
+            throw new ForbiddenFeatureException("api-product");
+        }
         Optional<ApiProduct> existingApiProductOpt = apiProductQueryService.findById(input.apiProductId());
         if (existingApiProductOpt.isEmpty()) {
             throw new ApiProductNotFoundException(input.apiProductId());
