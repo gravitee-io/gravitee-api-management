@@ -72,6 +72,10 @@ public interface PolicyPluginMapper {
         if (llmProxyPhases != null) {
             policyPluginAllOfFlowPhaseCompatibility.LLM_PROXY(mapToFlowPhase(llmProxyPhases));
         }
+        var a2aProxyPhases = flowPhaseCompatibility.get(ApiProtocolType.A2A_PROXY);
+        if (a2aProxyPhases != null) {
+            policyPluginAllOfFlowPhaseCompatibility.A2A_PROXY(mapToFlowPhase(a2aProxyPhases));
+        }
         return policyPluginAllOfFlowPhaseCompatibility;
     }
 }

@@ -545,6 +545,11 @@ components:
                                 uniqueItems: true
                                 items:
                                   $ref: "#/components/schemas/FlowPhase"
+                              A2A_PROXY:
+                                type: array
+                                uniqueItems: true
+                                items:
+                                  $ref: "#/components/schemas/FlowPhase"
         ResourcePlugin:
             type: object
             allOf:

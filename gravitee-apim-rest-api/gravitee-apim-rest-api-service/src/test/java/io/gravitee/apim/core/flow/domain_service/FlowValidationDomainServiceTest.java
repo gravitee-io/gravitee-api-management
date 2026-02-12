@@ -57,6 +57,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class FlowValidationDomainServiceTest {
@@ -119,27 +120,29 @@ public class FlowValidationDomainServiceTest {
             assertThat(flows).hasSize(1).containsExactly(flow);
         }
 
-        @Test
-        public void should_accept_flow_with_selectors_and_steps_for_llm_proxy_api() {
+        @ParameterizedTest
+        @EnumSource(value = ApiType.class, names = { "PROXY", "LLM_PROXY", "A2A_PROXY" })
+        public void should_accept_flow_with_selectors_and_steps_for_http_based_proxy_api(ApiType apiType) {
             var flow = Flow.builder()
                 .selectors(List.of(HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build()))
                 .request(List.of(Step.builder().policy("policy").configuration("configuration").build()))
                 .build();
 
-            var flows = service.validateAndSanitizeHttpV4(ApiType.LLM_PROXY, List.of(flow));
+            var flows = service.validateAndSanitizeHttpV4(apiType, List.of(flow));
 
             assertThat(flows).hasSize(1).containsExactly(flow);
         }
 
-        @Test
-        public void should_throw_exception_with_invalid_selector_for_llm_proxy_api() {
+        @ParameterizedTest
+        @EnumSource(value = ApiType.class, names = { "PROXY", "LLM_PROXY", "A2A_PROXY" })
+        public void should_throw_exception_with_invalid_selector_for_http_based_proxy_api(ApiType apiType) {
             var flow = Flow.builder().name("bad_flow").selectors(List.of(new ChannelSelector())).build();
 
-            var throwable = catchThrowable(() -> service.validateAndSanitizeHttpV4(ApiType.LLM_PROXY, List.of(flow)));
+            var throwable = catchThrowable(() -> service.validateAndSanitizeHttpV4(apiType, List.of(flow)));
 
             assertThat(throwable)
                 .isInstanceOf(InvalidFlowException.class)
-                .hasMessage("The flow [bad_flow] contains selectors that couldn't apply to llm-proxy API")
+                .hasMessage("The flow [bad_flow] contains selectors that couldn't apply to " + apiType.getLabel() + " API")
                 .extracting(th -> ((InvalidFlowException) th).getParameters())
                 .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
                 .contains(entry("flowName", "bad_flow"), entry("invalidSelectors", "channel"));
@@ -450,7 +453,9 @@ public class FlowValidationDomainServiceTest {
                 Arguments.of("api-message-no-flows", Map.of()),
                 Arguments.of("api-mcp-proxy-no-flows", Map.of()),
                 Arguments.of("api-llm-proxy-no-flows", Map.of()),
-                Arguments.of("api-llm-proxy-with-flows", Map.of())
+                Arguments.of("api-llm-proxy-with-flows", Map.of()),
+                Arguments.of("api-a2a-proxy-no-flows", Map.of()),
+                Arguments.of("api-a2a-proxy-with-flows", Map.of())
             );
         }
 
