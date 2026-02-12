@@ -154,6 +154,26 @@ paths:
                     description: No page found for the provided context
                 500:
                     $ref: "#/components/responses/InternalServerError"
+    /subscription-form:
+        get:
+            tags:
+                - Portal
+            summary: Get the subscription form for the environment.
+            description: |
+              Returns the subscription form content when the form exists and is enabled.
+              Returns 404 when no subscription form exists for the environment or when the form is disabled.
+            operationId: getSubscriptionForm
+            responses:
+                200:
+                    description: The subscription form content (GMD).
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/SubscriptionForm"
+                404:
+                    description: Subscription form not found or disabled for the environment.
+                500:
+                    $ref: "#/components/responses/InternalServerError"
     /apis/_search:
         post:
             tags:
@@ -3824,6 +3844,23 @@ components:
         #####################
         # Responses Objects #
         #####################
+        SubscriptionForm:
+            type: object
+            description: Subscription form returned to API consumers when the form is enabled. Contains only the form content (GMD).
+            required:
+                - gmdContent
+            properties:
+                gmdContent:
+                    type: string
+                    description: |-
+                      Gravitee Markdown (GMD) content defining the form.
+                      Supports form components like gmd-input, gmd-textarea, gmd-select, gmd-checkbox, gmd-radio.
+                    example: |-
+                      # Subscription Information
+
+                      <gmd-input name="consumer_company_name" label="Company Name" required="true"/>
+                      <gmd-textarea name="consumer_use_case" label="Use Case" required="true"/>
+
         ErrorResponse:
             properties:
                 errors:
