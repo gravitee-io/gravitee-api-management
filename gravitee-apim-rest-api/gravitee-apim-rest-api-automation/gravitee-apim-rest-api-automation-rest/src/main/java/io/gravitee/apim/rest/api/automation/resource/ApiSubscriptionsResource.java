@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
@@ -85,13 +86,14 @@ public class ApiSubscriptionsResource extends AbstractResource {
             )
             .build();
 
-        SubscriptionCRDSpec subscriptionCRDSpec = new SubscriptionCRDSpec(
-            legacy ? spec.getHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getHrid()).buildId(),
-            legacy ? spec.getApplicationHrid() : IdBuilder.builder(auditInfo, spec.getApplicationHrid()).buildId(),
-            legacy ? apiHrid : IdBuilder.builder(auditInfo, apiHrid).buildId(),
-            legacy ? spec.getPlanHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getPlanHrid()).buildId(),
-            spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null
-        );
+        SubscriptionCRDSpec subscriptionCRDSpec = SubscriptionCRDSpec.builder()
+            .id(legacy ? spec.getHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getHrid()).buildId())
+            .applicationId(legacy ? spec.getApplicationHrid() : IdBuilder.builder(auditInfo, spec.getApplicationHrid()).buildId())
+            .referenceId(legacy ? apiHrid : IdBuilder.builder(auditInfo, apiHrid).buildId())
+            .referenceType(SubscriptionReferenceType.API)
+            .planId(legacy ? spec.getPlanHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getPlanHrid()).buildId())
+            .endingAt(spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null)
+            .build();
 
         SubscriptionCRDStatus status = importSubscriptionSpecUseCase
             .execute(new ImportSubscriptionSpecUseCase.Input(auditInfo, subscriptionCRDSpec))

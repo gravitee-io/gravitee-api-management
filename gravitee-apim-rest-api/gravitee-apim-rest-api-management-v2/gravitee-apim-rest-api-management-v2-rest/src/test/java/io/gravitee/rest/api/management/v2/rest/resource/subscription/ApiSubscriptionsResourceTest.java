@@ -29,6 +29,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -132,7 +133,14 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
             subscriptionCrudService.initWith(
                 List.of(
-                    builder().id(SUBSCRIPTION_ID).apiId(API_ID).planId(PLAN_ID).applicationId(APPLICATION_ID).status(Status.PENDING).build()
+                    builder()
+                        .id(SUBSCRIPTION_ID)
+                        .planId(PLAN_ID)
+                        .applicationId(APPLICATION_ID)
+                        .status(Status.PENDING)
+                        .referenceId(API_ID)
+                        .referenceType(SubscriptionReferenceType.API)
+                        .build()
                 )
             );
 
@@ -214,7 +222,14 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
             subscriptionCrudService.initWith(
                 List.of(
-                    builder().id(SUBSCRIPTION_ID).apiId(API_ID).planId(PLAN_ID).applicationId(APPLICATION_ID).status(Status.PENDING).build()
+                    builder()
+                        .id(SUBSCRIPTION_ID)
+                        .referenceId(API_ID)
+                        .referenceType(SubscriptionReferenceType.API)
+                        .planId(PLAN_ID)
+                        .applicationId(APPLICATION_ID)
+                        .status(Status.PENDING)
+                        .build()
                 )
             );
 
