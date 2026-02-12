@@ -20,13 +20,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDivider } from '@angular/material/divider';
 import { MatTooltip } from '@angular/material/tooltip';
-import { CommonModule, LowerCasePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { CdkDragDrop, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
 
 import { PortalNavigationItem, PortalNavigationItemType } from '../../../entities/management-api-v2';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { PortalNavigationItemIconPipe } from '../../icon/portal-navigation-item-icon.pipe';
 
 export interface SectionNode {
   id: string;
@@ -77,8 +78,8 @@ type ProcessingNode = SectionNode & {
     MatTooltip,
     EmptyStateComponent,
     GioPermissionModule,
-    LowerCasePipe,
     DragDropModule,
+    PortalNavigationItemIconPipe,
   ],
   templateUrl: './flat-tree.component.html',
   styleUrls: ['./flat-tree.component.scss'],

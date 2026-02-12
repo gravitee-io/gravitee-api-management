@@ -379,7 +379,7 @@ describe('PortalNavigationItemsComponent', () => {
   });
 
   describe('creating a page under a folder from tree node "More actions" menu', () => {
-    it('opens create dialog and does not call API when cancelled', async () => {
+    it('opens create dialog and does not call backend when cancelled', async () => {
       const fakeResponse = fakePortalNavigationItemsResponse({
         items: [
           fakePortalNavigationPage({
