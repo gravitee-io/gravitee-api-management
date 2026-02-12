@@ -142,12 +142,11 @@ public class SecretsV4IntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureApi(ReactableApi<?> reactableApi, Class<?> definitionClass) {
-        if (!isV4Api(definitionClass)) {
+        if (reactableApi.getDefinition() instanceof Api apiDefinition) {
+            updateEndpointsPort(apiDefinition, backendPort);
+        } else {
             throw new AssertionError("Api should only be v4 api");
         }
-        final Api apiDefinition = (Api) reactableApi.getDefinition();
-
-        updateEndpointsPort(apiDefinition, backendPort);
     }
 
     @Test
