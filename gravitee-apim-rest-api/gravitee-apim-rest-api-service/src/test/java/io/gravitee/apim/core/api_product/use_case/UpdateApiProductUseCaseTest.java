@@ -21,13 +21,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
+import fixtures.core.model.LicenseFixtures;
 import inmemory.AbstractUseCaseTest;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import inmemory.LicenseCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
@@ -37,7 +40,10 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
@@ -52,19 +58,23 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
     private final EventCrudService eventCrudService = mock(EventCrudService.class);
     private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
+    private final LicenseManager licenseManager = mock(LicenseManager.class);
+
     private UpdateApiProductUseCase updateApiProductUseCase;
 
     @BeforeEach
     void setUp() {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var validateApiProductService = new ValidateApiProductService(apiQueryService);
+        when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
         updateApiProductUseCase = new UpdateApiProductUseCase(
             apiProductCrudService,
             auditService,
             apiProductQueryService,
             validateApiProductService,
             eventCrudService,
-            eventLatestCrudService
+            eventLatestCrudService,
+            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager)
         );
     }
 
@@ -100,6 +110,20 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         // Verify DEPLOY event was published
         verify(eventCrudService).createEvent(eq(ORG_ID), eq(ENV_ID), any(), any(), any(), any());
         verify(eventLatestCrudService).createOrPatchLatestEvent(eq(ORG_ID), eq("api-product-id"), any());
+    }
+
+    @Test
+    void should_throw_exception_when_license_does_not_allow_api_product() {
+        when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anOssLicense());
+
+        ApiProduct existing = ApiProduct.builder().id("api-product-id").name("API Product").version("1.0.0").environmentId(ENV_ID).build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        var toUpdate = UpdateApiProduct.builder().name("New Name").build();
+        var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
+
+        Assertions.assertThatThrownBy(() -> updateApiProductUseCase.execute(input)).isInstanceOf(ForbiddenFeatureException.class);
     }
 
     @Test

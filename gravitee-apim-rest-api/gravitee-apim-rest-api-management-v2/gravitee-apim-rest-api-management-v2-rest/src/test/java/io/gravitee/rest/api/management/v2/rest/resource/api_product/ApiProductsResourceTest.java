@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,11 +26,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.LicenseFixtures;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.use_case.CreateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductNameUseCase;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiProductResponse;
@@ -61,6 +64,9 @@ class ApiProductsResourceTest extends AbstractResourceTest {
     @Inject
     private VerifyApiProductNameUseCase verifyApiProductNameUseCase;
 
+    @Inject
+    private LicenseManager licenseManager;
+
     @Override
     protected String contextPath() {
         return "/environments/" + ENV_ID + "/api-products";
@@ -79,6 +85,7 @@ class ApiProductsResourceTest extends AbstractResourceTest {
 
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
+        when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @AfterEach
@@ -181,6 +188,22 @@ class ApiProductsResourceTest extends AbstractResourceTest {
             final Response response = rootTarget().request().post(json(null));
 
             assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_403_when_license_does_not_allow_api_product() {
+            when(createApiProductUseCase.execute(any())).thenThrow(
+                new io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException("api-product")
+            );
+
+            CreateApiProduct createApiProduct = new CreateApiProduct();
+            createApiProduct.setName("My API Product");
+            createApiProduct.setDescription("Product description");
+            createApiProduct.setVersion("1.0.0");
+
+            final Response response = rootTarget().request().post(json(createApiProduct));
+
+            assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
         }
 
         @Test

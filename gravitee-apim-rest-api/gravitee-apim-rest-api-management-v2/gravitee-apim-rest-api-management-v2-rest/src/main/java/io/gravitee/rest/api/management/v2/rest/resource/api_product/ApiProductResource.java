@@ -17,11 +17,11 @@ package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
 import io.gravitee.apim.core.api_product.model.UpdateApiProduct;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
+import io.gravitee.apim.core.api_product.use_case.DeployApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.UpdateApiProductUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
-import io.gravitee.rest.api.management.v2.rest.resource.api.ApiSubscriptionsResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -33,6 +33,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -48,6 +49,9 @@ public class ApiProductResource extends AbstractResource {
 
     @Inject
     private GetApiProductsUseCase getApiProductByIdUseCase;
+
+    @Inject
+    private DeployApiProductUseCase deployApiProductUseCase;
 
     @Inject
     private DeleteApiProductUseCase deleteApiProductUseCase;
@@ -81,6 +85,20 @@ public class ApiProductResource extends AbstractResource {
         AuditInfo audit = getAuditInfo();
         deleteApiProductUseCase.execute(DeleteApiProductUseCase.Input.of(apiProductId, audit));
         return Response.noContent().build();
+    }
+
+    @POST
+    @Path("/deployments")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
+    public Response deployApiProduct(@PathParam("apiProductId") String apiProductId) {
+        AuditInfo audit = getAuditInfo();
+        var input = new DeployApiProductUseCase.Input(apiProductId, audit);
+        log.debug("Deploy API Product [{}]", apiProductId);
+        var output = deployApiProductUseCase.execute(input);
+        log.debug("API Product [{}] deployment triggered", apiProductId);
+        return Response.accepted().entity(output.apiProduct()).build();
     }
 
     @PUT

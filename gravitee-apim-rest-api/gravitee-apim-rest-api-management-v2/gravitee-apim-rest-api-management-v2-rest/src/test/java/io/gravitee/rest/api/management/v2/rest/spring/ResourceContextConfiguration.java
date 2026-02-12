@@ -15,11 +15,14 @@
  */
 package io.gravitee.rest.api.management.v2.rest.spring;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fakes.spring.FakeConfiguration;
+import fixtures.core.model.LicenseFixtures;
 import inmemory.ApiCRDExportDomainServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiExposedEntrypointDomainServiceInMemory;
@@ -68,6 +71,7 @@ import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.api_product.use_case.CreateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
+import io.gravitee.apim.core.api_product.use_case.DeployApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.UpdateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductNameUseCase;
@@ -102,7 +106,9 @@ import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
+import io.gravitee.apim.core.license.crud_service.LicenseCrudService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
+import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
@@ -415,12 +421,19 @@ public class ResourceContextConfiguration {
 
     @Bean
     public LicenseManager licenseManager() {
-        return mock(LicenseManager.class);
+        LicenseManager mock = mock(LicenseManager.class);
+        when(mock.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
+        return mock;
     }
 
     @Bean
     public GraviteeLicenseDomainService graviteeLicenseDomainService(LicenseManager licenseManager) {
         return new GraviteeLicenseDomainService(licenseManager);
+    }
+
+    @Bean
+    public LicenseDomainService licenseDomainService(LicenseCrudService licenseCrudService, LicenseManager licenseManager) {
+        return new LicenseDomainService(licenseCrudService, licenseManager);
     }
 
     @Bean
@@ -873,23 +886,33 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    @Primary
     public CreateApiProductUseCase createApiProductUseCase() {
         return mock(CreateApiProductUseCase.class);
     }
 
     @Bean
+    @Primary
     public GetApiProductsUseCase getApiProductsUseCase() {
         return mock(GetApiProductsUseCase.class);
     }
 
     @Bean
+    @Primary
     public UpdateApiProductUseCase updateApiProductUseCase() {
         return mock(UpdateApiProductUseCase.class);
     }
 
     @Bean
+    @Primary
     public DeleteApiProductUseCase deleteApiProductUseCase() {
         return mock(DeleteApiProductUseCase.class);
+    }
+
+    @Bean
+    @Primary
+    public DeployApiProductUseCase deployApiProductUseCase() {
+        return mock(DeployApiProductUseCase.class);
     }
 
     @Bean
