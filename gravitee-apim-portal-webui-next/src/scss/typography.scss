@@ -1,0 +1,95 @@
+/*
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@use './theme';
+
+// Next gen typography
+
+.next-gen-h1 {
+  font-size: 48px;
+  font-weight: bold;
+  line-height: 56px;
+}
+
+.next-gen-h2 {
+  font-size: 32px;
+  font-weight: bold;
+  line-height: 48px;
+}
+
+.next-gen-h3 {
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 30px;
+}
+
+.next-gen-h4 {
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 25px;
+}
+
+.next-gen-h5 {
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 27px;
+}
+
+%next-gen-body-shared {
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.next-gen-body {
+  @extend %next-gen-body-shared;
+
+  font-weight: normal;
+}
+
+.next-gen-body-strong {
+  @extend %next-gen-body-shared;
+
+  font-weight: bold;
+}
+
+%next-gen-small-shared {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.next-gen-small {
+  @extend %next-gen-small-shared;
+
+  font-weight: normal;
+}
+
+.next-gen-small-bold {
+  @extend %next-gen-small-shared;
+
+  font-weight: bold;
+}
+
+.next-gen-caption {
+  font-size: 12px;
+  font-weight: normal;
+  line-height: 16px;
+}
+
+// Icons sizes
+
+.material-icons.icon-small {
+  font-size: 16px;
+}

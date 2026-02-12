@@ -33,7 +33,10 @@ $tertiary-main-color: var(--gio-app-tertiary-main-color);
 $error-main-color: var(--gio-app-error-main-color);
 
 // -- Shapes --
-$container-shape: 4px;
+$container-shape: 8px;
+
+// Dimensions
+$inner-content-width: 1440px;
 
 // -- Borders --
 $border-color: var(--gio-app-outline-color, #c7c7c7);
@@ -117,4 +120,3 @@ $chip-background: var(--gio-app-chip-container-color, $card-background-color);
 $select-panel-background-color: color-mix(in srgb, $banner-background-color 12%, $card-background-color);
 $calendar-background-color: color-mix(in srgb, $banner-background-color 50%, $card-background-color);
 $primary-highlight-color: color-mix(in srgb, $primary-main-color 8%, white 92%);
-$gmd-viewer-max-width: 1400px;
