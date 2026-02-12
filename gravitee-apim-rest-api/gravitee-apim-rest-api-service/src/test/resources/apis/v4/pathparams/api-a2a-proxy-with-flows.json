@@ -1,0 +1,46 @@
+{
+  "type": "a2a-proxy",
+  "plans": [
+    {
+      "id": "keyless",
+      "name": "Keyless",
+      "security": {
+        "type": "key-less"
+      },
+      "flows": [
+
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Item",
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/products/:productId/items/:itemId",
+          "pathOperator": "STARTS_WITH",
+          "methods": []
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    },
+    {
+      "name": "Product",
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/:productId",
+          "pathOperator": "STARTS_WITH",
+          "methods": []
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    }
+  ],
+  "resources": []
+}

@@ -21,4 +21,5 @@ public enum ApiProtocolType {
     NATIVE_KAFKA,
     MCP_PROXY,
     LLM_PROXY,
+    A2A_PROXY,
 }
