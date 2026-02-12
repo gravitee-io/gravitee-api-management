@@ -46,6 +46,16 @@ public class LicenseDomainService {
     }
 
     /**
+     * Check that API Product deployment is allowed by the license (requires universe tier).
+     * @param organizationId The organization id
+     * @return <code>true</code> when API Product deployment is allowed.
+     */
+    public boolean isApiProductDeploymentAllowed(String organizationId) {
+        var license = licenseManager.getOrganizationLicenseOrPlatform(organizationId);
+        return Objects.equals(license.getTier(), "universe");
+    }
+
+    /**
      * Create or update license by organization ID.
      * If on create and license is null, no license is saved in the database.
      * If on update and license is the same, no license is updated.

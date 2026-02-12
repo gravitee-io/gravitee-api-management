@@ -20,14 +20,17 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
+import fixtures.core.model.LicenseFixtures;
 import inmemory.AbstractUseCaseTest;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
+import inmemory.LicenseCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
@@ -39,14 +42,17 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
+import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.List;
 import org.assertj.core.api.Assertions;
@@ -67,6 +73,7 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     private final EventCrudService eventCrudService = mock(EventCrudService.class);
     private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
+    private final LicenseManager licenseManager = mock(LicenseManager.class);
 
     private CreateApiProductUseCase createApiProductUseCase;
 
@@ -106,6 +113,7 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
             userCrudService
         );
 
+        when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
         createApiProductUseCase = new CreateApiProductUseCase(
             apiProductQueryService,
             apiProductCrudService,
@@ -114,7 +122,8 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
             apiProductPrimaryOwnerDomainService,
             apiProductPrimaryOwnerFactory,
             eventCrudService,
-            eventLatestCrudService
+            eventLatestCrudService,
+            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager)
         );
 
         initRoles();
@@ -267,6 +276,18 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
 
         var output = createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO));
         assertThat(output.apiProduct().getApiIds()).isEmpty();
+    }
+
+    @Test
+    void should_throw_exception_when_license_does_not_allow_api_product() {
+        when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anOssLicense());
+
+        var toCreate = CreateApiProduct.builder().name("API Product 1").version("1.0.0").build();
+
+        var throwable = Assertions.catchThrowable(() ->
+            createApiProductUseCase.execute(new CreateApiProductUseCase.Input(toCreate, AUDIT_INFO))
+        );
+        Assertions.assertThat(throwable).isInstanceOf(ForbiddenFeatureException.class);
     }
 
     @Test

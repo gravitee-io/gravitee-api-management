@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
+import static io.gravitee.common.http.HttpStatusCode.ACCEPTED_202;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
@@ -28,11 +30,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
+import fixtures.core.model.LicenseFixtures;
+import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
+import io.gravitee.apim.core.api_product.use_case.DeployApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.UpdateApiProductUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -43,6 +49,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
@@ -64,7 +71,13 @@ class ApiProductResourceTest extends AbstractResourceTest {
     private DeleteApiProductUseCase deleteApiProductUseCase;
 
     @Inject
+    private DeployApiProductUseCase deployApiProductUseCase;
+
+    @Inject
     private UpdateApiProductUseCase updateApiProductUseCase;
+
+    @Inject
+    private LicenseManager licenseManager;
 
     @Override
     protected String contextPath() {
@@ -84,13 +97,15 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
+        when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @AfterEach
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(getApiProductByIdUseCase, deleteApiProductUseCase, updateApiProductUseCase);
+        reset(getApiProductByIdUseCase, deleteApiProductUseCase, deployApiProductUseCase, updateApiProductUseCase);
+        when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @Nested
@@ -237,9 +252,81 @@ class ApiProductResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_403_when_license_does_not_allow_api_product() {
+            when(updateApiProductUseCase.execute(any())).thenThrow(
+                new io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException("api-product")
+            );
+
+            var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
+            updatePayload.setName("Updated Product");
+
+            final Response response = rootTarget().request().put(json(updatePayload));
+
+            assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
+        }
+
+        @Test
         public void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
                 rootTarget().request().put(json(""))
+            );
+        }
+    }
+
+    @Nested
+    class DeployApiProductTest {
+
+        @Test
+        void should_deploy_api_product() {
+            ApiProduct apiProduct = ApiProduct.builder()
+                .id(API_PRODUCT_ID)
+                .environmentId(ENV_ID)
+                .name("My API Product")
+                .description("Product description")
+                .version("1.0.0")
+                .createdAt(ZonedDateTime.now())
+                .updatedAt(ZonedDateTime.now())
+                .apiIds(new HashSet<>())
+                .build();
+
+            when(deployApiProductUseCase.execute(any())).thenReturn(new DeployApiProductUseCase.Output(apiProduct));
+
+            final Response response = rootTarget().path("deployments").request().post(json(Map.of()));
+
+            assertThat(response.getStatus()).isEqualTo(ACCEPTED_202);
+            var captor = ArgumentCaptor.forClass(DeployApiProductUseCase.Input.class);
+            verify(deployApiProductUseCase).execute(captor.capture());
+            SoftAssertions.assertSoftly(soft -> {
+                var input = captor.getValue();
+                soft.assertThat(input.apiProductId()).isEqualTo(API_PRODUCT_ID);
+                soft.assertThat(input.auditInfo()).isInstanceOf(AuditInfo.class);
+            });
+        }
+
+        @Test
+        void should_return_404_when_api_product_not_found() {
+            when(deployApiProductUseCase.execute(any())).thenThrow(new ApiProductNotFoundException(API_PRODUCT_ID));
+
+            final Response response = rootTarget().path("deployments").request().post(json(Map.of()));
+
+            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_403_when_license_does_not_allow_api_product() {
+            when(deployApiProductUseCase.execute(any())).thenThrow(
+                new io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException("api-product")
+            );
+
+            final Response response = rootTarget().path("deployments").request().post(json(Map.of()));
+
+            assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
+        }
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
+                rootTarget().path("deployments").request().post(json(Map.of()))
             );
         }
     }
