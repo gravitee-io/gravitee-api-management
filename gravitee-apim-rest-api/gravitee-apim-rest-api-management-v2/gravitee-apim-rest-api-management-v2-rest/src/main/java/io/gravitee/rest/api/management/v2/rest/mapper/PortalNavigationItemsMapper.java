@@ -103,6 +103,12 @@ public interface PortalNavigationItemsMapper {
         };
     }
 
+    default List<io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem> mapCreatePortalNavigationItems(
+        List<io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem> createPortalNavigationItems
+    ) {
+        return createPortalNavigationItems.stream().map(this::map).toList();
+    }
+
     default PortalNavigationItemId map(UUID id) {
         return id == null ? null : PortalNavigationItemId.of(id.toString());
     }
