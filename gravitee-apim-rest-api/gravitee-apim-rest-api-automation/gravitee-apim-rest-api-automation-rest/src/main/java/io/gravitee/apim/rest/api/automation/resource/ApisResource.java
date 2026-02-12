@@ -54,7 +54,6 @@ import jakarta.ws.rs.core.Response;
  */
 public class ApisResource extends AbstractResource {
 
-    public static final String SHARED_POLICY_GROUP_ID_FIELD = "sharedPolicyGroupId";
     public static final String HRID_FIELD = "hrid";
 
     @Inject
@@ -125,7 +124,7 @@ public class ApisResource extends AbstractResource {
 
         ApiCRDStatus apiCRDStatus = importApiCRDUseCase.execute(new ImportApiCRDUseCase.Input(audit, apiCRDSpec)).status();
 
-        SharedPolicyGroupIdHelper.removeSPGID(spec);
+        SharedPolicyGroupIdHelper.removeSPGID(spec, false);
         return Response.ok(ApiMapper.INSTANCE.apiV4SpecAndStatusToApiV4State(spec, apiCRDStatus)).build();
     }
 
