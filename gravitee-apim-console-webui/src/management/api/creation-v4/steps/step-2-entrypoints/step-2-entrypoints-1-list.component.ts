@@ -239,7 +239,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
     const selectedEntrypointsId = this.formGroup.getRawValue().selectedEntrypointsIds[0];
     const selectedEntrypoint = this.entrypoints.find(e => selectedEntrypointsId === e.id);
 
-    const apiType: ApiType = selectedEntrypoint.id === AGENT_TO_AGENT.id ? 'MESSAGE' : selectedEntrypoint.supportedApiType;
+    const apiType: ApiType = selectedEntrypoint.supportedApiType;
 
     this.connectorPluginsV2Service
       .getEndpointPlugin(selectedEntrypoint.id)
@@ -285,6 +285,11 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
       this.licenseService.openDialog({
         feature: ApimFeature.APIM_LLM_PROXY_REACTOR,
         context: UTMTags.API_CREATION_LLM_ENTRYPOINT,
+      });
+    } else if (selectedEntrypoint.supportedApiType === 'A2A_PROXY') {
+      this.licenseService.openDialog({
+        feature: ApimFeature.APIM_A2A_PROXY_REACTOR,
+        context: UTMTags.API_CREATION_A2A_ENTRYPOINT,
       });
     } else {
       this.licenseService.openDialog({
