@@ -85,6 +85,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public DashboardCrudServiceInMemory dashboardCrudService() {
+        return new DashboardCrudServiceInMemory();
+    }
+
+    @Bean
     public MessageLogsCrudServiceInMemory messageLogsCrudService() {
         return new MessageLogsCrudServiceInMemory();
     }
