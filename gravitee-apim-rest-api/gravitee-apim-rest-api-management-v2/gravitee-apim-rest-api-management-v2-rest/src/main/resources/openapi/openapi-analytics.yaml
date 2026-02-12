@@ -750,7 +750,7 @@ paths:
                                 value:
                                     name: "llm-proxy"
                                     labels:
-                                        gravitee.io/team: "apim"
+                                        graviteeio/team: "apim"
                                     widgets:
                                         - id: "1"
                                           title: "Requests"
@@ -825,7 +825,7 @@ paths:
                                         createdAt: "2025-10-07T06:50:30Z"
                                         lastModified: "2025-10-07T06:50:30Z"
                                         labels:
-                                            gravitee.io/team: "apim"
+                                            graviteeio/team: "apim"
                                         widgets:
                                             - id: "1"
                                               title: "Requests"
@@ -869,6 +869,116 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
 
+    /analytics/dashboards/{dashboardId}:
+        parameters:
+            - $ref: "#/components/parameters/dashboardId"
+        get:
+            operationId: getDashboard
+            summary: Get a custom analytics dashboard
+            description: |
+                Retrieves a custom analytics dashboard by its unique identifier.
+            tags:
+                - dashboards
+            responses:
+                "200":
+                    description: The dashboard has been successfully retrieved.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Dashboard"
+                "403":
+                    description: Forbidden - Insufficient permissions to view this dashboard.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: No dashboard found for the given identifier.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "500":
+                    description: Internal server error while retrieving the dashboard.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+        put:
+            operationId: updateDashboard
+            summary: Update a custom analytics dashboard
+            description: |
+                Updates an existing custom analytics dashboard. All provided fields will replace the existing values.
+            tags:
+                - dashboards
+            requestBody:
+                description: |
+                    The dashboard fields to update. All fields are optional; only provided fields will be updated.
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateDashboard"
+            responses:
+                "200":
+                    description: The dashboard has been successfully updated.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Dashboard"
+                "400":
+                    description: Bad request - The provided dashboard update payload is invalid.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "403":
+                    description: Forbidden - Insufficient permissions to update this dashboard.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The dashboard to update was not found.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "500":
+                    description: Internal server error while updating the dashboard.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+        delete:
+            operationId: deleteDashboard
+            summary: Delete a custom analytics dashboard
+            description: |
+                Deletes a custom analytics dashboard by its unique identifier.
+            tags:
+                - dashboards
+            responses:
+                "204":
+                    description: The dashboard has been successfully deleted.
+                "403":
+                    description: Forbidden - Insufficient permissions to delete this dashboard.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The dashboard to delete was not found.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "500":
+                    description: Internal server error while deleting the dashboard.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
 components:
     parameters:
         EnvId:
@@ -895,6 +1005,15 @@ components:
             description: The metric identifier for which to retrieve filter specifications
             schema:
                 $ref: "#/components/schemas/MetricName"
+
+        dashboardId:
+            name: dashboardId
+            in: path
+            required: true
+            description: The unique identifier of the dashboard
+            schema:
+                type: string
+            example: "d0152e36-ad24-4f74-a4df-443074d5a796"
 
     schemas:
         ApiName:
@@ -1376,12 +1495,20 @@ components:
             enum:
                 - stats
                 - doughnut
+                - pie
+                - polarArea
+                - top
+                - bar
                 - line
             description: |
                 The type of widget visualization.
 
                 - **stats**: A single number KPI / stat widget displaying aggregated values.
-                - **doughnut**: A doughnut / pie chart widget for displaying proportional data.
+                - **doughnut**: A doughnut chart widget for displaying proportional data.
+                - **pie**: A pie chart widget for displaying proportional data.
+                - **polarArea**: A polar area chart widget for displaying proportional data with varying radii.
+                - **top**: A top-N ranking widget for displaying the highest values.
+                - **bar**: A bar chart widget for displaying comparative data across categories.
                 - **line**: A line chart widget for displaying data over time or across categories.
             example: "stats"
 
@@ -1432,14 +1559,14 @@ components:
                 The `type` field selects the analytics request type. The structure aligns with the computation request schemas (see computation tag):
                 - **measures**: Returns aggregated values. Same shape as `MeasuresRequest` (timeRange, metrics, filters).
                 - **facets**: Groups data by facet values. Same shape as `FacetsRequest` (timeRange, by, metrics, limit, filters, ranges).
-                - **timeSeries**: Returns data points over time. Same shape as `TimeSeriesRequest` (timeRange, interval, metrics, by, limit, filters, ranges).
+                - **time-series**: Returns data points over time. Same shape as `TimeSeriesRequest` (timeRange, interval, metrics, by, limit, filters, ranges).
             properties:
                 type:
                     type: string
                     enum:
                         - measures
                         - facets
-                        - timeSeries
+                        - time-series
                     description: The type of analytics request this widget represents (measures, facets, or time series)
                     example: "measures"
                 timeRange:
@@ -1448,22 +1575,21 @@ components:
                     type: array
                     minItems: 1
                     items:
-                        $ref: "#/components/schemas/FacetMetricRequest"
+                        $ref: "#/components/schemas/MetricRequest"
                     description: |
-                        List of metric requests to process. Uses `FacetMetricRequest` which supports both simple measures and faceted queries with optional sorts.
+                        List of metric requests to process. Uses `MetricRequest` which supports metric name, measures, and optional filters.
                 interval:
                     $ref: "#/components/schemas/Interval"
                 by:
                     type: array
-                    minItems: 1
                     maxItems: 3
                     items:
                         $ref: "#/components/schemas/FacetName"
-                    description: List of facet names to group by. Applicable when type is `facets` (up to 3) or `timeSeries` (up to 2).
+                    description: List of facet names to group by. Required when type is `facets`, optional for `time-series`, not applicable for `measures`.
                 limit:
                     type: integer
                     minimum: 1
-                    description: Maximum number of buckets to return. Applicable when type is `facets` or `timeSeries`.
+                    description: Maximum number of buckets to return. Applicable when type is `facets` or `time-series`.
                 filters:
                     type: array
                     items:
@@ -1500,6 +1626,10 @@ components:
                     type: string
                     description: Display title of the widget
                     example: "Requests"
+                description:
+                    type: string
+                    description: Optional description of the widget
+                    example: "Total number of API requests"
                 type:
                     $ref: "#/components/schemas/WidgetType"
                 layout:
@@ -1536,11 +1666,14 @@ components:
                     example: "llm-proxy"
                 labels:
                     type: object
+                    description: >-
+                        Key-value pairs of labels for organizing and categorizing dashboards.
                     additionalProperties:
                         type: string
-                    description: Key-value pairs of labels for organizing and categorizing dashboards
+                    x-propertyNames:
+                        pattern: "^[^.]+$"
                     example:
-                        gravitee.io/team: "apim"
+                        graviteeio/team: "apim"
                 widgets:
                     type: array
                     items:
@@ -1549,7 +1682,52 @@ components:
             example:
                 name: "llm-proxy"
                 labels:
-                    gravitee.io/team: "apim"
+                    graviteeio/team: "apim"
+                widgets:
+                    - id: "1"
+                      title: "Requests"
+                      type: "stats"
+                      layout:
+                          cols: 1
+                          rows: 1
+                          x: 0
+                          "y": 0
+                      request:
+                          type: "measures"
+                          timeRange:
+                              from: "2025-10-07T06:50:30Z"
+                              to: "2025-12-07T11:35:30Z"
+                          metrics:
+                              - name: "HTTP_REQUESTS"
+                                measures: ["COUNT"]
+
+        UpdateDashboard:
+            type: object
+            description: Request body for updating an existing custom analytics dashboard. All fields are optional.
+            properties:
+                name:
+                    type: string
+                    description: Updated name for the dashboard
+                    example: "llm-proxy-updated"
+                labels:
+                    type: object
+                    description: >-
+                        Updated key-value label pairs for the dashboard.
+                    additionalProperties:
+                        type: string
+                    x-propertyNames:
+                        pattern: "^[^.]+$"
+                    example:
+                        graviteeio/team: "apim"
+                widgets:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Widget"
+                    description: Updated list of widget definitions for the dashboard
+            example:
+                name: "llm-proxy-updated"
+                labels:
+                    graviteeio/team: "apim"
                 widgets:
                     - id: "1"
                       title: "Requests"
@@ -1576,6 +1754,7 @@ components:
                 - createdBy
                 - createdAt
                 - lastModified
+                - widgets
             description: A custom analytics dashboard with its full definition including metadata, labels, and widgets.
             properties:
                 id:
@@ -1602,16 +1781,20 @@ components:
                     example: "2025-10-07T06:50:30Z"
                 labels:
                     type: object
+                    description: >-
+                        Key-value pairs of labels for organizing and categorizing dashboards.
                     additionalProperties:
                         type: string
-                    description: Key-value pairs of labels for organizing and categorizing dashboards
+                    x-propertyNames:
+                        pattern: "^[^.]+$"
                     example:
-                        gravitee.io/team: "apim"
+                        graviteeio/team: "apim"
                 widgets:
                     type: array
                     items:
                         $ref: "#/components/schemas/Widget"
                     description: List of widget definitions in the dashboard
+                    default: []
             example:
                 id: "d0152e36-ad24-4f74-a4df-443074d5a796"
                 name: "llm-proxy"
@@ -1619,7 +1802,7 @@ components:
                 createdAt: "2025-10-07T06:50:30Z"
                 lastModified: "2025-10-07T06:50:30Z"
                 labels:
-                    gravitee.io/team: "apim"
+                    graviteeio/team: "apim"
                 widgets:
                     - id: "1"
                       title: "Requests"
