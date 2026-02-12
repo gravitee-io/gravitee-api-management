@@ -136,4 +136,9 @@ public class EnvironmentsResource extends AbstractResource {
     public PortalNavigationItemsResource getPortalNavigationItemsResource() {
         return resourceContext.getResource(PortalNavigationItemsResource.class);
     }
+
+    @Path("subscription-form")
+    public SubscriptionFormResource getSubscriptionFormResource() {
+        return resourceContext.getResource(SubscriptionFormResource.class);
+    }
 }
