@@ -134,6 +134,11 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
         feature: ApimFeature.APIM_LLM_PROXY_REACTOR,
         context: UTMTags.API_CREATION_LLM_ENDPOINT_CONFIG,
       });
+    } else if (this.apiType === 'A2A_PROXY') {
+      this.licenseService.openDialog({
+        feature: ApimFeature.APIM_A2A_PROXY_REACTOR,
+        context: UTMTags.API_CREATION_A2A_ENDPOINT_CONFIG,
+      });
     } else {
       this.licenseService.openDialog({
         feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,

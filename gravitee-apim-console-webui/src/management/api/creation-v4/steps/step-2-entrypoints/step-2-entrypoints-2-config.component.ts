@@ -127,10 +127,6 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       });
   }
 
-  public get isA2ASelected(): boolean {
-    return this.stepService.payload.selectedEntrypoints.find(entrypoint => entrypoint.id === 'agent-to-agent') != null;
-  }
-
   private initFormForSyncEntrypoints(currentStepPayload: ApiCreationPayload, paths: PathV4[], tcpHosts: TcpHost[], kafkaHost: KafkaHost) {
     this.hasHttpListeners = currentStepPayload.selectedEntrypoints.find(entrypoint => entrypoint.supportedListenerType === 'HTTP') != null;
     if (this.hasHttpListeners) {
@@ -198,12 +194,13 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       case 'MESSAGE':
         this.stepService.goToNextStep({
           groupNumber: 3,
-          component: this.isA2ASelected ? Step3Endpoints2ConfigComponent : Step3Endpoints1ListComponent,
+          component: Step3Endpoints1ListComponent,
         });
         break;
       case 'PROXY':
       case 'MCP_PROXY':
       case 'LLM_PROXY':
+      case 'A2A_PROXY':
       case 'NATIVE':
         this.stepService.goToNextStep({
           groupNumber: 3,
@@ -227,6 +224,11 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       this.licenseService.openDialog({
         feature: ApimFeature.APIM_LLM_PROXY_REACTOR,
         context: UTMTags.API_CREATION_LLM_ENTRYPOINT_CONFIG,
+      });
+    } else if (this.apiType === 'A2A_PROXY') {
+      this.licenseService.openDialog({
+        feature: ApimFeature.APIM_A2A_PROXY_REACTOR,
+        context: UTMTags.API_CREATION_A2A_ENTRYPOINT_CONFIG,
       });
     } else {
       this.licenseService.openDialog({

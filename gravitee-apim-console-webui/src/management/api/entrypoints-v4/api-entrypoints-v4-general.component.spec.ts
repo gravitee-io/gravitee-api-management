@@ -51,7 +51,7 @@ const ENTRYPOINTS: Partial<ConnectorPlugin>[] = [
   { id: 'sse', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'Server-Sent Events', deployed: false },
   { id: 'webhook', supportedApiType: 'MESSAGE', supportedListenerType: 'SUBSCRIPTION', name: 'Webhook', deployed: false },
   { id: 'native-kafka', supportedApiType: 'NATIVE', supportedListenerType: 'KAFKA', name: 'Client', deployed: false },
-  { id: 'agent-to-agent', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'Agent to agent', deployed: false },
+  { id: 'a2a-proxy', supportedApiType: 'A2A_PROXY', supportedListenerType: 'HTTP', name: 'A2A Proxy', deployed: false },
   { id: 'llm-proxy', supportedApiType: 'LLM_PROXY', supportedListenerType: 'HTTP', name: 'LLM Proxy Entrypoint', deployed: true },
 ];
 
@@ -169,8 +169,8 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   describe('When API has Agent PROXY architecture type', () => {
     const RESTRICTED_DOMAINS = [];
     const API = fakeApiV4({
-      type: 'MESSAGE',
-      listeners: [{ type: 'HTTP', entrypoints: [{ type: 'agent-to-agent' }], paths: [{ path: '/path' }] }],
+      type: 'A2A_PROXY',
+      listeners: [{ type: 'HTTP', entrypoints: [{ type: 'a2a-proxy' }], paths: [{ path: '/path' }] }],
     });
 
     beforeEach(async () => {

@@ -205,6 +205,35 @@ describe('Step2Entrypoints1ListComponent', () => {
       });
     });
 
+    it('should open license dialog for A2A_PROXY entrypoint', () => {
+      const a2aEntrypoint: ConnectorVM = {
+        id: 'a2a-proxy',
+        name: 'A2A Proxy',
+        supportedApiType: 'A2A_PROXY',
+        icon: 'icon',
+        deployed: true,
+        description: 'A2A Proxy Description',
+        isEnterprise: false,
+        supportedListenerType: 'HTTP',
+        supportedQos: ['NONE'],
+      };
+
+      component.entrypoints = [a2aEntrypoint];
+
+      component.formGroup.patchValue({
+        selectedEntrypointsIds: ['a2a-proxy'],
+      });
+
+      const openDialogSpy = jest.spyOn(licenseService, 'openDialog');
+
+      component.onRequestUpgrade();
+
+      expect(openDialogSpy).toHaveBeenCalledWith({
+        feature: ApimFeature.APIM_A2A_PROXY_REACTOR,
+        context: UTMTags.API_CREATION_A2A_ENTRYPOINT,
+      });
+    });
+
     it('should handle multiple selected entrypoints (takes first)', () => {
       const llmEntrypoint: ConnectorVM = {
         id: 'llm-proxy-entrypoint',
@@ -252,7 +281,7 @@ describe('Step2Entrypoints1ListComponent', () => {
       await initComponent('AI');
       const aiEntrypoints = [
         fakeConnectorPlugin({ id: 'llm-proxy', name: 'LLM Proxy', supportedApiType: 'LLM_PROXY' }),
-        fakeConnectorPlugin({ id: 'agent-to-agent', name: 'Agent to Agent', supportedApiType: 'MESSAGE' }),
+        fakeConnectorPlugin({ id: 'a2a-proxy', name: 'A2A Proxy', supportedApiType: 'A2A_PROXY' }),
       ];
 
       jest.spyOn(connectorPluginsService, 'listAIEntrypointPlugins').mockReturnValue(of(aiEntrypoints));
@@ -264,18 +293,14 @@ describe('Step2Entrypoints1ListComponent', () => {
       expect(component.architecture).toBe('AI');
     });
 
-    it('should initialize for MESSAGE architecture and filter out agent-to-agent', async () => {
+    it('should initialize for MESSAGE architecture', async () => {
       await initComponent('MESSAGE');
-      const messageEntrypoints = [
-        fakeConnectorPlugin({ id: 'http-get', name: 'HTTP GET', supportedApiType: 'MESSAGE' }),
-        fakeConnectorPlugin({ id: 'agent-to-agent', name: 'Agent to Agent', supportedApiType: 'MESSAGE' }),
-      ];
+      const messageEntrypoints = [fakeConnectorPlugin({ id: 'http-get', name: 'HTTP GET', supportedApiType: 'MESSAGE' })];
 
       jest.spyOn(connectorPluginsService, 'listAsyncEntrypointPlugins').mockReturnValue(of(messageEntrypoints));
 
       fixture.detectChanges();
 
-      expect(component.entrypoints.find(e => e.id === 'agent-to-agent')).toBeUndefined();
       expect(component.entrypoints.find(e => e.id === 'http-get')).toBeDefined();
     });
 
