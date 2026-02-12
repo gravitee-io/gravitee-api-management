@@ -50,12 +50,12 @@ const ENDPOINT_LIST: ConnectorPlugin[] = [
     supportedQos: ['AT_MOST_ONCE', 'NONE', 'AT_LEAST_ONCE', 'AUTO'],
   },
   {
-    id: 'agent-to-agent',
-    name: 'Agent to agent',
+    id: 'a2a-proxy',
+    name: 'A2A Proxy',
     description: 'should be filtered out',
     icon: 'agent-icon',
     deployed: true,
-    supportedApiType: 'MESSAGE',
+    supportedApiType: 'A2A_PROXY',
     supportedQos: ['NONE'],
   },
 ];
@@ -100,7 +100,7 @@ describe('ApiEndpointGroupSelectionComponent', () => {
      In case of normal MESSAGE api, we hide the agent-to-agent endpoint. */
   it('should not render the AGENT_TO_AGENT endpoint at all', async () => {
     const values = await harness.getAllEndpointIds();
-    expect(values).not.toContain('agent-to-agent');
+    expect(values).not.toContain('a2a-proxy');
   });
 
   it('should show license banner when endpoint is not deployed', async () => {

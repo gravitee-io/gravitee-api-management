@@ -113,7 +113,7 @@ describe('ApiCreationV4Component - Message - Agent Proxy', () => {
 
   const agentToAgent: Partial<ConnectorPlugin> = {
     id: AGENT_TO_AGENT.id,
-    supportedApiType: 'MESSAGE',
+    supportedApiType: 'A2A_PROXY',
     name: AGENT_TO_AGENT.name,
     supportedListenerType: 'HTTP',
   };
@@ -158,7 +158,7 @@ describe('ApiCreationV4Component - Message - Agent Proxy', () => {
       // agent-to-agent entrypoint gets selected automatically
       expect(component.currentStep.payload.selectedEntrypoints).toEqual([
         {
-          icon: 'gio-literal:agent-to-agent',
+          icon: 'gio-literal:a2a-proxy',
           id: AGENT_TO_AGENT.id,
           name: AGENT_TO_AGENT.name,
           supportedListenerType: 'HTTP',
@@ -213,7 +213,7 @@ describe('ApiCreationV4Component - Message - Agent Proxy', () => {
       // agent-to-agent endpoint gets selected automatically
       expect(component.currentStep.payload.selectedEndpoints).toEqual([
         {
-          icon: 'gio-literal:agent-to-agent',
+          icon: 'gio-literal:a2a-proxy',
           id: AGENT_TO_AGENT.id,
           name: AGENT_TO_AGENT.name,
           configuration: {},
@@ -245,10 +245,10 @@ describe('ApiCreationV4Component - Message - Agent Proxy', () => {
 
       const step2Summary = await step5Harness.getStepSummaryTextContent(2);
       expect(step2Summary).toContain('Type:' + 'HTTP');
-      expect(step2Summary).toContain('Entrypoints:' + ' Agent to agent');
+      expect(step2Summary).toContain('Entrypoints: A2A Proxy');
 
       const step3Summary = await step5Harness.getStepSummaryTextContent(3);
-      expect(step3Summary).toContain('Endpoints' + 'Endpoints: ' + AGENT_TO_AGENT.name);
+      expect(step3Summary).toContain('Endpoints: ' + AGENT_TO_AGENT.name);
 
       const step4Summary = await step5Harness.getStepSummaryTextContent(4);
       expect(step4Summary).toContain('Default Keyless (UNSECURED)' + 'KEY_LESS');

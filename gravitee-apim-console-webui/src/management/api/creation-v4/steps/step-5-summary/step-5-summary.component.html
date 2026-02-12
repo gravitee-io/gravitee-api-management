@@ -35,12 +35,14 @@
               <span class="step-5-summary__step__info__key">Version:</span>
               <span class="step-5-summary__step__info__value">{{ currentStepPayload.version }}</span>
             </div>
-            <div class="step-5-summary__step__info__row" *ngIf="currentStepPayload.description">
-              <span class="step-5-summary__step__info__key">Description:</span>
-              <span class="step-5-summary__step__info__value">
-                {{ currentStepPayload.description }}
-              </span>
-            </div>
+            @if (currentStepPayload.description) {
+              <div class="step-5-summary__step__info__row">
+                <span class="step-5-summary__step__info__key">Description:</span>
+                <span class="step-5-summary__step__info__value">
+                  {{ currentStepPayload.description }}
+                </span>
+              </div>
+            }
           </div>
           <div>
             <button mat-stroked-button (click)="onChangeStepInfo('API details')">Change</button>
