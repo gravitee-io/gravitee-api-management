@@ -23,6 +23,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.OrganizationMapper;
 import io.gravitee.rest.api.management.v2.rest.model.GraviteeLicense;
 import io.gravitee.rest.api.management.v2.rest.model.Organization;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.analytics.dashboards.DashboardsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.ApiServicesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.EndpointsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.EntrypointsResource;
@@ -36,7 +37,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
-import java.util.Objects;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -121,5 +121,10 @@ public class OrganizationResource extends AbstractResource {
     @Path("promotions")
     public PromotionsResource getOrganizationPromotionsResource() {
         return resourceContext.getResource(PromotionsResource.class);
+    }
+
+    @Path("analytics/dashboards")
+    public DashboardsResource getDashboardsResource() {
+        return resourceContext.getResource(DashboardsResource.class);
     }
 }
