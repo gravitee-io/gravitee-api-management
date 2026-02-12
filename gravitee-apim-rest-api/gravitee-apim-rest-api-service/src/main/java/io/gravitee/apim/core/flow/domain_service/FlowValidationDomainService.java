@@ -63,14 +63,16 @@ public class FlowValidationDomainService {
         this.entrypointConnectorPluginService = entrypointConnectorPluginService;
     }
 
+    private static final Function<Flow, Optional<String>> HTTP_PATH_EXTRACTOR = flow ->
+        flow
+            .selectorByType(SelectorType.HTTP)
+            .stream()
+            .map(selector -> ((HttpSelector) selector).getPath())
+            .findFirst();
+
     private static final Map<ApiType, Function<Flow, Optional<String>>> PATH_EXTRACTOR = Map.of(
         ApiType.PROXY,
-        flow ->
-            flow
-                .selectorByType(SelectorType.HTTP)
-                .stream()
-                .map(selector -> ((HttpSelector) selector).getPath())
-                .findFirst(),
+        HTTP_PATH_EXTRACTOR,
         ApiType.MESSAGE,
         flow ->
             flow
@@ -81,12 +83,9 @@ public class FlowValidationDomainService {
         ApiType.MCP_PROXY,
         flow -> Optional.empty(),
         ApiType.LLM_PROXY,
-        flow ->
-            flow
-                .selectorByType(SelectorType.HTTP)
-                .stream()
-                .map(selector -> ((HttpSelector) selector).getPath())
-                .findFirst()
+        HTTP_PATH_EXTRACTOR,
+        ApiType.A2A_PROXY,
+        HTTP_PATH_EXTRACTOR
     );
 
     public List<Flow> validateAndSanitizeHttpV4(final ApiType apiType, List<Flow> flows) {
@@ -130,7 +129,7 @@ public class FlowValidationDomainService {
 
     private void checkSelectorsForType(final ApiType apiType, final Flow flow) {
         if (flow.getSelectors() != null) {
-            if (ApiType.PROXY == apiType || ApiType.LLM_PROXY == apiType) {
+            if (ApiType.PROXY == apiType || ApiType.LLM_PROXY == apiType || ApiType.A2A_PROXY == apiType) {
                 Set<String> invalidSelectors = flow
                     .getSelectors()
                     .stream()

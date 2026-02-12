@@ -104,6 +104,8 @@ class PoliciesResourceTest extends AbstractResourceTest {
                             ApiProtocolType.MCP_PROXY,
                             Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE),
                             ApiProtocolType.LLM_PROXY,
+                            Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE),
+                            ApiProtocolType.A2A_PROXY,
                             Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE)
                         )
                     )
@@ -153,6 +155,12 @@ class PoliciesResourceTest extends AbstractResourceTest {
                             )
                         )
                         .LLM_PROXY(
+                            Set.of(
+                                io.gravitee.rest.api.management.v2.rest.model.FlowPhase.REQUEST,
+                                io.gravitee.rest.api.management.v2.rest.model.FlowPhase.RESPONSE
+                            )
+                        )
+                        .A2A_PROXY(
                             Set.of(
                                 io.gravitee.rest.api.management.v2.rest.model.FlowPhase.REQUEST,
                                 io.gravitee.rest.api.management.v2.rest.model.FlowPhase.RESPONSE
