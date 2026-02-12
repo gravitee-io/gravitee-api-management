@@ -18,10 +18,12 @@ package io.gravitee.apim.core.subscription.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
+import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.common.utils.TimeProvider;
 import java.util.Collections;
 
@@ -42,17 +44,35 @@ public class DeleteSubscriptionDomainService {
     }
 
     private void createAuditLog(SubscriptionEntity subscriptionEntity, AuditInfo auditInfo) {
-        auditService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
-                .organizationId(auditInfo.organizationId())
-                .environmentId(auditInfo.environmentId())
-                .apiId(subscriptionEntity.getApiId())
-                .event(SubscriptionAuditEvent.SUBSCRIPTION_DELETED)
-                .actor(auditInfo.actor())
-                .oldValue(subscriptionEntity)
-                .createdAt(TimeProvider.now())
-                .properties(Collections.emptyMap())
-                .build()
-        );
+        String referenceId = subscriptionEntity.getReferenceId();
+        boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT == subscriptionEntity.getReferenceType();
+
+        if (isApiProduct) {
+            auditService.createApiProductAuditLog(
+                ApiProductAuditLogEntity.builder()
+                    .organizationId(auditInfo.organizationId())
+                    .environmentId(auditInfo.environmentId())
+                    .apiProductId(referenceId)
+                    .event(SubscriptionAuditEvent.SUBSCRIPTION_DELETED)
+                    .actor(auditInfo.actor())
+                    .oldValue(subscriptionEntity)
+                    .createdAt(TimeProvider.now())
+                    .properties(Collections.emptyMap())
+                    .build()
+            );
+        } else {
+            auditService.createApiAuditLog(
+                ApiAuditLogEntity.builder()
+                    .organizationId(auditInfo.organizationId())
+                    .environmentId(auditInfo.environmentId())
+                    .apiId(referenceId)
+                    .event(SubscriptionAuditEvent.SUBSCRIPTION_DELETED)
+                    .actor(auditInfo.actor())
+                    .oldValue(subscriptionEntity)
+                    .createdAt(TimeProvider.now())
+                    .properties(Collections.emptyMap())
+                    .build()
+            );
+        }
     }
 }
