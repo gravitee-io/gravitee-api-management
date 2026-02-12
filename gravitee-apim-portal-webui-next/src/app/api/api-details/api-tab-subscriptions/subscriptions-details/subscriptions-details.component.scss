@@ -16,6 +16,7 @@
 :host {
   display: flex;
   flex-flow: column;
+  padding-top: 24px;
 }
 
 .subscriptions-details {
@@ -35,9 +36,8 @@
   &__container {
     display: flex;
     flex-direction: column;
-    padding-top: 32px;
     margin-bottom: 20px;
-    gap: 32px;
+    gap: 36px;
 
     @media (width <= 768px) {
       flex-direction: column;

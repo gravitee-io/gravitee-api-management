@@ -18,7 +18,7 @@
 <mat-card appearance="outlined" class="api-access">
   @if (subscription?.status === 'ACCEPTED' || planSecurity === 'KEY_LESS') {
     <mat-card-header>
-      <div class="m3-title-medium api-access__header" i18n="@@subscriptionDetailsApiAccessHeader">API access</div>
+      <div class="next-gen-h5 api-access__header" i18n="@@subscriptionDetailsApiAccessHeader">API access</div>
     </mat-card-header>
     <mat-card-content class="api-access__copy-code-content">
       @if (planSecurity === 'OAUTH2' || planSecurity === 'JWT') {
@@ -28,7 +28,6 @@
           <app-copy-code id="client-secret" title="Client Secret" [text]="clientSecret" mode="PASSWORD" />
         }
       }
-
       @if (apiType === 'NATIVE') {
         <app-native-kafka-api-access
           [entrypointUrls]="entrypointUrls ?? []"
@@ -38,16 +37,16 @@
           [clientId]="clientId ?? ''" />
       } @else {
         @if (planSecurity === 'API_KEY') {
-          <app-copy-code id="api-key" class="test-1" title="API Key" [text]="apiKey ?? ''" />
+          <app-copy-code id="api-key" title="Active API key" [text]="apiKey ?? ''" />
         }
 
         <div class="api-access__copy-code-content__calling-api">
-          <div class="m3-title-medium" i18n="@@subscriptionDetailsApiAccessCallingTheApi">Calling the API</div>
+          <div class="next-gen-h5" i18n="@@subscriptionDetailsApiAccessCallingTheApi">Calling the API</div>
           @if (entrypointUrls?.length === 1) {
             <app-copy-code id="base-url" title="Base URL" [text]="(entrypointUrls ?? [''])[0]" />
           } @else if (entrypointUrls && entrypointUrls.length > 1) {
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label i18n="@@subscriptionDetailsApiAccessBaseUrls">Base URLs</mat-label>
+              <mat-label class="next-gen-body" i18n="@@subscriptionDetailsApiAccessBaseUrls">Base URLs</mat-label>
               <mat-select [(value)]="selectedEntrypointUrl" id="select-entrypoints">
                 @for (entrypointUrl of entrypointUrls; track entrypointUrl) {
                   <mat-option [value]="entrypointUrl">{{ entrypointUrl }}</mat-option>
@@ -69,19 +68,19 @@
     <mat-card-content class="api-access__message">
       @switch (subscription?.status) {
         @case ('PENDING') {
-          <div class="m3-title-large" i18n="@@subscriptionDetailsPendingHeader">Subscription in progress</div>
-          <div class="m3-body-large" i18n="@@subscriptionDetailsPendingContent">
+          <div class="next-gen-h5 api-access__message__content" i18n="@@subscriptionDetailsPendingHeader">Subscription in progress</div>
+          <div class="next-gen-body" i18n="@@subscriptionDetailsPendingContent">
             Your subscription request is being validated. Come back later.
           </div>
         }
         @case ('REJECTED') {
-          <div class="m3-title-large" i18n="@@subscriptionDetailsRejectedHeader">Subscription rejected</div>
+          <div class="next-gen-h5 api-access__message__content" i18n="@@subscriptionDetailsRejectedHeader">Subscription rejected</div>
         }
         @case ('PAUSED') {
-          <div class="m3-title-large" i18n="@@subscriptionDetailsPasueddHeader">Subscription paused</div>
+          <div class="next-gen-h5 api-access__message__content" i18n="@@subscriptionDetailsPasueddHeader">Subscription paused</div>
         }
         @case ('CLOSED') {
-          <div class="m3-title-large" i18n="@@subscriptionDetailsClosedHeader">Subscription closed</div>
+          <div class="next-gen-h5 api-access__message__content" i18n="@@subscriptionDetailsClosedHeader">Subscription closed</div>
         }
       }
     </mat-card-content>

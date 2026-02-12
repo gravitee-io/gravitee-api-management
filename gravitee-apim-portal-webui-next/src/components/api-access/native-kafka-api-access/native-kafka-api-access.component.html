@@ -16,11 +16,11 @@
 
 -->
 <div class="native-kafka-api-access__section">
-  <div class="m3-title-medium" i18n="@@nativeKafkaApiAccessLocalEnvironment">Local Environment</div>
-  <div class="m3-body-medium" i18n="@@nativeKafkaApiAccessDownloadKafka">
+  <div class="next-gen-h5" i18n="@@nativeKafkaApiAccessLocalEnvironment">Local Environment</div>
+  <div class="next-gen-body" i18n="@@nativeKafkaApiAccessDownloadKafka">
     Download and set-up a Kafka Client in order to interact with the API.
   </div>
-  <div class="m3-body-medium native-kafka-api-access__learn-more" i18n="@@nativeKafkaApiAccessLearnMoreAboutKafka">
+  <div class="next-gen-body native-kafka-api-access__learn-more" i18n="@@nativeKafkaApiAccessLearnMoreAboutKafka">
     You can learn more about using Kafka from the official Kafka documentation.
     <a class="external-link" href="https://kafka.apache.org/quickstart" target="_blank"><mat-icon>open_in_new</mat-icon></a>
   </div>
@@ -28,8 +28,8 @@
 
 @if (planSecurity() === 'API_KEY') {
   <div class="native-kafka-api-access__section">
-    <div class="m3-title-medium" i18n="@@nativeKafkaApiAccessAuthentication">Authentication</div>
-    <div class="m3-body-medium" i18n="@@nativeKafkaApiAccessApiKeyHash">
+    <div class="next-gen-h5" i18n="@@nativeKafkaApiAccessAuthentication">Authentication</div>
+    <div class="next-gen-body" i18n="@@nativeKafkaApiAccessApiKeyHash">
       Use the MD5 hash of the API Key as the username and the API Key as the password.
     </div>
     <app-copy-code id="native-kafka-api-key-username" title="Username" [text]="apiKeyConfigUsername()" />
@@ -38,14 +38,14 @@
 }
 
 <div class="native-kafka-api-access__section">
-  <div class="m3-title-medium" i18n="@@nativeKafkaApiAccessReviewProperties">Review Kafka Properties</div>
-  <div class="m3-body-medium" i18n="@@nativeKafkaApiAccessCreatePropertiesFile">
+  <div class="next-gen-h5" i18n="@@nativeKafkaApiAccessReviewProperties">Review Kafka Properties</div>
+  <div class="next-gen-body" i18n="@@nativeKafkaApiAccessCreatePropertiesFile">
     Create a file <code>{{ configurationFileName }}</code> to be used when calling the API.
   </div>
   @if (planSecurity() === 'OAUTH2' || planSecurity() === 'JWT') {
     <app-copy-code id="native-kafka-oauthbearer-properties" [text]="oAuthBearerConfig()" />
   } @else if (planSecurity() === 'API_KEY') {
-    <div class="m3-body-medium" i18n="@@nativeKafkaApiAccessChooseSASLMechanism">
+    <div class="next-gen-body" i18n="@@nativeKafkaApiAccessChooseSASLMechanism">
       Choose one of the following SASL mechanisms for your security.
     </div>
     <mat-tab-group aria-label="API Key connect properties">
@@ -63,8 +63,8 @@
 </div>
 
 <div class="native-kafka-api-access__section">
-  <div class="m3-title-medium" i18n="@@nativeKafkaApiAccessCallingTheApi">Calling the API</div>
-  <div class="m3-body-medium" i18n="@@nativeKafkaApiAccessUseCommandsToCall">
+  <div class="next-gen-h5" i18n="@@nativeKafkaApiAccessCallingTheApi">Calling the API</div>
+  <div class="next-gen-body" i18n="@@nativeKafkaApiAccessUseCommandsToCall">
     Use the following commands as examples for calling the API.
   </div>
 

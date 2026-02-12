@@ -21,7 +21,7 @@
   height: 100%;
 
   &__header {
-    padding: 8px 0 24px;
+    padding: 8px 0 20px;
   }
 
   &__message {
@@ -30,6 +30,10 @@
     flex-flow: column;
     align-items: center;
     justify-content: center;
+
+    &__content {
+      margin-bottom: 10px;
+    }
   }
 
   &__copy-code-content {
