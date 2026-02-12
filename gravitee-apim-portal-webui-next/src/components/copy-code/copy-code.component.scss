@@ -27,12 +27,11 @@
     display: flex;
     flex-flow: row;
     align-items: center;
-    padding: 8px 8px 8px 16px;
+    padding-left: 10px;
     border-width: theme.$border-width;
     border-style: solid;
     border-color: theme.$border-color;
     border-radius: theme.$container-shape;
-    background-color: m3-adapter.$surface-variant;
     gap: 4px;
 
     &__container {
@@ -41,7 +40,7 @@
 
       &__code {
         max-width: 0;
-        line-height: 1.5em;
+        margin: 0;
       }
     }
   }

@@ -21,9 +21,9 @@ import { MatButton } from '@angular/material/button';
   template: `
     <button class="documentation-folder__sidenav__collapse-button" mat-button (click)="toggleState.emit()">
       @if (collapsed()) {
-        <span class="material-icons">keyboard_double_arrow_right</span>
+        <span class="material-icons icon-medium">keyboard_double_arrow_right</span>
       } @else {
-        <span class="material-icons">keyboard_double_arrow_left</span>
+        <span class="material-icons icon-medium">keyboard_double_arrow_left</span>
       }
     </button>
   `,

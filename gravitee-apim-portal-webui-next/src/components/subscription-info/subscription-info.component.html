@@ -15,12 +15,12 @@
     limitations under the License.
 
 -->
-<div class="m3-title-medium subscription-info__header" i18n="@@subscriptionDetailsHeader">Subscription details</div>
+<div class="next-gen-h3 subscription-info__header" i18n="@@subscriptionDetailsHeader">Subscription details</div>
 <section class="subscription-info__content on-surface-variant">
   @if (isLoadingStatus) {
     <div class="subscription-info__content-row">
       <app-loader>
-        <div class="m3-body-medium" i18n="@@retryingTheSubscriptionLoading">Retrying the subscription...</div>
+        <div class="next-gen-body" i18n="@@retryingTheSubscriptionLoading">Retrying the subscription...</div>
       </app-loader>
     </div>
   } @else {
@@ -28,104 +28,104 @@
       <div class="subscription-info__content__grid">
         @if (planSecurity !== 'KEY_LESS') {
           <div class="subscription-info__content-row">
-            <span class="m3-title-small">
-              <span class="material-icons">check_circle</span>
+            <span class="next-gen-body">
+              <span class="material-icons icon-small">check_circle</span>
               <span i18n="@@subscriptionDetailsSubscription">Status:</span>
             </span>
             @if (!!subscription?.status) {
-              <span class="m3-body-medium">{{ subscription!.status | capitalizeFirst }}</span>
+              <span class="next-gen-body">{{ subscription!.status | capitalizeFirst }}</span>
             } @else if (planValidation === 'MANUAL') {
-              <span class="m3-body-medium" i18n="@@subscriptionDetailsReviewRequired">Under admin review</span>
+              <span class="next-gen-body" i18n="@@subscriptionDetailsReviewRequired">Under admin review</span>
             } @else if (planValidation === 'AUTO') {
-              <span class="m3-body-medium" i18n="@@subscriptionDetailsAutomatic">Automatic</span>
+              <span class="next-gen-body" i18n="@@subscriptionDetailsAutomatic">Automatic</span>
             }
           </div>
         }
 
         @if (api) {
           <div class="subscription-info__content-row">
-            <span class="m3-title-small">
-              <span class="material-icons">api</span>
+            <span class="next-gen-body">
+              <span class="material-icons icon-small">api</span>
               <span i18n="@@subscriptionDetailsHeaderApi">Subscribed API:</span>
             </span>
-            <a class="internal-link m3-body-medium" [routerLink]="['/catalog/api/' + api.id]">{{ api.name }}</a>
+            <a class="internal-link next-gen-body" [routerLink]="['/catalog/api/' + api.id]">{{ api.name }}</a>
           </div>
         }
 
         @if (application) {
           <div class="subscription-info__content-row">
-            <span class="m3-title-small">
-              <span class="material-icons">web_asset</span>
+            <span class="next-gen-body">
+              <span class="material-icons icon-small">web_asset</span>
               <span i18n="@@subscriptionDetailsHeaderApp">Application:</span>
             </span>
-            <a class="internal-link m3-body-medium" [routerLink]="['/applications/' + application.id]">{{ application.name }}</a>
+            <a class="internal-link next-gen-body" [routerLink]="['/applications/' + application.id]">{{ application.name }}</a>
           </div>
         }
 
         @if (createdAt) {
           <div class="subscription-info__content-row">
-            <span class="m3-title-small">
-              <span class="material-icons">schedule</span>
+            <span class="next-gen-body">
+              <span class="material-icons icon-small">schedule</span>
               <span i18n="@@createdAt">Created At:</span>
             </span>
-            <span class="m3-body-medium">{{ createdAt }}</span>
+            <span class="next-gen-body">{{ createdAt }}</span>
           </div>
         }
         @if (updatedAt) {
           <div class="subscription-info__content-row">
-            <span class="m3-title-small">
-              <span class="material-icons">restore</span>
+            <span class="next-gen-body">
+              <span class="material-icons icon-small">restore</span>
               <span i18n="@@updatedAt">Updated At:</span>
             </span>
-            <span class="m3-body-medium">{{ updatedAt }}</span>
+            <span class="next-gen-body">{{ updatedAt }}</span>
           </div>
         }
       </div>
       <div class="subscription-info__content__grid">
         @if (subscription) {
           <div class="subscription-info__content-row">
-            <span class="m3-title-small">
-              <span class="material-icons">tag</span>
+            <span class="next-gen-body">
+              <span class="material-icons icon-small">tag</span>
               <span i18n="@@subscriptionDetailsHeaderId">ID:</span>
             </span>
-            <span class="m3-body-medium">{{ subscription.id }}</span>
+            <span class="next-gen-body">{{ subscription.id }}</span>
           </div>
         }
         <div class="subscription-info__content-row">
-          <span class="m3-title-small">
-            <span class="material-icons">star</span>
+          <span class="next-gen-body">
+            <span class="material-icons icon-small">star</span>
             <span i18n="@@subscriptionDetailsHeaderPlan">Plan:</span>
           </span>
-          <span class="m3-body-medium">{{ planName }}</span>
+          <span class="next-gen-body">{{ planName }}</span>
         </div>
         <div class="subscription-info__content-row">
-          <span class="m3-title-small">
-            <span class="material-icons">lock</span>
+          <span class="next-gen-body">
+            <span class="material-icons icon-small">lock</span>
             <span i18n="@@subscriptionDetailsHeaderAuthentication">Authentication:</span>
           </span>
           @if (api?.type === 'NATIVE') {
             @if (planSecurity === 'API_KEY') {
-              <span class="m3-body-medium" i18n="@@subscriptionDetailsAuthenticationSaslApiKey"
+              <span class="next-gen-body" i18n="@@subscriptionDetailsAuthenticationSaslApiKey"
                 >SASL/SSL with SASL mechanisms PLAIN, SCRAM-256, and SCRAM-512</span
               >
             } @else if (planSecurity === 'OAUTH2' || planSecurity === 'JWT') {
-              <span class="m3-body-medium" i18n="@@subscriptionDetailsAuthenticationSaslOauthbearer"
+              <span class="next-gen-body" i18n="@@subscriptionDetailsAuthenticationSaslOauthbearer"
                 >SASL/SSL with SASL mechanism OAUTHBEARER</span
               >
             } @else if (planSecurity === 'KEY_LESS') {
-              <span class="m3-body-medium" i18n="@@subscriptionDetailsAuthenticationKeyless">SSL</span>
+              <span class="next-gen-body" i18n="@@subscriptionDetailsAuthenticationKeyless">SSL</span>
             }
           } @else {
-            <span class="m3-body-medium">{{ authentication }}</span>
+            <span class="next-gen-body">{{ authentication }}</span>
           }
         </div>
         @if (!!planUsageConfiguration?.quota?.limit) {
           <div class="subscription-info__content-row">
-            <span class="m3-title-small">
-              <span class="material-icons">bar_chart</span>
+            <span class="next-gen-body">
+              <span class="material-icons icon-small">bar_chart</span>
               <span i18n="@@subscriptionDetailsHeaderQuota">Quota:</span>
             </span>
-            <span class="m3-body-medium">
+            <span class="next-gen-body">
               up to {{ planUsageConfiguration?.quota?.limit ?? 0 }} hits /
               {{ planUsageConfiguration?.quota ?? {} | toPeriodTimeUnitLabelPipe }}
             </span>
@@ -133,11 +133,11 @@
         }
         @if (!!planUsageConfiguration?.rate_limit?.limit) {
           <div class="subscription-info__content-row">
-            <span class="m3-title-small">
-              <span class="material-icons">bar_chart</span>
+            <span class="next-gen-body">
+              <span class="material-icons icon-small">bar_chart</span>
               <span i18n="@@subscriptionDetailsHeaderRateLimit">Rate-limit:</span>
             </span>
-            <span class="m3-body-medium">
+            <span class="next-gen-body">
               up to {{ planUsageConfiguration?.rate_limit?.limit ?? 0 }} hits /
               {{ planUsageConfiguration?.rate_limit ?? {} | toPeriodTimeUnitLabelPipe }}
             </span>
@@ -147,27 +147,25 @@
     </div>
 
     @if (consumerStatus === SubscriptionConsumerStatusEnum.FAILURE) {
-      <div class="subscription-info__content-row consumer-status-failure-banner">
+      <div class="subscription-info__failure">
         <app-banner type="error">
-          <div class="banner-body">
-            <div class="banner-body__icon">
-              <mat-icon aria-hidden="false" aria-label="Warning icon">warning_border</mat-icon>
-            </div>
-            <div class="banner-body__description">
-              <div class="m3-title-medium" i18n="@@subscriptionDetailsConsumerFailedTitle">Subscription consumer failed</div>
-              <div class="m3-body-medium" i18n="@@subscriptionDetailsConsumerFailedDescription">
-                Subscription consumer failed There is a problem with the Webhook endpoint.
+          <div class="subscription-info__failure__banner">
+            <mat-icon class="subscription-info__failure__banner__icon" aria-hidden="false" aria-label="Warning icon"
+              >warning_border</mat-icon
+            >
+            <div>
+              <div class="next-gen-h5" i18n="@@subscriptionDetailsConsumerFailedTitle">Subscription consumer failed</div>
+              <div class="next-gen-body" i18n="@@subscriptionDetailsConsumerFailedDescription">
+                There is a problem with the Webhook endpoint.
               </div>
-              <div class="subscription-info__header" i18n="@@subscriptionDetailsConsumerFailedCause">
-                <span class="m3-title-medium">Failure Cause:</span>
-                <span class="m3-body-medium">{{ failureCause }}</span>
+              <div class="subscription-info__failure__banner__cause" i18n="@@subscriptionDetailsConsumerFailedCause">
+                <span class="next-gen-h6">Failure Cause:</span>
+                <span class="next-gen-body">{{ failureCause }}</span>
               </div>
             </div>
           </div>
         </app-banner>
-      </div>
 
-      <div class="subscription-info__content-row">
         <button
           class="retry-subscription-button"
           mat-stroked-button

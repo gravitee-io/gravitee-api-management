@@ -286,7 +286,7 @@ describe('ApiAccessComponent', () => {
   });
 
   async function apiKeyShown() {
-    return !!(await getCopyCodeHarnessOrNullByTitle('API Key'));
+    return !!(await getCopyCodeHarnessOrNullByTitle('Active API key'));
   }
   async function apiKeyUsernameShown() {
     return !!(await getCopyCodeHarnessOrNullByTitle('Username'));

@@ -17,6 +17,7 @@
 /* You can add global styles to this file, and also import other style files */
 
 @forward './scss/material-design-overrides';
+@forward 'scss/typography';
 @forward 'scss/m3-adapter';
 @forward 'scss/helper';
 @forward 'scss/gmd-overrides';

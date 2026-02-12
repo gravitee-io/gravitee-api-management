@@ -22,7 +22,7 @@ export class ApiAccessHarness extends ComponentHarness {
   public static hostSelector = 'app-api-access';
 
   public async getApiKey(): Promise<string> {
-    return await this.locateCopyCodeByTitle('API Key').then(res => res.getText());
+    return await this.locateCopyCodeByTitle('Active API key').then(res => res.getText());
   }
 
   public async getBaseURL(): Promise<string> {
