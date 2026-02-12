@@ -15,7 +15,7 @@
  */
 import { CommonModule } from '@angular/common';
 import { Component, computed, DestroyRef, inject, Input, OnInit, Signal, signal } from '@angular/core';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent, MatCardHeader } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
@@ -24,6 +24,8 @@ import { MatIcon } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, catchError, combineLatestWith, EMPTY, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
+
+import { GMD_FORM_STATE_STORE, provideGmdFormStore } from '@gravitee/gravitee-markdown';
 
 import {
   TermsAndConditionsDialogComponent,
@@ -49,6 +51,7 @@ import { ApplicationService } from '../../../services/application.service';
 import { ConfigService } from '../../../services/config.service';
 import { PageService } from '../../../services/page.service';
 import { PlanService } from '../../../services/plan.service';
+import { PortalService } from '../../../services/portal.service';
 import { SubscriptionService } from '../../../services/subscription.service';
 
 export interface ApplicationVM extends Application {
@@ -84,19 +87,53 @@ interface CheckoutData {
   ],
   templateUrl: './subscribe-to-api.component.html',
   styleUrl: './subscribe-to-api.component.scss',
+  providers: [provideGmdFormStore()],
 })
 export class SubscribeToApiComponent implements OnInit {
+  private readonly store = inject(GMD_FORM_STATE_STORE);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly configuration = inject(ConfigService).configuration;
+  private readonly portalService = inject(PortalService);
+  private readonly planService = inject(PlanService);
+  private readonly applicationService = inject(ApplicationService);
+  private readonly subscriptionService = inject(SubscriptionService);
+  private readonly pageService = inject(PageService);
+  private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly matDialog = inject(MatDialog);
+  private readonly currentApplicationsPage = new BehaviorSubject(1);
+
   @Input() api!: Api;
 
   currentStep = signal(1);
   currentPlan = signal<Plan | undefined>(undefined);
   currentApplication = signal<Application | undefined>(undefined);
-
   message = signal<string>('');
   applicationApiKeyMode = signal<'EXCLUSIVE' | 'SHARED' | 'UNSPECIFIED' | null>(null);
   subscriptionInProgress = signal<boolean>(false);
   showApiKeyModeSelection = signal<boolean>(false);
+  subscriptionForm = toSignal(
+    this.portalService.getSubscriptionForm().pipe(
+      tap(form => {
+        if (!form) {
+          this.store.reset();
+        }
+      }),
+    ),
+    { initialValue: null },
+  );
+  hasSubscriptionError = false;
+  consumerConfigurationFormData = signal<ConsumerConfigurationFormData>({ value: undefined, isValid: false });
+  plans$: Observable<Plan[]> = of();
+  applicationsData$: Observable<ApplicationsData> = of();
+  checkoutData$: Observable<CheckoutData> = of();
+  currentApplication$ = toObservable(this.currentApplication);
 
+  formValues = computed(() => {
+    const values = this.store.fieldValues();
+    return values.reduce((acc, field) => ({ ...acc, [field.fieldKey]: field.value }), {} as Record<string, string>);
+  });
+  formIsValid = this.store.formValid;
   stepIsInvalid: Signal<boolean> = computed(() => {
     if (this.currentStep() === 1) {
       return this.currentPlan() === undefined;
@@ -105,35 +142,14 @@ export class SubscribeToApiComponent implements OnInit {
     } else if (this.currentStep() === 3) {
       return !this.consumerConfigurationFormData().isValid;
     } else if (this.currentStep() === 4) {
-      return (
-        (this.currentPlan()?.comment_required === true && !this.message()) ||
-        (this.showApiKeyModeSelection() && !this.applicationApiKeyMode())
-      );
+      if (this.showApiKeyModeSelection() && !this.applicationApiKeyMode()) {
+        return true;
+      }
+      const showSubscriptionForm = this.subscriptionForm()?.gmdContent && this.currentPlan()?.security !== 'KEY_LESS';
+      return showSubscriptionForm ? !this.formIsValid() : false;
     }
     return false;
   });
-
-  plans$: Observable<Plan[]> = of();
-  applicationsData$: Observable<ApplicationsData> = of();
-  checkoutData$: Observable<CheckoutData> = of();
-  currentApplication$ = toObservable(this.currentApplication);
-
-  hasSubscriptionError: boolean = false;
-  consumerConfigurationFormData = signal<ConsumerConfigurationFormData>({ value: undefined, isValid: false });
-
-  private currentApplicationsPage: BehaviorSubject<number> = new BehaviorSubject(1);
-  private destroyRef = inject(DestroyRef);
-  private configuration = inject(ConfigService).configuration;
-
-  constructor(
-    private planService: PlanService,
-    private applicationService: ApplicationService,
-    private subscriptionService: SubscriptionService,
-    private pageService: PageService,
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-    private matDialog: MatDialog,
-  ) {}
 
   ngOnInit(): void {
     this.plans$ = this.planService.list(this.api.id).pipe(
@@ -208,7 +224,6 @@ export class SubscribeToApiComponent implements OnInit {
       application,
       plan,
       ...this.toConsumerConfiguration(),
-      ...(this.message() ? { request: this.message() } : {}),
       ...(apiKeyMode ? { api_key_mode: apiKeyMode } : {}),
     };
 

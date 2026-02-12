@@ -15,7 +15,6 @@
  */
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { MatButton } from '@angular/material/button';
-import { MatCard, MatCardContent, MatCardHeader } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 
@@ -30,18 +29,7 @@ import { LoaderComponent } from '../loader/loader.component';
 
 @Component({
   selector: 'app-subscription-info',
-  imports: [
-    CapitalizeFirstPipe,
-    MatCard,
-    MatCardContent,
-    MatCardHeader,
-    ToPeriodTimeUnitLabelPipe,
-    BannerComponent,
-    MatIcon,
-    MatButton,
-    LoaderComponent,
-    RouterLink,
-  ],
+  imports: [CapitalizeFirstPipe, ToPeriodTimeUnitLabelPipe, BannerComponent, MatIcon, MatButton, LoaderComponent, RouterLink],
   templateUrl: './subscription-info.component.html',
   styleUrl: './subscription-info.component.scss',
 })

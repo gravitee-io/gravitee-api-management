@@ -21,9 +21,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIcon } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { RouterLink } from '@angular/router';
 import { BehaviorSubject, catchError, filter, forkJoin, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
@@ -75,9 +73,7 @@ interface SubscriptionDetailsData {
 
 @Component({
   imports: [
-    MatIcon,
     MatCardModule,
-    RouterLink,
     AsyncPipe,
     FormsModule,
     MatFormFieldModule,
