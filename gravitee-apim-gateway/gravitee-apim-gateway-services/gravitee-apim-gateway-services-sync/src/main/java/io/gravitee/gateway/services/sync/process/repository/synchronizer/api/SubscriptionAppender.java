@@ -30,13 +30,13 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -64,31 +64,20 @@ public class SubscriptionAppender {
             .stream()
             .collect(Collectors.toMap(ApiReactorDeployable::apiId, d -> d));
 
-        // Collect API plans
-        List<String> allPlans = deployableByApi
-            .values()
-            .stream()
-            .map(ApiReactorDeployable::subscribablePlans)
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList());
+        List<String> apiPlans = collectApiPlans(deployableByApi);
+        List<String> allPlans = new ArrayList<>(apiPlans);
 
-        // Also collect API Product plans for these APIs
         deployableByApi.forEach((apiId, deployable) -> {
-            var envs = environments != null && !environments.isEmpty()
+            Set<String> envs = environments != null && !environments.isEmpty()
                 ? environments
                 : Optional.ofNullable(deployable.reactableApi())
                     .map(a -> a.getEnvironmentId())
                     .map(Set::of)
                     .orElse(Set.of());
-            var productPlans = envs
-                .stream()
-                .flatMap(envId -> Stream.ofNullable(apiProductRegistry.getProductPlanEntriesForApi(apiId, envId)).flatMap(List::stream))
-                .map(e -> e.plan().getId())
-                .distinct()
-                .toList();
-            deployable.subscribablePlans().addAll(productPlans);
-            deployable.apiKeyPlans().addAll(productPlans);
-            allPlans.addAll(productPlans);
+            Set<String> apiProductPlans = collectApiProductPlans(apiId, envs);
+            deployable.subscribablePlans().addAll(apiProductPlans);
+            deployable.apiKeyPlans().addAll(apiProductPlans);
+            allPlans.addAll(apiProductPlans);
         });
 
         if (!allPlans.isEmpty()) {
@@ -107,6 +96,18 @@ public class SubscriptionAppender {
             });
         }
         return deployables;
+    }
+
+    private List<String> collectApiPlans(Map<String, ApiReactorDeployable> deployableByApi) {
+        return deployableByApi.values().stream().map(ApiReactorDeployable::subscribablePlans).flatMap(Collection::stream).toList();
+    }
+
+    private Set<String> collectApiProductPlans(String apiId, Set<String> envs) {
+        return envs
+            .stream()
+            .flatMap(envId -> apiProductRegistry.getApiProductPlanEntriesForApi(apiId, envId).stream())
+            .map(e -> e.plan().getId())
+            .collect(Collectors.toSet());
     }
 
     protected Map<String, List<Subscription>> loadSubscriptions(

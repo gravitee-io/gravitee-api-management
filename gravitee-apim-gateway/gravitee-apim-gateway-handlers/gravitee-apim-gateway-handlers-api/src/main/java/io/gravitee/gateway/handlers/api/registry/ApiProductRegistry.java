@@ -64,7 +64,7 @@ public interface ApiProductRegistry {
      * @param environmentId the environment ID
      * @return List of entries pairing API Product ID with plan definition
      */
-    List<ApiProductPlanEntry> getProductPlanEntriesForApi(String apiId, String environmentId);
+    List<ApiProductPlanEntry> getApiProductPlanEntriesForApi(String apiId, String environmentId);
 
     /**
      * Entry pairing an API Product ID with one of its plans.

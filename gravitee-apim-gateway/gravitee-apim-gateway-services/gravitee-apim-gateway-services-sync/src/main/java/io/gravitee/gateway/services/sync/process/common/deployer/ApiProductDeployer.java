@@ -49,7 +49,7 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
                 log.debug("Deploying API Product [{}]", apiProductId);
                 apiProductManager.register(reactableApiProduct);
 
-                // Register API Product plans in PlanService for subscription validation
+                // Register API Product in PlanService for subscription validation
                 registerApiProductPlans(deployable);
 
                 log.debug("API Product [{}] deployed successfully", apiProductId);
@@ -68,7 +68,6 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
 
     private void registerApiProductPlans(ApiProductReactorDeployable deployable) {
         String apiProductId = deployable.apiProductId();
-        // Plans are pre-fetched by ApiProductPlanAppender in the synchronizer; no repository call here
         planService.register(deployable);
         if (apiProductPlanDefinitionCache != null) {
             apiProductPlanDefinitionCache.register(apiProductId, deployable.definitionPlans());
@@ -99,7 +98,6 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
 
                 apiProductManager.unregister(apiProductId);
 
-                // Unregister plans from PlanService
                 unregisterApiProductPlans(deployable);
 
                 log.debug("API Product [{}] undeployed successfully", apiProductId);

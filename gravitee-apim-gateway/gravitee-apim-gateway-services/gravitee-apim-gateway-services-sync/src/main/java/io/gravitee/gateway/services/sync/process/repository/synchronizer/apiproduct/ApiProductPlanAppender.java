@@ -16,11 +16,13 @@
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct;
 
 import io.gravitee.gateway.services.sync.process.common.mapper.PlanMapper;
+import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
@@ -51,9 +53,9 @@ public class ApiProductPlanAppender {
         }
         List<String> apiProductIds = deployables
             .stream()
-            .filter(d -> d.syncAction() == io.gravitee.gateway.services.sync.process.common.model.SyncAction.DEPLOY)
+            .filter(d -> d.syncAction() == SyncAction.DEPLOY)
             .map(ApiProductReactorDeployable::apiProductId)
-            .filter(java.util.Objects::nonNull)
+            .filter(Objects::nonNull)
             .distinct()
             .toList();
         if (apiProductIds.isEmpty()) {
@@ -61,41 +63,39 @@ public class ApiProductPlanAppender {
         }
         if (environments == null || environments.isEmpty()) {
             log.warn("No environments provided for API Product plan fetch; plans will be empty");
-            setEmptyPlans(deployables);
+            clearPlans(deployables);
             return deployables;
         }
         try {
-            List<Plan> allPlans = planRepository.findByReferenceIdsAndReferenceTypeAndEnvironment(
-                apiProductIds,
-                Plan.PlanReferenceType.API_PRODUCT,
-                environments
-            );
-            var plansByApiProduct = allPlans.stream().collect(Collectors.groupingBy(Plan::getReferenceId));
+            var plansByApiProduct = planRepository
+                .findByReferenceIdsAndReferenceTypeAndEnvironment(apiProductIds, Plan.PlanReferenceType.API_PRODUCT, environments)
+                .stream()
+                .collect(Collectors.groupingBy(Plan::getReferenceId));
             for (ApiProductReactorDeployable deployable : deployables) {
-                if (deployable.syncAction() != io.gravitee.gateway.services.sync.process.common.model.SyncAction.DEPLOY) {
+                if (deployable.syncAction() != SyncAction.DEPLOY) {
                     continue;
                 }
                 List<Plan> plans = plansByApiProduct.getOrDefault(deployable.apiProductId(), Collections.emptyList());
-                Set<String> planIds = plans.stream().map(Plan::getId).collect(Collectors.toSet());
-                List<io.gravitee.definition.model.v4.plan.Plan> definitionPlans = plans
-                    .stream()
-                    .filter(p -> p.getStatus() == Plan.Status.PUBLISHED || p.getStatus() == Plan.Status.DEPRECATED)
-                    .map(PlanMapper::toDefinition)
-                    .filter(java.util.Objects::nonNull)
-                    .collect(Collectors.toList());
-                deployable.subscribablePlans(planIds);
-                deployable.definitionPlans(definitionPlans);
+                deployable.subscribablePlans(plans.stream().map(Plan::getId).collect(Collectors.toSet()));
+                deployable.definitionPlans(
+                    plans
+                        .stream()
+                        .filter(p -> p.getStatus() == Plan.Status.PUBLISHED || p.getStatus() == Plan.Status.DEPRECATED)
+                        .map(PlanMapper::toDefinition)
+                        .filter(Objects::nonNull)
+                        .toList()
+                );
             }
         } catch (TechnicalException e) {
             log.error("Failed to bulk-fetch plans for API Products [{}]", apiProductIds, e);
-            setEmptyPlans(deployables);
+            clearPlans(deployables);
         }
         return deployables;
     }
 
-    private void setEmptyPlans(List<ApiProductReactorDeployable> deployables) {
+    private void clearPlans(List<ApiProductReactorDeployable> deployables) {
         for (ApiProductReactorDeployable d : deployables) {
-            if (d.syncAction() == io.gravitee.gateway.services.sync.process.common.model.SyncAction.DEPLOY) {
+            if (d.syncAction() == SyncAction.DEPLOY) {
                 d.subscribablePlans(Set.of());
                 d.definitionPlans(List.of());
             }
