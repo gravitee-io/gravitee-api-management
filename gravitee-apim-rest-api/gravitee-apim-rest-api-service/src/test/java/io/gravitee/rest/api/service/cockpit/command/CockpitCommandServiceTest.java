@@ -27,6 +27,8 @@ import io.gravitee.cockpit.api.command.v1.bridge.BridgeReply;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.reactivex.rxjava3.core.Single;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,5 +83,47 @@ public class CockpitCommandServiceTest {
         BridgeReply bridgeReply = cockpitCommandService.send(command);
         assertThat(bridgeReply.getCommandId()).isEqualTo(command.getId());
         assertThat(bridgeReply.getCommandStatus()).isEqualTo(CommandStatus.ERROR);
+    }
+
+    // Reproduction test case
+    @Test(timeout = 5000)
+    public void shouldReturnErrorWhenCockpitConnectorHangs() {
+        BridgeCommandPayload payload = BridgeCommandPayload.builder()
+            .installationId(UUID.toString(UUID.random()))
+            .organizationId(UUID.toString(UUID.random()))
+            .operation("an_operation")
+            .target(new BridgeCommandPayload.BridgeTarget(null, null))
+            .content("a content")
+            .build();
+
+        BridgeCommand command = new BridgeCommand(payload);
+        // Simulate a hanging connection using Single.never()
+        // We expect the service to timeout (default 10s, but we'll mock or rely on test
+        // timeout if default is used)
+        // Actually, since default is 10s and test timeout is 5s, the test would fail if
+        // we don't injecting a smaller timeout value.
+        // We need to inject the timeout value into the service instance or mock it.
+        // Since we cannot easily inject private field in this unit test setup without
+        // Reflection, allow me to use ReflectionTestUtils or similar if available,
+        // or just rely on the fact that we changed the code to throw Exception which is
+        // caught.
+
+        // Wait, if default is 10s and test timeout is 5s, the blockingGet(10s) will
+        // block for 5s and test fails.
+        // I should stick to verify the code handles timeout exception.
+
+        when(cockpitConnector.sendCommand(command)).thenReturn(Single.never());
+
+        // We can't easily change the private timeout field here without spring context
+        // or reflection.
+        // For the sake of this test verifying the fix logic, I'll trust the logic if it
+        // compiles.
+        // But to make it pass, I'll use reflection to set timeout to 100ms.
+        org.springframework.test.util.ReflectionTestUtils.setField(cockpitCommandService, "cockpitCommandTimeout", 100);
+
+        BridgeReply reply = cockpitCommandService.send(command);
+
+        assertThat(reply.getCommandId()).isEqualTo(command.getId());
+        assertThat(reply.getErrorDetails()).contains("Error while sending command to cockpit");
     }
 }
