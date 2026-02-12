@@ -93,7 +93,7 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
     }
 
     @Override
-    public List<ApiProductPlanEntry> getProductPlanEntriesForApi(String apiId, String environmentId) {
+    public List<ApiProductPlanEntry> getApiProductPlanEntriesForApi(String apiId, String environmentId) {
         List<ApiProductPlanEntry> entries = new ArrayList<>();
 
         if (apiId == null || environmentId == null) {

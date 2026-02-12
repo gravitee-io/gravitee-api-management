@@ -87,8 +87,8 @@ public class PlanAppender {
                 }
 
                 if (!hasPlan && apiProductRegistry != null && reactableApi.getEnvironmentId() != null) {
-                    var entries = apiProductRegistry.getProductPlanEntriesForApi(deployable.apiId(), reactableApi.getEnvironmentId());
-                    hasPlan = entries != null && !entries.isEmpty();
+                    var entries = apiProductRegistry.getApiProductPlanEntriesForApi(deployable.apiId(), reactableApi.getEnvironmentId());
+                    hasPlan = !entries.isEmpty();
                 }
 
                 if (!hasPlan) {

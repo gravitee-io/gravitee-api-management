@@ -45,7 +45,7 @@ public class SubscriptionMapper {
             }
 
             // Regular API subscription - return as single-item list
-            return List.of(mapToGatewaySubscription(subscriptionModel));
+            return List.of(toSubscription(subscriptionModel));
         } catch (Exception e) {
             log.error("Unable to map subscription from model [{}].", subscriptionModel.getId(), e);
             return List.of(); // Return empty list on error
@@ -81,7 +81,7 @@ public class SubscriptionMapper {
         return apiIds
             .stream()
             .map(apiId -> {
-                Subscription sub = mapToGatewaySubscription(subscriptionModel);
+                Subscription sub = toSubscription(subscriptionModel);
                 sub.setApi(apiId); // Override with individual API
 
                 // Preserve product info in metadata for debugging/tracking
@@ -98,7 +98,7 @@ public class SubscriptionMapper {
             .toList();
     }
 
-    private Subscription mapToGatewaySubscription(io.gravitee.repository.management.model.Subscription subscriptionModel) {
+    private Subscription toSubscription(io.gravitee.repository.management.model.Subscription subscriptionModel) {
         Subscription subscription = new Subscription();
         subscription.setApi(resolveApiId(subscriptionModel));
         subscription.setApplication(subscriptionModel.getApplication());
