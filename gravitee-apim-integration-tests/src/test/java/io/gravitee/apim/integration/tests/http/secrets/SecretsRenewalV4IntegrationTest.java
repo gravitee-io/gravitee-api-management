@@ -71,14 +71,15 @@ public class SecretsRenewalV4IntegrationTest extends AbstractGatewayTest {
     private static final String VAULT_TOKEN = UUID.randomUUID().toString();
 
     @Container
-    private static final VaultContainer vaultContainer = new VaultContainer<>("hashicorp/vault:1.13.3")
+    private static final VaultContainer<?> vaultContainer = new VaultContainer<>("hashicorp/vault:1.13.3")
         .withVaultToken(VAULT_TOKEN)
         .withInitCommand(
             "kv put secret/test" +
                 " value1='initial value1'" +
                 " value2='initial value2'" +
                 " value3='initial value3'" +
-                " value4='initial value4'",
+                " value4='initial value4'" +
+                " value5='initial value5'",
             "kv put secret/test2 value1='initial testValue1'"
         );
 
@@ -172,6 +173,7 @@ public class SecretsRenewalV4IntegrationTest extends AbstractGatewayTest {
                 .withHeader("X-Secret-URI-renewable", equalTo("initial value2"))
                 .withHeader("X-Secret-URI-reloadOnChange", equalTo("initial value3"))
                 .withHeader("X-Secret-Dictionary", equalTo("initial value4"))
+                .withHeader("X-Secret-Properties", equalTo("initial value5"))
         );
 
         // Update the secret in the provider
@@ -183,7 +185,8 @@ public class SecretsRenewalV4IntegrationTest extends AbstractGatewayTest {
             "value1=updated value1",
             "value2=updated value2",
             "value3=updated value3",
-            "value4=updated value4"
+            "value4=updated value4",
+            "value5=updated value5"
         );
 
         // Wait and check that the API retrieves the updated secret
@@ -210,6 +213,7 @@ public class SecretsRenewalV4IntegrationTest extends AbstractGatewayTest {
                         .withHeader("X-Secret-URI-renewable", equalTo("updated value2"))
                         .withHeader("X-Secret-URI-reloadOnChange", equalTo("updated value3"))
                         .withHeader("X-Secret-Dictionary", equalTo("updated value4"))
+                        .withHeader("X-Secret-Properties", equalTo("updated value5"))
                 );
             });
     }
