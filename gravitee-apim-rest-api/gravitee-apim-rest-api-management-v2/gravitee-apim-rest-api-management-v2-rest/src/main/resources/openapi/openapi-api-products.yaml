@@ -346,6 +346,46 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /environments/{envId}/api-products/{apiProductId}/deployments:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+    post:
+      tags:
+        - API Products
+      summary: Request a deployment to gateway instances
+      description: |-
+        Request a deployment for a given API Product. <br>
+        Triggers the API Product to be synchronized to gateway instances.
+
+        User must have the API_PRODUCT_DEFINITION[UPDATE] permission.
+      operationId: deployApiProduct
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Empty object or deployment options
+      responses:
+        "202":
+          description: API Product deployment request received
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiProduct'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /environments/{envId}/api-products/{apiProductId}/subscriptions:
     parameters:
       - $ref: "#/components/parameters/envIdParam"

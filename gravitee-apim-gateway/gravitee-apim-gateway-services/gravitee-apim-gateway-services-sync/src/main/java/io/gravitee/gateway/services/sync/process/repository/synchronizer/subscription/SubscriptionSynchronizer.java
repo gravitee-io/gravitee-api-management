@@ -28,7 +28,6 @@ import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Instant;
 import java.util.Set;
@@ -38,6 +37,10 @@ import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 /**
+ * Syncs subscription changes (create, update, delete) to the gateway cache.
+ * Runs every sync cycle (default 5s) for incremental sync, fetching subscriptions by updated_at in [from, to].
+ * API Product subscriptions are picked up when the product is already deployed (isPlanDeployed).
+ *
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
@@ -65,6 +68,18 @@ public class SubscriptionSynchronizer implements RepositorySynchronizer {
                 .flatMap(subscriptions ->
                     Flowable.just(subscriptions)
                         .flatMapIterable(s -> s)
+                        .doOnNext(sub -> {
+                            boolean deployed = isPlanDeployed(sub);
+                            if (!deployed && sub.getReferenceType() == SubscriptionReferenceType.API_PRODUCT) {
+                                log.debug(
+                                    "SubscriptionSynchronizer: API_PRODUCT subscription [{}] filtered (isPlanDeployed=false) productId={} planId={} updatedAt={}",
+                                    sub.getId(),
+                                    sub.getIdentifier(),
+                                    sub.getPlan(),
+                                    sub.getUpdatedAt()
+                                );
+                            }
+                        })
                         .filter(this::isPlanDeployed)
                         .flatMapIterable(subscription -> subscriptionMapper.to(subscription))
                         .map(subscription ->

@@ -20,10 +20,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Set;
@@ -35,6 +38,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Arpit Mishra (arpit.mishra at graviteesource.com)
@@ -42,6 +47,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ApiProductManagerImplTest {
 
     @Mock
@@ -50,11 +56,51 @@ class ApiProductManagerImplTest {
     @Mock
     private EventManager eventManager;
 
+    @Mock
+    private LicenseManager licenseManager;
+
+    @Mock
+    private License license;
+
     private ApiProductManagerImpl manager;
 
     @BeforeEach
     void setUp() {
-        manager = new ApiProductManagerImpl(apiProductRegistry, eventManager);
+        when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(license);
+        when(license.getTier()).thenReturn("universe");
+        manager = new ApiProductManagerImpl(apiProductRegistry, eventManager, licenseManager);
+    }
+
+    @Nested
+    class LicenseTest {
+
+        @Test
+        void should_block_deployment_when_license_is_oss() {
+            when(license.getTier()).thenReturn("oss");
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
+
+            manager.register(apiProduct);
+
+            assertThat(manager.get("product-1")).isNull();
+            verify(apiProductRegistry, never()).register(any());
+        }
+
+        @Test
+        void should_block_update_when_license_is_oss() {
+            when(license.getTier()).thenReturn("universe");
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
+            manager.register(apiProduct);
+
+            when(license.getTier()).thenReturn("oss");
+            Date newerDate = new Date(System.currentTimeMillis() + 5000);
+            ReactableApiProduct updatedProduct = createApiProduct("product-1", "env-1", newerDate);
+            updatedProduct.setVersion("2.0");
+
+            manager.register(updatedProduct);
+
+            assertThat(manager.get("product-1").getVersion()).isEqualTo("1.0");
+            verify(apiProductRegistry, times(1)).register(any());
+        }
     }
 
     @Nested
@@ -298,6 +344,7 @@ class ApiProductManagerImplTest {
                 .version("1.0")
                 .apiIds(Set.of())
                 .environmentId("env-1")
+                .organizationId("org-1")
                 .deployedAt(new Date())
                 .build();
 

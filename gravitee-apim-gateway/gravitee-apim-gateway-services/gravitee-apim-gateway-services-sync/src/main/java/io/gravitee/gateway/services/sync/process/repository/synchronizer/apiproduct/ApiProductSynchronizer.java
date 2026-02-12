@@ -83,6 +83,16 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
             )
             .subscribeOn(Schedulers.from(syncFetcherExecutor))
             .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
+            .doOnNext(events -> {
+                if (from != -1 && events != null && !events.isEmpty()) {
+                    log.debug(
+                        "ApiProductSynchronizer: incremental sync from={} to={} fetched {} API product events",
+                        from,
+                        to,
+                        events.size()
+                    );
+                }
+            })
             .compose(events -> processEvents(events, environments))
             .count()
             .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))

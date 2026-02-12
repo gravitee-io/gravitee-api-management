@@ -27,6 +27,8 @@ import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -35,16 +37,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SubscriptionFetcher {
 
+    private static final Logger log = LoggerFactory.getLogger(SubscriptionFetcher.class);
     private static final List<String> STATUSES = List.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name());
     private final SubscriptionRepository subscriptionRepository;
 
     public Flowable<List<Subscription>> fetchLatest(final Long from, final Long to, final Set<String> environments) {
-        // The following doesn't paginate over the result because for now we don't see any value, but it could be implemented same as EventFetcher
         return Flowable.generate(emitter -> {
+            long fromAdjusted = from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY;
+            long toAdjusted = to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY;
             SubscriptionCriteria criteriaBuilder = SubscriptionCriteria.builder()
                 .statuses(STATUSES)
-                .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
-                .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)
+                .from(fromAdjusted)
+                .to(toAdjusted)
                 .environments(environments)
                 .build();
             try {
@@ -52,13 +56,39 @@ public class SubscriptionFetcher {
                     criteriaBuilder,
                     new SortableBuilder().field("updatedAt").order(Order.ASC).build()
                 );
+                int apiProductCount = countApiProductSubscriptions(subscriptions);
+                int count = subscriptions != null ? subscriptions.size() : 0;
+                log.debug(
+                    "SubscriptionFetcher: from={} to={} window=[{},{}] fetched={} (API_PRODUCT={})",
+                    from,
+                    to,
+                    fromAdjusted,
+                    toAdjusted,
+                    count,
+                    apiProductCount
+                );
                 if (subscriptions != null && !subscriptions.isEmpty()) {
                     emitter.onNext(subscriptions);
+                } else if (from != null && from != -1) {
+                    log.debug("SubscriptionFetcher: no subscriptions in window (incremental sync)");
                 }
                 emitter.onComplete();
             } catch (Exception e) {
                 emitter.onError(e);
             }
         });
+    }
+
+    private static int countApiProductSubscriptions(List<Subscription> subscriptions) {
+        if (subscriptions == null) {
+            return 0;
+        }
+        int count = 0;
+        for (Subscription s : subscriptions) {
+            if (s.getReferenceType() != null && "API_PRODUCT".equals(s.getReferenceType().name())) {
+                count++;
+            }
+        }
+        return count;
     }
 }

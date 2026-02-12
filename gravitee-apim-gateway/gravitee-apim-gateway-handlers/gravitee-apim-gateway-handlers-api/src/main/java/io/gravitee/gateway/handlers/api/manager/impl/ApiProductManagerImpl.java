@@ -21,8 +21,10 @@ import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
 import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.node.api.license.LicenseManager;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.CustomLog;
 
@@ -35,11 +37,13 @@ public class ApiProductManagerImpl implements ApiProductManager {
 
     private final ApiProductRegistry apiProductRegistry;
     private final EventManager eventManager;
+    private final LicenseManager licenseManager;
     private final Map<String, ReactableApiProduct> apiProducts = new ConcurrentHashMap<>();
 
-    public ApiProductManagerImpl(ApiProductRegistry apiProductRegistry, EventManager eventManager) {
+    public ApiProductManagerImpl(ApiProductRegistry apiProductRegistry, EventManager eventManager, LicenseManager licenseManager) {
         this.apiProductRegistry = apiProductRegistry;
         this.eventManager = eventManager;
+        this.licenseManager = licenseManager;
     }
 
     @Override
@@ -63,6 +67,16 @@ public class ApiProductManagerImpl implements ApiProductManager {
     }
 
     private boolean register(ReactableApiProduct apiProduct, boolean force) {
+        // License check: API Products require an enterprise license
+        var license = licenseManager.getOrganizationLicenseOrPlatform(apiProduct.getOrganizationId());
+        if (!Objects.equals(license.getTier(), "universe")) {
+            log.warn(
+                "The API Product [{}] could not deployed because it is not allowed by the current license (universe tier)",
+                apiProduct.getName()
+            );
+            return false;
+        }
+
         // Get currently deployed API Product
         ReactableApiProduct deployedApiProduct = get(apiProduct.getId());
 
@@ -89,8 +103,6 @@ public class ApiProductManagerImpl implements ApiProductManager {
     }
 
     private void deploy(ReactableApiProduct apiProduct) {
-        // TODO: When API_PRODUCTS license feature is available, inject LicenseManager and call
-        // validateFeature(apiProduct.getOrganizationId(), "API_PRODUCTS") to block deployment if not allowed.
         log.debug("Deploying API Product [{}]", apiProduct.getId());
 
         apiProducts.put(apiProduct.getId(), apiProduct);

@@ -54,7 +54,12 @@
     <logger name="org.reflections" level="WARN" />
     <logger name="org.springframework" level="WARN" />
     <logger name="org.eclipse.jetty" level="WARN" />
-
+    <logger name="io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct" level="DEBUG" />
+    <logger name="io.gravitee.gateway.services.sync.process.common.deployer.ApiProductDeployer" level="DEBUG" />
+    <logger name="io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper" level="DEBUG" />
+    <logger name="io.gravitee.gateway.services.sync.process.repository.synchronizer.subscription.SubscriptionSynchronizer" level="DEBUG" />
+    <logger name="io.gravitee.gateway.handlers.api.manager.impl.ApiProductManagerImpl" level="DEBUG" />
+    <logger name="io.gravitee.gateway.services.sync.process.repository.fetcher" level="DEBUG" />
     <!-- Strictly speaking, the level attribute is not necessary since -->
     <!-- the level of the root level is set to DEBUG by default.       -->
     <root level="WARN">

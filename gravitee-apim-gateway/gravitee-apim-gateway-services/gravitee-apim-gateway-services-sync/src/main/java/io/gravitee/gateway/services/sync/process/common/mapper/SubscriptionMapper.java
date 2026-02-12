@@ -67,6 +67,12 @@ public class SubscriptionMapper {
         }
         ReactableApiProduct product = apiProductRegistry.get(productId, environmentId);
         if (product == null) {
+            log.debug(
+                "SubscriptionMapper: API_PRODUCT subscription [{}] skipped - product [{}] not in registry (env={})",
+                subscriptionModel.getId(),
+                productId,
+                environmentId
+            );
             return List.of(); // Product not deployed yet - skip for now
         }
 
