@@ -17,10 +17,10 @@
       "name": "Item",
       "selectors": [
         {
-          "type": "channel",
-          "channel": "/products/:productId/items/:itemId",
-          "channelOperator": "STARTS_WITH",
-          "operations": []
+          "type": "http",
+          "path": "/products/:productId/items/:itemId",
+          "pathOperator": "STARTS_WITH",
+          "methods": []
         }
       ],
       "request": [],
@@ -31,10 +31,10 @@
       "name": "Product",
       "selectors": [
         {
-          "type": "channel",
-          "channel": "/:productId",
-          "channelOperator": "STARTS_WITH",
-          "operations": []
+          "type": "http",
+          "path": "/:productId",
+          "pathOperator": "STARTS_WITH",
+          "methods": []
         }
       ],
       "request": [],
