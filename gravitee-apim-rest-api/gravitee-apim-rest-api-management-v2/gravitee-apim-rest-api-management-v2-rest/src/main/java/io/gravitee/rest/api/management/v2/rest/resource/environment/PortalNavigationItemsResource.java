@@ -18,11 +18,15 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
+import io.gravitee.apim.core.portal_page.use_case.BulkCreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItems;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationItems;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -44,6 +48,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import java.util.Optional;
 import lombok.CustomLog;
 
@@ -58,6 +63,9 @@ public class PortalNavigationItemsResource extends AbstractResource {
 
     @Inject
     private CreatePortalNavigationItemUseCase createPortalNavigationItemUseCase;
+
+    @Inject
+    private BulkCreatePortalNavigationItemUseCase bulkCreatePortalNavigationItemUseCase;
 
     @Inject
     private ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase;
@@ -108,6 +116,27 @@ public class PortalNavigationItemsResource extends AbstractResource {
         );
 
         return Response.created(this.getLocationHeader(output.item().getId().toString())).entity(mapper.map(output.item())).build();
+    }
+
+    @Path("_bulk")
+    @POST
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createPortalNavigationItemsInBulk(
+        @Valid @NotNull final BaseCreatePortalNavigationItems createPortalNavigationItemsRequest
+    ) {
+        final var executionContext = GraviteeContext.getExecutionContext();
+
+        final var output = bulkCreatePortalNavigationItemUseCase.execute(
+            new BulkCreatePortalNavigationItemUseCase.Input(
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
+                mapper.mapCreatePortalNavigationItems(createPortalNavigationItemsRequest.getItems())
+            )
+        );
+
+        return Response.ok(new PortalNavigationItemsResponse().items(mapper.map(output.items()))).build();
     }
 
     @Path("{navId}")

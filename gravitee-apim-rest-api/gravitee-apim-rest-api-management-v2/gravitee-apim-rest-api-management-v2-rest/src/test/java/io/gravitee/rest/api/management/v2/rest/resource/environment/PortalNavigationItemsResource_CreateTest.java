@@ -16,11 +16,13 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static assertions.MAPIAssertions.assertThat;
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fixtures.PortalNavigationItemsFixtures;
@@ -271,5 +273,33 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
             .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
             .hasFieldOrPropertyWithValue("published", false)
             .hasFieldOrPropertyWithValue("visibility", PortalVisibility.PRIVATE);
+    }
+
+    @Test
+    void should_return_validation_error_when_portal_navigation_page_title_is_null() {
+        // Given
+        final var page = (CreatePortalNavigationPage) PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
+        page.setTitle(null);
+
+        // When
+        final var response = target.request().post(json(page));
+
+        // Then
+        assertThat(response).hasStatus(BAD_REQUEST_400);
+        verifyNoInteractions(createPortalNavigationItemUseCase);
+    }
+
+    @Test
+    void should_return_validation_error_when_portal_navigation_api_api_id_is_null() {
+        // Given
+        final var api = (CreatePortalNavigationApi) PortalNavigationItemsFixtures.aCreatePortalNavigationApi();
+        api.setApiId(null);
+
+        // When
+        final var response = target.request().post(json(api));
+
+        // Then
+        assertThat(response).hasStatus(BAD_REQUEST_400);
+        verifyNoInteractions(createPortalNavigationItemUseCase);
     }
 }
