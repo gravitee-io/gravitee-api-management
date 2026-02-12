@@ -184,6 +184,55 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
         final AccessPointManager accessPointManager,
         final EventManager eventManager,
         final HttpAcceptorFactory httpAcceptorFactory,
+        final TracingContext tracingContext
+    ) {
+        this(
+            api,
+            deploymentContext,
+            componentProvider,
+            ctxTemplateVariableProviders,
+            policyManager,
+            entrypointConnectorPluginManager,
+            apiServicePluginManager,
+            endpointManager,
+            resourceLifecycleManager,
+            apiProcessorChainFactory,
+            flowChainFactory,
+            v4FlowChainFactory,
+            configuration,
+            node,
+            requestTimeoutConfiguration,
+            reporterService,
+            accessPointManager,
+            eventManager,
+            httpAcceptorFactory,
+            tracingContext,
+            null,
+            null,
+            null
+        );
+    }
+
+    public DefaultApiReactor(
+        final Api api,
+        final DeploymentContext deploymentContext,
+        final ComponentProvider componentProvider,
+        final List<TemplateVariableProvider> ctxTemplateVariableProviders,
+        final PolicyManager policyManager,
+        final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+        final ApiServicePluginManager apiServicePluginManager,
+        final EndpointManager endpointManager,
+        final ResourceLifecycleManager resourceLifecycleManager,
+        final ApiProcessorChainFactory apiProcessorChainFactory,
+        final io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory flowChainFactory,
+        final FlowChainFactory v4FlowChainFactory,
+        final Configuration configuration,
+        final Node node,
+        final RequestTimeoutConfiguration requestTimeoutConfiguration,
+        final ReporterService reporterService,
+        final AccessPointManager accessPointManager,
+        final EventManager eventManager,
+        final HttpAcceptorFactory httpAcceptorFactory,
         final TracingContext tracingContext,
         final LogGuardService logGuardService,
         final ApiProductRegistry apiProductRegistry,
@@ -688,7 +737,9 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
                 var context = new LoggingContext(analytics.getLogging());
                 context.setMaxSizeLogMessage(loggingMaxSize);
                 context.setExcludedResponseTypes(loggingExcludedResponseType);
-                context.setLogGuardService(logGuardService);
+                if (logGuardService != null) {
+                    context.setLogGuardService(logGuardService);
+                }
                 return context;
             })
             .orElse(null);
