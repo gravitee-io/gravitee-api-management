@@ -44,15 +44,36 @@ class GetSubscriptionFormForEnvironmentUseCaseTest {
         queryService.initWith(List.of(expectedForm));
 
         // When
-        var result = useCase.execute(new GetSubscriptionFormForEnvironmentUseCase.Input(expectedForm.getEnvironmentId()));
+        var result = useCase.execute(new GetSubscriptionFormForEnvironmentUseCase.Input(expectedForm.getEnvironmentId(), false));
 
         // Then
         assertThat(result.subscriptionForm()).isEqualTo(expectedForm);
     }
 
     @Test
+    void should_return_disabled_form_when_onlyEnabled_false() {
+        SubscriptionForm disabledForm = SubscriptionFormFixtures.aSubscriptionForm();
+        queryService.initWith(List.of(disabledForm));
+
+        var result = useCase.execute(new GetSubscriptionFormForEnvironmentUseCase.Input(disabledForm.getEnvironmentId(), false));
+
+        assertThat(result.subscriptionForm()).isEqualTo(disabledForm);
+    }
+
+    @Test
+    void should_throw_when_onlyEnabled_true_and_form_disabled() {
+        SubscriptionForm disabledForm = SubscriptionFormFixtures.aSubscriptionForm();
+        queryService.initWith(List.of(disabledForm));
+
+        var input = new GetSubscriptionFormForEnvironmentUseCase.Input(disabledForm.getEnvironmentId(), true);
+        assertThatThrownBy(() -> useCase.execute(input))
+            .isInstanceOf(SubscriptionFormNotFoundException.class)
+            .hasMessageContaining(disabledForm.getEnvironmentId());
+    }
+
+    @Test
     void should_throw_exception_when_subscription_form_not_found() {
-        var input = new GetSubscriptionFormForEnvironmentUseCase.Input("unknown-environment");
+        var input = new GetSubscriptionFormForEnvironmentUseCase.Input("unknown-environment", false);
         assertThatThrownBy(() -> useCase.execute(input))
             .isInstanceOf(SubscriptionFormNotFoundException.class)
             .hasMessageContaining("unknown-environment");
