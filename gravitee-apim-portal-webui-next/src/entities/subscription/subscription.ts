@@ -69,6 +69,7 @@ export interface CreateSubscription {
   };
   plan: string;
   request?: string;
+  metadata?: Record<string, string>;
   configuration?: SubscriptionConsumerConfiguration;
 }
 
