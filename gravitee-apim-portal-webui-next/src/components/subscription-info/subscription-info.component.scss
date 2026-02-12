@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '../../scss/theme' as theme;
+
 .subscription-info {
   height: 100%;
 
   &__header {
-    padding-bottom: 24px;
+    padding-bottom: 32px;
   }
 
   &__content-row {
@@ -27,6 +29,7 @@
       display: flex;
       align-items: center;
       margin-right: 5px;
+      color: theme.$paragraph-color;
       white-space: nowrap;
     }
   }
@@ -45,13 +48,31 @@
     &__grid {
       display: grid;
       grid-auto-rows: 22px;
-      grid-gap: 15px 10px;
+      grid-gap: 15px 30px;
       grid-template-columns: min-content 1fr;
     }
   }
-}
 
-.banner-body {
-  display: flex;
-  gap: 8px;
+  &__failure {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 30px;
+    gap: 10px;
+
+    &__banner {
+      display: flex;
+      padding: 0 10px;
+      gap: 8px;
+
+      &__icon {
+        overflow: visible;
+      }
+
+      &__cause {
+        display: flex;
+        flex-direction: column;
+      }
+    }
+  }
 }
