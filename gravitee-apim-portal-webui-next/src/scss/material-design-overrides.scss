@@ -117,3 +117,30 @@ mat-card {
     )
   );
 }
+
+mat-icon,
+.material-icons {
+  display: inline-block;
+  direction: ltr;
+  font-family: 'Material Icons', serif;
+
+  /* Support for IE. */
+  font-feature-settings: 'liga';
+  font-size: 24px; /* Preferred icon size */
+
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+  font-style: normal;
+  font-weight: normal;
+  letter-spacing: normal;
+  line-height: 1;
+
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizelegibility;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+}

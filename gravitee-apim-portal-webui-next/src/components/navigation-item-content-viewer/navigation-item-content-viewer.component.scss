@@ -22,7 +22,7 @@
 
 gmd-viewer {
   display: block;
-  max-width: theme.$gmd-viewer-max-width;
+  max-width: theme.$inner-content-width;
 }
 
 .empty-state {
