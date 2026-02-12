@@ -64,11 +64,7 @@ public class RejectSubscriptionDomainService {
 
         subscriptionRepository.update(rejectedSubscriptionEntity);
         triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), rejectedSubscriptionEntity);
-        if (SubscriptionReferenceType.API_PRODUCT.equals(subscriptionEntity.getReferenceType())) {
-            createApiProductAudit(subscriptionEntity, rejectedSubscriptionEntity, auditInfo);
-        } else {
-            createAudit(subscriptionEntity, rejectedSubscriptionEntity, auditInfo);
-        }
+        createAudit(subscriptionEntity, rejectedSubscriptionEntity, auditInfo);
 
         return rejectedSubscriptionEntity;
     }
@@ -113,52 +109,39 @@ public class RejectSubscriptionDomainService {
     }
 
     private void createAudit(SubscriptionEntity subscriptionEntity, SubscriptionEntity rejectedSubscriptionEntity, AuditInfo auditInfo) {
-        auditDomainService.createApiAuditLog(
-            ApiAuditLogEntity.builder()
-                .actor(auditInfo.actor())
-                .organizationId(auditInfo.organizationId())
-                .environmentId(auditInfo.environmentId())
-                .apiId(subscriptionEntity.getApiId())
-                .event(SubscriptionAuditEvent.SUBSCRIPTION_UPDATED)
-                .oldValue(subscriptionEntity)
-                .newValue(rejectedSubscriptionEntity)
-                .createdAt(rejectedSubscriptionEntity.getClosedAt())
-                .properties(Collections.singletonMap(AuditProperties.APPLICATION, subscriptionEntity.getApplicationId()))
-                .build()
-        );
-        auditDomainService.createApplicationAuditLog(
-            ApplicationAuditLogEntity.builder()
-                .actor(auditInfo.actor())
-                .organizationId(auditInfo.organizationId())
-                .environmentId(auditInfo.environmentId())
-                .applicationId(subscriptionEntity.getApplicationId())
-                .event(SubscriptionAuditEvent.SUBSCRIPTION_UPDATED)
-                .oldValue(subscriptionEntity)
-                .newValue(rejectedSubscriptionEntity)
-                .createdAt(rejectedSubscriptionEntity.getClosedAt())
-                .properties(Collections.singletonMap(AuditProperties.API, subscriptionEntity.getApiId()))
-                .build()
-        );
-    }
+        String referenceId = subscriptionEntity.getReferenceId();
+        boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT == subscriptionEntity.getReferenceType();
+        var createdAt = rejectedSubscriptionEntity.getClosedAt();
 
-    private void createApiProductAudit(
-        SubscriptionEntity subscriptionEntity,
-        SubscriptionEntity rejectedSubscriptionEntity,
-        AuditInfo auditInfo
-    ) {
-        auditDomainService.createApiProductAuditLog(
-            ApiProductAuditLogEntity.builder()
-                .actor(auditInfo.actor())
-                .organizationId(auditInfo.organizationId())
-                .environmentId(auditInfo.environmentId())
-                .apiProductId(subscriptionEntity.getReferenceId())
-                .event(SubscriptionAuditEvent.SUBSCRIPTION_UPDATED)
-                .oldValue(subscriptionEntity)
-                .newValue(rejectedSubscriptionEntity)
-                .createdAt(rejectedSubscriptionEntity.getClosedAt())
-                .properties(Collections.singletonMap(AuditProperties.APPLICATION, subscriptionEntity.getApplicationId()))
-                .build()
-        );
+        if (isApiProduct) {
+            auditDomainService.createApiProductAuditLog(
+                ApiProductAuditLogEntity.builder()
+                    .actor(auditInfo.actor())
+                    .organizationId(auditInfo.organizationId())
+                    .environmentId(auditInfo.environmentId())
+                    .apiProductId(referenceId)
+                    .event(SubscriptionAuditEvent.SUBSCRIPTION_UPDATED)
+                    .oldValue(subscriptionEntity)
+                    .newValue(rejectedSubscriptionEntity)
+                    .createdAt(createdAt)
+                    .properties(Collections.singletonMap(AuditProperties.APPLICATION, subscriptionEntity.getApplicationId()))
+                    .build()
+            );
+        } else {
+            auditDomainService.createApiAuditLog(
+                ApiAuditLogEntity.builder()
+                    .actor(auditInfo.actor())
+                    .organizationId(auditInfo.organizationId())
+                    .environmentId(auditInfo.environmentId())
+                    .apiId(referenceId)
+                    .event(SubscriptionAuditEvent.SUBSCRIPTION_UPDATED)
+                    .oldValue(subscriptionEntity)
+                    .newValue(rejectedSubscriptionEntity)
+                    .createdAt(createdAt)
+                    .properties(Collections.singletonMap(AuditProperties.APPLICATION, subscriptionEntity.getApplicationId()))
+                    .build()
+            );
+        }
         auditDomainService.createApplicationAuditLog(
             ApplicationAuditLogEntity.builder()
                 .actor(auditInfo.actor())
@@ -168,8 +151,8 @@ public class RejectSubscriptionDomainService {
                 .event(SubscriptionAuditEvent.SUBSCRIPTION_UPDATED)
                 .oldValue(subscriptionEntity)
                 .newValue(rejectedSubscriptionEntity)
-                .createdAt(rejectedSubscriptionEntity.getClosedAt())
-                .properties(Collections.singletonMap(AuditProperties.API_PRODUCT, subscriptionEntity.getReferenceId()))
+                .createdAt(createdAt)
+                .properties(Collections.singletonMap(isApiProduct ? AuditProperties.API_PRODUCT : AuditProperties.API, referenceId))
                 .build()
         );
     }

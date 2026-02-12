@@ -37,6 +37,7 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
@@ -83,7 +84,8 @@ class SubscriptionCRDSpecDomainServiceImplTest {
 
     private static final SubscriptionCRDSpec SPEC = SubscriptionCRDSpec.builder()
         .id(SUBSCRIPTION_ID)
-        .apiId(API_ID)
+        .referenceId(API_ID)
+        .referenceType(SubscriptionReferenceType.API)
         .applicationId(APPLICATION_ID)
         .planId(PLAN_ID)
         .build();
