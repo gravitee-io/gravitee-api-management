@@ -42,6 +42,7 @@ public class ResourceServiceImplTest {
 
     private static final String PLUGIN_ID = "my-test-plugin";
     private static final String CONFIGURATION = "my-test-configuration";
+    private static final String VALIDATED_CONFIGURATION = "my-validated-configuration";
     private static final String SCHEMA = "my-test-schema";
 
     @InjectMocks
@@ -67,6 +68,7 @@ public class ResourceServiceImplTest {
     @Test
     public void shouldValidateConfigurationFromV3resource() throws IOException {
         when(pluginManager.getSchema(PLUGIN_ID, true)).thenReturn(SCHEMA);
+        when(jsonSchemaService.validate(SCHEMA, CONFIGURATION)).thenReturn(VALIDATED_CONFIGURATION);
 
         Resource resource = mock(Resource.class);
         when(resource.getType()).thenReturn(PLUGIN_ID);
@@ -75,11 +77,13 @@ public class ResourceServiceImplTest {
         resourceService.validateResourceConfiguration(resource);
 
         verify(jsonSchemaService).validate(SCHEMA, CONFIGURATION);
+        verify(resource).setConfiguration(VALIDATED_CONFIGURATION);
     }
 
     @Test
     public void shouldValidateConfigurationFromV4resource() throws IOException {
         when(pluginManager.getSchema(PLUGIN_ID, true)).thenReturn(SCHEMA);
+        when(jsonSchemaService.validate(SCHEMA, CONFIGURATION)).thenReturn(VALIDATED_CONFIGURATION);
 
         io.gravitee.definition.model.v4.resource.Resource resource = mock(io.gravitee.definition.model.v4.resource.Resource.class);
         when(resource.getType()).thenReturn(PLUGIN_ID);
@@ -88,6 +92,21 @@ public class ResourceServiceImplTest {
         resourceService.validateResourceConfiguration(resource);
 
         verify(jsonSchemaService).validate(SCHEMA, CONFIGURATION);
+        verify(resource).setConfiguration(VALIDATED_CONFIGURATION);
+    }
+
+    @Test
+    public void shouldNotFailWhenV3ResourceIsNull() {
+        resourceService.validateResourceConfiguration((Resource) null);
+
+        verifyNoInteractions(jsonSchemaService);
+    }
+
+    @Test
+    public void shouldNotFailWhenV4ResourceIsNull() {
+        resourceService.validateResourceConfiguration((io.gravitee.definition.model.v4.resource.Resource) null);
+
+        verifyNoInteractions(jsonSchemaService);
     }
 
     @Test
