@@ -72,6 +72,9 @@ paths:
 
                 User must have the ENVIRONMENT_API[READ] permission.
             operationId: listApis
+            x-mcp:
+                enabled: true
+                name: list_apis
             responses:
                 "200":
                     $ref: "#/components/responses/ApisResponse"
@@ -87,6 +90,13 @@ paths:
 
                 User must have the ENVIRONMENT_API[CREATE] permission.
             operationId: createApi
+            x-mcp:
+                enabled: true
+                name: create_api
+                description: |
+                    Create a new v4 API in the environment.
+                    Requires API name, version, and listener configuration.
+                    Use list_policies and list_endpoint_plugins tools first to understand available configurations.
             requestBody:
                 content:
                     application/json:
@@ -117,6 +127,9 @@ paths:
 
                 User must have the ENVIRONMENT_API[CREATE] permission.
             operationId: createApiFromSwagger
+            x-mcp:
+                enabled: true
+                name: import_api_from_swagger
             requestBody:
                 content:
                     application/json:
@@ -257,6 +270,9 @@ paths:
 
                 User must have at least one management (create, update, or delete) permission on the API to access it.
             operationId: getApi
+            x-mcp:
+                enabled: true
+                name: get_api
             responses:
                 "200":
                     description: API found
@@ -275,6 +291,9 @@ paths:
 
                 User must have API_DEFINITION[UPDATE] or API_GATEWAY_DEFINITION[UPDATE] permissions.
             operationId: updateApi
+            x-mcp:
+                enabled: true
+                name: update_api
             requestBody:
                 content:
                     application/json:
@@ -308,6 +327,9 @@ paths:
 
                 User must have API_DEFINITION[DELETE] permission.
             operationId: deleteApi
+            x-mcp:
+              enabled: true
+              name: delete_api
             responses:
                 "204":
                     description: API successfully deleted
@@ -379,6 +401,9 @@ paths:
 
                 User must have the API_DEFINITION[UPDATE] permission.
             operationId: createApiDeployment
+            x-mcp:
+                enabled: true
+                name: deploy_api
             requestBody:
                 content:
                     application/json:
@@ -579,6 +604,9 @@ paths:
 
                 User must have the API_DEFINITION[UPDATE] permission.
             operationId: startApi
+            x-mcp:
+                enabled: true
+                name: start_api
             responses:
                 "204":
                     description: API successfully started
@@ -662,6 +690,9 @@ paths:
 
                 User must have the API_DEFINITION[UPDATE] permission.
             operationId: stopApi
+            x-mcp:
+                enabled: true
+                name: stop_api
             responses:
                 "204":
                     description: API successfully stopped
@@ -1043,6 +1074,9 @@ paths:
 
                 User must have API_PLAN[READ] permissions to access endpoint.
             operationId: listApiPlans
+            x-mcp:
+                enabled: true
+                name: list_api_plans
             responses:
                 "200":
                     $ref: "#/components/responses/PlansResponse"
@@ -1057,6 +1091,10 @@ paths:
 
                 User must have the API_PLAN[CREATE] permission.
             operationId: createApiPlan
+            x-mcp:
+                enabled: true
+                name: create_api_plan
+                description: The plan must be published with publish_api_plan before consumers can subscribe.
             requestBody:
                 content:
                     application/json:
@@ -1086,6 +1124,9 @@ paths:
 
                 User must have the API_PLAN[READ] permission.
             operationId: getApiPlan
+            x-mcp:
+                enabled: true
+                name: get_api_plan
             responses:
                 "200":
                     description: An API's plan
@@ -1104,6 +1145,9 @@ paths:
 
                 User must have the API_PLAN[UPDATE] permission.
             operationId: updateApiPlan
+            x-mcp:
+                enabled: true
+                name: update_api_plan
             requestBody:
                 content:
                     application/json:
@@ -1147,6 +1191,9 @@ paths:
 
                 User must have the API_PLAN[UPDATE] permission.
             operationId: closeApiPlan
+            x-mcp:
+                enabled: true
+                name: close_api_plan
             responses:
                 "200":
                     description: API's plan successfully closed
@@ -1193,6 +1240,9 @@ paths:
 
                 User must have the API_PLAN[UPDATE] permission.
             operationId: publishApiPlan
+            x-mcp:
+                enabled: true
+                name: publish_api_plan
             responses:
                 "200":
                     description: API's plan successfully published
@@ -1587,6 +1637,9 @@ paths:
 
                 User must have API_SUBSCRIPTION[READ] permissions to access endpoint.
             operationId: getApiSubscribers
+            x-mcp:
+                enabled: true
+                name: list_api_subscribers
             responses:
                 "200":
                     $ref: "#/components/responses/SubscribersResponse"
@@ -1651,6 +1704,9 @@ paths:
 
                 User must have API_SUBSCRIPTION[READ] permissions to access endpoint.
             operationId: getApiSubscriptions
+            x-mcp:
+                enabled: true
+                name: list_api_subscriptions
             responses:
                 "200":
                     $ref: "#/components/responses/SubscriptionsResponse"
@@ -1665,6 +1721,9 @@ paths:
 
                 User must have the API_SUBSCRIPTION[CREATE] permission.
             operationId: createApiSubscription
+            x-mcp:
+                enabled: true
+                name: create_api_subscription
             requestBody:
                 content:
                     application/json:
@@ -1751,6 +1810,9 @@ paths:
 
                 User must have the API_SUBSCRIPTION[CREATE] permission.
             operationId: verifyCreateApiSubscription
+            x-mcp:
+                enabled: true
+                name: verify_api_subscription
             requestBody:
                 content:
                     application/json:
@@ -1794,6 +1856,9 @@ paths:
 
                 User must have the API_SUBSCRIPTION[READ] permission.
             operationId: getApiSubscription
+            x-mcp:
+                enabled: true
+                name: get_api_subscription
             responses:
                 "200":
                     description: An API's subscription
@@ -1812,6 +1877,9 @@ paths:
 
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: updateApiSubscription
+            x-mcp:
+                enabled: true
+                name: update_api_subscription
             requestBody:
                 content:
                     application/json:
@@ -1841,6 +1909,9 @@ paths:
 
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: closeApiSubscription
+            x-mcp:
+                enabled: true
+                name: close_api_subscription
             responses:
                 "200":
                     description: API's subscription successfully closed
@@ -1864,6 +1935,9 @@ paths:
 
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: pauseApiSubscription
+            x-mcp:
+                enabled: true
+                name: pause_api_subscription
             responses:
                 "200":
                     description: API's subscription successfully paused
@@ -1887,6 +1961,9 @@ paths:
 
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: resumeApiSubscription
+            x-mcp:
+                enabled: true
+                name: resume_api_subscription
             responses:
                 "200":
                     description: API's subscription successfully resumed
@@ -1910,6 +1987,9 @@ paths:
 
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: acceptApiSubscription
+            x-mcp:
+                enabled: true
+                name: accept_api_subscription
             requestBody:
                 content:
                     application/json:
@@ -1939,6 +2019,9 @@ paths:
 
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: rejectApiSubscription
+            x-mcp:
+                enabled: true
+                name: reject_api_subscription
             requestBody:
                 content:
                     application/json:
@@ -1969,6 +2052,9 @@ paths:
 
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: transferApiSubscription
+            x-mcp:
+                enabled: true
+                name: transfer_api_subscription
             requestBody:
                 content:
                     application/json:
@@ -1999,6 +2085,9 @@ paths:
 
                 User must have the API_SUBSCRIPTION[READ] permission.
             operationId: getApiSubscriptionApiKeys
+            x-mcp:
+                enabled: true
+                name: list_subscription_api_keys
             responses:
                 "200":
                     $ref: "#/components/responses/SubscriptionApiKeysResponse"
@@ -2019,6 +2108,9 @@ paths:
 
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: renewApiSubscriptionApiKeys
+            x-mcp:
+                enabled: true
+                name: renew_subscription_api_keys
             requestBody:
                 content:
                     application/json:
@@ -2049,6 +2141,9 @@ paths:
 
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: updateApiSubscriptionApiKey
+            x-mcp:
+                enabled: true
+                name: update_subscription_api_key
             requestBody:
                 content:
                     application/json:
@@ -2080,6 +2175,9 @@ paths:
 
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: revokeApiSubscriptionApiKey
+            x-mcp:
+                enabled: true
+                name: revoke_subscription_api_key
             responses:
                 "200":
                     description: The revoked subscription API Key.
@@ -2104,6 +2202,9 @@ paths:
 
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: reactivateApiSubscriptionApiKey
+            x-mcp:
+                enabled: true
+                name: reactivate_subscription_api_key
             responses:
                 "200":
                     description: The reactivated subscription API Key.
@@ -2382,6 +2483,9 @@ paths:
 
                 User must have the API_LOG[READ] permission.
             operationId: getApiLogs
+            x-mcp:
+                enabled: true
+                name: get_api_logs
             responses:
                 "200":
                     $ref: "#/components/responses/ApiLogsResponse"
@@ -2647,6 +2751,9 @@ paths:
 
                 User must have the API_DOCUMENTATION[READ] permission.
             operationId: getApiPages
+            x-mcp:
+                enabled: true
+                name: list_api_pages
             responses:
                 "200":
                     $ref: "#/components/responses/ApiDocumentationPagesResponse"
@@ -2662,6 +2769,10 @@ paths:
 
                 User must have the API_DOCUMENTATION[CREATE] permission.
             operationId: createDocumentationPage
+            x-mcp:
+                enabled: true
+                name: create_documentation_page
+                description: Pages must be published with publish_documentation_page to be visible in the developer portal.
             requestBody:
                 content:
                     application/json:
@@ -2692,6 +2803,9 @@ paths:
 
                 User must have the API_DOCUMENTATION[READ] permission.
             operationId: getApiPage
+            x-mcp:
+                enabled: true
+                name: get_api_page
             responses:
                 "200":
                     description: API Documentation Page
@@ -2711,6 +2825,9 @@ paths:
 
                 User must have the API_DOCUMENTATION[CREATE] permission.
             operationId: updateDocumentationPage
+            x-mcp:
+                enabled: true
+                name: update_documentation_page
             requestBody:
                 content:
                     application/json:
@@ -2754,6 +2871,9 @@ paths:
 
                 User must have the API_DOCUMENTATION[UPDATE] permission.
             operationId: publishDocumentationPage
+            x-mcp:
+                enabled: true
+                name: publish_documentation_page
             responses:
                 "200":
                     description: API Documentation Page

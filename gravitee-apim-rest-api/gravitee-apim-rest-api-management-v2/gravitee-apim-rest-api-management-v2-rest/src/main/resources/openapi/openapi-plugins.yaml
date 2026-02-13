@@ -42,6 +42,9 @@ paths:
 
                 User must be authenticated.
             operationId: getEndpoints
+            x-mcp:
+                enabled: true
+                name: list_endpoint_plugins
             responses:
                 "200":
                     description: List of Endpoints.
@@ -128,6 +131,9 @@ paths:
 
                 User must be authenticated.
             operationId: getEndpointSchema
+            x-mcp:
+                enabled: true
+                name: get_endpoint_schema
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
@@ -162,6 +168,9 @@ paths:
 
                 User must be authenticated.
             operationId: getEntrypoints
+            x-mcp:
+                enabled: true
+                name: list_entrypoints
             responses:
                 "200":
                     description: List of Entrypoints.
@@ -248,6 +257,9 @@ paths:
 
                 User must be authenticated.
             operationId: getEntrypointSchema
+            x-mcp:
+                enabled: true
+                name: get_entrypoint_schema
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
@@ -312,6 +324,9 @@ paths:
 
                 User must be authenticated.
             operationId: getPolicies
+            x-mcp:
+                enabled: true
+                name: list_policies
             responses:
                 "200":
                     description: List of Policies.
@@ -335,6 +350,9 @@ paths:
 
                 User must be authenticated.
             operationId: getPolicy
+            x-mcp:
+                enabled: true
+                name: get_policy
             responses:
                 "200":
                     description: Policy
@@ -356,6 +374,9 @@ paths:
 
                 User must be authenticated.
             operationId: getPolicyDocumentation
+            x-mcp:
+                enabled: true
+                name: get_policy_documentation
             responses:
                 "200":
                     description: Documentation of the entrypoint
@@ -400,6 +421,9 @@ paths:
 
                 User must be authenticated.
             operationId: getPolicySchema
+            x-mcp:
+                enabled: true
+                name: get_policy_schema
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
