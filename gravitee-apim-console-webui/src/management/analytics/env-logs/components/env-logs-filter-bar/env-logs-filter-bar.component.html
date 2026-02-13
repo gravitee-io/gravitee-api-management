@@ -1,0 +1,114 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="quick-filters">
+  <div class="quick-filters__row">
+    <form class="quick-filters__selectors" [formGroup]="form">
+      <mat-form-field class="quick-filters__period" data-testid="period-select">
+        <mat-label>Period</mat-label>
+        <mat-select formControlName="period" aria-label="Period selection" [compareWith]="comparePeriod">
+          @for (period of periods; track period.value) {
+            <mat-option [value]="period">{{ period.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="quick-filters__entrypoints" data-testid="entrypoints-select">
+        <mat-label>Entrypoints</mat-label>
+        <mat-select formControlName="entrypoints" aria-label="Entrypoints selection" [multiple]="true">
+          @for (entrypoint of entrypoints; track entrypoint.id) {
+            <mat-option [value]="entrypoint.id">{{ entrypoint.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="quick-filters__methods" data-testid="methods-select">
+        <mat-label>HTTP methods</mat-label>
+        <mat-select formControlName="methods" aria-label="Methods selection" [multiple]="true">
+          @for (httpMethod of httpMethods; track httpMethod) {
+            <mat-option [value]="httpMethod">{{ httpMethod }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="quick-filters__plans" data-testid="plans-select">
+        <mat-label>Plan</mat-label>
+        <mat-select formControlName="plans" aria-label="Plan selection" [multiple]="true">
+          @for (plan of plans; track plan.id) {
+            <mat-option [value]="plan.id">{{ plan.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <div class="quick-filters__buttons">
+        <div class="action">
+          <!-- TODO: Implement advanced filters panel -->
+          <button mat-stroked-button type="button" class="action__button" [disabled]="loading()" data-testid="more-button">
+            <mat-icon svgIcon="gio:filter"></mat-icon>More
+          </button>
+        </div>
+        <div class="action">
+          <button
+            mat-stroked-button
+            type="button"
+            class="action__button"
+            aria-label="Refresh"
+            (click)="refresh.emit()"
+            [disabled]="loading()"
+            data-testid="refresh-button"
+          >
+            <mat-icon svgIcon="gio:refresh-cw"></mat-icon>Refresh
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="quick-filters__applied">
+    @if (isFiltering()) {
+      <mat-chip-set class="quick-filters__chip_list">
+        <span class="quick-filters__applied-label">Filters applied:</span>
+        @for (chip of filterChips(); track chip.key + chip.value) {
+          <mat-chip
+            class="quick-filters__chip"
+            [removable]="true"
+            (removed)="removeChip(chip)"
+            [matTooltip]="chip.display"
+            [disabled]="loading()"
+          >
+            <span class="quick-filters__chip__key">{{ chip.key }}:</span>
+            <span class="quick-filters__chip__value">{{ chip.display }}</span>
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip>
+        }
+        <button
+          mat-button
+          type="button"
+          class="quick-filters__reset"
+          data-testid="reset-filters-button"
+          (click)="resetAllFilters()"
+          [disabled]="loading()"
+        >
+          <mat-icon svgIcon="gio:x-circle"></mat-icon>
+          <span class="quick-filters__reset__label">Reset filters</span>
+        </button>
+      </mat-chip-set>
+    } @else {
+      <span class="quick-filters__no-filters" data-testid="no-filters-text">No filter applied</span>
+    }
+  </div>
+</div>

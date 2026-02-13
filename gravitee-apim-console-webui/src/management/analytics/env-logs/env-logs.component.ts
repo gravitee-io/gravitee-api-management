@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
@@ -23,6 +23,7 @@ import { delay, tap } from 'rxjs/operators';
 
 import type { EnvLog } from './models/env-log.model';
 
+import { EnvLogsFilterBarComponent } from './components/env-logs-filter-bar/env-logs-filter-bar.component';
 import { EnvLogsTableComponent } from './components/env-logs-table/env-logs-table.component';
 import { fakeEnvLogs } from './models/env-log.fixture';
 
@@ -33,17 +34,17 @@ import { Pagination } from '../../../entities/management-api-v2';
   selector: 'env-logs',
   templateUrl: './env-logs.component.html',
   styleUrl: './env-logs.component.scss',
-  imports: [EnvLogsTableComponent, MatCardModule, GioBannerModule],
+  imports: [EnvLogsTableComponent, EnvLogsFilterBarComponent, MatCardModule, GioBannerModule],
   standalone: true,
 })
-export class EnvLogsComponent {
+export class EnvLogsComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   logs = signal<EnvLog[]>([]);
   isLoading = signal(true);
   pagination = signal<Pagination>({ page: 1, perPage: 10, totalCount: 0 });
 
-  constructor() {
+  ngOnInit() {
     this.refresh();
   }
 
@@ -52,9 +53,9 @@ export class EnvLogsComponent {
     this.refresh();
   }
 
-  private refresh() {
+  refresh() {
     this.isLoading.set(true);
-    // TODO: Replace with real API call
+    // TODO: Replace with real API call — send activeFilters() as query params
     of(fakeEnvLogs())
       .pipe(
         delay(500),
