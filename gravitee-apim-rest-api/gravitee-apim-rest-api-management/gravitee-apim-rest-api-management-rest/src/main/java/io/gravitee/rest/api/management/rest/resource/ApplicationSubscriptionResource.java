@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.Subscription;
@@ -253,7 +254,11 @@ public class ApplicationSubscriptionResource extends AbstractResource {
         );
 
         subscription.setPlan(fetchPlan(executionContext, subscriptionEntity.getPlan()));
-        subscription.setApi(fetchApi(executionContext, subscriptionEntity.getApi()));
+        subscription.setReferenceId(subscriptionEntity.getReferenceId());
+        subscription.setReferenceType(subscriptionEntity.getReferenceType());
+        if (subscriptionEntity.getReferenceId() != null && "API".equals(subscriptionEntity.getReferenceType())) {
+            subscription.setApi(fetchApi(executionContext, subscriptionEntity.getReferenceId()));
+        }
 
         subscription.setClosedAt(subscriptionEntity.getClosedAt());
         subscription.setPausedAt(subscriptionEntity.getPausedAt());
@@ -314,7 +319,11 @@ public class ApplicationSubscriptionResource extends AbstractResource {
         );
 
         subscription.setPlan(fetchPlan(executionContext, subscriptionEntity.getPlanId()));
-        subscription.setApi(fetchApi(executionContext, subscriptionEntity.getApiId()));
+        subscription.setReferenceId(subscriptionEntity.getReferenceId());
+        subscription.setReferenceType(subscriptionEntity.getReferenceType() != null ? subscriptionEntity.getReferenceType().name() : null);
+        if (subscriptionEntity.getReferenceId() != null && SubscriptionReferenceType.API.equals(subscriptionEntity.getReferenceType())) {
+            subscription.setApi(fetchApi(executionContext, subscriptionEntity.getReferenceId()));
+        }
 
         return subscription;
     }

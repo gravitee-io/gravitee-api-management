@@ -331,7 +331,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
     public Response getApiSubscription(@PathParam("subscriptionId") String subscriptionId, @QueryParam("expands") Set<String> expands) {
         final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
 
-        if (!subscriptionEntity.getApi().equals(apiId)) {
+        if (!apiId.equals(subscriptionEntity.getReferenceId())) {
             return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
         }
 
@@ -370,7 +370,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
 
-        if (!subscriptionEntity.getApi().equals(apiId)) {
+        if (!apiId.equals(subscriptionEntity.getReferenceId())) {
             return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
         }
 
@@ -461,7 +461,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
 
-        if (!subscriptionEntity.getApi().equals(apiId)) {
+        if (!apiId.equals(subscriptionEntity.getReferenceId())) {
             return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
         }
 
@@ -476,7 +476,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
 
-        if (!subscriptionEntity.getApi().equals(apiId)) {
+        if (!apiId.equals(subscriptionEntity.getReferenceId())) {
             return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
         }
 
@@ -494,7 +494,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
 
-        if (!subscriptionEntity.getApi().equals(apiId)) {
+        if (!apiId.equals(subscriptionEntity.getReferenceId())) {
             return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
         }
 
@@ -575,7 +575,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
     ) {
         final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
 
-        if (!subscriptionEntity.getApi().equals(apiId)) {
+        if (!apiId.equals(subscriptionEntity.getReferenceId())) {
             return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
         }
 
@@ -613,7 +613,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
         final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
 
-        if (!subscriptionEntity.getApi().equals(apiId)) {
+        if (!apiId.equals(subscriptionEntity.getReferenceId())) {
             return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
         }
 
@@ -635,7 +635,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
     ) {
         final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
 
-        if (!subscriptionEntity.getApi().equals(apiId)) {
+        if (!apiId.equals(subscriptionEntity.getReferenceId())) {
             return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
         }
 
@@ -696,7 +696,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
     ) {
         final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
 
-        if (!subscriptionEntity.getApi().equals(apiId)) {
+        if (!apiId.equals(subscriptionEntity.getReferenceId())) {
             return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
         }
 
