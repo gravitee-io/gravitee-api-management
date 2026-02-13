@@ -23,9 +23,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
@@ -49,6 +52,7 @@ import io.gravitee.rest.api.portal.rest.model.SubscriptionConfigurationInput;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionsResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.exception.SubscriptionMetadataInvalidException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.Collections;
@@ -198,6 +202,25 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         assertNotNull(subscriptionResponse.getKeys());
         assertEquals(1, subscriptionResponse.getKeys().size());
         assertEquals(key, subscriptionResponse.getKeys().get(0));
+    }
+
+    @Test
+    public void shouldReturnBadRequestWhenMetadataKeyIsInvalid() {
+        doThrow(new SubscriptionMetadataInvalidException("Invalid metadata key."))
+            .when(subscriptionService)
+            .create(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(e -> e.getMetadata() != null && e.getMetadata().containsKey("bad key"))
+            );
+
+        SubscriptionInput subscriptionInput = new SubscriptionInput()
+            .application(APPLICATION)
+            .plan(PLAN)
+            .metadata(Map.of("bad key", "value"));
+
+        final Response response = target().request().post(Entity.json(subscriptionInput));
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        Mockito.verify(subscriptionService, times(1)).create(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
