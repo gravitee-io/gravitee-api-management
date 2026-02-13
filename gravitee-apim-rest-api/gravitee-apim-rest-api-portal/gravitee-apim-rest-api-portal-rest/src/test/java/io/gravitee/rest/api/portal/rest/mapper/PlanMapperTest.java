@@ -579,6 +579,29 @@ public class PlanMapperTest {
         assertNull(responsePlan.getUsageConfiguration().getQuota());
     }
 
+    @Test
+    public void shouldMapMissingPeriodTimeForApiKeyPlan() {
+        var step = new io.gravitee.definition.model.v4.flow.step.Step();
+        step.setPolicy(RATE_LIMIT);
+        step.setConfiguration("{ \"rate\": { \"limit\": 10 } }");
+        step.setEnabled(true);
+
+        var flow1 = new io.gravitee.definition.model.v4.flow.Flow();
+        flow1.setRequest(List.of(step));
+        flow1.setEnabled(true);
+
+        planEntityV4.setFlows(List.of(flow1));
+
+        Plan responsePlan = planMapper.convert(planEntityV4, aV4Api);
+        assertNotNull(responsePlan);
+        assertNotNull(responsePlan.getUsageConfiguration());
+        var rateLimit = responsePlan.getUsageConfiguration().getRateLimit();
+        assertNotNull(rateLimit);
+        assertEquals(10L, rateLimit.getLimit());
+        assertNull(rateLimit.getPeriodTime());
+        assertNull(rateLimit.getPeriodTimeUnit());
+    }
+
     private void preparePlanEntityV2() {
         planEntityV2 = new PlanEntity();
 
