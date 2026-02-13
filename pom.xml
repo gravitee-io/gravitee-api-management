@@ -226,7 +226,7 @@
         <gravitee-policy-role-based-access-control.version>2.0.0</gravitee-policy-role-based-access-control.version>
         <gravitee-policy-ssl-enforcement.version>1.5.0</gravitee-policy-ssl-enforcement.version>
         <gravitee-policy-traffic-shadowing.version>3.0.0</gravitee-policy-traffic-shadowing.version>
-        <gravitee-policy-transform-avro-json.version>2.1.0</gravitee-policy-transform-avro-json.version>
+        <gravitee-policy-transform-avro-json.version>3.0.0</gravitee-policy-transform-avro-json.version>
         <gravitee-policy-transform-avro-protobuf.version>1.0.9</gravitee-policy-transform-avro-protobuf.version>
         <gravitee-policy-transform-protobuf-json.version>2.0.1</gravitee-policy-transform-protobuf-json.version>
         <gravitee-policy-transformheaders.version>5.1.0</gravitee-policy-transformheaders.version>
@@ -288,7 +288,7 @@
         <gravitee-entrypoint-websocket.version>2.0.0</gravitee-entrypoint-websocket.version>
         <gravitee-entrypoint-agent-to-agent.version>1.0.1</gravitee-entrypoint-agent-to-agent.version>
         <gravitee-entrypoint-mcp.version>1.1.0</gravitee-entrypoint-mcp.version>
-        <gravitee-endpoint-kafka.version>5.0.0</gravitee-endpoint-kafka.version>
+        <gravitee-endpoint-kafka.version>5.1.0</gravitee-endpoint-kafka.version>
         <gravitee-endpoint-mqtt5.version>4.0.1</gravitee-endpoint-mqtt5.version>
         <gravitee-endpoint-rabbitmq.version>3.0.2</gravitee-endpoint-rabbitmq.version>
         <gravitee-endpoint-solace.version>3.0.2</gravitee-endpoint-solace.version>
