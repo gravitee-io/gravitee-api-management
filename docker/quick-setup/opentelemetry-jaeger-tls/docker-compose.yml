@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-version: "3.5"
+version: '3.5'
 
 networks:
     frontend:
@@ -27,7 +27,7 @@ networks:
 services:
     mongodb:
         image: mongo:${MONGODB_VERSION:-5}
-        command: ["--quiet", "--logpath", "/dev/null"]
+        command: ['--quiet', '--logpath', '/dev/null']
         restart: always
         healthcheck:
             test: echo 'db.runCommand({serverStatus:1}).ok' | mongo admin --quiet | grep 1
@@ -47,14 +47,14 @@ services:
             - cluster.name=elasticsearch
             - bootstrap.memory_lock=true
             - discovery.type=single-node
-            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+            - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
         ulimits:
             memlock:
                 soft: -1
                 hard: -1
             nofile: 65536
         healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s"]
+            test: ['CMD', 'curl', '-f', 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s']
             interval: 5s
             timeout: 3s
             retries: 10
@@ -75,16 +75,16 @@ services:
             - REPORTER_GRPC_TLS_CERT=/certs/client.cer
             - REPORTER_GRPC_TLS_KEY=/certs/client.key
         ports:
-            - "5775:5775/udp"
-            - "6831:6831/udp"
-            - "6832:6832/udp"
-            - "5778:5778"
-            - "16686:16686"
-            - "14268:14268"
-            - "14250:14250"
-            - "9411:9411"
-            - "4317:4317"
-            - "4318:4318"
+            - '5775:5775/udp'
+            - '6831:6831/udp'
+            - '6832:6832/udp'
+            - '5778:5778'
+            - '16686:16686'
+            - '14268:14268'
+            - '14250:14250'
+            - '9411:9411'
+            - '4317:4317'
+            - '4318:4318'
         networks:
             jaeger:
                 aliases:
@@ -95,7 +95,7 @@ services:
         container_name: gio_apim_gateway
         restart: always
         ports:
-            - "8082:8082"
+            - '8082:8082'
         depends_on:
             elasticsearch:
                 condition: service_healthy
@@ -104,7 +104,7 @@ services:
             jaeger:
                 condition: service_started
         links:
-            - "jaeger:jaeger"
+            - 'jaeger:jaeger'
         volumes:
             - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
             - ./.plugins:/opt/graviteeio-gateway/plugins-ext
@@ -149,7 +149,7 @@ services:
         container_name: gio_apim_management_api
         restart: always
         ports:
-            - "8083:8083"
+            - '8083:8083'
         links:
             - mongodb
             - elasticsearch
@@ -171,7 +171,7 @@ services:
         container_name: gio_apim_management_ui
         restart: always
         ports:
-            - "8084:8080"
+            - '8084:8080'
         depends_on:
             - management_api
         environment:
@@ -186,7 +186,7 @@ services:
         container_name: gio_apim_portal_ui
         restart: always
         ports:
-            - "8085:8080"
+            - '8085:8080'
         depends_on:
             - management_api
         environment:
