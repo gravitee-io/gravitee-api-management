@@ -71,7 +71,7 @@ public class NativeApiV4DefinitionSecretRefsFinder extends AbstractV4APISecretRe
                 flows.stream().flatMap(flow -> safeStream(flow.getSubscribe()))
             ),
             Stream.concat(
-                flows.stream().flatMap(flow -> safeStream(flow.getConnect())),
+                flows.stream().flatMap(flow -> safeStream(flow.getEntrypointConnect())),
                 flows.stream().flatMap(flow -> safeStream(flow.getInteract()))
             )
         ).forEach(step -> processStep(listener, step));

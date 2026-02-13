@@ -139,7 +139,7 @@ public class SharedPolicyGroupsResource_CreateCRDTest extends AbstractResourceTe
         SharedPolicyGroupCRD crd = new SharedPolicyGroupCRD();
         crd.setName(null);
         crd.setApiType(ApiType.PROXY);
-        crd.setPhase(FlowPhase.CONNECT);
+        crd.setPhase(FlowPhase.ENTRYPOINT_CONNECT);
 
         final Response response = rootTarget().request().put(json(crd));
 
