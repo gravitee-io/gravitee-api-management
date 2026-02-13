@@ -17,9 +17,10 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
@@ -30,6 +31,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.SubscriptionEntrypointIdMissingException;
+import io.gravitee.rest.api.service.v4.validation.SubscriptionMetadataSanitizer;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -53,13 +55,17 @@ public class SubscriptionValidationServiceImplTest {
     @Mock
     private EntrypointConnectorPluginService entrypointConnectorPluginService;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    @Mock
+    private SubscriptionMetadataSanitizer subscriptionMetadataSanitizer;
 
     private PlanEntity planEntity;
 
     @BeforeEach
     public void setUp() {
-        cut = new SubscriptionValidationServiceImpl(entrypointConnectorPluginService);
+        cut = new SubscriptionValidationServiceImpl(entrypointConnectorPluginService, subscriptionMetadataSanitizer);
+        lenient()
+            .when(subscriptionMetadataSanitizer.sanitizeAndValidate(any()))
+            .thenAnswer(invocation -> invocation.getArgument(0));
 
         planEntity = new PlanEntity();
         PlanSecurity security = new PlanSecurity();

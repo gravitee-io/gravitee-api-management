@@ -15,17 +15,16 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.SubscriptionEntrypointIdMissingException;
+import io.gravitee.rest.api.service.v4.validation.SubscriptionMetadataSanitizer;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -41,15 +40,22 @@ import org.springframework.stereotype.Component;
 public class SubscriptionValidationServiceImpl extends TransactionalService implements SubscriptionValidationService {
 
     private final EntrypointConnectorPluginService entrypointService;
+    private final SubscriptionMetadataSanitizer subscriptionMetadataSanitizer;
 
     @Override
     public void validateAndSanitize(final GenericPlanEntity genericPlanEntity, final NewSubscriptionEntity subscription) {
         subscription.setConfiguration(validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscription.getConfiguration()));
+        if (subscription.getMetadata() != null) {
+            subscription.setMetadata(subscriptionMetadataSanitizer.sanitizeAndValidate(subscription.getMetadata()));
+        }
     }
 
     @Override
     public void validateAndSanitize(final GenericPlanEntity genericPlanEntity, final UpdateSubscriptionEntity subscription) {
         subscription.setConfiguration(validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscription.getConfiguration()));
+        if (subscription.getMetadata() != null) {
+            subscription.setMetadata(subscriptionMetadataSanitizer.sanitizeAndValidate(subscription.getMetadata()));
+        }
     }
 
     @Override
@@ -60,6 +66,11 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
         subscriptionConfiguration.setConfiguration(
             validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscriptionConfiguration.getConfiguration())
         );
+        if (subscriptionConfiguration.getMetadata() != null) {
+            subscriptionConfiguration.setMetadata(
+                subscriptionMetadataSanitizer.sanitizeAndValidate(subscriptionConfiguration.getMetadata())
+            );
+        }
     }
 
     private SubscriptionConfigurationEntity validateAndSanitizeSubscriptionConfiguration(
