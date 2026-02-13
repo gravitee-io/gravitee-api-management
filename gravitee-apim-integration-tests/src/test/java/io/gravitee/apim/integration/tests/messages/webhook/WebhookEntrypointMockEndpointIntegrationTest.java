@@ -24,9 +24,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.unauthorized;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.graviteesource.entrypoint.webhook.auth.AccessTokenProvider.ACCESS_TOKEN_KEY;
-import static com.graviteesource.entrypoint.webhook.auth.AccessTokenProvider.EXPIRES_IN_KEY;
-import static com.graviteesource.entrypoint.webhook.auth.AccessTokenProvider.TOKEN_TYPE_KEY;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -34,6 +31,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.graviteesource.entrypoint.webhook.WebhookEntrypointConnectorFactory;
 import com.graviteesource.entrypoint.webhook.configuration.HttpHeader;
+import com.graviteesource.entrypoint.webhook.configuration.WebhookSubscriptionAuthConfiguration;
 import com.graviteesource.entrypoint.webhook.exception.UnauthorizedException;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
@@ -63,6 +61,7 @@ import io.gravitee.plugin.policy.PolicyPlugin;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +80,9 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
     private static final String API_ID = "webhook-entrypoint-mock-endpoint";
     private static final String WEBHOOK_URL_PATH = "/webhook";
+    private static final String TOKEN_TYPE_KEY = "token_type";
+    private static final String ACCESS_TOKEN_KEY = "access_token";
+    private static final String EXPIRES_IN_KEY = "expires_in";
     private WebhookTestingActions webhookActions;
     private MessageStorage messageStorage;
 
@@ -508,6 +510,174 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
             "test-issuer",
             "test-subject",
             "this-is-a-very-long-secret-key-for-hmac-hs256-test"
+        );
+
+        webhookActions
+            .dispatchSubscription(subscription)
+            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+            .test()
+            .awaitDone(10, SECONDS)
+            .assertComplete();
+
+        // Make sure the token endpoint has been called with the JWT bearer grant type.
+        wiremock.verify(moreThanOrExactly(1), postRequestedFor(urlPathEqualTo("/jwt-token-endpoint")));
+
+        // And the messages received with the access token from the JWT profile token endpoint.
+        webhookActions.verifyMessagesWithHeaders(
+            messageCount,
+            callbackPath,
+            "message",
+            List.of(new HttpHeader("Authorization", "Bearer token-from-jwt-profile-server"))
+        );
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_receive_messages_jwt_profile_oauth2_auth_with_pem_key_source() throws JsonProcessingException {
+        final int messageCount = 10;
+        final String callbackPath = WEBHOOK_URL_PATH + "/test";
+
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
+        webhookActions.applyJwtProfileOauth2Auth(
+            subscription,
+            WebhookSubscriptionAuthConfiguration.JwtProfile.builder()
+                .issuer("test-issuer")
+                .subject("test-subject")
+                .audience(webhookActions.jwtTokenEndpoint())
+                .signatureAlgorithm(WebhookSubscriptionAuthConfiguration.SignatureAlgorithm.RSA_RS256)
+                .keySource(WebhookSubscriptionAuthConfiguration.KeySource.PEM)
+                .keyContent(Path.of("src/test/resources/certs/private-key.pem").toAbsolutePath().toString())
+                .build()
+        );
+
+        webhookActions
+            .dispatchSubscription(subscription)
+            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+            .test()
+            .awaitDone(10, SECONDS)
+            .assertComplete();
+
+        // Make sure the token endpoint has been called with the JWT bearer grant type.
+        wiremock.verify(moreThanOrExactly(1), postRequestedFor(urlPathEqualTo("/jwt-token-endpoint")));
+
+        // And the messages received with the access token from the JWT profile token endpoint.
+        webhookActions.verifyMessagesWithHeaders(
+            messageCount,
+            callbackPath,
+            "message",
+            List.of(new HttpHeader("Authorization", "Bearer token-from-jwt-profile-server"))
+        );
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_receive_messages_jwt_profile_oauth2_auth_with_jks_key_source() throws JsonProcessingException {
+        final int messageCount = 10;
+        final String callbackPath = WEBHOOK_URL_PATH + "/test";
+
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
+        webhookActions.applyJwtProfileOauth2Auth(
+            subscription,
+            WebhookSubscriptionAuthConfiguration.JwtProfile.builder()
+                .issuer("test-issuer")
+                .subject("test-subject")
+                .audience(webhookActions.jwtTokenEndpoint())
+                .signatureAlgorithm(WebhookSubscriptionAuthConfiguration.SignatureAlgorithm.RSA_RS256)
+                .keySource(WebhookSubscriptionAuthConfiguration.KeySource.JKS)
+                .keyContent(Path.of("src/test/resources/certs/keystore01.jks").toAbsolutePath().toString())
+                .keystoreOptions(
+                    WebhookSubscriptionAuthConfiguration.KeystoreOptions.builder()
+                        .alias("selfsigned")
+                        .storePassword("password")
+                        .keyPassword("password")
+                        .build()
+                )
+                .build()
+        );
+
+        webhookActions
+            .dispatchSubscription(subscription)
+            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+            .test()
+            .awaitDone(10, SECONDS)
+            .assertComplete();
+
+        // Make sure the token endpoint has been called with the JWT bearer grant type.
+        wiremock.verify(moreThanOrExactly(1), postRequestedFor(urlPathEqualTo("/jwt-token-endpoint")));
+
+        // And the messages received with the access token from the JWT profile token endpoint.
+        webhookActions.verifyMessagesWithHeaders(
+            messageCount,
+            callbackPath,
+            "message",
+            List.of(new HttpHeader("Authorization", "Bearer token-from-jwt-profile-server"))
+        );
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_receive_messages_jwt_profile_oauth2_auth_with_pkcs12_key_source() throws JsonProcessingException {
+        final int messageCount = 10;
+        final String callbackPath = WEBHOOK_URL_PATH + "/test";
+
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
+        webhookActions.applyJwtProfileOauth2Auth(
+            subscription,
+            WebhookSubscriptionAuthConfiguration.JwtProfile.builder()
+                .issuer("test-issuer")
+                .subject("test-subject")
+                .audience(webhookActions.jwtTokenEndpoint())
+                .signatureAlgorithm(WebhookSubscriptionAuthConfiguration.SignatureAlgorithm.RSA_RS256)
+                .keySource(WebhookSubscriptionAuthConfiguration.KeySource.PKCS12)
+                .keyContent(Path.of("src/test/resources/certs/keystore.p12").toAbsolutePath().toString())
+                .keystoreOptions(
+                    WebhookSubscriptionAuthConfiguration.KeystoreOptions.builder().alias("selfsigned").storePassword("password").build()
+                )
+                .build()
+        );
+
+        webhookActions
+            .dispatchSubscription(subscription)
+            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+            .test()
+            .awaitDone(10, SECONDS)
+            .assertComplete();
+
+        // Make sure the token endpoint has been called with the JWT bearer grant type.
+        wiremock.verify(moreThanOrExactly(1), postRequestedFor(urlPathEqualTo("/jwt-token-endpoint")));
+
+        // And the messages received with the access token from the JWT profile token endpoint.
+        webhookActions.verifyMessagesWithHeaders(
+            messageCount,
+            callbackPath,
+            "message",
+            List.of(new HttpHeader("Authorization", "Bearer token-from-jwt-profile-server"))
+        );
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_receive_messages_jwt_profile_oauth2_auth_with_custom_claims() throws JsonProcessingException {
+        final int messageCount = 10;
+        final String callbackPath = WEBHOOK_URL_PATH + "/test";
+
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
+        webhookActions.applyJwtProfileOauth2Auth(
+            subscription,
+            WebhookSubscriptionAuthConfiguration.JwtProfile.builder()
+                .issuer("test-issuer")
+                .subject("test-subject")
+                .audience(webhookActions.jwtTokenEndpoint())
+                .signatureAlgorithm(WebhookSubscriptionAuthConfiguration.SignatureAlgorithm.RSA_RS256)
+                .keySource(WebhookSubscriptionAuthConfiguration.KeySource.PEM)
+                .keyContent(Path.of("src/test/resources/certs/private-key.pem").toAbsolutePath().toString())
+                .customClaims(
+                    List.of(
+                        WebhookSubscriptionAuthConfiguration.CustomClaim.builder().name("custom-claim-1").value("value-1").build(),
+                        WebhookSubscriptionAuthConfiguration.CustomClaim.builder().name("custom-claim-2").value("value-2").build()
+                    )
+                )
+                .build()
         );
 
         webhookActions

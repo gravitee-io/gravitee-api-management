@@ -275,7 +275,25 @@ public class WebhookTestingActions {
         );
     }
 
+    String jwtTokenEndpoint() {
+        return "http://localhost:" + wiremock.port() + "/jwt-token-endpoint";
+    }
+
     void applyJwtProfileOauth2Auth(Subscription subscription, String issuer, String subject, String hmacKey)
+        throws JsonProcessingException {
+        applyJwtProfileOauth2Auth(
+            subscription,
+            WebhookSubscriptionAuthConfiguration.JwtProfile.builder()
+                .issuer(issuer)
+                .subject(subject)
+                .audience(jwtTokenEndpoint())
+                .signatureAlgorithm(WebhookSubscriptionAuthConfiguration.SignatureAlgorithm.HMAC_HS256)
+                .keyContent(hmacKey)
+                .build()
+        );
+    }
+
+    void applyJwtProfileOauth2Auth(Subscription subscription, WebhookSubscriptionAuthConfiguration.JwtProfile jwtProfile)
         throws JsonProcessingException {
         final SubscriptionConfiguration subscriptionConfiguration = subscription.getConfiguration();
 
@@ -284,21 +302,8 @@ public class WebhookTestingActions {
             WebhookEntrypointConnectorSubscriptionConfiguration.class
         );
 
-        String tokenEndpoint = "http://localhost:" + wiremock.port() + "/jwt-token-endpoint";
-
         conf.setAuth(
-            WebhookSubscriptionAuthConfiguration.builder()
-                .type(SecurityType.JWT_PROFILE_OAUTH2)
-                .jwtProfileOauth2(
-                    WebhookSubscriptionAuthConfiguration.JwtProfile.builder()
-                        .issuer(issuer)
-                        .subject(subject)
-                        .audience(tokenEndpoint)
-                        .signature(WebhookSubscriptionAuthConfiguration.Signature.HMAC_HS256)
-                        .key(hmacKey)
-                        .build()
-                )
-                .build()
+            WebhookSubscriptionAuthConfiguration.builder().type(SecurityType.JWT_PROFILE_OAUTH2).jwtProfileOauth2(jwtProfile).build()
         );
 
         subscriptionConfiguration.setEntrypointConfiguration(MAPPER.writeValueAsString(conf));
