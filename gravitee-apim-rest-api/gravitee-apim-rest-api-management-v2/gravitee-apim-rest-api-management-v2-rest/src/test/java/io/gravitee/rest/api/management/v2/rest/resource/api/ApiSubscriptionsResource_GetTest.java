@@ -67,7 +67,8 @@ public class ApiSubscriptionsResource_GetTest extends AbstractApiSubscriptionsRe
         final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
             .toBuilder()
             .id(SUBSCRIPTION)
-            .api("ANOTHER-API")
+            .referenceId("ANOTHER-API")
+            .referenceType("API")
             .build();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);

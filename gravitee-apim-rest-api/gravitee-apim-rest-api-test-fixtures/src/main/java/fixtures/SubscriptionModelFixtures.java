@@ -31,6 +31,8 @@ public class SubscriptionModelFixtures {
     private static final SubscriptionEntity.SubscriptionEntityBuilder BASE_SUBSCRIPTION_ENTITY = SubscriptionEntity.builder()
         .id("my-subscription")
         .api("my-api")
+        .referenceId("my-api")
+        .referenceType("API")
         .plan("my-plan")
         .application("my-application")
         .createdAt(new Date())

@@ -88,6 +88,8 @@ public class SubscriptionsResource {
         subscription.setReason(subscriptionEntity.getReason());
         subscription.setStatus(subscriptionEntity.getStatus());
         subscription.setMetadata(subscriptionEntity.getMetadata());
+        subscription.setReferenceId(subscriptionEntity.getReferenceId());
+        subscription.setReferenceType(subscriptionEntity.getReferenceType());
 
         ApplicationEntity application = applicationService.findById(executionContext, subscriptionEntity.getApplication());
         subscription.setApplication(
