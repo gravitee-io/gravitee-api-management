@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.dashboard.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.dashboard.crud_service.DashboardCrudService;
+import io.gravitee.apim.core.dashboard.domain_service.DashboardDomainService;
 import io.gravitee.apim.core.dashboard.exception.DashboardNotFoundException;
 import io.gravitee.apim.core.dashboard.model.Dashboard;
 import lombok.RequiredArgsConstructor;
@@ -25,14 +25,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GetDashboardUseCase {
 
-    private final DashboardCrudService dashboardCrudService;
+    private final DashboardDomainService dashboardDomainService;
 
     public record Input(String dashboardId) {}
 
     public record Output(Dashboard dashboard) {}
 
     public Output execute(Input input) {
-        var dashboard = dashboardCrudService
+        var dashboard = dashboardDomainService
             .findById(input.dashboardId())
             .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
         return new Output(dashboard);

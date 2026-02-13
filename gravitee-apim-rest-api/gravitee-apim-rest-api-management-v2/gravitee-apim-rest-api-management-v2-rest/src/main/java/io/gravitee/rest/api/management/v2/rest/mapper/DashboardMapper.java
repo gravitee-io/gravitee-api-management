@@ -18,7 +18,9 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.apim.core.dashboard.model.Dashboard;
 import io.gravitee.apim.core.dashboard.model.DashboardWidget;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CreateDashboard;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CustomInterval;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasureName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeRange;
@@ -79,17 +81,20 @@ public interface DashboardMapper {
         return DashboardWidget.Request.builder()
             .type(request.getType() != null ? request.getType().getValue() : null)
             .timeRange(mapToDomainTimeRange(request.getTimeRange()))
-            .metrics(
-                request.getMetrics() != null
-                    ? request
-                        .getMetrics()
-                        .stream()
-                        .map(m -> m.getName().getValue())
-                        .toList()
-                    : null
-            )
+            .metrics(request.getMetrics() != null ? request.getMetrics().stream().map(this::mapToDomainMetricRequest).toList() : null)
+            .interval(request.getInterval() != null ? request.getInterval().toMillis() : null)
             .by(request.getBy() != null ? request.getBy().stream().map(FacetName::getValue).toList() : null)
             .limit(request.getLimit())
+            .build();
+    }
+
+    default DashboardWidget.MetricRequest mapToDomainMetricRequest(MetricRequest metricRequest) {
+        if (metricRequest == null) {
+            return null;
+        }
+        return DashboardWidget.MetricRequest.builder()
+            .name(metricRequest.getName() != null ? metricRequest.getName().getValue() : null)
+            .measures(metricRequest.getMeasures() != null ? metricRequest.getMeasures().stream().map(MeasureName::getValue).toList() : null)
             .build();
     }
 
@@ -103,19 +108,30 @@ public interface DashboardMapper {
         }
         widgetRequest.setTimeRange(mapToRestTimeRange(request.getTimeRange()));
         if (request.getMetrics() != null) {
-            widgetRequest.setMetrics(
-                request
-                    .getMetrics()
-                    .stream()
-                    .map(m -> new MetricRequest().name(MetricName.fromValue(m)))
-                    .toList()
-            );
+            widgetRequest.setMetrics(request.getMetrics().stream().map(this::mapToRestMetricRequest).toList());
+        }
+        if (request.getInterval() != null) {
+            widgetRequest.setInterval(new CustomInterval(request.getInterval()));
         }
         if (request.getBy() != null) {
             widgetRequest.setBy(request.getBy().stream().map(FacetName::fromValue).toList());
         }
         widgetRequest.setLimit(request.getLimit());
         return widgetRequest;
+    }
+
+    default MetricRequest mapToRestMetricRequest(DashboardWidget.MetricRequest metricRequest) {
+        if (metricRequest == null) {
+            return null;
+        }
+        var result = new MetricRequest();
+        if (metricRequest.getName() != null) {
+            result.setName(MetricName.fromValue(metricRequest.getName()));
+        }
+        if (metricRequest.getMeasures() != null) {
+            result.setMeasures(metricRequest.getMeasures().stream().map(MeasureName::fromValue).toList());
+        }
+        return result;
     }
 
     default DashboardWidget.TimeRange mapToDomainTimeRange(TimeRange timeRange) {

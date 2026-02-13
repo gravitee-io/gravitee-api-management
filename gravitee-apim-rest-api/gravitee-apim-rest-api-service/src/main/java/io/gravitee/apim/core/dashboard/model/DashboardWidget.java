@@ -59,11 +59,22 @@ public class DashboardWidget {
     @NoArgsConstructor
     @AllArgsConstructor
     @Data
+    public static class MetricRequest {
+
+        private String name;
+        private List<String> measures;
+    }
+
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Data
     public static class Request {
 
         private String type;
         private TimeRange timeRange;
-        private List<String> metrics;
+        private List<MetricRequest> metrics;
+        private Long interval;
         private List<String> by;
         private Integer limit;
     }
