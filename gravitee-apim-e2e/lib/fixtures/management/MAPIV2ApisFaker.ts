@@ -372,7 +372,7 @@ export class MAPIV2ApisFaker {
       ],
       subscribe: [],
       publish: [],
-      connect: [],
+      entrypointConnect: [],
       interact: [],
       tags: [],
       ...attributes,
