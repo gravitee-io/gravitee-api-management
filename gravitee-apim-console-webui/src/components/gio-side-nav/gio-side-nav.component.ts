@@ -25,6 +25,7 @@ import { ApimFeature, UTMTags } from '../../shared/components/gio-license/gio-li
 import { Environment } from '../../entities/environment/environment';
 import { cleanRouterLink } from '../../util/router-link.util';
 import { EnvironmentSettingsService } from '../../services-ngx/environment-settings.service';
+import { ConsoleExtensionRegistryService } from '../../services-ngx/console-extension-registry.service';
 
 interface MenuItem {
   icon: string;
@@ -65,6 +66,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     private readonly activatedRoute: ActivatedRoute,
     private readonly gioMenuSearchService: GioMenuSearchService,
     private readonly environmentSettingsService: EnvironmentSettingsService,
+    private readonly consoleExtensionRegistryService: ConsoleExtensionRegistryService,
   ) {}
 
   ngOnInit(): void {
@@ -209,6 +211,16 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         licenseOptions: alertEngineLicenseOptions,
         iconRight$: alertEngineIconRight$,
         category: 'Alerts',
+      });
+    }
+
+    const contentPlugins = this.consoleExtensionRegistryService.getComponentsByPlacement('center');
+    for (const p of contentPlugins) {
+      mainMenuItems.push({
+        icon: p.icon || 'gio:puzzle',
+        routerLink: `./extensions/${p.pluginId}`,
+        displayName: p.label || p.pluginId,
+        category: p.label || p.pluginId,
       });
     }
 

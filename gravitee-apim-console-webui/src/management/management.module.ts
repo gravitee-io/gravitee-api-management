@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { GioConfirmDialogModule } from '@gravitee/ui-particles-angular';
 import { RouterModule } from '@angular/router';
 
@@ -23,6 +22,7 @@ import { MessagesModule } from './messages/messages.module';
 import { ManagementComponent } from './management.component';
 import { InstancesModule } from './instances/instances.module';
 import { ManagementRoutingModule } from './management-routing.module';
+import { PluginContentComponent } from './plugin-content/plugin-content.component';
 
 import { TasksModule } from '../user/tasks/tasks.module';
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
@@ -33,14 +33,13 @@ import { TicketsModule } from '../user/support/tickets.module';
 
 @NgModule({
   imports: [
-    CommonModule,
-
     GioPermissionModule,
     GioConfirmDialogModule,
     GioSideNavModule,
     GioTopNavModule,
 
     ManagementRoutingModule,
+    PluginContentComponent,
 
     // For Side nav
     InstancesModule,
@@ -53,5 +52,6 @@ import { TicketsModule } from '../user/support/tickets.module';
   ],
   declarations: [ManagementComponent, ContextualDocComponentComponent],
   exports: [RouterModule],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ManagementModule {}

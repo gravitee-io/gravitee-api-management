@@ -31,6 +31,7 @@ import { ApimFeature } from '../shared/components/gio-license/gio-license-data';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
 import { PermissionGuard } from '../shared/components/gio-permission/gio-permission.guard';
 import { ApiScoringGuard } from '../shared/guards/api-scoring.guard';
+import { PluginContentComponent } from './plugin-content/plugin-content.component';
 
 const managementRoutes: Routes = [
   {
@@ -199,6 +200,15 @@ const managementRoutes: Routes = [
         },
       },
 
+      {
+        matcher: (url) => {
+          if (url.length >= 2 && url[0].path === 'extensions') {
+            return { consumed: url, posParams: { pluginId: url[1] } };
+          }
+          return null;
+        },
+        component: PluginContentComponent,
+      },
       { path: '', pathMatch: 'full', redirectTo: 'home' },
     ],
   },

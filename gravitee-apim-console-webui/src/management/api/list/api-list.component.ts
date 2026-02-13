@@ -16,7 +16,7 @@
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { catchError, debounceTime, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
+import { BehaviorSubject, merge, Observable, of, Subject } from 'rxjs';
 import { castArray, isEqual } from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
@@ -45,6 +45,7 @@ import {
   TcpListener,
 } from '../../../entities/management-api-v2';
 import { CategoryService } from '../../../services-ngx/category.service';
+import { ConsoleExtensionEventsService } from '../../../services-ngx/console-extension-events.service';
 
 export enum FilterType {
   API_TYPE,
@@ -121,6 +122,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
   isLoadingData = true;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private filters$ = new BehaviorSubject<ApiListTableWrapperFilters>(this.filters);
+  private refreshTrigger$ = new Subject<void>();
   private visibilitiesIcons = {
     PUBLIC: 'public',
     PRIVATE: 'lock',
@@ -155,6 +157,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     private readonly tagService: TagService,
     private readonly titleCasePipe: TitleCasePipe,
     private readonly categoryService: CategoryService,
+    private readonly consoleExtensionEventsService: ConsoleExtensionEventsService,
   ) {}
 
   ngOnDestroy(): void {
@@ -206,10 +209,11 @@ export class ApiListComponent implements OnInit, OnDestroy {
       )
       .subscribe();
 
-    this.filters$
+    merge(
+      this.filters$.pipe(debounceTime(100), distinctUntilChanged(isEqual)),
+      this.refreshTrigger$.pipe(map(() => this.filters$.value)),
+    )
       .pipe(
-        debounceTime(100),
-        distinctUntilChanged(isEqual),
         map((filters: ApiListTableWrapperFilters) => {
           let order: string;
           if (filters.sort?.direction) {
@@ -265,6 +269,13 @@ export class ApiListComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+
+    this.consoleExtensionEventsService
+      .on('API')
+      .pipe(debounceTime(500), takeUntil(this.unsubscribe$))
+      .subscribe(() => {
+        this.refreshTrigger$.next();
+      });
   }
 
   onAdditionalFiltersChanged(type: FilterType) {

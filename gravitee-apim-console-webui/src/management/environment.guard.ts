@@ -61,6 +61,11 @@ export const EnvironmentGuard: {
         constants.org.environments = environments;
         constants.org.currentEnv = currentEnvironment;
 
+        (window as any).__GRAVITEE_CONSOLE_CONTEXT__ = {
+          orgId: constants.org.id,
+          envId: currentEnvironment.id,
+        };
+
         return of(currentEnvironment.id);
       }),
       // Load permissions

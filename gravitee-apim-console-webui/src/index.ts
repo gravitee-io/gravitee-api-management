@@ -27,6 +27,7 @@ import { Build, Constants, DefaultPortal } from './entities/Constants';
 import { getFeatureInfoData } from './shared/components/gio-license/gio-license-data';
 import { ConsoleCustomization } from './entities/management-api-v2/consoleCustomization';
 import { environment } from './environments/environment';
+import { loadConsoleExtensions } from './services-ngx/console-extension-loader';
 
 const requestConfig: RequestInit = {
   headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
@@ -35,8 +36,12 @@ const requestConfig: RequestInit = {
 // fix angular-schema-form angular<1.7
 Object.assign(angular, { lowercase: toLower, uppercase: toUpper });
 
-fetchData().then(({ constants, build }) => {
+fetchData().then(async ({ constants, build }) => {
   initComponents();
+
+  // Load console extensions before Angular bootstrap
+  await loadConsoleExtensions(constants.baseURL);
+
   bootstrapApplication(constants);
 
   angular.module('gravitee-management').constant('Build', build);
