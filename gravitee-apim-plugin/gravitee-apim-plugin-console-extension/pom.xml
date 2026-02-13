@@ -21,34 +21,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.apim</groupId>
-        <artifactId>gravitee-apim-parent</artifactId>
+        <groupId>io.gravitee.apim.plugin</groupId>
+        <artifactId>gravitee-apim-plugin</artifactId>
         <version>${revision}${sha1}${changelist}</version>
-        <relativePath>../gravitee-apim-parent/pom.xml</relativePath>
     </parent>
 
-    <groupId>io.gravitee.apim.plugin</groupId>
-    <artifactId>gravitee-apim-plugin</artifactId>
+    <groupId>io.gravitee.apim.plugin.console</groupId>
+    <artifactId>gravitee-apim-plugin-console-extension</artifactId>
     <packaging>pom</packaging>
 
-    <name>Gravitee.io APIM - Plugin</name>
-
-    <dependencies>
-
-        <!-- Tests -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+    <name>Gravitee.io APIM - Plugin - Console</name>
 
     <modules>
-        <module>gravitee-apim-plugin-endpoint</module>
-        <module>gravitee-apim-plugin-entrypoint</module>
-        <module>gravitee-apim-plugin-coverage</module>
-        <module>gravitee-apim-plugin-apiservice</module>
-        <module>gravitee-apim-plugin-reactor</module>
-        <module>gravitee-apim-plugin-console-extension</module>
+        <module>gravitee-apim-plugin-console-extension-handler</module>
     </modules>
 </project>

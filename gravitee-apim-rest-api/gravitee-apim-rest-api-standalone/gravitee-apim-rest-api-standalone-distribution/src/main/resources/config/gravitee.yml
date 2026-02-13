@@ -80,6 +80,11 @@ http:
 #        allow-headers: 'Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token'
 #  Allows to configure the header Access-Control-Expose-Headers
 #        exposed-headers: 'ETag;X-Xsrf-Token'
+#      # MCP (Model Context Protocol) Server
+#      # Exposes the Management API v2 as an MCP server for AI agents and LLM tools.
+#      # Available at ${http.api.entrypoint}management/v2/mcp
+      mcp:
+        enabled: true
 #    portal:
 #      enabled: true
 #      entrypoint: ${http.api.entrypoint}portal

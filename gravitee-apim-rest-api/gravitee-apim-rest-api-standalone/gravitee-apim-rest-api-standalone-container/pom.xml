@@ -127,6 +127,12 @@
             <artifactId>gravitee-resource-storage-api</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>io.gravitee.apim.plugin.console</groupId>
+            <artifactId>gravitee-apim-plugin-console-extension-handler</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- To override Spring commons-logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
