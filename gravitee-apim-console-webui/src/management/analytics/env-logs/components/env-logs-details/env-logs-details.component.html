@@ -1,0 +1,228 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div class="logs-details">
+  @if (log(); as log) {
+    <div class="logs-details__container">
+      <div class="logs-details__header">
+        <a class="back-button" mat-flat-button [routerLink]="['..']" aria-label="Back to logs"
+          ><mat-icon svgIcon="gio:arrow-left"></mat-icon>Back to logs</a
+        >
+        <h1>Log</h1>
+      </div>
+
+      <div class="logs-details__form">
+        <div class="logs-details__content">
+          <h3>Overview</h3>
+
+          <mat-card class="card">
+            <mat-card-content>
+              <div class="card__container">
+                <div class="card__section">
+                  <span class="mat-body-strong">Request</span>
+                  <dl class="card__section__kv">
+                    <env-logs-details-row label="Date">{{ log.timestamp }}</env-logs-details-row>
+                    <env-logs-details-row label="Host">{{ log.host ?? '—' }}</env-logs-details-row>
+                    <env-logs-details-row label="Method">
+                      <div [class]="'gio-method-badge-' + log.method.toLocaleLowerCase()">{{ log.method }}</div>
+                    </env-logs-details-row>
+                    <env-logs-details-row label="URI" dataTestId="overview-uri">{{ log.api ?? '—' }}</env-logs-details-row>
+                    <env-logs-details-row label="Request ID">{{ log.requestId ?? '—' }}</env-logs-details-row>
+                    <env-logs-details-row label="Transaction ID">{{ log.transactionId ?? '—' }}</env-logs-details-row>
+                    <env-logs-details-row label="Remote IP">{{ log.remoteAddress ?? '—' }}</env-logs-details-row>
+                  </dl>
+                </div>
+
+                <div class="card__section">
+                  <span class="mat-body-strong">Response</span>
+                  <dl class="card__section__kv">
+                    <env-logs-details-row label="Status">
+                      <span
+                        [class.gio-badge-success]="log.status < 400"
+                        [class.gio-badge-warning]="log.status >= 400 && log.status <= 499"
+                        [class.gio-badge-error]="log.status >= 500 || log.status === 0"
+                        >{{ log.status }}</span
+                      >
+                    </env-logs-details-row>
+                    <env-logs-details-row label="Global response time">{{ log.gatewayResponseTime ?? '—' }}</env-logs-details-row>
+                    <env-logs-details-row label="API response time">{{ log.endpointResponseTime ?? '—' }}</env-logs-details-row>
+                    <env-logs-details-row label="Latency">{{ log.gatewayLatency ?? '—' }}</env-logs-details-row>
+                    <env-logs-details-row label="Content-length">{{ log.responseContentLength ?? '—' }}</env-logs-details-row>
+                  </dl>
+                </div>
+              </div>
+
+              <mat-expansion-panel class="mat-elevation-z0 more-details">
+                <mat-expansion-panel-header>
+                  <mat-panel-title> More details </mat-panel-title>
+                </mat-expansion-panel-header>
+                <dl class="card__section__kv">
+                  <env-logs-details-row label="Application">{{ log.application ?? '—' }}</env-logs-details-row>
+                  <env-logs-details-row label="Plan">{{ log.plan?.name ?? '—' }}</env-logs-details-row>
+                  <env-logs-details-row label="Endpoint">{{ log.endpoint ?? '—' }}</env-logs-details-row>
+                </dl>
+              </mat-expansion-panel>
+            </mat-card-content>
+          </mat-card>
+
+          <h3>Headers</h3>
+
+          <mat-card class="card">
+            <mat-card-content>
+              <h5>Request</h5>
+              <div class="card__container">
+                <div class="card__section">
+                  <span class="mat-body-strong">Consumer</span>
+                  <dl class="card__section__kv">
+                    <env-logs-details-row label="Method">
+                      @if (log.entrypointRequest?.method; as method) {
+                        <div [class]="'gio-method-badge-' + method.toLocaleLowerCase()">{{ method }}</div>
+                      } @else {
+                        —
+                      }
+                    </env-logs-details-row>
+                    <env-logs-details-row label="URI">{{ log.entrypointRequest?.uri ?? '—' }}</env-logs-details-row>
+                  </dl>
+                  <div class="mat-body card__section__label">Headers</div>
+                  <dl class="card__section__kv card__section__kv--flush">
+                    @for (header of requestHeaders(); track header.key) {
+                      <env-logs-details-row [label]="header.key">{{ header.value }}</env-logs-details-row>
+                    }
+                  </dl>
+                </div>
+
+                <div class="card__section">
+                  <span class="mat-body-strong">Gateway</span>
+                  <dl class="card__section__kv">
+                    <env-logs-details-row label="Method">
+                      @if (log.endpointRequest?.method; as method) {
+                        <div [class]="'gio-method-badge-' + method.toLocaleLowerCase()">{{ method }}</div>
+                      } @else {
+                        —
+                      }
+                    </env-logs-details-row>
+                    <env-logs-details-row label="URI">{{ log.endpointRequest?.uri ?? '—' }}</env-logs-details-row>
+                  </dl>
+                  <div class="mat-body card__section__label">Headers</div>
+                  <dl class="card__section__kv card__section__kv--flush">
+                    @for (header of gatewayRequestHeaders(); track header.key) {
+                      <env-logs-details-row [label]="header.key">{{ header.value }}</env-logs-details-row>
+                    }
+                  </dl>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="card">
+            <mat-card-content>
+              <h5>Response</h5>
+              <div class="card__container">
+                <div class="card__section">
+                  <span class="mat-body-strong">Response</span>
+                  <dl class="card__section__kv">
+                    <env-logs-details-row label="Status">
+                      @if (log.entrypointResponse?.status !== undefined) {
+                        <span
+                          [class.gio-badge-success]="log.entrypointResponse!.status < 400"
+                          [class.gio-badge-warning]="log.entrypointResponse!.status >= 400 && log.entrypointResponse!.status <= 499"
+                          [class.gio-badge-error]="log.entrypointResponse!.status >= 500 || log.entrypointResponse!.status === 0"
+                          >{{ log.entrypointResponse!.status }}</span
+                        >
+                      } @else {
+                        —
+                      }
+                    </env-logs-details-row>
+                  </dl>
+                  <div class="mat-body card__section__label">Headers</div>
+                  <dl class="card__section__kv card__section__kv--flush">
+                    @for (header of responseHeaders(); track header.key) {
+                      <env-logs-details-row [label]="header.key">{{ header.value }}</env-logs-details-row>
+                    }
+                  </dl>
+
+                  <!-- Body for Consumer -->
+                  <div class="payload">
+                    <div class="mat-body card__section__label">Body</div>
+                    @if (responseBody()) {
+                      <div gioMonacoClipboardCopy class="editor">
+                        <gio-monaco-editor
+                          disabled
+                          [options]="monacoEditorOptions"
+                          [singleLineMode]="false"
+                          [ngModel]="responseBody()"
+                          [disableMiniMap]="true"
+                        ></gio-monaco-editor>
+                      </div>
+                    } @else {
+                      <p class="payload__empty">No response body captured.</p>
+                    }
+                  </div>
+                </div>
+
+                <div class="card__section">
+                  <span class="mat-body-strong">Gateway</span>
+                  <dl class="card__section__kv">
+                    <env-logs-details-row label="Status">
+                      @if (log.endpointResponse?.status !== undefined) {
+                        <span
+                          [class.gio-badge-success]="log.endpointResponse!.status < 400"
+                          [class.gio-badge-warning]="log.endpointResponse!.status >= 400 && log.endpointResponse!.status <= 499"
+                          [class.gio-badge-error]="log.endpointResponse!.status >= 500 || log.endpointResponse!.status === 0"
+                          >{{ log.endpointResponse!.status }}</span
+                        >
+                      } @else {
+                        —
+                      }
+                    </env-logs-details-row>
+                  </dl>
+                  <div class="mat-body card__section__label">Headers</div>
+                  <dl class="card__section__kv card__section__kv--flush">
+                    @for (header of gatewayResponseHeaders(); track header.key) {
+                      <env-logs-details-row [label]="header.key">{{ header.value }}</env-logs-details-row>
+                    }
+                  </dl>
+
+                  <!-- Body for Gateway -->
+                  <div class="payload">
+                    <div class="mat-body card__section__label">Body</div>
+                    @if (gatewayResponseBody()) {
+                      <div gioMonacoClipboardCopy class="editor">
+                        <gio-monaco-editor
+                          disabled
+                          [options]="monacoEditorOptions"
+                          [singleLineMode]="false"
+                          [ngModel]="gatewayResponseBody()"
+                          [disableMiniMap]="true"
+                        ></gio-monaco-editor>
+                      </div>
+                    } @else {
+                      <p class="payload__empty">No response body captured.</p>
+                    }
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <gio-banner-info> Log not found. </gio-banner-info>
+  }
+</div>

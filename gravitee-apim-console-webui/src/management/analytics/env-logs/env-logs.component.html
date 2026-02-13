@@ -17,13 +17,7 @@
 -->
 
 <div class="env-runtime-logs-v4">
-  <div class="env-runtime-logs-v4__header">
-    <h1>Logs</h1>
-    <span class="env-runtime-logs-v4__header__link">
-      <a routerLink="../logs">Switch to Classic view<mat-icon svgIcon="gio:data-transfer-both"></mat-icon></a>
-    </span>
-  </div>
-
+  <h1>Logs</h1>
   <gio-banner-info class="banner-warning">
     <div class="banner-warning__content">
       Currently, only HTTP Proxy is supported.
@@ -37,7 +31,7 @@
 
     <!-- Table Section -->
     <env-logs-table
-      class="env-runtime-logs-v4__table"
+      class="env-runtime-logs__table"
       [logs]="logs()"
       [pagination]="pagination()"
       (paginationUpdated)="onPaginationUpdated($event)"

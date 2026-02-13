@@ -19,7 +19,7 @@ import { MatTableHarness } from '@angular/material/table/testing';
 export class EnvLogsTableHarness extends ComponentHarness {
   static hostSelector = 'env-logs-table';
 
-  private getTable = this.locatorFor(MatTableHarness);
+  private readonly getTable = this.locatorFor(MatTableHarness);
 
   public async getRows() {
     const table = await this.getTable();
@@ -44,7 +44,7 @@ export class EnvLogsTableHarness extends ComponentHarness {
   }
 
   public async getTimestampLink(rowIndex: number) {
-    const selector = `tbody tr:nth-of-type(${rowIndex + 1}) button.log-timestamp-link`;
+    const selector = `tbody tr:nth-of-type(${rowIndex + 1}) a.log-timestamp-link`;
     return this.locatorForOptional(selector)();
   }
 }
