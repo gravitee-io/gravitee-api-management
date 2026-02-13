@@ -1,0 +1,102 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+:host {
+  display: block;
+}
+
+.quick-filters {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 24px 0;
+
+  &__row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  &__selectors {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+  }
+
+  &__period,
+  &__entrypoints,
+  &__plans {
+    width: 132px;
+  }
+
+  &__methods {
+    min-width: 150px;
+  }
+
+  &__buttons {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .action {
+    &__button {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 48px;
+    }
+  }
+
+  &__applied {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 16px 0 0;
+  }
+
+  &__applied-label {
+    align-self: center;
+  }
+
+  &__chip_list {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  &__chip {
+    background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker10);
+    color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker10-contrast);
+    min-height: 24px;
+    height: 24px;
+    padding: 0;
+    align-self: center;
+
+    &__key {
+      @include mat.m2-typography-level($typography, body-2);
+    }
+
+    &__value {
+      @include mat.m2-typography-level($typography, subtitle-2);
+      margin-left: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
+    }
+  }
+
+  &__reset {
+    margin-left: 12px;
+  }
+
+  &__no-filters {
+    color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker20);
+  }
+}
