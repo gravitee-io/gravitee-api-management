@@ -24,8 +24,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
+import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
-import io.gravitee.apim.core.portal_page.exception.EmptyPortalPageContentException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -44,7 +45,8 @@ class UpdatePortalPageContentUseCaseTest {
     void setUp() {
         PortalPageContentQueryServiceInMemory queryService = new PortalPageContentQueryServiceInMemory();
         PortalPageContentCrudServiceInMemory crudService = new PortalPageContentCrudServiceInMemory();
-        PortalPageContentValidatorService validatorService = new PortalPageContentValidatorService();
+        GraviteeMarkdownValidator gmdValidator = new GraviteeMarkdownValidator();
+        PortalPageContentValidatorService validatorService = new PortalPageContentValidatorService(gmdValidator);
         useCase = new UpdatePortalPageContentUseCase(queryService, validatorService, crudService);
 
         queryService.initWith(PortalPageContentFixtures.samplePortalPageContents());
@@ -136,7 +138,7 @@ class UpdatePortalPageContentUseCaseTest {
 
         // When & Then
         assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(EmptyPortalPageContentException.class)
+            .isInstanceOf(GraviteeMarkdownContentEmptyException.class)
             .hasMessage("Content must not be null or empty");
     }
 }

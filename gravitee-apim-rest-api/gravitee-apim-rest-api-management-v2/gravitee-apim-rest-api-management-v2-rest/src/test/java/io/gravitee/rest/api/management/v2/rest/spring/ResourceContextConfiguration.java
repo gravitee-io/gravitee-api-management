@@ -101,6 +101,7 @@ import io.gravitee.apim.core.documentation.domain_service.DocumentationValidatio
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
@@ -1046,7 +1047,7 @@ public class ResourceContextConfiguration {
     ) {
         return new UpdatePortalPageContentUseCase(
             portalPageContentQueryService,
-            new PortalPageContentValidatorService(),
+            new PortalPageContentValidatorService(new GraviteeMarkdownValidator()),
             portalPageContentCrudService
         );
     }
