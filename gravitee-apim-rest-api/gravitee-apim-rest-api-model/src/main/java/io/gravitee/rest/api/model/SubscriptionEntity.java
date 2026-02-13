@@ -39,6 +39,10 @@ public class SubscriptionEntity {
 
     private String id;
 
+    /**
+     * @deprecated since 4.11.0. Use {@link #referenceId} and {@link #referenceType} instead.
+     */
+    @Deprecated(since = "4.11.0", forRemoval = true)
     private String api;
 
     private String environmentId;
@@ -116,6 +120,16 @@ public class SubscriptionEntity {
     private Map<String, String> metadata;
 
     private String failureCause;
+
+    /**
+     * Reference id (API id or API Product id). When set, takes precedence over {@link #api} for subscription context.
+     */
+    private String referenceId;
+
+    /**
+     * Reference type: "API" or "API_PRODUCT". Defaults to API when null.
+     */
+    private String referenceType;
 
     @Override
     public boolean equals(Object o) {

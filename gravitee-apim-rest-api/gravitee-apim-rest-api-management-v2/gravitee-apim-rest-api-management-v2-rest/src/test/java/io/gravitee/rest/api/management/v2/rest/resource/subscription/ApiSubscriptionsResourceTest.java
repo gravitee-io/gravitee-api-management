@@ -125,7 +125,8 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             when(subscriptionService.create(any(ExecutionContext.class), any(), isNull(), eq("subscription-id"))).thenReturn(
                 io.gravitee.rest.api.model.SubscriptionEntity.builder()
                     .id(SUBSCRIPTION_ID)
-                    .api(API_ID)
+                    .referenceId(API_ID)
+                    .referenceType("API")
                     .plan(PLAN_ID)
                     .application(APPLICATION_ID)
                     .build()
@@ -176,7 +177,8 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(
                 io.gravitee.rest.api.model.SubscriptionEntity.builder()
                     .id(SUBSCRIPTION_ID)
-                    .api(API_ID)
+                    .referenceId(API_ID)
+                    .referenceType("API")
                     .plan(PLAN_ID)
                     .application(APPLICATION_ID)
                     .status(SubscriptionStatus.ACCEPTED)
@@ -214,7 +216,8 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             when(subscriptionService.create(any(ExecutionContext.class), any(), isNull(), eq("subscription-id"))).thenReturn(
                 io.gravitee.rest.api.model.SubscriptionEntity.builder()
                     .id(SUBSCRIPTION_ID)
-                    .api(API_ID)
+                    .referenceId(API_ID)
+                    .referenceType("API")
                     .plan(PLAN_ID)
                     .application(APPLICATION_ID)
                     .build()

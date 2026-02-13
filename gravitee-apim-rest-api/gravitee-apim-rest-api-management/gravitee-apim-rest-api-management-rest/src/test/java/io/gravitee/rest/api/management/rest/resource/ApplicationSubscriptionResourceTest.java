@@ -62,6 +62,8 @@ public class ApplicationSubscriptionResourceTest extends AbstractResourceTest {
         fakeSubscriptionEntity = new SubscriptionEntity();
         fakeSubscriptionEntity.setId(SUBSCRIPTION_ID);
         fakeSubscriptionEntity.setApi(API_ID);
+        fakeSubscriptionEntity.setReferenceId(API_ID);
+        fakeSubscriptionEntity.setReferenceType("API");
         fakeSubscriptionEntity.setPlan(PLAN_ID);
         fakeSubscriptionEntity.setApplication(APPLICATION_ID);
 

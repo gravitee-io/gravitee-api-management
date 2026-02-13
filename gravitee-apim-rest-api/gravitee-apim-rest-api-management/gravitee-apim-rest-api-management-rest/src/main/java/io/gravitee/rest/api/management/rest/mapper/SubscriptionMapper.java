@@ -73,6 +73,8 @@ public class SubscriptionMapper {
 
         subscription.setPlan(convertPlan(plan));
         subscription.setApplication(convertApplication(application));
+        subscription.setReferenceId(subscriptionEntity.getReferenceId());
+        subscription.setReferenceType(subscriptionEntity.getReferenceType().name());
 
         return subscription;
     }

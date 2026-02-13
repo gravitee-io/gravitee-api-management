@@ -70,7 +70,8 @@ public class ApiSubscriptionsResource_ReactivateApiKeyTest extends AbstractApiSu
         final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
             .toBuilder()
             .id(SUBSCRIPTION)
-            .api("ANOTHER-API")
+            .referenceId("ANOTHER-API")
+            .referenceType("API")
             .build();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
@@ -85,7 +86,9 @@ public class ApiSubscriptionsResource_ReactivateApiKeyTest extends AbstractApiSu
 
     @Test
     public void should_return_404_if_api_key_not_found() {
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(SubscriptionFixtures.aSubscriptionEntity());
+        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(
+            SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).referenceId(API).referenceType("API").build()
+        );
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION)).thenReturn(
             ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).build()
         );
@@ -107,7 +110,9 @@ public class ApiSubscriptionsResource_ReactivateApiKeyTest extends AbstractApiSu
             .subscriptions(Set.of(SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("ANOTHER-SUBSCRIPTION").build()))
             .build();
 
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(SubscriptionFixtures.aSubscriptionEntity());
+        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(
+            SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).referenceId(API).referenceType("API").build()
+        );
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION)).thenReturn(
             ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).build()
         );
@@ -136,7 +141,9 @@ public class ApiSubscriptionsResource_ReactivateApiKeyTest extends AbstractApiSu
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(SubscriptionFixtures.aSubscriptionEntity());
+        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(
+            SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).referenceId(API).referenceType("API").build()
+        );
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION)).thenReturn(
             ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).apiKeyMode(ApiKeyMode.SHARED).build()
         );
@@ -179,7 +186,9 @@ public class ApiSubscriptionsResource_ReactivateApiKeyTest extends AbstractApiSu
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(SubscriptionFixtures.aSubscriptionEntity());
+        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(
+            SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).referenceId(API).referenceType("API").build()
+        );
         when(applicationService.findById(executionContext, APPLICATION)).thenReturn(
             ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).build()
         );

@@ -16,14 +16,11 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.model.subscription.SubscribedReference;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -41,7 +38,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -64,51 +60,21 @@ public class ApplicationSubscribedResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "List APIs subscribed by the application",
+        summary = "List APIs and API Products subscribed by the application",
         description = "User must have the APPLICATION_SUBSCRIPTION permission to use this service"
     )
     @ApiResponse(
         responseCode = "200",
-        description = "Paged result of subscribed APIs",
+        description = "List of subscribed APIs and API Products (id and name)",
         content = @Content(
             mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = ApplicationEntity.class))
+            array = @ArraySchema(schema = @Schema(implementation = SubscribedReference.class))
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ) })
-    public Collection<SubscribedApi> getApiSubscribed() {
-        SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
-        subscriptionQuery.setApplication(application);
-
+    public Collection<SubscribedReference> getSubscribedApisAndProducts() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, subscriptionQuery);
-        return subscriptions
-            .stream()
-            .map(SubscriptionEntity::getApi)
-            .distinct()
-            .map(api -> apiSearchService.findGenericById(executionContext, api, false, false, false))
-            .map(apiEntity -> new SubscribedApi(apiEntity.getId(), apiEntity.getName()))
-            .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
-            .collect(Collectors.toList());
-    }
-
-    private static class SubscribedApi {
-
-        private final String id;
-        private final String name;
-
-        SubscribedApi(String id, String name) {
-            this.id = id;
-            this.name = name;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public String getName() {
-            return name;
-        }
+        return subscriptionService.getSubscribedReferences(executionContext, application);
     }
 }
