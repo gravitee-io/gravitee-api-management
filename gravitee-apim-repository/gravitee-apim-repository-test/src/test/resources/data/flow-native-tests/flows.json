@@ -9,7 +9,7 @@
     "order": 1,
     "enabled": true,
     "tags": [ "tag-1", "tag-2" ],
-    "connect": [
+    "entrypointConnect": [
       {
         "name": "Debug Log",
         "description": "Debug log",
@@ -17,7 +17,7 @@
         "condition": "{#request.headers != null}",
         "messageCondition": "{#message.content != null}",
         "policy": "debug-log",
-        "configuration": "{\n          \"rootElement\": \"root\",\n          \"scope\": \"CONNECT\"\n        }",
+        "configuration": "{\n          \"rootElement\": \"root\",\n          \"scope\": \"ENTRYPOINT_CONNECT\"\n        }",
         "order": 1
       }
     ],
@@ -76,7 +76,7 @@
     "updatedAt": 1456790400000,
     "order": 3,
     "enabled": true,
-    "connect": [
+    "entrypointConnect": [
       {
         "name": "Debug Log",
         "description": "Debug log",
@@ -84,7 +84,7 @@
         "condition": "{#request.headers != null}",
         "messageCondition": "{#message.content != null}",
         "policy": "debug-log",
-        "configuration": "{\n          \"rootElement\": \"root\",\n          \"scope\": \"CONNECT\"\n        }",
+        "configuration": "{\n          \"rootElement\": \"root\",\n          \"scope\": \"ENTRYPOINT_CONNECT\"\n        }",
         "order": 1
       }
     ],

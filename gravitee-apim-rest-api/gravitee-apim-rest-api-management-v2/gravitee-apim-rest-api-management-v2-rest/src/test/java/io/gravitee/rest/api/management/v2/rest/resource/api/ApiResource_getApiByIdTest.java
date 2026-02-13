@@ -350,7 +350,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(flow.getTags());
         assertEquals(2, flow.getTags().size());
         assertEquals(Set.of("tag1", "tag2"), flow.getTags());
-        assertNotNull(flow.getConnect());
+        assertNotNull(flow.getEntrypointConnect());
         assertNotNull(flow.getInteract());
         assertNotNull(flow.getPublish());
         assertNotNull(flow.getSubscribe());
@@ -362,9 +362,9 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(flow.getSelectors());
         assertTrue(flow.getSelectors().isEmpty());
 
-        assertEquals(1, flow.getConnect().size());
+        assertEquals(1, flow.getEntrypointConnect().size());
 
-        var step = flow.getConnect().get(0);
+        var step = flow.getEntrypointConnect().get(0);
         assertNotNull(step);
         assertEquals(Boolean.TRUE, step.getEnabled());
         assertEquals("my-policy", step.getPolicy());
@@ -679,7 +679,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         step.setPolicy("my-policy");
         step.setCondition("my-condition");
         flow.setInteract(List.of(step));
-        flow.setConnect(List.of(step));
+        flow.setEntrypointConnect(List.of(step));
         flow.setPublish(List.of(step));
         flow.setSubscribe(List.of(step));
         flow.setTags(Set.of("tag1", "tag2"));

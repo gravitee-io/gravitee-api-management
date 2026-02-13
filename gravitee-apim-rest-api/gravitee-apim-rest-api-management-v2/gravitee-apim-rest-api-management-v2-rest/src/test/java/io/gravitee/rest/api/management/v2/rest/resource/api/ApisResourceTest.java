@@ -607,7 +607,7 @@ class ApisResourceTest extends AbstractResourceTest {
                             .name("flowName")
                             .enabled(true)
                             .tags(Set.of("tag1"))
-                            .connect(List.of(new StepV4().enabled(true).policy("my-policy").condition("my-condition")))
+                            .entrypointConnect(List.of(new StepV4().enabled(true).policy("my-policy").condition("my-condition")))
                     )
                 )
                 .name("my api")

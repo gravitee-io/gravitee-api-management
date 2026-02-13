@@ -141,7 +141,7 @@ public class FlowFixtures {
                         .build()
                 )
             )
-            .connect(
+            .entrypointConnect(
                 List.of(
                     Step.builder()
                         .name("my-step-name-2")
