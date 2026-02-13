@@ -15,12 +15,13 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContainer;
 import jakarta.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-public final class GraviteeMarkdownPageContent extends PortalPageContent {
+public final class GraviteeMarkdownPageContent extends PortalPageContent implements GraviteeMarkdownContainer {
 
     private static final PortalPageContentType TYPE = PortalPageContentType.GRAVITEE_MARKDOWN;
 
@@ -53,6 +54,11 @@ public final class GraviteeMarkdownPageContent extends PortalPageContent {
     @Override
     public void update(@Nonnull UpdatePortalPageContent updateGraviteeMarkdownPageContent) {
         this.content = updateGraviteeMarkdownPageContent.getContent();
+    }
+
+    @Override
+    public String getGmdContent() {
+        return content;
     }
 
     @Override

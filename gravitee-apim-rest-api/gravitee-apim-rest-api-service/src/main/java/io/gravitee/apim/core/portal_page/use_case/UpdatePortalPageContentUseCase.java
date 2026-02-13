@@ -48,7 +48,7 @@ public class UpdatePortalPageContentUseCase {
             throw new PageContentNotFoundException(input.portalPageContentId());
         }
 
-        portalPageContentValidatorService.validateForUpdate(input.updatePortalPageContent());
+        portalPageContentValidatorService.validateForUpdate(existingContent, input.updatePortalPageContent());
 
         existingContent.update(input.updatePortalPageContent());
 
