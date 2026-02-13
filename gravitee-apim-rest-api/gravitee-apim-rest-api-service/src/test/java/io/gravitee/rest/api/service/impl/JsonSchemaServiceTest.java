@@ -60,21 +60,58 @@ public class JsonSchemaServiceTest {
     @Test
     public void shouldAcceptValidJsonConfigurationWithDependencies() throws IOException {
         String schema = Files.readString(Path.of("src/test/resources/io/gravitee/rest/api/management/service/http-connector.json"));
-        String configuration =
-            "{\n" +
-            "  \"ssl\": {\n" +
-            "    \"trustStore\": {\n" +
-            "      \"type\": \"PEM\",\n" +
-            "      \"path\": \"...\"\n" +
-            "     }\n" +
-            "  },\n" +
-            "  \"http\": {\n" +
-            "    \"readTimeout\": 7777\n" +
-            "  }\n" +
-            "}";
+        String configuration = """
+            {
+              "ssl": {
+                "trustStore": {
+                  "type": "PEM",
+                  "path": "..."
+                 }
+              },
+              "http": {
+                "readTimeout": 7777
+              }
+            }""";
         String validate = jsonSchemaService.validate(schema, configuration);
         assertThat(validate).isEqualTo(
-            "{\"http\":{\"keepAliveTimeout\":30000,\"readTimeout\":7777,\"idleTimeout\":60000,\"connectTimeout\":5000,\"maxConcurrentConnections\":100},\"ssl\":{\"trustStore\":{\"path\":\"...\",\"type\":\"PEM\"},\"hostnameVerifier\":false,\"trustAll\":false}}"
+            """
+            {"http":{"keepAliveTimeout":30000,"readTimeout":7777,"idleTimeout":60000,"connectTimeout":5000,"maxConcurrentConnections":100},"ssl":{"trustStore":{"path":"...","type":"PEM"},"hostnameVerifier":false,"trustAll":false}}"""
+        );
+    }
+
+    @Test
+    public void shouldReconcileDefaultValuesWithGioExternalDefinitions() {
+        String schema = """
+            {
+              "type": "object",
+              "gioExternalDefinitions": {
+                "def1": {
+                  "type": "object",
+                  "properties": {
+                    "field1": {
+                      "type": "string"
+                    },
+                    "field2": {
+                      "type": "string",
+                      "default": "default2"
+                    }
+                  },
+                  "required": ["field1", "field2"]
+                }
+              },
+              "properties": {
+                "obj": {
+                  "$ref": "#/gioExternalDefinitions/def1"
+                }
+              }
+            }""";
+        String configuration = "{\"obj\": {\"field1\": \"value1\"}}";
+
+        String result = jsonSchemaService.validate(schema, configuration);
+
+        assertThat(result).isEqualTo(
+            """
+            {"obj":{"field1":"value1","field2":"default2"}}"""
         );
     }
 }
