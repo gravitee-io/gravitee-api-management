@@ -1,3 +1,4 @@
+@use 'sass:map';
 @use '../node_modules/@gravitee/ui-particles-angular' as gio;
 
 @use '../node_modules/angular-gridster/dist/angular-gridster.css';
@@ -57,6 +58,30 @@
 }
 
 @include gio.import-fonts();
+
+:root {
+  /* Typography — available inside Shadow DOM via CSS custom properties */
+  --gio-font-heading: #{map.get(gio.$mat-typography, font-family)};
+  --gio-font-body: #{map.get(map.get(gio.$mat-typography, body-1), font-family)};
+  --gio-font-mono: 'Fira Mono', monospace;
+
+  /* Colors — from gio-mat-palettes */
+  --gio-color-primary: #{map.get(gio.$mat-primary-palette, default)};
+  --gio-color-accent: #{map.get(gio.$mat-accent-palette, default)};
+  --gio-color-success: #{map.get(gio.$mat-success-palette, default)};
+  --gio-color-error: #{map.get(gio.$mat-error-palette, default)};
+  --gio-color-warning: #{map.get(gio.$mat-warning-palette, default)};
+
+  /* Text — from mat-space / mat-smoke palettes */
+  --gio-color-text: #{map.get(gio.$mat-space-palette, default)};
+  --gio-color-text-secondary: #{map.get(gio.$mat-smoke-palette, darker40)};
+  --gio-color-text-hint: #{map.get(gio.$mat-smoke-palette, darker20)};
+
+  /* Surfaces & borders — from mat-dove / mat-smoke palettes */
+  --gio-color-surface: #{map.get(gio.$mat-smoke-palette, lighter80)};
+  --gio-color-background: #{map.get(gio.$mat-dove-palette, default)};
+  --gio-color-border: #{map.get(gio.$mat-smoke-palette, lighter40)};
+}
 
 body {
   font-family: 'Kanit', 'Roboto', 'Helvetica Neue', sans-serif;
