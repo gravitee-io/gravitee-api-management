@@ -1362,9 +1362,9 @@ components:
           description: Publish flow steps used for MESSAGE and NATIVE APIs
           items:
             $ref: "#/components/schemas/StepV4"
-        connect:
+        entrypointConnect:
           type: array
-          description: Connect flow steps used for NATIVE APIs
+          description: Entrypoint Connect flow steps used for NATIVE APIs
           items:
             $ref: "#/components/schemas/StepV4"
         interact:
