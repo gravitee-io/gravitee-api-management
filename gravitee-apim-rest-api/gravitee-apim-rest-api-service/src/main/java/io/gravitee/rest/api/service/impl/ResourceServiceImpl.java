@@ -49,12 +49,18 @@ public class ResourceServiceImpl extends AbstractPluginService<ResourcePlugin<?>
 
     @Override
     public void validateResourceConfiguration(Resource resource) {
-        validateConfiguration(resource.getType(), resource.getConfiguration());
+        if (resource != null) {
+            String validatedConfiguration = validateConfiguration(resource.getType(), resource.getConfiguration());
+            resource.setConfiguration(validatedConfiguration);
+        }
     }
 
     @Override
     public void validateResourceConfiguration(io.gravitee.definition.model.v4.resource.Resource resource) {
-        validateConfiguration(resource.getType(), resource.getConfiguration());
+        if (resource != null) {
+            String validatedConfiguration = validateConfiguration(resource.getType(), resource.getConfiguration());
+            resource.setConfiguration(validatedConfiguration);
+        }
     }
 
     @Override
