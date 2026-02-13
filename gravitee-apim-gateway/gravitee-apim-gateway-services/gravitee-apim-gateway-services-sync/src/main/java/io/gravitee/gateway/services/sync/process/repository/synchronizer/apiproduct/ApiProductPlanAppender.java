@@ -61,11 +61,6 @@ public class ApiProductPlanAppender {
         if (apiProductIds.isEmpty()) {
             return deployables;
         }
-        if (environments == null || environments.isEmpty()) {
-            log.warn("No environments provided for API Product plan fetch; plans will be empty");
-            clearPlans(deployables);
-            return deployables;
-        }
         try {
             var plansByApiProduct = planRepository
                 .findByReferenceIdsAndReferenceTypeAndEnvironment(apiProductIds, Plan.PlanReferenceType.API_PRODUCT, environments)
@@ -76,21 +71,25 @@ public class ApiProductPlanAppender {
                     continue;
                 }
                 List<Plan> plans = plansByApiProduct.getOrDefault(deployable.apiProductId(), Collections.emptyList());
-                deployable.subscribablePlans(plans.stream().map(Plan::getId).collect(Collectors.toSet()));
-                deployable.definitionPlans(
-                    plans
-                        .stream()
-                        .filter(p -> p.getStatus() == Plan.Status.PUBLISHED || p.getStatus() == Plan.Status.DEPRECATED)
-                        .map(PlanMapper::toDefinition)
-                        .filter(Objects::nonNull)
-                        .toList()
-                );
+                applyPlansToDeployable(deployable, plans);
             }
         } catch (TechnicalException e) {
             log.error("Failed to bulk-fetch plans for API Products [{}]", apiProductIds, e);
             clearPlans(deployables);
         }
         return deployables;
+    }
+
+    private void applyPlansToDeployable(ApiProductReactorDeployable deployable, List<Plan> plans) {
+        Set<String> planIds = plans.stream().map(Plan::getId).collect(Collectors.toSet());
+        List<io.gravitee.definition.model.v4.plan.Plan> definitionPlans = plans
+            .stream()
+            .filter(p -> p.getStatus() == Plan.Status.PUBLISHED || p.getStatus() == Plan.Status.DEPRECATED)
+            .map(PlanMapper::toDefinition)
+            .filter(Objects::nonNull)
+            .toList();
+        deployable.subscribablePlans(planIds);
+        deployable.definitionPlans(definitionPlans);
     }
 
     private void clearPlans(List<ApiProductReactorDeployable> deployables) {

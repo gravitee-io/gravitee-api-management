@@ -84,11 +84,19 @@ class ApiProductPlanAppenderTest {
         }
 
         @Test
-        void should_return_deployables_unchanged_when_environment_empty() {
+        void should_return_deployables_with_empty_plans_when_environment_empty() throws TechnicalException {
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
                 .apiProductId(API_PRODUCT_ID)
                 .syncAction(DEPLOY)
                 .build();
+
+            when(
+                planRepository.findByReferenceIdsAndReferenceTypeAndEnvironment(
+                    List.of(API_PRODUCT_ID),
+                    Plan.PlanReferenceType.API_PRODUCT,
+                    Set.of()
+                )
+            ).thenReturn(List.of());
 
             List<ApiProductReactorDeployable> result = cut.appends(List.of(deployable), Set.of());
 
@@ -98,11 +106,19 @@ class ApiProductPlanAppenderTest {
         }
 
         @Test
-        void should_return_deployables_unchanged_when_environment_null() {
+        void should_return_deployables_with_empty_plans_when_environment_null() throws TechnicalException {
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
                 .apiProductId(API_PRODUCT_ID)
                 .syncAction(DEPLOY)
                 .build();
+
+            when(
+                planRepository.findByReferenceIdsAndReferenceTypeAndEnvironment(
+                    List.of(API_PRODUCT_ID),
+                    Plan.PlanReferenceType.API_PRODUCT,
+                    null
+                )
+            ).thenReturn(List.of());
 
             List<ApiProductReactorDeployable> result = cut.appends(List.of(deployable), null);
 
@@ -164,6 +180,30 @@ class ApiProductPlanAppenderTest {
             assertThat(deployable.subscribablePlans()).containsExactlyInAnyOrder("plan-published", "plan-staging", "plan-closed");
             assertThat(deployable.definitionPlans()).hasSize(1);
             assertThat(deployable.definitionPlans().get(0).getId()).isEqualTo("plan-published");
+        }
+
+        @Test
+        void should_populate_plans_when_environment_empty_repository_returns_plans() throws TechnicalException {
+            ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
+                .apiProductId(API_PRODUCT_ID)
+                .syncAction(DEPLOY)
+                .build();
+
+            Plan plan1 = createPlan("plan-1", API_PRODUCT_ID, Plan.Status.PUBLISHED);
+
+            when(
+                planRepository.findByReferenceIdsAndReferenceTypeAndEnvironment(
+                    List.of(API_PRODUCT_ID),
+                    Plan.PlanReferenceType.API_PRODUCT,
+                    Set.of()
+                )
+            ).thenReturn(List.of(plan1));
+
+            List<ApiProductReactorDeployable> result = cut.appends(List.of(deployable), Set.of());
+
+            assertThat(result).hasSize(1);
+            assertThat(deployable.subscribablePlans()).containsExactly("plan-1");
+            assertThat(deployable.definitionPlans()).hasSize(1);
         }
 
         @Test
