@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.exception;
+package io.gravitee.apim.core.gravitee_markdown.exception;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
 
-public class EmptyPortalPageContentException extends ValidationDomainException {
+/**
+ * Exception thrown when Gravitee Markdown (GMD) content is null, empty, or contains only whitespace.
+ *
+ * @author Gravitee.io Team
+ */
+public class GraviteeMarkdownContentEmptyException extends ValidationDomainException {
 
-    public EmptyPortalPageContentException() {
+    public GraviteeMarkdownContentEmptyException() {
         super("Content must not be null or empty");
     }
 }
