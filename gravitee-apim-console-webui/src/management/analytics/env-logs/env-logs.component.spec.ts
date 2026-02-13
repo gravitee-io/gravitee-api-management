@@ -23,6 +23,7 @@ import { GioBannerModule } from '@gravitee/ui-particles-angular';
 
 import { EnvLogsComponent } from './env-logs.component';
 import { EnvLogsTableHarness } from './components/env-logs-table/env-logs-table.harness';
+import { EnvLogsFilterBarHarness } from './components/env-logs-filter-bar/env-logs-filter-bar.harness';
 
 import { GioTestingModule } from '../../../shared/testing';
 
@@ -58,10 +59,9 @@ describe('EnvLogsComponent', () => {
     expect(banner).toBeTruthy();
   });
 
-  it('should display filters section', () => {
-    const compiled = fixture.nativeElement;
-    const filtersSection = compiled.querySelector('.filters-section');
-    expect(filtersSection).toBeTruthy();
+  it('should display filters section', async () => {
+    const filterBar = await loader.getHarness(EnvLogsFilterBarHarness);
+    expect(filterBar).toBeTruthy();
   });
 
   it('should display table section', async () => {

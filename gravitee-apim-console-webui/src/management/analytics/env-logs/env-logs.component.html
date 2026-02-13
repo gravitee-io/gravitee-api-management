@@ -26,10 +26,7 @@
   </gio-banner-info>
 
   <mat-card class="logs-section">
-    <!-- Filters Section -->
-    <div class="filters-section">Filters section coming soon</div>
-
-    <!-- Table Section -->
+    <env-logs-filter-bar [loading]="isLoading()" (refresh)="refresh()"></env-logs-filter-bar>
     <env-logs-table
       class="env-runtime-logs__table"
       [logs]="logs()"
