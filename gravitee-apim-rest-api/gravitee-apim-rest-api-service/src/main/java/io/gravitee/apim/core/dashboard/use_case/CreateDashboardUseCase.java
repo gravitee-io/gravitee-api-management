@@ -17,7 +17,7 @@ package io.gravitee.apim.core.dashboard.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.dashboard.crud_service.DashboardCrudService;
+import io.gravitee.apim.core.dashboard.domain_service.DashboardDomainService;
 import io.gravitee.apim.core.dashboard.model.Dashboard;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CreateDashboardUseCase {
 
-    private final DashboardCrudService dashboardCrudService;
+    private final DashboardDomainService dashboardDomainService;
 
     public record Input(Dashboard dashboard, AuditInfo auditInfo) {}
 
@@ -46,7 +46,7 @@ public class CreateDashboardUseCase {
             .lastModified(now)
             .build();
 
-        var created = dashboardCrudService.create(dashboard);
+        var created = dashboardDomainService.create(dashboard);
         return new Output(created);
     }
 }
