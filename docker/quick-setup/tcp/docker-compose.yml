@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-version: "3.8"
+version: '3.8'
 
 networks:
     frontend:
@@ -33,7 +33,7 @@ services:
         image: mongo:${MONGODB_VERSION:-6.0}
         container_name: gio_apim_mongodb
         restart: always
-        command: ["--quiet", "--logpath", "/dev/null"]
+        command: ['--quiet', '--logpath', '/dev/null']
         volumes:
             - data-mongo:/data/db
             - ./.logs/apim-mongodb:/var/log/mongodb
@@ -58,14 +58,14 @@ services:
             - cluster.name=elasticsearch
             - bootstrap.memory_lock=true
             - discovery.type=single-node
-            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+            - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
         ulimits:
             memlock:
                 soft: -1
                 hard: -1
             nofile: 65536
         healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s"]
+            test: ['CMD', 'curl', '-f', 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s']
             interval: 5s
             timeout: 3s
             retries: 10
@@ -77,8 +77,8 @@ services:
         container_name: gio_apim_gateway
         restart: always
         ports:
-            - "8082:8082"
-            - "4082:4082"
+            - '8082:8082'
+            - '4082:4082'
         depends_on:
             mongodb:
                 condition: service_healthy
@@ -108,7 +108,7 @@ services:
         container_name: gio_apim_gateway_secured
         restart: always
         ports:
-            - "8081:8082"
+            - '8081:8082'
         depends_on:
             mongodb:
                 condition: service_healthy
@@ -139,7 +139,7 @@ services:
         container_name: gio_apim_management_api
         restart: always
         ports:
-            - "8083:8083"
+            - '8083:8083'
         links:
             - mongodb
             - elasticsearch
@@ -169,7 +169,7 @@ services:
         container_name: gio_apim_management_ui
         restart: always
         ports:
-            - "8084:8080"
+            - '8084:8080'
         depends_on:
             - management_api
         environment:
@@ -184,7 +184,7 @@ services:
         container_name: gio_apim_portal_ui
         restart: always
         ports:
-            - "8085:8080"
+            - '8085:8080'
         depends_on:
             - management_api
         environment:
@@ -199,7 +199,7 @@ services:
         container_name: gio_apim_mailhog
         restart: always
         ports:
-            - "8025:8025"
-            - "1025:1025"
+            - '8025:8025'
+            - '1025:1025'
         networks:
             - email

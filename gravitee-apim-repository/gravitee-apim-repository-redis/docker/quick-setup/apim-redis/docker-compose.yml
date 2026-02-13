@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-version: "3.5"
+version: '3.5'
 
 networks:
     frontend:
@@ -33,7 +33,7 @@ services:
         container_name: gio_apim_mongodb
         restart: always
         ports:
-            - "27017:27017"
+            - '27017:27017'
         volumes:
             - data-mongo:/data/db
             - ./.logs/apim-mongodb:/var/log/mongodb
@@ -54,7 +54,7 @@ services:
             - cluster.name=elasticsearch
             - bootstrap.memory_lock=true
             - discovery.type=single-node
-            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+            - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
         ulimits:
             memlock:
                 soft: -1
@@ -68,7 +68,7 @@ services:
         container_name: gio_apim_gateway
         restart: always
         ports:
-            - "8082:8082"
+            - '8082:8082'
         depends_on:
             - mongodb
             - elasticsearch
@@ -102,7 +102,7 @@ services:
         container_name: gio_apim_management_api
         restart: always
         ports:
-            - "8083:8083"
+            - '8083:8083'
         links:
             - mongodb
             - elasticsearch
@@ -125,7 +125,7 @@ services:
         container_name: gio_apim_management_ui
         restart: always
         ports:
-            - "8084:8080"
+            - '8084:8080'
         depends_on:
             - management_api
         environment:
@@ -140,7 +140,7 @@ services:
         container_name: gio_apim_portal_ui
         restart: always
         ports:
-            - "8085:8080"
+            - '8085:8080'
         depends_on:
             - management_api
         environment:
@@ -163,7 +163,7 @@ services:
             - REDIS_TLS_AUTH_CLIENTS=yes
             - REDIS_TLS_ENABLED=yes
         ports:
-            - "6379:6379"
+            - '6379:6379'
         volumes:
             - data-redis:/bitnami/redis/data
             - ../../config/ssl:/tls

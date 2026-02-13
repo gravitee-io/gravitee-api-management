@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-version: "3.8"
+version: '3.8'
 
 networks:
     frontend:
@@ -34,8 +34,8 @@ services:
             - management_ui
             - portal_ui
         ports:
-            - "80:80"
-            - "443:443"
+            - '80:80'
+            - '443:443'
         volumes:
             - ./.certificates:/etc/nginx/certificates
             - ./conf/nginx.conf:/etc/nginx/nginx.conf
@@ -45,7 +45,7 @@ services:
     mongodb:
         image: mongo:${MONGODB_VERSION:-6.0}
         restart: always
-        command: ["--quiet", "--logpath", "/dev/null"]
+        command: ['--quiet', '--logpath', '/dev/null']
         volumes:
             - data-mongo:/data/db
             - ./.logs/apim-mongodb:/var/log/mongodb
@@ -69,14 +69,14 @@ services:
             - cluster.name=elasticsearch
             - bootstrap.memory_lock=true
             - discovery.type=single-node
-            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+            - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
         ulimits:
             memlock:
                 soft: -1
                 hard: -1
             nofile: 65536
         healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s"]
+            test: ['CMD', 'curl', '-f', 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s']
             interval: 5s
             timeout: 3s
             retries: 10

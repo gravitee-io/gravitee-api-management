@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-version: "3.5"
+version: '3.5'
 
 networks:
     frontend:
@@ -39,7 +39,7 @@ services:
         container_name: eureka-server
         restart: always
         ports:
-            - "8761:8761"
+            - '8761:8761'
         networks:
             - frontend
 
@@ -80,14 +80,14 @@ services:
             - cluster.name=elasticsearch
             - bootstrap.memory_lock=true
             - discovery.type=single-node
-            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+            - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
         ulimits:
             memlock:
                 soft: -1
                 hard: -1
             nofile: 65536
         healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s"]
+            test: ['CMD', 'curl', '-f', 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s']
             interval: 5s
             timeout: 3s
             retries: 10
@@ -99,7 +99,7 @@ services:
         container_name: gio_apim_management_api
         restart: always
         ports:
-            - "8083:8083"
+            - '8083:8083'
         links:
             - mongodb
             - elasticsearch
@@ -123,7 +123,7 @@ services:
         container_name: gio_apim_gateway
         restart: always
         ports:
-            - "8082:8082"
+            - '8082:8082'
 
         depends_on:
             - mongodb
@@ -148,7 +148,7 @@ services:
         container_name: gio_apim_management_ui
         restart: always
         ports:
-            - "8084:8080"
+            - '8084:8080'
         depends_on:
             - management_api
         environment:
@@ -163,7 +163,7 @@ services:
         container_name: gio_apim_portal_ui
         restart: always
         ports:
-            - "8085:8080"
+            - '8085:8080'
         depends_on:
             - management_api
         environment:
