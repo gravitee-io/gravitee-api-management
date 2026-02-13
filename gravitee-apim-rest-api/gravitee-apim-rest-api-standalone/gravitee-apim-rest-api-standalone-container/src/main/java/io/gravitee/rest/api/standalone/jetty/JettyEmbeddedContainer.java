@@ -18,6 +18,9 @@ package io.gravitee.rest.api.standalone.jetty;
 import io.gravitee.apim.rest.api.automation.GraviteeAutomationApplication;
 import io.gravitee.apim.rest.api.automation.security.SecurityAutomationConfiguration;
 import io.gravitee.common.component.AbstractLifecycleComponent;
+import io.gravitee.plugin.console.ConsoleExtensionApplication;
+import io.gravitee.plugin.console.ConsoleExtensionManager;
+import io.gravitee.plugin.console.ConsoleExtensionServletFactory;
 import io.gravitee.rest.api.management.rest.resource.GraviteeManagementApplication;
 import io.gravitee.rest.api.management.security.SecurityManagementConfiguration;
 import io.gravitee.rest.api.management.v2.rest.GraviteeManagementV2Application;
@@ -26,9 +29,11 @@ import io.gravitee.rest.api.portal.rest.resource.GraviteePortalApplication;
 import io.gravitee.rest.api.portal.security.SecurityPortalConfiguration;
 import io.gravitee.rest.api.standalone.jetty.handler.NoContentOutputErrorHandler;
 import jakarta.servlet.DispatcherType;
+import jakarta.servlet.http.HttpServlet;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import org.eclipse.jetty.ee10.servlet.FilterHolder;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
@@ -37,6 +42,8 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -53,6 +60,8 @@ import org.springframework.web.filter.DelegatingFilterProxy;
  * @author GraviteeSource Team
  */
 public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<JettyEmbeddedContainer> implements ApplicationContextAware {
+
+    private static final Logger logger = LoggerFactory.getLogger(JettyEmbeddedContainer.class);
 
     private final JettyServerFactory jettyServerFactory;
 
@@ -131,6 +140,24 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
                 SecurityManagementV2Configuration.class
             );
             contexts.add(managementV2ContextHandler);
+
+            // Configuration for Console extensions.
+            contexts.add(
+                configureAPI(
+                    managementEntrypoint + "/v2/extensions",
+                    ConsoleExtensionApplication.class.getName(),
+                    SecurityManagementV2Configuration.class
+                )
+            );
+
+            // Dynamic servlet extensions (e.g. MCP server)
+            ConsoleExtensionManager cem = applicationContext.getBean(ConsoleExtensionManager.class);
+            for (var entry : cem.getServletFactories()) {
+                ConsoleExtensionServletFactory factory = entry.getValue();
+                String contextPath = managementEntrypoint + factory.getServletPath();
+                logger.info("Mounting console extension servlet '{}' at {}", entry.getKey(), contextPath);
+                contexts.add(configureServletExtension(contextPath, factory));
+            }
         }
 
         if (contexts.isEmpty()) {
@@ -170,6 +197,42 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
             EnumSet.allOf(DispatcherType.class)
         );
         return childContext;
+    }
+
+    private ServletContextHandler configureServletExtension(String contextPath, ConsoleExtensionServletFactory factory) {
+        final ServletContextHandler extContext = new ServletContextHandler(contextPath, ServletContextHandler.NO_SESSIONS);
+
+        // Create servlet via the factory
+        HttpServlet servlet = factory.createServlet(applicationContext);
+        ServletHolder servletHolder = new ServletHolder("extension", servlet);
+        servletHolder.setAsyncSupported(true);
+        extContext.addServlet(servletHolder, "/*");
+
+        // Create child Spring context for the extension
+        AnnotationConfigWebApplicationContext webApplicationContext = new AnnotationConfigWebApplicationContext();
+        Class<?>[] configClasses = factory.getSpringConfigClasses();
+        if (configClasses != null && configClasses.length > 0) {
+            webApplicationContext.register(configClasses);
+        }
+        webApplicationContext.setClassLoader(factory.getClass().getClassLoader());
+        webApplicationContext.setEnvironment((ConfigurableEnvironment) applicationContext.getEnvironment());
+        webApplicationContext.setParent(applicationContext);
+
+        // Register servlet as a singleton bean so Spring config classes can use it
+        webApplicationContext.addBeanFactoryPostProcessor(beanFactory ->
+            beanFactory.registerSingleton("mcpTransportProvider", servlet)
+        );
+
+        extContext.addEventListener(new ContextLoaderListener(webApplicationContext));
+
+        // Spring Security filter
+        extContext.addFilter(
+            new FilterHolder(new DelegatingFilterProxy("springSecurityFilterChain")),
+            "/*",
+            EnumSet.allOf(DispatcherType.class)
+        );
+
+        return extContext;
     }
 
     @Override
