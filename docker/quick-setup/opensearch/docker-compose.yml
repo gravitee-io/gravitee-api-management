@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-version: "3.8"
+version: '3.8'
 
 networks:
     frontend:
@@ -46,9 +46,9 @@ services:
             - discovery.seed_hosts=opensearch
             - cluster.initial_cluster_manager_nodes=opensearch
             - bootstrap.memory_lock=true
-            - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
-            - "DISABLE_INSTALL_DEMO_CONFIG=true"
-            - "DISABLE_SECURITY_PLUGIN=true"
+            - 'OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m'
+            - 'DISABLE_INSTALL_DEMO_CONFIG=true'
+            - 'DISABLE_SECURITY_PLUGIN=true'
         ulimits:
             memlock:
                 soft: -1
@@ -71,7 +71,7 @@ services:
             - 5601:5601
         environment:
             - 'OPENSEARCH_HOSTS=["http://opensearch:9200"]'
-            - "DISABLE_SECURITY_DASHBOARDS_PLUGIN=true"
+            - 'DISABLE_SECURITY_DASHBOARDS_PLUGIN=true'
         networks:
             - storage
 
@@ -80,7 +80,7 @@ services:
         container_name: gio_apim_gateway
         restart: always
         ports:
-            - "8082:8082"
+            - '8082:8082'
         depends_on:
             - mongodb
             - opensearch
@@ -102,7 +102,7 @@ services:
         container_name: gio_apim_management_api
         restart: always
         ports:
-            - "8083:8083"
+            - '8083:8083'
         links:
             - mongodb
             - opensearch
@@ -126,7 +126,7 @@ services:
         container_name: gio_apim_management_ui
         restart: always
         ports:
-            - "8084:8080"
+            - '8084:8080'
         depends_on:
             - management_api
         environment:
@@ -141,7 +141,7 @@ services:
         container_name: gio_apim_portal_ui
         restart: always
         ports:
-            - "8085:8080"
+            - '8085:8080'
         depends_on:
             - management_api
         environment:

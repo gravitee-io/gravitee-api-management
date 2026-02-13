@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-version: "3.8"
+version: '3.8'
 
 networks:
     frontend:
@@ -55,7 +55,7 @@ services:
         container_name: gio_apim_elasticsearch
         restart: always
         ports:
-            - "9200:9200"
+            - '9200:9200'
         volumes:
             - data-elasticsearch:/usr/share/elasticsearch/data
         environment:
@@ -65,14 +65,14 @@ services:
             - cluster.name=elasticsearch
             - bootstrap.memory_lock=true
             - discovery.type=single-node
-            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+            - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
         ulimits:
             memlock:
                 soft: -1
                 hard: -1
             nofile: 65536
         healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s"]
+            test: ['CMD', 'curl', '-f', 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s']
             interval: 5s
             timeout: 3s
             retries: 10
@@ -85,7 +85,7 @@ services:
         environment:
             - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
         ports:
-            - "5601:5601"
+            - '5601:5601'
         networks:
             - storage
 
@@ -94,8 +94,8 @@ services:
         container_name: gio_apim_gateway
         restart: always
         ports:
-            - "8082:8082"
-            - "9092:9092"
+            - '8082:8082'
+            - '9092:9092'
         depends_on:
             mongodb:
                 condition: service_healthy
@@ -116,7 +116,7 @@ services:
             - gravitee_kafka_ssl_keystore_password=gravitee
             - gravitee_kafka_ssl_keystore_path=$${gravitee.home}/ssl/server.keystore.jks
             - gravitee_kafka_ssl_keystore_type=jks
-            - "gravitee_kafka_routingHostMode_defaultDomain=kafka.local"
+            - 'gravitee_kafka_routingHostMode_defaultDomain=kafka.local'
         networks:
             storage:
             frontend:
@@ -136,7 +136,7 @@ services:
         container_name: gio_apim_management_api
         restart: always
         ports:
-            - "8083:8083"
+            - '8083:8083'
         links:
             - mongodb
             - elasticsearch
@@ -166,7 +166,7 @@ services:
         container_name: gio_apim_management_ui
         restart: always
         ports:
-            - "8084:8080"
+            - '8084:8080'
         depends_on:
             - management_api
         environment:
@@ -181,7 +181,7 @@ services:
         container_name: gio_apim_portal_ui
         restart: always
         ports:
-            - "8085:8080"
+            - '8085:8080'
         depends_on:
             - management_api
         environment:
@@ -196,8 +196,8 @@ services:
         container_name: gio_apim_mailhog
         restart: always
         ports:
-            - "8025:8025"
-            - "1025:1025"
+            - '8025:8025'
+            - '1025:1025'
         networks:
             - email
 
@@ -227,11 +227,11 @@ services:
             - kafka-init
 
         ports:
-            - "9091:9091"
-            - "9093:9093"
-            - "9094:9094"
-            - "9095:9095"
-            - "9096:9096"
+            - '9091:9091'
+            - '9093:9093'
+            - '9094:9094'
+            - '9095:9095'
+            - '9096:9096'
 
         volumes:
             - ./.config/server.properties:/opt/kafka/config/kraft/server.properties
@@ -252,9 +252,9 @@ services:
         container_name: gio_apim_kafka-ui
         image: provectuslabs/kafka-ui:latest
         ports:
-            - "9003:8080"
+            - '9003:8080'
         environment:
-            DYNAMIC_CONFIG_ENABLED: "true"
+            DYNAMIC_CONFIG_ENABLED: 'true'
             KAFKA_CLUSTERS_0_NAME: local
             KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9091
         depends_on:
@@ -271,7 +271,7 @@ services:
             - ./.ssl:/app/.ssl
         depends_on:
             - gateway
-        entrypoint: ["tail", "-f", "/dev/null"]
+        entrypoint: ['tail', '-f', '/dev/null']
         working_dir: /app
         networks:
             - gateway
