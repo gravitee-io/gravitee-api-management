@@ -116,7 +116,9 @@ public class SubscriptionsResource extends AbstractResource {
                 );
                 newSubscriptionEntity.setGeneralConditionsContentRevision(generalConditionsContentRevision);
             }
-            newSubscriptionEntity.setMetadata(subscriptionInput.getMetadata());
+            if (subscriptionInput.getMetadata() != null) {
+                newSubscriptionEntity.setMetadata(subscriptionInput.getMetadata());
+            }
             SubscriptionConfigurationInput inputConfiguration = subscriptionInput.getConfiguration();
             if (inputConfiguration != null) {
                 SubscriptionConfigurationEntity subscriptionConfigurationEntity = new SubscriptionConfigurationEntity();

@@ -219,12 +219,15 @@ export class SubscribeToApiComponent implements OnInit {
     }
 
     const apiKeyMode = this.applicationApiKeyMode();
+    const hasSubscriptionForm = !!this.subscriptionForm()?.gmdContent && this.currentPlan()?.security !== 'KEY_LESS';
+    const metadata = this.filterEmptyMetadata(this.formValues());
 
     const createSubscription: CreateSubscription = {
       application,
       plan,
       ...this.toConsumerConfiguration(),
       ...(apiKeyMode ? { api_key_mode: apiKeyMode } : {}),
+      ...(hasSubscriptionForm && Object.keys(metadata).length > 0 ? { metadata } : {}),
     };
 
     this.handleTermsAndConditions$(createSubscription)
@@ -248,6 +251,10 @@ export class SubscribeToApiComponent implements OnInit {
           this.subscriptionInProgress.set(false);
         },
       });
+  }
+
+  private filterEmptyMetadata(metadata: Record<string, string>): Record<string, string> {
+    return Object.fromEntries(Object.entries(metadata).filter(([_, value]) => value != null && value.trim() !== ''));
   }
 
   private toConsumerConfiguration(): SubscriptionConsumerConfiguration | Record<string, never> {
