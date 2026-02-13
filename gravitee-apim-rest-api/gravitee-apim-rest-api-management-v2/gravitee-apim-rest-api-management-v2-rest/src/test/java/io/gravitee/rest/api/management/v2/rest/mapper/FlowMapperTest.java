@@ -165,7 +165,7 @@ public class FlowMapperTest {
             }
         }
 
-        assertThat(flowV4.getConnect()).isNotNull().isEmpty();
+        assertThat(flowV4.getEntrypointConnect()).isNotNull().isEmpty();
         assertThat(flowV4.getInteract()).isNotNull().isEmpty();
 
         assertStepsV4Equals(flowEntityV4.getRequest(), flowV4.getRequest());
@@ -184,7 +184,7 @@ public class FlowMapperTest {
 
         assertStepsV4Equals(flowEntityV4.getPublish(), flowV4.getPublish());
         assertStepsV4Equals(flowEntityV4.getSubscribe(), flowV4.getSubscribe());
-        assertStepsV4Equals(flowEntityV4.getConnect(), flowV4.getConnect());
+        assertStepsV4Equals(flowEntityV4.getEntrypointConnect(), flowV4.getEntrypointConnect());
         assertStepsV4Equals(flowEntityV4.getInteract(), flowV4.getInteract());
     }
 

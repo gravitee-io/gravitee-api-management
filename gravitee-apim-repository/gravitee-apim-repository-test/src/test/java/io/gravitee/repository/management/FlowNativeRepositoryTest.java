@@ -60,11 +60,11 @@ public class FlowNativeRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertEquals(0, flow.getRequest().size());
         assertEquals(0, flow.getResponse().size());
-        assertEquals(1, flow.getConnect().size());
+        assertEquals(1, flow.getEntrypointConnect().size());
         assertEquals(1, flow.getInteract().size());
 
-        assertEquals("{#request.headers != null}", flow.getConnect().get(0).getCondition());
-        assertEquals("{#message.content != null}", flow.getConnect().get(0).getMessageCondition());
+        assertEquals("{#request.headers != null}", flow.getEntrypointConnect().get(0).getCondition());
+        assertEquals("{#message.content != null}", flow.getEntrypointConnect().get(0).getMessageCondition());
         assertEquals("{#response.headers != null}", flow.getInteract().get(0).getCondition());
         assertEquals("{#message.headers != null}", flow.getInteract().get(0).getMessageCondition());
 
