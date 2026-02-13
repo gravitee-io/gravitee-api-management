@@ -225,7 +225,11 @@ public class DashboardCrudServiceImplTest {
                                 .timeRange(
                                     DashboardWidget.TimeRange.builder().from("2025-10-07T06:50:30Z").to("2025-12-07T11:35:30Z").build()
                                 )
-                                .metrics(List.of("HTTP_REQUESTS"))
+                                .metrics(
+                                    List.of(
+                                        DashboardWidget.MetricRequest.builder().name("HTTP_REQUESTS").measures(List.of("COUNT")).build()
+                                    )
+                                )
                                 .build()
                         )
                         .build()
@@ -259,7 +263,14 @@ public class DashboardCrudServiceImplTest {
                                         .to("2025-12-07T11:35:30Z")
                                         .build()
                                 )
-                                .metrics(List.of("HTTP_REQUESTS"))
+                                .metrics(
+                                    List.of(
+                                        CustomDashboardWidget.MetricRequest.builder()
+                                            .name("HTTP_REQUESTS")
+                                            .measures(List.of("COUNT"))
+                                            .build()
+                                    )
+                                )
                                 .build()
                         )
                         .build()

@@ -76,7 +76,10 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
             assertThat(widget1.getRequest().getTimeRange()).isNotNull();
             assertThat(widget1.getRequest().getTimeRange().getFrom()).isEqualTo("2025-01-01T00:00:00Z");
             assertThat(widget1.getRequest().getTimeRange().getTo()).isEqualTo("2025-01-02T00:00:00Z");
-            assertThat(widget1.getRequest().getMetrics()).containsExactly("request_total_count");
+            assertThat(widget1.getRequest().getMetrics())
+                .hasSize(1)
+                .first()
+                .satisfies(m -> assertThat(m.getName()).isEqualTo("request_total_count"));
             assertThat(widget1.getRequest().getLimit()).isEqualTo(10);
         });
     }
@@ -98,7 +101,11 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
                 CustomDashboardWidget.Request.builder()
                     .type("measures")
                     .timeRange(CustomDashboardWidget.TimeRange.builder().from("2025-01-01T00:00:00Z").to("2025-01-02T00:00:00Z").build())
-                    .metrics(List.of("request_total_count"))
+                    .metrics(
+                        List.of(
+                            CustomDashboardWidget.MetricRequest.builder().name("request_total_count").measures(List.of("COUNT")).build()
+                        )
+                    )
                     .by(List.of())
                     .limit(10)
                     .build()
@@ -145,7 +152,10 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
             assertThat(savedWidget.getRequest().getTimeRange()).isNotNull();
             assertThat(savedWidget.getRequest().getTimeRange().getFrom()).isEqualTo("2025-01-01T00:00:00Z");
             assertThat(savedWidget.getRequest().getTimeRange().getTo()).isEqualTo("2025-01-02T00:00:00Z");
-            assertThat(savedWidget.getRequest().getMetrics()).containsExactly("request_total_count");
+            assertThat(savedWidget.getRequest().getMetrics())
+                .hasSize(1)
+                .first()
+                .satisfies(m -> assertThat(m.getName()).isEqualTo("request_total_count"));
             assertThat(savedWidget.getRequest().getBy()).isEmpty();
             assertThat(savedWidget.getRequest().getLimit()).isEqualTo(10);
         });
@@ -233,7 +243,11 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
                 CustomDashboardWidget.Request.builder()
                     .type("facets")
                     .timeRange(CustomDashboardWidget.TimeRange.builder().from("2025-01-01T00:00:00Z").to("2025-02-01T00:00:00Z").build())
-                    .metrics(List.of("request_total_count"))
+                    .metrics(
+                        List.of(
+                            CustomDashboardWidget.MetricRequest.builder().name("request_total_count").measures(List.of("COUNT")).build()
+                        )
+                    )
                     .by(List.of("api"))
                     .limit(20)
                     .build()

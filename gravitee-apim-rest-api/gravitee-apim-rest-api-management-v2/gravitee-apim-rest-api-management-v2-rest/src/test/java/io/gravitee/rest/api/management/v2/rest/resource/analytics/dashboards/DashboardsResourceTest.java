@@ -21,14 +21,15 @@ import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+import assertions.MAPIAssertions;
+import fixtures.DashboardFixtures;
 import inmemory.DashboardCrudServiceInMemory;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CreateDashboard;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CustomInterval;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasureName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricRequest;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeRange;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Widget;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetLayout;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetType;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -42,9 +43,12 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DashboardsResourceTest extends AbstractResourceTest {
 
     @Inject
@@ -74,63 +78,7 @@ class DashboardsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_create_dashboard() {
-            var createDashboard = new CreateDashboard();
-            createDashboard.setName("My Dashboard");
-            createDashboard.setLabels(Map.of("gravitee_io/team", "apim"));
-            createDashboard.setWidgets(
-                List.of(
-                    new Widget()
-                        .id("1")
-                        .title("Requests")
-                        .type(WidgetType.STATS)
-                        .layout(new WidgetLayout().cols(1).rows(1).x(0).y(0))
-                        .request(
-                            new WidgetRequest()
-                                .type(WidgetRequest.TypeEnum.MEASURES)
-                                .timeRange(
-                                    new TimeRange()
-                                        .from(OffsetDateTime.parse("2025-10-07T06:50:30Z"))
-                                        .to(OffsetDateTime.parse("2025-12-07T11:35:30Z"))
-                                )
-                                .metrics(List.of(new MetricRequest().name(MetricName.HTTP_REQUESTS)))
-                        ),
-                    new Widget()
-                        .id("2")
-                        .title("HTTP Statuses")
-                        .type(WidgetType.DOUGHNUT)
-                        .layout(new WidgetLayout().cols(1).rows(2).x(0).y(1))
-                        .request(
-                            new WidgetRequest()
-                                .type(WidgetRequest.TypeEnum.FACETS)
-                                .timeRange(
-                                    new TimeRange()
-                                        .from(OffsetDateTime.parse("2025-10-07T06:50:30Z"))
-                                        .to(OffsetDateTime.parse("2025-12-07T11:35:30Z"))
-                                )
-                                .by(List.of(FacetName.HTTP_STATUS_CODE_GROUP))
-                                .metrics(List.of(new MetricRequest().name(MetricName.HTTP_REQUESTS)))
-                        ),
-                    new Widget()
-                        .id("3")
-                        .title("Top APIs")
-                        .type(WidgetType.LINE)
-                        .layout(new WidgetLayout().cols(3).rows(2).x(1).y(1))
-                        .request(
-                            new WidgetRequest()
-                                .type(WidgetRequest.TypeEnum.FACETS)
-                                .timeRange(
-                                    new TimeRange()
-                                        .from(OffsetDateTime.parse("2025-10-07T06:50:30Z"))
-                                        .to(OffsetDateTime.parse("2025-12-07T11:35:30Z"))
-                                )
-                                .by(List.of(FacetName.API))
-                                .limit(5)
-                                .metrics(List.of(new MetricRequest().name(MetricName.HTTP_REQUESTS)))
-                        )
-                )
-            );
-
-            var response = rootTarget().request().post(json(createDashboard));
+            var response = rootTarget().request().post(json(DashboardFixtures.aCreateDashboard()));
 
             assertThat(response.getStatus()).isEqualTo(CREATED_201);
 
@@ -145,8 +93,7 @@ class DashboardsResourceTest extends AbstractResourceTest {
                 () -> assertThat(created.getWidgets()).hasSize(3)
             );
 
-            // Verify response widget mapping (REST -> core -> REST round-trip)
-            var statsWidget = created.getWidgets().get(0);
+            var statsWidget = created.getWidgets().getFirst();
             assertAll(
                 () -> assertThat(statsWidget.getId()).isEqualTo("1"),
                 () -> assertThat(statsWidget.getTitle()).isEqualTo("Requests"),
@@ -156,7 +103,7 @@ class DashboardsResourceTest extends AbstractResourceTest {
                 () -> assertThat(statsWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.MEASURES),
                 () -> assertThat(statsWidget.getRequest().getTimeRange().getFrom()).isEqualTo(OffsetDateTime.parse("2025-10-07T06:50:30Z")),
                 () -> assertThat(statsWidget.getRequest().getTimeRange().getTo()).isEqualTo(OffsetDateTime.parse("2025-12-07T11:35:30Z")),
-                () -> assertThat(statsWidget.getRequest().getMetrics().get(0).getName()).isEqualTo(MetricName.HTTP_REQUESTS)
+                () -> assertThat(statsWidget.getRequest().getMetrics().getFirst().getName()).isEqualTo(MetricName.HTTP_REQUESTS)
             );
 
             var doughnutWidget = created.getWidgets().get(1);
@@ -166,7 +113,8 @@ class DashboardsResourceTest extends AbstractResourceTest {
                 () -> assertThat(doughnutWidget.getRequest().getBy()).containsExactly(FacetName.HTTP_STATUS_CODE_GROUP)
             );
 
-            var lineWidget = created.getWidgets().get(2);
+            var lineWidget = created.getWidgets().getLast();
+
             assertAll(
                 () -> assertThat(lineWidget.getType()).isEqualTo(WidgetType.LINE),
                 () -> assertThat(lineWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.FACETS),
@@ -174,18 +122,21 @@ class DashboardsResourceTest extends AbstractResourceTest {
                 () -> assertThat(lineWidget.getRequest().getLimit()).isEqualTo(5)
             );
 
-            // Verify stored core model
             var storage = dashboardCrudServiceInMemory.storage();
             assertThat(storage).hasSize(1);
 
             var stored = storage.getFirst();
+
             assertThat(stored.getName()).isEqualTo("My Dashboard");
             assertThat(stored.getOrganizationId()).isEqualTo(ORGANIZATION);
             assertThat(stored.getWidgets()).hasSize(3);
-            assertThat(stored.getWidgets().get(0).getType()).isEqualTo("stats");
-            assertThat(stored.getWidgets().get(0).getRequest().getType()).isEqualTo("measures");
-            assertThat(stored.getWidgets().get(0).getRequest().getTimeRange().getFrom()).isEqualTo("2025-10-07T06:50:30Z");
-            assertThat(stored.getWidgets().get(0).getRequest().getMetrics()).containsExactly("HTTP_REQUESTS");
+            assertThat(stored.getWidgets().getFirst().getType()).isEqualTo("stats");
+            assertThat(stored.getWidgets().getFirst().getRequest().getType()).isEqualTo("measures");
+            assertThat(stored.getWidgets().getFirst().getRequest().getTimeRange().getFrom()).isEqualTo("2025-10-07T06:50:30Z");
+            assertThat(stored.getWidgets().getFirst().getRequest().getMetrics())
+                .hasSize(1)
+                .first()
+                .satisfies(m -> assertThat(m.getName()).isEqualTo("HTTP_REQUESTS"));
             assertThat(stored.getWidgets().get(1).getType()).isEqualTo("doughnut");
             assertThat(stored.getWidgets().get(1).getRequest().getBy()).containsExactly("HTTP_STATUS_CODE_GROUP");
             assertThat(stored.getWidgets().get(2).getType()).isEqualTo("line");
@@ -204,6 +155,82 @@ class DashboardsResourceTest extends AbstractResourceTest {
             shouldReturn403(RolePermission.ORGANIZATION_DASHBOARD, ORGANIZATION, RolePermissionAction.CREATE, () ->
                 rootTarget().request().post(json(new CreateDashboard()))
             );
+        }
+    }
+
+    @Nested
+    class CreateDashboardWidgetValidationTest {
+
+        @Test
+        void should_return_400_when_facets_request_has_empty_by() {
+            var request = new WidgetRequest()
+                .type(WidgetRequest.TypeEnum.FACETS)
+                .timeRange(DashboardFixtures.defaultTimeRange())
+                .by(List.of())
+                .metrics(List.of(new MetricRequest().name(MetricName.HTTP_REQUESTS).measures(List.of(MeasureName.COUNT))));
+            var response = rootTarget().request().post(json(DashboardFixtures.createDashboardWithOneWidget(request)));
+
+            MAPIAssertions.assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessageContaining("by clause");
+        }
+
+        @Test
+        void should_return_400_when_time_range_from_after_to() {
+            var request = DashboardFixtures.validMeasuresRequest();
+            request.getTimeRange().setFrom(OffsetDateTime.parse("2025-12-07T11:35:30Z"));
+            request.getTimeRange().setTo(OffsetDateTime.parse("2025-10-07T06:50:30Z"));
+            var response = rootTarget().request().post(json(DashboardFixtures.createDashboardWithOneWidget(request)));
+
+            MAPIAssertions.assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessageContaining("upper bound");
+        }
+
+        @Test
+        void should_return_400_when_time_series_interval_zero() {
+            var request = new WidgetRequest()
+                .type(WidgetRequest.TypeEnum.TIME_SERIES)
+                .timeRange(DashboardFixtures.defaultTimeRange())
+                .interval(new CustomInterval(-1L))
+                .metrics(List.of(new MetricRequest().name(MetricName.HTTP_REQUESTS).measures(List.of(MeasureName.COUNT))));
+            var response = rootTarget().request().post(json(DashboardFixtures.createDashboardWithOneWidget(request)));
+
+            MAPIAssertions.assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessageContaining("interval");
+        }
+
+        @Test
+        void should_return_400_when_metric_has_no_measures() {
+            var request = DashboardFixtures.validMeasuresRequest();
+            request.getMetrics().getFirst().setMeasures(null);
+            var response = rootTarget().request().post(json(DashboardFixtures.createDashboardWithOneWidget(request)));
+
+            MAPIAssertions.assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessageContaining("measure");
+        }
+
+        @Test
+        void should_return_400_when_metric_has_empty_measures() {
+            var request = DashboardFixtures.validMeasuresRequest();
+            request.getMetrics().getFirst().setMeasures(List.of());
+            var response = rootTarget().request().post(json(DashboardFixtures.createDashboardWithOneWidget(request)));
+
+            MAPIAssertions.assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessageContaining("measure");
         }
     }
 }

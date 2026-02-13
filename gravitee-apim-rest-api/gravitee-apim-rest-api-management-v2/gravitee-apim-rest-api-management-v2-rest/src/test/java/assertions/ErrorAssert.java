@@ -42,4 +42,13 @@ public class ErrorAssert extends AbstractObjectAssert<ErrorAssert, Error> {
         }
         return this;
     }
+
+    public ErrorAssert hasMessageContaining(String substring) {
+        isNotNull();
+
+        if (actual.getMessage() == null || !actual.getMessage().contains(substring)) {
+            failWithMessage("Expected error message to contain <%s> but was <%s>", substring, actual.getMessage());
+        }
+        return this;
+    }
 }

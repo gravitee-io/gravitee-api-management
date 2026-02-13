@@ -23,17 +23,10 @@ import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-import assertions.MAPIAssertions;
+import fixtures.DashboardFixtures;
 import inmemory.DashboardCrudServiceInMemory;
-import io.gravitee.apim.core.dashboard.model.Dashboard;
-import io.gravitee.apim.core.dashboard.model.DashboardWidget;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricRequest;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeRange;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.UpdateDashboard;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Widget;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetLayout;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetType;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -44,14 +37,16 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
 import java.time.OffsetDateTime;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DashboardResourceTest extends AbstractResourceTest {
 
     private static final String DASHBOARD_ID = "dashboard-123";
@@ -75,68 +70,7 @@ class DashboardResourceTest extends AbstractResourceTest {
 
         target = rootTarget().path(DASHBOARD_ID);
 
-        var dashboard = Dashboard.builder()
-            .id(DASHBOARD_ID)
-            .organizationId(ORGANIZATION)
-            .name("My Dashboard")
-            .createdBy(USER_NAME)
-            .createdAt(ZonedDateTime.now())
-            .lastModified(ZonedDateTime.now())
-            .labels(Map.of("team", "apim"))
-            .widgets(
-                List.of(
-                    DashboardWidget.builder()
-                        .id("1")
-                        .title("Requests")
-                        .type("stats")
-                        .layout(DashboardWidget.Layout.builder().cols(1).rows(1).x(0).y(0).build())
-                        .request(
-                            DashboardWidget.Request.builder()
-                                .type("measures")
-                                .timeRange(
-                                    DashboardWidget.TimeRange.builder().from("2025-10-07T06:50:30Z").to("2025-12-07T11:35:30Z").build()
-                                )
-                                .metrics(List.of("HTTP_REQUESTS"))
-                                .build()
-                        )
-                        .build(),
-                    DashboardWidget.builder()
-                        .id("2")
-                        .title("HTTP Statuses")
-                        .type("doughnut")
-                        .layout(DashboardWidget.Layout.builder().cols(1).rows(2).x(0).y(1).build())
-                        .request(
-                            DashboardWidget.Request.builder()
-                                .type("facets")
-                                .timeRange(
-                                    DashboardWidget.TimeRange.builder().from("2025-10-07T06:50:30Z").to("2025-12-07T11:35:30Z").build()
-                                )
-                                .by(List.of("HTTP_STATUS_CODE_GROUP"))
-                                .metrics(List.of("HTTP_REQUESTS"))
-                                .build()
-                        )
-                        .build(),
-                    DashboardWidget.builder()
-                        .id("3")
-                        .title("Top APIs")
-                        .type("line")
-                        .layout(DashboardWidget.Layout.builder().cols(3).rows(2).x(1).y(1).build())
-                        .request(
-                            DashboardWidget.Request.builder()
-                                .type("facets")
-                                .timeRange(
-                                    DashboardWidget.TimeRange.builder().from("2025-10-07T06:50:30Z").to("2025-12-07T11:35:30Z").build()
-                                )
-                                .by(List.of("API"))
-                                .limit(5)
-                                .metrics(List.of("HTTP_REQUESTS"))
-                                .build()
-                        )
-                        .build()
-                )
-            )
-            .build();
-        dashboardCrudServiceInMemory.initWith(List.of(dashboard));
+        dashboardCrudServiceInMemory.initWith(List.of(DashboardFixtures.aDashboard(DASHBOARD_ID, ORGANIZATION, USER_NAME)));
     }
 
     @AfterEach
@@ -156,6 +90,7 @@ class DashboardResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(OK_200);
 
             var result = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Dashboard.class);
+
             assertAll(
                 () -> assertThat(result.getId()).isEqualTo(DASHBOARD_ID),
                 () -> assertThat(result.getName()).isEqualTo("My Dashboard"),
@@ -164,7 +99,8 @@ class DashboardResourceTest extends AbstractResourceTest {
                 () -> assertThat(result.getWidgets()).hasSize(3)
             );
 
-            var statsWidget = result.getWidgets().get(0);
+            var statsWidget = result.getWidgets().getFirst();
+
             assertAll(
                 () -> assertThat(statsWidget.getId()).isEqualTo("1"),
                 () -> assertThat(statsWidget.getTitle()).isEqualTo("Requests"),
@@ -177,10 +113,11 @@ class DashboardResourceTest extends AbstractResourceTest {
                 () -> assertThat(statsWidget.getRequest().getTimeRange().getFrom()).isEqualTo(OffsetDateTime.parse("2025-10-07T06:50:30Z")),
                 () -> assertThat(statsWidget.getRequest().getTimeRange().getTo()).isEqualTo(OffsetDateTime.parse("2025-12-07T11:35:30Z")),
                 () -> assertThat(statsWidget.getRequest().getMetrics()).hasSize(1),
-                () -> assertThat(statsWidget.getRequest().getMetrics().get(0).getName()).isEqualTo(MetricName.HTTP_REQUESTS)
+                () -> assertThat(statsWidget.getRequest().getMetrics().getFirst().getName()).isEqualTo(MetricName.HTTP_REQUESTS)
             );
 
             var doughnutWidget = result.getWidgets().get(1);
+
             assertAll(
                 () -> assertThat(doughnutWidget.getId()).isEqualTo("2"),
                 () -> assertThat(doughnutWidget.getTitle()).isEqualTo("HTTP Statuses"),
@@ -189,10 +126,11 @@ class DashboardResourceTest extends AbstractResourceTest {
                 () -> assertThat(doughnutWidget.getLayout().getRows()).isEqualTo(2),
                 () -> assertThat(doughnutWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.FACETS),
                 () -> assertThat(doughnutWidget.getRequest().getBy()).containsExactly(FacetName.HTTP_STATUS_CODE_GROUP),
-                () -> assertThat(doughnutWidget.getRequest().getMetrics().get(0).getName()).isEqualTo(MetricName.HTTP_REQUESTS)
+                () -> assertThat(doughnutWidget.getRequest().getMetrics().getFirst().getName()).isEqualTo(MetricName.HTTP_REQUESTS)
             );
 
             var lineWidget = result.getWidgets().get(2);
+
             assertAll(
                 () -> assertThat(lineWidget.getId()).isEqualTo("3"),
                 () -> assertThat(lineWidget.getTitle()).isEqualTo("Top APIs"),
@@ -202,7 +140,7 @@ class DashboardResourceTest extends AbstractResourceTest {
                 () -> assertThat(lineWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.FACETS),
                 () -> assertThat(lineWidget.getRequest().getBy()).containsExactly(FacetName.API),
                 () -> assertThat(lineWidget.getRequest().getLimit()).isEqualTo(5),
-                () -> assertThat(lineWidget.getRequest().getMetrics().get(0).getName()).isEqualTo(MetricName.HTTP_REQUESTS)
+                () -> assertThat(lineWidget.getRequest().getMetrics().getFirst().getName()).isEqualTo(MetricName.HTTP_REQUESTS)
             );
         }
 
@@ -224,47 +162,7 @@ class DashboardResourceTest extends AbstractResourceTest {
 
         @Test
         void should_update_dashboard() {
-            var updatePayload = new UpdateDashboard();
-            updatePayload.setName("Updated Dashboard");
-            updatePayload.setLabels(Map.of("team", "platform"));
-            updatePayload.setWidgets(
-                List.of(
-                    new Widget()
-                        .id("10")
-                        .title("Error Rate")
-                        .type(WidgetType.STATS)
-                        .layout(new WidgetLayout().cols(1).rows(1).x(0).y(0))
-                        .request(
-                            new WidgetRequest()
-                                .type(WidgetRequest.TypeEnum.MEASURES)
-                                .timeRange(
-                                    new TimeRange()
-                                        .from(OffsetDateTime.parse("2025-10-07T06:50:30Z"))
-                                        .to(OffsetDateTime.parse("2025-12-07T11:35:30Z"))
-                                )
-                                .metrics(List.of(new MetricRequest().name(MetricName.HTTP_ERRORS)))
-                        ),
-                    new Widget()
-                        .id("11")
-                        .title("Top Applications")
-                        .type(WidgetType.PIE)
-                        .layout(new WidgetLayout().cols(2).rows(2).x(1).y(0))
-                        .request(
-                            new WidgetRequest()
-                                .type(WidgetRequest.TypeEnum.FACETS)
-                                .timeRange(
-                                    new TimeRange()
-                                        .from(OffsetDateTime.parse("2025-10-07T06:50:30Z"))
-                                        .to(OffsetDateTime.parse("2025-12-07T11:35:30Z"))
-                                )
-                                .by(List.of(FacetName.APPLICATION))
-                                .limit(10)
-                                .metrics(List.of(new MetricRequest().name(MetricName.HTTP_REQUESTS)))
-                        )
-                )
-            );
-
-            var response = target.request().put(json(updatePayload));
+            var response = target.request().put(json(DashboardFixtures.anUpdateDashboard()));
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
 
@@ -283,7 +181,7 @@ class DashboardResourceTest extends AbstractResourceTest {
                 () -> assertThat(statsWidget.getType()).isEqualTo(WidgetType.STATS),
                 () -> assertThat(statsWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.MEASURES),
                 () -> assertThat(statsWidget.getRequest().getTimeRange().getFrom()).isEqualTo(OffsetDateTime.parse("2025-10-07T06:50:30Z")),
-                () -> assertThat(statsWidget.getRequest().getMetrics().get(0).getName()).isEqualTo(MetricName.HTTP_ERRORS)
+                () -> assertThat(statsWidget.getRequest().getMetrics().getFirst().getName()).isEqualTo(MetricName.HTTP_ERRORS)
             );
 
             var pieWidget = result.getWidgets().get(1);
@@ -300,9 +198,12 @@ class DashboardResourceTest extends AbstractResourceTest {
             assertThat(stored.getName()).isEqualTo("Updated Dashboard");
             assertThat(stored.getLabels()).isEqualTo(Map.of("team", "platform"));
             assertThat(stored.getWidgets()).hasSize(2);
-            assertThat(stored.getWidgets().get(0).getType()).isEqualTo("stats");
-            assertThat(stored.getWidgets().get(0).getRequest().getType()).isEqualTo("measures");
-            assertThat(stored.getWidgets().get(0).getRequest().getMetrics()).containsExactly("HTTP_ERRORS");
+            assertThat(stored.getWidgets().getFirst().getType()).isEqualTo("stats");
+            assertThat(stored.getWidgets().getFirst().getRequest().getType()).isEqualTo("measures");
+            assertThat(stored.getWidgets().getFirst().getRequest().getMetrics())
+                .hasSize(1)
+                .first()
+                .satisfies(m -> assertThat(m.getName()).isEqualTo("HTTP_ERRORS"));
             assertThat(stored.getWidgets().get(1).getType()).isEqualTo("pie");
             assertThat(stored.getWidgets().get(1).getRequest().getBy()).containsExactly("APPLICATION");
             assertThat(stored.getWidgets().get(1).getRequest().getLimit()).isEqualTo(10);
@@ -310,11 +211,7 @@ class DashboardResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_when_dashboard_not_found() {
-            var updatePayload = new UpdateDashboard();
-            updatePayload.setName("Updated");
-
-            var response = rootTarget().path(NON_EXISTENT_ID).request().put(json(updatePayload));
-
+            var response = rootTarget().path(NON_EXISTENT_ID).request().put(json(DashboardFixtures.anUpdateDashboardMinimal()));
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
         }
 
@@ -327,7 +224,7 @@ class DashboardResourceTest extends AbstractResourceTest {
         @Test
         void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.ORGANIZATION_DASHBOARD, ORGANIZATION, RolePermissionAction.UPDATE, () ->
-                target.request().put(json(new UpdateDashboard()))
+                target.request().put(json(DashboardFixtures.anUpdateDashboardMinimal()))
             );
         }
     }
@@ -339,7 +236,7 @@ class DashboardResourceTest extends AbstractResourceTest {
         void should_delete_dashboard() {
             var response = target.request().delete();
 
-            MAPIAssertions.assertThat(response).hasStatus(NO_CONTENT_204);
+            assertThat(response.getStatus()).isEqualTo(NO_CONTENT_204);
 
             assertThat(dashboardCrudServiceInMemory.findById(DASHBOARD_ID)).isEmpty();
         }

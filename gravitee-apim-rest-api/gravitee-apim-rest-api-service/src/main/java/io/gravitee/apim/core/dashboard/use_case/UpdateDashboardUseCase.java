@@ -17,7 +17,7 @@ package io.gravitee.apim.core.dashboard.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.dashboard.crud_service.DashboardCrudService;
+import io.gravitee.apim.core.dashboard.domain_service.DashboardDomainService;
 import io.gravitee.apim.core.dashboard.exception.DashboardNotFoundException;
 import io.gravitee.apim.core.dashboard.model.Dashboard;
 import io.gravitee.common.utils.TimeProvider;
@@ -28,14 +28,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UpdateDashboardUseCase {
 
-    private final DashboardCrudService dashboardCrudService;
+    private final DashboardDomainService dashboardDomainService;
 
     public record Input(String dashboardId, Dashboard dashboard, AuditInfo auditInfo) {}
 
     public record Output(Dashboard dashboard) {}
 
     public Output execute(Input input) {
-        var existing = dashboardCrudService
+        var existing = dashboardDomainService
             .findById(input.dashboardId())
             .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
 
@@ -47,7 +47,7 @@ public class UpdateDashboardUseCase {
             .lastModified(ZonedDateTime.now(TimeProvider.clock()))
             .build();
 
-        var saved = dashboardCrudService.update(updated);
+        var saved = dashboardDomainService.update(updated);
         return new Output(saved);
     }
 }

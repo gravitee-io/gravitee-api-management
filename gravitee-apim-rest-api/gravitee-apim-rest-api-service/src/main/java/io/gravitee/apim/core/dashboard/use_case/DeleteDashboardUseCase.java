@@ -16,20 +16,18 @@
 package io.gravitee.apim.core.dashboard.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.dashboard.crud_service.DashboardCrudService;
-import io.gravitee.apim.core.dashboard.exception.DashboardNotFoundException;
+import io.gravitee.apim.core.dashboard.domain_service.DashboardDomainService;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
 @RequiredArgsConstructor
 public class DeleteDashboardUseCase {
 
-    private final DashboardCrudService dashboardCrudService;
+    private final DashboardDomainService dashboardDomainService;
 
     public record Input(String dashboardId) {}
 
     public void execute(Input input) {
-        dashboardCrudService.findById(input.dashboardId()).orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
-        dashboardCrudService.delete(input.dashboardId());
+        dashboardDomainService.delete(input.dashboardId());
     }
 }

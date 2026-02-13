@@ -54,6 +54,10 @@ public interface DashboardAdapter {
 
     CustomDashboardWidget.Request toRequestRepository(DashboardWidget.Request domain);
 
+    DashboardWidget.MetricRequest toMetricRequestModel(CustomDashboardWidget.MetricRequest repository);
+
+    CustomDashboardWidget.MetricRequest toMetricRequestRepository(DashboardWidget.MetricRequest domain);
+
     @Named("dateToZonedDateTime")
     default ZonedDateTime dateToZonedDateTime(Date date) {
         if (date == null) {

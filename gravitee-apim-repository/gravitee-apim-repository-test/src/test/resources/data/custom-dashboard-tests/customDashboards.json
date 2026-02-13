@@ -24,7 +24,7 @@
         "request": {
           "type": "measures",
           "timeRange": { "from": "2025-01-01T00:00:00Z", "to": "2025-01-02T00:00:00Z" },
-          "metrics": ["request_total_count"],
+          "metrics": [{ "name": "request_total_count", "measures": ["COUNT"] }],
           "by": [],
           "limit": 10
         }
@@ -42,7 +42,7 @@
         "request": {
           "type": "measures",
           "timeRange": { "from": "2025-01-01T00:00:00Z", "to": "2025-01-08T00:00:00Z" },
-          "metrics": ["response_time_avg"],
+          "metrics": [{ "name": "response_time_avg", "measures": ["AVG"] }],
           "by": ["api"],
           "limit": 5
         }
@@ -73,7 +73,7 @@
         "request": {
           "type": "facets",
           "timeRange": { "from": "2025-01-01T00:00:00Z", "to": "2025-02-01T00:00:00Z" },
-          "metrics": ["request_total_count"],
+          "metrics": [{ "name": "request_total_count", "measures": ["COUNT"] }],
           "by": ["api"],
           "limit": 10
         }

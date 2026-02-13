@@ -58,11 +58,21 @@ public class CustomDashboardWidgetMongo {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class MetricRequest {
+
+        private String name;
+        private List<String> measures;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Request {
 
         private String type;
         private TimeRange timeRange;
-        private List<String> metrics;
+        private List<MetricRequest> metrics;
+        private Long interval;
         private List<String> by;
         private Integer limit;
     }
