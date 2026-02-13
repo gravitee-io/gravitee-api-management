@@ -265,7 +265,7 @@
         <!-- Versions of the plugins for the full distribution on dev environment-->
         <!-- Management API & Gateway -->
         <!-- Community plugins -->
-        <gravitee-policy-aws-lambda.version>3.1.0</gravitee-policy-aws-lambda.version>
+        <gravitee-policy-aws-lambda.version>3.2.0-alpha.1</gravitee-policy-aws-lambda.version>
         <gravitee-policy-circuit-breaker.version>2.0.0</gravitee-policy-circuit-breaker.version>
         <gravitee-policy-geoip-filtering.version>2.2.2</gravitee-policy-geoip-filtering.version>
         <gravitee-resource-auth-provider-http.version>1.4.0</gravitee-resource-auth-provider-http.version>
