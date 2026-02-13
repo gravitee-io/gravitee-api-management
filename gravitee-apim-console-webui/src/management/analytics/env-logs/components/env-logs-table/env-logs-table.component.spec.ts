@@ -16,23 +16,24 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { provideRouter } from '@angular/router';
 
 import { EnvLogsTableComponent } from './env-logs-table.component';
 import { EnvLogsTableHarness } from './env-logs-table.harness';
 
 import { fakeEnvLog, fakeEnvLogs } from '../../models/env-log.fixture';
-import { Pagination } from '../../../../../entities/management-api-v2';
 
 describe('EnvLogsTableComponent', () => {
   let fixture: ComponentFixture<EnvLogsTableComponent>;
   let logsTableHarness: EnvLogsTableHarness;
 
   const defaultLogs = fakeEnvLogs();
-  const defaultPagination: Pagination = { page: 1, perPage: 10, totalCount: 5 };
+  const defaultPagination = { page: 1, perPage: 10, totalCount: defaultLogs.length };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [EnvLogsTableComponent, NoopAnimationsModule],
+      providers: [provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(EnvLogsTableComponent);
@@ -72,6 +73,7 @@ describe('EnvLogsTableComponent', () => {
     const logWithMissingGateway = fakeEnvLog({ gateway: undefined });
 
     fixture.componentRef.setInput('logs', [logWithMissingGateway]);
+    fixture.componentRef.setInput('pagination', { page: 1, perPage: 10, totalCount: 1 });
     fixture.detectChanges();
 
     const rowsData = await logsTableHarness.getRowsData();

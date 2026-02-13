@@ -24,10 +24,10 @@ import { EnvAnalyticsLayoutComponent } from './env-analytics-layout.component';
 import { AnalyticsDashboardComponent } from './legacy/analytics-dashboard/analytics-dashboard.component';
 import { PlatformLogsComponent } from './legacy/logs/platform-logs.component';
 import { PlatformLogComponent } from './legacy/logs/platform-log.component';
-import { EnvLogsV4Component } from './env-logs-v4/env-logs-v4.component';
-import { EnvLogsTableComponent } from './env-logs-v4/components/env-logs-table/env-logs-table.component';
 import { OverviewComponent } from './overview/overview.component';
 import { DashboardsListComponent } from './dashboards/dashboards-list/dashboards-list.component';
+import { EnvLogsComponent } from './env-logs/env-logs.component';
+import { EnvLogsDetailsComponent } from './env-logs/components/env-logs-details/env-logs-details.component';
 
 const routes: Routes = [
   {
@@ -37,15 +37,6 @@ const routes: Routes = [
   {
     path: 'dashboards',
     component: DashboardsListComponent,
-  },
-  {
-    path: 'logs-explorer',
-    component: EnvLogsV4Component,
-    data: {
-      docs: {
-        page: 'management-environment-logs-v4',
-      },
-    },
   },
   {
     path: '',
@@ -85,20 +76,29 @@ const routes: Routes = [
       },
     ],
   },
+  {
+    path: 'logs-explorer',
+    component: EnvLogsComponent,
+    data: {
+      docs: {
+        page: 'management-environment-logs-v4',
+      },
+    },
+  },
+  {
+    path: 'logs-explorer/:logId',
+    component: EnvLogsDetailsComponent,
+    data: {
+      docs: {
+        page: 'management-environment-logs-v4',
+      },
+    },
+  },
 ];
 
 @NgModule({
   declarations: [EnvAnalyticsLayoutComponent, AnalyticsDashboardComponent, PlatformLogsComponent, PlatformLogComponent],
-  imports: [
-    RouterModule.forChild(routes),
-    MatTabsModule,
-    MatCardModule,
-    MatIconModule,
-    GioIconsModule,
-    GioBannerModule,
-    EnvLogsTableComponent,
-    EnvLogsV4Component,
-  ],
+  imports: [RouterModule.forChild(routes), MatTabsModule, MatCardModule, MatIconModule, GioIconsModule, GioBannerModule],
   exports: [RouterModule],
 })
 export class EnvAnalyticsModule {}

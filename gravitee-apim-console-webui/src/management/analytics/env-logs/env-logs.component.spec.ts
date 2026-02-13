@@ -21,22 +21,22 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 
-import { EnvLogsV4Component } from './env-logs-v4.component';
+import { EnvLogsComponent } from './env-logs.component';
 import { EnvLogsTableHarness } from './components/env-logs-table/env-logs-table.harness';
 
 import { GioTestingModule } from '../../../shared/testing';
 
-describe('EnvLogsV4Component', () => {
-  let component: EnvLogsV4Component;
-  let fixture: ComponentFixture<EnvLogsV4Component>;
+describe('EnvLogsComponent', () => {
+  let component: EnvLogsComponent;
+  let fixture: ComponentFixture<EnvLogsComponent>;
   let loader: HarnessLoader;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTestingModule, MatCardModule, GioBannerModule, EnvLogsV4Component],
+      imports: [NoopAnimationsModule, GioTestingModule, MatCardModule, GioBannerModule, EnvLogsComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(EnvLogsV4Component);
+    fixture = TestBed.createComponent(EnvLogsComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     component = fixture.componentInstance;
     fixture.detectChanges();

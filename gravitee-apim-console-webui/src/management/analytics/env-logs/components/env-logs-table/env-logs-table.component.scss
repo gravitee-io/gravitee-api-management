@@ -7,13 +7,7 @@
 }
 
 .table {
-  &__empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-top: 32px;
-  }
+  width: 100%;
 }
 
 .log-timestamp-link {
@@ -24,4 +18,8 @@
   padding: 0;
   font: inherit;
   color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, default);
+
+  &:hover {
+    text-decoration: none;
+  }
 }
