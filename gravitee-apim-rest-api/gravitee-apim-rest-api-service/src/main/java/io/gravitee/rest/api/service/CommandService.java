@@ -19,6 +19,7 @@ import io.gravitee.rest.api.model.command.CommandEntity;
 import io.gravitee.rest.api.model.command.CommandQuery;
 import io.gravitee.rest.api.model.command.NewCommandEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -33,4 +34,6 @@ public interface CommandService {
     List<CommandEntity> search(ExecutionContext executionContext, CommandQuery query);
     void ack(String messageId);
     void delete(String commandId);
+
+    int deleteByExpiredAtBefore(Instant before);
 }

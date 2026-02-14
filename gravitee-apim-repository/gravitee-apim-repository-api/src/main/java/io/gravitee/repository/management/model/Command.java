@@ -15,23 +15,17 @@
  */
 package io.gravitee.repository.management.model;
 
+import io.gravitee.common.utils.UUID;
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
-@Builder
 public class Command {
 
     private String id;
@@ -45,4 +39,12 @@ public class Command {
     private Date expiredAt;
     private Date createdAt;
     private Date updatedAt;
+
+    public Command() {
+        var now = new Date();
+        this.id = UUID.random().toString();
+        this.expiredAt = Date.from(now.toInstant().plus(Duration.ofMinutes(5)));
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
 }

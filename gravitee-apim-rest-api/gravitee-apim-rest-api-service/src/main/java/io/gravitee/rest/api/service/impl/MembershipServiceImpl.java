@@ -408,16 +408,11 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     private void sendInvalidateRoleCacheCommand(MembershipReference reference, MembershipMember member, ExecutionContext context) {
-        Instant timestamp = Instant.now();
-        Command command = Command.builder()
-            .id(UUID.random().toString())
-            .organizationId(context.getOrganizationId())
-            .from(this.node.id())
-            .to(MessageRecipient.MANAGEMENT_APIS.name())
-            .tags(List.of(CommandTags.GROUP_DEFAULT_ROLES_UPDATE.name()))
-            .createdAt(Date.from(timestamp))
-            .updatedAt(Date.from(timestamp))
-            .build();
+        Command command = new Command();
+        command.setOrganizationId(context.getOrganizationId());
+        command.setFrom(node.id());
+        command.setTo(MessageRecipient.MANAGEMENT_APIS.name());
+        command.setTags(List.of(CommandTags.GROUP_DEFAULT_ROLES_UPDATE.name()));
 
         if (context.hasEnvironmentId()) {
             command.setEnvironmentId(context.getEnvironmentId());

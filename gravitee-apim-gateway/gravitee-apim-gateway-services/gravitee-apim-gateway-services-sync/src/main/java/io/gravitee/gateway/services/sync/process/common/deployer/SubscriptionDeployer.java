@@ -17,7 +17,6 @@ package io.gravitee.gateway.services.sync.process.common.deployer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.command.SubscriptionFailureCommand;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
@@ -35,9 +34,7 @@ import io.gravitee.repository.management.model.MessageRecipient;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.json.JsonObject;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -167,13 +164,9 @@ public class SubscriptionDeployer implements Deployer<SubscriptionDeployable> {
     private Completable sendFailureCommand(Subscription subscription, Throwable throwable) {
         return Completable.fromRunnable(() -> {
             final Command command = new Command();
-            Instant now = Instant.now();
-            command.setId(UUID.random().toString());
             command.setFrom(node.id());
             command.setTo(MessageRecipient.MANAGEMENT_APIS.name());
             command.setTags(List.of(CommandTags.SUBSCRIPTION_FAILURE.name()));
-            command.setCreatedAt(Date.from(now));
-            command.setUpdatedAt(Date.from(now));
             command.setEnvironmentId(subscription.getEnvironmentId());
 
             convertSubscriptionCommand(subscription, command, throwable.getMessage());
