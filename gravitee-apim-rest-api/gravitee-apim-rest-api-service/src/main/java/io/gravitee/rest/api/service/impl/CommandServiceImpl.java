@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.converter.CommandConverter;
 import io.gravitee.rest.api.service.exceptions.Message2RecipientNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -122,6 +123,17 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
             final String error = "An error occurs while trying to delete command " + commandId;
             log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
+        }
+    }
+
+    @Override
+    public int deleteByExpiredAtBefore(Instant before) {
+        try {
+            int deletedCount = commandRepository.deleteByExpiredAtBefore(before);
+            log.debug("Deleted {} expired commands before {}", deletedCount, before);
+            return deletedCount;
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to delete expired commands", ex);
         }
     }
 }

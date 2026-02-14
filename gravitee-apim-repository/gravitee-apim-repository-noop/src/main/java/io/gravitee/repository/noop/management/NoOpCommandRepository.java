@@ -18,6 +18,7 @@ package io.gravitee.repository.noop.management;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -39,5 +40,10 @@ public class NoOpCommandRepository extends AbstractNoOpManagementRepository<Comm
     @Override
     public List<String> deleteByOrganizationId(String organizationId) {
         return List.of();
+    }
+
+    @Override
+    public int deleteByExpiredAtBefore(Instant before) {
+        return 0;
     }
 }
