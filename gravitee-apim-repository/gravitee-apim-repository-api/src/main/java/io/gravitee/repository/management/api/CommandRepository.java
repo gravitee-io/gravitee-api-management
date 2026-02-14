@@ -18,6 +18,7 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -40,4 +41,11 @@ public interface CommandRepository extends CrudRepository<Command, String> {
      * @return List of IDs for deleted commands
      */
     List<String> deleteByOrganizationId(String organizationId) throws TechnicalException;
+
+    /**
+     * Delete commands that expired before the given instant
+     * @param before the cutoff instant
+     * @return number of deleted commands
+     */
+    int deleteByExpiredAtBefore(Instant before) throws TechnicalException;
 }
