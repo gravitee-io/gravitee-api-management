@@ -26,6 +26,8 @@ import io.gravitee.repository.management.model.Command;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
+import java.time.Instant;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -309,6 +311,31 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         } catch (final Exception ex) {
             log.error("Failed to delete commands by organizationId: {}", organizationId, ex);
             throw new TechnicalException("Failed to delete commands by organization", ex);
+        }
+    }
+
+    @Override
+    public int deleteByExpiredAtBefore(Instant before) throws TechnicalException {
+        log.debug("JdbcCommandRepository.deleteByExpiredAtBefore({})", before);
+        try {
+            var timestamp = new java.sql.Timestamp(before.toEpochMilli());
+            jdbcTemplate.update(
+                "delete from " +
+                    COMMAND_ACKNOWLEDGMENTS +
+                    " where command_id in (select id from " +
+                    this.tableName +
+                    " where expired_at < ?)",
+                timestamp
+            );
+            jdbcTemplate.update(
+                "delete from " + COMMAND_TAGS + " where command_id in (select id from " + this.tableName + " where expired_at < ?)",
+                timestamp
+            );
+            int deletedCount = jdbcTemplate.update("delete from " + this.tableName + " where expired_at < ?", timestamp);
+            log.debug("JdbcCommandRepository.deleteByExpiredAtBefore({}) - Deleted {} commands", before, deletedCount);
+            return deletedCount;
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to delete expired commands before " + before, ex);
         }
     }
 

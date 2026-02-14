@@ -55,7 +55,7 @@
     "to": "MANAGEMENT_API",
     "tags": ["DATA_TO_INDEX", "INSERT"],
     "acknowledgments": ["node1", "node2"],
-    "expiredAt": 2122484400000,
+    "expiredAt": 2127427200000,
     "createdAt": 1546305346000,
     "updatedAt": 1548983746000
   },

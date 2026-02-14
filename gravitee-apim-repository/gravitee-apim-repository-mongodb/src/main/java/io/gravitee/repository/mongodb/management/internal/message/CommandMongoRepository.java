@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.message;
 
 import io.gravitee.repository.mongodb.management.internal.model.CommandMongo;
+import java.time.Instant;
 import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -32,4 +33,7 @@ public interface CommandMongoRepository extends MongoRepository<CommandMongo, St
 
     @Query(value = "{ 'organizationId': ?0 }", fields = "{ _id : 1 }", delete = true)
     List<CommandMongo> deleteByOrganizationId(String organizationId);
+
+    @Query(value = "{ 'expiredAt': { $lt: ?0 } }", fields = "{ _id : 1 }", delete = true)
+    List<CommandMongo> deleteByExpiredAtBefore(Instant before);
 }
