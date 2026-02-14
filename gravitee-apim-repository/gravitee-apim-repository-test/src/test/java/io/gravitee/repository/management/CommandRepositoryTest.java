@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.junit.Test;
@@ -230,5 +231,22 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(2, nbBeforeDeletion);
         assertEquals(2, deleted.size());
         assertEquals(0, nbAfterDeletion);
+    }
+
+    @Test
+    public void should_delete_by_expired_at_before() throws TechnicalException {
+        // All fixture commands have expiredAt in the past except search2 (expiredAt = 2127427200000, year 2037)
+        // Use a cutoff between the past dates and search2's date
+        Instant cutoff = Instant.ofEpochMilli(2000000000000L); // ~May 2033
+
+        int deletedCount = commandRepository.deleteByExpiredAtBefore(cutoff);
+
+        // 9 commands should be deleted (all except search2)
+        assertEquals(9, deletedCount);
+
+        // Verify search2 still exists
+        assertTrue("search2 should still exist", commandRepository.findById("search2").isPresent());
+        // Verify a deleted one is gone
+        assertFalse("search1 should not exist anymore", commandRepository.findById("search1").isPresent());
     }
 }
