@@ -30,7 +30,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.event.EventManager;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -91,7 +90,6 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -409,16 +407,11 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     private void sendInvalidateRoleCacheCommand(MembershipReference reference, MembershipMember member, ExecutionContext context) {
-        Instant timestamp = Instant.now();
-        Command command = Command.builder()
-            .id(UUID.random().toString())
-            .organizationId(context.getOrganizationId())
-            .from(this.node.id())
-            .to(MessageRecipient.MANAGEMENT_APIS.name())
-            .tags(List.of(CommandTags.GROUP_DEFAULT_ROLES_UPDATE.name()))
-            .createdAt(Date.from(timestamp))
-            .updatedAt(Date.from(timestamp))
-            .build();
+        Command command = new Command();
+        command.setOrganizationId(context.getOrganizationId());
+        command.setFrom(node.id());
+        command.setTo(MessageRecipient.MANAGEMENT_APIS.name());
+        command.setTags(List.of(CommandTags.GROUP_DEFAULT_ROLES_UPDATE.name()));
 
         if (context.hasEnvironmentId()) {
             command.setEnvironmentId(context.getEnvironmentId());

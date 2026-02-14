@@ -21,7 +21,6 @@ import io.gravitee.rest.api.model.command.CommandEntity;
 import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.model.command.NewCommandEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
@@ -62,18 +61,14 @@ public class CommandConverter {
     }
 
     public Command toCommand(ExecutionContext executionContext, NewCommandEntity commandEntity) {
-        Instant now = Instant.now();
-        Instant expireAt = now.plus(Duration.ofSeconds(commandEntity.getTtlInSeconds()));
+        Instant expireAt = Instant.now().plus(Duration.ofSeconds(commandEntity.getTtlInSeconds()));
         Command command = new Command();
-        command.setId(UuidString.generateRandom());
         command.setOrganizationId(executionContext.getOrganizationId());
         command.setEnvironmentId(executionContext.hasEnvironmentId() ? executionContext.getEnvironmentId() : null);
         command.setFrom(node.id());
         command.setTo(commandEntity.getTo());
-        command.setTags(toStrings(commandEntity.getTags()));
-        command.setCreatedAt(Date.from(now));
-        command.setUpdatedAt(Date.from(now));
         command.setExpiredAt(Date.from(expireAt));
+        command.setTags(toStrings(commandEntity.getTags()));
         if (commandEntity.getContent() != null) {
             command.setContent(commandEntity.getContent());
         }

@@ -26,8 +26,10 @@ import io.gravitee.repository.management.model.Command;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +39,7 @@ import org.springframework.stereotype.Repository;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Repository
 public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, String> implements CommandRepository {
 
@@ -307,6 +310,31 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete commands by organizationId: {}", organizationId, ex);
             throw new TechnicalException("Failed to delete commands by organization", ex);
+        }
+    }
+
+    @Override
+    public int deleteByExpiredAtBefore(Instant before) throws TechnicalException {
+        log.debug("JdbcCommandRepository.deleteByExpiredAtBefore({})", before);
+        try {
+            var timestamp = new java.sql.Timestamp(before.toEpochMilli());
+            jdbcTemplate.update(
+                "delete from " +
+                    COMMAND_ACKNOWLEDGMENTS +
+                    " where command_id in (select id from " +
+                    this.tableName +
+                    " where expired_at < ?)",
+                timestamp
+            );
+            jdbcTemplate.update(
+                "delete from " + COMMAND_TAGS + " where command_id in (select id from " + this.tableName + " where expired_at < ?)",
+                timestamp
+            );
+            int deletedCount = jdbcTemplate.update("delete from " + this.tableName + " where expired_at < ?", timestamp);
+            log.debug("JdbcCommandRepository.deleteByExpiredAtBefore({}) - Deleted {} commands", before, deletedCount);
+            return deletedCount;
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to delete expired commands before " + before, ex);
         }
     }
 
