@@ -28,7 +28,6 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import io.gravitee.apim.infra.template.FreemarkerConfigurationFactory;
 import io.gravitee.common.event.EventManager;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.CommandTags;
@@ -66,7 +65,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -539,18 +537,14 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     }
 
     private void sendUpdateTemplateCommand(NotificationTemplateEntity notificationTemplate, String organization) {
-        Instant now = Instant.now();
-        var command = Command.builder()
-            .id(UUID.random().toString())
-            .from(node.id())
-            .to(MessageRecipient.MANAGEMENT_APIS.name())
-            .organizationId(organization)
-            .tags(List.of(CommandTags.EMAIL_TEMPLATE_UPDATE.name()))
-            .createdAt(Date.from(now))
-            .updatedAt(Date.from(now));
+        var command = new Command();
+        command.setFrom(node.id());
+        command.setTo(MessageRecipient.MANAGEMENT_APIS.name());
+        command.setOrganizationId(organization);
+        command.setTags(List.of(CommandTags.EMAIL_TEMPLATE_UPDATE.name()));
 
         try {
-            command.content(
+            command.setContent(
                 objectMapper.writeValueAsString(notificationTemplateMapper.toNotificationTemplateCommandEntity(notificationTemplate))
             );
         } catch (JsonProcessingException e) {
@@ -564,7 +558,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         }
 
         try {
-            commandRepository.create(command.build());
+            commandRepository.create(command);
         } catch (TechnicalException e) {
             log.error("Failed to create template update command [{}] for organization [{}]", notificationTemplate.getId(), organization, e);
         }

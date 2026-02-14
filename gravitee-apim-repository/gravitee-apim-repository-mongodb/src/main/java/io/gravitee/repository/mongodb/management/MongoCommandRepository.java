@@ -22,6 +22,7 @@ import io.gravitee.repository.management.model.Command;
 import io.gravitee.repository.mongodb.management.internal.message.CommandMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.CommandMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -128,6 +129,18 @@ public class MongoCommandRepository implements CommandRepository {
         } catch (Exception ex) {
             log.error("Failed to delete commands by organizationId: {}", organizationId, ex);
             throw new TechnicalException("Failed to delete commands by organizationId");
+        }
+    }
+
+    @Override
+    public int deleteByExpiredAtBefore(Instant before) throws TechnicalException {
+        log.debug("Delete by expiredAt before [{}]", before);
+        try {
+            int deletedCount = internalMessageRepo.deleteByExpiredAtBefore(before).size();
+            log.debug("Delete by expiredAt before [{}] - Done. Deleted {} commands", before, deletedCount);
+            return deletedCount;
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to delete expired commands before " + before, ex);
         }
     }
 

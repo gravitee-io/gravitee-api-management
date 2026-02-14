@@ -25,11 +25,14 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.cluster.ClusterManager;
+import io.gravitee.node.api.cluster.Member;
 import io.gravitee.repository.management.model.MessageRecipient;
 import io.gravitee.rest.api.model.command.CommandEntity;
 import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.event.CommandEvent;
+import java.time.Instant;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,12 +62,20 @@ public class ScheduledCommandsRefresherServiceImplTest {
     @Mock
     private TaskScheduler taskScheduler;
 
+    @Mock
+    private ClusterManager clusterManager;
+
+    @Mock
+    private Member clusterMember;
+
     private ScheduledCommandsRefresherServiceImpl cut;
 
     @Before
     public void setUp() {
-        cut = new ScheduledCommandsRefresherServiceImpl(commandService, node, taskScheduler, "0/5 * * * * *", eventManager);
+        cut = new ScheduledCommandsRefresherServiceImpl(commandService, node, taskScheduler, "0/5 * * * * *", eventManager, clusterManager);
         when(node.id()).thenReturn("node-id");
+        when(clusterManager.self()).thenReturn(clusterMember);
+        when(clusterMember.primary()).thenReturn(true);
     }
 
     @Test
@@ -85,15 +96,17 @@ public class ScheduledCommandsRefresherServiceImplTest {
 
     @Test
     public void shouldSyncCommandAndPublishEventAccordingly() {
-        final CommandEntity dataCommand1 = buildCommand("data-1", null);
-        final CommandEntity dataCommand2 = buildCommand("data-2", List.of(CommandTags.DATA_TO_INDEX));
+        final CommandEntity dataCommand1 = buildCommand("data-1", null, false);
+        final CommandEntity dataCommand2 = buildCommand("data-2", List.of(CommandTags.DATA_TO_INDEX), false);
         // this case has no real business sense but is here to test the code
         final CommandEntity dataCommand3 = buildCommand(
             "data-subscription-3",
-            List.of(CommandTags.DATA_TO_INDEX, CommandTags.SUBSCRIPTION_FAILURE)
+            List.of(CommandTags.DATA_TO_INDEX, CommandTags.SUBSCRIPTION_FAILURE),
+            false
         );
-        final CommandEntity subscriptionCommand1 = buildCommand("subscription-1", List.of(CommandTags.SUBSCRIPTION_FAILURE));
-        final CommandEntity subscriptionCommand2 = buildCommand("subscription-2", List.of(CommandTags.SUBSCRIPTION_FAILURE));
+        final CommandEntity subscriptionCommand1 = buildCommand("subscription-1", List.of(CommandTags.SUBSCRIPTION_FAILURE), false);
+        final CommandEntity subscriptionCommand2 = buildCommand("subscription-2", List.of(CommandTags.SUBSCRIPTION_FAILURE), false);
+        final CommandEntity subscriptionCommand3 = buildCommand("subscription-3", List.of(CommandTags.SUBSCRIPTION_FAILURE), true);
 
         when(
             commandService.search(
@@ -104,7 +117,7 @@ public class ScheduledCommandsRefresherServiceImplTest {
                         !query.getTags().contains(CommandTags.DATA_TO_INDEX)
                 )
             )
-        ).thenReturn(List.of(dataCommand1, dataCommand2, dataCommand3, subscriptionCommand1, subscriptionCommand2));
+        ).thenReturn(List.of(dataCommand1, dataCommand2, dataCommand3, subscriptionCommand1, subscriptionCommand2, subscriptionCommand3));
         cut.run();
 
         ArgumentCaptor<String> deleteCaptor = ArgumentCaptor.forClass(String.class);
@@ -120,13 +133,35 @@ public class ScheduledCommandsRefresherServiceImplTest {
         verify(eventManager, times(5)).publishEvent(eq(CommandEvent.TO_PROCESS), argumentCaptor.capture());
         assertThat(argumentCaptor.getAllValues())
             .extracting(CommandEntity::getId)
-            .containsExactly("data-1", "data-2", "data-subscription-3", "subscription-1", "subscription-2");
+            .containsOnly("data-1", "data-2", "data-subscription-3", "subscription-1", "subscription-2");
     }
 
-    private static CommandEntity buildCommand(String id, List<CommandTags> tags) {
+    @Test
+    public void shouldNotDeleteExpiredCommandsWhenNotPrimary() {
+        when(clusterMember.primary()).thenReturn(false);
+        when(commandService.search(any())).thenReturn(List.of());
+
+        cut.run();
+
+        verify(commandService, never()).deleteByExpiredAtBefore(any());
+    }
+
+    @Test
+    public void shouldDeleteExpiredCommandsWhenRunning() {
+        when(commandService.deleteByExpiredAtBefore(any(Instant.class))).thenReturn(2);
+        when(commandService.search(any())).thenReturn(List.of());
+
+        cut.run();
+
+        verify(commandService).deleteByExpiredAtBefore(any(Instant.class));
+        verify(eventManager, never()).publishEvent(any(), any());
+    }
+
+    private static CommandEntity buildCommand(String id, List<CommandTags> tags, boolean expired) {
         CommandEntity commandEntity = new CommandEntity();
         commandEntity.setId(id);
         commandEntity.setTags(tags);
+        commandEntity.setExpired(expired);
         return commandEntity;
     }
 }
