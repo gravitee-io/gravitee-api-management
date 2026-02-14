@@ -15,9 +15,14 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.model.MessageRecipient;
 import io.gravitee.rest.api.model.command.CommandEntity;
 import io.gravitee.rest.api.model.command.CommandQuery;
@@ -26,10 +31,11 @@ import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.ScheduledCommandService;
 import io.gravitee.rest.api.service.event.CommandEvent;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Component;
@@ -38,6 +44,7 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
 public class ScheduledCommandsRefresherServiceImpl
     extends AbstractService<ScheduledCommandsRefresherServiceImpl>
@@ -55,19 +62,22 @@ public class ScheduledCommandsRefresherServiceImpl
     private final TaskScheduler scheduler;
     private final String cronTrigger;
     private final EventManager eventManager;
+    private final ClusterManager clusterManager;
 
     public ScheduledCommandsRefresherServiceImpl(
         CommandService commandService,
         Node node,
         @Qualifier("commandTaskScheduler") TaskScheduler scheduler,
         @Value("${services.commands.cron:0/5 * * * * *}") String cronTrigger,
-        EventManager eventManager
+        EventManager eventManager,
+        @Lazy ClusterManager clusterManager
     ) {
         this.commandService = commandService;
         this.node = node;
         this.scheduler = scheduler;
         this.cronTrigger = cronTrigger;
         this.eventManager = eventManager;
+        this.clusterManager = clusterManager;
     }
 
     @Override
@@ -83,6 +93,12 @@ public class ScheduledCommandsRefresherServiceImpl
 
     @Override
     public void run() {
+        // Only the primary node should clean expired commands to avoid concurrent deletions
+        if (clusterManager.self().primary()) {
+            searchExpiredCommandsAndClean();
+        }
+
+        // Search commands to process
         final List<CommandEntity> commands = searchCommands();
         processCastMode(commands);
         commands.forEach(command -> eventManager.publishEvent(CommandEvent.TO_PROCESS, command));
@@ -94,7 +110,19 @@ public class ScheduledCommandsRefresherServiceImpl
         commandQuery.setNotAckBy(node.id());
         commandQuery.setTags(SUPPORTED_COMMAND_TAGS);
 
-        return commandService.search(commandQuery);
+        return commandService
+            .search(commandQuery)
+            .stream()
+            .filter(command -> !command.isExpired())
+            .toList();
+    }
+
+    private void searchExpiredCommandsAndClean() {
+        var before = TimeProvider.instantNow();
+        int deletedCount = commandService.deleteByExpiredAtBefore(before);
+        if (deletedCount > 0) {
+            log.debug("Deleted {} expired commands before {}", deletedCount, before);
+        }
     }
 
     /**
