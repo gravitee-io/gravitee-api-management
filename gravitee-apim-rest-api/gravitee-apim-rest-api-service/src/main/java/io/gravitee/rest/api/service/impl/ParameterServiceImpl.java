@@ -702,21 +702,17 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         ParameterReferenceType referenceType,
         ExecutionContext context
     ) {
-        Instant timestamp = Instant.now();
-        Command command = Command.builder()
-            .id(UUID.random().toString())
-            .organizationId(context.getOrganizationId())
-            .from(this.node.id())
-            .to(MessageRecipient.MANAGEMENT_APIS.name())
-            .tags(List.of(CommandTags.PARAMETER_CACHE_UPDATE.name()))
-            .createdAt(Date.from(timestamp))
-            .updatedAt(Date.from(timestamp))
-            .build();
+        Command command = new Command();
+        command.setOrganizationId(context.getOrganizationId());
+        command.setFrom(node.id());
+        command.setTo(MessageRecipient.MANAGEMENT_APIS.name());
+        command.setTags(List.of(CommandTags.PARAMETER_CACHE_UPDATE.name()));
 
         if (context.hasEnvironmentId()) {
             command.setEnvironmentId(context.getEnvironmentId());
         }
 
+        Instant timestamp = Instant.now();
         InvalidateParameterCacheCommandEntity eventData = InvalidateParameterCacheCommandEntity.builder()
             .key(key)
             .referenceId(referenceId)
@@ -726,7 +722,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
             .build();
 
         try {
-            String content = this.objectMapper.writeValueAsString(eventData);
+            String content = objectMapper.writeValueAsString(eventData);
             command.setContent(content);
         } catch (JsonProcessingException e) {
             LOGGER.error("Failed to serialize parameter cache invalidation data {}", eventData, e);

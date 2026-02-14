@@ -22,10 +22,12 @@ import io.gravitee.repository.management.model.Command;
 import io.gravitee.repository.mongodb.management.internal.message.CommandMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.CommandMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,7 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
 public class MongoCommandRepository implements CommandRepository {
 
@@ -130,6 +133,18 @@ public class MongoCommandRepository implements CommandRepository {
         } catch (Exception ex) {
             logger.error("Failed to delete commands by organizationId: {}", organizationId, ex);
             throw new TechnicalException("Failed to delete commands by organizationId");
+        }
+    }
+
+    @Override
+    public int deleteByExpiredAtBefore(Instant before) throws TechnicalException {
+        log.debug("Delete by expiredAt before [{}]", before);
+        try {
+            int deletedCount = internalMessageRepo.deleteByExpiredAtBefore(before).size();
+            log.debug("Delete by expiredAt before [{}] - Done. Deleted {} commands", before, deletedCount);
+            return deletedCount;
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to delete expired commands before " + before, ex);
         }
     }
 

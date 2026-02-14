@@ -28,10 +28,12 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.converter.CommandConverter;
 import io.gravitee.rest.api.service.exceptions.Message2RecipientNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +44,7 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
 public class CommandServiceImpl extends AbstractService implements CommandService {
 
@@ -124,6 +127,17 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
             final String error = "An error occurs while trying to delete command " + commandId;
             logger.error(error, ex);
             throw new TechnicalManagementException(error, ex);
+        }
+    }
+
+    @Override
+    public int deleteByExpiredAtBefore(Instant before) {
+        try {
+            int deletedCount = commandRepository.deleteByExpiredAtBefore(before);
+            log.debug("Deleted {} expired commands before {}", deletedCount, before);
+            return deletedCount;
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to delete expired commands", ex);
         }
     }
 }
