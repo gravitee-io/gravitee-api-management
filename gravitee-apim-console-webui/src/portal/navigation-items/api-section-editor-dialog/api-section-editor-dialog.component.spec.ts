@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, inject } from '@angular/core';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { fakeAsync, tick } from '@angular/core/testing';
 
 import {
   ApiSectionEditorDialogComponent,

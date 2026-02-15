@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
@@ -27,6 +28,7 @@ import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.subscription.ReferenceDisplayInfo;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -62,6 +64,7 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -85,6 +88,9 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
 
     @Inject
     private UserService userService;
+
+    @Inject
+    private GetApiProductsUseCase getApiProductsUseCase;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("application")
@@ -170,6 +176,7 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
             subscriptions.getContent()
         )
             .withApis(true)
+            .withApiProducts(true)
             .withApplications(true)
             .withPlans(true);
         result.setMetadata(subscriptionService.getMetadata(executionContext, subscriptionMetadataQuery).toMap());
@@ -207,27 +214,65 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
             subscription.getPlan().setSecurity(plan.getPlanSecurity().getType());
         }
 
-        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(
-            executionContext,
-            subscriptionEntity.getApi(),
-            false,
-            false,
-            false
-        );
-        subscription.setApi(
-            new Subscription.Api(
-                genericApiEntity.getId(),
-                genericApiEntity.getName(),
-                genericApiEntity.getApiVersion(),
-                genericApiEntity.getDefinitionVersion(),
-                new Subscription.User(genericApiEntity.getPrimaryOwner().getId(), genericApiEntity.getPrimaryOwner().getDisplayName())
-            )
-        );
+        subscription.setReferenceId(subscriptionEntity.getReferenceId());
+        subscription.setReferenceType(subscriptionEntity.getReferenceType());
+        if (subscriptionEntity.getReferenceId() != null && "API_PRODUCT".equals(subscriptionEntity.getReferenceType())) {
+            fetchApiProductAndSetSubscriptionApiProduct(executionContext, subscription, subscriptionEntity.getReferenceId());
+        } else if (subscriptionEntity.getApi() != null) {
+            subscription.setApi(fetchApi(executionContext, subscriptionEntity.getApi()));
+        }
 
         subscription.setClosedAt(subscriptionEntity.getClosedAt());
         subscription.setPausedAt(subscriptionEntity.getPausedAt());
 
         return subscription;
+    }
+
+    private Subscription.Api fetchApi(ExecutionContext executionContext, String apiId) {
+        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
+        return new Subscription.Api(
+            genericApiEntity.getId(),
+            genericApiEntity.getName(),
+            genericApiEntity.getApiVersion(),
+            genericApiEntity.getDefinitionVersion(),
+            new Subscription.User(genericApiEntity.getPrimaryOwner().getId(), genericApiEntity.getPrimaryOwner().getDisplayName())
+        );
+    }
+
+    private void fetchApiProductAndSetSubscriptionApiProduct(
+        ExecutionContext executionContext,
+        Subscription subscription,
+        String referenceId
+    ) {
+        subscriptionService
+            .getReferenceDisplayInfo(executionContext, "API_PRODUCT", referenceId)
+            .ifPresent(ref -> {
+                var input = GetApiProductsUseCase.Input.of(
+                    executionContext.getEnvironmentId(),
+                    referenceId,
+                    executionContext.getOrganizationId()
+                );
+                Subscription.User owner = getApiProductsUseCase
+                    .execute(input)
+                    .apiProduct()
+                    .filter(ap -> ap.getPrimaryOwner() != null)
+                    .map(ap -> {
+                        var po = ap.getPrimaryOwner();
+                        return new Subscription.User(
+                            Objects.requireNonNullElse(po.id(), ""),
+                            Objects.requireNonNullElse(po.displayName(), "")
+                        );
+                    })
+                    .orElse(
+                        new Subscription.User(
+                            Objects.requireNonNullElse(ref.getOwnerId(), ""),
+                            Objects.requireNonNullElse(ref.getOwnerDisplayName(), "")
+                        )
+                    );
+                subscription.setApiProduct(
+                    new Subscription.ApiProduct(ref.getId(), ref.getName(), Objects.requireNonNullElse(ref.getVersion(), ""), owner)
+                );
+            });
     }
 
     private static class SubscriptionParam {
