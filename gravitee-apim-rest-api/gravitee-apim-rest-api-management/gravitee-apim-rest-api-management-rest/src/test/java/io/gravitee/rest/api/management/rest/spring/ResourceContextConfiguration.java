@@ -56,6 +56,7 @@ import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
+import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
@@ -784,6 +785,11 @@ public class ResourceContextConfiguration {
     @Bean
     public CloseSubscriptionUseCase closeSubscriptionUseCase() {
         return mock(CloseSubscriptionUseCase.class);
+    }
+
+    @Bean
+    public GetApiProductsUseCase getApiProductsUseCase() {
+        return mock(GetApiProductsUseCase.class);
     }
 
     @Bean

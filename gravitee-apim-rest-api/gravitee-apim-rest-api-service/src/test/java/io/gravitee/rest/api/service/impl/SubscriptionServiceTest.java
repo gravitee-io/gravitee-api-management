@@ -54,7 +54,6 @@ import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryS
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
-import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
@@ -104,6 +103,7 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.UserService;
@@ -265,6 +265,9 @@ public class SubscriptionServiceTest {
     @Mock
     private ApiKeyRepository apiKeyRepository;
 
+    @Mock
+    private MembershipService membershipService;
+
     @AfterClass
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
@@ -302,7 +305,15 @@ public class SubscriptionServiceTest {
         application.setId(APPLICATION_ID);
         application.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
 
-        when(subscriptionAdapter.map(any())).thenAnswer(invocation -> new SubscriptionAdapterImpl().map(invocation.getArgument(0)));
+        when(subscriptionAdapter.map(any())).thenAnswer(invocation -> {
+            io.gravitee.apim.core.subscription.model.SubscriptionEntity core = invocation.getArgument(0);
+            SubscriptionEntity entity = new SubscriptionEntity();
+            entity.setId(core.getId());
+            entity.setStatus(core.getStatus() != null ? SubscriptionStatus.valueOf(core.getStatus().name()) : null);
+            entity.setProcessedBy(core.getProcessedBy());
+            entity.setApplication(core.getApplicationId());
+            return entity;
+        });
     }
 
     @Test
@@ -1992,6 +2003,132 @@ public class SubscriptionServiceTest {
         Mockito.verify(planSearchService, times(1)).findByIdIn(eq(GraviteeContext.getExecutionContext()), eq(Set.of(PLAN_ID)));
         Mockito.verify(userService, times(1)).findByIds(eq(GraviteeContext.getExecutionContext()), eq(Set.of(SUBSCRIBER_ID)));
         Mockito.verify(apiEntrypointService, times(1)).getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+    }
+
+    @Test
+    public void shouldIncludeApplicationPrimaryOwnerInSubscriptionMetadata() throws TechnicalException {
+        String appPrimaryOwnerId = "app-owner-id";
+        String appPrimaryOwnerName = "App Owner Name";
+        String appPrimaryOwnerEmail = "app.owner@example.com";
+
+        PrimaryOwnerEntity appPrimaryOwner = new PrimaryOwnerEntity();
+        appPrimaryOwner.setId(appPrimaryOwnerId);
+        appPrimaryOwner.setDisplayName(appPrimaryOwnerName);
+        appPrimaryOwner.setEmail(appPrimaryOwnerEmail);
+
+        io.gravitee.rest.api.model.application.ApplicationListItem applicationListItem =
+            io.gravitee.rest.api.model.application.ApplicationListItem.builder()
+                .id(APPLICATION_ID)
+                .name("Test Application")
+                .description("Test Application Description")
+                .status("ACTIVE")
+                .primaryOwner(appPrimaryOwner)
+                .build();
+
+        final SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId(SUBSCRIPTION_ID);
+        subscriptionEntity.setApplication(APPLICATION_ID);
+        subscriptionEntity.setReferenceId(API_ID);
+        subscriptionEntity.setReferenceType("API");
+        subscriptionEntity.setPlan(PLAN_ID);
+        subscriptionEntity.setSubscribedBy(SUBSCRIBER_ID);
+
+        when(
+            applicationService.findByIdsAndStatus(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Set.of(APPLICATION_ID)),
+                eq(ApplicationStatus.ACTIVE)
+            )
+        ).thenReturn(Set.of(applicationListItem));
+        SubscriptionMetadataQuery query = new SubscriptionMetadataQuery("DEFAULT", "DEFAULT", List.of(subscriptionEntity)).withApplications(
+            true
+        );
+
+        Metadata metadata = subscriptionService.getMetadata(GraviteeContext.getExecutionContext(), query);
+
+        assertNotNull(metadata);
+        assertFalse(metadata.toMap().isEmpty());
+        Mockito.verify(applicationService, times(1)).findByIdsAndStatus(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(Set.of(APPLICATION_ID)),
+            eq(ApplicationStatus.ACTIVE)
+        );
+        Map<String, Map<String, Object>> metadataMap = metadata.toMap();
+        assertTrue(metadataMap.containsKey(APPLICATION_ID));
+        Map<String, Object> appMetadata = metadataMap.get(APPLICATION_ID);
+        assertNotNull(appMetadata);
+        assertEquals("Test Application", appMetadata.get("name"));
+    }
+
+    @Test
+    public void shouldGetMetadataForApiProductSubscription_applicationAndPlan() throws TechnicalException {
+        String apiProductId = "api-product-id";
+        String appPrimaryOwnerId = "app-owner-id";
+        String appPrimaryOwnerName = "Product App Owner";
+
+        PrimaryOwnerEntity appPrimaryOwner = new PrimaryOwnerEntity();
+        appPrimaryOwner.setId(appPrimaryOwnerId);
+        appPrimaryOwner.setDisplayName(appPrimaryOwnerName);
+        appPrimaryOwner.setEmail("product.app.owner@example.com");
+        appPrimaryOwner.setType("USER");
+
+        io.gravitee.rest.api.model.application.ApplicationListItem applicationListItem =
+            io.gravitee.rest.api.model.application.ApplicationListItem.builder()
+                .id(APPLICATION_ID)
+                .name("API Product Application")
+                .description("Application subscribed to API Product")
+                .status("ACTIVE")
+                .type("WEB")
+                .primaryOwner(appPrimaryOwner)
+                .build();
+
+        io.gravitee.rest.api.model.v4.plan.PlanEntity planEntityV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        planEntityV4.setId(PLAN_ID);
+        planEntityV4.setReferenceId(apiProductId);
+        planEntityV4.setReferenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API_PRODUCT);
+        planEntityV4.setName("Plan Name");
+        planEntityV4.setMode(PlanMode.STANDARD);
+
+        final SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId(SUBSCRIPTION_ID);
+        subscriptionEntity.setApplication(APPLICATION_ID);
+        subscriptionEntity.setReferenceId(apiProductId);
+        subscriptionEntity.setReferenceType("API_PRODUCT");
+        subscriptionEntity.setPlan(PLAN_ID);
+        subscriptionEntity.setStatus(SubscriptionStatus.ACCEPTED);
+
+        when(
+            applicationService.findByIdsAndStatus(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Set.of(APPLICATION_ID)),
+                eq(ApplicationStatus.ACTIVE)
+            )
+        ).thenReturn(Set.of(applicationListItem));
+        when(planSearchService.findByIdIn(eq(GraviteeContext.getExecutionContext()), eq(Set.of(PLAN_ID)))).thenReturn(Set.of(planEntityV4));
+
+        SubscriptionMetadataQuery query = new SubscriptionMetadataQuery("DEFAULT", "DEFAULT", List.of(subscriptionEntity))
+            .withApplications(true)
+            .withPlans(true);
+
+        Metadata metadata = subscriptionService.getMetadata(GraviteeContext.getExecutionContext(), query);
+
+        assertNotNull(metadata);
+        assertFalse(metadata.toMap().isEmpty());
+        verify(applicationService, times(1)).findByIdsAndStatus(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(Set.of(APPLICATION_ID)),
+            eq(ApplicationStatus.ACTIVE)
+        );
+        verify(planSearchService, times(1)).findByIdIn(eq(GraviteeContext.getExecutionContext()), eq(Set.of(PLAN_ID)));
+        verify(apiSearchService, never()).findGenericByEnvironmentAndIdIn(any(), any());
+
+        Map<String, Map<String, Object>> metadataMap = metadata.toMap();
+        assertTrue(metadataMap.containsKey(APPLICATION_ID));
+        assertEquals("API Product Application", metadataMap.get(APPLICATION_ID).get("name"));
+
+        assertTrue(metadataMap.containsKey(PLAN_ID));
+        assertEquals("Plan Name", metadataMap.get(PLAN_ID).get("name"));
+        assertEquals("STANDARD", metadataMap.get(PLAN_ID).get("planMode"));
     }
 
     @Test

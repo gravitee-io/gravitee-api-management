@@ -41,11 +41,14 @@ export interface SubscriptionPage {
   client_id?: string;
   security?: string;
   origin: SubscriptionOrigin;
+  referenceType?: string;
+  referenceId?: string;
 }
 
 export interface Subscription {
   id?: string;
   api?: SubscriptionApi;
+  apiProduct?: SubscriptionApiProduct;
   plan?: SubscriptionPlan;
   application?: SubscriptionApplication;
   status?: SubscriptionStatus;
@@ -64,6 +67,8 @@ export interface Subscription {
   security?: string;
   origin: SubscriptionOrigin;
   configuration?: SubscriptionConsumerConfiguration;
+  referenceType?: string;
+  referenceId?: string;
 }
 
 /**
@@ -89,6 +94,17 @@ export interface SubscriptionApi {
   name: string;
   version: string;
   definitionVersion: DefinitionVersion;
+  owner: {
+    id: string;
+    displayName: string;
+  };
+}
+
+/** Display info for API Product subscription (referenceType = API_PRODUCT). */
+export interface SubscriptionApiProduct {
+  id: string;
+  name: string;
+  version: string;
   owner: {
     id: string;
     displayName: string;
@@ -129,4 +145,6 @@ export interface ApplicationSubscription {
   created_at?: Date;
   updated_at?: Date;
   ending_at?: Date;
+  referenceType?: string;
+  referenceId?: string;
 }

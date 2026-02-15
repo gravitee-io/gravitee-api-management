@@ -114,11 +114,12 @@
         <td mat-cell *matCellDef="let element">{{ element.planName }}</td>
       </ng-container>
 
-      <!-- Display Application Column -->
+      <!-- Display API / API Product Column -->
       <ng-container matColumnDef="api">
         <th mat-header-cell *matHeaderCellDef id="api">API</th>
         <td mat-cell *matCellDef="let element">
           <span [matTooltip]="element.apiPo">{{ element.apiName }}</span>
+          <div class="subscriptions__table__reference-type">{{ element.referenceTypeLabel }}</div>
         </td>
       </ng-container>
 

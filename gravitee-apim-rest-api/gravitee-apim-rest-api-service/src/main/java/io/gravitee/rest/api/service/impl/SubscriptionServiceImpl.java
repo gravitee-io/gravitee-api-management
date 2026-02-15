@@ -66,6 +66,7 @@ import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -83,6 +84,7 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
+import io.gravitee.rest.api.model.subscription.ReferenceDisplayInfo;
 import io.gravitee.rest.api.model.subscription.SubscribedReference;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
@@ -97,6 +99,7 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -141,6 +144,7 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -203,6 +207,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Autowired
     private GroupService groupService;
+
+    @Autowired
+    private MembershipService membershipService;
 
     @Autowired
     private InstallationAccessQueryService installationAccessQueryService;
@@ -340,6 +347,70 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     }
 
     private record SubscriptionReferenceKey(String refId, String refType) {}
+
+    @Override
+    public Optional<ReferenceDisplayInfo> getReferenceDisplayInfo(
+        ExecutionContext executionContext,
+        String referenceType,
+        String referenceId
+    ) {
+        if (referenceId == null || referenceType == null) {
+            return Optional.empty();
+        }
+        try {
+            if ("API_PRODUCT".equals(referenceType)) {
+                return getApiProductReferenceDisplayInfo(executionContext, referenceId);
+            }
+            if ("API".equals(referenceType)) {
+                return getApiReferenceDisplayInfo(executionContext, referenceId);
+            }
+        } catch (Exception e) {
+            log.debug("Could not load reference display info for {} {}: {}", referenceType, referenceId, e.getMessage());
+        }
+        return Optional.empty();
+    }
+
+    private Optional<ReferenceDisplayInfo> getApiProductReferenceDisplayInfo(ExecutionContext executionContext, String referenceId)
+        throws TechnicalException {
+        return apiProductsRepository
+            .findById(referenceId)
+            .map(apiProduct ->
+                ReferenceDisplayInfo.builder()
+                    .id(apiProduct.getId())
+                    .name(apiProduct.getName())
+                    .version(Objects.requireNonNullElse(apiProduct.getVersion(), ""))
+                    .ownerId(Objects.requireNonNullElse(getPrimaryOwnerUserIdOrNull(executionContext, apiProduct.getId()), ""))
+                    .ownerDisplayName(getPrimaryOwnerDisplayName(executionContext, apiProduct.getId()))
+                    .build()
+            );
+    }
+
+    private String getPrimaryOwnerDisplayName(ExecutionContext executionContext, String productId) {
+        String ownerUserId = getPrimaryOwnerUserIdOrNull(executionContext, productId);
+        if (ownerUserId == null) {
+            return "";
+        }
+        try {
+            return Objects.requireNonNullElse(userService.findById(executionContext, ownerUserId).getDisplayName(), "");
+        } catch (Exception ex) {
+            log.debug("Could not load primary owner for API Product {}", productId, ex);
+            return "";
+        }
+    }
+
+    private Optional<ReferenceDisplayInfo> getApiReferenceDisplayInfo(ExecutionContext executionContext, String referenceId) {
+        GenericApiEntity api = apiSearchService.findGenericById(executionContext, referenceId, false, false, false);
+        return Optional.of(
+            ReferenceDisplayInfo.builder()
+                .id(api.getId())
+                .name(api.getName())
+                .version(Objects.requireNonNullElse(api.getApiVersion(), ""))
+                .definitionVersion(api.getDefinitionVersion())
+                .ownerId(api.getPrimaryOwner().getId())
+                .ownerDisplayName(api.getPrimaryOwner().getDisplayName())
+                .build()
+        );
+    }
 
     @Override
     public Collection<SubscriptionEntity> findByApplicationAndPlan(
@@ -1893,6 +1964,36 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     .collect(toMap(GenericApiEntity::getId, Function.identity()));
             });
 
+        final Optional<Map<String, ApiProduct>> apiProductsById = query
+            .ifApiProducts()
+            .map(withApiProducts -> {
+                Set<String> apiProductIds = subscriptions
+                    .stream()
+                    .filter(sub -> "API_PRODUCT".equals(sub.getReferenceType()) && sub.getReferenceId() != null)
+                    .map(SubscriptionEntity::getReferenceId)
+                    .collect(toSet());
+                if (apiProductIds.isEmpty()) {
+                    return Collections.<String, ApiProduct>emptyMap();
+                }
+                Map<String, ApiProduct> apiProductsByProductId = new HashMap<>();
+                for (String productId : apiProductIds) {
+                    try {
+                        apiProductsRepository
+                            .findById(productId)
+                            .ifPresent(apiProduct -> apiProductsByProductId.put(apiProduct.getId(), apiProduct));
+                    } catch (TechnicalException ex) {
+                        throw new TechnicalManagementException(
+                            "An error occurs while trying to find API Products for subscription metadata",
+                            ex
+                        );
+                    }
+                }
+                return apiProductsByProductId;
+            });
+        final Optional<Map<String, String>> productIdToPrimaryOwnerDisplayName = apiProductsById.map(products ->
+            getProductIdToPrimaryOwnerDisplayNameMap(executionContext, products.keySet())
+        );
+
         final Optional<Map<String, GenericPlanEntity>> plansById = query
             .ifPlans()
             .map(withPlans -> {
@@ -1916,6 +2017,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         subscriptions.forEach(subscription -> {
             applicationsById.ifPresent(byId -> fillApplicationMetadata(byId, metadata, subscription));
             apisById.ifPresent(byId -> fillApiMetadata(executionContext, byId, metadata, subscription, query));
+            apiProductsById.ifPresent(byId ->
+                fillApiProductMetadata(byId, metadata, subscription, productIdToPrimaryOwnerDisplayName.orElse(Collections.emptyMap()))
+            );
             plansById.ifPresent(byId -> fillPlanMetadata(byId, metadata, subscription));
             subscribersById.ifPresent(byId -> fillSubscribersMetadata(byId, metadata, subscription));
         });
@@ -1968,6 +2072,66 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 metadata.put(api.getId(), "entrypoints", apiEntrypoints);
             }
             query.getApiDelegate().forEach(delegate -> delegate.apply(metadata, api));
+        }
+        return metadata;
+    }
+
+    private Map<String, String> getProductIdToPrimaryOwnerDisplayNameMap(
+        ExecutionContext executionContext,
+        Collection<String> apiProductIds
+    ) {
+        if (apiProductIds == null || apiProductIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        Map<String, String> productIdToOwnerUserId = apiProductIds
+            .stream()
+            .map(productId -> {
+                String ownerUserId = getPrimaryOwnerUserIdOrNull(executionContext, productId);
+                return ownerUserId != null ? Map.entry(productId, ownerUserId) : null;
+            })
+            .filter(Objects::nonNull)
+            .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+        if (productIdToOwnerUserId.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        Map<String, String> userIdToDisplayName = userService
+            .findByIds(executionContext, productIdToOwnerUserId.values())
+            .stream()
+            .collect(toMap(UserEntity::getId, user -> Objects.requireNonNullElse(user.getDisplayName(), "")));
+        return productIdToOwnerUserId
+            .entrySet()
+            .stream()
+            .collect(toMap(Map.Entry::getKey, entry -> userIdToDisplayName.getOrDefault(entry.getValue(), "")));
+    }
+
+    private String getPrimaryOwnerUserIdOrNull(ExecutionContext executionContext, String productId) {
+        try {
+            return membershipService.getPrimaryOwnerUserId(
+                executionContext.getOrganizationId(),
+                MembershipReferenceType.API_PRODUCT,
+                productId
+            );
+        } catch (Exception ex) {
+            log.debug("Could not resolve primary owner for API Product {}", productId, ex);
+            return null;
+        }
+    }
+
+    private Metadata fillApiProductMetadata(
+        Map<String, ApiProduct> apiProducts,
+        Metadata metadata,
+        SubscriptionEntity subscription,
+        Map<String, String> primaryOwnerDisplayNameByProductId
+    ) {
+        if (
+            "API_PRODUCT".equals(subscription.getReferenceType()) &&
+            subscription.getReferenceId() != null &&
+            apiProducts.containsKey(subscription.getReferenceId())
+        ) {
+            ApiProduct apiProduct = apiProducts.get(subscription.getReferenceId());
+            metadata.put(apiProduct.getId(), "name", apiProduct.getName());
+            metadata.put(apiProduct.getId(), "apiVersion", apiProduct.getVersion() != null ? apiProduct.getVersion() : "");
+            metadata.put(apiProduct.getId(), "apiPrimaryOwner", primaryOwnerDisplayNameByProductId.getOrDefault(apiProduct.getId(), ""));
         }
         return metadata;
     }

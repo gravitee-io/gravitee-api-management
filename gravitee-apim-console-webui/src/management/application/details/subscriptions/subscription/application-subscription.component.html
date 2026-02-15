@@ -37,14 +37,29 @@
           {{ pageVM.subscription.id || '-' }}
         </dd>
 
-        <dt>API</dt>
-        <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.api.name + ' - ' + pageVM.subscription.api.version">
-          {{ pageVM.subscription.api.name }} - {{ pageVM.subscription.api.version }}
+        <dt>{{ pageVM.subscription.referenceType === 'API_PRODUCT' || pageVM.subscription.apiProduct ? 'API Product' : 'API' }}</dt>
+        <dd
+          gioClipboardCopyWrapper
+          [contentToCopy]="
+            (pageVM.subscription.api ?? pageVM.subscription.apiProduct)
+              ? (pageVM.subscription.api ?? pageVM.subscription.apiProduct).name +
+                ' - ' +
+                ((pageVM.subscription.api ?? pageVM.subscription.apiProduct).version || '')
+              : ''
+          "
+        >
+          {{
+            (pageVM.subscription.api ?? pageVM.subscription.apiProduct)
+              ? (pageVM.subscription.api ?? pageVM.subscription.apiProduct).name +
+                ' - ' +
+                ((pageVM.subscription.api ?? pageVM.subscription.apiProduct).version || '')
+              : '-'
+          }}
         </dd>
 
         <dt>Plan</dt>
-        <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.plan.name">
-          {{ pageVM.subscription.plan.name || '-' }}
+        <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.plan?.name">
+          {{ pageVM.subscription.plan?.name || '-' }}
         </dd>
 
         <dt>Status</dt>
@@ -53,8 +68,8 @@
         </dd>
 
         <dt>Subscribed by</dt>
-        <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.subscribed_by.displayName">
-          {{ pageVM.subscription.subscribed_by.displayName || '-' }}
+        <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.subscribed_by?.displayName">
+          {{ pageVM.subscription.subscribed_by?.displayName || '-' }}
         </dd>
 
         @if (pageVM.subscription.request) {
@@ -109,7 +124,7 @@
       [readonly]="
         pageVM.application.api_key_mode === 'SHARED' ||
         pageVM.subscription.status !== 'ACCEPTED' ||
-        pageVM.subscription.api.definitionVersion == 'FEDERATED'
+        pageVM.subscription.api?.definitionVersion == 'FEDERATED'
       "
       [subtitleText]="
         pageVM.application.api_key_mode === 'SHARED'

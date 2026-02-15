@@ -17,9 +17,9 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.Subscription;
@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.subscription.ReferenceDisplayInfo;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -63,6 +64,7 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.sql.Date;
+import java.util.Objects;
 
 /**
  * @author GraviteeSource Team
@@ -84,6 +86,9 @@ public class ApplicationSubscriptionResource extends AbstractResource {
 
     @Inject
     private UserService userService;
+
+    @Inject
+    private GetApiProductsUseCase getApiProductsUseCase;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("application")
@@ -256,8 +261,15 @@ public class ApplicationSubscriptionResource extends AbstractResource {
         subscription.setPlan(fetchPlan(executionContext, subscriptionEntity.getPlan()));
         subscription.setReferenceId(subscriptionEntity.getReferenceId());
         subscription.setReferenceType(subscriptionEntity.getReferenceType());
-        if (subscriptionEntity.getReferenceId() != null && "API".equals(subscriptionEntity.getReferenceType())) {
-            subscription.setApi(fetchApi(executionContext, subscriptionEntity.getReferenceId()));
+        if (subscriptionEntity.getReferenceId() != null && subscriptionEntity.getReferenceType() != null) {
+            String refType = subscriptionEntity.getReferenceType();
+            if ("API_PRODUCT".equals(refType)) {
+                fetchAndSetSubscriptionApiProduct(executionContext, subscription, subscriptionEntity.getReferenceId());
+            } else if ("API".equals(refType)) {
+                subscription.setApi(fetchApi(executionContext, subscriptionEntity.getReferenceId()));
+            }
+        } else if (subscriptionEntity.getApi() != null) {
+            subscription.setApi(fetchApi(executionContext, subscriptionEntity.getApi()));
         }
 
         subscription.setClosedAt(subscriptionEntity.getClosedAt());
@@ -321,22 +333,18 @@ public class ApplicationSubscriptionResource extends AbstractResource {
         subscription.setPlan(fetchPlan(executionContext, subscriptionEntity.getPlanId()));
         subscription.setReferenceId(subscriptionEntity.getReferenceId());
         subscription.setReferenceType(subscriptionEntity.getReferenceType() != null ? subscriptionEntity.getReferenceType().name() : null);
-        if (subscriptionEntity.getReferenceId() != null && SubscriptionReferenceType.API.equals(subscriptionEntity.getReferenceType())) {
+        if (subscriptionEntity.getReferenceId() != null && subscriptionEntity.getReferenceType() != null) {
+            String refType = subscriptionEntity.getReferenceType().name();
+            if ("API_PRODUCT".equals(refType)) {
+                fetchAndSetSubscriptionApiProduct(executionContext, subscription, subscriptionEntity.getReferenceId());
+            } else if ("API".equals(refType)) {
+                subscription.setApi(fetchApi(executionContext, subscriptionEntity.getReferenceId()));
+            }
+        } else if (subscriptionEntity.getReferenceId() != null) {
             subscription.setApi(fetchApi(executionContext, subscriptionEntity.getReferenceId()));
         }
 
         return subscription;
-    }
-
-    private Subscription.Plan fetchPlan(ExecutionContext executionContext, String planId) {
-        GenericPlanEntity genericPlan = planSearchService.findById(executionContext, planId);
-
-        var plan = new Subscription.Plan(genericPlan.getId(), genericPlan.getName());
-        if (genericPlan.getPlanSecurity() != null) {
-            plan.setSecurity(PlanSecurityType.valueOfLabel(genericPlan.getPlanSecurity().getType()).name());
-        }
-
-        return plan;
     }
 
     private Subscription.Api fetchApi(ExecutionContext executionContext, String apiId) {
@@ -348,6 +356,49 @@ public class ApplicationSubscriptionResource extends AbstractResource {
             genericApiEntity.getDefinitionVersion(),
             new Subscription.User(genericApiEntity.getPrimaryOwner().getId(), genericApiEntity.getPrimaryOwner().getDisplayName())
         );
+    }
+
+    private void fetchAndSetSubscriptionApiProduct(ExecutionContext executionContext, Subscription subscription, String referenceId) {
+        subscriptionService
+            .getReferenceDisplayInfo(executionContext, "API_PRODUCT", referenceId)
+            .ifPresent(ref -> {
+                var input = GetApiProductsUseCase.Input.of(
+                    executionContext.getEnvironmentId(),
+                    referenceId,
+                    executionContext.getOrganizationId()
+                );
+                Subscription.User owner = getApiProductsUseCase
+                    .execute(input)
+                    .apiProduct()
+                    .filter(ap -> ap.getPrimaryOwner() != null)
+                    .map(ap -> {
+                        var po = ap.getPrimaryOwner();
+                        return new Subscription.User(
+                            Objects.requireNonNullElse(po.id(), ""),
+                            Objects.requireNonNullElse(po.displayName(), "API Product")
+                        );
+                    })
+                    .orElse(
+                        new Subscription.User(
+                            Objects.requireNonNullElse(ref.getOwnerId(), ""),
+                            Objects.requireNonNullElse(ref.getOwnerDisplayName(), "")
+                        )
+                    );
+                subscription.setApiProduct(
+                    new Subscription.ApiProduct(ref.getId(), ref.getName(), Objects.requireNonNullElse(ref.getVersion(), ""), owner)
+                );
+            });
+    }
+
+    private Subscription.Plan fetchPlan(ExecutionContext executionContext, String planId) {
+        GenericPlanEntity genericPlan = planSearchService.findById(executionContext, planId);
+
+        var plan = new Subscription.Plan(genericPlan.getId(), genericPlan.getName());
+        if (genericPlan.getPlanSecurity() != null) {
+            plan.setSecurity(PlanSecurityType.valueOfLabel(genericPlan.getPlanSecurity().getType()).name());
+        }
+
+        return plan;
     }
 
     private SubscriptionEntity checkSubscription(String subscription) {
