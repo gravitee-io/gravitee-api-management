@@ -24,6 +24,7 @@ import io.gravitee.gateway.reactor.processor.responsetime.ResponseTimeProcessor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -45,6 +46,9 @@ public class ResponseProcessorChainFactory {
     @Autowired
     private Node node;
 
+    @Autowired(required = false)
+    private MeterRegistry meterRegistry;
+
     @Value("${http.port:8082}")
     private String port;
 
@@ -54,7 +58,7 @@ public class ResponseProcessorChainFactory {
 
     protected List<Processor<ExecutionContext>> getProcessors() {
         List<Processor<ExecutionContext>> processors = new ArrayList<>(
-            Arrays.asList(new ResponseTimeProcessor(), new ReporterProcessor(reporterService))
+            Arrays.asList(new ResponseTimeProcessor(meterRegistry), new ReporterProcessor(reporterService))
         );
 
         if (!eventProducer.isEmpty()) {

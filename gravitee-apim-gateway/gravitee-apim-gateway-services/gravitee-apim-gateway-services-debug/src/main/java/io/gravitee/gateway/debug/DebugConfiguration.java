@@ -89,9 +89,11 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.repository.management.api.EventRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.vertx.core.Vertx;
 import java.util.List;
 import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -357,7 +359,8 @@ public class DebugConfiguration {
         GatewayConfiguration gatewayConfiguration,
         EventRepository eventRepository,
         ObjectMapper objectMapper,
-        ConnectionDrainManager connectionDrainManager
+        ConnectionDrainManager connectionDrainManager,
+        @Autowired(required = false) MeterRegistry meterRegistry
     ) {
         return new DebugPlatformProcessorChainFactory(
             transactionHandlerFactory,
@@ -371,7 +374,8 @@ public class DebugConfiguration {
             gatewayConfiguration,
             eventRepository,
             objectMapper,
-            connectionDrainManager
+            connectionDrainManager,
+            meterRegistry
         );
     }
 

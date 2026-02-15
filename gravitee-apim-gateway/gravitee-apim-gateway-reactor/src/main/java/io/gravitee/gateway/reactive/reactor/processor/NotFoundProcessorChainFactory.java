@@ -26,6 +26,7 @@ import io.gravitee.gateway.reactive.reactor.processor.reporter.ReporterProcessor
 import io.gravitee.gateway.reactive.reactor.processor.responsetime.ResponseTimeProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.core.env.Environment;
@@ -41,6 +42,7 @@ public class NotFoundProcessorChainFactory {
     private final ReporterService reporterService;
     private final boolean notFoundAnalyticsEnabled;
     private final GatewayConfiguration gatewayConfiguration;
+    private final MeterRegistry meterRegistry;
     private final List<ProcessorHook> processorHooks = new ArrayList<>();
     private ProcessorChain processorChain;
 
@@ -49,13 +51,15 @@ public class NotFoundProcessorChainFactory {
         final Environment environment,
         final ReporterService reporterService,
         boolean notFoundAnalyticsEnabled,
-        GatewayConfiguration gatewayConfiguration
+        GatewayConfiguration gatewayConfiguration,
+        MeterRegistry meterRegistry
     ) {
         this.transactionHandlerFactory = transactionHandlerFactory;
         this.environment = environment;
         this.reporterService = reporterService;
         this.notFoundAnalyticsEnabled = notFoundAnalyticsEnabled;
         this.gatewayConfiguration = gatewayConfiguration;
+        this.meterRegistry = meterRegistry;
     }
 
     public ProcessorChain processorChain() {
@@ -76,7 +80,7 @@ public class NotFoundProcessorChainFactory {
         processorList.add(transactionHandlerFactory.create());
         processorList.add(new MetricsProcessor(gatewayConfiguration, notFoundAnalyticsEnabled));
         processorList.add(new NotFoundProcessor(environment));
-        processorList.add(new ResponseTimeProcessor());
+        processorList.add(new ResponseTimeProcessor(meterRegistry));
         processorList.add(new ReporterProcessor(reporterService));
         return processorList;
     }

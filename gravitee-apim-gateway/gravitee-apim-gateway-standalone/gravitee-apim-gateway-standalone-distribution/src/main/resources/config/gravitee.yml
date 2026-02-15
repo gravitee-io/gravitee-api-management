@@ -702,6 +702,14 @@ services:
     prometheus:
       enabled: true
       concurrencyLimit: 3
+# When metrics are enabled and Prometheus is configured, the following percentile
+# response time metrics are exposed at /_node/metrics/prometheus:
+#   - gateway_response_time_seconds{quantile="0.5"}   (P50)
+#   - gateway_response_time_seconds{quantile="0.75"}  (P75)
+#   - gateway_response_time_seconds{quantile="0.95"}  (P95)
+#   - gateway_response_time_seconds{quantile="0.99"}  (P99)
+#   - gateway_response_time_seconds_count
+#   - gateway_response_time_seconds_sum
 
   # heartbeat
 #  heartbeat:
