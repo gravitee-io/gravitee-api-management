@@ -35,6 +35,12 @@
       cursor: pointer;
     }
 
+    &__reference-type {
+      font-size: 12px;
+      color: var(--gio-text-disabled-color, #757575);
+      margin-top: 2px;
+    }
+
     &__actions {
       display: flex;
       flex-direction: row;

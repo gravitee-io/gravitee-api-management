@@ -183,9 +183,11 @@ describe('ApplicationSubscriptionListComponent', () => {
           actions: '',
         },
       ]);
-      expect(rowCells).toEqual([
-        ['API_KEY', 'Plan Name', 'Api Name - 1', expect.any(String), expect.any(String), expect.any(String), '', 'Accepted', ''],
-      ]);
+      expect(rowCells).toHaveLength(1);
+      expect(rowCells[0][0]).toBe('API_KEY');
+      expect(rowCells[0][1]).toBe('Plan Name');
+      expect(rowCells[0][2]).toContain('Api Name - 1');
+      expect(rowCells[0][7]).toBe('Accepted');
       expectApiGetRequest(fakeProxyApiV4({ id: subscription.api, name: 'api', primaryOwner: { displayName: 'PO' } }));
     }));
 
@@ -248,6 +250,26 @@ describe('ApplicationSubscriptionListComponent', () => {
       expectSubscriptionsGetRequest([subscription], ['ACCEPTED', 'PENDING'], [api.id]);
       expectApiGetRequest(fakeProxyApiV4({ id: subscription.api, name: api.name, primaryOwner: { displayName: 'PO' } }));
     }));
+
+    it('should display API Product subscription using metadata', fakeAsync(async () => {
+      const PRODUCT_ID = 'product-id';
+      const subscription = fakeSubscriptionPage({
+        referenceType: 'API_PRODUCT',
+        referenceId: PRODUCT_ID,
+        application: APPLICATION_ID,
+        plan: PLAN_ID,
+      });
+      await initComponent([subscription]);
+
+      const harness = await loader.getHarness(ApplicationSubscriptionListHarness);
+      const { rowCells } = await harness.computeSubscriptionsTableCells();
+      expect(rowCells).toHaveLength(1);
+      expect(rowCells[0][0]).toBe('API_KEY');
+      expect(rowCells[0][1]).toBe('Plan Name');
+      expect(rowCells[0][2]).toContain('Api Name - 1');
+      expect(rowCells[0][2]).toContain('API Product');
+      expect(rowCells[0][7]).toBe('Accepted');
+    }));
   });
 
   async function initComponent(
@@ -279,12 +301,23 @@ describe('ApplicationSubscriptionListComponent', () => {
 
     expectSubscriptionsGetRequest(subscriptions, params?.status?.split(','), params?.apis?.split(','), params?.apiKey);
     expectApplicationGetRequest(APP);
-    subscriptions.forEach(subscription => {
-      expectApiGetRequest(fakeProxyApiV4({ id: subscription.api, name: 'api', primaryOwner: { displayName: 'PO' } }));
+    subscriptions.forEach((subscription) => {
+      if (subscription.referenceType !== 'API_PRODUCT' && subscription.api) {
+        expectApiGetRequest(fakeProxyApiV4({ id: subscription.api, name: 'api', primaryOwner: { displayName: 'PO' } }));
+      }
     });
   }
 
   const expectSubscriptionsGetRequest = (subscriptions: SubscriptionPage[] = [], status?: string[], apis?: string[], apiKey?: string) => {
+    const metadataKey = (sub: SubscriptionPage) => (sub.referenceType === 'API_PRODUCT' ? sub.referenceId : (sub.api ?? sub.referenceId));
+    const planMetadata = Object.fromEntries(subscriptions?.map((sub) => [sub.plan, { name: 'Plan Name', securityType: 'API_KEY' }]) ?? []);
+    const apiMetadataEntries = (subscriptions ?? [])
+      .map((sub) => {
+        const key = metadataKey(sub);
+        return key ? [key, { name: 'Api Name', apiVersion: '1', apiPrimaryOwner: 'PO' }] : null;
+      })
+      .filter((e) => e != null) as [string, { name: string; apiVersion: string; apiPrimaryOwner: string }][];
+    const apiMetadata = Object.fromEntries(apiMetadataEntries);
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.baseURL}/applications/${APPLICATION_ID}/subscriptions?page=1&size=10${
@@ -292,28 +325,7 @@ describe('ApplicationSubscriptionListComponent', () => {
         }${apis ? `&api=${apis.join(',')}` : ''}${apiKey ? `&api_key=${apiKey}` : ''}`,
         method: 'GET',
       })
-      .flush(
-        fakePagedResult(subscriptions, undefined, {
-          ...Object.fromEntries(
-            subscriptions?.map(subscription => [
-              subscription.plan,
-              {
-                name: 'Plan Name',
-                securityType: 'API_KEY',
-              },
-            ]),
-          ),
-          ...Object.fromEntries(
-            subscriptions?.map(subscription => [
-              subscription.api,
-              {
-                name: 'Api Name',
-                apiVersion: '1',
-              },
-            ]),
-          ),
-        }),
-      );
+      .flush(fakePagedResult(subscriptions, undefined, { ...planMetadata, ...apiMetadata }));
     fixture.detectChanges();
   };
 

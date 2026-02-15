@@ -40,10 +40,10 @@ public class Subscription {
 
     private Api api;
 
-    /** Reference id (API id or API Product id). */
+    private ApiProduct apiProduct;
+
     private String referenceId;
 
-    /** Reference type: API or API_PRODUCT. */
     private String referenceType;
 
     private Plan plan;
@@ -215,6 +215,16 @@ public class Subscription {
         private final String name;
         private final String version;
         private final DefinitionVersion definitionVersion;
+        private final User owner;
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class ApiProduct {
+
+        private final String id;
+        private final String name;
+        private final String version;
         private final User owner;
     }
 

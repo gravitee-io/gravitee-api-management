@@ -41,6 +41,8 @@ type SubscriptionsTableDS = {
   isSharedApiKey: boolean;
   apiName: string;
   apiPo: string;
+  /** Display label for reference type: "API" or "API Product" */
+  referenceTypeLabel: string;
   createdAt: Date;
   processedAt: Date;
   startingAt: Date;
@@ -188,12 +190,18 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
           const status = this.statuses.find(status => status.id === subscription.status);
 
           const planMetadata = get(applicationSubscriptions.metadata, [subscription.plan], {});
-          const apiMetadata = get(applicationSubscriptions.metadata, [subscription.api], {});
+          const apiMetadataKey =
+            subscription.referenceType === 'API_PRODUCT' ? subscription.referenceId : (subscription.api ?? subscription.referenceId);
+          const apiMetadata = get(applicationSubscriptions.metadata, [apiMetadataKey], {});
 
+          const isApiProduct = subscription.referenceType === 'API_PRODUCT';
           return {
             id: subscription.id,
-            apiName: apiMetadata['name'] ? `${apiMetadata['name']} - ${apiMetadata['apiVersion']}` : subscription.api,
+            apiName: apiMetadata['name']
+              ? `${apiMetadata['name']} - ${apiMetadata['apiVersion'] ?? ''}`
+              : (subscription.api ?? subscription.referenceId ?? ''),
             apiPo: apiMetadata['apiPrimaryOwner'] ?? 'Unknown API owner',
+            referenceTypeLabel: isApiProduct ? 'API Product' : 'API',
             createdAt: subscription.created_at,
             endAt: subscription.ending_at,
             planName: planMetadata['name'] ?? subscription.plan,

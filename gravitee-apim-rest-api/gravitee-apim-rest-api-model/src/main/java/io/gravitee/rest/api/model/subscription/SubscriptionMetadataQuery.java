@@ -46,6 +46,8 @@ public class SubscriptionMetadataQuery {
 
     private boolean withApis = false;
 
+    private boolean withApiProducts = false;
+
     private boolean withSubscribers = false;
 
     private boolean details = false;
@@ -113,6 +115,15 @@ public class SubscriptionMetadataQuery {
 
     public SubscriptionMetadataQuery withApis(boolean withApis) {
         this.withApis = withApis;
+        return this;
+    }
+
+    public Optional<Boolean> ifApiProducts() {
+        return ifTrue(withApiProducts);
+    }
+
+    public SubscriptionMetadataQuery withApiProducts(boolean withApiProducts) {
+        this.withApiProducts = withApiProducts;
         return this;
     }
 
