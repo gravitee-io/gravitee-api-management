@@ -318,6 +318,7 @@
                         <configuration>
                             <inputSpec>${project.basedir}/src/main/resources/openapi/openapi-analytics.yaml</inputSpec>
                             <modelPackage>${openapi.modelPackage}.analytics.engine</modelPackage>
+                            <importMappings>Pagination=io.gravitee.rest.api.management.v2.rest.model.Pagination,Links=io.gravitee.rest.api.management.v2.rest.model.Links</importMappings>
                             <configOptions>
                                 <disallowAdditionalPropertiesIfNotPresent>false</disallowAdditionalPropertiesIfNotPresent>
                                 <useOneOfDiscriminatorLookup>true</useOneOfDiscriminatorLookup>

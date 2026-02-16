@@ -21,6 +21,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.DashboardAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CustomDashboardRepository;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -51,6 +52,15 @@ public class DashboardCrudServiceImpl implements DashboardCrudService {
             return customDashboardRepository.findById(dashboardId).map(DashboardAdapter.INSTANCE::toModel);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurred while trying to find dashboard: " + dashboardId, e);
+        }
+    }
+
+    @Override
+    public List<Dashboard> findByOrganizationId(String organizationId) {
+        try {
+            return customDashboardRepository.findByOrganizationId(organizationId).stream().map(DashboardAdapter.INSTANCE::toModel).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurred while trying to find dashboards for organization: " + organizationId, e);
         }
     }
 

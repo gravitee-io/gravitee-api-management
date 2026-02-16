@@ -30,6 +30,7 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetRequ
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetType;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -216,5 +217,24 @@ public class DashboardFixtures {
                 )
             )
             .build();
+    }
+
+    public static List<Dashboard> dashboardsForOrganization(String organizationId, int count) {
+        var list = new ArrayList<Dashboard>();
+        for (int i = 0; i < count; i++) {
+            list.add(
+                Dashboard.builder()
+                    .id("dashboard-" + (i + 1))
+                    .organizationId(organizationId)
+                    .name("Dashboard " + (i + 1))
+                    .createdBy("user-1")
+                    .createdAt(ZonedDateTime.now())
+                    .lastModified(ZonedDateTime.now())
+                    .labels(Map.of("team", "apim"))
+                    .widgets(List.of())
+                    .build()
+            );
+        }
+        return list;
     }
 }
