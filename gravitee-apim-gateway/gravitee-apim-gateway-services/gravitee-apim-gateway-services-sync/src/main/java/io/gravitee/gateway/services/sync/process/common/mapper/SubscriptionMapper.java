@@ -141,6 +141,25 @@ public class SubscriptionMapper {
         return subscription;
     }
 
+    /**
+     * Creates a Subscription for a specific API from a repository model.
+     * Used when unregistering product subscriptions for APIs removed from the product.
+     */
+    public Subscription toSubscriptionForApi(io.gravitee.repository.management.model.Subscription subscriptionModel, String apiId) {
+        Subscription sub = toSubscription(subscriptionModel);
+        sub.setApi(apiId);
+        Map<String, String> metadata = sub.getMetadata();
+        if (metadata == null) {
+            metadata = new HashMap<>();
+            sub.setMetadata(metadata);
+        }
+        if (subscriptionModel.getReferenceId() != null) {
+            metadata.put("productId", subscriptionModel.getReferenceId());
+        }
+        metadata.put("exploded", "true");
+        return sub;
+    }
+
     /** Resolve API id: API ref uses referenceId or legacy api; API Product uses api. */
     private String resolveApiId(io.gravitee.repository.management.model.Subscription subscriptionModel) {
         if (subscriptionModel.getReferenceType() == SubscriptionReferenceType.API) {

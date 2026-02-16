@@ -58,6 +58,17 @@ public class PlanService {
         }
     }
 
+    /**
+     * Returns subscribable plan IDs for the given API Product (before unregister)
+     */
+    public Set<String> getSubscribablePlansForApiProduct(final String apiProductId) {
+        if (apiProductId == null) {
+            return Set.of();
+        }
+        Set<String> plans = plansPerApiProduct.get(apiProductId);
+        return plans != null ? Set.copyOf(plans) : Set.of();
+    }
+
     public boolean isDeployed(final String apiId, final String planId) {
         return isDeployed(apiId, planId, Plan.PlanReferenceType.API);
     }

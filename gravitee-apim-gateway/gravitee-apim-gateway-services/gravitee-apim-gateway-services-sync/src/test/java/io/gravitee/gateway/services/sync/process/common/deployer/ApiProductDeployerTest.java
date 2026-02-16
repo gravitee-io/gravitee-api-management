@@ -16,6 +16,9 @@
 package io.gravitee.gateway.services.sync.process.common.deployer;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -63,14 +66,28 @@ class ApiProductDeployerTest {
     @Mock
     private EventManager eventManager;
 
+    @Mock
+    private ApiProductSubscriptionRefresher subscriptionRefresher;
+
     private ApiProductDeployer cut;
 
     @BeforeEach
     void setUp() {
-        cut = new ApiProductDeployer(apiProductManager, planService, distributedSyncService, apiProductPlanDefinitionCache);
+        cut = new ApiProductDeployer(
+            apiProductManager,
+            planService,
+            distributedSyncService,
+            apiProductPlanDefinitionCache,
+            subscriptionRefresher
+        );
         lenient()
             .when(distributedSyncService.distributeIfNeeded(any(ApiProductReactorDeployable.class)))
             .thenReturn(Completable.complete());
+        lenient().when(subscriptionRefresher.refresh(anySet(), anySet())).thenReturn(Completable.complete());
+        lenient().when(subscriptionRefresher.unregisterRemovedApis(anySet(), anySet(), anySet())).thenReturn(Completable.complete());
+        lenient()
+            .when(apiProductManager.register(any(ReactableApiProduct.class), any(Completable.class)))
+            .thenAnswer(invocation -> invocation.getArgument(1));
     }
 
     @Nested
@@ -96,7 +113,7 @@ class ApiProductDeployerTest {
                 .build();
 
             cut.deploy(deployable).test().assertComplete();
-            verify(apiProductManager).register(reactableApiProduct);
+            verify(apiProductManager).register(eq(reactableApiProduct), any(Completable.class));
         }
 
         @Test
@@ -119,7 +136,7 @@ class ApiProductDeployerTest {
                 .build();
 
             cut.deploy(deployable).test().assertComplete();
-            verify(apiProductManager).register(reactableApiProduct);
+            verify(apiProductManager).register(eq(reactableApiProduct), any(Completable.class));
         }
 
         @Test
@@ -143,6 +160,42 @@ class ApiProductDeployerTest {
 
             cut.doAfterDeployment(deployable).test().assertComplete();
             verify(distributedSyncService).distributeIfNeeded(deployable);
+        }
+
+        @Test
+        void should_unregister_removed_apis_when_deploying_product_update() {
+            ReactableApiProduct oldProduct = ReactableApiProduct.builder()
+                .id("api-product-123")
+                .apiIds(Set.of("api-1", "api-2"))
+                .environmentId("env-1")
+                .build();
+
+            ReactableApiProduct newProduct = ReactableApiProduct.builder()
+                .id("api-product-123")
+                .name("Updated Product")
+                .version("1.0")
+                .apiIds(Set.of("api-1"))
+                .environmentId("env-1")
+                .deployedAt(new Date())
+                .build();
+
+            ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
+                .syncAction(SyncAction.DEPLOY)
+                .apiProductId("api-product-123")
+                .reactableApiProduct(newProduct)
+                .subscribablePlans(Set.of("plan-1"))
+                .definitionPlans(List.of())
+                .build();
+
+            when(apiProductManager.get("api-product-123")).thenReturn(oldProduct);
+            when(apiProductManager.register(any(ReactableApiProduct.class), any(Completable.class))).thenAnswer(invocation ->
+                invocation.getArgument(1)
+            );
+
+            cut.deploy(deployable).test().assertComplete();
+
+            verify(subscriptionRefresher).unregisterRemovedApis(eq(Set.of("api-2")), eq(Set.of("plan-1")), eq(Set.of("env-1")));
+            verify(subscriptionRefresher).refresh(eq(Set.of("plan-1")), eq(Set.of("env-1")));
         }
     }
 
@@ -172,6 +225,29 @@ class ApiProductDeployerTest {
 
             cut.undeploy(deployable).test().assertComplete();
             verify(apiProductManager).unregister("api-product-456");
+            verify(planService).unregister(deployable);
+        }
+
+        @Test
+        void should_unregister_subscriptions_and_api_keys_when_undeploying_deployed_product() {
+            ReactableApiProduct deployedProduct = ReactableApiProduct.builder()
+                .id("api-product-123")
+                .apiIds(Set.of("api-1", "api-2"))
+                .environmentId("env-1")
+                .build();
+
+            when(apiProductManager.get("api-product-123")).thenReturn(deployedProduct);
+            when(planService.getSubscribablePlansForApiProduct("api-product-123")).thenReturn(Set.of("plan-1"));
+
+            ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
+                .syncAction(SyncAction.UNDEPLOY)
+                .apiProductId("api-product-123")
+                .build();
+
+            cut.undeploy(deployable).test().assertComplete();
+
+            verify(subscriptionRefresher).unregisterRemovedApis(eq(Set.of("api-1", "api-2")), eq(Set.of("plan-1")), eq(Set.of("env-1")));
+            verify(apiProductManager).unregister("api-product-123");
             verify(planService).unregister(deployable);
         }
 
@@ -281,6 +357,39 @@ class ApiProductDeployerTest {
 
         private ApiProductReactorDeployable createUndeployable(String apiProductId) {
             return ApiProductReactorDeployable.builder().syncAction(SyncAction.UNDEPLOY).apiProductId(apiProductId).build();
+        }
+    }
+
+    @Nested
+    class DeployCallbackBehaviorTest {
+
+        @Test
+        void should_invoke_registerApiProductPlans_and_subscriptionRefresher_when_callback_runs() {
+            when(apiProductManager.register(any(ReactableApiProduct.class), any(Completable.class))).thenAnswer(invocation ->
+                invocation.getArgument(1)
+            );
+
+            ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
+                .id("api-product-123")
+                .name("Test Product")
+                .version("1.0")
+                .apiIds(Set.of("api-1"))
+                .environmentId("env-id")
+                .deployedAt(new Date())
+                .build();
+
+            ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
+                .syncAction(SyncAction.DEPLOY)
+                .apiProductId("api-product-123")
+                .reactableApiProduct(reactableApiProduct)
+                .subscribablePlans(Set.of("plan-1"))
+                .definitionPlans(List.of())
+                .build();
+
+            cut.deploy(deployable).test().assertComplete();
+
+            verify(planService).register(deployable);
+            verify(subscriptionRefresher).refresh(Set.of("plan-1"), Set.of("env-id"));
         }
     }
 }
