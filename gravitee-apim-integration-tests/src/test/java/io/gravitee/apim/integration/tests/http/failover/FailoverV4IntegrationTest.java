@@ -18,6 +18,7 @@ package io.gravitee.apim.integration.tests.http.failover;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.PLAN_APIKEY_ID;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.createSubscription;
@@ -142,6 +143,42 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
                 });
             // Then the backend should have been called 1 time
             wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint")));
+        }
+
+        @Test
+        @DeployApi("/apis/v4/http/failover/api-only-one-endpoint-condition-on-status.json")
+        void should_count_condition_failure_toward_max_failures(HttpClient client) {
+            // Given an API with failover condition on upstream status and maxFailures set to 2.
+            wiremock.stubFor(get("/endpoint").willReturn(serverError()));
+
+            // First call should fail from condition evaluation and still hit backend.
+            client
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> response.statusCode() == 502);
+
+            // Second call should fail from condition evaluation and still hit backend.
+            client
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> response.statusCode() == 502);
+
+            // Third call should be short-circuited, backend should not be called again.
+            client
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> response.statusCode() == 502);
+
+            wiremock.verify(2, getRequestedFor(urlPathEqualTo("/endpoint")));
         }
 
         @Test

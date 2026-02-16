@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model.v4.failover;
 
+import io.gravitee.definition.model.ConditionSupplier;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
@@ -27,7 +28,7 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 @Data
 @Schema(name = "FailoverV4")
-public class Failover implements Serializable {
+public class Failover implements Serializable, ConditionSupplier {
 
     public static final int DEFAULT_MAX_RETRIES = 2;
     public static final long DEFAULT_SLOW_CALL_DURATION_MILLIS = 2_000L;
@@ -52,4 +53,6 @@ public class Failover implements Serializable {
 
     @Builder.Default
     private boolean perSubscription = DEFAULT_PER_SUBSCRIPTION;
+
+    private String condition;
 }

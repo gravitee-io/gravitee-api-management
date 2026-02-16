@@ -95,6 +95,10 @@ describe('ApiV4FailoverComponent', () => {
     expect(await maxFailuresInput.isDisabled()).toBe(true);
     expect(await maxFailuresInput.getValue()).toEqual('5');
 
+    const conditionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="condition"]' }));
+    expect(await conditionInput.isDisabled()).toBe(true);
+    expect(await conditionInput.getValue()).toEqual('');
+
     const perSubscriptionToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="perSubscription"]' }));
     expect(await perSubscriptionToggle.isChecked()).toEqual(true);
     expect(await perSubscriptionToggle.isDisabled()).toBe(true);
@@ -106,6 +110,7 @@ describe('ApiV4FailoverComponent', () => {
     await slowCallDurationInput.setValue('200');
     await openStateDurationInput.setValue('2000');
     await maxFailuresInput.setValue('2');
+    await conditionInput.setValue('{#response.status >= 500}');
 
     expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
     await saveBar.clickSubmit();
@@ -120,6 +125,7 @@ describe('ApiV4FailoverComponent', () => {
       openStateDuration: 2000,
       maxFailures: 2,
       perSubscription: true,
+      condition: '{#response.status >= 500}',
     });
   });
 
@@ -151,6 +157,7 @@ describe('ApiV4FailoverComponent', () => {
         openStateDuration: 2000,
         maxFailures: 2,
         perSubscription: true,
+        condition: '{#response.status >= 500}',
       },
     });
     expectApiGetRequest(api);
@@ -179,6 +186,11 @@ describe('ApiV4FailoverComponent', () => {
     expect(await maxFailuresInput.isDisabled()).toBe(false);
     expect(await maxFailuresInput.getValue()).toEqual('2');
     await maxFailuresInput.setValue('3');
+
+    const conditionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="condition"]' }));
+    expect(await conditionInput.isDisabled()).toBe(false);
+    expect(await conditionInput.getValue()).toEqual('{#response.status >= 500}');
+    await conditionInput.setValue('  {#response.status >= 400}  ');
 
     const perSubscriptionToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="perSubscription"]' }));
     await perSubscriptionToggle.toggle();
@@ -212,6 +224,7 @@ describe('ApiV4FailoverComponent', () => {
       openStateDuration: 3000,
       maxFailures: 3,
       perSubscription: false,
+      condition: '{#response.status >= 400}',
     });
   });
 
@@ -241,6 +254,9 @@ describe('ApiV4FailoverComponent', () => {
 
     const maxFailuresInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="maxFailures"]' }));
     expect(await maxFailuresInput.isDisabled()).toBe(true);
+
+    const conditionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="condition"]' }));
+    expect(await conditionInput.isDisabled()).toBe(true);
 
     const perSubscriptionToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="perSubscription"]' }));
     expect(await perSubscriptionToggle.isDisabled()).toBe(true);

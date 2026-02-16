@@ -25,17 +25,25 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.rxjava3.circuitbreaker.operator.CircuitBreakerOperator;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.ExecutionWarn;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import lombok.CustomLog;
 
+@CustomLog
 public class FailoverInvoker implements HttpInvoker, Invoker {
+
+    private static final Predicate<Throwable> DEFAULT_RECORD_EXCEPTION_PREDICATE =
+        CircuitBreakerConfig.ofDefaults().getRecordExceptionPredicate();
 
     private final HttpInvoker delegate;
     private final Failover failoverConfiguration;
@@ -62,6 +70,10 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
             .failureRateThreshold(100)
             .slowCallRateThreshold(100)
             .waitDurationInOpenState(Duration.of(failoverConfiguration.getOpenStateDuration(), ChronoUnit.MILLIS))
+            // Keep the default behavior and explicitly include the synthetic exception raised by failover condition.
+            .recordException(
+                throwable -> throwable instanceof FailoverConditionMatchedException || DEFAULT_RECORD_EXCEPTION_PREDICATE.test(throwable)
+            )
             .build();
         // Instantiate one global circuit breaker for the API or a circuit breaker registry based on failover configuration
         if (!failoverConfiguration.isPerSubscription()) {
@@ -88,12 +100,37 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
             // Entrypoint connectors skip response handling if there is an error. In the case of a retry, we need to reset the failure.
             ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
             // Consume body and ignore it. Consuming it with .body() method internally enables caching of chunks, which is mandatory to retry the request in case of failure.
-            return ctx.request().body().ignoreElement().andThen(delegate.invoke(ctx));
+            return ctx.request().body().ignoreElement().andThen(delegate.invoke(ctx)).andThen(evaluateFailoverCondition(ctx));
         })
             .timeout(failoverConfiguration.getSlowCallDuration(), TimeUnit.MILLISECONDS)
             .retry(failoverConfiguration.getMaxRetries())
             .compose(CircuitBreakerOperator.of(circuitBreaker(ctx)))
             .onErrorResumeNext(t -> ctx.interruptWith(new ExecutionFailure(502).cause(t)));
+    }
+
+    private Completable evaluateFailoverCondition(HttpExecutionContext ctx) {
+        final String condition = failoverConfiguration.getCondition();
+        if (condition == null || condition.isBlank()) {
+            return Completable.complete();
+        }
+
+        return  ctx
+            .getTemplateEngine()
+            .eval(condition, Boolean.class)
+            .onErrorResumeNext(throwable -> {
+                ctx.warnWith(
+                    new ExecutionWarn("EXPRESSION_EVALUATION_ERROR")
+                        .message("Unable to execute failover EL condition " + condition)
+                        .cause(throwable)
+                );
+                return Maybe.just(false);
+            })
+            .defaultIfEmpty(false)
+            .flatMapCompletable(matches -> {
+                    ctx.withLogger(log).debug("Failover condition EL {}: {}", condition, matches);
+                    return matches ? Completable.error(new FailoverConditionMatchedException(condition)) : Completable.complete();
+                }
+            );
     }
 
     private CircuitBreaker circuitBreaker(HttpExecutionContext ctx) {
@@ -102,6 +139,13 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
             return circuitBreakerRegistry.circuitBreaker(subscription);
         } else {
             return circuitBreaker;
+        }
+    }
+
+    static final class FailoverConditionMatchedException extends RuntimeException {
+
+        FailoverConditionMatchedException(String condition) {
+            super("Failover condition matched: " + condition);
         }
     }
 }

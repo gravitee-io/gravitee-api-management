@@ -7545,6 +7545,9 @@ components:
                     type: boolean
                     description: If true, a circuit breaker breaker will be dedicated for each subscriber, else, one and only circuit breaker will be used for the API.
                     default: true
+                condition:
+                    type: string
+                    description: EL condition evaluated on each call. When true, the call is considered as a failover failure and contributes to opening the circuit breaker.
 
         CreateDocumentation:
             type: object

@@ -61,7 +61,13 @@ public class ApiMapperTest {
     void shouldMapToUpdateApiEntityV4() {
         var updateApi = ApiFixtures.anUpdateApiV4();
         updateApi.failover(
-            new FailoverV4().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000L).slowCallDuration(500L)
+            new FailoverV4()
+                .enabled(true)
+                .perSubscription(false)
+                .maxFailures(3)
+                .openStateDuration(11000L)
+                .slowCallDuration(500L)
+                .condition("{#response.status >= 500}")
         );
 
         var updateApiEntity = apiMapper.map(updateApi, "api-id");
@@ -92,7 +98,14 @@ public class ApiMapperTest {
         assertThat(updateApiEntity.getLifecycleState().name()).isEqualTo(updateApi.getLifecycleState().name());
         assertThat(updateApiEntity.isDisableMembershipNotifications()).isEqualTo(updateApi.getDisableMembershipNotifications());
         assertThat(updateApiEntity.getFailover()).isEqualTo(
-            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
+            Failover.builder()
+                .enabled(true)
+                .perSubscription(false)
+                .maxFailures(3)
+                .openStateDuration(11000)
+                .slowCallDuration(500)
+                .condition("{#response.status >= 500}")
+                .build()
         );
     }
 

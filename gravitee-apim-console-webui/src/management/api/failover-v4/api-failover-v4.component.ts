@@ -39,6 +39,7 @@ export type FailoverForm = {
   openStateDuration: FormControl<number>;
   maxFailures: FormControl<number>;
   perSubscription: FormControl<boolean>;
+  condition: FormControl<string>;
 };
 
 @Component({
@@ -112,12 +113,13 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
         },
         [Validators.required],
       ],
+      condition: [{ value: failover?.condition ?? '', disabled: isFailoverReadOnly }, []],
     });
     this.initialFailoverFormValue = this.failoverForm.getRawValue();
   }
 
   private setupDisablingFields() {
-    const controlKeys = ['maxRetries', 'slowCallDuration', 'openStateDuration', 'maxFailures', 'perSubscription'];
+    const controlKeys = ['maxRetries', 'slowCallDuration', 'openStateDuration', 'maxFailures', 'perSubscription', 'condition'];
     this.failoverForm
       .get('enabled')
       .valueChanges.pipe(takeUntil(this.unsubscribe$))
@@ -129,7 +131,18 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    const { enabled, maxRetries, slowCallDuration, openStateDuration, maxFailures, perSubscription } = this.failoverForm.getRawValue();
+    const { enabled, maxRetries, slowCallDuration, openStateDuration, maxFailures, perSubscription, condition } =
+      this.failoverForm.getRawValue();
+    const normalizedCondition = condition?.trim();
+    const failoverPayload: Failover = {
+      enabled,
+      maxRetries,
+      slowCallDuration,
+      openStateDuration,
+      maxFailures,
+      perSubscription,
+      ...(normalizedCondition ? { condition: normalizedCondition } : {}),
+    };
     let confirmUpdate$: Observable<boolean>;
     if (enabled && !perSubscription) {
       confirmUpdate$ = this.matDialog
@@ -160,14 +173,7 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
         switchMap(({ ...api }) =>
           this.apiService.update(api.id, {
             ...api,
-            failover: {
-              enabled,
-              maxRetries,
-              slowCallDuration,
-              openStateDuration,
-              maxFailures,
-              perSubscription,
-            },
+            failover: failoverPayload,
           }),
         ),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),

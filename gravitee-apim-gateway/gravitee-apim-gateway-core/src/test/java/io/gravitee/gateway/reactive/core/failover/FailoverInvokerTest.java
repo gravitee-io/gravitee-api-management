@@ -203,4 +203,80 @@ class FailoverInvokerTest {
             .hasSize(1)
             .allSatisfy(ctx -> assertThat(ctx.<String>getAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT)).isEqualTo("endpoint-name"));
     }
+
+    @Test
+    void should_count_custom_condition_as_regular_failure_toward_max_failures() {
+        cut = new FailoverInvoker(
+            endpointInvoker,
+            Failover.builder()
+                .condition("{#response.status >= 500}")
+                .slowCallDuration(50000)
+                .maxRetries(0)
+                .maxFailures(2)
+                .openStateDuration(50000)
+                .perSubscription(false)
+                .build(),
+            API_ID
+        );
+        when(endpointInvoker.invoke(executionContext)).thenReturn(Completable.complete());
+        when(response.status()).thenReturn(500);
+        executionContext.setAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT, "endpoint-name");
+
+        // First failure from condition.
+        cut
+            .invoke(executionContext)
+            .test()
+            .awaitDone(2, TimeUnit.SECONDS)
+            .assertError(
+                t ->
+                    t instanceof InterruptionFailureException &&
+                    ((InterruptionFailureException) t).getExecutionFailure().statusCode() == 502
+            );
+        // Second failure from condition should open the circuit breaker.
+        cut
+            .invoke(executionContext)
+            .test()
+            .awaitDone(2, TimeUnit.SECONDS)
+            .assertError(
+                t ->
+                    t instanceof InterruptionFailureException &&
+                    ((InterruptionFailureException) t).getExecutionFailure().statusCode() == 502
+            );
+        // Third call should be short-circuited without backend call.
+        cut
+            .invoke(executionContext)
+            .test()
+            .awaitDone(2, TimeUnit.SECONDS)
+            .assertError(
+                t ->
+                    t instanceof InterruptionFailureException &&
+                    ((InterruptionFailureException) t).getExecutionFailure().statusCode() == 502
+            );
+
+        verify(endpointInvoker, times(2)).invoke(executionContext);
+    }
+
+    @Test
+    void should_retry_when_custom_condition_matches() {
+        cut = new FailoverInvoker(
+            endpointInvoker,
+            Failover.builder().condition("{#response.status >= 500}").slowCallDuration(50000).maxRetries(1).perSubscription(false).build(),
+            API_ID
+        );
+        when(endpointInvoker.invoke(executionContext)).thenReturn(Completable.complete());
+        when(response.status()).thenReturn(500);
+        executionContext.setAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT, "endpoint-name");
+
+        cut
+            .invoke(executionContext)
+            .test()
+            .awaitDone(2, TimeUnit.SECONDS)
+            .assertError(
+                t ->
+                    t instanceof InterruptionFailureException &&
+                    ((InterruptionFailureException) t).getExecutionFailure().statusCode() == 502
+            );
+
+        verify(endpointInvoker, times(2)).invoke(executionContext);
+    }
 }

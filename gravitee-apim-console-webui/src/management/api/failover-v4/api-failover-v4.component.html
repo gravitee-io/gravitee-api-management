@@ -123,6 +123,18 @@
       </div>
 
       <div class="failover-card__control">
+        <div class="failover-card__control__label">Condition (EL)</div>
+        <p class="failover-card__control__hint">
+          Optional expression language condition. When true, the call is considered a failure and contributes to opening the circuit
+          breaker.
+        </p>
+        <mat-form-field class="failover-card__control__form-field">
+          <mat-label>Condition</mat-label>
+          <input matInput formControlName="condition" type="text" />
+        </mat-form-field>
+      </div>
+
+      <div class="failover-card__control">
         <gio-form-slide-toggle class="failover-card__enable-toggle">
           <gio-form-label>Per subscription</gio-form-label>
           If true, a circuit breaker breaker will be dedicated for each subscriber, else, one and only circuit breaker will be used for the
