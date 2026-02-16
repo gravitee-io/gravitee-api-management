@@ -96,7 +96,7 @@ class ApiV1PropertiesControllerAjs {
       if (args.api) {
         this.api = args.api;
       } else {
-        this.ApiService.get(args.apiId).then((response) => (this.api = response.data));
+        this.ApiService.get(args.apiId).then(response => (this.api = response.data));
       }
     });
   }
@@ -118,7 +118,7 @@ class ApiV1PropertiesControllerAjs {
           confirmButton: 'Remove',
         },
       })
-      .then((response) => {
+      .then(response => {
         if (response) {
           remove(this.api.properties, (property: any) => {
             return property.key === key;
@@ -137,7 +137,7 @@ class ApiV1PropertiesControllerAjs {
         template: require('html-loader!./add-property.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         clickOutsideToClose: true,
       })
-      .then((property) => {
+      .then(property => {
         if (this.api.properties === undefined) {
           this.api.properties = [];
         }
@@ -161,7 +161,7 @@ class ApiV1PropertiesControllerAjs {
 
   update() {
     this.api.services['dynamic-property'] = this.dynamicPropertyService;
-    return this.ApiService.update(this.api).then((updatedApi) => {
+    return this.ApiService.update(this.api).then(updatedApi => {
       this.api = updatedApi.data;
       this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
       this.NotificationService.show("API '" + this.api.name + "' saved");
@@ -173,7 +173,7 @@ class ApiV1PropertiesControllerAjs {
     this.$mdEditDialog.small({
       modelValue: property.value,
       placeholder: 'Set property value',
-      save: (input) => {
+      save: input => {
         property.value = input.$modelValue;
         property.dynamic = false;
         this.update();
@@ -240,7 +240,7 @@ class ApiV1PropertiesControllerAjs {
           confirmButton: 'Remove',
         },
       })
-      .then((response) => {
+      .then(response => {
         if (response) {
           forEach(this.selectedProperties, (v, k) => {
             if (v) {
@@ -257,18 +257,18 @@ class ApiV1PropertiesControllerAjs {
 
   toggleSelectAll(selectAll) {
     if (selectAll) {
-      forEach(this.api.properties, (p) => (this.selectedProperties[p.key] = true));
+      forEach(this.api.properties, p => (this.selectedProperties[p.key] = true));
     } else {
       this.selectedProperties = {};
     }
   }
 
   checkSelectAll() {
-    this.selectAll = filter(this.selectedProperties, (p) => p).length === Object.keys(this.api.properties).length;
+    this.selectAll = filter(this.selectedProperties, p => p).length === Object.keys(this.api.properties).length;
   }
 
   hasSelectedProperties() {
-    return filter(this.selectedProperties, (p) => p).length > 0;
+    return filter(this.selectedProperties, p => p).length > 0;
   }
 
   reset() {

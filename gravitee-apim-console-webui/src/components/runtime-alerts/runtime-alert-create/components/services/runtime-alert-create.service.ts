@@ -61,14 +61,14 @@ export class RuntimeAlertCreateService {
     if (Scope.API === referenceType) {
       return this.planService
         .getApiPlans(referenceId, 'PUBLISHED')
-        .pipe(map((plans) => plans?.map((subscribers) => new Tuple(subscribers.id, subscribers.name))));
+        .pipe(map(plans => plans?.map(subscribers => new Tuple(subscribers.id, subscribers.name))));
     }
 
     if (Scope.APPLICATION === referenceType) {
       return this.subscriptionService.getApplicationSubscriptions(referenceId).pipe(
-        map((subscribers) => {
-          const keyPlans = [...new Set(subscribers.data.map((subscriber) => subscriber.plan))];
-          return keyPlans.map((plan) => new Tuple(plan, subscribers.metadata[plan].name));
+        map(subscribers => {
+          const keyPlans = [...new Set(subscribers.data.map(subscriber => subscriber.plan))];
+          return keyPlans.map(plan => new Tuple(plan, subscribers.metadata[plan].name));
         }),
       );
     }
@@ -79,15 +79,15 @@ export class RuntimeAlertCreateService {
   private loadApplications(apiId: string): Observable<Tuple[]> {
     return this.apiService
       .getSubscribers(apiId)
-      .pipe(map((subscribers) => subscribers.data?.map((subscribers) => new Tuple(subscribers.id, subscribers.name))));
+      .pipe(map(subscribers => subscribers.data?.map(subscribers => new Tuple(subscribers.id, subscribers.name))));
   }
 
   private loadTenants(): Observable<Tuple[]> {
-    return this.tenantService.list().pipe(map((tenants) => tenants.map((tenant) => new Tuple(tenant.id, tenant.name))));
+    return this.tenantService.list().pipe(map(tenants => tenants.map(tenant => new Tuple(tenant.id, tenant.name))));
   }
 
   private loadErrorKeys() {
-    return of(gatewayErrorKeys.map((key) => new Tuple(key, key)));
+    return of(gatewayErrorKeys.map(key => new Tuple(key, key)));
   }
 
   private loadHealthCheckStatus() {
@@ -96,7 +96,7 @@ export class RuntimeAlertCreateService {
 
   private loadEndpointsNames(apiId: string) {
     return this.apiService.get(apiId).pipe(
-      map((api) => {
+      map(api => {
         if (api.definitionVersion === 'FEDERATED' || api.definitionVersion === 'FEDERATED_AGENT') {
           return [];
         }

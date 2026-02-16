@@ -140,7 +140,7 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
-        tap((api) => {
+        tap(api => {
           this.api = api;
           this.isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
           this.canUpdate =
@@ -149,8 +149,8 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
             this.api.definitionVersion !== 'V1';
         }),
         switchMap(() => this.apiPlanService.list(this.activatedRoute.snapshot.params.apiId, null, null, null, undefined, 1, 9999)),
-        tap((plansResponse) => (this.plans = plansResponse.data.filter((plan) => plan.security?.type !== 'KEY_LESS'))),
-        catchError((error) => {
+        tap(plansResponse => (this.plans = plansResponse.data.filter(plan => plan.security?.type !== 'KEY_LESS'))),
+        catchError(error => {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
@@ -203,10 +203,10 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
         ),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((apiSubscriptionsResponse) => {
+      .subscribe(apiSubscriptionsResponse => {
         this.nbTotalSubscriptions = apiSubscriptionsResponse.pagination.totalCount;
-        this.subscriptionsTableDS = (apiSubscriptionsResponse.data ?? []).map((subscription) => {
-          const status = this.statuses.find((status) => status.id === subscription.status);
+        this.subscriptionsTableDS = (apiSubscriptionsResponse.data ?? []).map(subscription => {
+          const status = this.statuses.find(status => status.id === subscription.status);
           return {
             id: subscription.id,
             application: `${subscription.application?.name} (${subscription.application?.primaryOwner?.displayName})`,
@@ -242,7 +242,7 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
     this.apiSubscriptionService
       .exportAsCSV(apiId, page, perPage, planIds, applicationIds, statuses, apiKey)
       .pipe(
-        tap((blob) => {
+        tap(blob => {
           let fileName = `subscriptions-${this.api.name}-${this.api.apiVersion}-${now()}.csv`;
           fileName = fileName.replace(/[\s]/gi, '-').replace(/[^\w]/gi, '-');
 
@@ -272,31 +272,31 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
         data: {
           isFederatedApi: this.api.definitionVersion === 'FEDERATED',
           availableSubscriptionEntrypoints: this.getApiSubscriptionEntrypoints(this.api),
-          plans: this.plans.filter((plan) => plan.status),
+          plans: this.plans.filter(plan => plan.status),
         },
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((result) => {
+        filter(result => !!result),
+        switchMap(result => {
           if (result?.apiKeyMode) {
             result.subscriptionToCreate.apiKeyMode = result.apiKeyMode;
           }
           return of(result);
         }),
-        switchMap((result) => {
+        switchMap(result => {
           return this.apiSubscriptionService.create(this.api.id, result.subscriptionToCreate);
         }),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(
-        (subscription) => {
+        subscription => {
           this.snackBarService.success(`Subscription successfully created`);
           this.router.navigate(['.', subscription.id], {
             relativeTo: this.activatedRoute,
           });
         },
-        (err) => this.snackBarService.error(err.message),
+        err => this.snackBarService.error(err.message),
       );
   }
 
@@ -359,13 +359,13 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
       return [];
     }
 
-    return (api as ApiV4).listeners.filter((listener) => listener.type === 'SUBSCRIPTION').flatMap((listener) => listener.entrypoints);
+    return (api as ApiV4).listeners.filter(listener => listener.type === 'SUBSCRIPTION').flatMap(listener => listener.entrypoints);
   }
 
   public searchApplications: (searchTerm: string) => Observable<AutocompleteOptions> = (searchTerm: string) => {
     return this.apiService.getSubscribers(this.activatedRoute.snapshot.params.apiId, searchTerm, 1, 20).pipe(
-      map((subscribers) =>
-        subscribers?.data?.map((subscriber) => ({
+      map(subscribers =>
+        subscribers?.data?.map(subscriber => ({
           value: subscriber.id,
           label: `${subscriber.name} (${subscriber.primaryOwner?.displayName})`,
         })),
@@ -375,7 +375,7 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
 
   public displayApplication: (value: string) => Observable<string> = (value: string) => {
     return this.applicationService.getById(value).pipe(
-      map((application) => `${application.name} (${application.owner?.displayName})`),
+      map(application => `${application.name} (${application.owner?.displayName})`),
       catchError(() => {
         return of(value);
       }),

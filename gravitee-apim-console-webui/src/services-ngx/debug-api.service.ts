@@ -45,7 +45,7 @@ export class DebugApiService {
     if (api.proxy && api.proxy.endpoints) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      api.proxy.endpoints.forEach((endpoint) => {
+      api.proxy.endpoints.forEach(endpoint => {
         if (endpoint.proxy && !endpoint.proxy.useSystemProxy && (!endpoint.proxy.host || !endpoint.proxy.port)) {
           delete endpoint.proxy;
         }

@@ -57,7 +57,7 @@ export class EditApiScoreRulesetComponent implements OnInit {
       .getRuleset(this.activatedRoute.snapshot.params.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (res) => {
+        next: res => {
           this.form.patchValue({
             name: res.name,
             description: res.description,
@@ -82,7 +82,7 @@ export class EditApiScoreRulesetComponent implements OnInit {
       .editRuleset(this.activatedRoute.snapshot.params.id, data)
       .pipe(switchMap(() => this.rulesetV2Service.getRuleset(this.activatedRoute.snapshot.params.id)))
       .subscribe({
-        next: (res) => {
+        next: res => {
           this.form.patchValue({
             name: res.name,
             description: res.description,
@@ -111,7 +111,7 @@ export class EditApiScoreRulesetComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => !!confirm),
+        filter(confirm => !!confirm),
         switchMap(() => {
           this.isLoading = true;
           return this.rulesetV2Service.deleteRuleset(this.activatedRoute.snapshot.params.id);

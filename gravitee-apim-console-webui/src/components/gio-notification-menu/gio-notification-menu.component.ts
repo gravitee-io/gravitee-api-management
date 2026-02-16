@@ -46,7 +46,7 @@ export class GioNotificationMenuComponent implements OnInit, OnDestroy {
         switchMap(() => this.userNotificationService.getNotificationsAutoFetch()),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((notificationPagedResult) => {
+      .subscribe(notificationPagedResult => {
         this.userNotificationsCount = notificationPagedResult.page.total_elements;
         this.hasNotifications = this.userNotificationsCount > 0;
         this.userNotifications = notificationPagedResult.data;

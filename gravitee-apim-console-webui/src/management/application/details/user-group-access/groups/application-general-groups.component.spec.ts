@@ -112,7 +112,7 @@ describe('ApplicationGeneralGroupsComponent', () => {
       });
 
       const postReq = httpTestingController.expectOne(
-        (req) => req.method === 'POST' && req.urlWithParams.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/groups/_search`),
+        req => req.method === 'POST' && req.urlWithParams.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/groups/_search`),
       );
       expect(postReq.request.body.ids).toEqual(['g1', 'g2']);
       postReq.flush({
@@ -122,7 +122,7 @@ describe('ApplicationGeneralGroupsComponent', () => {
 
       fixture.detectChanges();
 
-      const idsInOrder = fixture.componentInstance.groups.map((g) => g.id);
+      const idsInOrder = fixture.componentInstance.groups.map(g => g.id);
       expect(idsInOrder.slice(0, 2)).toEqual(['g1', 'g2']);
       expect(new Set(idsInOrder).size).toBe(idsInOrder.length);
     });
@@ -137,7 +137,7 @@ describe('ApplicationGeneralGroupsComponent', () => {
       });
 
       const postReq = httpTestingController.expectOne(
-        (req) => req.method === 'POST' && req.urlWithParams.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/groups/_search`),
+        req => req.method === 'POST' && req.urlWithParams.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/groups/_search`),
       );
       postReq.flush({
         data: [fakeGroup({ id: 'g1' } as any)],
@@ -172,7 +172,7 @@ describe('ApplicationGeneralGroupsComponent', () => {
       });
 
       const postReq = httpTestingController.expectOne(
-        (req) => req.method === 'POST' && req.urlWithParams.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/groups/_search`),
+        req => req.method === 'POST' && req.urlWithParams.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/groups/_search`),
       );
       postReq.flush({
         data: [fakeGroup({ id: 'g1' } as any)],
@@ -192,10 +192,10 @@ describe('ApplicationGeneralGroupsComponent', () => {
 
       fixture.detectChanges();
 
-      const ids = comp.groups.map((g) => g.id);
+      const ids = comp.groups.map(g => g.id);
       expect(ids[0]).toBe('g1');
       expect(ids).toContain('g3');
-      expect(ids.filter((id) => id === 'g2').length).toBe(1);
+      expect(ids.filter(id => id === 'g2').length).toBe(1);
       expect(comp.hasMoreGroups).toBe(false);
     });
 
@@ -264,7 +264,7 @@ describe('ApplicationGeneralGroupsComponent', () => {
       },
     });
 
-    const postReq = httpTestingController.expectOne((req) => {
+    const postReq = httpTestingController.expectOne(req => {
       return (
         req.method === 'POST' &&
         req.urlWithParams.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/groups/_search`) &&
@@ -273,7 +273,7 @@ describe('ApplicationGeneralGroupsComponent', () => {
     });
 
     const ids: string[] = (postReq.request.body && postReq.request.body.ids) || [];
-    const selectedGroups = ids.map((id) => ({ id, name: `${id}-name` })) as Group[];
+    const selectedGroups = ids.map(id => ({ id, name: `${id}-name` })) as Group[];
 
     postReq.flush({
       data: selectedGroups,

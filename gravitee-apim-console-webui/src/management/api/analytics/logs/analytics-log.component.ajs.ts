@@ -85,7 +85,7 @@ class ApiAnalyticsLogControllerAjs {
       this.activatedRoute.snapshot.params.apiId,
       this.activatedRoute.snapshot.params.logId,
       this.activatedRoute.snapshot.queryParams.timestamp,
-    ).then((response) => {
+    ).then(response => {
       this.log = response.data;
       if (this.log.clientRequest != null) {
         ApiAnalyticsLogControllerAjs.headersAsList(this.log.clientRequest);
@@ -115,7 +115,7 @@ class ApiAnalyticsLogControllerAjs {
         this.fillPreviousNext();
       } else {
         const query = this.AnalyticsService.buildQueryFromState(this.activatedRoute.snapshot.queryParams);
-        this.ApiService.findLogs(this.activatedRoute.snapshot.params.apiId, query).then((logs) => {
+        this.ApiService.findLogs(this.activatedRoute.snapshot.params.apiId, query).then(logs => {
           this.AnalyticsService.setFetchedLogs(logs.data.logs);
           this.fillPreviousNext();
         });
@@ -150,7 +150,7 @@ class ApiAnalyticsLogControllerAjs {
       },
     });
     this.ApiService.getLog(this.activatedRoute.snapshot.params.apiId, logId, this.activatedRoute.snapshot.queryParams.timestamp).then(
-      (response) => {
+      response => {
         this.log = response.data;
         this.$onInit();
       },
@@ -213,7 +213,7 @@ class ApiAnalyticsLogControllerAjs {
     const queryParamsMap = uri
       .slice(uri.indexOf('?') + 1)
       .split('&')
-      .map((queryParamsAsString) => {
+      .map(queryParamsAsString => {
         // A simple `.split` is not enough as query param values can contains `=` themselves
         const indexOfEqualChar = queryParamsAsString.indexOf('=');
         return [queryParamsAsString.substring(0, indexOfEqualChar), queryParamsAsString.substring(indexOfEqualChar + 1)];

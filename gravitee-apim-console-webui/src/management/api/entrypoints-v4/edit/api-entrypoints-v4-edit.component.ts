@@ -71,8 +71,8 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
             this.api = api as ApiV4;
             this.availableEntrypoints = availableEntrypoints;
 
-            this.api.listeners.forEach((listener) => {
-              listener.entrypoints.forEach((entrypoint) => {
+            this.api.listeners.forEach(listener => {
+              listener.entrypoints.forEach(entrypoint => {
                 if (entrypoint.type === this.entrypointId) {
                   this.entrypoint = entrypoint;
                   this.listener = listener;
@@ -81,7 +81,7 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
             });
 
             if (this.entrypoint) {
-              const matchingEntrypoint = this.availableEntrypoints.find((entrypoint) => entrypoint.id === this.entrypoint.type);
+              const matchingEntrypoint = this.availableEntrypoints.find(entrypoint => entrypoint.id === this.entrypoint.type);
               if (matchingEntrypoint) {
                 this.entrypointName = matchingEntrypoint.name;
                 this.supportQos = !!matchingEntrypoint.supportedQos?.length;
@@ -95,11 +95,11 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
             }
           }
         }),
-        switchMap((_) => this.connectorPluginsV2Service.getEntrypointPluginSchema(this.entrypoint.type)),
-        tap((schema) => {
+        switchMap(_ => this.connectorPluginsV2Service.getEntrypointPluginSchema(this.entrypoint.type)),
+        tap(schema => {
           this.entrypointSchema = schema;
         }),
-        switchMap((_) => (this.supportDlq || this.supportQos ? this.connectorPluginsV2Service.listEndpointPlugins() : of(null))),
+        switchMap(_ => (this.supportDlq || this.supportQos ? this.connectorPluginsV2Service.listEndpointPlugins() : of(null))),
         tap((plugins: ConnectorPlugin[] | null) => {
           this.form = new UntypedFormGroup({});
           this.form.addControl(`${this.entrypoint.type}-config`, new UntypedFormControl(this.entrypoint.configuration));
@@ -108,10 +108,10 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
           if (this.supportQos && plugins) {
             const eligibleEndpointTypesForQos = this.getEligibleEndpointTypesForQos(plugins);
 
-            this.api.endpointGroups.forEach((endpointGroup) => {
-              const eligibleEndpointType = eligibleEndpointTypesForQos.find((value) => value.id === endpointGroup.type);
+            this.api.endpointGroups.forEach(endpointGroup => {
+              const eligibleEndpointType = eligibleEndpointTypesForQos.find(value => value.id === endpointGroup.type);
               if (eligibleEndpointType) {
-                this.supportedQos = this.supportedQos.filter((value) => eligibleEndpointType.supportedQos.includes(value));
+                this.supportedQos = this.supportedQos.filter(value => eligibleEndpointType.supportedQos.includes(value));
               }
             });
           }
@@ -142,15 +142,15 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
 
     this.api.endpointGroups
       .slice(1) // skip default group
-      .forEach((endpointGroup) => {
-        const eligibleEndpointType = eligibleEndpointTypesForDlq.find((value) => value.id === endpointGroup.type);
+      .forEach(endpointGroup => {
+        const eligibleEndpointType = eligibleEndpointTypesForDlq.find(value => value.id === endpointGroup.type);
         if (eligibleEndpointType) {
           availableGroups.push({
             name: endpointGroup.name,
             type: eligibleEndpointType.name,
             icon: eligibleEndpointType.icon,
           });
-          endpointGroup.endpoints.forEach((endpoint) => {
+          endpointGroup.endpoints.forEach(endpoint => {
             availableEndpoints.push({
               name: endpoint.name,
               type: eligibleEndpointType.name,
@@ -171,16 +171,16 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
 
   private getEligibleEndpointTypesForDlq(plugins: ConnectorPlugin[]) {
     return plugins
-      .filter((plugin) => plugin.supportedModes.includes('PUBLISH') && plugin.supportedApiType === 'MESSAGE')
-      .map((plugin) => {
+      .filter(plugin => plugin.supportedModes.includes('PUBLISH') && plugin.supportedApiType === 'MESSAGE')
+      .map(plugin => {
         return { id: plugin.id, name: plugin.name, icon: this.iconService.registerSvg(plugin.id, plugin.icon) };
       });
   }
 
   private getEligibleEndpointTypesForQos(plugins: ConnectorPlugin[]) {
     return plugins
-      .filter((plugin) => plugin.supportedApiType === 'MESSAGE')
-      .map((plugin) => {
+      .filter(plugin => plugin.supportedApiType === 'MESSAGE')
+      .map(plugin => {
         return { id: plugin.id, name: plugin.name, supportedQos: plugin.supportedQos };
       });
   }
@@ -189,7 +189,7 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
     this.form
       .get('enabledDlq')
       .valueChanges.pipe(takeUntil(this.unsubscribe$))
-      .subscribe((value) => {
+      .subscribe(value => {
         this.enabledDlq = value;
         if (this.enabledDlq) {
           this.form.addControl('dlqElement', new UntypedFormControl(null, Validators.required));
@@ -208,9 +208,9 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
       .pipe(
         switchMap((api: ApiV4) => {
           const listenerToUpdate: Listener = {
-            ...api.listeners.find((listener) => listener.entrypoints.some((entrypoint) => entrypoint.type === this.entrypointId)),
+            ...api.listeners.find(listener => listener.entrypoints.some(entrypoint => entrypoint.type === this.entrypointId)),
           };
-          const entrypointToUpdate = listenerToUpdate.entrypoints.find((entrypoint) => entrypoint.type === this.entrypointId);
+          const entrypointToUpdate = listenerToUpdate.entrypoints.find(entrypoint => entrypoint.type === this.entrypointId);
 
           const updatedEntrypoint: Entrypoint = { ...entrypointToUpdate, configuration: configurationValue, qos: qosValue };
 
@@ -225,11 +225,11 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
 
           const updatedListener: Listener = {
             ...listenerToUpdate,
-            entrypoints: [...listenerToUpdate.entrypoints.filter((entrypoint) => entrypoint.type !== this.entrypointId), updatedEntrypoint],
+            entrypoints: [...listenerToUpdate.entrypoints.filter(entrypoint => entrypoint.type !== this.entrypointId), updatedEntrypoint],
           };
           const updateApi: UpdateApiV4 = {
             ...api,
-            listeners: [...api.listeners.filter((listener) => listener.type !== listenerToUpdate.type), updatedListener],
+            listeners: [...api.listeners.filter(listener => listener.type !== listenerToUpdate.type), updatedListener],
           };
 
           return this.apiService.update(this.apiId, updateApi);
@@ -237,7 +237,7 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
         tap(() => {
           this.snackBarService.success('Configuration successfully saved!');
         }),
-        catchError((err) => {
+        catchError(err => {
           this.snackBarService.error(err.error?.message ?? err.message);
           return EMPTY;
         }),
@@ -252,9 +252,9 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
 
   private findSelectedElement(dlqElements: { name: string; elements: DlqElement[] }[], endpoint: string | undefined) {
     let selectedElement: DlqElement | undefined;
-    dlqElements.forEach((dlqElement) => {
+    dlqElements.forEach(dlqElement => {
       if (!selectedElement) {
-        selectedElement = dlqElement.elements.find((element) => element.name === endpoint);
+        selectedElement = dlqElement.elements.find(element => element.name === endpoint);
       }
     });
     return selectedElement;

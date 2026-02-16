@@ -43,7 +43,7 @@ export default {
       providers: [
         {
           provide: ApplicationService,
-          useValue: { list: () => of(fakePagedResult(applications)), findById: (id: string) => applications.find((app) => app.id === id) },
+          useValue: { list: () => of(fakePagedResult(applications)), findById: (id: string) => applications.find(app => app.id === id) },
         },
         {
           provide: ApiPlanV2Service,
@@ -54,7 +54,7 @@ export default {
     }),
   ],
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 1000px">
         <h4>Toggle loading value in the controls panel to enable or disable the form</h4>

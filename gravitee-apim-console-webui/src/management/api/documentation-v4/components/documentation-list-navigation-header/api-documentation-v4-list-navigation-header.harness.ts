@@ -29,24 +29,24 @@ export class ApiDocumentationV4ListNavigationHeaderHarness extends ComponentHarn
   private menuLocator = this.locatorFor(MatMenuHarness);
 
   public async clickAddNewFolder() {
-    return this.addNewFolderButtonLocator().then((btn) => btn.click());
+    return this.addNewFolderButtonLocator().then(btn => btn.click());
   }
 
   public async clickOnBreadcrumbItem(itemName: string) {
     return this.locatorFor(DivHarness.with({ text: itemName }))()
-      .then((item) => item.host())
-      .then((host) => host.click());
+      .then(item => item.host())
+      .then(host => host.click());
   }
 
   async getBreadcrumb(): Promise<string> {
-    return this.locatorFor(ApiDocumentationV4BreadcrumbHarness)().then((el) => el.getContent());
+    return this.locatorFor(ApiDocumentationV4BreadcrumbHarness)().then(el => el.getContent());
   }
 
   async clickAddNewPage(pageType: PageType) {
     return this.addNewPageButtonLocator()
-      .then((btn) => btn.click())
+      .then(btn => btn.click())
       .then(() => this.menuLocator())
-      .then((menu) => menu.clickItem({ text: new RegExp(pageType, 'i') }));
+      .then(menu => menu.clickItem({ text: new RegExp(pageType, 'i') }));
   }
 
   async getNewPageButton() {

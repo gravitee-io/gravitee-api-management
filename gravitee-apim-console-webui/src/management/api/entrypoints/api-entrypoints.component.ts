@@ -66,7 +66,7 @@ export class ApiEntrypointsComponent implements OnInit, OnDestroy {
       .pipe(
         tap(([api, restrictedDomains]) => {
           this.api = api;
-          this.domainRestrictions = restrictedDomains.map((value) => value.domain) ?? [];
+          this.domainRestrictions = restrictedDomains.map(value => value.domain) ?? [];
 
           this.initForm(api);
         }),
@@ -85,9 +85,9 @@ export class ApiEntrypointsComponent implements OnInit, OnDestroy {
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV2Filter(this.snackBarService),
-        switchMap((api) => {
+        switchMap(api => {
           const formValue: PathV4[] = this.pathsFormControl.value;
-          const virtualHosts: VirtualHost[] = formValue.map((p) => {
+          const virtualHosts: VirtualHost[] = formValue.map(p => {
             return { host: p.host, path: p.path, overrideEntrypoint: p.overrideAccess };
           });
           const apiUpdate: UpdateApiV2 = {
@@ -101,7 +101,7 @@ export class ApiEntrypointsComponent implements OnInit, OnDestroy {
           return this.apiService.update(api.id, apiUpdate);
         }),
         onlyApiV2Filter(this.snackBarService),
-        tap((api) => (this.apiProxy = api.proxy)),
+        tap(api => (this.apiProxy = api.proxy)),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -127,7 +127,7 @@ export class ApiEntrypointsComponent implements OnInit, OnDestroy {
         })
         .afterClosed()
         .pipe(
-          tap((response) => {
+          tap(response => {
             if (response) {
               // Keep only the path
               const currentValue = this.formGroup.getRawValue().paths;
@@ -152,7 +152,7 @@ export class ApiEntrypointsComponent implements OnInit, OnDestroy {
 
   private getApiPaths(api: ApiV1 | ApiV2): PathV4[] {
     if (api.proxy.virtualHosts.length > 0) {
-      return api.proxy.virtualHosts.map((p) => {
+      return api.proxy.virtualHosts.map(p => {
         const path: PathV4 = { path: p.path, host: p.host, overrideAccess: p.overrideEntrypoint };
         return path;
       });

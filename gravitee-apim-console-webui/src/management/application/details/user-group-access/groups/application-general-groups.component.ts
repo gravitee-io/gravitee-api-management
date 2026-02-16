@@ -71,7 +71,7 @@ export class ApplicationGeneralGroupsComponent implements OnInit, OnDestroy {
     this.applicationService
       .getById(this.activatedRoute.snapshot.params.applicationId)
       .pipe(
-        tap((application) => {
+        tap(application => {
           this.application = application;
           this.isReadonly = application.origin === 'KUBERNETES';
         }),
@@ -93,8 +93,8 @@ export class ApplicationGeneralGroupsComponent implements OnInit, OnDestroy {
 
   private mergeGroups(newGroups: Group[]): void {
     const selectedIds = new Set(this.application.groups ?? []);
-    const existingIds = new Set(this.groups.map((g) => g.id));
-    const filteredNewGroups = newGroups.filter((g) => !existingIds.has(g.id));
+    const existingIds = new Set(this.groups.map(g => g.id));
+    const filteredNewGroups = newGroups.filter(g => !existingIds.has(g.id));
 
     const selectedGroups: Group[] = [];
     const unselectedGroups: Group[] = [];
@@ -122,9 +122,9 @@ export class ApplicationGeneralGroupsComponent implements OnInit, OnDestroy {
         this.mergeGroups(page1Groups);
         this.updatePagination(page1Res?.pagination);
 
-        const userGroupList: Group[] = this.groups.filter((g) => this.application.groups?.includes(g.id));
+        const userGroupList: Group[] = this.groups.filter(g => this.application.groups?.includes(g.id));
         this.form = new FormGroup({
-          selectedGroups: new FormControl(userGroupList.map((g) => g.id)),
+          selectedGroups: new FormControl(userGroupList.map(g => g.id)),
         });
 
         if (this.isReadonly) {

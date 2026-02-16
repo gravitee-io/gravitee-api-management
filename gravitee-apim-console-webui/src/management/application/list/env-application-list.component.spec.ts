@@ -66,10 +66,10 @@ describe('EnvApplicationListComponent', () => {
         const table = await loader.getHarness(MatTableHarness.with({ selector: '#applicationsTable' }));
 
         const headerRows = await table.getHeaderRows();
-        const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+        const headerCells = await parallel(() => headerRows.map(row => row.getCellTextByColumnName()));
 
         const rows = await table.getRows();
-        const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+        const rowCells = await parallel(() => rows.map(row => row.getCellTextByIndex()));
 
         expect(headerCells).toEqual([
           {
@@ -91,10 +91,10 @@ describe('EnvApplicationListComponent', () => {
 
         const table = await loader.getHarness(MatTableHarness.with({ selector: '#applicationsTable' }));
         const headerRows = await table.getHeaderRows();
-        const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+        const headerCells = await parallel(() => headerRows.map(row => row.getCellTextByColumnName()));
 
         const rows = await table.getRows();
-        const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+        const rowCells = await parallel(() => rows.map(row => row.getCellTextByColumnName()));
 
         expect(headerCells).toEqual([
           {
@@ -177,10 +177,10 @@ describe('EnvApplicationListComponent', () => {
         const table = await loader.getHarness(MatTableHarness.with({ selector: '#applicationsTable' }));
 
         const headerRows = await table.getHeaderRows();
-        const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+        const headerCells = await parallel(() => headerRows.map(row => row.getCellTextByColumnName()));
 
         const rows = await table.getRows();
-        const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+        const rowCells = await parallel(() => rows.map(row => row.getCellTextByIndex()));
 
         expect(headerCells).toEqual([
           {
@@ -201,10 +201,10 @@ describe('EnvApplicationListComponent', () => {
 
         const table = await loader.getHarness(MatTableHarness.with({ selector: '#applicationsTable' }));
         const headerRows = await table.getHeaderRows();
-        const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+        const headerCells = await parallel(() => headerRows.map(row => row.getCellTextByColumnName()));
 
         const rows = await table.getRows();
-        const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+        const rowCells = await parallel(() => rows.map(row => row.getCellTextByColumnName()));
 
         expect(headerCells).toEqual([
           {

@@ -79,7 +79,7 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
   public override registerOnChange(fn: (listeners: PathV4[] | null) => void): void {
     this._onChange = (listeners: InternalPathV4[]) =>
       fn(
-        listeners.map((listener) => ({
+        listeners.map(listener => ({
           ...listener,
           host: combineSubDomainWithDomain(listener._hostSubDomain, listener._hostDomain),
         })),
@@ -101,7 +101,7 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
         return { host: 'Host is required.' };
       }
 
-      if (!isEmpty(this.domainRestrictions) && !this.domainRestrictions.some((domainRestriction) => fullHost.endsWith(domainRestriction))) {
+      if (!isEmpty(this.domainRestrictions) && !this.domainRestrictions.some(domainRestriction => fullHost.endsWith(domainRestriction))) {
         return { host: 'Host is not valid (must end with one of restriction domain).' };
       }
       return null;
@@ -111,13 +111,13 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
   public override listenersValidator(): ValidatorFn {
     return (formArray: UntypedFormArray): ValidationErrors | null => {
       const listenerFormArrayControls = formArray.controls;
-      const listenerValues = listenerFormArrayControls.map((listener) => ({
+      const listenerValues = listenerFormArrayControls.map(listener => ({
         path: listener.value?.path && listener.value?.path?.endsWith('/') ? listener.value?.path : listener.value?.path + '/',
         _hostSubDomain: listener.value?._hostSubDomain,
         _hostDomain: listener.value?._hostDomain,
         host: listener.value?.host,
       }));
-      if (new Set(listenerValues.map((value) => JSON.stringify(value))).size !== listenerValues.length) {
+      if (new Set(listenerValues.map(value => JSON.stringify(value))).size !== listenerValues.length) {
         return { contextPath: 'Duplicated virtual host not allowed' };
       }
       return null;
@@ -125,7 +125,7 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
   }
 
   protected override getValue(): PathV4[] {
-    return this.listenerFormArray?.controls.map((control) => {
+    return this.listenerFormArray?.controls.map(control => {
       return {
         path: control.get('path').value,
         host: combineSubDomainWithDomain(control.get('_hostSubDomain').value, control.get('_hostDomain').value),
@@ -145,7 +145,7 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
               },
             ]),
           ),
-          map((res) => (res.ok ? null : { listeners: res.reason })),
+          map(res => (res.ok ? null : { listeners: res.reason })),
         );
       }
       return of(null);
@@ -158,7 +158,7 @@ const extractDomainToHost = (fullHost: string, domainRestrictions: string[] = []
   let hostDomain = '';
 
   if (!isEmpty(domainRestrictions)) {
-    hostDomain = fullHost && domainRestrictions.find((domain) => fullHost.endsWith(`${domain}`));
+    hostDomain = fullHost && domainRestrictions.find(domain => fullHost.endsWith(`${domain}`));
 
     if (hostDomain) {
       host = fullHost.replace(new RegExp(`\\.?${escapeRegExp(hostDomain)}$`), '');

@@ -51,7 +51,7 @@ describe('CsrfInterceptor', () => {
     httpTestingController.verify();
   });
 
-  it('store a token on first response and use it for other requests', (done) => {
+  it('store a token on first response and use it for other requests', done => {
     httpClient
       .get<unknown>(testUrl)
       .pipe(switchMap(() => httpClient.get<unknown>(testUrl)))
@@ -74,7 +74,7 @@ describe('CsrfInterceptor', () => {
     req2.flush({});
   });
 
-  it('store a token on error response and use it for other requests', (done) => {
+  it('store a token on error response and use it for other requests', done => {
     httpClient
       .get<unknown>(testUrl)
       .pipe(catchError(() => httpClient.get<unknown>(testUrl)))

@@ -38,12 +38,12 @@ describe('ApiReviewV2Service', () => {
   });
 
   describe('ask', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api-id';
       const reviewMessage = 'review-message';
 
       apiReviewV2Service.ask(apiId, reviewMessage).subscribe({
-        error: (err) => {
+        error: err => {
           done.fail(err);
         },
         complete: () => {
@@ -62,12 +62,12 @@ describe('ApiReviewV2Service', () => {
   });
 
   describe('accept', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api-id';
       const reviewMessage = 'review-message';
 
       apiReviewV2Service.accept(apiId, reviewMessage).subscribe({
-        error: (err) => {
+        error: err => {
           done.fail(err);
         },
         complete: () => {
@@ -86,12 +86,12 @@ describe('ApiReviewV2Service', () => {
   });
 
   describe('reject', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api-id';
       const reviewMessage = 'review-message';
 
       apiReviewV2Service.reject(apiId, reviewMessage).subscribe({
-        error: (err) => {
+        error: err => {
           done.fail(err);
         },
         complete: () => {

@@ -98,7 +98,7 @@ describe('ApiAnalyticsWidgetService', () => {
         service.setUrlParamsData({ ...baseUrlParams, timeRangeParams: null });
       });
 
-      it('should return error config', (done) => {
+      it('should return error config', done => {
         const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
           type: 'pie',
           apiId: API_ID,
@@ -108,7 +108,7 @@ describe('ApiAnalyticsWidgetService', () => {
           groupByField: 'status',
         };
 
-        service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+        service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
           // Skip loading state and wait for the actual result
           if (result.state === 'loading') {
             return;
@@ -129,7 +129,7 @@ describe('ApiAnalyticsWidgetService', () => {
           service.setUrlParamsData({ ...baseUrlParams, timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
         });
 
-        it('should transform STATS response to stats chart config', (done) => {
+        it('should transform STATS response to stats chart config', done => {
           const fakeWidgetConfig: ApiAnalyticsDashboardWidgetConfig = {
             type: 'stats',
             apiId: API_ID,
@@ -144,7 +144,7 @@ describe('ApiAnalyticsWidgetService', () => {
 
           const mockedStatsResponse: AnalyticsStatsResponse = fakeAnalyticsStatsResponse();
 
-          service.getApiAnalyticsWidgetConfig$(fakeWidgetConfig).subscribe((result) => {
+          service.getApiAnalyticsWidgetConfig$(fakeWidgetConfig).subscribe(result => {
             // Skip loading state and wait for the actual result
             if (result.state === 'loading') {
               return;
@@ -162,7 +162,7 @@ describe('ApiAnalyticsWidgetService', () => {
           expectStatsRequest('gateway-response-time-ms', mockedStatsResponse);
         });
 
-        it('should call only once for multiple STATS widgets', (done) => {
+        it('should call only once for multiple STATS widgets', done => {
           const fakeWidgetConfigs: ApiAnalyticsDashboardWidgetConfig[] = [
             {
               type: 'stats',
@@ -193,8 +193,8 @@ describe('ApiAnalyticsWidgetService', () => {
           const obs2$ = service.getApiAnalyticsWidgetConfig$(fakeWidgetConfigs[1]);
 
           combineLatest([
-            obs1$.pipe(filter((result) => result.state !== 'loading')),
-            obs2$.pipe(filter((result) => result.state !== 'loading')),
+            obs1$.pipe(filter(result => result.state !== 'loading')),
+            obs2$.pipe(filter(result => result.state !== 'loading')),
           ]).subscribe(([result1, result2]) => {
             // Assertions for the first result
             expect(result1.state).toBe('success');
@@ -221,7 +221,7 @@ describe('ApiAnalyticsWidgetService', () => {
       });
 
       describe('pie chart widget', () => {
-        it('should transform GROUP_BY response to pie chart config', (done) => {
+        it('should transform GROUP_BY response to pie chart config', done => {
           const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
             type: 'pie',
             apiId: API_ID,
@@ -255,7 +255,7 @@ describe('ApiAnalyticsWidgetService', () => {
             },
           });
 
-          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
             // Skip loading state and wait for the actual result
             if (result.state === 'loading') {
               return;
@@ -290,7 +290,7 @@ describe('ApiAnalyticsWidgetService', () => {
           expectGroupByRequest('status', mockGroupByResponse, { ranges: '100:199;200:299;300:399;400:499;500:599' });
         });
 
-        it('should handle status ranges with predefined labels', (done) => {
+        it('should handle status ranges with predefined labels', done => {
           const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
             type: 'pie',
             apiId: API_ID,
@@ -313,7 +313,7 @@ describe('ApiAnalyticsWidgetService', () => {
             },
           });
 
-          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
             // Skip loading state and wait for the actual result
             if (result.state === 'loading') {
               return;
@@ -345,7 +345,7 @@ describe('ApiAnalyticsWidgetService', () => {
           expectGroupByRequest('status', mockGroupByResponse, { ranges: '1;2;3' });
         });
 
-        it('should fallback to metadata or original labels when ranges are not provided', (done) => {
+        it('should fallback to metadata or original labels when ranges are not provided', done => {
           const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
             type: 'pie',
             apiId: API_ID,
@@ -368,7 +368,7 @@ describe('ApiAnalyticsWidgetService', () => {
             },
           });
 
-          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
             // Skip loading state and wait for the actual result
             if (result.state === 'loading') {
               return;
@@ -401,7 +401,7 @@ describe('ApiAnalyticsWidgetService', () => {
           expectGroupByRequest('status', mockGroupByResponse);
         });
 
-        it('should filter out zero values', (done) => {
+        it('should filter out zero values', done => {
           const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
             type: 'pie',
             apiId: API_ID,
@@ -419,7 +419,7 @@ describe('ApiAnalyticsWidgetService', () => {
             },
           });
 
-          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
             // Skip loading state and wait for the actual result
             if (result.state === 'loading') {
               return;
@@ -427,7 +427,7 @@ describe('ApiAnalyticsWidgetService', () => {
 
             if (result.widgetType === 'pie') {
               expect(result.widgetData).toHaveLength(2);
-              expect(result.widgetData.find((d) => d.value === 0)).toBeUndefined();
+              expect(result.widgetData.find(d => d.value === 0)).toBeUndefined();
             }
             done();
           });
@@ -435,7 +435,7 @@ describe('ApiAnalyticsWidgetService', () => {
           expectGroupByRequest('status', mockGroupByResponse);
         });
 
-        it('should fallback to original label when range value does not match', (done) => {
+        it('should fallback to original label when range value does not match', done => {
           const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
             type: 'pie',
             apiId: API_ID,
@@ -456,7 +456,7 @@ describe('ApiAnalyticsWidgetService', () => {
             },
           });
 
-          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
             // Skip loading state and wait for the actual result
             if (result.state === 'loading') {
               return;
@@ -485,7 +485,7 @@ describe('ApiAnalyticsWidgetService', () => {
       });
 
       describe('table widget', () => {
-        it('should transform GROUP_BY response to table config', (done) => {
+        it('should transform GROUP_BY response to table config', done => {
           const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
             type: 'table',
             apiId: API_ID,
@@ -516,7 +516,7 @@ describe('ApiAnalyticsWidgetService', () => {
             },
           });
 
-          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
             // Skip loading state and wait for the actual result
             if (result.state === 'loading') {
               return;
@@ -564,7 +564,7 @@ describe('ApiAnalyticsWidgetService', () => {
           expectGroupByRequest('application-id', mockGroupByResponse, { order: '-count:_count' });
         });
 
-        it('should not sort when shouldSortBuckets is false', (done) => {
+        it('should not sort when shouldSortBuckets is false', done => {
           const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
             type: 'table',
             apiId: API_ID,
@@ -589,7 +589,7 @@ describe('ApiAnalyticsWidgetService', () => {
             },
           });
 
-          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
             // Skip loading state and wait for the actual result
             if (result.state === 'loading') {
               return;
@@ -606,7 +606,7 @@ describe('ApiAnalyticsWidgetService', () => {
           expectGroupByRequest('application-id', mockGroupByResponse);
         });
 
-        it('should use default column names when no columns are provided for table widget', (done) => {
+        it('should use default column names when no columns are provided for table widget', done => {
           const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
             type: 'table',
             apiId: API_ID,
@@ -631,7 +631,7 @@ describe('ApiAnalyticsWidgetService', () => {
             },
           });
 
-          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
             // Skip loading state and wait for the actual result
             if (result.state === 'loading') {
               return;
@@ -670,7 +670,7 @@ describe('ApiAnalyticsWidgetService', () => {
       });
 
       describe('line chart widget', () => {
-        it('should transform HISTOGRAM response to line chart config', (done) => {
+        it('should transform HISTOGRAM response to line chart config', done => {
           const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
             type: 'line',
             apiId: API_ID,
@@ -721,7 +721,7 @@ describe('ApiAnalyticsWidgetService', () => {
             ],
           });
 
-          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
             // Skip loading state and wait for the actual result
             if (result.state === 'loading') {
               return;
@@ -753,7 +753,7 @@ describe('ApiAnalyticsWidgetService', () => {
           expectHistogramRequest('AVG:gateway-response-time-ms,AVG:endpoint-response-time-ms', mockHistogramResponse);
         });
 
-        it('should transform HISTOGRAM response with single aggregation using bucket names', (done) => {
+        it('should transform HISTOGRAM response with single aggregation using bucket names', done => {
           const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
             type: 'line',
             apiId: API_ID,
@@ -796,7 +796,7 @@ describe('ApiAnalyticsWidgetService', () => {
             ],
           });
 
-          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
             // Skip loading state and wait for the actual result
             if (result.state === 'loading') {
               return;
@@ -832,7 +832,7 @@ describe('ApiAnalyticsWidgetService', () => {
           expectHistogramRequest('FIELD:status', mockHistogramResponse);
         });
 
-        it('should handle empty aggregations', (done) => {
+        it('should handle empty aggregations', done => {
           const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
             type: 'line',
             apiId: API_ID,
@@ -842,7 +842,7 @@ describe('ApiAnalyticsWidgetService', () => {
             aggregations: [],
           };
 
-          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
             // Skip loading state and wait for the actual result
             if (result.state === 'loading') {
               return;
@@ -855,7 +855,7 @@ describe('ApiAnalyticsWidgetService', () => {
         });
       });
 
-      it('should transform HISTOGRAM response with bucket metadata to line chart config', (done) => {
+      it('should transform HISTOGRAM response with bucket metadata to line chart config', done => {
         const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
           type: 'line',
           apiId: API_ID,
@@ -898,7 +898,7 @@ describe('ApiAnalyticsWidgetService', () => {
           ],
         });
 
-        service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+        service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
           // Skip loading state and wait for the actual result
           if (result.state === 'loading') {
             return;
@@ -930,7 +930,7 @@ describe('ApiAnalyticsWidgetService', () => {
         expectHistogramRequest('FIELD:application-id', mockHistogramResponse);
       });
 
-      it('should transform authentication histogram data into combined bar chart format', (done) => {
+      it('should transform authentication histogram data into combined bar chart format', done => {
         const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
           type: 'bar',
           apiId: API_ID,
@@ -988,7 +988,7 @@ describe('ApiAnalyticsWidgetService', () => {
           ],
         };
 
-        service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+        service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
           if (result.state === 'loading') return;
           if (result.widgetType === 'bar') {
             expect(result.state).toBe('success');
@@ -1030,7 +1030,7 @@ describe('ApiAnalyticsWidgetService', () => {
         service.setUrlParamsData({ ...baseUrlParams, timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
       });
 
-      it('should handle unsupported analytics type', (done) => {
+      it('should handle unsupported analytics type', done => {
         const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
           type: 'pie',
           apiId: API_ID,
@@ -1039,7 +1039,7 @@ describe('ApiAnalyticsWidgetService', () => {
           analyticsType: 'UNSUPPORTED' as any,
         };
 
-        service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+        service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
           // Skip loading state and wait for the actual result
           if (result.state === 'loading') {
             return;
@@ -1051,7 +1051,7 @@ describe('ApiAnalyticsWidgetService', () => {
         });
       });
 
-      it('should handle unsupported widget type for GROUP_BY', (done) => {
+      it('should handle unsupported widget type for GROUP_BY', done => {
         const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
           type: 'line',
           apiId: API_ID,
@@ -1063,7 +1063,7 @@ describe('ApiAnalyticsWidgetService', () => {
 
         const mockGroupByResponse: GroupByResponse = fakeGroupByResponse();
 
-        service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+        service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
           // Skip loading state and wait for the actual result
           if (result.state === 'loading') {
             return;
@@ -1077,7 +1077,7 @@ describe('ApiAnalyticsWidgetService', () => {
         expectGroupByRequest('status', mockGroupByResponse);
       });
 
-      it('should handle unsupported widget type for HISTOGRAM', (done) => {
+      it('should handle unsupported widget type for HISTOGRAM', done => {
         const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
           type: 'pie',
           apiId: API_ID,
@@ -1094,7 +1094,7 @@ describe('ApiAnalyticsWidgetService', () => {
 
         const mockHistogramResponse: HistogramAnalyticsResponse = fakeAnalyticsHistogram();
 
-        service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+        service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
           // Skip loading state and wait for the actual result
           if (result.state === 'loading') {
             return;

@@ -492,7 +492,7 @@ export const WithInternalPagination: StoryObj = {
           // Apply search filter if query is provided
           if (data.searchTerm && data.searchTerm.trim() !== '') {
             const query = data.searchTerm.toLowerCase().trim();
-            filteredOptions = allOptions.filter((option) => option.label.toLowerCase().includes(query));
+            filteredOptions = allOptions.filter(option => option.label.toLowerCase().includes(query));
           }
 
           // Calculate pagination

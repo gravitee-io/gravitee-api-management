@@ -91,7 +91,7 @@ export class SubscriptionEditPushConfigComponent implements OnInit {
       )
       .afterClosed()
       .pipe(
-        tap((result) => {
+        tap(result => {
           if (result) {
             this.consumerConfigurationChange.emit({
               channel: result.channel,

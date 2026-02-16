@@ -51,7 +51,7 @@ export class ClustersAddDialogComponent {
 
     this.isValid$ = this.formGroup.statusChanges.pipe(
       startWith(this.formGroup.status),
-      map((status) => status === 'VALID'),
+      map(status => status === 'VALID'),
     );
   }
 

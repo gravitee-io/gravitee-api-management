@@ -46,7 +46,7 @@ export class GioSelectionSelectionListHarness extends MatSelectionListHarness {
     const items = await this.getItems(filters?.selected !== undefined ? { selected: filters.selected } : {});
 
     return Promise.all(
-      items.map(async (item) => {
+      items.map(async item => {
         const icon = await item.getHarness(MatIconHarness);
         return await icon.getName();
       }),

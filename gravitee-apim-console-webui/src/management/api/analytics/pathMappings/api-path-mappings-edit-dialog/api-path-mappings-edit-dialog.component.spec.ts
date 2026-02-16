@@ -64,19 +64,19 @@ describe('ApiPathMappingsEditDialogComponent', () => {
     it('should save updated path', async () => {
       await loader
         .getHarness(MatInputHarness.with({ selector: '[aria-label="Path mapping input"]' }))
-        .then((input) => input.setValue('/test2'));
+        .then(input => input.setValue('/test2'));
       expect(
-        await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Save path mapping"]' })).then((btn) => btn.isDisabled()),
+        await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Save path mapping"]' })).then(btn => btn.isDisabled()),
       ).toStrictEqual(false);
     });
 
     it('should not be able to save existing path', async () => {
       await loader
         .getHarness(MatInputHarness.with({ selector: '[aria-label="Path mapping input"]' }))
-        .then((input) => input.setValue('/test/:id'));
+        .then(input => input.setValue('/test/:id'));
 
       expect(
-        await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Save path mapping"]' })).then((btn) => btn.isDisabled()),
+        await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Save path mapping"]' })).then(btn => btn.isDisabled()),
       ).toStrictEqual(true);
     });
   });

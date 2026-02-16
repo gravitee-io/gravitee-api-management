@@ -24,7 +24,7 @@ describe('AlertTriggerConditionStringComponent', () => {
   let $componentController: IComponentControllerService;
   let alertTriggerConditionStringComponent: any;
 
-  beforeEach(inject((_$componentController_) => {
+  beforeEach(inject(_$componentController_ => {
     $componentController = _$componentController_;
     alertTriggerConditionStringComponent = $componentController('gvAlertTriggerConditionString', null, {});
   }));

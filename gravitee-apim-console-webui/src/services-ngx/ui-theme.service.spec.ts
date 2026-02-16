@@ -38,7 +38,7 @@ describe('UiPortalThemeService', () => {
     httpTestingController.verify();
   });
 
-  it('should call the API', (done) => {
+  it('should call the API', done => {
     const themePortalNext: ThemePortalNext = {
       id: 'theme id',
       name: 'theme name',
@@ -65,7 +65,7 @@ describe('UiPortalThemeService', () => {
       },
     };
 
-    service.getDefaultTheme('PORTAL_NEXT').subscribe((res) => {
+    service.getDefaultTheme('PORTAL_NEXT').subscribe(res => {
       expect(res).toEqual(themePortalNext);
       done();
     });

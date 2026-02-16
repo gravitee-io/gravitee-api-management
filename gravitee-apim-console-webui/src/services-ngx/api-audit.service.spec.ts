@@ -39,11 +39,11 @@ describe('ApiAuditService', () => {
   });
 
   describe('get audit', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'test_api';
       const fakeAuditPage = fakeMetadataPageAudit();
 
-      apiAuditService.getAudit(apiId, {}).subscribe((response) => {
+      apiAuditService.getAudit(apiId, {}).subscribe(response => {
         expect(response).toMatchObject(fakeAuditPage);
         done();
       });
@@ -58,11 +58,11 @@ describe('ApiAuditService', () => {
   });
 
   describe('get events', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'test_api';
       const fakeEvents = ['TESTEVENT1', 'TESTEVENT2'];
 
-      apiAuditService.getEvents(apiId).subscribe((response) => {
+      apiAuditService.getEvents(apiId).subscribe(response => {
         expect(response).toMatchObject(fakeEvents);
         done();
       });

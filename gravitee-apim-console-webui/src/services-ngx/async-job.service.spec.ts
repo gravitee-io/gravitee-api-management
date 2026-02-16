@@ -42,7 +42,7 @@ describe('AsyncJobService', () => {
   });
 
   describe('listAsyncJobs', () => {
-    it('should call API', (done) => {
+    it('should call API', done => {
       const fakeData = fakePaginatedResult([]);
 
       service
@@ -55,7 +55,7 @@ describe('AsyncJobService', () => {
           2,
           20,
         )
-        .subscribe((res) => {
+        .subscribe(res => {
           expect(res).toMatchObject(fakeData);
           done();
         });

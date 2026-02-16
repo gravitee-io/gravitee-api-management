@@ -29,34 +29,34 @@ export class RequestMetricsAggregationConditionHarness extends ComponentHarness 
   public aggregationForm = this.locatorFor(AggregationConditionHarness);
 
   public async getFunctionOptions() {
-    return this.getFunctionSelect().then(async (select) => {
+    return this.getFunctionSelect().then(async select => {
       await select.open();
       const options = await select.getOptions();
-      return Promise.all(options.map(async (o) => o.getText()));
+      return Promise.all(options.map(async o => o.getText()));
     });
   }
 
   public async selectFunction(text: string) {
-    return this.getFunctionSelect().then((select) => select.clickOptions({ text }));
+    return this.getFunctionSelect().then(select => select.clickOptions({ text }));
   }
 
   public async getSelectedFunction() {
-    return this.getFunctionSelect().then((select) => select.getValueText());
+    return this.getFunctionSelect().then(select => select.getValueText());
   }
 
   public async getMetricOptions() {
-    return this.getMetricSelect().then(async (select) => {
+    return this.getMetricSelect().then(async select => {
       await select.open();
       const options = await select.getOptions();
-      return Promise.all(options.map(async (o) => o.getText()));
+      return Promise.all(options.map(async o => o.getText()));
     });
   }
 
   public async selectMetric(text: string) {
-    return this.getMetricSelect().then((select) => select.clickOptions({ text }));
+    return this.getMetricSelect().then(select => select.clickOptions({ text }));
   }
 
   public async getSelectedMetric() {
-    return this.getMetricSelect().then((select) => select.getValueText());
+    return this.getMetricSelect().then(select => select.getValueText());
   }
 }

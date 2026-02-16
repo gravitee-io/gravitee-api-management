@@ -27,24 +27,24 @@ export class ApiRuntimeLogsMoreFiltersHarness extends ComponentHarness {
   public getForm = this.locatorFor(ApiRuntimeLogsMoreFiltersFormHarness);
 
   async getPeriodSelectInput() {
-    return this.getForm().then((form) => form.getPeriodSelectInput());
+    return this.getForm().then(form => form.getPeriodSelectInput());
   }
   async getFromInput() {
-    return this.getForm().then((form) => form.getFromInput());
+    return this.getForm().then(form => form.getFromInput());
   }
   async getToInput() {
-    return this.getForm().then((form) => form.getToInput());
+    return this.getForm().then(form => form.getToInput());
   }
 
   async getStatusesChips() {
-    return this.getForm().then((form) => form.getStatusesChips());
+    return this.getForm().then(form => form.getStatusesChips());
   }
 
   async getApplicationField() {
-    return this.getForm().then((form) => form.getApplicationField());
+    return this.getForm().then(form => form.getApplicationField());
   }
 
   async getApplicationAutocomplete() {
-    return this.getForm().then((form) => form.getApplicationAutocomplete());
+    return this.getForm().then(form => form.getApplicationAutocomplete());
   }
 }

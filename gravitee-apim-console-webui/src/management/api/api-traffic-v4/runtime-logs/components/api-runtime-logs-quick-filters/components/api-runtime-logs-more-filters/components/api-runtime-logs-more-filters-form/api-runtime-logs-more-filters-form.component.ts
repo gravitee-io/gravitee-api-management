@@ -56,7 +56,7 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
     this.applicationsCache = this.formValues.applications;
     this.moreFiltersForm = new UntypedFormGroup({
       statuses: new UntypedFormControl(this.statuses),
-      applications: new UntypedFormControl(this.formValues.applications?.map((application) => application.value)),
+      applications: new UntypedFormControl(this.formValues.applications?.map(application => application.value)),
     });
     this.moreFiltersForm.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => this.emitValues());
   }
@@ -81,7 +81,7 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
     this.datesForm
       .get('from')
       .valueChanges.pipe(
-        tap((from) => {
+        tap(from => {
           this.minDate = from;
           this.datesForm.get('period').setValue(DEFAULT_PERIOD, { emitEvent: false, onlySelf: true });
         }),
@@ -123,6 +123,6 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
   }
 
   private applicationsFromValues(ids: string[]): MultiFilter {
-    return ids?.length > 0 ? ids.map((id) => this.applicationsCache.find((app) => app.value === id)) : DEFAULT_FILTERS.applications;
+    return ids?.length > 0 ? ids.map(id => this.applicationsCache.find(app => app.value === id)) : DEFAULT_FILTERS.applications;
   }
 }

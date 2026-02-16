@@ -39,7 +39,7 @@ export class ApiV4MenuService implements ApiMenuService {
     subMenuItems: MenuItem[];
     groupItems: MenuGroupItem[];
   } {
-    const hasTcpListeners = api.listeners.find((listener) => listener.type === 'TCP') != null;
+    const hasTcpListeners = api.listeners.find(listener => listener.type === 'TCP') != null;
     const webhooksMenuEntry = this.addWebhooksMenuEntry(api);
 
     const subMenuItems: MenuItem[] = [
@@ -57,16 +57,14 @@ export class ApiV4MenuService implements ApiMenuService {
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
       ...(api.type !== 'LLM_PROXY' ? this.addAlertsMenuEntry() : []),
       ...(api.type === 'PROXY' ? [this.addDebugMenuEntry()] : []),
-    ].filter((entry) => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
+    ].filter(entry => entry != null && !entry.tabs?.every(tab => tab.routerLink === 'DISABLED'));
 
     return { subMenuItems, groupItems: [] };
   }
 
   private addConfigurationMenuEntry(): MenuItem {
     const license = { feature: ApimFeature.APIM_AUDIT_TRAIL, context: UTMTags.CONTEXT_API };
-    const iconRight$ = this.gioLicenseService
-      .isMissingFeature$(license.feature)
-      .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+    const iconRight$ = this.gioLicenseService.isMissingFeature$(license.feature).pipe(map(notAllowed => (notAllowed ? 'gio:lock' : null)));
 
     const tabs: MenuItem[] = [
       {
@@ -451,7 +449,7 @@ export class ApiV4MenuService implements ApiMenuService {
   private addWebhooksMenuEntry(api: ApiV4): MenuItem | null {
     const hasWebhookEntrypoint =
       api.listeners?.some(
-        (listener) => listener.type === 'SUBSCRIPTION' && listener.entrypoints?.some((entrypoint) => entrypoint.type === 'webhook'),
+        listener => listener.type === 'SUBSCRIPTION' && listener.entrypoints?.some(entrypoint => entrypoint.type === 'webhook'),
       ) ?? false;
 
     if (!hasWebhookEntrypoint || !this.permissionService.hasAnyMatching(['api-log-r', 'api-log-u'])) {

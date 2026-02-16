@@ -64,20 +64,20 @@ export class CompareConditionComponent implements OnInit {
     }
 
     this.properties = this.metrics.filter(
-      (metric) => metric.conditions.includes(ConditionType.COMPARE) && metric.key !== this.form.controls.metric.value.key,
+      metric => metric.conditions.includes(ConditionType.COMPARE) && metric.key !== this.form.controls.metric.value.key,
     );
 
     if (this.updateData) {
       if (this.updateData.type === ConditionType.RATE) {
-        const property = this.properties.find((p) => p.key === this.updateData.property2);
-        const operator = this.operators.find((p) => p.key === this.updateData.operator);
+        const property = this.properties.find(p => p.key === this.updateData.property2);
+        const operator = this.operators.find(p => p.key === this.updateData.operator);
 
         this.form.controls.property.setValue(property);
         this.form.controls.operator.setValue(operator);
         this.form.controls.multiplier.setValue(this.updateData.multiplier);
       } else {
         if ('property2' in this.updateData) {
-          const property = this.properties.find((p) => p.key === this.updateData.property2);
+          const property = this.properties.find(p => p.key === this.updateData.property2);
           this.form.controls.property.setValue(property);
         }
       }

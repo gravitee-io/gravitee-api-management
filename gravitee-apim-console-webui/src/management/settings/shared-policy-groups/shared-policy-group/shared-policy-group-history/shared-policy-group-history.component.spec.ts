@@ -118,10 +118,10 @@ describe('SharedPolicyGroupHistoryComponent', () => {
     const table = await componentHarness.getTable();
     await table
       .getRows()
-      .then((rows) =>
+      .then(rows =>
         rows[0]
           .getCells({ columnName: 'actions' })
-          .then((cells) => cells[0].getHarness(MatButtonHarness.with({ text: 'code' })).then((button) => button.click())),
+          .then(cells => cells[0].getHarness(MatButtonHarness.with({ text: 'code' })).then(button => button.click())),
       );
     const dialog = await rootLoader.getHarness(HistoryJsonDialogHarness);
 
@@ -134,10 +134,10 @@ describe('SharedPolicyGroupHistoryComponent', () => {
     const table = await componentHarness.getTable();
     await table
       .getRows()
-      .then((rows) =>
+      .then(rows =>
         rows[0]
           .getCells({ columnName: 'actions' })
-          .then((cells) => cells[0].getHarness(MatButtonHarness.with({ text: 'eye' })).then((button) => button.click())),
+          .then(cells => cells[0].getHarness(MatButtonHarness.with({ text: 'eye' })).then(button => button.click())),
       );
     expectGetPolicies();
     const dialog = await rootLoader.getHarness(HistoryStudioDialogHarness);
@@ -161,12 +161,12 @@ describe('SharedPolicyGroupHistoryComponent', () => {
     const rows = await table.getRows();
     await rows[0]
       .getCells({ columnName: 'checkbox' })
-      .then((cells) => cells[0].getHarness(MatCheckboxHarness).then((checkbox) => checkbox.check()));
+      .then(cells => cells[0].getHarness(MatCheckboxHarness).then(checkbox => checkbox.check()));
     await rows[1]
       .getCells({ columnName: 'checkbox' })
-      .then((cells) => cells[0].getHarness(MatCheckboxHarness).then((checkbox) => checkbox.check()));
+      .then(cells => cells[0].getHarness(MatCheckboxHarness).then(checkbox => checkbox.check()));
 
-    await componentHarness.compareTwoSPGButton().then((button) => button.click());
+    await componentHarness.compareTwoSPGButton().then(button => button.click());
 
     const dialog = await rootLoader.getHarness(HistoryCompareDialogHarness);
     expect(await dialog.getTitleText()).toEqual('Comparing version 1 with version 2');
@@ -188,12 +188,12 @@ describe('SharedPolicyGroupHistoryComponent', () => {
     const rows = await table.getRows();
     await rows[0]
       .getCells({ columnName: 'checkbox' })
-      .then((cells) => cells[0].getHarness(MatCheckboxHarness).then((checkbox) => checkbox.check()));
+      .then(cells => cells[0].getHarness(MatCheckboxHarness).then(checkbox => checkbox.check()));
     await rows[1]
       .getCells({ columnName: 'checkbox' })
-      .then((cells) => cells[0].getHarness(MatCheckboxHarness).then((checkbox) => checkbox.check()));
+      .then(cells => cells[0].getHarness(MatCheckboxHarness).then(checkbox => checkbox.check()));
 
-    await componentHarness.compareTwoSPGButton().then((button) => button.click());
+    await componentHarness.compareTwoSPGButton().then(button => button.click());
 
     const dialog = await rootLoader.getHarness(HistoryCompareDialogHarness);
     expect(await dialog.getTitleText()).toEqual('Comparing version 1 with version 2');
@@ -208,10 +208,10 @@ describe('SharedPolicyGroupHistoryComponent', () => {
     const table = await componentHarness.getTable();
     await table
       .getRows()
-      .then((rows) =>
+      .then(rows =>
         rows[0]
           .getCells({ columnName: 'actions' })
-          .then((cells) => cells[0].getHarness(MatButtonHarness.with({ text: 'eye' })).then((button) => button.click())),
+          .then(cells => cells[0].getHarness(MatButtonHarness.with({ text: 'eye' })).then(button => button.click())),
       );
     expectGetPolicies();
     const dialog = await rootLoader.getHarness(HistoryStudioDialogHarness);

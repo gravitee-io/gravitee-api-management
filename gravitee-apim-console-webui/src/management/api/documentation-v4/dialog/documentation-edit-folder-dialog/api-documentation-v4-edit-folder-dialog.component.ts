@@ -63,7 +63,7 @@ export class ApiDocumentationV4EditFolderDialog implements OnInit {
 
     this.formGroup.valueChanges
       .pipe(
-        tap((value) => {
+        tap(value => {
           this.formValueChanged = this.data.name !== value.name || this.data.visibility !== value.visibility;
         }),
       )

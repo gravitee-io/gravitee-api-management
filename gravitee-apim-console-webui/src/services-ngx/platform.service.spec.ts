@@ -40,7 +40,7 @@ describe('PlatformService', () => {
       expect(service).toBeDefined();
     });
 
-    xit('should call the API', (done) => {
+    xit('should call the API', done => {
       const platformLogsResponse: PlatformLogsResponse[] = [fakePlatformLogsResponse()];
 
       service
@@ -52,7 +52,7 @@ describe('PlatformService', () => {
           field: '@timestamp',
           order: false,
         })
-        .subscribe((result) => {
+        .subscribe(result => {
           expect(result).toEqual(platformLogsResponse);
           done();
         });

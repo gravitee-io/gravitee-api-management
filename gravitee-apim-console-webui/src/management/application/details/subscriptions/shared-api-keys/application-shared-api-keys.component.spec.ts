@@ -100,7 +100,7 @@ describe('ApplicationSharedApiKeysComponent', () => {
 
     await subscriptionApiKeysHarness.revokeApiKey();
 
-    await rootLoader.getHarness(GioConfirmDialogHarness).then((dialog) => dialog.confirm());
+    await rootLoader.getHarness(GioConfirmDialogHarness).then(dialog => dialog.confirm());
 
     httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/apikeys/1`,
@@ -115,7 +115,7 @@ describe('ApplicationSharedApiKeysComponent', () => {
 
     await subscriptionApiKeysHarness.renewApiKey();
 
-    await rootLoader.getHarness(GioConfirmDialogHarness).then((dialog) => dialog.confirm());
+    await rootLoader.getHarness(GioConfirmDialogHarness).then(dialog => dialog.confirm());
 
     httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/apikeys/_renew`,

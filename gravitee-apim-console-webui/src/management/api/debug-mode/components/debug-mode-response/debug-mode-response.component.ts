@@ -121,8 +121,8 @@ export class DebugModeResponseComponent implements OnChanges {
         mode: 'REQUEST_INPUT',
         selection: 'none',
       },
-      ...debugResponse.requestPolicyDebugSteps.map((debugStep) => {
-        const policy = this.listPolicies?.find((p) => p.id === debugStep.policyId);
+      ...debugResponse.requestPolicyDebugSteps.map(debugStep => {
+        const policy = this.listPolicies?.find(p => p.id === debugStep.policyId);
 
         return {
           executionTime: debugStep.duration,
@@ -152,8 +152,8 @@ export class DebugModeResponseComponent implements OnChanges {
         mode: 'RESPONSE_INPUT',
         selection: 'none',
       },
-      ...debugResponse.responsePolicyDebugSteps.map((debugStep) => {
-        const policy = this.listPolicies?.find((p) => p.id === debugStep.policyId);
+      ...debugResponse.responsePolicyDebugSteps.map(debugStep => {
+        const policy = this.listPolicies?.find(p => p.id === debugStep.policyId);
 
         return {
           executionTime: debugStep.duration,
@@ -185,13 +185,13 @@ export class DebugModeResponseComponent implements OnChanges {
   private onSelectPolicy(timelineStep: TimelineStep) {
     if (timelineStep.mode === 'POLICY_REQUEST') {
       const steps = this.debugResponse.requestPolicyDebugSteps;
-      const outputIndex = steps.findIndex((value) => value.id === timelineStep.id);
+      const outputIndex = steps.findIndex(value => value.id === timelineStep.id);
       const output = steps[outputIndex];
       const input = outputIndex > 0 ? steps[outputIndex - 1] : this.debugResponse.requestDebugSteps.input;
       this.inspectorVM = { input, output, executionStatus: timelineStep.executionStatus };
     } else if (timelineStep.mode === 'POLICY_RESPONSE') {
       const steps = this.debugResponse.responsePolicyDebugSteps;
-      const outputIndex = steps.findIndex((value) => value.id === timelineStep.id);
+      const outputIndex = steps.findIndex(value => value.id === timelineStep.id);
       const output = steps[outputIndex];
       const input = outputIndex > 0 ? steps[outputIndex - 1] : this.debugResponse.responseDebugSteps.input;
       this.inspectorVM = { input, output, executionStatus: timelineStep.executionStatus };
@@ -200,7 +200,7 @@ export class DebugModeResponseComponent implements OnChanges {
     this.responseDisplayableVM = {
       ...this.responseDisplayableVM,
       timelineSteps: this.responseDisplayableVM.timelineSteps.map(
-        (step) => ({ ...step, selection: step.id === timelineStep.id ? 'single' : 'none' }) as TimelineStep,
+        step => ({ ...step, selection: step.id === timelineStep.id ? 'single' : 'none' }) as TimelineStep,
       ),
     };
   }
@@ -215,7 +215,7 @@ export class DebugModeResponseComponent implements OnChanges {
     this.responseDisplayableVM = {
       ...this.responseDisplayableVM,
       timelineSteps: this.responseDisplayableVM.timelineSteps.map(
-        (step) =>
+        step =>
           ({
             ...step,
             selection: isPolicySkippedStep(step) ? 'none' : (modeSelectionResolver[step.mode] ?? 'none'),
@@ -239,7 +239,7 @@ export class DebugModeResponseComponent implements OnChanges {
     this.responseDisplayableVM = {
       ...this.responseDisplayableVM,
       timelineSteps: this.responseDisplayableVM.timelineSteps.map(
-        (step) =>
+        step =>
           ({
             ...step,
             selection: isPolicySkippedStep(step) ? 'none' : (modeSelectionResolver[step.mode] ?? 'content'),

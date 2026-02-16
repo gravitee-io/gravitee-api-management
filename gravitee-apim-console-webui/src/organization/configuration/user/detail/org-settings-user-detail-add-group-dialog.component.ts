@@ -58,7 +58,7 @@ export class OrgSettingsUserDetailAddGroupDialogComponent {
   ) {
     this.groups$ = this.groupService.listByOrganization().pipe(
       shareReplay(1),
-      map((groups) => groups.filter((g) => !this.userDetailData.groupIdAlreadyAdded.includes(g.id))),
+      map(groups => groups.filter(g => !this.userDetailData.groupIdAlreadyAdded.includes(g.id))),
     );
 
     this.addGroupForm = new UntypedFormGroup(
@@ -75,17 +75,17 @@ export class OrgSettingsUserDetailAddGroupDialogComponent {
     this.addGroupForm
       .get('groupId')
       .valueChanges.pipe(
-        switchMap((selectedGroupId) =>
+        switchMap(selectedGroupId =>
           this.groups$.pipe(
             take(1),
-            map((groups) => {
-              const selectedGroup = groups.find((g) => g.id === selectedGroupId);
+            map(groups => {
+              const selectedGroup = groups.find(g => g.id === selectedGroupId);
               return selectedGroup?.environmentId ?? null;
             }),
           ),
         ),
       )
-      .subscribe((environmentId) => {
+      .subscribe(environmentId => {
         this.addGroupForm.patchValue({ environmentId });
       });
   }

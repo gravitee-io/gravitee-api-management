@@ -149,7 +149,7 @@ describe('ApiGeneralMembersComponent', () => {
       expect(await harness.isMemberRoleSelectDisabled(0)).toEqual(false);
       const roleOptions: MatOptionHarness[] = await harness.getMemberRoleSelectOptions(0);
 
-      const options: string[] = await Promise.all(roleOptions.map(async (opt) => await opt.getText()));
+      const options: string[] = await Promise.all(roleOptions.map(async opt => await opt.getText()));
       expect(options).toEqual(['PRIMARY_OWNER', 'OWNER', 'USER']);
 
       const poOption = await harness.getMemberRoleSelectOptions(0, { text: 'PRIMARY_OWNER' });
@@ -171,7 +171,7 @@ describe('ApiGeneralMembersComponent', () => {
       };
       expectRequests(api, members);
 
-      await harness.getMemberRoleSelectForRowIndex(1).then(async (select) => {
+      await harness.getMemberRoleSelectForRowIndex(1).then(async select => {
         await select.open();
         return await select.clickOptions({ text: 'USER' });
       });
@@ -221,7 +221,7 @@ describe('ApiGeneralMembersComponent', () => {
 
       expect(await harness.isMemberDeleteButtonVisible(1)).toEqual(true);
 
-      await harness.getMemberDeleteButton(1).then((btn) => btn.click());
+      await harness.getMemberDeleteButton(1).then(btn => btn.click());
 
       const confirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
       expect(confirmDialog).toBeDefined();
@@ -248,7 +248,7 @@ describe('ApiGeneralMembersComponent', () => {
 
       expect(await harness.isMemberDeleteButtonVisible(1)).toEqual(true);
 
-      await harness.getMemberDeleteButton(1).then((btn) => btn.click());
+      await harness.getMemberDeleteButton(1).then(btn => btn.click());
 
       const confirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
       expect(confirmDialog).toBeDefined();
@@ -285,7 +285,7 @@ describe('ApiGeneralMembersComponent', () => {
       // Expect default role to be selected
       const roleOptions: MatOptionHarness[] = await harness.getMemberRoleSelectOptions(1);
       const options = await Promise.all(
-        roleOptions.map(async (opt) => ({
+        roleOptions.map(async opt => ({
           text: await opt.getText(),
           isSelected: await opt.isSelected(),
         })),
@@ -403,7 +403,7 @@ describe('ApiGeneralMembersComponent', () => {
   function expectGetGroupsListRequest(groups: string[]) {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups?page=1&perPage=9999`, method: 'GET' })
-      .flush(fakeGroupsResponse({ data: groups.map((id) => fakeGroup({ id, name: id + '-name' })) }));
+      .flush(fakeGroupsResponse({ data: groups.map(id => fakeGroup({ id, name: id + '-name' })) }));
     fixture.detectChanges();
   }
 });

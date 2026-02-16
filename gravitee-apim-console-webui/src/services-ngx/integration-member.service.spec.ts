@@ -39,7 +39,7 @@ describe('IntegrationMemberService', () => {
   });
 
   describe('get members', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const integrationId = 'fox';
       const mockMembers: Member[] = [
         { id: '1', roles: [{ name: 'king', scope: 'API' }] },
@@ -49,7 +49,7 @@ describe('IntegrationMemberService', () => {
         data: mockMembers,
       };
 
-      service.getMembers(integrationId).subscribe((response) => {
+      service.getMembers(integrationId).subscribe(response => {
         expect(response).toMatchObject(mockResponse);
         done();
       });
@@ -64,7 +64,7 @@ describe('IntegrationMemberService', () => {
   });
 
   describe('add member', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const integrationId = 'fox';
       const membership: AddMember = { userId: '1', roleName: 'king', externalReference: 'ref' };
       service.addMember(integrationId, membership).subscribe(() => {
@@ -80,7 +80,7 @@ describe('IntegrationMemberService', () => {
   });
 
   describe('update member', () => {
-    it('should call api', (done) => {
+    it('should call api', done => {
       const integrationId = 'fox';
       const membership: UpdateMember = { memberId: '1', roleName: 'king' };
       service.updateMember(integrationId, membership).subscribe(() => {
@@ -96,7 +96,7 @@ describe('IntegrationMemberService', () => {
   });
 
   describe('delete member', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const integrationId = 'fox';
       const memberId = 'id';
       service.deleteMember(integrationId, memberId).subscribe(() => {

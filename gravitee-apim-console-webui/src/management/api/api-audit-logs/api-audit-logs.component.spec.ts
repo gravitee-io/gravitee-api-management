@@ -84,7 +84,7 @@ describe('AuditLogsComponent', () => {
       expectAuditListRequest();
 
       const form = await loader.getHarness(ApiAuditsFilterFormHarness);
-      await form.searchEvent('API_CREATED').then((options) => options[0]?.click());
+      await form.searchEvent('API_CREATED').then(options => options[0]?.click());
 
       expectAuditListRequest({ events: 'API_CREATED' });
     });
@@ -111,7 +111,7 @@ describe('AuditLogsComponent', () => {
       const form = await loader.getHarness(ApiAuditsFilterFormHarness);
 
       // fill events
-      await form.searchEvent('API_CREATED').then((options) => options[0]?.click());
+      await form.searchEvent('API_CREATED').then(options => options[0]?.click());
       expectAuditListRequest(
         { events: 'API_CREATED' },
         { page: 1, perPage: 10 },

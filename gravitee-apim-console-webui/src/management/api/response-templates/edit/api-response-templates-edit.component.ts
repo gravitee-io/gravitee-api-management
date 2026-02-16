@@ -62,12 +62,12 @@ export class ApiResponseTemplatesEditComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
-        tap((api) => {
+        tap(api => {
           this.apiId = api.id;
 
           const responseTemplates = toResponseTemplates(api.responseTemplates);
 
-          this.responseTemplateToEdit = responseTemplates.find((rt) => rt.id === this.activatedRoute.snapshot.params.responseTemplateId);
+          this.responseTemplateToEdit = responseTemplates.find(rt => rt.id === this.activatedRoute.snapshot.params.responseTemplateId);
           this.mode = !isNil(this.responseTemplateToEdit) ? 'edit' : 'new';
 
           this.isReadOnly =
@@ -112,13 +112,13 @@ export class ApiResponseTemplatesEditComponent implements OnInit, OnDestroy {
 
           this.filteredStatusCodes$ = this.responseTemplatesForm.get('statusCode')?.valueChanges.pipe(
             startWith(''),
-            map((value) => {
+            map(value => {
               if (isEmpty(value)) {
                 return HttpUtil.statusCodes;
               }
 
               return HttpUtil.statusCodes.filter(
-                (statusCode) =>
+                statusCode =>
                   toString(statusCode.code).includes(toString(value)) ||
                   statusCode.label.toLowerCase().includes(toString(value).toLowerCase()),
               );
@@ -126,7 +126,7 @@ export class ApiResponseTemplatesEditComponent implements OnInit, OnDestroy {
           );
           this.selectedStatusCodes$ = this.responseTemplatesForm.get('statusCode')?.valueChanges.pipe(
             startWith(this.responseTemplatesForm.get('statusCode')?.value),
-            map((value) => HttpUtil.statusCodes.find((statusCode) => toString(statusCode.code) === toString(value))),
+            map(value => HttpUtil.statusCodes.find(statusCode => toString(statusCode.code) === toString(value))),
 
             takeUntil(this.unsubscribe$),
           );
@@ -150,7 +150,7 @@ export class ApiResponseTemplatesEditComponent implements OnInit, OnDestroy {
       key: responseTemplateFormValue.key,
       contentType: responseTemplateFormValue.acceptHeader,
       statusCode: parseInt(responseTemplateFormValue.statusCode, 10),
-      headers: !isEmpty(headers) ? Object.fromEntries(headers.map((h) => [h.key, h.value])) : undefined,
+      headers: !isEmpty(headers) ? Object.fromEntries(headers.map(h => [h.key, h.value])) : undefined,
       body: responseTemplateFormValue.body,
       propagateErrorKeyToLogs: responseTemplateFormValue.propagateErrorKeyToLogs,
     };
@@ -159,12 +159,12 @@ export class ApiResponseTemplatesEditComponent implements OnInit, OnDestroy {
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV2V4Filter(this.snackBarService),
-        switchMap((api) => {
+        switchMap(api => {
           const responseTemplates = toResponseTemplates(api.responseTemplates);
 
           // Find the response template to update or add the new one
           const responseTemplateToEditIndex =
-            this.mode === 'edit' ? responseTemplates.findIndex((rt) => rt.id === this.responseTemplateToEdit?.id) : -1;
+            this.mode === 'edit' ? responseTemplates.findIndex(rt => rt.id === this.responseTemplateToEdit?.id) : -1;
 
           responseTemplateToEditIndex !== -1
             ? responseTemplates.splice(responseTemplateToEditIndex, 1, responseTemplateToSave)
@@ -210,8 +210,8 @@ const uniqAcceptHeaderValidator = (responseTemplate: ResponseTemplate[], editing
     if (
       !responseTemplate
         // ignore the response template we are editing
-        .filter((rt) => editingResponseTemplate?.id !== rt.id)
-        .some((rt) => rt.key === keyControl.value && rt.contentType === value)
+        .filter(rt => editingResponseTemplate?.id !== rt.id)
+        .some(rt => rt.key === keyControl.value && rt.contentType === value)
     ) {
       return null;
     }

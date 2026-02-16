@@ -26,22 +26,22 @@ export abstract class LogsListBaseHarness extends ComponentHarness {
 
   async countRows(): Promise<number> {
     return this.getLogsTable()
-      .then((table) => table.getRows())
-      .then((rows) => rows.length);
+      .then(table => table.getRows())
+      .then(rows => rows.length);
   }
 
   async computeTableCells() {
     const table = await this.getLogsTable();
 
     const headerRows = await table.getHeaderRows();
-    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+    const headerCells = await parallel(() => headerRows.map(row => row.getCellTextByColumnName()));
 
     const rows = await table.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByIndex()));
     return { headerCells, rowCells };
   }
 
   async getPaginator() {
-    return this.getTableWrapper().then((table) => table.getPaginator('header'));
+    return this.getTableWrapper().then(table => table.getPaginator('header'));
   }
 }

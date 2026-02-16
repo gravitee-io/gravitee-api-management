@@ -97,7 +97,7 @@ export class HomepageComponent implements HasUnsavedChanges {
   constructor() {
     this.getPortalHomepage()
       .pipe(
-        tap((result) => {
+        tap(result => {
           this.portalHomepage.set(result);
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -117,7 +117,7 @@ export class HomepageComponent implements HasUnsavedChanges {
     if (this.hasUnsavedChanges()) {
       confirmDiscardChanges(this.matDialog)
         .pipe(
-          filter((confirmed) => confirmed),
+          filter(confirmed => confirmed),
           tap(() => this.executeTogglePublish()),
           takeUntilDestroyed(this.destroyRef),
         )
@@ -150,11 +150,11 @@ export class HomepageComponent implements HasUnsavedChanges {
       })
       .afterClosed()
       .pipe(
-        filter((confirmed) => confirmed),
+        filter(confirmed => confirmed),
         switchMap(() => this.portalNavigationItemService.updateNavigationItem(pageId, updateObj)),
-        tap((updatedPage) => {
+        tap(updatedPage => {
           const currentNav = this.portalHomepage()?.navigationItem ?? null;
-          this.portalHomepage.update((current) => {
+          this.portalHomepage.update(current => {
             return {
               ...current,
               navigationItem: { ...currentNav, published: updatedPage.published },
@@ -182,9 +182,9 @@ export class HomepageComponent implements HasUnsavedChanges {
         content: this.contentControl.value,
       })
       .pipe(
-        tap((portalPage) => {
+        tap(portalPage => {
           this.snackbarService.success(`The page has been updated successfully`);
-          this.portalHomepage.update((current) => {
+          this.portalHomepage.update(current => {
             return {
               ...current,
               content: { id: portalPage.id, type: portalPage.type, content: portalPage.content },
@@ -202,12 +202,12 @@ export class HomepageComponent implements HasUnsavedChanges {
 
   private getPortalHomepage(): Observable<PortalHomepage> {
     return this.portalNavigationItemService.getNavigationItems('HOMEPAGE').pipe(
-      switchMap((navResponse) => {
+      switchMap(navResponse => {
         const items = navResponse?.items ?? [];
         if (items.length === 0) {
           return EMPTY;
         }
-        const firstPageItem = items.find((i) => i.type === 'PAGE');
+        const firstPageItem = items.find(i => i.type === 'PAGE');
         if (!firstPageItem) {
           return EMPTY;
         }
@@ -217,7 +217,7 @@ export class HomepageComponent implements HasUnsavedChanges {
           return EMPTY;
         }
         return this.portalPageContentService.getPageContent(portalPageContentId).pipe(
-          switchMap((content) => {
+          switchMap(content => {
             if (!content) {
               return EMPTY;
             }

@@ -62,10 +62,10 @@ export class ApiEntrypointsV4AddDialogComponent implements OnInit, OnDestroy {
     this.formGroup
       .get('selectedEntrypointsIds')
       .valueChanges.pipe(
-        tap((selectedEntrypointsIds) => {
+        tap(selectedEntrypointsIds => {
           this.requiresUpgrade = selectedEntrypointsIds
-            .map((id) => this.entrypoints.find((entrypoint) => entrypoint.id === id))
-            .some((entrypoint) => !entrypoint.deployed);
+            .map(id => this.entrypoints.find(entrypoint => entrypoint.id === id))
+            .some(entrypoint => !entrypoint.deployed);
           this.license$ = this.licenseService.getLicense$();
           this.isOEM$ = this.licenseService.isOEM$();
         }),
@@ -77,8 +77,8 @@ export class ApiEntrypointsV4AddDialogComponent implements OnInit, OnDestroy {
   save() {
     const selectedEntrypointsIds: string[] = this.formGroup.getRawValue().selectedEntrypointsIds;
     const isHttpEntrypointSelected = this.entrypoints
-      .filter((e) => selectedEntrypointsIds.includes(e.id))
-      .some((e) => e.supportedListenerType === 'HTTP');
+      .filter(e => selectedEntrypointsIds.includes(e.id))
+      .some(e => e.supportedListenerType === 'HTTP');
 
     if (!this.apiHasHttpListener && isHttpEntrypointSelected) {
       this.contextPathFormGroup = this.formBuilder.group({

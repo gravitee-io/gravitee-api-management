@@ -58,7 +58,7 @@ export class OrgSettingsPlatformPoliciesConfigComponent implements OnInit, OnDes
             flow_mode: organization.flowMode,
           });
 
-          this.formControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => {
+          this.formControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(value => {
             this.change.emit(value.flow_mode);
           });
           this.isLoading = false;

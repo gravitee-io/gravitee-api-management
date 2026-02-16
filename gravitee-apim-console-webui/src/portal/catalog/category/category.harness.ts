@@ -45,7 +45,7 @@ export class CategoryHarness extends ComponentHarness {
   }
 
   async getTableRows(harnessLoader: HarnessLoader): Promise<MatRowHarness[]> {
-    return await harnessLoader.getHarness(MatTableHarness).then((table) => table.getRows());
+    return await harnessLoader.getHarness(MatTableHarness).then(table => table.getRows());
   }
 
   async getNameByRowIndex(harnessLoader: HarnessLoader, index: number): Promise<string> {
@@ -55,9 +55,9 @@ export class CategoryHarness extends ComponentHarness {
   async getTextByColumnNameAndRowIndex(harnessLoader: HarnessLoader, columnName: string, index: number): Promise<string> {
     return await harnessLoader
       .getHarness(MatTableHarness)
-      .then((table) => table.getRows())
-      .then((rows) => rows[index])
-      .then((row) => row.getCellTextByIndex({ columnName }).then((cell) => cell[0]));
+      .then(table => table.getRows())
+      .then(rows => rows[index])
+      .then(row => row.getCellTextByIndex({ columnName }).then(cell => cell[0]));
   }
 
   async getActionButtonByRowIndexAndTooltip(
@@ -66,12 +66,12 @@ export class CategoryHarness extends ComponentHarness {
     tooltipText: string,
   ): Promise<MatButtonHarness | null> {
     return await this.getTableRows(harnessLoader)
-      .then((rows) => rows[rowIndex].getCells({ columnName: 'actions' }))
-      .then((cells) => cells[0])
-      .then((actionCell) => actionCell.getHarnessOrNull(MatButtonHarness.with({ selector: `[mattooltip="${tooltipText}"]` })));
+      .then(rows => rows[rowIndex].getCells({ columnName: 'actions' }))
+      .then(cells => cells[0])
+      .then(actionCell => actionCell.getHarnessOrNull(MatButtonHarness.with({ selector: `[mattooltip="${tooltipText}"]` })));
   }
 
   async addApiToCategory(harnessLoader: HarnessLoader): Promise<void> {
-    return await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.add-button' })).then((btn) => btn.click());
+    return await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.add-button' })).then(btn => btn.click());
   }
 }

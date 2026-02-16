@@ -66,9 +66,9 @@ export class ApiEndpointGroupSelectionComponent implements OnInit {
     this.connectorPluginsV2Service
       .listEndpointPluginsByApiType(this.apiType)
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((endpointPlugins) => {
+      .subscribe(endpointPlugins => {
         this.endpoints = mapAndFilterBySupportedQos(endpointPlugins, this.requiredQos, this.iconService);
-        this.endpoints = this.endpoints.filter((endpoint) => endpoint.id !== AGENT_TO_AGENT.id);
+        this.endpoints = this.endpoints.filter(endpoint => endpoint.id !== AGENT_TO_AGENT.id);
         this.cdr.detectChanges();
       });
   }
@@ -79,7 +79,7 @@ export class ApiEndpointGroupSelectionComponent implements OnInit {
       .getEndpointPluginMoreInformation(endpoint.id)
       .pipe(
         catchError(() => of({})),
-        switchMap((pluginMoreInformation) =>
+        switchMap(pluginMoreInformation =>
           this.matDialog
             .open<GioInformationDialogComponent, GioConnectorDialogData, boolean>(GioInformationDialogComponent, {
               data: {

@@ -80,9 +80,9 @@ export class OrgSettingsPlatformPoliciesStudioComponent implements OnInit, OnDes
           this.organization = organization;
 
           this.definition = {
-            flows: (this.organization.flows ?? []).map((flow) => ({
+            flows: (this.organization.flows ?? []).map(flow => ({
               ...flow,
-              consumers: flow.consumers.map((consumer) => consumer.consumerId),
+              consumers: flow.consumers.map(consumer => consumer.consumerId),
             })),
           };
 
@@ -110,7 +110,7 @@ export class OrgSettingsPlatformPoliciesStudioComponent implements OnInit, OnDes
       .getDocumentation(policy.id)
       .pipe(
         tap(
-          (documentation) =>
+          documentation =>
             (this.policyDocumentation = {
               id: policy.id,
               image: policy.icon,
@@ -129,7 +129,7 @@ export class OrgSettingsPlatformPoliciesStudioComponent implements OnInit, OnDes
   fetchSpelGrammar({ currentTarget }: { currentTarget: { grammar: Grammar } }): void {
     this.orgSettingsPlatformPoliciesService
       .getSpelGrammar()
-      .pipe(tap((grammar) => (currentTarget.grammar = grammar)))
+      .pipe(tap(grammar => (currentTarget.grammar = grammar)))
       .subscribe();
   }
 
@@ -154,7 +154,7 @@ export class OrgSettingsPlatformPoliciesStudioComponent implements OnInit, OnDes
     const [basePath, ...flowsIds] = path.split('flows');
 
     const cleanedPath = basePath.replace('?', '');
-    const cleanedFlows = (flowsIds ?? []).map((flow) => flow.replace('=', ''));
+    const cleanedFlows = (flowsIds ?? []).map(flow => flow.replace('=', ''));
 
     return {
       path: cleanedPath,
@@ -165,7 +165,7 @@ export class OrgSettingsPlatformPoliciesStudioComponent implements OnInit, OnDes
   private updateUrl({ path, flowsIds }: UrlParams): void {
     // TODO: Improve this with Angular Router
     // Hack to add the tab as Fragment part of the URL
-    const flowsQueryParams = (flowsIds ?? []).map((value) => `flows=${value}`).join('&');
+    const flowsQueryParams = (flowsIds ?? []).map(value => `flows=${value}`).join('&');
 
     const queryParams = flowsQueryParams.length > 0 ? `?${flowsQueryParams}` : '';
 

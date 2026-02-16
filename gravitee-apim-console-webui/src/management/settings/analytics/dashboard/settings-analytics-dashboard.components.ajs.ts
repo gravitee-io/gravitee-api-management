@@ -49,11 +49,11 @@ const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
       this.$onInit = () => {
         this.editMode = !!this.activatedRoute.snapshot.params.dashboardId;
         if (this.activatedRoute.snapshot.params.dashboardId) {
-          DashboardService.get(this.activatedRoute.snapshot.params.dashboardId).then((response) => {
+          DashboardService.get(this.activatedRoute.snapshot.params.dashboardId).then(response => {
             this.dashboard = response.data;
             if (this.dashboard.definition) {
               this.dashboard.definition = JSON.parse(this.dashboard.definition);
-              forEach(this.dashboard.definition, (widget) => {
+              forEach(this.dashboard.definition, widget => {
                 merge(widget, DashboardService.getChartService());
               });
             }
@@ -82,7 +82,7 @@ const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
         let savePromise;
         const clonedDashboard = cloneDeep(this.dashboard);
         if (clonedDashboard.definition) {
-          forEach(clonedDashboard.definition, (widget) => {
+          forEach(clonedDashboard.definition, widget => {
             if (widget.chart) {
               if (widget.chart.service) {
                 delete widget.chart.service;
@@ -101,7 +101,7 @@ const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
         } else {
           savePromise = DashboardService.create(clonedDashboard);
         }
-        savePromise.then((response) => {
+        savePromise.then(response => {
           this.formDashboard.$setPristine();
           NotificationService.show(`Dashboard ${this.editMode ? 'updated' : 'created'} with success`);
           return this.ngRouter.navigate(['..', response.data.id], { relativeTo: this.activatedRoute });
@@ -114,7 +114,7 @@ const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
 
       this.displayPreview = () => {
         if (this.dashboard && this.dashboard.definition && this.dashboard.definition.length) {
-          return every(this.dashboard.definition, (definition) => {
+          return every(this.dashboard.definition, definition => {
             return definition.chart.type;
           });
         }

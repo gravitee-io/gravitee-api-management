@@ -126,7 +126,7 @@ describe('ApiCreationV4Component - Message', () => {
         { id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE', supportedListenerType: 'SUBSCRIPTION' },
       ]);
 
-      await step2Harness.getAsyncEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+      await step2Harness.getAsyncEntrypoints().then(form => form.selectOptionsByIds(['sse']));
 
       await step2Harness.clickValidate();
       httpExpects.expectRestrictedDomainsGetRequest([]);
@@ -142,7 +142,7 @@ describe('ApiCreationV4Component - Message', () => {
 
       httpExpects.expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE' }]);
 
-      await step2Harness.getAsyncEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+      await step2Harness.getAsyncEntrypoints().then(form => form.selectOptionsByIds(['sse']));
 
       await step2Harness.clickValidate();
       expect(component.currentStep.payload.selectedEntrypoints).toEqual([
@@ -164,7 +164,7 @@ describe('ApiCreationV4Component - Message', () => {
 
       httpExpects.expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE' }]);
 
-      await step2Harness.getAsyncEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+      await step2Harness.getAsyncEntrypoints().then(form => form.selectOptionsByIds(['sse']));
 
       await step2Harness.clickValidate();
       expect(component.currentStep.payload.selectedEntrypoints).toEqual([
@@ -189,7 +189,7 @@ describe('ApiCreationV4Component - Message', () => {
         { id: 'webhook', supportedApiType: 'MESSAGE', name: 'Webhook', supportedListenerType: 'SUBSCRIPTION' },
       ]);
 
-      await step2Harness.getAsyncEntrypoints().then((form) => form.selectOptionsByIds(['sse', 'webhook']));
+      await step2Harness.getAsyncEntrypoints().then(form => form.selectOptionsByIds(['sse', 'webhook']));
 
       await step2Harness.clickValidate();
       expect(component.currentStep.payload.selectedEntrypoints).toEqual([
@@ -264,7 +264,7 @@ describe('ApiCreationV4Component - Message', () => {
 
       httpExpects.expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE' }]);
 
-      await step2Harness.getAsyncEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+      await step2Harness.getAsyncEntrypoints().then(form => form.selectOptionsByIds(['sse']));
 
       await step2Harness.clickValidate();
       expect(component.currentStep.payload.selectedEntrypoints).toEqual([
@@ -290,7 +290,7 @@ describe('ApiCreationV4Component - Message', () => {
 
       httpExpects.expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE', supportedListenerType: 'HTTP' }]);
 
-      await step2Harness.getAsyncEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+      await step2Harness.getAsyncEntrypoints().then(form => form.selectOptionsByIds(['sse']));
 
       await step2Harness.clickValidate();
       expect(component.currentStep.payload.selectedEntrypoints).toEqual([
@@ -343,7 +343,7 @@ describe('ApiCreationV4Component - Message', () => {
 
       httpExpects.expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE' }]);
 
-      await step2Harness.getAsyncEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+      await step2Harness.getAsyncEntrypoints().then(form => form.selectOptionsByIds(['sse']));
 
       await step2Harness.clickValidate();
       expect(component.currentStep.payload.selectedEntrypoints).toEqual([

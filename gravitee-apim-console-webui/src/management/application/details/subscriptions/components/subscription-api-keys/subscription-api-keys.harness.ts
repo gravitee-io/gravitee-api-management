@@ -30,11 +30,11 @@ export class SubscriptionApiKeysHarness extends ComponentHarness {
     const table = await this.getTable();
 
     const headerRows = await table.getHeaderRows();
-    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+    const headerCells = await parallel(() => headerRows.map(row => row.getCellTextByColumnName()));
 
     const rows = await table.getRows();
     const rowCells = await parallel(() =>
-      rows.map(async (row) => {
+      rows.map(async row => {
         const activeIconCell = (await row.getCells({ columnName: 'active-icon' }))[0];
         const activeIconCellIconName = await (await activeIconCell.getHarness(MatIconHarness)).getName();
 

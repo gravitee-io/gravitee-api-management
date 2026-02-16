@@ -60,7 +60,7 @@ describe('TicketComponent', () => {
     fixture.detectChanges();
 
     const list = fixture.debugElement.query(By.css('.gio-description-list'));
-    const displayedTexts: string[] = list.children.map((child) => child.nativeElement.textContent.trim());
+    const displayedTexts: string[] = list.children.map(child => child.nativeElement.textContent.trim());
     expect(displayedTexts).toEqual([
       'API',
       '08cbff9a-1b1f-4430-836d-8849b0b23e7a',

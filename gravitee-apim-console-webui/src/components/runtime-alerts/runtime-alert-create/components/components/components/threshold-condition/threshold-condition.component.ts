@@ -61,7 +61,7 @@ export class ThresholdConditionComponent implements OnInit {
 
   ngOnInit() {
     if (this.updateData) {
-      this.form.controls.operator.setValue(this.operators.find((o) => o.key === this.updateData.operator));
+      this.form.controls.operator.setValue(this.operators.find(o => o.key === this.updateData.operator));
       this.form.controls.threshold.setValue(this.updateData.threshold);
     }
   }

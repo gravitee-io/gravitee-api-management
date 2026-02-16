@@ -44,11 +44,11 @@ export class ApiPortalHeaderHarness extends ComponentHarness {
   };
 
   public isToggleChecked = async (togglePromise: Promise<MatSlideToggleHarness>): Promise<boolean> => {
-    return await togglePromise.then((el) => el.isChecked());
+    return await togglePromise.then(el => el.isChecked());
   };
 
   private isToggleDisabled = async (togglePromise: Promise<MatSlideToggleHarness>) => {
-    return togglePromise.then((formField) => formField.isDisabled());
+    return togglePromise.then(formField => formField.isDisabled());
   };
 
   public rowsNumber = async (): Promise<number> => {
@@ -63,7 +63,7 @@ export class ApiPortalHeaderHarness extends ComponentHarness {
 
     return await rows[index]
       .getCells({ columnName: 'actions' })
-      .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=delete-button]' })));
+      .then(cells => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=delete-button]' })));
   };
 
   public deleteHeader = async (index: number) => {
@@ -77,7 +77,7 @@ export class ApiPortalHeaderHarness extends ComponentHarness {
 
     return await rows[index]
       .getCells({ columnName: 'actions' })
-      .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=move-up-button]' })));
+      .then(cells => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=move-up-button]' })));
   };
 
   public moveHeaderUp = async (index: number) => {
@@ -91,7 +91,7 @@ export class ApiPortalHeaderHarness extends ComponentHarness {
 
     return await rows[index]
       .getCells({ columnName: 'actions' })
-      .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=move-down-button]' })));
+      .then(cells => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=move-down-button]' })));
   };
 
   public moveHeaderDown = async (index: number) => {
@@ -105,6 +105,6 @@ export class ApiPortalHeaderHarness extends ComponentHarness {
 
     return await rows[index]
       .getCells({ columnName: 'actions' })
-      .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=edit-header-button]' })));
+      .then(cells => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=edit-header-button]' })));
   };
 }

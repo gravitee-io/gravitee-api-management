@@ -69,10 +69,10 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
     const debugLicense = { feature: ApimFeature.APIM_DEBUG_MODE, context: UTMTags.CONTEXT_API_V2 };
     const notAllowed$ = this.gioLicenseService.isMissingFeature$(debugLicense.feature);
 
-    this.policyStudioMenu = this.policyStudioMenu.filter((i) => i.label !== 'Debug');
+    this.policyStudioMenu = this.policyStudioMenu.filter(i => i.label !== 'Debug');
     this.policyStudioMenu.push({
       label: 'Debug',
-      routerLink: notAllowed$.pipe(map((notAllowed) => (notAllowed ? null : 'debug'))),
+      routerLink: notAllowed$.pipe(map(notAllowed => (notAllowed ? null : 'debug'))),
       license: debugLicense,
       notAllowed$,
     });
@@ -113,12 +113,12 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
     const updatePlans$ = this.apiPlanService
       .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED'], undefined, undefined, 1, 9999)
       .pipe(
-        switchMap((plansResponse) => {
+        switchMap(plansResponse => {
           const plans = plansResponse.data as PlanV2[];
 
           const planToUpdate = plans
-            .map((plan) => {
-              const planDefinition = this.apiDefinition.plans.find((p) => p.id === plan.id);
+            .map(plan => {
+              const planDefinition = this.apiDefinition.plans.find(p => p.id === plan.id);
               if (planDefinition) {
                 const planToUpdate = toApiPlanV2(planDefinition, plan);
 
@@ -126,10 +126,10 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
               }
               return null;
             })
-            .filter((p) => p !== null);
+            .filter(p => p !== null);
 
           return forkJoin(
-            ...planToUpdate.map((plan) => this.apiPlanService.update(this.activatedRoute.snapshot.params.apiId, plan.id, plan)),
+            ...planToUpdate.map(plan => this.apiPlanService.update(this.activatedRoute.snapshot.params.apiId, plan.id, plan)),
           );
         }),
         defaultIfEmpty(null),
@@ -137,7 +137,7 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
 
     const updateApi$ = this.apiService.get(this.apiDefinition.id).pipe(
       onlyApiV2Filter(this.snackBarService),
-      switchMap((api) => this.apiService.update(api.id, toApiV2(this.apiDefinition, api))),
+      switchMap(api => this.apiService.update(api.id, toApiV2(this.apiDefinition, api))),
     );
 
     combineLatest([updatePlans$, updateApi$])

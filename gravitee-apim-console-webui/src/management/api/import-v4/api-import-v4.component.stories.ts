@@ -27,7 +27,7 @@ export default {
     }),
   ],
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 870px">
         <api-import-v4></api-import-v4>

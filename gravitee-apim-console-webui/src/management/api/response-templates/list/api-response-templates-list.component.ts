@@ -52,7 +52,7 @@ export class ApiResponseTemplatesListComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
-        tap((api) => {
+        tap(api => {
           this.apiId = api.id;
           this.responseTemplateTableData = toResponseTemplates(api.responseTemplates);
 
@@ -83,10 +83,10 @@ export class ApiResponseTemplatesListComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),
         onlyApiV2V4Filter(this.snackBarService),
-        switchMap((api) => {
+        switchMap(api => {
           if (api.responseTemplates[element.key] && api.responseTemplates[element.key][element.contentType]) {
             delete api.responseTemplates[element.key][element.contentType];
             return this.apiService.update(api.id, api);

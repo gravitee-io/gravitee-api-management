@@ -60,14 +60,14 @@ export class ApiGeneralGroupsComponent implements OnInit {
     this.isReadOnly = this.isKubernetesOrigin || !this.permissionService.hasAnyMatching(['api-definition-u']);
     this.isV1Api = this.api.definitionVersion === 'V1';
 
-    const userGroupList: Group[] = this.groups.filter((group) => this.api.groups?.includes(group.id));
+    const userGroupList: Group[] = this.groups.filter(group => this.api.groups?.includes(group.id));
     this.form = this.formBuilder.group({
       selectedGroups: {
-        value: userGroupList.map((g) => g.id),
+        value: userGroupList.map(g => g.id),
         disabled: this.isReadOnly,
       },
     });
-    this.readOnlyGroupList = userGroupList.length === 0 ? 'No groups associated' : userGroupList.map((g) => g.name).join(', ');
+    this.readOnlyGroupList = userGroupList.length === 0 ? 'No groups associated' : userGroupList.map(g => g.name).join(', ');
   }
 
   save(): void {

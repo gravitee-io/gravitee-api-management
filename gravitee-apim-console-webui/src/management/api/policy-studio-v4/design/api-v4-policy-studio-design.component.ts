@@ -97,14 +97,14 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
           this.isLoading = true;
           this.changeDetectorRef.detectChanges();
         }),
-        switchMap((params) =>
+        switchMap(params =>
           combineLatest([
-            this.apiV2Service.get(this.activatedRoute.snapshot.params.apiId).pipe(map((api) => api as ApiV4)),
+            this.apiV2Service.get(this.activatedRoute.snapshot.params.apiId).pipe(map(api => api as ApiV4)),
             this.connectorPluginsV2Service.listEntrypointPlugins(),
             this.connectorPluginsV2Service.listEndpointPlugins(),
             this.apiPlanV2Service
               .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED'], undefined, undefined, 1, 9999)
-              .pipe(map((apiPlansResponse) => apiPlansResponse.data)),
+              .pipe(map(apiPlansResponse => apiPlansResponse.data)),
             this.policyV2Service.list(),
             this.sharedPolicyGroupsService.getSharedPolicyGroupPolicyPlugin(),
             of(params),
@@ -116,12 +116,12 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         this.apiType = api.type;
         this.flowExecution = api.flowExecution;
 
-        this.policySchemaFetcher = (policy) => this.policyV2Service.getSchema(policy.id, getApiProtocolTypeFromApi(api));
-        this.policyDocumentationFetcher = (policy) => this.policyV2Service.getDocumentation(policy.id, getApiProtocolTypeFromApi(api));
+        this.policySchemaFetcher = policy => this.policyV2Service.getSchema(policy.id, getApiProtocolTypeFromApi(api));
+        this.policyDocumentationFetcher = policy => this.policyV2Service.getDocumentation(policy.id, getApiProtocolTypeFromApi(api));
 
-        this.entrypointsInfo = api.listeners.flatMap((listener) =>
-          listener.entrypoints.map((entrypoint) => {
-            const entrypointPlugin = entrypoints.find((entrypointPlugin) => entrypointPlugin.id === entrypoint.type);
+        this.entrypointsInfo = api.listeners.flatMap(listener =>
+          listener.entrypoints.map(entrypoint => {
+            const entrypointPlugin = entrypoints.find(entrypointPlugin => entrypointPlugin.id === entrypoint.type);
             return {
               type: entrypoint.type,
               icon:
@@ -134,9 +134,9 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
           }),
         );
 
-        this.endpointsInfo = api.endpointGroups.flatMap((endpointGroup) =>
-          endpointGroup.endpoints.map((endpoint) => {
-            const endpointPlugin = endpoints.find((endpointPlugin) => endpointPlugin.id === endpoint.type);
+        this.endpointsInfo = api.endpointGroups.flatMap(endpointGroup =>
+          endpointGroup.endpoints.map(endpoint => {
+            const endpointPlugin = endpoints.find(endpointPlugin => endpointPlugin.id === endpoint.type);
             return {
               type: endpoint.type,
               icon:
@@ -149,17 +149,17 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
 
         this.commonFlows = api.flows;
 
-        this.plans = plans.map((plan) => ({
+        this.plans = plans.map(plan => ({
           id: plan.id,
           name: plan.name,
           flows: plan.flows,
         }));
 
-        this.policies = policies.map((policy) => ({
+        this.policies = policies.map(policy => ({
           ...policy,
           icon: this.iconService.registerSvg(policy.id, policy.icon),
         }));
-        this.sharedPolicyGroupPolicyPlugins = sharedPolicyGroupPolicyPlugins.map((plugin) => ({
+        this.sharedPolicyGroupPolicyPlugins = sharedPolicyGroupPolicyPlugins.map(plugin => ({
           id: plugin.id,
           name: plugin.name,
           description: plugin.description,
@@ -263,7 +263,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
 
         return this.apiV2Service.update(this.activatedRoute.snapshot.params.apiId, updatedApi);
       }),
-      catchError((err) => {
+      catchError(err => {
         this.snackBarService.error(err.error?.message ?? err.message);
         return EMPTY;
       }),
@@ -283,12 +283,12 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
           return this.apiPlanV2Service.update(this.activatedRoute.snapshot.params.apiId, apiPlan.id, updatedApiPlan);
         }),
         switchMap(() => this.apiV2Service.refreshLastApiFetch()),
-        catchError((err) => {
+        catchError(err => {
           this.snackBarService.error(err.error?.message ?? err.message);
           return EMPTY;
         }),
       );
 
-    return forkJoin(plans.map((plan) => updatePlan$(plan)));
+    return forkJoin(plans.map(plan => updatePlan$(plan)));
   }
 }

@@ -130,7 +130,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
             next: () => {
               this.resetPasswordInProgress = false;
             },
-            error: (e) => {
+            error: e => {
               this.snackBarService.error(e.error?.message ?? 'An error occurred while resetting your password.');
               this.resetPasswordInProgress = false;
             },

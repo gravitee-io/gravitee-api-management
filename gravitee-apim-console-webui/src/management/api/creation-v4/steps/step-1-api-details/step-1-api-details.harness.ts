@@ -51,38 +51,38 @@ export class Step1ApiDetailsHarness extends ComponentHarness {
   );
 
   async getName(): Promise<string> {
-    return this.getNameInputElement().then((elt) => elt.getValue());
+    return this.getNameInputElement().then(elt => elt.getValue());
   }
 
   async setName(name: string): Promise<void> {
-    return this.getNameInputElement().then((elt) => elt.setValue(name));
+    return this.getNameInputElement().then(elt => elt.setValue(name));
   }
 
   async getVersion(): Promise<string> {
-    return this.getVersionInputElement().then((elt) => elt.getValue());
+    return this.getVersionInputElement().then(elt => elt.getValue());
   }
 
   async setVersion(version: string): Promise<void> {
-    return this.getVersionInputElement().then((elt) => elt.setValue(version));
+    return this.getVersionInputElement().then(elt => elt.setValue(version));
   }
 
   async getDescription(): Promise<string> {
-    return this.getDescriptionInputElement().then((elt) => elt.getValue());
+    return this.getDescriptionInputElement().then(elt => elt.getValue());
   }
 
   async setDescription(description: string): Promise<void> {
-    return this.getDescriptionInputElement().then((elt) => elt.setValue(description));
+    return this.getDescriptionInputElement().then(elt => elt.setValue(description));
   }
 
   async clickValidate(): Promise<void> {
-    return this.getValidateButton().then(async (elt) => {
+    return this.getValidateButton().then(async elt => {
       expect(await elt.isDisabled()).toEqual(false);
       return elt.click();
     });
   }
 
   async clickExit(): Promise<void> {
-    return this.getExitButton().then((elt) => elt.click());
+    return this.getExitButton().then(elt => elt.click());
   }
 
   async fillAndValidate(name = 'API name', version = '1.0', description = 'description'): Promise<void> {

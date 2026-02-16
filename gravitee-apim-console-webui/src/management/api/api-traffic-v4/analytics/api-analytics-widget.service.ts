@@ -152,7 +152,7 @@ export class ApiAnalyticsWidgetService {
         .getStats(widgetConfig.apiId, timeRangeParams, { ...defaultQueryParams, ...queryParams })
         .pipe(
           shareReplay(1),
-          catchError((error) => {
+          catchError(error => {
             this.statsCache.delete(cacheKey);
             throw error;
           }),
@@ -160,7 +160,7 @@ export class ApiAnalyticsWidgetService {
       this.statsCache.set(cacheKey, statsRequest$);
     }
 
-    return this.statsCache.get(cacheKey)!.pipe(map((response) => this.transformStatsResponseToStatsConfig(response, widgetConfig)));
+    return this.statsCache.get(cacheKey)!.pipe(map(response => this.transformStatsResponseToStatsConfig(response, widgetConfig)));
   }
 
   private transformStatsResponseToStatsConfig(
@@ -199,7 +199,7 @@ export class ApiAnalyticsWidgetService {
     }
 
     if (widgetConfig.ranges) {
-      defaultQueryParams.ranges = widgetConfig.ranges.map((range) => `${range.value}`).join(';');
+      defaultQueryParams.ranges = widgetConfig.ranges.map(range => `${range.value}`).join(';');
     }
 
     if (widgetConfig.orderBy) {
@@ -347,7 +347,7 @@ export class ApiAnalyticsWidgetService {
       return of(this.createErrorConfig(widgetConfig, 'No aggregations specified for histogram'));
     }
 
-    const aggregationsString = widgetConfig.aggregations.map((agg) => `${agg.type}:${agg.field}`).join(',');
+    const aggregationsString = widgetConfig.aggregations.map(agg => `${agg.type}:${agg.field}`).join(',');
 
     const query = this.queryOf(urlParamsData);
     let queryParams: UrlQueryParamsData = {
@@ -409,7 +409,7 @@ export class ApiAnalyticsWidgetService {
             unit: '',
           };
         })
-        .filter((item) => item !== null);
+        .filter(item => item !== null);
 
       if (items.length === 0) {
         return this.createEmptyConfig(widgetConfig);
@@ -443,7 +443,7 @@ export class ApiAnalyticsWidgetService {
             };
           } else {
             // For single aggregation, use the bucket names as the series names
-            return value.buckets.map((bucket) => ({
+            return value.buckets.map(bucket => ({
               name: value.metadata?.[bucket.name]?.name || bucket.name,
               values: bucket.data || [],
             }));
@@ -457,7 +457,7 @@ export class ApiAnalyticsWidgetService {
         enableMarkers: widgetConfig.lineEnableMarkers ?? false,
       };
 
-      if (lineData.length === 0 || lineData.every((bucket) => bucket.values.every((value) => value === 0))) {
+      if (lineData.length === 0 || lineData.every(bucket => bucket.values.every(value => value === 0))) {
         return this.createEmptyConfig(widgetConfig);
       }
 
@@ -476,20 +476,20 @@ export class ApiAnalyticsWidgetService {
 
       // TODO: Improve it to move this logic to native-analytics component side
       const isAuthenticationChart = widgetConfig.aggregations?.some(
-        (agg) => agg.field.includes('authentication-successes') || agg.field.includes('authentication-failures'),
+        agg => agg.field.includes('authentication-successes') || agg.field.includes('authentication-failures'),
       );
 
       let barData: GioChartBarData[];
 
       if (isAuthenticationChart && widgetConfig.aggregations?.length === 4) {
         const downstreamFailure =
-          histogramResponse.values.find((v) => v.field === 'downstream-authentication-failures-count-increment')?.buckets[0]?.data || [];
+          histogramResponse.values.find(v => v.field === 'downstream-authentication-failures-count-increment')?.buckets[0]?.data || [];
         const upstreamFailure =
-          histogramResponse.values.find((v) => v.field === 'upstream-authentication-failures-count-increment')?.buckets[0]?.data || [];
+          histogramResponse.values.find(v => v.field === 'upstream-authentication-failures-count-increment')?.buckets[0]?.data || [];
         const upstreamSuccess =
-          histogramResponse.values.find((v) => v.field === 'upstream-authentication-successes-count-increment')?.buckets[0]?.data || [];
+          histogramResponse.values.find(v => v.field === 'upstream-authentication-successes-count-increment')?.buckets[0]?.data || [];
         const downstreamSuccess =
-          histogramResponse.values.find((v) => v.field === 'downstream-authentication-successes-count-increment')?.buckets[0]?.data || [];
+          histogramResponse.values.find(v => v.field === 'downstream-authentication-successes-count-increment')?.buckets[0]?.data || [];
 
         // Sum downstream + upstream for success and failure for each time point
         const totalSuccess = downstreamSuccess.map((value, index) => value + (upstreamSuccess[index] || 0));
@@ -554,7 +554,7 @@ export class ApiAnalyticsWidgetService {
         reverseStack: true,
       };
 
-      if (barData.length === 0 || barData.every((series) => series.values.every((value) => value === 0))) {
+      if (barData.length === 0 || barData.every(series => series.values.every(value => value === 0))) {
         return this.createEmptyConfig(widgetConfig);
       }
 

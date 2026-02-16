@@ -57,13 +57,13 @@ export class Step4Security1PlansComponent implements OnInit {
     this.apiType = currentStepPayload.type;
     this.isTcpApi = currentStepPayload.hosts?.length > 0;
     this.isNativeKafkaApi =
-      currentStepPayload.type === 'NATIVE' && currentStepPayload.selectedEntrypoints.some((e) => e.supportedListenerType === 'KAFKA');
+      currentStepPayload.type === 'NATIVE' && currentStepPayload.selectedEntrypoints.some(e => e.supportedListenerType === 'KAFKA');
   }
 
   private computeDefaultApiPlans(currentStepPayload: ApiCreationPayload) {
     const availablePlanMenuItems = this.constantsService.getEnabledPlanMenuItems();
-    const entrypoint = currentStepPayload.selectedEntrypoints.find((e) => e.supportedListenerType !== 'SUBSCRIPTION');
-    if (entrypoint && availablePlanMenuItems.some((p) => p.planFormType === 'KEY_LESS')) {
+    const entrypoint = currentStepPayload.selectedEntrypoints.find(e => e.supportedListenerType !== 'SUBSCRIPTION');
+    if (entrypoint && availablePlanMenuItems.some(p => p.planFormType === 'KEY_LESS')) {
       this.plans.push({
         definitionVersion: 'V4',
         name: 'Default Keyless (UNSECURED)',
@@ -77,8 +77,8 @@ export class Step4Security1PlansComponent implements OnInit {
       });
     }
 
-    const subscriptionEntrypoint = currentStepPayload.selectedEntrypoints.find((e) => e.supportedListenerType === 'SUBSCRIPTION');
-    if (subscriptionEntrypoint && availablePlanMenuItems.some((p) => p.planFormType === 'PUSH')) {
+    const subscriptionEntrypoint = currentStepPayload.selectedEntrypoints.find(e => e.supportedListenerType === 'SUBSCRIPTION');
+    if (subscriptionEntrypoint && availablePlanMenuItems.some(p => p.planFormType === 'PUSH')) {
       this.plans.push({
         definitionVersion: 'V4',
         name: 'Default PUSH plan',
@@ -107,17 +107,17 @@ export class Step4Security1PlansComponent implements OnInit {
   onEditPlanClicked(plan: CreatePlanV4) {
     this.planToEdit = plan;
     const planFormType = plan.mode === 'PUSH' ? 'PUSH' : plan.security.type;
-    this.selectedPlanMenuItem = AVAILABLE_PLANS_FOR_MENU.find((vm) => vm.planFormType === planFormType);
+    this.selectedPlanMenuItem = AVAILABLE_PLANS_FOR_MENU.find(vm => vm.planFormType === planFormType);
     this.view = 'edit';
   }
 
   editPlan(plan: CreatePlanV4) {
-    const planToEditIndex = this.plans.findIndex((plan) => plan === this.planToEdit);
+    const planToEditIndex = this.plans.findIndex(plan => plan === this.planToEdit);
     this.plans.splice(planToEditIndex, 1, plan);
     this.view = 'list';
   }
 
   onRemovePlanClicked(plan: CreatePlanV4) {
-    this.plans = this.plans.filter((listedPlan) => listedPlan !== plan);
+    this.plans = this.plans.filter(listedPlan => listedPlan !== plan);
   }
 }

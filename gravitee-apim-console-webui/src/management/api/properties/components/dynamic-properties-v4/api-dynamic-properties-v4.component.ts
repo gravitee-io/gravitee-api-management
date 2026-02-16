@@ -101,7 +101,7 @@ export class ApiDynamicPropertiesV4Component implements OnInit, OnDestroy {
 
           this.initialFormValue = this.form.getRawValue();
 
-          this.form.controls.enabled.valueChanges.pipe(distinctUntilChanged(), takeUntil(this.unsubscribe$)).subscribe((enabled) => {
+          this.form.controls.enabled.valueChanges.pipe(distinctUntilChanged(), takeUntil(this.unsubscribe$)).subscribe(enabled => {
             if (enabled) {
               this.form.controls.configuration.enable();
             } else {

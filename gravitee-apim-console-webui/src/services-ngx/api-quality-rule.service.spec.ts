@@ -38,10 +38,10 @@ describe('ApiQualityRuleService', () => {
   });
 
   describe('getQualityRules', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api#1';
 
-      apiQualityRuleService.getQualityRules(apiId).subscribe((response) => {
+      apiQualityRuleService.getQualityRules(apiId).subscribe(response => {
         expect(response).toEqual([
           {
             id: 'api#1',
@@ -62,7 +62,7 @@ describe('ApiQualityRuleService', () => {
   });
 
   describe('createQualityRule', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api#1';
       const qualityRuleId = 'qualityRule#1';
 
@@ -83,7 +83,7 @@ describe('ApiQualityRuleService', () => {
   });
 
   describe('updateQualityRule', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api#1';
       const qualityRuleId = 'qualityRule#1';
 

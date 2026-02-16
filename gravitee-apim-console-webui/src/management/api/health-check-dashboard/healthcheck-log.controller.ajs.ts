@@ -29,7 +29,7 @@ class ApiHealthcheckLogControllerAjs {
   ) {}
 
   $onInit() {
-    this.ApiService.getHealthLog(this.activatedRoute.snapshot.params.apiId, this.activatedRoute.snapshot.params.logId).then((response) => {
+    this.ApiService.getHealthLog(this.activatedRoute.snapshot.params.apiId, this.activatedRoute.snapshot.params.logId).then(response => {
       this.log = response.data;
     });
   }

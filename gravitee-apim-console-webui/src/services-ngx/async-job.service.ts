@@ -42,7 +42,7 @@ export class AsyncJobService {
           ...query,
         },
       })
-      .pipe(map((response) => new PaginatedResult(response.data, response.pagination)));
+      .pipe(map(response => new PaginatedResult(response.data, response.pagination)));
   }
 }
 

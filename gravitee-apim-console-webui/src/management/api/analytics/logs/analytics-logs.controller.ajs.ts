@@ -69,8 +69,8 @@ class ApiAnalyticsLogsControllerAjs {
         };
 
         const hasTenants = chain(this.api.proxy.groups)
-          .map((group) => group.endpoints)
-          .find((endpoint) => has(endpoint, 'tenants'));
+          .map(group => group.endpoints)
+          .find(endpoint => has(endpoint, 'tenants'));
 
         if (hasTenants !== undefined) {
           this.metadata.tenants = tenants.data;
@@ -80,7 +80,7 @@ class ApiAnalyticsLogsControllerAjs {
 
         this.query = this.AnalyticsService.buildQueryFromState(this.activatedRoute.snapshot.queryParams);
 
-        this.$scope.$watch('$ctrl.query.field', (field) => {
+        this.$scope.$watch('$ctrl.query.field', field => {
           if (field && this.init) {
             this.refresh();
           }
@@ -104,7 +104,7 @@ class ApiAnalyticsLogsControllerAjs {
   }
 
   refresh() {
-    this.$q.when(this.ApiService.findLogs(this.api.id, this.query)).then((logs) => {
+    this.$q.when(this.ApiService.findLogs(this.api.id, this.query)).then(logs => {
       this.logs = logs.data;
       this.AnalyticsService.setFetchedLogs(logs.data.logs);
 
@@ -133,7 +133,7 @@ class ApiAnalyticsLogsControllerAjs {
   }
 
   exportAsCSV() {
-    this.ApiService.exportLogsAsCSV(this.api.id, this.query).then((response) => {
+    this.ApiService.exportLogsAsCSV(this.api.id, this.query).then(response => {
       const hiddenElement = document.createElement('a');
       hiddenElement.href = 'data:attachment/csv,' + encodeURIComponent(response.data);
       hiddenElement.target = '_self';

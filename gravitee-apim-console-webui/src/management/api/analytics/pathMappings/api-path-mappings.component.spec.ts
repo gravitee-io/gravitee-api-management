@@ -135,11 +135,11 @@ describe('ApiPathMappingsComponent', () => {
 
       await loader
         .getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Button to delete a path mapping"]' }))
-        .then((elements) => elements[1].click());
+        .then(elements => elements[1].click());
       await rootLoader
         .getHarness(MatDialogHarness)
-        .then((dialog) => dialog.getHarness(MatButtonHarness.with({ text: /Delete/ })))
-        .then((element) => element.click());
+        .then(dialog => dialog.getHarness(MatButtonHarness.with({ text: /Delete/ })))
+        .then(element => element.click());
 
       const updatedApi = { ...api, pathMappings: ['/test'] };
       expectApiGetRequest(api);
@@ -166,15 +166,15 @@ describe('ApiPathMappingsComponent', () => {
 
       await loader
         .getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Button to edit a path mapping"]' }))
-        .then((elements) => elements[1].click());
+        .then(elements => elements[1].click());
       const dialog = await rootLoader.getHarness(MatDialogHarness);
       await dialog
         .getHarness(MatInputHarness.with({ selector: '[aria-label="Path mapping input"]' }))
-        .then((input) => input.setValue('/updated/:id'));
+        .then(input => input.setValue('/updated/:id'));
       expect(
         await dialog
           .getHarness(MatButtonHarness.with({ selector: '[aria-label="Save path mapping"]' }))
-          .then((element) => element.isDisabled()),
+          .then(element => element.isDisabled()),
       ).toEqual(false);
     });
   });
@@ -201,10 +201,10 @@ describe('ApiPathMappingsComponent', () => {
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#pathMappingsTable' }));
 
     const headerRows = await table.getHeaderRows();
-    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+    const headerCells = await parallel(() => headerRows.map(row => row.getCellTextByColumnName()));
 
     const rows = await table.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByIndex()));
     return { headerCells, rowCells };
   }
 });

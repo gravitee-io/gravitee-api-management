@@ -31,7 +31,7 @@ const DiffDirective: ng.IDirective = {
       if (oldValue && newValue) {
         elem.html('');
         const diff = JsDiff.diffJson(oldValue, newValue);
-        diff.forEach((part) => {
+        diff.forEach(part => {
           // green for additions, red for deletions
           // grey for common parts
 
@@ -47,7 +47,7 @@ const DiffDirective: ng.IDirective = {
           group.style.position = 'relative';
           const lines = part.value.split('\n');
           lines.pop();
-          lines.forEach((lineValue) => {
+          lines.forEach(lineValue => {
             const line = document.createElement('div');
             line.appendChild(document.createTextNode(lineValue));
             line.classList.add(classname);

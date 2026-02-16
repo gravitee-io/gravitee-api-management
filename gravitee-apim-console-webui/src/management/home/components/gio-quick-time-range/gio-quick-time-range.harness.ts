@@ -38,7 +38,7 @@ export class GioQuickTimeRangeHarness extends ComponentHarness {
 
   // eslint:disable-next-line:no-unused-expression
   public async getAllTimeRangeOptions(): Promise<MatOptionHarness[]> {
-    return this.getSelectTimeRangeElement().then(async (elt) => {
+    return this.getSelectTimeRangeElement().then(async elt => {
       await elt.open();
       return elt.getOptions();
     });
@@ -46,7 +46,7 @@ export class GioQuickTimeRangeHarness extends ComponentHarness {
 
   // eslint:disable-next-line:no-unused-expression
   public async selectTimeRangeByText(text: string): Promise<void> {
-    return this.getSelectTimeRangeElement().then(async (elt) => {
+    return this.getSelectTimeRangeElement().then(async elt => {
       await elt.open();
       return elt.clickOptions({ text });
     });
@@ -54,6 +54,6 @@ export class GioQuickTimeRangeHarness extends ComponentHarness {
 
   // eslint:disable-next-line:no-unused-expression
   public async clickOnRefreshButton(): Promise<void> {
-    return this.getRefreshButton().then((btn) => btn.click());
+    return this.getRefreshButton().then(btn => btn.click());
   }
 }

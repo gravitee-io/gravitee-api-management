@@ -77,7 +77,7 @@ export class WebhookLogsComponent implements OnInit {
   private readonly api$ = this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(shareReplay(1));
 
   isReportingDisabled$ = this.api$.pipe(
-    map((api) => {
+    map(api => {
       if (!this.isApiV4(api)) {
         return false;
       }
@@ -90,7 +90,7 @@ export class WebhookLogsComponent implements OnInit {
   );
 
   hasDlqConfigured$ = this.api$.pipe(
-    map((api) => {
+    map(api => {
       const webhookEntrypoint = this.isApiV4(api) ? this.findWebhookEntrypoint(api) : undefined;
       return !!webhookEntrypoint?.dlq?.endpoint;
     }),
@@ -113,7 +113,7 @@ export class WebhookLogsComponent implements OnInit {
       ? qp.statuses
           .split(',')
           .map((status: string) => Number(status))
-          .filter((value) => !Number.isNaN(value))
+          .filter(value => !Number.isNaN(value))
       : [];
 
     const initialApplicationsIds: string[] = qp?.applicationIds ? qp.applicationIds.split(',').filter(Boolean) : [];
@@ -169,8 +169,8 @@ export class WebhookLogsComponent implements OnInit {
         requiresAdditional: true,
       })
       .pipe(
-        map((response) => this.mapToWebhookLogsResponse(response)),
-        switchMap((webhookLogsResponse) => this.addApplicationNameToLogs(webhookLogsResponse)),
+        map(response => this.mapToWebhookLogsResponse(response)),
+        switchMap(webhookLogsResponse => this.addApplicationNameToLogs(webhookLogsResponse)),
         catchError(() => {
           this.snackBarService.error('Failed to load webhook logs');
           return of({
@@ -182,7 +182,7 @@ export class WebhookLogsComponent implements OnInit {
           this.loading = false;
         }),
       )
-      .subscribe((webhookLogsResponse) => {
+      .subscribe(webhookLogsResponse => {
         this.webhookLogsData = webhookLogsResponse;
         this.allLogs = webhookLogsResponse.data;
         this.buildCallbackUrlOptions();
@@ -200,8 +200,7 @@ export class WebhookLogsComponent implements OnInit {
   } {
     const statuses = filters.statuses && filters.statuses.length > 0 ? filters.statuses : undefined;
     const callbackUrls = filters.callbackUrls && filters.callbackUrls.length > 0 ? filters.callbackUrls : undefined;
-    const applicationIds =
-      filters.applications && filters.applications.length > 0 ? filters.applications.map((app) => app.value) : undefined;
+    const applicationIds = filters.applications && filters.applications.length > 0 ? filters.applications.map(app => app.value) : undefined;
 
     const customRange = this.buildCustomDateRange(filters);
     const periodRange = filters.period ? this.preparePeriodRange(filters.period) : undefined;
@@ -217,7 +216,7 @@ export class WebhookLogsComponent implements OnInit {
   }
 
   private mapToWebhookLogsResponse(response: { data: ConnectionLog[]; pagination: Pagination }): WebhookLogsResponse {
-    const webhookLogs: WebhookLog[] = response.data.map((log) => mapConnectionLogToWebhookLog(log));
+    const webhookLogs: WebhookLog[] = response.data.map(log => mapConnectionLogToWebhookLog(log));
 
     return {
       data: webhookLogs,
@@ -257,7 +256,7 @@ export class WebhookLogsComponent implements OnInit {
     const appIdsArray = Array.from(applicationIdsToEnrich);
 
     return this.applicationService.findByIds(appIdsArray, 1, appIdsArray.length).pipe(
-      map((applicationsResponse) => {
+      map(applicationsResponse => {
         const apps = applicationsResponse?.data ?? [];
 
         const applicationMap = new Map<string, { id: string; name: string }>();
@@ -271,7 +270,7 @@ export class WebhookLogsComponent implements OnInit {
           return webhookLogsResponse;
         }
 
-        const enrichedLogs: WebhookLog[] = webhookLogs.map((log) => {
+        const enrichedLogs: WebhookLog[] = webhookLogs.map(log => {
           const appId = this.resolveApplicationId(log);
           if (!appId) {
             return log;
@@ -352,7 +351,7 @@ export class WebhookLogsComponent implements OnInit {
 
   private buildCallbackUrlOptions(): void {
     const urlsFromLogs = new Set<string>();
-    this.allLogs.forEach((log) => {
+    this.allLogs.forEach(log => {
       if (log.callbackUrl) {
         urlsFromLogs.add(log.callbackUrl);
       }
@@ -368,11 +367,11 @@ export class WebhookLogsComponent implements OnInit {
     this.apiSubscriptionService
       .list(apiId, '1', '1000', ['ACCEPTED', 'PENDING', 'PAUSED'])
       .pipe(
-        map((response) => {
+        map(response => {
           const urls = new Set<string>();
 
           if (response.data) {
-            response.data.forEach((subscription) => {
+            response.data.forEach(subscription => {
               if (
                 subscription.consumerConfiguration?.entrypointId === 'webhook' &&
                 subscription.consumerConfiguration?.entrypointConfiguration?.callbackUrl
@@ -392,22 +391,22 @@ export class WebhookLogsComponent implements OnInit {
           return of<string[]>([]);
         }),
       )
-      .subscribe((urls) => {
+      .subscribe(urls => {
         this.callbackUrlOptions = urls;
       });
   }
 
   private normalizeFilters(filters: WebhookLogsQuickFilters = {}): WebhookLogsQuickFilters {
-    const statuses = filters?.statuses?.filter((status) => !Number.isNaN(status));
+    const statuses = filters?.statuses?.filter(status => !Number.isNaN(status));
     const uniqueStatuses = statuses?.length ? Array.from(new Set(statuses)) : undefined;
 
     const applications = filters?.applications?.length
       ? filters.applications.filter(
-          (application, index, array) => application && array.findIndex((app) => app.value === application.value) === index,
+          (application, index, array) => application && array.findIndex(app => app.value === application.value) === index,
         )
       : undefined;
 
-    const callbackUrls = filters?.callbackUrls?.map((url) => url?.trim()).filter(Boolean);
+    const callbackUrls = filters?.callbackUrls?.map(url => url?.trim()).filter(Boolean);
     const uniqueCallbackUrls = callbackUrls?.length ? Array.from(new Set(callbackUrls)) : undefined;
 
     const normalizedFrom = isNumber(filters?.from) && !Number.isNaN(filters.from) ? filters.from : undefined;
@@ -433,7 +432,7 @@ export class WebhookLogsComponent implements OnInit {
     if (!period) {
       return undefined;
     }
-    const match = this.periods.find((available) => available.value === period.value);
+    const match = this.periods.find(available => available.value === period.value);
     return match && match.value !== DEFAULT_PERIOD.value ? match : undefined;
   }
 
@@ -455,7 +454,7 @@ export class WebhookLogsComponent implements OnInit {
   private updateUrlParams(filters: WebhookLogsQuickFilters, page: number, perPage: number): void {
     const nextParams = {
       statuses: filters.statuses?.length ? filters.statuses.join(',') : null,
-      applicationIds: filters.applications?.length ? filters.applications.map((app) => app.value).join(',') : null,
+      applicationIds: filters.applications?.length ? filters.applications.map(app => app.value).join(',') : null,
       period: filters.period?.value ?? null,
       callbackUrls: filters.callbackUrls?.length ? filters.callbackUrls.join(',') : null,
       from: filters.from ?? null,
@@ -513,7 +512,7 @@ export class WebhookLogsComponent implements OnInit {
     if (!periodValue) {
       return DEFAULT_PERIOD;
     }
-    return this.periods.find((period) => period.value === periodValue) ?? DEFAULT_PERIOD;
+    return this.periods.find(period => period.value === periodValue) ?? DEFAULT_PERIOD;
   }
 
   /**
@@ -534,7 +533,7 @@ export class WebhookLogsComponent implements OnInit {
       return map;
     }, new Map<string, string>());
 
-    const applications = ids.map((id) => ({ value: id, label: applicationMap.get(id) ?? id }));
+    const applications = ids.map(id => ({ value: id, label: applicationMap.get(id) ?? id }));
     return applications.length ? applications : undefined;
   }
 
@@ -542,7 +541,7 @@ export class WebhookLogsComponent implements OnInit {
     this.api$
       .pipe(
         take(1),
-        switchMap((api) => {
+        switchMap(api => {
           if (!this.isApiV4(api)) {
             this.snackBarService.error('Webhook logs settings are only available for v4 APIs.');
             return of(undefined);
@@ -556,7 +555,7 @@ export class WebhookLogsComponent implements OnInit {
           return dialogRef.afterClosed();
         }),
       )
-      .subscribe((result) => {
+      .subscribe(result => {
         if (result?.saved) {
           const qp = this.activatedRoute.snapshot.queryParams;
           const page = qp?.page ? Number(qp.page) : 1;
@@ -615,8 +614,6 @@ export class WebhookLogsComponent implements OnInit {
    * entrypoint.configuration.logging.{enabled, request.{headers, payload}, response.{headers, payload}}
    */
   private findWebhookEntrypoint(api: ApiV4): Entrypoint | undefined {
-    return (
-      api.listeners?.flatMap((listener) => listener.entrypoints ?? []).find((entrypoint) => entrypoint.type === 'webhook') ?? undefined
-    );
+    return api.listeners?.flatMap(listener => listener.entrypoints ?? []).find(entrypoint => entrypoint.type === 'webhook') ?? undefined;
   }
 }

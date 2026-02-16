@@ -72,7 +72,7 @@ export class ApiDocumentationV4FileUploadComponent implements OnInit, ControlVal
         break;
     }
     // To work in file picker, accept must have . before file type
-    this.accept = this.acceptedFileExtensions.map((e) => '.' + e).join();
+    this.accept = this.acceptedFileExtensions.map(e => '.' + e).join();
   }
 
   async onImportFile(event: (NewFile | string)[] | undefined) {

@@ -48,8 +48,8 @@ describe('UiPortalMenuLinkService', () => {
   });
 
   describe('list', () => {
-    it('should call the API', (done) => {
-      service.list().subscribe((portalMenuLinks) => {
+    it('should call the API', done => {
+      service.list().subscribe(portalMenuLinks => {
         expect(portalMenuLinks.data.length).toEqual(1);
         done();
       });
@@ -59,8 +59,8 @@ describe('UiPortalMenuLinkService', () => {
   });
 
   describe('create', () => {
-    it('should call the API', (done) => {
-      service.create(fakeCreatePortalMenuLink()).subscribe((pml) => {
+    it('should call the API', done => {
+      service.create(fakeCreatePortalMenuLink()).subscribe(pml => {
         expect(pml).toBeTruthy();
         done();
       });
@@ -70,8 +70,8 @@ describe('UiPortalMenuLinkService', () => {
   });
 
   describe('get', () => {
-    it('should call the API', (done) => {
-      service.get(fakePortalMenuLink().id).subscribe((pml) => {
+    it('should call the API', done => {
+      service.get(fakePortalMenuLink().id).subscribe(pml => {
         expect(pml).toBeTruthy();
         done();
       });
@@ -81,8 +81,8 @@ describe('UiPortalMenuLinkService', () => {
   });
 
   describe('update', () => {
-    it('should call the API', (done) => {
-      service.update('pmlId', fakeUpdatePortalMenuLink()).subscribe((pml) => {
+    it('should call the API', done => {
+      service.update('pmlId', fakeUpdatePortalMenuLink()).subscribe(pml => {
         expect(pml).toBeTruthy();
         done();
       });
@@ -92,7 +92,7 @@ describe('UiPortalMenuLinkService', () => {
   });
 
   describe('delete', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       service.delete('pmlId').subscribe(() => {
         done();
       });

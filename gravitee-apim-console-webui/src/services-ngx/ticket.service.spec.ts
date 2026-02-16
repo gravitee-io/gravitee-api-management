@@ -41,10 +41,10 @@ describe('TicketService', () => {
     httpTestingController.verify();
   });
 
-  it('should create a ticket', (done) => {
+  it('should create a ticket', done => {
     const newTicket = fakeNewTicket();
 
-    ticketService.create(newTicket).subscribe((_) => {
+    ticketService.create(newTicket).subscribe(_ => {
       done();
     });
 
@@ -57,11 +57,11 @@ describe('TicketService', () => {
     req.flush(null, { status: 201, statusText: 'Created' });
   });
 
-  it('should get a ticket with its id', (done) => {
+  it('should get a ticket with its id', done => {
     const ticketId = '251ef36e-9680-4ed0-909b-fdda252b60a5';
     const ticket = fakeTicket({ id: ticketId });
 
-    ticketService.getTicket(ticketId).subscribe((response) => {
+    ticketService.getTicket(ticketId).subscribe(response => {
       expect(response).toStrictEqual(ticket);
       done();
     });
@@ -74,7 +74,7 @@ describe('TicketService', () => {
     req.flush(ticket);
   });
 
-  it('should search tickets based on params', (done) => {
+  it('should search tickets based on params', done => {
     const params: TicketsParam = {
       page: 1,
       size: 10,
@@ -89,7 +89,7 @@ describe('TicketService', () => {
       pageNumber: 1,
     };
 
-    ticketService.search(params).subscribe((response) => {
+    ticketService.search(params).subscribe(response => {
       expect(response).toStrictEqual(serverResponse);
       done();
     });

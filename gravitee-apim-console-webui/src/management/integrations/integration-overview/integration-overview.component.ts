@@ -59,9 +59,9 @@ export class IntegrationOverviewComponent implements OnInit {
   public ngOnInit(): void {
     this.getIntegration()
       .pipe(
-        switchMap((integration) =>
+        switchMap(integration =>
           this.getFederatedAPIs().pipe(
-            map((response) => ({
+            map(response => ({
               integration,
               federatedAPIs: response.data,
               pagination: response.pagination,
@@ -83,7 +83,7 @@ export class IntegrationOverviewComponent implements OnInit {
             this.stopPolling$.next();
           }
         },
-        error: (error) => {
+        error: error => {
           this.isLoading = false;
           this.snackBarService.error(error.message);
         },
@@ -97,7 +97,7 @@ export class IntegrationOverviewComponent implements OnInit {
   }
 
   public a2aDiscover(): void {
-    this.integrationsService.ingest(this.integrationId).subscribe((response) => {
+    this.integrationsService.ingest(this.integrationId).subscribe(response => {
       if (response.status === 'ERROR') {
         this.snackBarService.error(`Ingestion failed. Please check your settings and try again: ${response.message}`);
       }

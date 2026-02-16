@@ -68,7 +68,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
-    const currentSelectedEndpointIds = (currentStepPayload.selectedEndpoints ?? []).map((p) => p.id);
+    const currentSelectedEndpointIds = (currentStepPayload.selectedEndpoints ?? []).map(p => p.id);
     this.license$ = this.licenseService.getLicense$();
     this.isOEM$ = this.licenseService.isOEM$();
 
@@ -79,8 +79,8 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
     this.connectorPluginsV2Service
       .listEndpointPluginsByApiType('MESSAGE')
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((endpointPlugins) => {
-        const requiredQoS = this.stepService.payload.selectedEntrypoints.map((e) => e.selectedQos);
+      .subscribe(endpointPlugins => {
+        const requiredQoS = this.stepService.payload.selectedEntrypoints.map(e => e.selectedQos);
         this.endpoints = mapAndFilterBySupportedQos(endpointPlugins, requiredQoS, this.iconService);
         this.shouldUpgrade = this.connectorPluginsV2Service.selectedPluginsNotAvailable(currentSelectedEndpointIds, this.endpoints);
 
@@ -90,7 +90,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
     this.formGroup
       .get('selectedEndpointsIds')
       .valueChanges.pipe(
-        tap((selectedEndpointsIds) => {
+        tap(selectedEndpointsIds => {
           this.shouldUpgrade = this.connectorPluginsV2Service.selectedPluginsNotAvailable(selectedEndpointsIds, this.endpoints);
         }),
         takeUntil(this.unsubscribe$),
@@ -104,7 +104,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
   }
 
   save() {
-    const previousSelection = this.stepService.payload?.selectedEndpoints?.map((e) => e.id);
+    const previousSelection = this.stepService.payload?.selectedEndpoints?.map(e => e.id);
     const newSelection = this.formGroup.value.selectedEndpointsIds;
 
     if (previousSelection && !isEqual(newSelection, previousSelection)) {
@@ -120,7 +120,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
           },
         })
         .afterClosed()
-        .subscribe((confirmed) => {
+        .subscribe(confirmed => {
           if (confirmed) {
             this.stepService.invalidateAllNextSteps();
             this.saveChanges();
@@ -134,9 +134,9 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
     const selectedEndpointsIds = this.formGroup.getRawValue().selectedEndpointsIds ?? [];
     const selectedEndpoints = this.endpoints
       .map(({ id, name, icon, deployed }) => ({ id, name, icon, deployed }))
-      .filter((e) => selectedEndpointsIds.includes(e.id));
+      .filter(e => selectedEndpointsIds.includes(e.id));
 
-    this.stepService.validStep((previousPayload) => ({
+    this.stepService.validStep(previousPayload => ({
       ...previousPayload,
       selectedEndpoints,
     }));
@@ -154,7 +154,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
       .getEndpointPluginMoreInformation(endpoint.id)
       .pipe(
         catchError(() => of({})),
-        tap((pluginMoreInformation) => {
+        tap(pluginMoreInformation => {
           this.matDialog
             .open<GioInformationDialogComponent, GioConnectorDialogData, boolean>(GioInformationDialogComponent, {
               data: {

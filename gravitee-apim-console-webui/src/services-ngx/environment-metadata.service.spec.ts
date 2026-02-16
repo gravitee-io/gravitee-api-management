@@ -35,10 +35,10 @@ describe('EnvironmentMetadataService', () => {
   });
 
   describe('list Environment metadata', () => {
-    it('should call the list endpoint', (done) => {
+    it('should call the list endpoint', done => {
       const metadata = [fakeMetadata({ key: 'key1' }), fakeMetadata({ key: 'key2' })];
 
-      environmentMetadataService.listMetadata().subscribe((metadataList) => {
+      environmentMetadataService.listMetadata().subscribe(metadataList => {
         expect(metadataList.length).toEqual(2);
         expect(metadataList[0].key).toEqual('key1');
         expect(metadataList[1].key).toEqual('key2');
@@ -55,11 +55,11 @@ describe('EnvironmentMetadataService', () => {
   });
 
   describe('create Environment metadata', () => {
-    it('should call the create endpoint', (done) => {
+    it('should call the create endpoint', done => {
       const metadata = fakeMetadata({ key: 'created-key' });
       const newMetadata = fakeNewMetadata();
 
-      environmentMetadataService.createMetadata(newMetadata).subscribe((m) => {
+      environmentMetadataService.createMetadata(newMetadata).subscribe(m => {
         expect(m.key).toEqual('created-key');
         done();
       });
@@ -74,11 +74,11 @@ describe('EnvironmentMetadataService', () => {
   });
 
   describe('update Environment metadata', () => {
-    it('should call the update endpoint', (done) => {
+    it('should call the update endpoint', done => {
       const metadata = fakeMetadata({ key: 'update-key', value: 'new value' });
       const updateMetadata = fakeUpdateMetadata({ key: 'update-key', value: 'new value' });
 
-      environmentMetadataService.updateMetadata(updateMetadata).subscribe((m) => {
+      environmentMetadataService.updateMetadata(updateMetadata).subscribe(m => {
         expect(m.key).toEqual('update-key');
         expect(m.value).toEqual('new value');
         done();
@@ -94,7 +94,7 @@ describe('EnvironmentMetadataService', () => {
   });
 
   describe('delete Environment metadata', () => {
-    it('should call the delete endpoint', (done) => {
+    it('should call the delete endpoint', done => {
       environmentMetadataService.deleteMetadata('metadata-key').subscribe(() => {
         done();
       });

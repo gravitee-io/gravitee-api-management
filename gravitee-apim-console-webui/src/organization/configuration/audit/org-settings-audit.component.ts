@@ -69,7 +69,7 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
 
   // Fetch all environment and for each one fetch all apis
   public environmentsApis$: Observable<Record<string, Api[]>> = this.environments$.pipe(
-    switchMap((envs) =>
+    switchMap(envs =>
       forkJoin(
         envs.reduce(
           (res, env) => ({
@@ -86,7 +86,7 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
 
   // Fetch all environment and for each one fetch all applications
   public environmentsApplications$: Observable<Record<string, Api[]>> = this.environments$.pipe(
-    switchMap((envs) =>
+    switchMap(envs =>
       forkJoin(
         envs.reduce(
           (res, env) => ({
@@ -180,9 +180,9 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
         ),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((auditsPage) => {
+      .subscribe(auditsPage => {
         this.nbTotalAudit = auditsPage.totalElements;
-        this.filteredTableData = (auditsPage.content ?? []).map((audit) => ({
+        this.filteredTableData = (auditsPage.content ?? []).map(audit => ({
           id: audit.id,
           date: audit.createdAt,
           user: (auditsPage.metadata[`USER:${audit.user}:name`] as string) ?? audit.user,

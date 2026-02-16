@@ -38,7 +38,7 @@ export class ApiConfirmDeploymentDialogComponent implements OnDestroy {
 
   public deploymentLabel = new UntypedFormControl();
 
-  public hasPlatformPolicies$ = this.flowService.getConfiguration().pipe(map((configuration) => configuration.has_policies));
+  public hasPlatformPolicies$ = this.flowService.getConfiguration().pipe(map(configuration => configuration.has_policies));
 
   constructor(
     private readonly dialogRef: MatDialogRef<ApiConfirmDeploymentDialogComponent, ApiConfirmDeploymentDialogResult>,
@@ -65,7 +65,7 @@ export class ApiConfirmDeploymentDialogComponent implements OnDestroy {
           this.dialogRef.close();
           this.snackBarService.success('API successfully deployed.');
         },
-        (err) => {
+        err => {
           this.snackBarService.error(`An error occurred while deploying the API.\n${err.error?.message}.`);
         },
       );

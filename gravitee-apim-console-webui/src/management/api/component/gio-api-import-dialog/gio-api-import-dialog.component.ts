@@ -89,8 +89,8 @@ export class GioApiImportDialogComponent implements OnDestroy {
     this.configsForm
       .get('importPolicyPaths')
       .valueChanges.pipe(startWith(this.configsForm.get('importPolicyPaths').value), takeUntil(this.unsubscribe$))
-      .subscribe((checked) => {
-        Object.keys((this.configsForm.get('importPolicies') as FormGroup).controls).map((policyId) => {
+      .subscribe(checked => {
+        Object.keys((this.configsForm.get('importPolicies') as FormGroup).controls).map(policyId => {
           checked
             ? this.configsForm.get('importPolicies').get(policyId).enable({ emitEvent: false })
             : this.configsForm.get('importPolicies').get(policyId).disable({ emitEvent: false });
@@ -175,8 +175,8 @@ export class GioApiImportDialogComponent implements OnDestroy {
             with_documentation: configsFormValue.importDocumentation,
             with_path_mapping: configsFormValue.importPathMapping,
             with_policies: this.policies
-              .filter((policy) => configsFormValue.importPolicies && configsFormValue.importPolicies[policy.id])
-              .map((policy) => policy.id),
+              .filter(policy => configsFormValue.importPolicies && configsFormValue.importPolicies[policy.id])
+              .map(policy => policy.id),
             with_policy_paths: configsFormValue.importPolicyPaths,
           },
           this.updateModeApiId,
@@ -192,8 +192,8 @@ export class GioApiImportDialogComponent implements OnDestroy {
             with_documentation: configsFormValue.importDocumentation,
             with_path_mapping: configsFormValue.importPathMapping,
             with_policies: this.policies
-              .filter((policy) => configsFormValue.importPolicies && configsFormValue.importPolicies[policy.id])
-              .map((policy) => policy.id),
+              .filter(policy => configsFormValue.importPolicies && configsFormValue.importPolicies[policy.id])
+              .map(policy => policy.id),
             with_policy_paths: configsFormValue.importPolicyPaths,
           },
           this.updateModeApiId,
@@ -219,7 +219,7 @@ export class GioApiImportDialogComponent implements OnDestroy {
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((api) => {
+      .subscribe(api => {
         this.dialogRef.close(api.id);
       });
   }

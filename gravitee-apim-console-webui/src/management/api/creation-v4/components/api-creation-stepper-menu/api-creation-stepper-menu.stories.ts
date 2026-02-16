@@ -52,7 +52,7 @@ const CURRENT_STEP: ApiCreationStep = {
     menuItemComponent: TestStepMenuItemComponent,
   },
   state: 'valid',
-  patchPayload: (p) => p,
+  patchPayload: p => p,
   component: undefined,
 };
 

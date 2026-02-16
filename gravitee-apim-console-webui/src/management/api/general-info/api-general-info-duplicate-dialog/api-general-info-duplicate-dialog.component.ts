@@ -90,7 +90,7 @@ export class ApiGeneralInfoDuplicateDialogComponent implements OnDestroy {
     });
 
     if (dialogData.api.definitionVersion === 'V4') {
-      if (dialogData.api.listeners?.find((listener) => listener.type === 'TCP')) {
+      if (dialogData.api.listeners?.find(listener => listener.type === 'TCP')) {
         this.duplicateApiForm.addControl(
           'host',
           new FormControl('', [hostSyncValidator], [hostAsyncValidator(this.apiV2Service, undefined, 'TCP')]),
@@ -122,7 +122,7 @@ export class ApiGeneralInfoDuplicateDialogComponent implements OnDestroy {
         contextPath: configsFormValue.contextPath,
         host: configsFormValue.host,
         version: configsFormValue.version,
-        filteredFields: this.optionsCheckbox.filter((option) => !configsFormValue.options[option.id]).map((option) => option.id),
+        filteredFields: this.optionsCheckbox.filter(option => !configsFormValue.options[option.id]).map(option => option.id),
       })
       .pipe(
         tap(() => this.snackBarService.success('API duplicated successfully.')),
@@ -132,7 +132,7 @@ export class ApiGeneralInfoDuplicateDialogComponent implements OnDestroy {
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((apiDuplicated) => {
+      .subscribe(apiDuplicated => {
         this.dialogRef.close(apiDuplicated);
       });
   }
@@ -142,7 +142,7 @@ const extractContextPath = (api: Api) => {
 
   const apiV4 = api as ApiV4;
   if (apiV4.listeners?.length > 0) {
-    const httpListener = apiV4.listeners.find((listener) => listener.type === 'HTTP');
+    const httpListener = apiV4.listeners.find(listener => listener.type === 'HTTP');
     if (httpListener && (httpListener as HttpListener).paths && (httpListener as HttpListener).paths.length > 0) {
       const firstPath = (httpListener as HttpListener).paths[0];
       return `${firstPath.host ?? ''}${firstPath.path}`;
@@ -154,7 +154,7 @@ const extractContextPath = (api: Api) => {
 const extractHost = (api: Api) => {
   if (api.definitionVersion === 'V4') {
     const apiV4 = api as ApiV4;
-    const tcpListener: TcpListener = apiV4.listeners?.find((listener) => listener.type === 'TCP');
+    const tcpListener: TcpListener = apiV4.listeners?.find(listener => listener.type === 'TCP');
     if (tcpListener && tcpListener.hosts && tcpListener.hosts.length > 0) {
       return (tcpListener as TcpListener).hosts[0];
     }

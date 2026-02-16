@@ -71,8 +71,8 @@ describe('GioFormListenersContextPathModule', () => {
   const expectApiVerify = (inError = false) => {
     httpTestingController
       .match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/paths`, method: 'POST' })
-      .filter((r) => !r.cancelled)
-      .map((c) => c.flush({ ok: !inError, reason: inError ? 'error reason' : '' }));
+      .filter(r => !r.cancelled)
+      .map(c => c.flush({ ok: !inError, reason: inError ? 'error reason' : '' }));
   };
 
   describe('without api id', () => {
@@ -109,7 +109,7 @@ describe('GioFormListenersContextPathModule', () => {
       expectApiVerify();
 
       const paths = await Promise.all(
-        pathRows.map(async (row) => ({
+        pathRows.map(async row => ({
           path: await row.pathInput.getValue(),
         })),
       );
@@ -183,7 +183,7 @@ describe('GioFormListenersContextPathModule', () => {
 
     it('should mark control as valid is path is using the same root but different path', async () => {
       const formPaths = await loader.getHarness(GioFormListenersContextPathHarness);
-      await formPaths.getAddButton().then((b) => b.click());
+      await formPaths.getAddButton().then(b => b.click());
       const rows = await formPaths.getListenerRows();
       expect(rows.length).toEqual(2);
 
@@ -272,8 +272,8 @@ describe('GioFormListenersContextPathModule', () => {
 
       await formPaths
         .getAddButton()
-        .then((_) => fail('The add button should not appear'))
-        .catch((err) => expect(err).toBeTruthy());
+        .then(_ => fail('The add button should not appear'))
+        .catch(err => expect(err).toBeTruthy());
     });
   });
 
@@ -322,8 +322,8 @@ describe('GioFormListenersContextPathModule', () => {
         method: 'POST',
       });
       req
-        .filter((r) => !r.cancelled)
-        .forEach((req) => {
+        .filter(r => !r.cancelled)
+        .forEach(req => {
           expect(req.request.body.apiId).toEqual('api-id');
         });
       httpTestingController.verify({ ignoreCancelled: true });

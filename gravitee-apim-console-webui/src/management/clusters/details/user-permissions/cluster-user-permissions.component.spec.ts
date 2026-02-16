@@ -101,7 +101,7 @@ describe('ClusterUserPermissionsComponent', () => {
     expect(await selectRow1.getValueText()).toEqual('USER');
     await selectRow1.open();
     const options = await selectRow1.getOptions();
-    const optionTexts = await Promise.all(options.map((o) => o.getText()));
+    const optionTexts = await Promise.all(options.map(o => o.getText()));
     expect(optionTexts).toEqual(['PRIMARY_OWNER', 'OWNER', 'USER']);
   });
 
@@ -273,7 +273,7 @@ describe('ClusterUserPermissionsComponent', () => {
       ]);
 
     // GET cluster
-    const groupsIds = groups.data.map((g) => g.id);
+    const groupsIds = groups.data.map(g => g.id);
     expectGetClusterRequest(httpTestingController, fakeCluster({ id: CLUSTER_ID, groups: groupsIds }));
 
     // GET groups list

@@ -155,12 +155,12 @@ export class ClusterUserPermissionsComponent implements OnInit {
           this.members = members.data;
           this.membersTableLength = members.pagination.totalCount;
           this.roles = roles;
-          this.roleNames = roles.map((r) => r.name) ?? [];
-          this.defaultRole = roles.find((role) => role.default);
+          this.roleNames = roles.map(r => r.name) ?? [];
+          this.defaultRole = roles.find(role => role.default);
 
-          this.groupsMembersVM = cluster.groups?.map((id) => ({
+          this.groupsMembersVM = cluster.groups?.map(id => ({
             id,
-            name: groupResponse.data.find((g) => g.id === id)?.name ?? id,
+            name: groupResponse.data.find(g => g.id === id)?.name ?? id,
             isVisible: true,
           }));
           this.initDataSource();
@@ -169,14 +169,14 @@ export class ClusterUserPermissionsComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error.error?.message ?? 'An error occurred while fetching members.');
         },
       });
   }
 
   private initDataSource() {
-    this.dataSource = this.members?.map((member) => {
+    this.dataSource = this.members?.map(member => {
       return {
         id: member.id,
         role: member.roles[0].name,
@@ -188,7 +188,7 @@ export class ClusterUserPermissionsComponent implements OnInit {
 
   private initForm() {
     this.form = new FormGroup({});
-    this.members?.forEach((member) => {
+    this.members?.forEach(member => {
       this.form.addControl(
         member.id,
         new FormControl({
@@ -213,7 +213,7 @@ export class ClusterUserPermissionsComponent implements OnInit {
       .afterClosed()
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        switchMap((dialogResult) => {
+        switchMap(dialogResult => {
           return this.clusterMemberService.transferOwnership(this.clusterId, dialogResult.transferOwnershipToUser);
         }),
       )
@@ -225,7 +225,7 @@ export class ClusterUserPermissionsComponent implements OnInit {
       .open<GioUsersSelectorComponent, GioUsersSelectorData, SearchableUser[]>(GioUsersSelectorComponent, {
         width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
-          userFilterPredicate: (user) => !this.members.some((member) => member.id === user.id),
+          userFilterPredicate: user => !this.members.some(member => member.id === user.id),
         },
         role: 'alertdialog',
         id: 'addUserDialog',
@@ -233,9 +233,9 @@ export class ClusterUserPermissionsComponent implements OnInit {
       .afterClosed()
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        filter((selectedUsers) => !isEmpty(selectedUsers)),
-        tap((selectedUsers) => {
-          selectedUsers.forEach((user) => {
+        filter(selectedUsers => !isEmpty(selectedUsers)),
+        tap(selectedUsers => {
+          selectedUsers.forEach(user => {
             this.addMemberToForm(user);
           });
         }),
@@ -277,7 +277,7 @@ export class ClusterUserPermissionsComponent implements OnInit {
     this.clusterMemberService.deleteMember(this.clusterId, member.id).subscribe({
       next: () => {
         // remove from members
-        this.members = this.members.filter((m) => m.id !== member.id);
+        this.members = this.members.filter(m => m.id !== member.id);
         this.initDataSource();
         // remove from form
         this.form.get(member.id).reset();
@@ -285,7 +285,7 @@ export class ClusterUserPermissionsComponent implements OnInit {
 
         this.snackBarService.success(`Member ${member.displayName} has been removed.`);
       },
-      error: (error) => {
+      error: error => {
         this.snackBarService.error(error.message);
       },
     });
@@ -351,14 +351,14 @@ export class ClusterUserPermissionsComponent implements OnInit {
   }
 
   private getSaveMemberQuery$(memberFormId: string, newRole: string): Observable<Member> {
-    const memberToUpdate = this.members.find((m) => m.id === memberFormId);
+    const memberToUpdate = this.members.find(m => m.id === memberFormId);
     if (memberToUpdate) {
       return this.clusterMemberService.updateMember(this.clusterId, {
         memberId: memberToUpdate.id,
         roleName: newRole,
       });
     } else {
-      const memberToAdd = this.membersToAdd.find((m) => m._viewId === memberFormId);
+      const memberToAdd = this.membersToAdd.find(m => m._viewId === memberFormId);
       return this.clusterMemberService.addMember(this.clusterId, {
         userId: memberToAdd.id,
         roleName: newRole,

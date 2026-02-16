@@ -119,8 +119,8 @@ export class SharedPolicyGroupsComponent implements OnInit {
             this.filters.pagination.size,
           ),
         ),
-        map((pagedResult) => {
-          const items = pagedResult.data.map((sharedPolicyGroup) => ({
+        map(pagedResult => {
+          const items = pagedResult.data.map(sharedPolicyGroup => ({
             id: sharedPolicyGroup.id,
             name: sharedPolicyGroup.name,
             description: sharedPolicyGroup.description,
@@ -163,8 +163,8 @@ export class SharedPolicyGroupsComponent implements OnInit {
       )
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((payload) =>
+        filter(result => !!result),
+        switchMap(payload =>
           this.sharedPolicyGroupsService.create({
             name: payload.name,
             description: payload.description,
@@ -175,11 +175,11 @@ export class SharedPolicyGroupsComponent implements OnInit {
         ),
       )
       .subscribe({
-        next: (sharedPolicyGroup) => {
+        next: sharedPolicyGroup => {
           this.snackBarService.success('Shared Policy Group created');
           this.router.navigate([sharedPolicyGroup.id, 'studio'], { relativeTo: this.activatedRoute });
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'Error during Shared Policy Group creation!');
         },
       });
@@ -226,7 +226,7 @@ If an API flow still uses this Shared Policy Group, the API flow will ignore it 
     })
     .afterClosed()
     .pipe(
-      filter((result) => !!result),
+      filter(result => !!result),
       switchMap(() => sharedPolicyGroupsService.delete(sharedPolicyGroupId)),
     )
     .subscribe({
@@ -234,7 +234,7 @@ If an API flow still uses this Shared Policy Group, the API flow will ignore it 
         snackBarService.success('Shared Policy Group removed');
         onSuccess();
       },
-      error: (e) => {
+      error: e => {
         snackBarService.error(e.error?.message ?? 'An error occurred while removing the Shared Policy Group');
         throw e;
       },

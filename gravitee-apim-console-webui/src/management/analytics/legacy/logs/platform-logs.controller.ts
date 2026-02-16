@@ -52,7 +52,7 @@ class PlatformLogsController {
     this.query.query = this.activatedRoute.snapshot.queryParams.q;
     this.query.field = '-@timestamp';
 
-    this.$scope.$watch('$ctrl.query.field', (field) => {
+    this.$scope.$watch('$ctrl.query.field', field => {
       if (field && this.init) {
         this.refresh();
       }
@@ -95,7 +95,7 @@ class PlatformLogsController {
       queryParamsHandling: 'merge',
     });
 
-    this.AnalyticsService.findLogs(this.query).then((logs) => {
+    this.AnalyticsService.findLogs(this.query).then(logs => {
       this.logs = logs.data;
     });
   }
@@ -107,7 +107,7 @@ class PlatformLogsController {
   }
 
   exportAsCSV() {
-    this.AnalyticsService.exportLogsAsCSV(this.query).then((response) => {
+    this.AnalyticsService.exportLogsAsCSV(this.query).then(response => {
       const hiddenElement = document.createElement('a');
       hiddenElement.href = 'data:attachment/csv,' + encodeURIComponent(response.data);
       hiddenElement.target = '_self';

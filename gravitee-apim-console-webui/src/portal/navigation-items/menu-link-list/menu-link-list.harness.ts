@@ -31,29 +31,29 @@ export class MenuLinkListHarness extends ComponentHarness {
   protected getTable = this.locatorFor(MatTableHarness);
   protected getAddLinkButtonHarness = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="add-link"]' }));
   async getAddLinkButton(): Promise<MatButtonHarness> {
-    return this.getAddLinkButtonHarness().catch((_) => undefined);
+    return this.getAddLinkButtonHarness().catch(_ => undefined);
   }
 
   async addLinkButtonIsActive() {
     return this.getAddLinkButtonHarness()
-      .then((btn) => btn.isDisabled())
-      .then((res) => !res);
+      .then(btn => btn.isDisabled())
+      .then(res => !res);
   }
   async openAddLink(): Promise<void> {
-    return this.getAddLinkButtonHarness().then((btn) => btn.click());
+    return this.getAddLinkButtonHarness().then(btn => btn.click());
   }
 
   async countRows(): Promise<number> {
     return this.getTable()
-      .then((table) => table.getRows())
-      .then((rows) => rows.length);
+      .then(table => table.getRows())
+      .then(rows => rows.length);
   }
 
   async getRowByIndex(index: number): Promise<MenuLinkListHarnessData> {
     return this.getTable()
-      .then((table) => table.getRows())
-      .then((rows) => rows[index])
-      .then((row) =>
+      .then(table => table.getRows())
+      .then(rows => rows[index])
+      .then(row =>
         Promise.all([
           row.getCells({ columnName: 'name' }),
           row.getCells({ columnName: 'type' }),
@@ -68,8 +68,8 @@ export class MenuLinkListHarness extends ComponentHarness {
           types[0].getText(),
           target[0].getText(),
           visibility[0].getText(),
-          actions[0].getHarness(MatButtonHarness.with({ selector: '.update-link' })).catch((_) => undefined),
-          actions[0].getHarness(MatButtonHarness.with({ selector: '.delete-link' })).catch((_) => undefined),
+          actions[0].getHarness(MatButtonHarness.with({ selector: '.update-link' })).catch(_ => undefined),
+          actions[0].getHarness(MatButtonHarness.with({ selector: '.delete-link' })).catch(_ => undefined),
         ]),
       )
       .then(([name, type, target, visibility, updateButton, deleteButton]) => ({

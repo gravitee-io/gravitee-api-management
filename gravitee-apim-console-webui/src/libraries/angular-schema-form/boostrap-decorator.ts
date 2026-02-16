@@ -77,7 +77,7 @@ const initTemplateCacheRun = ($templateCache: angular.ITemplateCacheService) => 
 initTemplateCacheRun.$inject = ['$templateCache'];
 angular.module('schemaForm').run(initTemplateCacheRun);
 
-const bootstrapDecoratorConfig = (schemaFormDecoratorsProvider) => {
+const bootstrapDecoratorConfig = schemaFormDecoratorsProvider => {
   const base = 'directives/decorators/bootstrap/';
 
   schemaFormDecoratorsProvider.defineDecorator(

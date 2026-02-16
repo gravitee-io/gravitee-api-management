@@ -64,7 +64,7 @@ export class ApiHistoryV4DeploymentsTableComponent implements OnChanges {
 
   ngOnChanges(simpleChanges: SimpleChanges) {
     if (simpleChanges.deployments) {
-      this.deploymentsDS = this.deployments.map((deployment) => ({ ...deployment, selected: this.getSelected(deployment.id) }));
+      this.deploymentsDS = this.deployments.map(deployment => ({ ...deployment, selected: this.getSelected(deployment.id) }));
     }
   }
 
@@ -102,7 +102,7 @@ export class ApiHistoryV4DeploymentsTableComponent implements OnChanges {
       this.selectedEvent[1] = event;
     }
 
-    this.deploymentsDS = this.deploymentsDS.map((deployment) => {
+    this.deploymentsDS = this.deploymentsDS.map(deployment => {
       deployment.selected = this.getSelected(deployment.id);
       return deployment;
     });
@@ -111,8 +111,8 @@ export class ApiHistoryV4DeploymentsTableComponent implements OnChanges {
 
   private getSelected(deploymentId: string): boolean {
     return this.selectedEvent
-      .filter((e) => !isNil(e))
-      .map((e) => e.id)
+      .filter(e => !isNil(e))
+      .map(e => e.id)
       .includes(deploymentId);
   }
 }

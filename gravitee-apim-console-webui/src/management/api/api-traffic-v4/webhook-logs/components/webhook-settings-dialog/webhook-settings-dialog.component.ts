@@ -111,9 +111,7 @@ export class WebhookSettingsDialogComponent implements OnInit {
    * entrypoint.configuration.logging.{enabled, request.{headers, payload}, response.{headers, payload}}
    */
   private findWebhookEntrypoint(api: ApiV4): Entrypoint | undefined {
-    return (
-      api.listeners?.flatMap((listener) => listener.entrypoints ?? []).find((entrypoint) => entrypoint.type === 'webhook') ?? undefined
-    );
+    return api.listeners?.flatMap(listener => listener.entrypoints ?? []).find(entrypoint => entrypoint.type === 'webhook') ?? undefined;
   }
 
   close(): void {
@@ -164,9 +162,9 @@ export class WebhookSettingsDialogComponent implements OnInit {
       return api;
     }
 
-    const updatedListeners = api.listeners.map((listener) => {
+    const updatedListeners = api.listeners.map(listener => {
       const entrypoints = listener.entrypoints ?? [];
-      const webhookEntrypointIndex = entrypoints.findIndex((ep) => ep.type === 'webhook');
+      const webhookEntrypointIndex = entrypoints.findIndex(ep => ep.type === 'webhook');
 
       if (webhookEntrypointIndex === -1) {
         return listener;
@@ -235,7 +233,7 @@ export class WebhookSettingsDialogComponent implements OnInit {
       return;
     }
 
-    form.controls.enabled.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((enabled) => {
+    form.controls.enabled.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(enabled => {
       if (!enabled) {
         // Turn everything off & disable when top toggle is off
         form.patchValue(
@@ -260,7 +258,7 @@ export class WebhookSettingsDialogComponent implements OnInit {
       return;
     }
 
-    this.loggingControlNames.forEach((controlName) => {
+    this.loggingControlNames.forEach(controlName => {
       const control = this.form!.controls[controlName];
       if (enabled) {
         control.enable({ emitEvent: false });
@@ -319,7 +317,7 @@ export class WebhookSettingsDialogComponent implements OnInit {
     }
     const currentValue = this.form.getRawValue();
 
-    return Object.keys(this.initialFormValue).some((key) => currentValue[key] !== this.initialFormValue[key]);
+    return Object.keys(this.initialFormValue).some(key => currentValue[key] !== this.initialFormValue[key]);
   }
 
   private get sampling(): Analytics['sampling'] | undefined {

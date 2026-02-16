@@ -51,7 +51,7 @@ const intervalsData = [
 ];
 
 export function getIntervalFromDuration(duration: number) {
-  const interval = intervalsData.find((interval) => interval[0] >= duration);
+  const interval = intervalsData.find(interval => interval[0] >= duration);
   return interval ? interval[1] : maxInterval;
 }
 

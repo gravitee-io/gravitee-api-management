@@ -86,12 +86,12 @@ const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
           this.chart.request.field = this.field;
         }
 
-        const existingField = find(this.fields, (f) => f.value === this.field);
+        const existingField = find(this.fields, f => f.value === this.field);
         this.chart.columns[0] = existingField ? existingField.label : this.field;
       };
 
       this.onProjectionChanged = () => {
-        this.chart.columns[1] = find(this.projections, (p) => p.value === this.projection).label;
+        this.chart.columns[1] = find(this.projections, p => p.value === this.projection).label;
         if (this.projection) {
           this.chart.request.order = this.order + this.aggregate + ':' + this.projection;
           if (this.projection !== '_count') {

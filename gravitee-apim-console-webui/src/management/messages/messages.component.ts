@@ -58,9 +58,9 @@ export class MessagesComponent implements OnInit, OnDestroy {
     this.roleService
       .list(this.scope)
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((roles) => {
+      .subscribe(roles => {
         const sortedRoles = sortBy(roles, ['name']);
-        this.recipients = sortedRoles.map((role) => {
+        this.recipients = sortedRoles.map(role => {
           const displayName =
             this.scope === 'APPLICATION'
               ? `Members with the ${role.name} role on applications subscribed to this API`
@@ -86,7 +86,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
         this.form.controls['url'].disable();
 
         // eslint-disable-next-line rxjs/no-nested-subscribe
-        this.form.controls['channel'].valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((values) => {
+        this.form.controls['channel'].valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(values => {
           if (values === 'HTTP') {
             this.form.controls['title'].disable();
             this.form.controls['url'].enable();
@@ -110,11 +110,11 @@ export class MessagesComponent implements OnInit, OnDestroy {
     const obs = this.apiId ? this.messageService.sendFromApi(this.apiId, payload) : this.messageService.sendFromPortal(payload);
 
     obs.subscribe({
-      next: (res) => {
+      next: res => {
         this.sending = false;
         this.snackBarService.success(`Message sent to ${res} recipient${res > 1 ? 's' : ''}`);
       },
-      error: (error) => {
+      error: error => {
         this.sending = false;
         let message = `Message could not be sent`;
         if (error?.error?.message) message += ` because of ${error.error.message}`;

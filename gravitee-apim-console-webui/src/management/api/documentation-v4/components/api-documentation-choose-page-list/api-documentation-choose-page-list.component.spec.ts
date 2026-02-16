@@ -89,8 +89,8 @@ describe('ApiDocumentationChoosePageListComponent', () => {
     const matTreeNodes = fixture.debugElement.queryAll(By.css('mat-tree-node'));
     expect(matTreeNodes.length).toBe(2);
 
-    const markdownNode = matTreeNodes.find((node) => node.nativeElement.textContent.includes('Page 1'));
-    const folderNode = matTreeNodes.find((node) => node.nativeElement.textContent.includes('Folder 1'));
+    const markdownNode = matTreeNodes.find(node => node.nativeElement.textContent.includes('Page 1'));
+    const folderNode = matTreeNodes.find(node => node.nativeElement.textContent.includes('Folder 1'));
 
     expect(markdownNode).toBeTruthy();
     expect(folderNode).toBeTruthy();

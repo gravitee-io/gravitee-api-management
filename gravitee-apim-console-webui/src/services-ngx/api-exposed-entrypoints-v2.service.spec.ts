@@ -40,8 +40,8 @@ describe('ApiExposedEntrypointV2Service', () => {
   });
 
   describe('get', () => {
-    it('should call the API', (done) => {
-      service.get(API_ID).subscribe((res) => {
+    it('should call the API', done => {
+      service.get(API_ID).subscribe(res => {
         expect(res).toEqual([fakeExposedEntrypoint()]);
         done();
       });

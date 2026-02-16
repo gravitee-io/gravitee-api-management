@@ -49,8 +49,8 @@ export class ApiCreationV4SpecHttpExpects {
     tick(250);
     this.httpTestingController
       .match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/paths`, method: 'POST' })
-      .filter((request) => !request.cancelled)
-      .map((testRequest) =>
+      .filter(request => !request.cancelled)
+      .map(testRequest =>
         testRequest.flush({
           ok: !invalidPath,
           reason: invalidPath ? `Path [${invalidPath}] already exists` : '',
@@ -66,10 +66,10 @@ export class ApiCreationV4SpecHttpExpects {
   }
 
   expectSchemaGetRequest(connectors: Partial<ConnectorPlugin>[], connectorType: 'entrypoints' | 'endpoints' = 'entrypoints') {
-    connectors.forEach((connector) => {
+    connectors.forEach(connector => {
       this.httpTestingController
         .match({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/${connectorType}/${connector.id}/schema`, method: 'GET' })
-        .map((req) => {
+        .map(req => {
           if (!req.cancelled) req.flush(getEntrypointConnectorSchema(connector.id));
         });
     });
@@ -84,7 +84,7 @@ export class ApiCreationV4SpecHttpExpects {
   }
 
   expectEntrypointsGetRequest(connectors: Partial<ConnectorPlugin>[]) {
-    const fullConnectors = connectors.map((partial) => fakeConnectorPlugin(partial));
+    const fullConnectors = connectors.map(partial => fakeConnectorPlugin(partial));
     this.httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints` }).flush(fullConnectors);
   }
 
@@ -101,17 +101,17 @@ export class ApiCreationV4SpecHttpExpects {
   }
 
   expectEndpointsGetRequest(connectors: Partial<ConnectorPlugin>[]) {
-    const fullConnectors = connectors.map((partial) => fakeConnectorPlugin(partial));
+    const fullConnectors = connectors.map(partial => fakeConnectorPlugin(partial));
     this.httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`, method: 'GET' })
       .flush(fullConnectors);
   }
 
   expectEndpointsSharedConfigurationSchemaGetRequest(connectors: Partial<ConnectorPlugin>[]) {
-    connectors.forEach((connector) => {
+    connectors.forEach(connector => {
       this.httpTestingController
         .match({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints/${connector.id}/shared-configuration-schema`, method: 'GET' })
-        .map((req) => {
+        .map(req => {
           if (!req.cancelled) req.flush(getEntrypointConnectorSchema(connector.id));
         });
     });

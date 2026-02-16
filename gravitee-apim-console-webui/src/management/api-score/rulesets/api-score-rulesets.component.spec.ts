@@ -51,7 +51,7 @@ describe('ApiScoreRulesetsComponent', () => {
     { input: {}, expected: 'Test ruleset name' },
     { input: { format: RulesetFormat.GRAVITEE_MESSAGE }, expected: 'Test ruleset name Gravitee Message API' },
     { input: { format: RulesetFormat.GRAVITEE_PROXY }, expected: 'Test ruleset name Gravitee Proxy API' },
-  ].forEach((testParams) => {
+  ].forEach(testParams => {
     it('should display rulesets for format: ' + testParams.input.format, async () => {
       const rulesetResponse: ScoringRulesetsResponse = {
         data: [
@@ -93,7 +93,7 @@ describe('ApiScoreRulesetsComponent', () => {
 
   function expectListRulesets(res = fakeRulesetsList()) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/scoring/rulesets`;
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush(res);

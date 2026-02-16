@@ -31,18 +31,18 @@ export class RuntimeAlertCreateFiltersHarness extends ComponentHarness {
   }
 
   async addFilter() {
-    return this.getAddFilterButton().then((btn) => btn.click());
+    return this.getAddFilterButton().then(btn => btn.click());
   }
 
   async deleteFilter() {
-    return this.getDeleteFilterButton().then((btn) => btn.click());
+    return this.getDeleteFilterButton().then(btn => btn.click());
   }
 
   async getMetricsCondition(index: number) {
-    return this.metricsSimpleConditions().then((harnesses) => harnesses.at(index));
+    return this.metricsSimpleConditions().then(harnesses => harnesses.at(index));
   }
 
   async getMetricsConditionsLength() {
-    return this.metricsSimpleConditions().then((harnesses) => harnesses.length);
+    return this.metricsSimpleConditions().then(harnesses => harnesses.length);
   }
 }

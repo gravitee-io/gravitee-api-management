@@ -47,14 +47,14 @@ export class GlobalAvailabilityComponent implements OnInit {
     this.apiHealthV2Service
       .activeFilter()
       .pipe(
-        switchMap((timeRange) => {
+        switchMap(timeRange => {
           this.isLoading = true;
           return this.apiHealthV2Service.getApiAvailability(this.apiId, timeRange.from, timeRange.to, FieldParameter.endpoint);
         }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (res) => {
+        next: res => {
           this.globalAvailability = res.global;
           this.isLoading = false;
         },

@@ -134,7 +134,7 @@ export class RuntimeAlertCreateConditionsComponent implements OnInit, OnChanges 
   }
 
   public resetForm() {
-    Object.keys(this.conditionsForm.getRawValue()).forEach((key) => {
+    Object.keys(this.conditionsForm.getRawValue()).forEach(key => {
       this.conditionsForm.removeControl(key);
     });
   }

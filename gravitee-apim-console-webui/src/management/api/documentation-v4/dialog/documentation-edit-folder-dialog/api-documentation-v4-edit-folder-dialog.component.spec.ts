@@ -46,7 +46,7 @@ class TestComponent {
         data: this.data,
       })
       .afterClosed()
-      .subscribe((result) => (this.result = result));
+      .subscribe(result => (this.result = result));
   }
 }
 
@@ -80,12 +80,12 @@ describe('ApiDocumentationV4EditFolderDialog', () => {
       await input.setValue('folder');
 
       const buttons = await addFolderDialogHarness.getSelectionInlineCards();
-      const values = buttons.map((b) => b.value);
+      const values = buttons.map(b => b.value);
       expect(values).toEqual(['PUBLIC', 'PRIVATE']);
       await addFolderDialogHarness.selectVisibility('PRIVATE');
       fixture.detectChanges();
 
-      await addFolderDialogHarness.getSaveButton().then((btn) => btn.click());
+      await addFolderDialogHarness.getSaveButton().then(btn => btn.click());
       expect(fixture.componentInstance.result).toEqual({ name: 'folder', visibility: 'PRIVATE' });
     });
     it('should not allow same name folder', async () => {
@@ -95,7 +95,7 @@ describe('ApiDocumentationV4EditFolderDialog', () => {
       expect(input).toBeDefined();
       await input.setValue('Folder-1 ');
 
-      expect(await addFolderDialogHarness.getSaveButton().then((btn) => btn.isDisabled())).toEqual(true);
+      expect(await addFolderDialogHarness.getSaveButton().then(btn => btn.isDisabled())).toEqual(true);
     });
   });
 
@@ -105,7 +105,7 @@ describe('ApiDocumentationV4EditFolderDialog', () => {
     it('should not be able to submit after opening dialog', async () => {
       const addFolderDialogHarness = await harnessLoader.getHarness(ApiDocumentationV4EditFolderDialogHarness);
       expect(addFolderDialogHarness).toBeDefined();
-      expect(await addFolderDialogHarness.getSaveButton().then((btn) => btn.isDisabled())).toEqual(true);
+      expect(await addFolderDialogHarness.getSaveButton().then(btn => btn.isDisabled())).toEqual(true);
     });
 
     it('should not be able to submit if data the same after changes', async () => {
@@ -119,7 +119,7 @@ describe('ApiDocumentationV4EditFolderDialog', () => {
       await input.setValue('folder-name');
       fixture.detectChanges();
 
-      expect(await addFolderDialogHarness.getSaveButton().then((btn) => btn.isDisabled())).toEqual(true);
+      expect(await addFolderDialogHarness.getSaveButton().then(btn => btn.isDisabled())).toEqual(true);
     });
 
     it('should not be able to submit empty name', async () => {
@@ -129,7 +129,7 @@ describe('ApiDocumentationV4EditFolderDialog', () => {
       const input = await addFolderDialogHarness.getNameInput();
       expect(await input.getValue()).toEqual('folder-name');
       await input.setValue('');
-      expect(await addFolderDialogHarness.getSaveButton().then((btn) => btn.isDisabled())).toEqual(true);
+      expect(await addFolderDialogHarness.getSaveButton().then(btn => btn.isDisabled())).toEqual(true);
     });
 
     it('should not allow same name as existing page', async () => {
@@ -139,7 +139,7 @@ describe('ApiDocumentationV4EditFolderDialog', () => {
       const input = await addFolderDialogHarness.getNameInput();
       expect(await input.getValue()).toEqual('folder-name');
       await input.setValue(' Existing-folder ');
-      expect(await addFolderDialogHarness.getSaveButton().then((btn) => btn.isDisabled())).toEqual(true);
+      expect(await addFolderDialogHarness.getSaveButton().then(btn => btn.isDisabled())).toEqual(true);
     });
 
     it('should update with name change', async () => {
@@ -150,8 +150,8 @@ describe('ApiDocumentationV4EditFolderDialog', () => {
       expect(await input.getValue()).toEqual('folder-name');
       await input.setValue('new name');
 
-      expect(await addFolderDialogHarness.getSaveButton().then((btn) => btn.isDisabled())).toEqual(false);
-      await addFolderDialogHarness.getSaveButton().then((btn) => btn.click());
+      expect(await addFolderDialogHarness.getSaveButton().then(btn => btn.isDisabled())).toEqual(false);
+      await addFolderDialogHarness.getSaveButton().then(btn => btn.click());
       expect(fixture.componentInstance.result).toEqual({ name: 'new name', visibility: 'PUBLIC' });
     });
 
@@ -162,8 +162,8 @@ describe('ApiDocumentationV4EditFolderDialog', () => {
       await addFolderDialogHarness.selectVisibility('PRIVATE');
       fixture.detectChanges();
 
-      expect(await addFolderDialogHarness.getSaveButton().then((btn) => btn.isDisabled())).toEqual(false);
-      await addFolderDialogHarness.getSaveButton().then((btn) => btn.click());
+      expect(await addFolderDialogHarness.getSaveButton().then(btn => btn.isDisabled())).toEqual(false);
+      await addFolderDialogHarness.getSaveButton().then(btn => btn.click());
       expect(fixture.componentInstance.result).toEqual({ name: 'folder-name', visibility: 'PRIVATE' });
     });
   });
@@ -176,7 +176,7 @@ describe('ApiDocumentationV4EditFolderDialog', () => {
       const input = await addFolderDialogHarness.getNameInput();
       await input.setValue('folder');
 
-      expect(await addFolderDialogHarness.getSaveButton().then((btn) => btn.isDisabled())).toEqual(false);
+      expect(await addFolderDialogHarness.getSaveButton().then(btn => btn.isDisabled())).toEqual(false);
     });
     it('should allow update', async () => {
       await init({ mode: 'edit', visibility: 'PUBLIC', name: 'folder-name', existingNames: [] });
@@ -185,7 +185,7 @@ describe('ApiDocumentationV4EditFolderDialog', () => {
       const input = await addFolderDialogHarness.getNameInput();
       await input.setValue('folder');
 
-      expect(await addFolderDialogHarness.getSaveButton().then((btn) => btn.isDisabled())).toEqual(false);
+      expect(await addFolderDialogHarness.getSaveButton().then(btn => btn.isDisabled())).toEqual(false);
     });
   });
 });

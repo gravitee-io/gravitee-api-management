@@ -63,14 +63,14 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.gioMenuService.reduced$.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
+    this.gioMenuService.reduced$.pipe(takeUntil(this.unsubscribe$)).subscribe(reduced => {
       this.hasBreadcrumb = reduced;
     });
 
     this.applicationService
       .getLastApplicationFetch(this.activatedRoute.snapshot.params.applicationId)
       .pipe(
-        tap((application) => {
+        tap(application => {
           this.application = application;
 
           this.subMenuItems = this.filterMenuByPermission([
@@ -140,14 +140,14 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
             },
           ]);
 
-          this.selectedItemWithTabs = this.subMenuItems.find((item) => item.tabs && this.isTabActive(item.tabs));
+          this.selectedItemWithTabs = this.subMenuItems.find(item => item.tabs && this.isTabActive(item.tabs));
 
           this.gioMenuSearchService.addMenuSearchItems(this.getApplicationNavigationSearchItems());
         }),
         switchMap(() => this.router.events),
-        filter((event) => event instanceof NavigationEnd),
+        filter(event => event instanceof NavigationEnd),
         tap(() => {
-          this.selectedItemWithTabs = this.subMenuItems.find((item) => item.tabs && this.isTabActive(item.tabs));
+          this.selectedItemWithTabs = this.subMenuItems.find(item => item.tabs && this.isTabActive(item.tabs));
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -175,7 +175,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
   computeBreadcrumbItems(): string[] {
     const breadcrumbItems: string[] = [];
 
-    this.subMenuItems.forEach((item) => {
+    this.subMenuItems.forEach(item => {
       if (this.isActive(item)) {
         breadcrumbItems.push(item.displayName);
       }
@@ -185,12 +185,12 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
   }
 
   isTabActive(tabs: MenuItem[]): boolean {
-    return flatMap(tabs, (tab) => tab).some((tab) => this.isActive(tab));
+    return flatMap(tabs, tab => tab).some(tab => this.isActive(tab));
   }
 
   private filterMenuByPermission(menuItems: MenuItem[]): MenuItem[] {
     if (menuItems) {
-      return menuItems.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
+      return menuItems.filter(item => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
     }
     return [];
   }
@@ -208,7 +208,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
         groupIds: [environmentId, applicationId],
       });
 
-      item.tabs?.forEach((tab) => {
+      item.tabs?.forEach(tab => {
         acc.push({
           name: tab.displayName,
           routerLink: `${parentRouterLink}/${cleanRouterLink(tab.routerLink)}`,

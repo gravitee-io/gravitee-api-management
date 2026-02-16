@@ -122,7 +122,7 @@ export class ApiResourcesComponent implements OnInit {
 
   public ngOnInit(): void {
     this.apiResourceDS$ = this.tableFilters$.pipe(
-      switchMap((tableFilters) =>
+      switchMap(tableFilters =>
         combineLatest([
           this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV2V4Filter()),
           this.listResources$,
@@ -132,7 +132,7 @@ export class ApiResourcesComponent implements OnInit {
       map(([api, resourceTypes, tableFilters]) => {
         this.apiResources = api.resources;
         const apiResourcesDS = api.resources?.map((resource, resourceIndex) => {
-          const resourceType = resourceTypes.find((rt) => rt.id === resource.type);
+          const resourceType = resourceTypes.find(rt => rt.id === resource.type);
 
           return {
             resourceIndex,
@@ -169,7 +169,7 @@ export class ApiResourcesComponent implements OnInit {
   public addResource() {
     this.listResources$
       .pipe(
-        switchMap((resources) =>
+        switchMap(resources =>
           this.matDialog
             .open<ApiResourcesAddDialogComponent, ApiResourcesAddDialogData, ApiResourcesAddDialogResult>(ApiResourcesAddDialogComponent, {
               data: {
@@ -181,7 +181,7 @@ export class ApiResourcesComponent implements OnInit {
             })
             .afterClosed(),
         ),
-        filter((result) => !!result && !!result.resource),
+        filter(result => !!result && !!result.resource),
         switchMap(({ resource }) =>
           this.matDialog
             .open<ApiResourcesEditDialogComponent, ApiResourcesEditDialogData, ApiResourcesEditDialogResult>(
@@ -197,10 +197,10 @@ export class ApiResourcesComponent implements OnInit {
             )
             .afterClosed(),
         ),
-        filter((resourceToAdd) => !!resourceToAdd),
-        switchMap((resourceToAdd) =>
+        filter(resourceToAdd => !!resourceToAdd),
+        switchMap(resourceToAdd =>
           this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(
-            switchMap((api) => {
+            switchMap(api => {
               return this.apiService.update(api.id, {
                 ...api,
                 resources: [...(api.resources ?? []), resourceToAdd],
@@ -214,7 +214,7 @@ export class ApiResourcesComponent implements OnInit {
           this.snackBarService.success('Resource added!');
           this.tableFilters$.next(this.tableFilters$.value);
         },
-        error: (e) => {
+        error: e => {
           this.snackBarService.error(e.error?.message ?? 'An error occurred while adding the resource');
           throw e;
         },
@@ -224,9 +224,9 @@ export class ApiResourcesComponent implements OnInit {
   public editResource(apiResourceIndex: number) {
     this.listResources$
       .pipe(
-        switchMap((resources) => {
+        switchMap(resources => {
           const apiResourceToUpdate = this.apiResources[apiResourceIndex];
-          const resource = resources.find((resource) => resource.id === apiResourceToUpdate.type);
+          const resource = resources.find(resource => resource.id === apiResourceToUpdate.type);
 
           if (!resource) {
             this.snackBarService.error('Resource plugin not found');
@@ -249,10 +249,10 @@ export class ApiResourcesComponent implements OnInit {
             )
             .afterClosed();
         }),
-        filter((resourceToUpdate) => !!resourceToUpdate),
-        switchMap((resourceToUpdate) =>
+        filter(resourceToUpdate => !!resourceToUpdate),
+        switchMap(resourceToUpdate =>
           this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(
-            switchMap((api) => {
+            switchMap(api => {
               const updatedResources = api.resources.map((resource, index) => {
                 if (index === apiResourceIndex) {
                   return {
@@ -276,7 +276,7 @@ export class ApiResourcesComponent implements OnInit {
           this.snackBarService.success('Resource updated!');
           this.tableFilters$.next(this.tableFilters$.value);
         },
-        error: (e) => {
+        error: e => {
           this.snackBarService.error(e.error?.message ?? 'An error occurred while updating the resource');
           throw e;
         },
@@ -297,10 +297,10 @@ export class ApiResourcesComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
+        filter(result => !!result),
         switchMap(() =>
           this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(
-            switchMap((api) => {
+            switchMap(api => {
               return this.apiService.update(api.id, {
                 ...api,
                 resources: api.resources.filter((_, index) => index !== apiResourceIndex),
@@ -314,7 +314,7 @@ export class ApiResourcesComponent implements OnInit {
           this.snackBarService.success('Resource removed!');
           this.tableFilters$.next(this.tableFilters$.value);
         },
-        error: (e) => {
+        error: e => {
           this.snackBarService.error(e.error?.message ?? 'An error occurred while removing the resource');
           throw e;
         },
@@ -326,7 +326,7 @@ export class ApiResourcesComponent implements OnInit {
     this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
-        switchMap((api) => {
+        switchMap(api => {
           const updatedResources = api.resources?.map((resource, index) => {
             if (index === apiResourceIndex) {
               return {
@@ -347,7 +347,7 @@ export class ApiResourcesComponent implements OnInit {
           this.snackBarService.success('Resource updated!');
           this.tableFilters$.next(this.tableFilters$.value);
         },
-        error: (e) => {
+        error: e => {
           this.snackBarService.error(e.error?.message ?? 'An error occurred while updating the resource');
           throw e;
         },

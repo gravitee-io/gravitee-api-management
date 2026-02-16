@@ -54,7 +54,7 @@ export class UserComponent extends UpgradeComponent {
     this.currentUserService
       .current()
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((user) => {
+      .subscribe(user => {
         // Hack to Force the binding between Angular and AngularJS
         this.ngOnChanges({
           user: new SimpleChange(this.user, user, !this.user),

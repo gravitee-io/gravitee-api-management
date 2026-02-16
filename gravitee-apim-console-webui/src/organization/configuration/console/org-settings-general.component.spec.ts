@@ -376,7 +376,7 @@ describe('ConsoleSettingsComponent', () => {
       expect(await emailEnabledEnableSlideToggle.isDisabled()).toEqual(true);
 
       await Promise.all(
-        ['Host', 'Port', 'Username', 'Password', 'Protocol', 'Subject', 'From', 'SSL Trust'].map(async (floatingLabelText) => {
+        ['Host', 'Port', 'Username', 'Password', 'Protocol', 'Subject', 'From', 'SSL Trust'].map(async floatingLabelText => {
           const emailFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText }));
 
           expect(await emailFormField.isDisabled()).toEqual(true);
@@ -408,7 +408,7 @@ describe('ConsoleSettingsComponent', () => {
       });
 
       await Promise.all(
-        ['Host', 'Username', 'Password', 'Protocol', 'Subject', 'From', 'SSL Trust'].map(async (floatingLabelText) => {
+        ['Host', 'Username', 'Password', 'Protocol', 'Subject', 'From', 'SSL Trust'].map(async floatingLabelText => {
           const emailFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText }));
 
           await (await emailFormField.getControl(MatInputHarness)).setValue(`New ${floatingLabelText}`);
@@ -456,7 +456,7 @@ describe('ConsoleSettingsComponent', () => {
 
       // expect all email settings to be not visible
       await Promise.all(
-        ['Host', 'Port', 'Username', 'Password', 'Protocol', 'Subject', 'From', 'SSL Trust'].map(async (floatingLabelText) => {
+        ['Host', 'Port', 'Username', 'Password', 'Protocol', 'Subject', 'From', 'SSL Trust'].map(async floatingLabelText => {
           const isEmailFormFieldVisible = await loader
             .getHarness(MatFormFieldHarness.with({ floatingLabelText }))
             .then(() => true)
@@ -482,14 +482,14 @@ describe('ConsoleSettingsComponent', () => {
 
       // Expect all email settings to be enabled except for read-only settings
       await Promise.all(
-        ['Username', 'Password', 'Protocol', 'Subject', 'From', 'SSL Trust'].map(async (floatingLabelText) => {
+        ['Username', 'Password', 'Protocol', 'Subject', 'From', 'SSL Trust'].map(async floatingLabelText => {
           const emailFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText }));
 
           expect(await emailFormField.isDisabled()).toEqual(false);
         }),
       );
       await Promise.all(
-        ['Host', 'Port'].map(async (floatingLabelText) => {
+        ['Host', 'Port'].map(async floatingLabelText => {
           const emailFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText }));
 
           expect(await emailFormField.isDisabled()).toEqual(true);

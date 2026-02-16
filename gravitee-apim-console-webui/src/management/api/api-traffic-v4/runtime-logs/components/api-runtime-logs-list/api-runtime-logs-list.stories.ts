@@ -37,7 +37,7 @@ export default {
     }),
   ],
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 1200px">
         <api-runtime-logs-list [logs]="logs" [pagination]="pagination"></api-runtime-logs-list>

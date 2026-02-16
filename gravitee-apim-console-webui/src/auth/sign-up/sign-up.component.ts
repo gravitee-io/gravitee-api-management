@@ -59,8 +59,8 @@ export class SignUpComponent implements OnInit, OnDestroy {
     this.authService
       .signUpCustomUserFields()
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((customUserFields) => {
-        this.customUserFields = customUserFields.map((customUserField) => ({
+      .subscribe(customUserFields => {
+        this.customUserFields = customUserFields.map(customUserField => ({
           ...customUserField,
           type: isEmpty(customUserField.values) ? 'input' : 'select',
         }));
@@ -104,7 +104,7 @@ export class SignUpComponent implements OnInit, OnDestroy {
             takeUntil(this.unsubscribe$),
           )
           .subscribe({
-            error: (e) => {
+            error: e => {
               this.signUpInProgress = false;
               this.snackBarService.error(e.error?.message ?? 'An error occurred while creating your account.');
             },

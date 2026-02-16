@@ -85,9 +85,9 @@ export class GioApiResponseStatusComponent implements OnChanges {
           value,
         };
       })
-      .filter((v) => v != null)
+      .filter(v => v != null)
       .sort((a, b) => a.order - b.order);
 
-    this.isEmpty = isEmpty(this.chartPieInput) || !this.chartPieInput.some((v) => v.value > 0);
+    this.isEmpty = isEmpty(this.chartPieInput) || !this.chartPieInput.some(v => v.value > 0);
   }
 }

@@ -206,12 +206,12 @@ class ApiHistoryControllerAjs {
       this.eventPage,
       this.eventPageSize,
       true,
-    ).then((response) => {
+    ).then(response => {
       this.fetchGroupsConsumed(response);
       this.events = [...(this.events ?? []), ...response.data.content];
       this.hasNextEventPageToLoad =
         response.data.totalElements > response.data.pageNumber * this.eventPageSize + response.data.pageElements;
-      this.eventsTimeline = this.events.map((event) => ({
+      this.eventsTimeline = this.events.map(event => ({
         event: event,
         badgeClass: 'info',
         badgeIconClass: 'action:check_circle',
@@ -251,7 +251,7 @@ class ApiHistoryControllerAjs {
     });
 
     const flatGroupList: string[] = [...new Set(allGroups.flat())];
-    this.ngGroupV2Service.listById(flatGroupList, 1, flatGroupList.length).subscribe((res) => {
+    this.ngGroupV2Service.listById(flatGroupList, 1, flatGroupList.length).subscribe(res => {
       this.groups = res.data;
     });
   };
@@ -346,7 +346,7 @@ class ApiHistoryControllerAjs {
     this.added = 0;
     this.removed = 0;
     const diff = JsDiff.diffJson(this.left, this.right);
-    diff.forEach((part) => {
+    diff.forEach(part => {
       if (part.added) {
         this.added += this.computeLines(part);
       } else if (part.removed) {
@@ -441,16 +441,16 @@ class ApiHistoryControllerAjs {
 
         return this.ApiService.get(this.api.id);
       })
-      .then((response) => {
+      .then(response => {
         this.api = JSON.parse(angular.toJson(cloneDeep(response.data)));
         // reload API events
         return this.ApiService.getApiEvents(this.api.id, this.eventTypes);
       })
-      .then((response) => {
+      .then(response => {
         this.events = response.data;
       })
       .then(() => this.ngApiV2Service.get(this.api.id).toPromise()) // To update the deploy banner
-      .catch((err) => {
+      .catch(err => {
         const errorMessage = err?.data?.message || 'An unexpected error occurred while rolling back the API';
         this.NotificationService.showError(errorMessage);
       });
@@ -469,7 +469,7 @@ class ApiHistoryControllerAjs {
           confirmButton: 'Rollback',
         },
       })
-      .then((response) => {
+      .then(response => {
         if (response) {
           this.rollback(api);
         }
@@ -523,8 +523,8 @@ class ApiHistoryControllerAjs {
     }
 
     payload.plans = (payload.plans ?? [])
-      .filter((plan) => plan.status !== 'CLOSED')
-      .map((plan) => {
+      .filter(plan => plan.status !== 'CLOSED')
+      .map(plan => {
         delete plan.characteristics;
         delete plan.comment_message;
         delete plan.comment_required;
@@ -542,7 +542,7 @@ class ApiHistoryControllerAjs {
         delete plan.validation;
         return plan;
       })
-      .sort((plan) => plan.id);
+      .sort(plan => plan.id);
 
     return JSON.stringify({ definition: JSON.stringify(payload) });
   }
@@ -557,7 +557,7 @@ class ApiHistoryControllerAjs {
       tags: eventPayloadDefinition.tags,
       proxy: eventPayloadDefinition.proxy,
       paths: eventPayloadDefinition.paths,
-      plans: (eventPayloadDefinition.plans ?? []).sort((plan) => plan.id),
+      plans: (eventPayloadDefinition.plans ?? []).sort(plan => plan.id),
       flows: eventPayloadDefinition.flows,
       properties: eventPayloadDefinition.properties,
       services: eventPayloadDefinition.services,
@@ -575,7 +575,7 @@ class ApiHistoryControllerAjs {
   fetchPolicyDocumentation({ detail }) {
     const policy = detail.policy;
     this.PolicyService.getDocumentation(policy.id)
-      .then((response) => {
+      .then(response => {
         this.studio.documentation = { content: response.data, image: policy.icon, id: policy.id };
       })
       .catch(() => (this.studio.documentation = null));
@@ -586,7 +586,7 @@ class ApiHistoryControllerAjs {
       detail: { resourceType, target },
     } = event;
     this.ResourceService.getDocumentation(resourceType.id)
-      .then((response) => {
+      .then(response => {
         target.documentation = { content: response.data, image: resourceType.icon };
       })
       .catch(() => (target.documentation = null));
@@ -596,7 +596,7 @@ class ApiHistoryControllerAjs {
     if (!groupIds) {
       return [];
     }
-    return groupIds.map((groupId) => this.groups.find((group) => group.id === groupId)?.name).filter((groupName) => groupName != null);
+    return groupIds.map(groupId => this.groups.find(group => group.id === groupId)?.name).filter(groupName => groupName != null);
   }
 }
 ApiHistoryControllerAjs.$inject = [

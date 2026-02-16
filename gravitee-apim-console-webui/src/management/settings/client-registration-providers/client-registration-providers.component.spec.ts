@@ -181,7 +181,7 @@ describe('ClientRegistrationProviders', () => {
   it('should delete DCR providers', async () => {
     const matTable = await loader.getHarness(MatTableHarness);
 
-    const actionsCell = await matTable.getRows().then(async (rows) => rows[0].getCells().then(async (cells) => cells[3]));
+    const actionsCell = await matTable.getRows().then(async rows => rows[0].getCells().then(async cells => cells[3]));
 
     const deleteButton = await actionsCell.getHarness(MatButtonHarness.with({ selector: `[aria-label="Button to remove a provider"]` }));
     await deleteButton.click();

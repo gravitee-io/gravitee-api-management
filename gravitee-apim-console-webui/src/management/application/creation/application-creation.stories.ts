@@ -25,7 +25,7 @@ export default {
   title: 'Application / Creation page',
   component: ApplicationCreationComponent,
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 800px">
         <application-creation></application-creation>

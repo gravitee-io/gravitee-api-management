@@ -42,36 +42,36 @@ export class ApplicationCreationFormHarness extends ComponentHarness {
   private getGroupSelectHarness = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="groups"]' }));
 
   public async setGeneralInformation(name: string, description: string, domain: string) {
-    await this.getNameInput().then(async (input) => await input.setValue(name));
-    await this.getDescriptionInput().then(async (input) => await input.setValue(description));
-    await this.getDomainInput().then(async (input) => await input.setValue(domain));
+    await this.getNameInput().then(async input => await input.setValue(name));
+    await this.getDescriptionInput().then(async input => await input.setValue(description));
+    await this.getDomainInput().then(async input => await input.setValue(domain));
   }
 
   public async setApplicationType(type: string) {
-    await this.getTypeInput().then(async (input) => await input.select(type));
+    await this.getTypeInput().then(async input => await input.select(type));
   }
 
   public async setSimpleApplicationType(appType: string, appClientId: string) {
-    await this.getAppTypeInput().then(async (input) => await input.setValue(appType));
-    await this.getAppClientIdInput().then(async (input) => await input.setValue(appClientId));
+    await this.getAppTypeInput().then(async input => await input.setValue(appType));
+    await this.getAppClientIdInput().then(async input => await input.setValue(appClientId));
   }
 
   public async setOAuthApplicationType(grantTypes: string[], redirectUris?: string[]) {
     const oauthGrantTypesInput = await this.getOauthGrantTypesInput();
 
-    await parallel(() => grantTypes.map(async (grantType) => await oauthGrantTypesInput.clickOptions({ text: grantType })));
+    await parallel(() => grantTypes.map(async grantType => await oauthGrantTypesInput.clickOptions({ text: grantType })));
 
     if (redirectUris) {
       const redirectUrisInput = await this.getOauthRedirectUrisInput();
-      await parallel(() => redirectUris.map(async (redirectUri) => await redirectUrisInput.addTag(redirectUri)));
+      await parallel(() => redirectUris.map(async redirectUri => await redirectUrisInput.addTag(redirectUri)));
     }
   }
 
   public async setApplicationClientCertificate(appClientCertificate: string) {
-    await this.getAppClientCertificateInput().then(async (input) => await input.setValue(appClientCertificate));
+    await this.getAppClientCertificateInput().then(async input => await input.setValue(appClientCertificate));
   }
 
   public async selectGroup(groupName: string) {
-    await this.getGroupSelectHarness().then((options) => options.clickOptions({ text: groupName }));
+    await this.getGroupSelectHarness().then(options => options.clickOptions({ text: groupName }));
   }
 }

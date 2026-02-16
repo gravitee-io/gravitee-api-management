@@ -39,10 +39,10 @@ export class EnvironmentMetadataComponent implements OnInit {
     this.metadataSaveServices = {
       type: 'Global',
       list: () =>
-        this.environmentMetadataService.listMetadata().pipe(map((metadata) => ({ data: metadata, totalResults: metadata?.length ?? 0 }))),
-      create: (newMetadata) => this.environmentMetadataService.createMetadata(newMetadata),
-      update: (updateMetadata) => this.environmentMetadataService.updateMetadata(updateMetadata),
-      delete: (metadataKey) => this.environmentMetadataService.deleteMetadata(metadataKey),
+        this.environmentMetadataService.listMetadata().pipe(map(metadata => ({ data: metadata, totalResults: metadata?.length ?? 0 }))),
+      create: newMetadata => this.environmentMetadataService.createMetadata(newMetadata),
+      update: updateMetadata => this.environmentMetadataService.updateMetadata(updateMetadata),
+      delete: metadataKey => this.environmentMetadataService.deleteMetadata(metadataKey),
     };
     this.description = `Create Global metadata to retrieve custom information about your API`;
   }

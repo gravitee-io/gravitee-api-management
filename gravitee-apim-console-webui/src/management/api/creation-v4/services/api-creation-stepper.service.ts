@@ -105,7 +105,7 @@ export class ApiCreationStepperService {
         group: group,
         id: stepId,
         state: 'initial',
-        patchPayload: (p) => p,
+        patchPayload: p => p,
       });
     }
 
@@ -118,7 +118,7 @@ export class ApiCreationStepperService {
     const currentStep = this.steps[this.currentStepIndex];
 
     // Save payload to current step & force new object mutation for updated payload
-    currentStep.patchPayload = (lastPayload) => patchPayload(cloneDeep(lastPayload));
+    currentStep.patchPayload = lastPayload => patchPayload(cloneDeep(lastPayload));
     currentStep.state = 'valid';
   }
 
@@ -132,7 +132,7 @@ export class ApiCreationStepperService {
   }
 
   public goToStepLabel(label: string) {
-    const stepIndex = this.steps.findIndex((step) => step.group.label === label);
+    const stepIndex = this.steps.findIndex(step => step.group.label === label);
     if (stepIndex === -1) {
       throw new Error('Step not found: ' + label);
     }

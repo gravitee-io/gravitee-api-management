@@ -66,12 +66,12 @@ describe('ApiV4MenuService', () => {
 
     const menu = service.getMenu(api);
 
-    expect(menu.subMenuItems.some((item) => item.displayName === 'Webhooks')).toBe(true);
+    expect(menu.subMenuItems.some(item => item.displayName === 'Webhooks')).toBe(true);
   });
 
   it('should not include Webhooks menu when webhook entrypoint is absent', () => {
     service = TestBed.inject(ApiV4MenuService);
-    const api = fakeApiV4((base) => ({
+    const api = fakeApiV4(base => ({
       ...base,
       listeners: [
         {
@@ -83,7 +83,7 @@ describe('ApiV4MenuService', () => {
 
     const menu = service.getMenu(api);
 
-    expect(menu.subMenuItems.some((item) => item.displayName === 'Webhooks')).toBe(false);
+    expect(menu.subMenuItems.some(item => item.displayName === 'Webhooks')).toBe(false);
   });
 
   it('should include Webhooks menu when user has api-log-r permission', () => {
@@ -92,7 +92,7 @@ describe('ApiV4MenuService', () => {
 
     const menu = service.getMenu(api);
 
-    expect(menu.subMenuItems.some((item) => item.displayName === 'Webhooks')).toBe(true);
+    expect(menu.subMenuItems.some(item => item.displayName === 'Webhooks')).toBe(true);
   });
 
   it('should include Webhooks menu when user has api-log-u permission', () => {
@@ -102,7 +102,7 @@ describe('ApiV4MenuService', () => {
     const api = fakeApiV4();
     const menu = service.getMenu(api);
 
-    expect(menu.subMenuItems.some((item) => item.displayName === 'Webhooks')).toBe(true);
+    expect(menu.subMenuItems.some(item => item.displayName === 'Webhooks')).toBe(true);
   });
 
   it('should not include Webhooks menu when user lacks api-log-r and api-log-u permissions', () => {
@@ -112,6 +112,6 @@ describe('ApiV4MenuService', () => {
     const api = fakeApiV4();
     const menu = service.getMenu(api);
 
-    expect(menu.subMenuItems.some((item) => item.displayName === 'Webhooks')).toBe(false);
+    expect(menu.subMenuItems.some(item => item.displayName === 'Webhooks')).toBe(false);
   });
 });

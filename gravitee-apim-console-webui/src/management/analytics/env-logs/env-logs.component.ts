@@ -49,7 +49,7 @@ export class EnvLogsComponent implements OnInit {
   }
 
   onPaginationUpdated(event: GioTableWrapperPagination) {
-    this.pagination.update((prev) => ({ ...prev, page: event.index, perPage: event.size }));
+    this.pagination.update(prev => ({ ...prev, page: event.index, perPage: event.size }));
     this.refresh();
   }
 
@@ -59,9 +59,9 @@ export class EnvLogsComponent implements OnInit {
     of(fakeEnvLogs())
       .pipe(
         delay(500),
-        tap((logs) => {
+        tap(logs => {
           this.logs.set(logs);
-          this.pagination.update((prev) => ({ ...prev, totalCount: logs.length }));
+          this.pagination.update(prev => ({ ...prev, totalCount: logs.length }));
           this.isLoading.set(false);
         }),
         takeUntilDestroyed(this.destroyRef),

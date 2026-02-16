@@ -151,13 +151,13 @@ describe('IntegrationsComponent', () => {
 
       await pagination.setPageSize(5);
       expectIntegrationGetRequest(fakeIntegrations, 1, 5);
-      pagination.getPageSize().then((value) => {
+      pagination.getPageSize().then(value => {
         expect(value).toEqual(5);
       });
 
       await pagination.setPageSize(25);
       expectIntegrationGetRequest(fakeIntegrations, 1, 25);
-      pagination.getPageSize().then((value) => {
+      pagination.getPageSize().then(value => {
         expect(value).toEqual(25);
       });
     });

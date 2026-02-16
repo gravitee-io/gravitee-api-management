@@ -71,13 +71,13 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
     this.policyService
       .getSchema(this.securityType.policy)
       .pipe(
-        catchError((error) => {
+        catchError(error => {
           this.snackBarService.error(error.error?.message ?? 'An error occurred while loading security schema.');
           return EMPTY;
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((schema) => {
+      .subscribe(schema => {
         this.securityConfigSchema = schema;
         this.changeDetectorRef.detectChanges();
       });

@@ -64,7 +64,7 @@ describe('ApiGeneralInfoQualityComponent', () => {
     const qualityMetrics: NodeList = fixture.nativeElement.querySelectorAll('.api-quality__content__list__item');
 
     expect(qualityMetrics).toHaveLength(2);
-    expect(Array.from(qualityMetrics).map((item) => item.textContent)).toEqual(['Put your own logo', 'Custom rule']);
+    expect(Array.from(qualityMetrics).map(item => item.textContent)).toEqual(['Put your own logo', 'Custom rule']);
   });
 
   function expectQualityRulesGetRequest(qualityRules: QualityRule[] = []) {

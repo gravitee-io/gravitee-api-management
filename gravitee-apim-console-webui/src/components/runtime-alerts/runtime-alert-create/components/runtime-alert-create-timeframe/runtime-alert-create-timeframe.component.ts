@@ -84,8 +84,8 @@ export class RuntimeAlertCreateTimeframeComponent implements OnInit {
     if (this.alertToUpdate.notificationPeriods?.length === 0) {
       return;
     }
-    this.alertToUpdate.notificationPeriods?.forEach((timeframe) => {
-      const days = timeframe.days.map((dayNumber) => Days.numberToDay(dayNumber));
+    this.alertToUpdate.notificationPeriods?.forEach(timeframe => {
+      const days = timeframe.days.map(dayNumber => Days.numberToDay(dayNumber));
       const areBusinessDays: boolean = isEqual(days, this.businessDay);
       const timeRange = fromBeginAndEndHourToRange(timeframe.beginHour, timeframe.endHour);
       const areOfficeHours = this.isOfficeHours(timeRange);
@@ -113,14 +113,14 @@ export class RuntimeAlertCreateTimeframeComponent implements OnInit {
   private syncDaysFormFields(formGroup: FormGroup<TimeframeControlInterface>) {
     formGroup.controls.businessDays.valueChanges
       .pipe(
-        tap((value) => formGroup.controls.days.patchValue(value ? this.businessDay : null, { emitEvent: false })),
+        tap(value => formGroup.controls.days.patchValue(value ? this.businessDay : null, { emitEvent: false })),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
 
     formGroup.controls.days.valueChanges
       .pipe(
-        tap((value) => formGroup.controls.businessDays.patchValue(isEqual(value, this.businessDay), { emitEvent: false })),
+        tap(value => formGroup.controls.businessDays.patchValue(isEqual(value, this.businessDay), { emitEvent: false })),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
@@ -140,7 +140,7 @@ export class RuntimeAlertCreateTimeframeComponent implements OnInit {
 
     formGroup.controls.officeHours.valueChanges
       .pipe(
-        tap((value) =>
+        tap(value =>
           formGroup.controls.timeRange.patchValue(value ? this.officeHours : null, {
             emitEvent: false,
           }),

@@ -49,27 +49,27 @@ export class ApiDocumentationV4PagesListHarness extends ComponentHarness {
   }
 
   public getEditFolderButtonByRowIndex(idx: number): Promise<MatButtonHarness> {
-    return this.allEditFolderButtons().then((buttonList) => buttonList[idx]);
+    return this.allEditFolderButtons().then(buttonList => buttonList[idx]);
   }
 
   public getPublishPageButtonByRowIndex(idx: number): Promise<MatButtonHarness> {
-    return this.allPublishPageButtons().then((buttonList) => buttonList[idx]);
+    return this.allPublishPageButtons().then(buttonList => buttonList[idx]);
   }
 
   public getUnpublishPageButtonByRowIndex(idx: number): Promise<MatButtonHarness> {
-    return this.allUnpublishPageButtons().then((buttonList) => buttonList[idx]);
+    return this.allUnpublishPageButtons().then(buttonList => buttonList[idx]);
   }
 
   public getMovePageDownButtonByRowIndex(idx: number): Promise<MatButtonHarness> {
-    return this.allMovePageDownButtons().then((buttonList) => buttonList[idx]);
+    return this.allMovePageDownButtons().then(buttonList => buttonList[idx]);
   }
 
   public getMovePageUpButtonByRowIndex(idx: number): Promise<MatButtonHarness> {
-    return this.allMovePageUpButtons().then((buttonList) => buttonList[idx]);
+    return this.allMovePageUpButtons().then(buttonList => buttonList[idx]);
   }
 
   public getDeletePageButtonByRowIndex(idx: number): Promise<MatButtonHarness> {
-    return this.allDeletePageButtons().then((buttonList) => buttonList[idx]);
+    return this.allDeletePageButtons().then(buttonList => buttonList[idx]);
   }
 
   private async getColumnTextByIndex(columnName: string, idx: number): Promise<string> {

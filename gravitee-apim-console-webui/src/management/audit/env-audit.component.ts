@@ -143,9 +143,9 @@ export class EnvAuditComponent implements OnInit, OnDestroy {
         ),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((auditsPage) => {
+      .subscribe(auditsPage => {
         this.nbTotalAudit = auditsPage.totalElements;
-        this.filteredTableData = (auditsPage.content ?? []).map((audit) => ({
+        this.filteredTableData = (auditsPage.content ?? []).map(audit => ({
           id: audit.id,
           date: audit.createdAt,
           user: (auditsPage.metadata[`USER:${audit.user}:name`] as string) ?? audit.user,

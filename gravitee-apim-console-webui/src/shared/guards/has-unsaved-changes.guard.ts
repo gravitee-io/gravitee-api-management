@@ -29,7 +29,7 @@ export interface HasUnsavedChanges {
 export const HasUnsavedChangesGuard: CanDeactivateFn<HasUnsavedChanges> = (component: HasUnsavedChanges) => {
   if (component.hasUnsavedChanges()) {
     return confirmDiscardChanges(inject(MatDialog)).pipe(
-      map((x) => !!x),
+      map(x => !!x),
       takeUntilDestroyed(inject(DestroyRef)),
     );
   }

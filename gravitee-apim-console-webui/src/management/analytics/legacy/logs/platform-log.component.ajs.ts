@@ -35,7 +35,7 @@ const PlatformLogComponentAjs: ng.IComponentOptions = {
 
       this.$onInit = () => {
         this.AnalyticsService.getLog(this.activatedRoute.snapshot.params.logId, this.activatedRoute.snapshot.queryParams.timestamp).then(
-          (response) => {
+          response => {
             this.log = response.data;
 
             this.headersAsList(this.log.clientRequest);
@@ -46,7 +46,7 @@ const PlatformLogComponentAjs: ng.IComponentOptions = {
         );
       };
 
-      this.headersAsList = (obj) => {
+      this.headersAsList = obj => {
         if (obj) {
           obj.headersAsList = [];
           for (const k in obj.headers) {

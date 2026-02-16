@@ -55,7 +55,7 @@ export class RuntimeAlertHistoryComponent implements OnInit {
     this.filters$
       .pipe(
         distinctUntilChanged(isEqual),
-        switchMap((filters) =>
+        switchMap(filters =>
           this.alertService.alertHistory(
             this.activatedRoute.snapshot.params.apiId,
             this.activatedRoute.snapshot.params.alertId,
@@ -66,7 +66,7 @@ export class RuntimeAlertHistoryComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (res) => {
+        next: res => {
           this.historyEvents = res.content;
           this.totalElements = res.totalElements;
         },
@@ -89,7 +89,7 @@ export class RuntimeAlertHistoryComponent implements OnInit {
       )
       .pipe(take(1))
       .subscribe({
-        next: (res) => {
+        next: res => {
           this.isLoading = false;
           this.historyEvents = res.content;
           this.totalElements = res.totalElements;

@@ -81,11 +81,11 @@ export class ApiImportV4Component implements OnInit {
   );
 
   protected hasOasValidationPolicy = toSignal(
-    this.policyV2Service.list().pipe(map((policies) => policies.some((policy) => policy.id === 'oas-validation'))),
+    this.policyV2Service.list().pipe(map(policies => policies.some(policy => policy.id === 'oas-validation'))),
   );
 
   ngOnInit(): void {
-    this.form.controls['format'].valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => {
+    this.form.controls['format'].valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(value => {
       if (value !== 'openapi') {
         this.form.patchValue({ withDocumentation: false, withOASValidationPolicy: false });
         this.form.get('withDocumentation').disable();
@@ -124,7 +124,7 @@ export class ApiImportV4Component implements OnInit {
 
     result
       .pipe(
-        tap((createdApi) => {
+        tap(createdApi => {
           this.snackBarService.success('API imported successfully');
           this.router.navigate([`../../${createdApi.id}`], { relativeTo: this.activatedRoute });
         }),

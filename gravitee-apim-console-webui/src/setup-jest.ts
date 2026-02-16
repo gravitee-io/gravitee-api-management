@@ -30,7 +30,7 @@ jest.mock('@asciidoctor/core', () => jest.fn());
 
 // mocking openapi-parser for tests
 jest.mock('@scalar/openapi-parser', () => {
-  const mockDereference = jest.fn().mockImplementation(async (spec) => ({
+  const mockDereference = jest.fn().mockImplementation(async spec => ({
     schema: spec,
   }));
   const mockValidate = jest.fn().mockImplementation(async () => true);
@@ -88,7 +88,7 @@ Object.defineProperty(globalThis, 'crypto', {
   value: {
     ...globalThis.crypto,
     randomUUID: () =>
-      'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
         const r = Math.floor(Math.random() * 16);
         const v = c === 'x' ? r : (r % 4) + 8;
         return v.toString(16);

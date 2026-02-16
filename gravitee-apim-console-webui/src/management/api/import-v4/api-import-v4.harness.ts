@@ -35,54 +35,54 @@ export class ApiImportV4Harness extends ComponentHarness {
   );
 
   public async save() {
-    return this.getSaveButton().then((btn) => btn.click());
+    return this.getSaveButton().then(btn => btn.click());
   }
 
   public async isSaveDisabled() {
-    return this.getSaveButton().then((btn) => btn.isDisabled());
+    return this.getSaveButton().then(btn => btn.isDisabled());
   }
 
   public async cancel() {
-    return this.getCancelButton().then((btn) => btn.click());
+    return this.getCancelButton().then(btn => btn.click());
   }
 
   public async selectFormat(format: string) {
-    return this.getFormatSelectGroup().then((group) => group.select(format));
+    return this.getFormatSelectGroup().then(group => group.select(format));
   }
 
   public async selectSource(source: string) {
-    return this.getSourceSelectGroup().then((group) => group.select(source));
+    return this.getSourceSelectGroup().then(group => group.select(source));
   }
 
   public async pickFiles(files: File[]) {
-    return this.getFilePicker().then((filePicker) => filePicker.dropFiles(files));
+    return this.getFilePicker().then(filePicker => filePicker.dropFiles(files));
   }
 
   public async isFormatErrorBannerDisplayed() {
-    return this.getFormatErrorBanner().then((banner) => banner !== null);
+    return this.getFormatErrorBanner().then(banner => banner !== null);
   }
 
   public async isDocumentationImportSelected() {
-    return this.getImportDocumentationToggle().then((toggle) => toggle.isChecked());
+    return this.getImportDocumentationToggle().then(toggle => toggle.isChecked());
   }
 
   public async isDocumentationImportDisabled() {
-    return this.getImportDocumentationToggle().then((toggle) => toggle.isDisabled());
+    return this.getImportDocumentationToggle().then(toggle => toggle.isDisabled());
   }
 
   public async toggleDocumentationImport() {
-    return this.getImportDocumentationToggle().then((toggle) => toggle.toggle());
+    return this.getImportDocumentationToggle().then(toggle => toggle.toggle());
   }
 
   public async isOASValidationPolicyImportSelected() {
-    return this.getImportOASValidationPolicyToggle().then((toggle) => toggle.isChecked());
+    return this.getImportOASValidationPolicyToggle().then(toggle => toggle.isChecked());
   }
 
   public async isOASValidationPolicyImportDisabled() {
-    return this.getImportOASValidationPolicyToggle().then((toggle) => toggle.isDisabled());
+    return this.getImportOASValidationPolicyToggle().then(toggle => toggle.isDisabled());
   }
 
   public async toggleOASValidationPolicyImport() {
-    return this.getImportOASValidationPolicyToggle().then((toggle) => toggle.toggle());
+    return this.getImportOASValidationPolicyToggle().then(toggle => toggle.toggle());
   }
 }

@@ -23,7 +23,7 @@ export class ImportScoringFunctionHarness extends ComponentHarness {
   private getFilePicker = this.locatorFor(GioFormFilePickerInputHarness);
 
   public async pickFiles(files: File[]) {
-    return this.getFilePicker().then((filePicker) => filePicker.dropFiles(files));
+    return this.getFilePicker().then(filePicker => filePicker.dropFiles(files));
   }
 
   locatorForSubmitImportButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid=import-button]' }));

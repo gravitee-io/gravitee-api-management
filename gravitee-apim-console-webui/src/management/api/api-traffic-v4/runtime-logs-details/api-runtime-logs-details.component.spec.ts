@@ -64,7 +64,7 @@ describe('ApiRuntimeLogsDetailsComponent', () => {
       method: 'GET',
     });
     expect(reqs.length).toBe(2);
-    reqs.forEach((r) => r.flush(api));
+    reqs.forEach(r => r.flush(api));
     fixture.detectChanges();
   }
 });

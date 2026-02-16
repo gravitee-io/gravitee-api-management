@@ -61,7 +61,7 @@ export abstract class Metrics {
   supportPropertyProjection = false;
 
   static filterByScope(metrics: Metrics[], scope: Scope): Metrics[] {
-    return metrics.filter((metric) => metric.scopes === undefined || metric.scopes.indexOf(scope) !== -1);
+    return metrics.filter(metric => metric.scopes === undefined || metric.scopes.indexOf(scope) !== -1);
   }
 
   constructor(
@@ -391,7 +391,7 @@ export class Conditions {
   ];
 
   static findByType(type: string): Condition {
-    return Conditions.CONDITIONS.find((condition) => condition.type === type);
+    return Conditions.CONDITIONS.find(condition => condition.type === type);
   }
 }
 

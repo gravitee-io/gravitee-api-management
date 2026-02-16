@@ -97,11 +97,11 @@ export class GioTimeframeComponent implements ControlValueAccessor {
       { validators: dateRangeGroupValidator() },
     );
 
-    this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
+    this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => {
       this.onChange({ period: value.period ?? '', from: value.from ?? null, to: value.to ?? null });
     });
 
-    this.form.controls.from.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((from) => {
+    this.form.controls.from.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(from => {
       this.minDate = from ?? null;
       this.form.updateValueAndValidity({ onlySelf: false, emitEvent: false });
     });

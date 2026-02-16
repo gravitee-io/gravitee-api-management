@@ -36,10 +36,10 @@ describe('UsersTokenService', () => {
   });
 
   describe('getTokens', () => {
-    it('should return tokens', (done) => {
+    it('should return tokens', done => {
       const expectedUsersResult = [fakeUserToken(), fakeUserToken({ name: 'token2' })];
 
-      usersTokenService.getTokens(userId).subscribe((tokens) => {
+      usersTokenService.getTokens(userId).subscribe(tokens => {
         expect(tokens).toEqual(expectedUsersResult);
         done();
       });
@@ -54,11 +54,11 @@ describe('UsersTokenService', () => {
   });
 
   describe('createToken', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const tokenToCreate = fakeNewUserToken();
       const createdToken = fakeUserToken();
 
-      usersTokenService.createToken(userId, tokenToCreate).subscribe((token) => {
+      usersTokenService.createToken(userId, tokenToCreate).subscribe(token => {
         expect(token).toMatchObject({
           name: tokenToCreate.name,
         });
@@ -75,7 +75,7 @@ describe('UsersTokenService', () => {
   });
 
   describe('revokeToken', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const tokenToDelete = fakeUserToken();
 
       usersTokenService.revokeToken(userId, tokenToDelete.id).subscribe(() => {

@@ -29,12 +29,12 @@ export class AnalyticsMultiStatsComponentHarness extends ComponentHarness {
 
   async getAllStatsValues(): Promise<string[]> {
     const values = await this.getValues();
-    return Promise.all(values.map((value) => value.text()));
+    return Promise.all(values.map(value => value.text()));
   }
 
   async getAllStatsLabels(): Promise<string[]> {
     const labels = await this.getLabels();
-    return Promise.all(labels.map((label) => label.text()));
+    return Promise.all(labels.map(label => label.text()));
   }
 
   async getStatsValueAt(index: number): Promise<string> {

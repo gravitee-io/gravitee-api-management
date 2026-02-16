@@ -25,8 +25,8 @@ class AlertsActivityController {
 
   $onInit() {
     Promise.all([
-      this.AlertService.listAlerts(AlertScope.ENVIRONMENT, false).then((response) => response.data),
-      this.AlertService.getStatus(AlertScope.ENVIRONMENT).then((response) => response.data),
+      this.AlertService.listAlerts(AlertScope.ENVIRONMENT, false).then(response => response.data),
+      this.AlertService.getStatus(AlertScope.ENVIRONMENT).then(response => response.data),
     ]).then(([configuredAlerts, alertingStatus]) => {
       this.hasConfiguredAlerts = configuredAlerts?.length > 0;
       this.hasAlertingPlugin = alertingStatus?.available_plugins > 0;

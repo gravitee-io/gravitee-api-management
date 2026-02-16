@@ -81,7 +81,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       title: 'Active Connections',
       tooltip: 'Number of active connections from clients and to broker',
       analyticsType: 'HISTOGRAM',
-      filterQueryParams: (params) => omit(params, ['plans', 'applications']),
+      filterQueryParams: params => omit(params, ['plans', 'applications']),
       aggregations: [
         {
           type: AggregationTypes.VALUE,
@@ -268,7 +268,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
   apiPlans$ = this.planService
     .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, undefined, 1, 9999)
     .pipe(
-      map((plans) => plans.data),
+      map(plans => plans.data),
       shareReplay(1),
     );
 
@@ -283,21 +283,21 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.applications$ = this.apiService.getSubscribers(this.apiId, null, 1, 200).pipe(map((response) => response?.data ?? []));
+    this.applications$ = this.apiService.getSubscribers(this.apiId, null, 1, 200).pipe(map(response => response?.data ?? []));
 
-    this.topRowTransformed$ = this.topRowWidgets.map((widgetConfig) => {
+    this.topRowTransformed$ = this.topRowWidgets.map(widgetConfig => {
       return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
     });
 
-    this.leftColumnTransformed$ = this.leftColumnWidgets.map((widgetConfig) => {
+    this.leftColumnTransformed$ = this.leftColumnWidgets.map(widgetConfig => {
       return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
     });
 
-    this.rightColumnTransformed$ = this.rightColumnWidgets.map((widgetConfig) => {
+    this.rightColumnTransformed$ = this.rightColumnWidgets.map(widgetConfig => {
       return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
     });
 
-    this.bottomRowTransformed$ = this.bottomRowWidgets.map((widgetConfig) => {
+    this.bottomRowTransformed$ = this.bottomRowWidgets.map(widgetConfig => {
       return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
     });
   }
@@ -359,7 +359,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       };
     }
 
-    const timeFrame = timeFrames.find((tf) => tf.id === normalizedPeriod) || timeFrames.find((tf) => tf.id === '1d');
+    const timeFrame = timeFrames.find(tf => tf.id === normalizedPeriod) || timeFrames.find(tf => tf.id === '1d');
     return {
       timeRangeParams: timeFrame.timeFrameRangesParams(),
       httpStatuses: [],
@@ -409,11 +409,11 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
   }
 }
 
-const mapQueryParams: ApiAnalyticsDashboardWidgetConfig['mapQueryParams'] = (params) => {
-  const plansTerm = params.plans?.map((p) => `plan-id:${p}`).join(',');
-  const appsTerm = params.applications?.map((a) => `app-id:${a}`).join(',');
+const mapQueryParams: ApiAnalyticsDashboardWidgetConfig['mapQueryParams'] = params => {
+  const plansTerm = params.plans?.map(p => `plan-id:${p}`).join(',');
+  const appsTerm = params.applications?.map(a => `app-id:${a}`).join(',');
 
   return {
-    terms: [plansTerm, appsTerm].filter((t) => t).join(','),
+    terms: [plansTerm, appsTerm].filter(t => t).join(','),
   };
 };

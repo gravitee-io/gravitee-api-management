@@ -29,14 +29,14 @@ export const IsNotLoggedInGuard: CanActivateFn = (route: ActivatedRouteSnapshot,
 
   return authService.checkAuth().pipe(
     switchMap(() => currentUserService.current()),
-    map((user) => {
+    map(user => {
       return !!user;
     }),
     catchError(() => {
       // If the user is not logged in, we can continue
       return of(false);
     }),
-    map((isLoggedIn) => {
+    map(isLoggedIn => {
       if (isLoggedIn) {
         const redirect = route.queryParams['redirect'];
 

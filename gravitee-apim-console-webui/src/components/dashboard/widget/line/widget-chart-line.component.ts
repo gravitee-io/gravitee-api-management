@@ -42,7 +42,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
         this.widget = this.parent.widget;
       };
 
-      this.$onChanges = (changes) => {
+      this.$onChanges = changes => {
         if (changes.data) {
           const data = changes.data.currentValue;
           this.series = { values: [] };
@@ -66,7 +66,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
         }
       };
 
-      this.prepareData = (data) => {
+      this.prepareData = data => {
         const timestamp = data.timestamp;
         this.events = data.events && data.events.content;
 
@@ -93,7 +93,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
               field = this.parent.widget.chart.request.aggs.replace('field:', '');
             }
             const queryFilters = this.AnalyticsService.getQueryFilters(this.activatedRoute);
-            value.buckets.forEach((bucket) => {
+            value.buckets.forEach(bucket => {
               if (bucket) {
                 let isFieldRequest = this.parent.widget.chart.request.aggs.split('%3B')[idx].includes('field:');
                 if (
@@ -122,7 +122,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
           }
         });
 
-        this.series.values.forEach((value) => {
+        this.series.values.forEach(value => {
           value.legendIndex = orderedBucketNames.indexOf(value.name);
         });
 
@@ -141,7 +141,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
           pointStart: timestamp.from,
           pointInterval: timestamp.interval,
           stacking,
-          plotLines: (this.events || []).map((event) => {
+          plotLines: (this.events || []).map(event => {
             return {
               color: 'rgba(223, 169, 65, 0.4)',
               width: 2,
@@ -170,14 +170,14 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
         };
       };
 
-      this.onZoom = (event) => {
+      this.onZoom = event => {
         $rootScope.$broadcast('timeframeZoom', {
           from: Math.floor(event.detail.from),
           to: Math.round(event.detail.to),
         });
       };
 
-      this.onSelect = (event) => {
+      this.onSelect = event => {
         const selected = event.detail.chart.series[event.detail.index];
 
         if (this.parent.widget.chart.selectable) {
@@ -188,7 +188,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
             this.updateQuery(selected, true);
           }
         } else {
-          this.series.values.forEach((serie) => {
+          this.series.values.forEach(serie => {
             if (serie.name === selected.name) {
               serie.visible = !selected.visible;
             }

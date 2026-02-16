@@ -36,13 +36,13 @@ export class OpenApiToMcpToolsHarness extends ComponentHarness {
   }
 
   public async getToolCount(): Promise<number> {
-    return this.locateToolDisplays().then((toolsDisplays) => toolsDisplays.length);
+    return this.locateToolDisplays().then(toolsDisplays => toolsDisplays.length);
   }
 
   public async getErrors(): Promise<string[]> {
     const errorElements = await this.locateErrors();
     if (errorElements.length > 0) {
-      return Promise.all(errorElements.map((errorElement) => errorElement.text()));
+      return Promise.all(errorElements.map(errorElement => errorElement.text()));
     }
     return [];
   }

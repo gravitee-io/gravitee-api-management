@@ -73,8 +73,8 @@ export class Step5SummaryComponent implements OnInit {
       }),
     );
 
-    this.paths = this.currentStepPayload.paths?.map((path) => path.path);
-    this.hosts = this.currentStepPayload.hosts?.map((host) => host.host);
+    this.paths = this.currentStepPayload.paths?.map(path => path.path);
+    this.hosts = this.currentStepPayload.hosts?.map(host => host.host);
     this.host = this.currentStepPayload.host?.host;
     this.port = this.currentStepPayload.port?.port;
     this.listenerTypes = [
@@ -101,7 +101,7 @@ export class Step5SummaryComponent implements OnInit {
   }
 
   createApi({ deploy, askForReview }: { deploy: boolean; askForReview: boolean }) {
-    this.stepService.validStep((payload) => ({ ...payload, deploy, askForReview }));
+    this.stepService.validStep(payload => ({ ...payload, deploy, askForReview }));
     this.stepService.finishStepper();
   }
 

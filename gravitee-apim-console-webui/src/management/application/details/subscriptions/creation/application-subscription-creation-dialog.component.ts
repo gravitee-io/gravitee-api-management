@@ -70,10 +70,10 @@ export class ApplicationSubscriptionCreationDialogComponent {
   protected apis$: Observable<Api[]> = this.form.controls.selectedApi.valueChanges.pipe(
     distinctUntilChanged(),
     debounceTime(100),
-    filter((term) => typeof term === 'string'),
+    filter(term => typeof term === 'string'),
     switchMap((term: string) => (term.length > 0 ? this.apiService.search({ query: term }, null, 1, 9999, false) : of(null))),
-    tap((_) => this.resetForm()),
-    map((response) => response?.data),
+    tap(_ => this.resetForm()),
+    map(response => response?.data),
     share(),
   );
 
@@ -90,7 +90,7 @@ export class ApplicationSubscriptionCreationDialogComponent {
     this.applicationService
       .getLastApplicationFetch(dialogData.applicationId)
       .pipe(
-        tap((application) => {
+        tap(application => {
           this.application = application;
           const clientId = application.settings?.app?.client_id ?? application.settings?.oauth?.client_id;
           this.form.controls.selectedPlan.addValidators(clientIdRequiredValidator(clientId));
@@ -102,7 +102,7 @@ export class ApplicationSubscriptionCreationDialogComponent {
     this.applicationService
       .getSubscriptionsPage(dialogData.applicationId, { status: ['ACCEPTED', 'PAUSED', 'PENDING'], security_types: ['API_KEY'] })
       .pipe(
-        tap((response) => (this.apiKeySubscriptions = response.data)),
+        tap(response => (this.apiKeySubscriptions = response.data)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
@@ -110,10 +110,10 @@ export class ApplicationSubscriptionCreationDialogComponent {
     this.connectorPluginsV2Service
       .listEntrypointPlugins()
       .pipe(
-        tap((entrypointPlugins) =>
+        tap(entrypointPlugins =>
           entrypointPlugins
-            .filter((plugin) => plugin.supportedListenerType === 'SUBSCRIPTION')
-            .map((plugin) =>
+            .filter(plugin => plugin.supportedListenerType === 'SUBSCRIPTION')
+            .map(plugin =>
               this.entrypointsMap.set(plugin.id, { icon: this.iconService.registerSvg(plugin.id, plugin.icon), name: plugin.name }),
             ),
         ),
@@ -140,16 +140,16 @@ export class ApplicationSubscriptionCreationDialogComponent {
   protected onApiSelection(selectedApi: Api) {
     this.resetForm();
     this.plans$ = this.apiPlanService.listSubscribablePlans(selectedApi.id, this.application.id).pipe(
-      map((response) => response.data),
+      map(response => response.data),
       share(),
       takeUntilDestroyed(this.destroyRef),
     );
     this.isFederatedApi = selectedApi.definitionVersion === 'FEDERATED';
     if (selectedApi.definitionVersion === 'V4') {
       this.availableSubscriptionEntrypoints = selectedApi.listeners
-        .filter((listener) => listener.type === 'SUBSCRIPTION')
-        .flatMap((listener) => listener.entrypoints)
-        .map((listener) => {
+        .filter(listener => listener.type === 'SUBSCRIPTION')
+        .flatMap(listener => listener.entrypoints)
+        .map(listener => {
           const entrypoint = this.entrypointsMap.get(listener.type);
           return entrypoint ? { type: listener.type, name: entrypoint.name, icon: entrypoint.icon } : null;
         });
@@ -159,8 +159,8 @@ export class ApplicationSubscriptionCreationDialogComponent {
   private onPlanSelectionChange() {
     this.form.controls.selectedPlan.valueChanges
       .pipe(
-        filter((plan) => !!plan),
-        tap((plan) => {
+        filter(plan => !!plan),
+        tap(plan => {
           if (plan.commentRequired) {
             this.form.addControl('request', new FormControl(null, Validators.required));
           } else {
@@ -176,15 +176,15 @@ export class ApplicationSubscriptionCreationDialogComponent {
     this.form.controls.selectedPlan.valueChanges
       .pipe(
         distinctUntilChanged(),
-        filter((plan) => plan?.definitionVersion === 'V4' && (plan as PlanV4)?.mode === 'PUSH'),
+        filter(plan => plan?.definitionVersion === 'V4' && (plan as PlanV4)?.mode === 'PUSH'),
         tap(() => {
           this.removeFormControls(['apiKeyMode']);
           this.form.addControl('selectedEntrypoint', new FormControl(null, Validators.required));
           this.form.addControl('channel', new FormControl(null));
         }),
         switchMap(() => this.form.controls.selectedEntrypoint.valueChanges),
-        switchMap((entrypointId) => this.connectorPluginsV2Service.getEntrypointPluginSubscriptionSchema(entrypointId)),
-        tap((subscriptionSchema) => {
+        switchMap(entrypointId => this.connectorPluginsV2Service.getEntrypointPluginSubscriptionSchema(entrypointId)),
+        tap(subscriptionSchema => {
           this.selectedSchema = subscriptionSchema;
           this.form.addControl('entrypointConfiguration', new FormControl({}, Validators.required));
         }),
@@ -196,16 +196,16 @@ export class ApplicationSubscriptionCreationDialogComponent {
     this.form.controls.selectedPlan.valueChanges
       .pipe(
         distinctUntilChanged(),
-        filter((plan) => plan?.security?.type === 'API_KEY'),
-        switchMap((plan) =>
+        filter(plan => plan?.security?.type === 'API_KEY'),
+        switchMap(plan =>
           of(
             !this.isFederatedApi &&
               this.canUseSharedApiKeys &&
               this.application.api_key_mode === ApiKeyMode.UNSPECIFIED &&
-              this.apiKeySubscriptions.some((subscription) => subscription?.api !== plan.apiId),
+              this.apiKeySubscriptions.some(subscription => subscription?.api !== plan.apiId),
           ),
         ),
-        tap((shouldDisplayKeyModeChoice) => {
+        tap(shouldDisplayKeyModeChoice => {
           if (shouldDisplayKeyModeChoice) {
             this.form.addControl('apiKeyMode', new FormControl(null, [Validators.required]));
           }
@@ -220,7 +220,7 @@ export class ApplicationSubscriptionCreationDialogComponent {
     this.form.controls.selectedPlan.valueChanges
       .pipe(
         distinctUntilChanged(),
-        filter((plan) => ['JWT', 'OAUTH2'].includes(plan?.security?.type)),
+        filter(plan => ['JWT', 'OAUTH2'].includes(plan?.security?.type)),
         tap(() => this.removeFormControls(['apiKeyMode', 'selectedEntrypoint', 'channel', 'entrypointConfiguration'])),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -234,7 +234,7 @@ export class ApplicationSubscriptionCreationDialogComponent {
   }
 
   private removeFormControls(names: ('apiKeyMode' | 'selectedEntrypoint' | 'channel' | 'entrypointConfiguration')[]) {
-    names.forEach((name) => this.form.removeControl(name));
+    names.forEach(name => this.form.removeControl(name));
   }
 }
 

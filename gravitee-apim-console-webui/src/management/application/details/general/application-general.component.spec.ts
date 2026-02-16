@@ -258,4 +258,4 @@ describe('ApplicationGeneralInfoComponent', () => {
   }
 });
 
-const waitImageCheck = () => new Promise((resolve) => setTimeout(resolve, 1));
+const waitImageCheck = () => new Promise(resolve => setTimeout(resolve, 1));

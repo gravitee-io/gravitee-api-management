@@ -58,20 +58,20 @@ class WidgetDataStatsConfigurationController implements IOnInit {
       });
     }
 
-    this.selectedField = this.fields.find((field) => field.value === this.chart.request.field);
+    this.selectedField = this.fields.find(field => field.value === this.chart.request.field);
     this.availableStats = WidgetDataStatsConfigurationController.getStatsAccordingToFieldType(this.selectedField.type);
-    this.selectedStatsKeys = this.chart.data.map((stat) => stat.key);
+    this.selectedStatsKeys = this.chart.data.map(stat => stat.key);
   }
 
   onFieldChanged() {
     this.chart.request.field = this.selectedField.value;
     this.availableStats = WidgetDataStatsConfigurationController.getStatsAccordingToFieldType(this.selectedField.type);
-    this.selectedStatsKeys = this.availableStats.map((stat) => stat.key);
+    this.selectedStatsKeys = this.availableStats.map(stat => stat.key);
     this.onStatsChanged();
   }
 
   onStatsChanged() {
-    this.chart.data = this.availableStats.filter((stat) => (this.selectedStatsKeys ?? []).includes(stat.key));
+    this.chart.data = this.availableStats.filter(stat => (this.selectedStatsKeys ?? []).includes(stat.key));
   }
 
   private static getStatsAccordingToFieldType(fieldType: AverageableField['type']) {

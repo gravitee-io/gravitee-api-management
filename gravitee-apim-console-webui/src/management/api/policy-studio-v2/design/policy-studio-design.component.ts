@@ -130,7 +130,7 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
       .getDocumentation(policy.id)
       .pipe(
         tap(
-          (documentation) =>
+          documentation =>
             (this.policyDocumentation = {
               id: policy.id,
               image: policy.icon,
@@ -145,7 +145,7 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
   public fetchSpelGrammar({ currentTarget }: { currentTarget: { grammar: Grammar } }): void {
     this.policyStudioDesignService
       .getSpelGrammar()
-      .pipe(tap((grammar) => (currentTarget.grammar = grammar)))
+      .pipe(tap(grammar => (currentTarget.grammar = grammar)))
       .subscribe();
   }
 

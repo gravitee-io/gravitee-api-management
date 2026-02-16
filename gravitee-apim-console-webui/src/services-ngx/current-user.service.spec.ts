@@ -38,10 +38,10 @@ describe('CurrentUserService', () => {
   });
 
   describe('getTags', () => {
-    it('should return users', (done) => {
+    it('should return users', done => {
       const fakeTags = ['tag1', 'tag2'];
 
-      currentUserService.getTags().subscribe((tags) => {
+      currentUserService.getTags().subscribe(tags => {
         expect(tags).toEqual(fakeTags);
         done();
       });

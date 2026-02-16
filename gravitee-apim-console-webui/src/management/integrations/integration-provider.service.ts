@@ -40,7 +40,7 @@ export class IntegrationProviderService {
   };
 
   getApimDocsNameByValue(value: string): string | undefined {
-    return this.integrationProviders.active.find((p) => p.value === value)?.apimDocsName;
+    return this.integrationProviders.active.find(p => p.value === value)?.apimDocsName;
   }
 
   getActiveProviders(): IntegrationProvider[] {

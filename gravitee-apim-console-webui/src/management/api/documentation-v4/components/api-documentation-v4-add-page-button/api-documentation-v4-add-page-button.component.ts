@@ -44,7 +44,7 @@ export class ApiDocumentationV4AddPageButtonComponent {
 
   private pageTypes: PageType[] = SUPPORTED_FOR_EDIT;
 
-  pageTypesVm: PageTypeVM[] = this.pageTypes.map((pageType) => ({
+  pageTypesVm: PageTypeVM[] = this.pageTypes.map(pageType => ({
     pageType,
     label: getTitleForPageType(pageType),
     src: getLogoForPageType(pageType),

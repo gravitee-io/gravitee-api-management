@@ -46,7 +46,7 @@ export class ApplicationAnalyticsComponent extends UpgradeComponent {
       .getLastApplicationFetch(this.activatedRoute.snapshot.params.applicationId)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
-        next: (application) => {
+        next: application => {
           this.ngOnChanges({
             application: new SimpleChange(null, application, true),
             activatedRoute: new SimpleChange(null, this.activatedRoute, true),

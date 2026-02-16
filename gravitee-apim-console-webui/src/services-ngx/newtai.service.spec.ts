@@ -59,7 +59,7 @@ describe('NewtAIService', () => {
   });
 
   describe('promptEL', () => {
-    it('should make a POST request and return mapped ElAiPromptState', (done) => {
+    it('should make a POST request and return mapped ElAiPromptState', done => {
       // Given
       const prompt = 'Generate EL expression for request filtering';
       const apiId = 'test-api-id';
@@ -82,7 +82,7 @@ describe('NewtAIService', () => {
       service.addToContext('apiId', apiId);
 
       // When
-      service.promptEL(prompt).subscribe((result) => {
+      service.promptEL(prompt).subscribe(result => {
         // Then
         expect(result).toEqual(expectedResult);
         done();
@@ -95,7 +95,7 @@ describe('NewtAIService', () => {
       req.flush(mockResponse);
     });
 
-    it('should propagate error when the API call fails', (done) => {
+    it('should propagate error when the API call fails', done => {
       // Given
       const prompt = 'Generate EL expression';
       const apiId = 'test-api-id';
@@ -108,7 +108,7 @@ describe('NewtAIService', () => {
       service.addToContext('apiId', apiId);
 
       // When
-      service.promptEL(prompt).subscribe((response) => {
+      service.promptEL(prompt).subscribe(response => {
         if (typeof response['message'] !== 'string') {
           fail('Expected error but got error response');
         }
@@ -126,7 +126,7 @@ describe('NewtAIService', () => {
   });
 
   describe('submitFeedback', () => {
-    it('should make a POST request when feedback is helpful', (done) => {
+    it('should make a POST request when feedback is helpful', done => {
       // Given
       const feedbackSubmission: FeedbackSubmission = {
         feedback: 'helpful',
@@ -157,7 +157,7 @@ describe('NewtAIService', () => {
       req.flush(null, { status: 200, statusText: 'OK' });
     });
 
-    it('should make a POST request with answerHelpful=false when feedback is not helpful', (done) => {
+    it('should make a POST request with answerHelpful=false when feedback is not helpful', done => {
       // Given
       const feedbackSubmission: FeedbackSubmission = {
         feedback: 'not-helpful',
@@ -188,7 +188,7 @@ describe('NewtAIService', () => {
       req.flush(null, { status: 200, statusText: 'OK' });
     });
 
-    it('should handle error gracefully and show error snackbar when API call fails', (done) => {
+    it('should handle error gracefully and show error snackbar when API call fails', done => {
       // Given
       const feedbackSubmission: FeedbackSubmission = {
         feedback: 'helpful',
@@ -220,7 +220,7 @@ describe('NewtAIService', () => {
       });
     });
 
-    it('should show success snackbar when feedback is submitted successfully', (done) => {
+    it('should show success snackbar when feedback is submitted successfully', done => {
       // Given
       const feedbackSubmission: FeedbackSubmission = {
         feedback: 'helpful',

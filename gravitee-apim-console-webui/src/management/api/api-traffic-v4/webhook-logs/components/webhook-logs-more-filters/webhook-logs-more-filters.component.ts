@@ -98,7 +98,7 @@ export class WebhookLogsMoreFiltersComponent implements OnInit {
       this.minDateDisplay = null;
     });
 
-    this.form.controls.from.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((from) => {
+    this.form.controls.from.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(from => {
       this.minDate = from ?? null;
       this.minDateDisplay = from ? from.toDate() : null;
       this.form.controls.period.setValue(DEFAULT_PERIOD, { emitEvent: false, onlySelf: true });

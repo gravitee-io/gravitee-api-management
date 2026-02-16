@@ -48,13 +48,13 @@ export const fromConnector: (iconService, connector: ConnectorPlugin) => Connect
 };
 
 export function mapAndFilterBySupportedQos(endpointPlugins: ConnectorPlugin[], requiredQoS: Qos[], iconService: IconService) {
-  const mapped = endpointPlugins.map((endpoint) => fromConnector(iconService, endpoint));
+  const mapped = endpointPlugins.map(endpoint => fromConnector(iconService, endpoint));
 
   if (requiredQoS.length === 0) {
     return mapped;
   }
 
-  return mapped.filter((endpoint) => {
-    return endpoint.supportedQos !== undefined && endpoint.supportedQos.some((qos) => requiredQoS.includes(qos));
+  return mapped.filter(endpoint => {
+    return endpoint.supportedQos !== undefined && endpoint.supportedQos.some(qos => requiredQoS.includes(qos));
   });
 }

@@ -24,18 +24,18 @@ export class ApiEndpointGroupGeneralHarness extends ComponentHarness {
     MatSelectHarness.with({ selector: '[aria-label="Load balancing algorithm"]' }),
   );
   public async getNameValue(): Promise<string> {
-    return this.getEndpointGroupNameInput().then((input) => input.getValue());
+    return this.getEndpointGroupNameInput().then(input => input.getValue());
   }
 
   public setNameValue(inputValue: string): Promise<void> {
-    return this.getEndpointGroupNameInput().then((input) => input.setValue(inputValue));
+    return this.getEndpointGroupNameInput().then(input => input.setValue(inputValue));
   }
 
   public async getLoadBalancerValue(): Promise<string> {
-    return this.getEndpointGroupLoadBalancerSelector().then((selector) => selector.getValueText());
+    return this.getEndpointGroupLoadBalancerSelector().then(selector => selector.getValueText());
   }
 
   public async setLoadBalancerValue(selectorValue: string): Promise<void> {
-    return this.getEndpointGroupLoadBalancerSelector().then((input) => input.clickOptions({ text: selectorValue }));
+    return this.getEndpointGroupLoadBalancerSelector().then(input => input.clickOptions({ text: selectorValue }));
   }
 }

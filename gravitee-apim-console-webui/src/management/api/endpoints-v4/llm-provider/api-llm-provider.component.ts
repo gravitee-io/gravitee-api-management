@@ -75,7 +75,7 @@ export class ApiLlmProviderComponent implements OnInit {
     this.apiService
       .get(apiId)
       .pipe(
-        switchMap((api) => {
+        switchMap(api => {
           this.api = api as ApiV4;
           const apiV4 = api as ApiV4;
 
@@ -120,7 +120,7 @@ export class ApiLlmProviderComponent implements OnInit {
     this.apiService
       .get(this.api.id)
       .pipe(
-        switchMap((api) => {
+        switchMap(api => {
           const apiV4 = api as ApiV4;
           const updatedApi =
             this.isEditMode && this.provider && this.providerIndex !== null
@@ -153,7 +153,7 @@ export class ApiLlmProviderComponent implements OnInit {
       ...this.provider,
       name: cleanName,
       ...(sharedConfiguration ? { sharedConfiguration } : {}),
-      endpoints: endpoints.map((endpoint) => ({
+      endpoints: endpoints.map(endpoint => ({
         ...endpoint,
         name: `${cleanName} default endpoint`,
         configuration,

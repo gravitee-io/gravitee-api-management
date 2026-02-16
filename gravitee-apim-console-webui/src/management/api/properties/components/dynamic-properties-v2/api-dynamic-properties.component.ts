@@ -123,15 +123,15 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
           this.form
             .get('enabled')
             .valueChanges.pipe(startWith(this.form.get('enabled').value), takeUntil(this.unsubscribe$))
-            .subscribe((enabled) => {
+            .subscribe(enabled => {
               const controlNames = ['schedule', 'provider', 'method', 'url', 'headers', 'useSystemProxy', 'body', 'specification'];
 
               if (enabled) {
-                controlNames.forEach((controlName) => {
+                controlNames.forEach(controlName => {
                   this.form.get(controlName).enable({ emitEvent: false });
                 });
               } else {
-                controlNames.forEach((controlName) => {
+                controlNames.forEach(controlName => {
                   this.form.get(controlName).disable({ emitEvent: false });
                 });
               }

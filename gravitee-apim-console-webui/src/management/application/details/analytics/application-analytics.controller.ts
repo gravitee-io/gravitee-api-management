@@ -32,7 +32,7 @@ class ApplicationAnalyticsController {
   ) {}
 
   $onInit() {
-    this.DashboardService.list('APPLICATION', true).then((response) => {
+    this.DashboardService.list('APPLICATION', true).then(response => {
       this.dashboards = filter(response.data, 'enabled');
 
       const dashboardId = this.activatedRoute.snapshot.queryParams.dashboard;
@@ -50,11 +50,11 @@ class ApplicationAnalyticsController {
         this.dashboard = this.dashboards[0];
       }
 
-      forEach(this.dashboards, (dashboard) => {
+      forEach(this.dashboards, dashboard => {
         if (dashboard.definition) {
           dashboard.definition = JSON.parse(dashboard.definition);
         }
-        forEach(dashboard.definition, (widget) => {
+        forEach(dashboard.definition, widget => {
           merge(widget, {
             root: this.application.id,
             chart: {

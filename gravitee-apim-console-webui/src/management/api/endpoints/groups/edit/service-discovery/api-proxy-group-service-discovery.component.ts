@@ -45,7 +45,7 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy
     this.serviceDiscoveryForm
       .get('provider')
       .valueChanges.pipe(takeUntil(this.unsubscribe$))
-      .subscribe((provider) => {
+      .subscribe(provider => {
         this.serviceDiscoveryForm.get('configuration').reset({});
         this.getProviderSchema(provider);
       });
@@ -61,7 +61,7 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy
       this.serviceDiscoveryService
         .getSchema(provider)
         .pipe(takeUntil(this.unsubscribe$))
-        .subscribe((schema) => (this.schema = schema));
+        .subscribe(schema => (this.schema = schema));
     }
   }
 }

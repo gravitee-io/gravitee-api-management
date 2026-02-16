@@ -35,7 +35,7 @@ export class GioQuickTimeRangeComponent implements ControlValueAccessor {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   static getTimeFrameRangesParams(id: string) {
-    return timeFrames.find((timeFrame) => timeFrame.id === id)?.timeFrameRangesParams();
+    return timeFrames.find(timeFrame => timeFrame.id === id)?.timeFrameRangesParams();
   }
 
   @Output()

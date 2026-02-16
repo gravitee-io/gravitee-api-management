@@ -228,7 +228,7 @@ describe('ApiFederatedMenuService', () => {
 
       const menu = service.getMenu(fakeApiFederated());
 
-      expect(menu.subMenuItems.find((item) => item.displayName === 'API Score')).toBeUndefined();
+      expect(menu.subMenuItems.find(item => item.displayName === 'API Score')).toBeUndefined();
     });
   });
 });

@@ -131,7 +131,7 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
     period: FormControl<SimpleFilter>;
   }> {
     const initialStatuses = this.initialValues?.statuses?.map(String) ?? [];
-    const initialApplications = this.initialValues?.applications?.map((app) => app.value) ?? [];
+    const initialApplications = this.initialValues?.applications?.map(app => app.value) ?? [];
 
     return new FormGroup({
       statuses: new FormControl<string[]>(initialStatuses, { nonNullable: true }),
@@ -161,12 +161,12 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
   removeStatus(status: number): void {
     const statusString = String(status);
     const currentStatuses = this.quickFiltersForm.controls.statuses.value ?? [];
-    const updated = currentStatuses.filter((value) => value !== statusString);
+    const updated = currentStatuses.filter(value => value !== statusString);
     this.quickFiltersForm.controls.statuses.setValue(updated.length > 0 ? updated : []);
   }
 
   removeApplication(id: string): void {
-    const updated = this.selectedApplications.filter((value) => value !== id);
+    const updated = this.selectedApplications.filter(value => value !== id);
     this.quickFiltersForm.controls.applications.setValue(updated);
   }
 
@@ -179,7 +179,7 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
   }
 
   removeCallbackUrl(url: string): void {
-    const updated = (this.moreFiltersValues.callbackUrls ?? []).filter((value) => value !== url);
+    const updated = (this.moreFiltersValues.callbackUrls ?? []).filter(value => value !== url);
     this.applyMoreFilters({ ...this.moreFiltersValues, callbackUrls: updated });
   }
 
@@ -189,7 +189,7 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
 
   getStatusLabel(status: number): string {
     const statusString = String(status);
-    const statusOption = this.httpStatusChoices.find((s) => s.value === statusString);
+    const statusOption = this.httpStatusChoices.find(s => s.value === statusString);
     return statusOption?.label || statusString;
   }
 
@@ -198,8 +198,8 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
       return;
     }
     const merged: MultiFilter = [...this.applicationsCache];
-    cache.forEach((item) => {
-      if (!merged.find((existing) => existing.value === item.value)) {
+    cache.forEach(item => {
+      if (!merged.find(existing => existing.value === item.value)) {
         merged.push(item);
       }
     });
@@ -213,7 +213,7 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
   }
 
   private onQuickFiltersFormChanges() {
-    this.quickFiltersForm.valueChanges.pipe(distinctUntilChanged(isEqual), takeUntilDestroyed(this.destroyRef)).subscribe((values) => {
+    this.quickFiltersForm.valueChanges.pipe(distinctUntilChanged(isEqual), takeUntilDestroyed(this.destroyRef)).subscribe(values => {
       const formValues: QuickFiltersFormValue = values;
       if (formValues.period && formValues.period === DEFAULT_PERIOD) {
         this.moreFiltersValues = { ...this.moreFiltersValues, period: formValues.period };
@@ -245,7 +245,7 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
 
   private mapQuickFiltersFormValues({ statuses, applications, period }: QuickFiltersFormValue) {
     return {
-      statuses: statuses?.length > 0 ? statuses.map((status) => Number(status)).filter((num) => !Number.isNaN(num)) : undefined,
+      statuses: statuses?.length > 0 ? statuses.map(status => Number(status)).filter(num => !Number.isNaN(num)) : undefined,
       applications: this.applicationsFromValues(applications),
       period: period && period.value !== DEFAULT_PERIOD.value ? period : undefined,
     };
@@ -263,6 +263,6 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
     if (!ids?.length) {
       return undefined;
     }
-    return ids.map((id) => this.applicationsCache.find((app) => app.value === id) ?? { value: id, label: id });
+    return ids.map(id => this.applicationsCache.find(app => app.value === id) ?? { value: id, label: id });
   }
 }

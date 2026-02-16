@@ -34,77 +34,77 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
   private getEndpointGroupSubmissionBar = this.locatorFor(GioSaveBarHarness);
 
   public async clickBackButton() {
-    return this.getBackButton().then((button) => button.click());
+    return this.getBackButton().then(button => button.click());
   }
 
   public async clickGeneralTab() {
-    return this.getGeneralTab().then((tab) => tab.select());
+    return this.getGeneralTab().then(tab => tab.select());
   }
 
   public async readEndpointGroupNameInput() {
-    return this.getEndpointGroupGeneralHarness().then((harness) => harness.getNameValue());
+    return this.getEndpointGroupGeneralHarness().then(harness => harness.getNameValue());
   }
 
   public writeToEndpointGroupNameInput(inputValue) {
-    return this.getEndpointGroupGeneralHarness().then((harness) => harness.setNameValue(inputValue));
+    return this.getEndpointGroupGeneralHarness().then(harness => harness.setNameValue(inputValue));
   }
 
   public async isEndpointGroupLoadBalancerSelectorShown() {
     return this.getEndpointGroupGeneralHarness()
-      .then((harness) => harness.getLoadBalancerValue())
-      .then((_) => true)
-      .catch((_) => false);
+      .then(harness => harness.getLoadBalancerValue())
+      .then(_ => true)
+      .catch(_ => false);
   }
 
   public async readEndpointGroupLoadBalancerSelector() {
-    return this.getEndpointGroupGeneralHarness().then((harness) => harness.getLoadBalancerValue());
+    return this.getEndpointGroupGeneralHarness().then(harness => harness.getLoadBalancerValue());
   }
 
   public async writeToEndpointGroupLoadBalancerSelector(selectorValue) {
-    return this.getEndpointGroupGeneralHarness().then((harness) => harness.setLoadBalancerValue(selectorValue));
+    return this.getEndpointGroupGeneralHarness().then(harness => harness.setLoadBalancerValue(selectorValue));
   }
 
   public isGeneralTabSaveButtonInvalid() {
-    return this.getEndpointGroupSubmissionBar().then((gioSaveBar) => gioSaveBar.isSubmitButtonInvalid());
+    return this.getEndpointGroupSubmissionBar().then(gioSaveBar => gioSaveBar.isSubmitButtonInvalid());
   }
 
   public clickEndpointGroupSaveButton() {
-    return this.getEndpointGroupSubmissionBar().then((saveBar) => saveBar.clickSubmit());
+    return this.getEndpointGroupSubmissionBar().then(saveBar => saveBar.clickSubmit());
   }
 
   public clickEndpointGroupDismissButton() {
-    return this.getEndpointGroupSubmissionBar().then((saveBar) => saveBar.clickReset());
+    return this.getEndpointGroupSubmissionBar().then(saveBar => saveBar.clickReset());
   }
 
   public async clickHealthCheckTab() {
-    return this.getHealthCheckTab().then((tab) => tab.select());
+    return this.getHealthCheckTab().then(tab => tab.select());
   }
 
   public async toggleEnableHealthCheckInput() {
-    return this.getHealthCheckGeneralHarness().then((harness) => harness.toggleEnableInput());
+    return this.getHealthCheckGeneralHarness().then(harness => harness.toggleEnableInput());
   }
 
   public async isHealthCheckConfigurationInputDisabled(inputId: string): Promise<boolean> {
-    return this.getHealthCheckGeneralHarness().then((harness) => harness.isConfigurationInputDisabled(inputId));
+    return this.getHealthCheckGeneralHarness().then(harness => harness.isConfigurationInputDisabled(inputId));
   }
 
   public async readHealthCheckConfigurationValueInput(inputId: string) {
-    return this.getHealthCheckGeneralHarness().then((harness) => harness.getConfigurationInputValue(inputId));
+    return this.getHealthCheckGeneralHarness().then(harness => harness.getConfigurationInputValue(inputId));
   }
 
   public writeToHealthCheckConfigurationValueInput(inputId: string, inputValue) {
-    return this.getHealthCheckGeneralHarness().then((harness) => harness.setConfigurationInputValue(inputId, inputValue));
+    return this.getHealthCheckGeneralHarness().then(harness => harness.setConfigurationInputValue(inputId, inputValue));
   }
 
   public configurationTabIsVisible(): Promise<boolean> {
     return this.getConfigurationTab()
-      .then((_) => true)
-      .catch((_) => false);
+      .then(_ => true)
+      .catch(_ => false);
   }
 
   public healthCheckTabIsVisible(): Promise<boolean> {
     return this.getHealthCheckTab()
-      .then((_) => true)
-      .catch((_) => false);
+      .then(_ => true)
+      .catch(_ => false);
   }
 }

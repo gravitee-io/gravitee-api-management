@@ -57,7 +57,7 @@ describe('ApiLogsV2Service', () => {
         data: [fakeConnectionLog({ apiId: API_ID })],
       };
 
-      apiPlanV2Service.searchConnectionLogs(API_ID, queryParams).subscribe((apiPlansResponse) => {
+      apiPlanV2Service.searchConnectionLogs(API_ID, queryParams).subscribe(apiPlansResponse => {
         expect(apiPlansResponse.data).toEqual(fakeResponse.data);
         done();
       });
@@ -74,10 +74,10 @@ describe('ApiLogsV2Service', () => {
   describe('searchMessageLogs', () => {
     const REQUEST_ID = 'request-id';
 
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakeResponse = fakePagedResult([fakeAggregatedMessageLog()]);
 
-      apiPlanV2Service.searchMessageLogs(API_ID, REQUEST_ID).subscribe((apiPlansResponse) => {
+      apiPlanV2Service.searchMessageLogs(API_ID, REQUEST_ID).subscribe(apiPlansResponse => {
         expect(apiPlansResponse.data).toEqual(fakeResponse.data);
         done();
       });

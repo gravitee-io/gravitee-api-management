@@ -43,7 +43,7 @@ describe('HeaderXRequestedWithInterceptor', () => {
     httpTestingController.verify();
   });
 
-  it('should set X-Requested-With header', (done) => {
+  it('should set X-Requested-With header', done => {
     httpClient.get<unknown>(testUrl).subscribe(() => {
       done();
     });

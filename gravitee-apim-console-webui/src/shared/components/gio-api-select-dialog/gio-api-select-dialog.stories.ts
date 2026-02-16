@@ -58,7 +58,7 @@ class OpenDialogStoryComponent {
       })
       .afterClosed()
       .pipe(
-        tap((selected) => {
+        tap(selected => {
           action('selected')(selected);
         }),
       )
@@ -85,7 +85,7 @@ export default {
 } as Meta;
 
 export const Default: StoryObj = {
-  play: (context) => {
+  play: context => {
     const button = context.canvasElement.querySelector('#open-dialog-story') as HTMLButtonElement;
     button.click();
   },

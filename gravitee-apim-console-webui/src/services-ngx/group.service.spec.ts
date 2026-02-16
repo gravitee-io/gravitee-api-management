@@ -37,10 +37,10 @@ describe('GroupService', () => {
   });
 
   describe('list', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakeGroups = [fakeGroup()];
 
-      groupService.list().subscribe((groups) => {
+      groupService.list().subscribe(groups => {
         expect(groups).toMatchObject(fakeGroups);
         done();
       });
@@ -53,10 +53,10 @@ describe('GroupService', () => {
   });
 
   describe('listByOrganization', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakeGroups = [fakeGroup()];
 
-      groupService.listByOrganization().subscribe((groups) => {
+      groupService.listByOrganization().subscribe(groups => {
         expect(groups).toMatchObject(fakeGroups);
         done();
       });
@@ -69,7 +69,7 @@ describe('GroupService', () => {
   });
 
   describe('addOrUpdateMemberships', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const groupId = 'GROUP_ID';
       const groupMemberships: GroupMembership[] = [fakeGroupMembership()];
 
@@ -84,7 +84,7 @@ describe('GroupService', () => {
       req.flush(null);
     });
 
-    it('should filter membership with empty roles', (done) => {
+    it('should filter membership with empty roles', done => {
       const groupId = 'GROUP_ID';
       const groupMemberships: GroupMembership[] = [fakeGroupMembership({ roles: [] })];
 
@@ -97,7 +97,7 @@ describe('GroupService', () => {
   });
 
   describe('deleteMember', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const groupId = 'groupId';
       const memberId = 'memberId';
 

@@ -34,7 +34,7 @@ export class ApplicationTypesService {
   deprecatedGetEnabledApplicationTypes(): Observable<DeprecatedApplicationType[]> {
     return this.http
       .get<any[]>(`${this.constants.env.baseURL}/configuration/applications/types`)
-      .pipe(map((response) => response.map((applicationType) => new DeprecatedApplicationType(applicationType))));
+      .pipe(map(response => response.map(applicationType => new DeprecatedApplicationType(applicationType))));
   }
 
   getEnabledApplicationTypes(): Observable<ApplicationType[]> {

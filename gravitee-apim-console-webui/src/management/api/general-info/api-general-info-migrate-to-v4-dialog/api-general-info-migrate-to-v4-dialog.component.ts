@@ -67,10 +67,10 @@ export class ApiGeneralInfoMigrateToV4DialogComponent implements OnInit {
   ngOnInit(): void {
     this.migrationResponse$ = this.apiService.migrateToV4(this.data.apiId, 'DRY_RUN').pipe(shareReplay(1));
     this.impossibleIssues$ = this.migrationResponse$.pipe(
-      map((response) => response.issues?.filter((issue) => issue.state === 'IMPOSSIBLE') ?? []),
+      map(response => response.issues?.filter(issue => issue.state === 'IMPOSSIBLE') ?? []),
     );
     this.forcibleIssues$ = this.migrationResponse$.pipe(
-      map((response) => response.issues?.filter((issue) => issue.state === 'CAN_BE_FORCED') ?? []),
+      map(response => response.issues?.filter(issue => issue.state === 'CAN_BE_FORCED') ?? []),
     );
   }
 

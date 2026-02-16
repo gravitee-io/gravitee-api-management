@@ -52,7 +52,7 @@ describe('InstanceListComponent', () => {
 
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#instancesTable' }));
     const rows = await table.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByIndex()));
     expect(rowCells).toHaveLength(0);
 
     const tableElement = await table.host();
@@ -92,7 +92,7 @@ describe('InstanceListComponent', () => {
 
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#instancesTable' }));
     const rows = await table.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByColumnName()));
     expect(rowCells).toStrictEqual([
       {
         hostname: 'GW 1',
@@ -151,7 +151,7 @@ describe('InstanceListComponent', () => {
 
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#instancesTable' }));
     const rows = await table.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByColumnName()));
 
     expect(rowCells).toStrictEqual([
       {

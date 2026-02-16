@@ -83,7 +83,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           this.connectors = connectors;
           this.tenants = tenants;
           this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
-          this.supportedTypes = this.connectors.map((connector) => connector.supportedTypes).reduce((acc, val) => acc.concat(val), []);
+          this.supportedTypes = this.connectors.map(connector => connector.supportedTypes).reduce((acc, val) => acc.concat(val), []);
           this.initForms();
         }),
         takeUntil(this.unsubscribe$),
@@ -101,13 +101,13 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
       .get(this.apiId)
       .pipe(
         onlyApiV2Filter(this.snackBarService),
-        switchMap((api) => {
-          const groupIndex = api.proxy.groups.findIndex((group) => group.name === this.activatedRoute.snapshot.params.groupName);
+        switchMap(api => {
+          const groupIndex = api.proxy.groups.findIndex(group => group.name === this.activatedRoute.snapshot.params.groupName);
 
           let endpointIndex = -1;
           if (this.mode === 'edit') {
             endpointIndex = api.proxy.groups[groupIndex].endpoints.findIndex(
-              (endpoint) => endpoint.name === this.activatedRoute.snapshot.params.endpointName,
+              endpoint => endpoint.name === this.activatedRoute.snapshot.params.endpointName,
             );
           } else {
             if (!api.proxy.groups[groupIndex].endpoints) {
@@ -134,7 +134,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           return this.apiService.update(api.id, api);
         }),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
-        catchError((error) => {
+        catchError(error => {
           this.snackBarService.error(error.error?.message ?? 'Error while saving configuration.');
           return EMPTY;
         }),
@@ -149,11 +149,11 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
   }
 
   private initForms(): void {
-    const group = this.api.proxy.groups.find((group) => group.name === this.activatedRoute.snapshot.params.groupName);
+    const group = this.api.proxy.groups.find(group => group.name === this.activatedRoute.snapshot.params.groupName);
 
     if (group && group.endpoints && group.endpoints.length > 0) {
       this.endpoint = {
-        ...group.endpoints.find((endpoint) => endpoint.name === this.activatedRoute.snapshot.params.endpointName),
+        ...group.endpoints.find(endpoint => endpoint.name === this.activatedRoute.snapshot.params.endpointName),
       };
     } else {
       this.endpoint = { type: 'http', inherit: false };

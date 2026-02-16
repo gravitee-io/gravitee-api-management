@@ -78,12 +78,12 @@ export class EndpointHttpConfigHarness extends ComponentHarness {
   }
 
   async getHttpConfigValues(): Promise<EndpointHttpConfigValue> {
-    const httpFormHeaders = await this.getHttpFormHeaders().then((h) => h?.getHeaderRows());
+    const httpFormHeaders = await this.getHttpFormHeaders().then(h => h?.getHeaderRows());
 
     const headersNameValue = (
-      await parallel(() => httpFormHeaders.map(async (h) => ({ name: await h.keyInput.getValue(), value: await h.valueInput.getValue() })))
+      await parallel(() => httpFormHeaders.map(async h => ({ name: await h.keyInput.getValue(), value: await h.valueInput.getValue() })))
     ).filter(
-      (h) => h.name, // remove last empty row
+      h => h.name, // remove last empty row
     );
 
     return {
@@ -117,7 +117,7 @@ export class EndpointHttpConfigHarness extends ComponentHarness {
 
   async getHttpClientOptions(): Promise<EndpointHttpConfigValue['httpClientOptions']> {
     const httpClientOptionsKeyValues = await parallel(() =>
-      httpClientOptionsControlNames.map(async (formControlName) => {
+      httpClientOptionsControlNames.map(async formControlName => {
         let value = null;
         if (formControlName === 'version') {
           const labelToValue = {
@@ -126,20 +126,20 @@ export class EndpointHttpConfigHarness extends ComponentHarness {
           };
 
           value = await this.getMatSelect(formControlName)
-            .then((matSelect) => matSelect?.getValueText())
-            .then((v) => labelToValue[v]);
+            .then(matSelect => matSelect?.getValueText())
+            .then(v => labelToValue[v]);
         }
         if (
           ['keepAlive', 'pipelining', 'useCompression', 'followRedirects', 'propagateClientAcceptEncoding', 'clearTextUpgrade'].includes(
             formControlName,
           )
         ) {
-          value = await this.getMatSlideToggle(formControlName).then((matSlideToggle) => matSlideToggle?.isChecked());
+          value = await this.getMatSlideToggle(formControlName).then(matSlideToggle => matSlideToggle?.isChecked());
         }
         if (['connectTimeout', 'readTimeout', 'keepAliveTimeout', 'idleTimeout', 'maxConcurrentConnections'].includes(formControlName)) {
           value = await this.getMatInput(formControlName)
-            .then((matInput) => matInput?.getValue())
-            .then((v) => (Number(v) ? Number(v) : v));
+            .then(matInput => matInput?.getValue())
+            .then(v => (Number(v) ? Number(v) : v));
         }
 
         return {
@@ -154,7 +154,7 @@ export class EndpointHttpConfigHarness extends ComponentHarness {
 
   async getHttpProxyValues(): Promise<EndpointHttpConfigValue['httpProxy']> {
     const httpProxyKeyValues = await parallel(() =>
-      httpProxyControlNames.map(async (formControlName) => {
+      httpProxyControlNames.map(async formControlName => {
         let value = null;
         if (formControlName === 'type') {
           const labelToValue = {
@@ -163,15 +163,15 @@ export class EndpointHttpConfigHarness extends ComponentHarness {
             'SOCKS5 tcp proxy': 'SOCKS5',
           };
 
-          value = await this.getMatSelect(formControlName).then((matSelect) => matSelect?.getValueText().then((v) => labelToValue[v]));
+          value = await this.getMatSelect(formControlName).then(matSelect => matSelect?.getValueText().then(v => labelToValue[v]));
         }
         if (['enabled', 'useSystemProxy'].includes(formControlName)) {
-          value = await this.getMatSlideToggle(formControlName).then((matSlideToggle) => matSlideToggle?.isChecked());
+          value = await this.getMatSlideToggle(formControlName).then(matSlideToggle => matSlideToggle?.isChecked());
         }
         if (['host', 'port', 'username', 'password'].includes(formControlName)) {
           value = await this.getMatInput(formControlName)
-            .then((matInput) => matInput?.getValue())
-            .then((v) => (Number(v) ? Number(v) : v));
+            .then(matInput => matInput?.getValue())
+            .then(v => (Number(v) ? Number(v) : v));
         }
 
         return {

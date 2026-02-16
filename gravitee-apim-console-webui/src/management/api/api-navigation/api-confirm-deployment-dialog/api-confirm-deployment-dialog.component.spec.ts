@@ -56,7 +56,7 @@ class TestComponent {
         },
       )
       .afterClosed()
-      .subscribe((result) => (this.result = result));
+      .subscribe(result => (this.result = result));
   }
 }
 

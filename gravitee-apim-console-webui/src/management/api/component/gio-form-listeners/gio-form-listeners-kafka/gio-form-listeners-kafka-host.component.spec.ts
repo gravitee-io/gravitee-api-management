@@ -88,7 +88,7 @@ describe('GioFormListenersKafkaHostComponent', () => {
 
       const formHarness = await loader.getHarness(GioFormListenersKafkaHostHarness);
 
-      expect(await formHarness.getHostInput().then((host) => host.getValue())).toEqual(KAFKA_CONFIG.host);
+      expect(await formHarness.getHostInput().then(host => host.getValue())).toEqual(KAFKA_CONFIG.host);
     });
 
     describe('Validation', () => {
@@ -118,7 +118,7 @@ describe('GioFormListenersKafkaHostComponent', () => {
         expect(await hostInput.getValue()).toEqual('');
 
         await hostInput.setValue(host);
-        expect(await hostInput.host().then((host) => host.hasClass('ng-invalid'))).toEqual(!isValid);
+        expect(await hostInput.host().then(host => host.hasClass('ng-invalid'))).toEqual(!isValid);
         if (isValid) {
           expectVerifyHosts([host]);
         }
@@ -143,12 +143,12 @@ describe('GioFormListenersKafkaHostComponent', () => {
       expect(testComponent.form.touched).toEqual(false);
       expect(testComponent.form.dirty).toEqual(false);
 
-      await formHarness.getHostInput().then((host) => host.focus());
+      await formHarness.getHostInput().then(host => host.focus());
 
       expect(testComponent.form.touched).toEqual(true);
       expect(testComponent.form.dirty).toEqual(false);
 
-      await formHarness.getHostInput().then((host) => host.setValue('another-host'));
+      await formHarness.getHostInput().then(host => host.setValue('another-host'));
       expectVerifyHosts(['another-host']);
 
       expect(testComponent.form.touched).toEqual(true);
@@ -206,7 +206,7 @@ describe('GioFormListenersKafkaHostComponent', () => {
         expect(await hostInput.getValue()).toEqual('');
 
         await hostInput.setValue(host);
-        expect(await hostInput.host().then((host) => host.hasClass('ng-invalid'))).toEqual(!isValid);
+        expect(await hostInput.host().then(host => host.hasClass('ng-invalid'))).toEqual(!isValid);
 
         if (isValid) {
           expectVerifyHosts([host], true);
@@ -222,12 +222,12 @@ describe('GioFormListenersKafkaHostComponent', () => {
         httpTestingController.verify({ ignoreCancelled: true });
 
         await host.setValue('host');
-        expect(await host.host().then((hst) => hst.hasClass('ng-invalid'))).toEqual(false);
+        expect(await host.host().then(hst => hst.hasClass('ng-invalid'))).toEqual(false);
 
         const req = httpTestingController.match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/hosts`, method: 'POST' });
         req
-          .filter((r) => !r.cancelled)
-          .forEach((req) => {
+          .filter(r => !r.cancelled)
+          .forEach(req => {
             expect(req.request.body.apiId).toEqual('api-id');
           });
         httpTestingController.verify({ ignoreCancelled: true });
@@ -238,8 +238,8 @@ describe('GioFormListenersKafkaHostComponent', () => {
   const expectApiVerify = (inError = false) => {
     httpTestingController
       .match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/hosts`, method: 'POST' })
-      .filter((r) => !r.cancelled)
-      .map((c) => c.flush({ ok: !inError, reason: inError ? 'error reason' : '' }));
+      .filter(r => !r.cancelled)
+      .map(c => c.flush({ ok: !inError, reason: inError ? 'error reason' : '' }));
   };
 
   function expectVerifyHosts(hosts: string[], withApiId = false) {

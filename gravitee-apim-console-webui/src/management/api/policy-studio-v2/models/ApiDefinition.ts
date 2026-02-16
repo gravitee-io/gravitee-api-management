@@ -42,7 +42,7 @@ export function toApiDefinition(api: ApiV2): ApiDefinition {
   return {
     id: api.id,
     name: api.name,
-    flows: api.flows.map((flow) => toApiFlowDefinition(flow)),
+    flows: api.flows.map(flow => toApiFlowDefinition(flow)),
     flow_mode: api.flowMode,
     resources: api.resources,
     version: api.apiVersion,
@@ -68,7 +68,7 @@ const toApiFlowDefinition = (flow: FlowV2): Flow => ({
 
 // Adapt ApiV2 plan to ApiDefinition plan
 export const toApiPlansDefinition = (plans: PlanV2[]): ApiDefinition['plans'] => {
-  return plans.map((plan) => ({
+  return plans.map(plan => ({
     id: plan.id,
     name: plan.name,
     security: plan.security.type,
@@ -79,7 +79,7 @@ export const toApiPlansDefinition = (plans: PlanV2[]): ApiDefinition['plans'] =>
     selectionRule: plan.selectionRule,
     order: plan.order,
     status: plan.status,
-    flows: plan.flows.map((flow) => toApiFlowDefinition(flow)),
+    flows: plan.flows.map(flow => toApiFlowDefinition(flow)),
   }));
 };
 
@@ -92,7 +92,7 @@ export const toApiV2 = (apiDefinition: ApiDefinition, api: ApiV2): ApiV2 => {
 
   return {
     ...api,
-    flows: apiDefinition.flows.map((flow) => toApiFlowV2(flow)),
+    flows: apiDefinition.flows.map(flow => toApiFlowV2(flow)),
     flowMode: apiDefinition.flow_mode,
     executionMode: toExecutionMode[apiDefinition.execution_mode],
   };
@@ -113,5 +113,5 @@ const toApiFlowV2 = (flow: Flow): FlowV2 => ({
 // Adapt ApiDefinition plan to ApiV2 plan only for properties edited in the policy studio
 export const toApiPlanV2 = (plan: ApiDefinition['plans'][number], planV2: PlanV2): PlanV2 => ({
   ...planV2,
-  flows: plan.flows.map((flow) => toApiFlowV2(flow)),
+  flows: plan.flows.map(flow => toApiFlowV2(flow)),
 });

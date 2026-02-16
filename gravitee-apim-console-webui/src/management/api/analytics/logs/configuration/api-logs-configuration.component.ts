@@ -74,7 +74,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV1V2Filter(this.snackBarService),
-        tap((api) => {
+        tap(api => {
           this.api = api;
           this.initForm(api);
           this.cdr.detectChanges();
@@ -88,7 +88,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
     this.logsConfigurationForm
       .get('enabled')
       .valueChanges.pipe(
-        tap((enabled) => {
+        tap(enabled => {
           if (enabled === null || enabled === true) {
             this.logsConfigurationForm.get('mode').enable();
             this.logsConfigurationForm.get('content').enable();
@@ -115,7 +115,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV2Filter(this.snackBarService),
-        switchMap((api) => {
+        switchMap(api => {
           const configurationValues = this.logsConfigurationForm.getRawValue();
           const updatedApi = {
             ...api,

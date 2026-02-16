@@ -95,7 +95,7 @@ export class ApplicationService {
 
   getById(applicationId: string): Observable<Application> {
     return this.http.get<Application>(`${this.constants.env.baseURL}/applications/${applicationId}`).pipe(
-      tap((application) => {
+      tap(application => {
         this.lastApplicationFetch$.next(application);
       }),
     );
@@ -119,7 +119,7 @@ export class ApplicationService {
         api_key_mode: application.api_key_mode,
       })
       .pipe(
-        tap((application) => {
+        tap(application => {
           this.lastApplicationFetch$.next(application);
         }),
       );
@@ -145,7 +145,7 @@ export class ApplicationService {
           ? this.lastApplicationFetch$
           : this.getById(applicationId).pipe(switchMap(() => this.lastApplicationFetch$)),
       ),
-      filter((application) => !!application),
+      filter(application => !!application),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
   }

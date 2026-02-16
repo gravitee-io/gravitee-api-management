@@ -105,10 +105,10 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
     this.hasShardingTagsLock$ = this.gioLicenseService.isMissingFeature$(this.shardingTagsLicenseOptions.feature);
 
     const environmentsPortalSettings$ = this.environmentService.list().pipe(
-      switchMap((environments) => {
+      switchMap(environments => {
         return combineLatest(
-          environments.map((env) =>
-            this.portalSettingsService.getByEnvironmentId(env.id).pipe(map((portalSettings) => ({ environment: env, portalSettings }))),
+          environments.map(env =>
+            this.portalSettingsService.getByEnvironmentId(env.id).pipe(map(portalSettings => ({ environment: env, portalSettings }))),
           ),
         );
       }),
@@ -123,13 +123,13 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(([tags, groups, environmentsPortalSettings, entrypoints]) => {
         this.tags = tags;
-        this.tagsTableDS = tags.map((tag) => ({
+        this.tagsTableDS = tags.map(tag => ({
           id: tag.id,
           name: tag.name,
           description: tag.description,
           restrictedGroupsName: (tag.restricted_groups ?? [])
-            .map((groupId) => groups.find((g) => g.id === groupId)?.name)
-            .filter((name) => !!name),
+            .map(groupId => groups.find(g => g.id === groupId)?.name)
+            .filter(name => !!name),
         }));
         this.filteredTagsTableDS = this.tagsTableDS;
         this.tagsTableUnpaginatedLength = this.tagsTableDS.length;
@@ -173,12 +173,12 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
         this.initialDefaultConfigFormValues = this.defaultConfigForm.getRawValue();
 
         this.entrypoints = entrypoints;
-        this.entrypointsTableDS = entrypoints.map((entrypoint) => ({
+        this.entrypointsTableDS = entrypoints.map(entrypoint => ({
           id: entrypoint.id,
           target: MAPPING_TARGET_DISPLAYABLE[entrypoint.target],
           url: entrypoint.value,
           tags: entrypoint.tags,
-          tagsName: (entrypoint.tags ?? []).map((tagId) => tags.find((t) => t.id === tagId)?.name ?? tagId),
+          tagsName: (entrypoint.tags ?? []).map(tagId => tags.find(t => t.id === tagId)?.name ?? tagId),
         }));
         this.filteredEntrypointsTableDS = this.entrypointsTableDS;
         this.entrypointsTableUnpaginatedLength = this.entrypointsTableDS.length;
@@ -199,7 +199,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
   }
 
   isReadonlySetting(envId: string, property: string): boolean {
-    const portalSettings = this.environmentsPortalSettings.find((s) => s.environment.id === envId)?.portalSettings;
+    const portalSettings = this.environmentsPortalSettings.find(s => s.environment.id === envId)?.portalSettings;
 
     return PortalSettingsService.isReadonly(portalSettings, property);
   }
@@ -210,7 +210,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
     });
 
     const environmentsPortalSettingsToSave$ = environmentsPortalSettingsToSave.map(([envId, portalSettingsFormGroup]) => {
-      const portalSettings = this.environmentsPortalSettings.find((s) => s.environment.id === envId)?.portalSettings;
+      const portalSettings = this.environmentsPortalSettings.find(s => s.environment.id === envId)?.portalSettings;
       if (!portalSettings) {
         // Should never happen
         throw new Error('Portal settings not found');
@@ -255,8 +255,8 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((newTag) => this.tagService.create(newTag)),
+        filter(result => !!result),
+        switchMap(newTag => this.tagService.create(newTag)),
         tap(() => {
           this.snackBarService.success('Tag successfully created!');
         }),
@@ -274,15 +274,15 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
       .open<OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData, Tag>(OrgSettingAddTagDialogComponent, {
         width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
-          tag: this.tags.find((t) => t.id === tag.id),
+          tag: this.tags.find(t => t.id === tag.id),
         },
         role: 'dialog',
         id: 'addTagDialog',
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((updatedTag) => this.tagService.update(updatedTag)),
+        filter(result => !!result),
+        switchMap(updatedTag => this.tagService.update(updatedTag)),
         tap(() => {
           this.snackBarService.success('Tag successfully updated!');
         }),
@@ -296,9 +296,9 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
   }
 
   onDeleteTagClicked(tag: TagTableDS[number]) {
-    const entrypointsToUpdate = this.entrypoints.filter((entrypoint) => entrypoint.tags.includes(tag.id));
-    const entrypointsToUpdateWithOneTag = entrypointsToUpdate.filter((e) => e.tags.length === 1);
-    const entrypointsToUpdateWithManyTags = entrypointsToUpdate.filter((e) => e.tags.length > 1);
+    const entrypointsToUpdate = this.entrypoints.filter(entrypoint => entrypoint.tags.includes(tag.id));
+    const entrypointsToUpdateWithOneTag = entrypointsToUpdate.filter(e => e.tags.length === 1);
+    const entrypointsToUpdateWithManyTags = entrypointsToUpdate.filter(e => e.tags.length > 1);
 
     let entrypointsInfoMessage = '';
     if (entrypointsToUpdateWithManyTags.length === 1) {
@@ -307,7 +307,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
       entrypointsInfoMessage = `
         <br>The tag will be removed from all these entrypoints:
         <ul>
-          <li><strong>${entrypointsToUpdateWithManyTags.map((e) => e.value).join('</strong></li><li><strong>')}</strong></li>
+          <li><strong>${entrypointsToUpdateWithManyTags.map(e => e.value).join('</strong></li><li><strong>')}</strong></li>
         </ul>`;
     }
 
@@ -317,7 +317,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
       entrypointsInfoMessage += `
         <br>The following entrypoints will be deleted as they are only using this tag:
         <ul>
-          <li><strong>${entrypointsToUpdateWithOneTag.map((e) => e.value).join('</strong></li><li><strong>')}</strong></li>
+          <li><strong>${entrypointsToUpdateWithOneTag.map(e => e.value).join('</strong></li><li><strong>')}</strong></li>
         </ul>`;
     }
 
@@ -336,22 +336,22 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         // Remove tag in each entrypoints and update them all
         switchMap(() => {
           if (entrypointsToUpdate.length === 0) {
             // Need to emit `undefined` to have a consistent return type and be sure next switchMap will be executed
             return of<void[]>(undefined);
           }
-          const entrypointsUpdated = entrypointsToUpdateWithManyTags.map((entrypoint) => ({
+          const entrypointsUpdated = entrypointsToUpdateWithManyTags.map(entrypoint => ({
             ...entrypoint,
-            tags: entrypoint.tags.filter((t) => t !== tag.id),
+            tags: entrypoint.tags.filter(t => t !== tag.id),
           }));
           const entrypointsToDelete = entrypointsToUpdateWithOneTag;
 
           return combineLatest([
-            ...entrypointsUpdated.map((entrypoint) => this.entrypointService.update(entrypoint)),
-            ...entrypointsToDelete.map((entrypoint) => this.entrypointService.delete(entrypoint.id)),
+            ...entrypointsUpdated.map(entrypoint => this.entrypointService.update(entrypoint)),
+            ...entrypointsToDelete.map(entrypoint => this.entrypointService.delete(entrypoint.id)),
           ]);
         }),
         switchMap(() => this.tagService.delete(tag.id)),
@@ -383,8 +383,8 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((newEntrypoint) => this.entrypointService.create(newEntrypoint)),
+        filter(result => !!result),
+        switchMap(newEntrypoint => this.entrypointService.create(newEntrypoint)),
         tap(() => {
           this.snackBarService.success('Mapping successfully created!');
         }),
@@ -398,7 +398,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
   }
 
   onEditEntrypointClicked(entrypoint: EntrypointTableDS[number]) {
-    const entrypointToEdit = this.entrypoints.find((e) => e.id === entrypoint.id);
+    const entrypointToEdit = this.entrypoints.find(e => e.id === entrypoint.id);
 
     this.matDialog
       .open<OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData, Entrypoint>(OrgSettingAddMappingDialogComponent, {
@@ -412,8 +412,8 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((newEntrypoint) => this.entrypointService.update(newEntrypoint)),
+        filter(result => !!result),
+        switchMap(newEntrypoint => this.entrypointService.update(newEntrypoint)),
         tap(() => {
           this.snackBarService.success('Mapping successfully updated!');
         }),
@@ -440,7 +440,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.entrypointService.delete(entrypoint.id)),
         tap(() => this.snackBarService.success(`Entrypoint "${entrypoint.url}" has been delete`)),
         catchError(({ error }) => {

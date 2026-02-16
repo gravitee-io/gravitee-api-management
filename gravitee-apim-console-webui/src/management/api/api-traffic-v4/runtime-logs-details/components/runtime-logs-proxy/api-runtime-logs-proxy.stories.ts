@@ -65,7 +65,7 @@ export default {
     applicationConfig({ providers: [importProvidersFrom(GioMonacoEditorModule.forRoot({ theme: 'vs-dark', baseUrl: '.' }))] }),
   ],
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     styles: [
       `
       .container {

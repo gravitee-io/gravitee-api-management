@@ -23,7 +23,7 @@ export class ApiEventsTableHarness extends ComponentHarness {
     const table = await this.getTable();
     const rows = await table.getRows();
 
-    return await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    return await parallel(() => rows.map(row => row.getCellTextByColumnName()));
   }
 
   private getTable = this.locatorFor(MatTableHarness.with({ selector: '#eventsTable' }));

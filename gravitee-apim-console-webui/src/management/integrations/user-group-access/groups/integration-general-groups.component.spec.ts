@@ -52,8 +52,8 @@ describe('IntegrationPortalGroupsComponent', () => {
 
   const init = async (permissions: string[]) => {
     const permissionService = {
-      hasAnyMatching: (permissionGuess: string[]) => permissionGuess.some((guess) => permissions.includes(guess)),
-      fetchGroupPermissions: (_) => of(['group-member-r']),
+      hasAnyMatching: (permissionGuess: string[]) => permissionGuess.some(guess => permissions.includes(guess)),
+      fetchGroupPermissions: _ => of(['group-member-r']),
     };
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, IntegrationUserGroupModule, MatIconTestingModule],
@@ -84,8 +84,8 @@ describe('IntegrationPortalGroupsComponent', () => {
       const integration = fakeIntegration({ id: integrationId, groups: [] });
       await expectGetRequests(integration, [groupId1, groupId2]);
       expect(await harness.getGroupsLength()).toStrictEqual(integration.groups.length);
-      expect(await harness.getGroupsNames()).toEqual(integration.groups.map((id) => `Group ${id}-name`));
-      integration.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
+      expect(await harness.getGroupsNames()).toEqual(integration.groups.map(id => `Group ${id}-name`));
+      integration.groups.forEach(id => expectGetGroupMembersRequest(fakeGroup({ id })));
 
       await harness.manageGroupsClick();
       const groupsHarness = await rootLoader.getHarness(IntegrationGeneralGroupsHarness);
@@ -100,7 +100,7 @@ describe('IntegrationPortalGroupsComponent', () => {
     it('should pre-select groups found in user + save new groups', async () => {
       const integration = fakeIntegration({ id: integrationId, groups: [groupId1] });
       await expectGetRequests(integration, [groupId1, groupId2]);
-      integration.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
+      integration.groups.forEach(id => expectGetGroupMembersRequest(fakeGroup({ id })));
 
       await harness.manageGroupsClick();
       const groupsHarness = await rootLoader.getHarness(IntegrationGeneralGroupsHarness);
@@ -140,9 +140,9 @@ describe('IntegrationPortalGroupsComponent', () => {
       const integration = fakeIntegration({ id: integrationId, groups: [groupId1, groupId2] });
       await expectGetRequests(integration, [groupId1, groupId2]);
 
-      expect(await harness.getGroupsNames()).toEqual(integration.groups.map((id) => `Group ${id}-name`));
+      expect(await harness.getGroupsNames()).toEqual(integration.groups.map(id => `Group ${id}-name`));
       expect(await harness.getGroupsLength()).toStrictEqual(integration.groups.length);
-      integration.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
+      integration.groups.forEach(id => expectGetGroupMembersRequest(fakeGroup({ id })));
 
       await harness.manageGroupsClick();
 
@@ -183,7 +183,7 @@ describe('IntegrationPortalGroupsComponent', () => {
   function expectGetGroupsListRequest(groups: string[]) {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups?page=1&perPage=9999`, method: 'GET' })
-      .flush(fakeGroupsResponse({ data: groups.map((id) => fakeGroup({ id, name: id + '-name' })) }));
+      .flush(fakeGroupsResponse({ data: groups.map(id => fakeGroup({ id, name: id + '-name' })) }));
     fixture.detectChanges();
   }
 

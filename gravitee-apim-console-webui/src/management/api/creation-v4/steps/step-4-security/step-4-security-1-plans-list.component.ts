@@ -53,12 +53,12 @@ export class Step4Security1PlansListComponent implements OnInit {
 
   ngOnInit(): void {
     const entrypoints = this.stepService.payload?.selectedEntrypoints;
-    const listenerTypes = entrypoints.map((e) => e.supportedListenerType);
+    const listenerTypes = entrypoints.map(e => e.supportedListenerType);
     this.planMenuItems = this.constantsService.getPlanMenuItems('V4', listenerTypes);
   }
 
   save(): void {
-    this.stepService.validStep((previousPayload) => ({
+    this.stepService.validStep(previousPayload => ({
       ...previousPayload,
       plans: this.plans,
     }));
@@ -75,7 +75,7 @@ export class Step4Security1PlansListComponent implements OnInit {
   }
 
   editPlan(plan: CreatePlanV4) {
-    this.editPlanClicked.emit(this.plans.find((listedPlan) => listedPlan === plan));
+    this.editPlanClicked.emit(this.plans.find(listedPlan => listedPlan === plan));
   }
 
   removePlan(plan: CreatePlanV4) {

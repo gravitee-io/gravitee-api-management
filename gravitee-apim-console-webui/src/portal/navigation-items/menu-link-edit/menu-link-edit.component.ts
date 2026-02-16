@@ -75,13 +75,13 @@ export class MenuLinkEditComponent implements OnInit {
     this.uiPortalMenuLinksService
       .get(this.activatedRoute.snapshot.params.menuLinkId)
       .pipe(
-        tap((portalMenuLink) => {
+        tap(portalMenuLink => {
           this.initialValue = portalMenuLink;
           this.readableMenuLinkType = toReadableMenuLinkType(portalMenuLink.type);
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((_) => this.reset());
+      .subscribe(_ => this.reset());
   }
 
   reset() {
@@ -105,7 +105,7 @@ export class MenuLinkEditComponent implements OnInit {
         error: ({ error }) => {
           this.snackBarService.error(error?.message ?? 'An error occurred while updating menu link.');
         },
-        next: (portalMenuLink) => {
+        next: portalMenuLink => {
           this.snackBarService.success(`Menu link '${portalMenuLink.name}' updated successfully`);
           this.menuLinkEditForm.markAsPristine();
           this.initialValue = portalMenuLink;

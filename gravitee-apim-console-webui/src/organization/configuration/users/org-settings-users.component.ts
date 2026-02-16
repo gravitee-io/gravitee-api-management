@@ -99,7 +99,7 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
         ),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((users) => this.setDataSourceFromUsersList(users));
+      .subscribe(users => this.setDataSourceFromUsersList(users));
   }
 
   ngOnDestroy() {
@@ -121,7 +121,7 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.usersService.remove(userId)),
         tap(() => this.snackBarService.success(`User ${displayName} is being deleted!`)),
         takeUntil(this.unsubscribe$),
@@ -134,7 +134,7 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   }
 
   private setDataSourceFromUsersList(users: PagedResult<User>) {
-    this.filteredTableData = users.data.map((u) => ({
+    this.filteredTableData = users.data.map(u => ({
       userId: u.id,
       displayName: u.displayName,
       email: u.email,

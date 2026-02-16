@@ -58,7 +58,7 @@ export class AnalyticsService {
   }
 
   public createBuckets(data: AnalyticsAverageResponseTimes | AnalyticsResponseStatus): AnalyticsBucket[] {
-    return data.values.map((value) => value.buckets).flat();
+    return data.values.map(value => value.buckets).flat();
   }
 
   public createChartInput(data: AnalyticsAverageResponseTimes | AnalyticsResponseStatus): GioChartLineData[] {
@@ -91,7 +91,7 @@ export class AnalyticsService {
   getGroupBy(params: AnalyticsRequestParam): Observable<AnalyticsGroupByResponse> {
     const queryParams = Object.entries(params ?? [])
       .map(([key, value]) => (isNil(value) ? null : `${key}=${value}`))
-      .filter((v) => v != null);
+      .filter(v => v != null);
 
     const url = `${this.constants.env.baseURL}/analytics?type=group_by&${queryParams.join('&')}`;
     return this.http.get<AnalyticsGroupByResponse>(url);

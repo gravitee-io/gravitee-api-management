@@ -47,7 +47,7 @@ export class DebugModeComponent implements OnInit, OnDestroy {
     this.debugModeService
       .listPolicies()
       .pipe(
-        tap((listPolicies) => {
+        tap(listPolicies => {
           this.listPolicies = listPolicies;
         }),
         takeUntil(this.unsubscribe$),
@@ -96,7 +96,7 @@ export class DebugModeComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         takeUntil(this.cancelRequest$),
       )
-      .subscribe((debugResponse) => {
+      .subscribe(debugResponse => {
         this.debugResponse = debugResponse;
       });
   }

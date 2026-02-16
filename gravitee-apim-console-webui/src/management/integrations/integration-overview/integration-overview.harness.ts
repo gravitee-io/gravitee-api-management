@@ -55,15 +55,15 @@ export class IntegrationOverviewHarness extends ComponentHarness {
   };
 
   public getAgentStatus = async (): Promise<string> => {
-    return this.agentStatusLocator().then((status) => status.getAgentStatus());
+    return this.agentStatusLocator().then(status => status.getAgentStatus());
   };
 
   public getIntegrationProvider = async (): Promise<string> => {
-    return this.integrationProviderLocator().then((provider) => provider.text());
+    return this.integrationProviderLocator().then(provider => provider.text());
   };
 
   public getNoIntegrationMessage = async (): Promise<string> => {
-    return this.noIntegrationMessageDiv().then((div) => div.text());
+    return this.noIntegrationMessageDiv().then(div => div.text());
   };
 
   public rowsNumber = async (): Promise<number> => {

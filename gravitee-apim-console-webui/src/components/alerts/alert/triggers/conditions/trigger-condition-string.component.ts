@@ -31,7 +31,7 @@ const AlertTriggerConditionStringComponent: ng.IComponentOptions = {
     '$injector',
     function ($injector) {
       this.$onInit = async () => {
-        const metric = find(this.metrics as Metrics[], (metric) => metric.key === this.condition.property);
+        const metric = find(this.metrics as Metrics[], metric => metric.key === this.condition.property);
 
         if (metric.loader) {
           this.values = metric.loader(this.referenceType, this.referenceId, $injector);
@@ -46,7 +46,7 @@ const AlertTriggerConditionStringComponent: ng.IComponentOptions = {
           this.filteredValues = this.values;
         } else {
           const term = this.searchTerm.toLowerCase();
-          this.filteredValues = this.values.filter((item) => item.value.toLowerCase().includes(term));
+          this.filteredValues = this.values.filter(item => item.value.toLowerCase().includes(term));
         }
       };
 

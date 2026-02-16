@@ -62,16 +62,16 @@ export class AlertComponent extends UpgradeComponent {
     this.isV4api = this.location.path().includes('/v4/');
 
     const statusPromise = this.apiId
-      ? this.ajsAlertService.getStatus(AlertScope.API, this.apiId).then((response) => response.data)
-      : this.ajsAlertService.getStatus(AlertScope.ENVIRONMENT).then((response) => response.data);
+      ? this.ajsAlertService.getStatus(AlertScope.API, this.apiId).then(response => response.data)
+      : this.ajsAlertService.getStatus(AlertScope.ENVIRONMENT).then(response => response.data);
 
     const alertsPromise = this.apiId
-      ? this.ajsAlertService.listAlerts(AlertScope.API, true, this.apiId).then((response) => response.data)
-      : this.ajsAlertService.listAlerts(AlertScope.ENVIRONMENT, true).then((response) => response.data);
+      ? this.ajsAlertService.listAlerts(AlertScope.API, true, this.apiId).then(response => response.data)
+      : this.ajsAlertService.listAlerts(AlertScope.ENVIRONMENT, true).then(response => response.data);
 
     Promise.all([
       statusPromise,
-      this.ajsNotifierService.list().then((response) => response.data),
+      this.ajsNotifierService.list().then(response => response.data),
       alertsPromise,
       Promise.resolve(alertId ? 'detail' : 'create'),
       this.apiId ? (this.isV4api ? this.apiV2Service.get(this.apiId) : this.apiService.get(this.apiId)).toPromise() : Promise.resolve(null),
@@ -91,8 +91,8 @@ export class AlertComponent extends UpgradeComponent {
 
     this.reload.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
       const listAlertPromise = this.apiId
-        ? this.ajsAlertService.listAlerts(AlertScope.API, true, this.apiId).then((response) => response.data)
-        : this.ajsAlertService.listAlerts(AlertScope.ENVIRONMENT, true).then((response) => response.data);
+        ? this.ajsAlertService.listAlerts(AlertScope.API, true, this.apiId).then(response => response.data)
+        : this.ajsAlertService.listAlerts(AlertScope.ENVIRONMENT, true).then(response => response.data);
       Promise.all([listAlertPromise]).then(([alerts]) => {
         // Hack to Force the binding between Angular and AngularJS
         this.ngOnChanges({

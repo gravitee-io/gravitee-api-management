@@ -74,8 +74,8 @@ export class GioApiLifecycleStateComponent implements OnChanges {
           value,
         };
       })
-      .filter((v) => v != null);
+      .filter(v => v != null);
 
-    this.isEmpty = isEmpty(this.chartPieInput) || !this.chartPieInput.some((v) => v.value > 0);
+    this.isEmpty = isEmpty(this.chartPieInput) || !this.chartPieInput.some(v => v.value > 0);
   }
 }

@@ -28,7 +28,7 @@ export class Step5SummaryHarness extends ComponentHarness {
   protected getButtonCreateAskReviewMyApi = this.locatorFor(MatButtonHarness.with({ text: /Save API & Ask for a review/ }));
 
   async getStepSummaryTextContent(stepNumber: number) {
-    return this.getStepById(stepNumber)().then((el) => el.text());
+    return this.getStepById(stepNumber)().then(el => el.text());
   }
 
   async clickChangeButton(stepNumber: number) {

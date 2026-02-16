@@ -116,25 +116,25 @@ export class DebugModeInspectorComponent implements OnChanges {
   };
 
   treeControl = new FlatTreeControl<FlatNode>(
-    (node) => node.level,
-    (node) => node.expandable,
+    node => node.level,
+    node => node.expandable,
   );
 
   errorsTreeControl = new FlatTreeControl<FlatNode>(
-    (node) => node.level,
-    (node) => node.expandable,
+    node => node.level,
+    node => node.expandable,
   );
 
   conditionTreeControl = new FlatTreeControl<FlatNode>(
-    (node) => node.level,
-    (node) => node.expandable,
+    node => node.level,
+    node => node.expandable,
   );
 
   treeFlattener = new MatTreeFlattener(
     this.transformer,
-    (node) => node.level,
-    (node) => node.expandable,
-    (node) => node.children,
+    node => node.level,
+    node => node.expandable,
+    node => node.children,
   );
 
   // FIXME: remove as any
@@ -210,11 +210,11 @@ export class DebugModeInspectorComponent implements OnChanges {
     const keys = [...new Set(Object.keys(this.inputDebugStep.output).concat(Object.keys(this.outputDebugStep.output)))];
 
     const httpPropertiesTreeNodes: Node[] = keys
-      .filter((key) => HTTP_PROPERTIES_NODES[key] != null)
+      .filter(key => HTTP_PROPERTIES_NODES[key] != null)
       .sort(this.sort)
-      .map((key) => this.toNode(HTTP_PROPERTIES_NODES, key));
+      .map(key => this.toNode(HTTP_PROPERTIES_NODES, key));
 
-    const treeNodes: Node[] = keys.filter((key) => NODES[key] != null).map((key) => this.toNode(NODES, key));
+    const treeNodes: Node[] = keys.filter(key => NODES[key] != null).map(key => this.toNode(NODES, key));
 
     if (httpPropertiesTreeNodes.length > 0) {
       treeNodes.push({

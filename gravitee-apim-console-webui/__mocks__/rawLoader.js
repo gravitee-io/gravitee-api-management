@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 module.exports = {
-  process: (content) => {
+  process: content => {
     const json = JSON.stringify(content)
       .replace(/\u2028/g, '\\u2028')
       .replace(/\u2029/g, '\\u2029');

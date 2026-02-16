@@ -35,7 +35,7 @@ export class ApiAnalyticsWidgetTableHarness extends ComponentHarness {
    */
   async getRowCount(): Promise<number> {
     const table = await this.getTable();
-    return table.getRows().then((rows) => rows.length);
+    return table.getRows().then(rows => rows.length);
   }
 
   /**
@@ -43,9 +43,9 @@ export class ApiAnalyticsWidgetTableHarness extends ComponentHarness {
    */
   async getColumnCount(): Promise<number> {
     const table = await this.getTable();
-    return table.getHeaderRows().then((headerRows) => {
+    return table.getHeaderRows().then(headerRows => {
       if (headerRows.length === 0) return 0;
-      return headerRows[0].getCells().then((cells) => cells.length);
+      return headerRows[0].getCells().then(cells => cells.length);
     });
   }
 

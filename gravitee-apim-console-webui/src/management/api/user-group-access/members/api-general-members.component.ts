@@ -132,11 +132,11 @@ export class ApiGeneralMembersComponent implements OnInit {
           this.groups = groups.data;
           this.members = members.data ?? [];
           this.roles = roles ?? [];
-          this.defaultRole = roles.find((role) => role.default);
-          this.roleNames = roles.map((r) => r.name) ?? [];
-          this.groupData = api.groups?.map((id) => ({
+          this.defaultRole = roles.find(role => role.default);
+          this.roleNames = roles.map(r => r.name) ?? [];
+          this.groupData = api.groups?.map(id => ({
             id,
-            name: groups.data.find((g) => g.id === id)?.name,
+            name: groups.data.find(g => g.id === id)?.name,
             isVisible: true,
           }));
           this.initDataSource();
@@ -190,16 +190,16 @@ export class ApiGeneralMembersComponent implements OnInit {
       .open<GioUsersSelectorComponent, GioUsersSelectorData, SearchableUser[]>(GioUsersSelectorComponent, {
         width: '500px',
         data: {
-          userFilterPredicate: (user) => !this.members.some((member) => member.id === user.id),
+          userFilterPredicate: user => !this.members.some(member => member.id === user.id),
         },
         role: 'alertdialog',
         id: 'addUserDialog',
       })
       .afterClosed()
       .pipe(
-        filter((selectedUsers) => !isEmpty(selectedUsers)),
-        tap((selectedUsers) => {
-          selectedUsers.forEach((user) => {
+        filter(selectedUsers => !isEmpty(selectedUsers)),
+        tap(selectedUsers => {
+          selectedUsers.forEach(user => {
             this.addMemberToForm(user);
           });
         }),
@@ -222,7 +222,7 @@ export class ApiGeneralMembersComponent implements OnInit {
     confirm
       .afterClosed()
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((shouldDeleteMember) => {
+      .subscribe(shouldDeleteMember => {
         if (shouldDeleteMember) {
           this.deleteMember(member);
         }
@@ -237,14 +237,14 @@ export class ApiGeneralMembersComponent implements OnInit {
         id: 'addGroupsDialog',
         data: {
           api: this.api,
-          groups: this.groups.filter((group) => !group.apiPrimaryOwner),
+          groups: this.groups.filter(group => !group.apiPrimaryOwner),
           isKubernetesOrigin: this.isKubernetesOrigin,
         },
       })
       .afterClosed()
       .pipe(
         filter((apiDialogResult): apiDialogResult is ApiGroupsDialogResult => !!apiDialogResult && !this.isKubernetesOrigin),
-        switchMap((apiDialogResult) => {
+        switchMap(apiDialogResult => {
           return combineLatest([of(apiDialogResult), this.apiService.get(this.activatedRoute.snapshot.params.apiId)]);
         }),
         switchMap(([apiDialogResult, api]) => {
@@ -272,7 +272,7 @@ export class ApiGeneralMembersComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        switchMap((apiDialogResult) => {
+        switchMap(apiDialogResult => {
           return this.apiService.transferOwnership(
             this.apiId,
             apiDialogResult.isUserMode ? apiDialogResult.transferOwnershipToUser : apiDialogResult.transferOwnershipToGroup,
@@ -289,7 +289,7 @@ export class ApiGeneralMembersComponent implements OnInit {
   }
 
   private initDataSource() {
-    this.dataSource = this.members?.map((member) => {
+    this.dataSource = this.members?.map(member => {
       // The data structure for roles allows multiple role for one user, but at API level, we only manage one role per user. Throw error if data is incorrect
       if (member.roles.length !== 1) {
         throw new Error('Cannot manage more than one role at API level');
@@ -360,7 +360,7 @@ export class ApiGeneralMembersComponent implements OnInit {
     this.apiMemberService.deleteMember(this.apiId, member.id).subscribe({
       next: () => {
         // remove from members
-        this.members = this.members.filter((m) => m.id !== member.id);
+        this.members = this.members.filter(m => m.id !== member.id);
         this.initDataSource();
         // remove from form
         // reset before removing to discard save bar if changes only on this element
@@ -370,21 +370,21 @@ export class ApiGeneralMembersComponent implements OnInit {
 
         this.snackBarService.success(`Member ${member.displayName} has been removed.`);
       },
-      error: (error) => {
+      error: error => {
         this.snackBarService.error(error.message);
       },
     });
   }
 
   private getSaveMemberQuery$(memberFormId: string, newRole: string): Observable<Member> {
-    const memberToUpdate = this.members.find((m) => m.id === memberFormId);
+    const memberToUpdate = this.members.find(m => m.id === memberFormId);
     if (memberToUpdate) {
       return this.apiMemberService.updateMember(this.apiId, {
         memberId: memberToUpdate.id,
         roleName: newRole,
       });
     } else {
-      const memberToAdd = this.membersToAdd.find((m) => m._viewId === memberFormId);
+      const memberToAdd = this.membersToAdd.find(m => m._viewId === memberFormId);
       return this.apiMemberService.addMember(this.apiId, {
         userId: memberToAdd.id,
         roleName: newRole,
@@ -395,7 +395,7 @@ export class ApiGeneralMembersComponent implements OnInit {
 
   private getSaveChangeOnApiNotificationsQuery$(): Observable<Api> {
     return this.apiService.get(this.apiId).pipe(
-      switchMap((api) => {
+      switchMap(api => {
         if (api.definitionVersion === 'V2' || api.definitionVersion === 'V4') {
           const updatedApi = {
             ...api,

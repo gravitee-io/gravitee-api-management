@@ -120,7 +120,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
 
       await loader
         .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint name input"]' }))
-        .then((input) => input.setValue('endpoint#1 updated'));
+        .then(input => input.setValue('endpoint#1 updated'));
 
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isSubmitButtonInvalid()).toBeFalsy();
@@ -137,7 +137,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       it('should not be able to save changes when endpoint name is already used', async () => {
         await loader
           .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint name input"]' }))
-          .then((input) => input.setValue('endpoint#2'));
+          .then(input => input.setValue('endpoint#2'));
 
         const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
         expect(await gioSaveBar.isSubmitButtonInvalid()).toBeTruthy();
@@ -197,7 +197,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
 
     describe('Edit configuration of existing endpoint', () => {
       beforeEach(async () => {
-        await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then((tab) => tab.select());
+        await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then(tab => tab.select());
         fixture.detectChanges();
       });
 
@@ -326,26 +326,26 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
     it('should create new endpoint', async () => {
       await loader
         .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint name input"]' }))
-        .then((input) => input.setValue('endpoint#3'));
+        .then(input => input.setValue('endpoint#3'));
 
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
 
       await loader
         .getHarness(MatSelectHarness.with({ selector: '[aria-label="Endpoint type"]' }))
-        .then((select) => select.clickOptions({ text: 'http' }));
+        .then(select => select.clickOptions({ text: 'http' }));
 
       expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
 
       await loader
         .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint weight input"]' }))
-        .then((input) => input.setValue('42'));
+        .then(input => input.setValue('42'));
 
       expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
 
       await loader
         .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint target input"]' }))
-        .then((input) => input.setValue('https//dummy.com'));
+        .then(input => input.setValue('https//dummy.com'));
       expect(await saveBar.isSubmitButtonInvalid()).toBeFalsy();
       await saveBar.clickSubmit();
 
@@ -447,26 +447,26 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
     it('should create new endpoint', async () => {
       await loader
         .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint name input"]' }))
-        .then((input) => input.setValue('endpoint#3'));
+        .then(input => input.setValue('endpoint#3'));
 
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
 
       await loader
         .getHarness(MatSelectHarness.with({ selector: '[aria-label="Endpoint type"]' }))
-        .then((select) => select.clickOptions({ text: 'http' }));
+        .then(select => select.clickOptions({ text: 'http' }));
 
       expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
 
       await loader
         .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint weight input"]' }))
-        .then((input) => input.setValue('42'));
+        .then(input => input.setValue('42'));
 
       expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
 
       await loader
         .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint target input"]' }))
-        .then((input) => input.setValue('https//dummy.com'));
+        .then(input => input.setValue('https//dummy.com'));
       expect(await saveBar.isSubmitButtonInvalid()).toBeFalsy();
       await saveBar.clickSubmit();
 
@@ -565,26 +565,26 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
     it('should create new endpoint', async () => {
       await loader
         .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint name input"]' }))
-        .then((input) => input.setValue('endpoint#3'));
+        .then(input => input.setValue('endpoint#3'));
 
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
 
       await loader
         .getHarness(MatSelectHarness.with({ selector: '[aria-label="Endpoint type"]' }))
-        .then((select) => select.clickOptions({ text: 'http' }));
+        .then(select => select.clickOptions({ text: 'http' }));
 
       expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
 
       await loader
         .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint weight input"]' }))
-        .then((input) => input.setValue('42'));
+        .then(input => input.setValue('42'));
 
       expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
 
       await loader
         .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint target input"]' }))
-        .then((input) => input.setValue('https//dummy.com'));
+        .then(input => input.setValue('https//dummy.com'));
       expect(await saveBar.isSubmitButtonInvalid()).toBeFalsy();
       await saveBar.clickSubmit();
 
@@ -689,42 +689,40 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
 
     it('should not allow user to update the form', async () => {
       expect(
-        await loader
-          .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint name input"]' }))
-          .then((input) => input.isDisabled()),
+        await loader.getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint name input"]' })).then(input => input.isDisabled()),
       ).toBeTruthy();
 
       expect(
-        await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Endpoint type"]' })).then((select) => select.isDisabled()),
+        await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Endpoint type"]' })).then(select => select.isDisabled()),
       ).toBeTruthy();
 
       expect(
         await loader
           .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint weight input"]' }))
-          .then((input) => input.isDisabled()),
+          .then(input => input.isDisabled()),
       ).toBeTruthy();
 
       expect(
         await loader
           .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint target input"]' }))
-          .then((input) => input.isDisabled()),
+          .then(input => input.isDisabled()),
       ).toBeTruthy();
 
       expect(
-        await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Endpoint tenants"]' })).then((input) => input.isDisabled()),
+        await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Endpoint tenants"]' })).then(input => input.isDisabled()),
       ).toBeTruthy();
 
       expect(
-        await loader.getHarness(MatCheckboxHarness.with({ selector: '[formControlName="backup"]' })).then((input) => input.isDisabled()),
+        await loader.getHarness(MatCheckboxHarness.with({ selector: '[formControlName="backup"]' })).then(input => input.isDisabled()),
       ).toBeTruthy();
 
-      await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then((tab) => tab.select());
+      await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then(tab => tab.select());
       fixture.detectChanges();
 
       expect(
         await loader
           .getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="inherit"]' }))
-          .then((slider) => slider.isDisabled()),
+          .then(slider => slider.isDisabled()),
       ).toBeTruthy();
     });
   });

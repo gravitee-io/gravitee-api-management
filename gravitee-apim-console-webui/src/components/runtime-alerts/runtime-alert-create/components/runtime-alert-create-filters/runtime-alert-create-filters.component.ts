@@ -56,7 +56,7 @@ export class RuntimeAlertCreateFiltersComponent implements OnDestroy, OnInit {
 
   ngOnInit() {
     if (this.alertToUpdateFilters) {
-      this.alertToUpdateFilters.forEach((_) => {
+      this.alertToUpdateFilters.forEach(_ => {
         this.addControl();
       });
     }

@@ -63,7 +63,7 @@ export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
     this.roleService
       .listMemberships(this.roleScope, this.role)
       .pipe(
-        tap((memberships) => {
+        tap(memberships => {
           this.memberships = memberships;
           this.filteredMemberships = memberships;
           this.membershipsTableUnpaginatedLength = memberships.length;
@@ -89,17 +89,17 @@ export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
       .open<GioUsersSelectorComponent, GioUsersSelectorData, SearchableUser[]>(GioUsersSelectorComponent, {
         width: '500px',
         data: {
-          userFilterPredicate: (user) => !this.memberships.some((membership) => membership.id === user.id),
+          userFilterPredicate: user => !this.memberships.some(membership => membership.id === user.id),
         },
         role: 'alertdialog',
         id: 'createMembershipConfirmDialog',
       })
       .afterClosed()
       .pipe(
-        filter((users) => !!users),
-        switchMap((selectedUsers) =>
+        filter(users => !!users),
+        switchMap(selectedUsers =>
           combineLatest(
-            selectedUsers.map((user) => {
+            selectedUsers.map(user => {
               const membership = {
                 id: user.id,
                 reference: user.reference,
@@ -133,7 +133,7 @@ export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.roleService.deleteMembership(this.roleScope, this.role, membership.id)),
         tap(() => this.snackBarService.success(`Membership has been successfully deleted`)),
         catchError(({ error }) => {

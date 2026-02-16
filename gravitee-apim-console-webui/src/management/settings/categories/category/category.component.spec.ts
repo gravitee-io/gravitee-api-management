@@ -143,13 +143,13 @@ describe('CategoryComponent', () => {
     });
     it('should be able to create', async () => {
       const spy = jest.spyOn(router, 'navigate');
-      await getNameInput().then((input) => input.setValue('Cat'));
-      await getDescriptionInput().then((input) => input.setValue('Cat desc'));
+      await getNameInput().then(input => input.setValue('Cat'));
+      await getDescriptionInput().then(input => input.setValue('Cat desc'));
 
       const select = await getSelectPage();
       await select.open();
-      await getSelectPage().then((select) => select.clickOptions({ text: 'Page 1' }));
-      await getHideCategoryToggle().then((toggle) => toggle.toggle());
+      await getSelectPage().then(select => select.clickOptions({ text: 'Page 1' }));
+      await getHideCategoryToggle().then(toggle => toggle.toggle());
 
       const saveBar = await getSaveBar();
       expect(await saveBar.isVisible()).toEqual(true);
@@ -184,13 +184,13 @@ describe('CategoryComponent', () => {
       });
     });
     it('should be able to update', async () => {
-      await getNameInput().then((input) => input.setValue('Cat'));
-      await getDescriptionInput().then((input) => input.setValue('Cat desc'));
+      await getNameInput().then(input => input.setValue('Cat'));
+      await getDescriptionInput().then(input => input.setValue('Cat desc'));
 
       const select = await getSelectPage();
       await select.open();
-      await getSelectPage().then((select) => select.clickOptions({ text: '-- Select documentation page --' }));
-      await getHideCategoryToggle().then((toggle) => toggle.toggle());
+      await getSelectPage().then(select => select.clickOptions({ text: '-- Select documentation page --' }));
+      await getHideCategoryToggle().then(toggle => toggle.toggle());
 
       const saveBar = await getSaveBar();
       expect(await saveBar.isVisible()).toEqual(true);
@@ -206,7 +206,7 @@ describe('CategoryComponent', () => {
     it('should be able to change picture', async () => {
       const picturePicker = await getPicturePicker();
       await picturePicker.dropFiles([new File([''], 'cat', { type: 'png' })]);
-      await getSaveBar().then((saveBar) => saveBar.clickSubmit());
+      await getSaveBar().then(saveBar => saveBar.clickSubmit());
       expectGetCategory(CATEGORY);
       expectPutCategory({ ...CATEGORY, picture_url: undefined, picture: 'data:application/octet-stream;base64,' });
 
@@ -217,7 +217,7 @@ describe('CategoryComponent', () => {
     it('should be able to change background', async () => {
       const backgroundPicker = await getBackgroundPicker();
       await backgroundPicker.dropFiles([new File([''], 'cat', { type: 'png' })]);
-      await getSaveBar().then((saveBar) => saveBar.clickSubmit());
+      await getSaveBar().then(saveBar => saveBar.clickSubmit());
       expectGetCategory(CATEGORY);
       expectPutCategory({ ...CATEGORY, background_url: undefined, background: 'data:application/octet-stream;base64,' });
 
@@ -240,22 +240,22 @@ describe('CategoryComponent', () => {
       const nameInput = await getNameInput();
       expect(await nameInput.getValue()).toEqual(CATEGORY.name);
 
-      expect(await getSaveBar().then((saveBar) => saveBar.isVisible())).toBeFalsy();
+      expect(await getSaveBar().then(saveBar => saveBar.isVisible())).toBeFalsy();
       await nameInput.setValue('New name');
-      expect(await getSaveBar().then((saveBar) => saveBar.isVisible())).toBeTruthy();
-      expect(await getSaveBar().then((saveBar) => saveBar.isSubmitButtonInvalid())).toBeFalsy();
+      expect(await getSaveBar().then(saveBar => saveBar.isVisible())).toBeTruthy();
+      expect(await getSaveBar().then(saveBar => saveBar.isSubmitButtonInvalid())).toBeFalsy();
 
       await nameInput.setValue('');
-      expect(await getSaveBar().then((saveBar) => saveBar.isSubmitButtonInvalid())).toBeTruthy();
+      expect(await getSaveBar().then(saveBar => saveBar.isSubmitButtonInvalid())).toBeTruthy();
     });
     it('should unselect documentation page', async () => {
-      expect(await getSaveBar().then((saveBar) => saveBar.isVisible())).toBeFalsy();
+      expect(await getSaveBar().then(saveBar => saveBar.isVisible())).toBeFalsy();
 
       const select = await getSelectPage();
       await select.open();
-      await getSelectPage().then((select) => select.clickOptions({ text: '-- Select documentation page --' }));
-      expect(await getSaveBar().then((saveBar) => saveBar.isVisible())).toBeTruthy();
-      expect(await getSaveBar().then((saveBar) => saveBar.isSubmitButtonInvalid())).toBeFalsy();
+      await getSelectPage().then(select => select.clickOptions({ text: '-- Select documentation page --' }));
+      expect(await getSaveBar().then(saveBar => saveBar.isVisible())).toBeTruthy();
+      expect(await getSaveBar().then(saveBar => saveBar.isSubmitButtonInvalid())).toBeFalsy();
     });
   });
 
@@ -288,17 +288,17 @@ describe('CategoryComponent', () => {
     it('should show highlight badge', async () => {
       expectGetCategoryApis(CAT_API_LIST.id, APIS);
       const rows = await getTableRows();
-      expect(await rows[1].getCells().then((cells) => cells[0].getHarnessOrNull(MatIconHarness))).toBeTruthy();
+      expect(await rows[1].getCells().then(cells => cells[0].getHarnessOrNull(MatIconHarness))).toBeTruthy();
     });
     it('should update Category when choosing another API to highlight', async () => {
       expectGetCategoryApis(CAT_API_LIST.id, APIS);
       const highlightBtn = await getActionButtonByRowIndexAndTooltip(0, 'Highlight API');
       expect(highlightBtn).toBeTruthy();
-      expect(await getSaveBar().then((saveBar) => saveBar.isVisible())).toEqual(false);
+      expect(await getSaveBar().then(saveBar => saveBar.isVisible())).toEqual(false);
 
       await highlightBtn.click();
-      expect(await getSaveBar().then((saveBar) => saveBar.isVisible())).toEqual(true);
-      await getSaveBar().then((saveBar) => saveBar.clickSubmit());
+      expect(await getSaveBar().then(saveBar => saveBar.isVisible())).toEqual(true);
+      await getSaveBar().then(saveBar => saveBar.clickSubmit());
 
       expectGetCategory(CATEGORY);
       expectPutCategory({ ...CATEGORY, highlightApi: APIS[0].id });
@@ -312,11 +312,11 @@ describe('CategoryComponent', () => {
       expectGetCategoryApis(CAT_API_LIST.id, APIS);
       const removeHighlightBtn = await getActionButtonByRowIndexAndTooltip(1, 'Remove Highlighted API');
       expect(removeHighlightBtn).toBeTruthy();
-      expect(await getSaveBar().then((saveBar) => saveBar.isVisible())).toEqual(false);
+      expect(await getSaveBar().then(saveBar => saveBar.isVisible())).toEqual(false);
 
       await removeHighlightBtn.click();
-      expect(await getSaveBar().then((saveBar) => saveBar.isVisible())).toEqual(true);
-      await getSaveBar().then((saveBar) => saveBar.clickSubmit());
+      expect(await getSaveBar().then(saveBar => saveBar.isVisible())).toEqual(true);
+      await getSaveBar().then(saveBar => saveBar.clickSubmit());
 
       expectGetCategory(CATEGORY);
       expectPutCategory({ ...CATEGORY, highlightApi: null });
@@ -534,7 +534,7 @@ describe('CategoryComponent', () => {
     return await harnessLoader.getHarness(GioFormFilePickerInputHarness.with({ selector: '[formControlName="background"]' }));
   }
   async function getTableRows(): Promise<MatRowHarness[]> {
-    return await harnessLoader.getHarness(MatTableHarness).then((table) => table.getRows());
+    return await harnessLoader.getHarness(MatTableHarness).then(table => table.getRows());
   }
   async function getNameByRowIndex(index: number): Promise<string> {
     return await getTextByColumnNameAndRowIndex('name', index);
@@ -542,18 +542,18 @@ describe('CategoryComponent', () => {
   async function getTextByColumnNameAndRowIndex(columnName: string, index: number): Promise<string> {
     return await harnessLoader
       .getHarness(MatTableHarness)
-      .then((table) => table.getRows())
-      .then((rows) => rows[index])
-      .then((row) => row.getCellTextByIndex({ columnName }).then((cell) => cell[0]));
+      .then(table => table.getRows())
+      .then(rows => rows[index])
+      .then(row => row.getCellTextByIndex({ columnName }).then(cell => cell[0]));
   }
 
   async function getActionButtonByRowIndexAndTooltip(rowIndex: number, tooltipText: string): Promise<MatButtonHarness | null> {
     return await getTableRows()
-      .then((rows) => rows[rowIndex].getCells({ columnName: 'actions' }))
-      .then((cells) => cells[0])
-      .then((actionCell) => actionCell.getHarnessOrNull(MatButtonHarness.with({ selector: `[mattooltip="${tooltipText}"]` })));
+      .then(rows => rows[rowIndex].getCells({ columnName: 'actions' }))
+      .then(cells => cells[0])
+      .then(actionCell => actionCell.getHarnessOrNull(MatButtonHarness.with({ selector: `[mattooltip="${tooltipText}"]` })));
   }
   async function addApiToCategory(): Promise<void> {
-    return await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.add-button' })).then((btn) => btn.click());
+    return await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.add-button' })).then(btn => btn.click());
   }
 });

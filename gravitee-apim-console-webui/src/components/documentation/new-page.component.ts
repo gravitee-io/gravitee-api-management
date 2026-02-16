@@ -48,7 +48,7 @@ export class DocumentationNewPageComponent extends UpgradeComponent {
     const type = this.activatedRoute.snapshot.queryParams.type;
 
     Promise.all([
-      this.ajsFetcherService.list().then((response) => {
+      this.ajsFetcherService.list().then(response => {
         return response.data;
       }),
       this.ajsDocumentationService
@@ -58,7 +58,7 @@ export class DocumentationNewPageComponent extends UpgradeComponent {
           },
           apiId,
         )
-        .then((response) => response.data),
+        .then(response => response.data),
       this.ajsDocumentationService
         .search(
           {
@@ -66,9 +66,9 @@ export class DocumentationNewPageComponent extends UpgradeComponent {
           },
           apiId,
         )
-        .then((response) => response.data),
-      type === 'LINK' ? this.ajsDocumentationService.search({}, apiId).then((response) => response.data) : Promise.resolve(null),
-      type === 'LINK' ? this.ajsCategoryService.list().then((response) => response.data) : Promise.resolve(null),
+        .then(response => response.data),
+      type === 'LINK' ? this.ajsDocumentationService.search({}, apiId).then(response => response.data) : Promise.resolve(null),
+      type === 'LINK' ? this.ajsCategoryService.list().then(response => response.data) : Promise.resolve(null),
       type === 'MARKDOWN' || type === 'MARKDOWN_TEMPLATE'
         ? this.ajsDocumentationService
             .search(
@@ -78,9 +78,9 @@ export class DocumentationNewPageComponent extends UpgradeComponent {
               },
               apiId,
             )
-            .then((response) =>
+            .then(response =>
               response.data.filter(
-                (page) =>
+                page =>
                   page.type.toUpperCase() === 'MARKDOWN' ||
                   page.type.toUpperCase() === 'SWAGGER' ||
                   page.type.toUpperCase() === 'ASCIIDOC' ||

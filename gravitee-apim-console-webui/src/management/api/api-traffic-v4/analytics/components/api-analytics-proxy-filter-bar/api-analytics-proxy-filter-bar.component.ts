@@ -96,13 +96,13 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
   protected readonly timeFrames = [...timeFrames, ...customTimeFrames];
   public planOptions = computed<SelectOption[]>(() => {
     const plans = this.plans() || [];
-    return plans.map((plan) => ({ value: plan.id, label: plan.name }));
+    return plans.map(plan => ({ value: plan.id, label: plan.name }));
   });
 
   applicationResultsLoader = (input: ResultsLoaderInput): Observable<ResultsLoaderOutput> => {
     return this.apiV2Service.getSubscribers(this.apiId, input.searchTerm, input.page, 20).pipe(
-      map((response) => ({
-        data: response.data.map((app) => ({ value: app.id, label: app.name })),
+      map(response => ({
+        data: response.data.map(app => ({ value: app.id, label: app.name })),
         hasNextPage: response.pagination.page < response.pagination.pageCount,
       })),
     );
@@ -113,8 +113,8 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
     const chips: FilterChip[] = [];
 
     if (filters?.httpStatuses?.length) {
-      filters.httpStatuses.forEach((status) => {
-        const statusOption = this.httpStatuses?.find((opt) => opt.value === status);
+      filters.httpStatuses.forEach(status => {
+        const statusOption = this.httpStatuses?.find(opt => opt.value === status);
         chips.push({
           key: 'httpStatuses',
           value: status,
@@ -125,8 +125,8 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
 
     if (filters?.plans?.length) {
       const plans = this.plans();
-      filters.plans.forEach((planId) => {
-        const plan = plans?.find((p) => p.id === planId);
+      filters.plans.forEach(planId => {
+        const plan = plans?.find(p => p.id === planId);
         const display = plan ? plan.name : planId;
         chips.push({
           key: 'plans',
@@ -160,7 +160,7 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
 
   private applicationChipCache: Record<string, FilterChip> = {};
   private applicationFilterChips: Signal<FilterChip[]> = toSignal(
-    this.form.controls.applications.valueChanges.pipe(switchMap((applications) => this.getApplicationChips(applications))),
+    this.form.controls.applications.valueChanges.pipe(switchMap(applications => this.getApplicationChips(applications))),
   );
 
   constructor() {
@@ -172,21 +172,21 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.form.controls.timeframe.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((tf) => {
+    this.form.controls.timeframe.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(tf => {
       if (tf?.period && tf.period !== this.customPeriod) {
         this.emitFilters({ period: tf.period, from: null, to: null });
       }
     });
 
-    this.form.controls.httpStatuses.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((httpStatuses) => {
+    this.form.controls.httpStatuses.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(httpStatuses => {
       this.emitFilters({ httpStatuses: httpStatuses });
     });
 
-    this.form.controls.plans.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((plans) => {
+    this.form.controls.plans.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(plans => {
       this.emitFilters({ plans });
     });
 
-    this.form.controls.applications.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((applications) => {
+    this.form.controls.applications.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(applications => {
       this.emitFilters({ applications });
     });
   }
@@ -212,7 +212,7 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
   }
 
   private removeValueFromFilter(currentList: string[] | null, value: string, formControl: FormControl<string[] | null>): void {
-    const filteredList = (currentList || []).filter((item) => item !== value);
+    const filteredList = (currentList || []).filter(item => item !== value);
     formControl.setValue(filteredList.length > 0 ? filteredList : null);
   }
 
@@ -260,7 +260,7 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
     const cachedChips: FilterChip[] = [];
     const uncachedIds: string[] = [];
 
-    applications.forEach((appId) => {
+    applications.forEach(appId => {
       if (this.applicationChipCache[appId]) {
         cachedChips.push(this.applicationChipCache[appId]);
       } else {
@@ -272,14 +272,14 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
       return of(cachedChips);
     }
 
-    return this.fetchApplicationsAndUpdateCache$(uncachedIds).pipe(map((newChips) => [...cachedChips, ...newChips]));
+    return this.fetchApplicationsAndUpdateCache$(uncachedIds).pipe(map(newChips => [...cachedChips, ...newChips]));
   }
 
   private fetchApplicationsAndUpdateCache$(uncachedIds: string[]): Observable<FilterChip[]> {
     return this.applicationService.findByIds(uncachedIds, 1, 200).pipe(
-      map((response) => {
-        return uncachedIds.map((id) => {
-          const foundApp = response.data.find((app) => app.id === id);
+      map(response => {
+        return uncachedIds.map(id => {
+          const foundApp = response.data.find(app => app.id === id);
           return {
             key: 'applications',
             value: id,
@@ -287,8 +287,8 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
           };
         });
       }),
-      tap((newChips) => {
-        newChips.forEach((chip) => {
+      tap(newChips => {
+        newChips.forEach(chip => {
           this.applicationChipCache[chip.value] = chip;
         });
       }),

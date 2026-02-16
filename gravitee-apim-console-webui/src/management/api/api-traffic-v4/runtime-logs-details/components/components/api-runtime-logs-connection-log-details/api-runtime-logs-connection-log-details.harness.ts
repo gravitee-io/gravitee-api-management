@@ -50,6 +50,6 @@ export class ApiRuntimeLogsConnectionLogDetailsHarness extends ComponentHarness 
   };
 
   public getConnectionLogBody = async (panel: MatExpansionPanelHarness): Promise<string> => {
-    return panel.getHarness(DivHarness.with({ selector: '.accordion__body' })).then((body) => body.getText());
+    return panel.getHarness(DivHarness.with({ selector: '.accordion__body' })).then(body => body.getText());
   };
 }

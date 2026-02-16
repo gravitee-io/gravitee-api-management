@@ -40,7 +40,7 @@ export class SettingsNavigationComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.gioMenuService.reduced$.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
+    this.gioMenuService.reduced$.pipe(takeUntil(this.unsubscribe$)).subscribe(reduced => {
       this.hasBreadcrumb = reduced;
     });
 
@@ -59,8 +59,8 @@ export class SettingsNavigationComponent implements OnInit {
   public computeBreadcrumbItems(): string[] {
     const breadcrumbItems: string[] = [];
 
-    this.groupItems.forEach((groupItem) => {
-      groupItem.items.forEach((item) => {
+    this.groupItems.forEach(groupItem => {
+      groupItem.items.forEach(item => {
         if (this.isActive(item)) {
           breadcrumbItems.push(groupItem.title);
           breadcrumbItems.push(item.displayName);

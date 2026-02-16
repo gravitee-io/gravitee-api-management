@@ -39,7 +39,7 @@ describe('DocumentationService', () => {
   });
 
   describe('search', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const API_ID = 'my-api-id';
       const fakePages: Page[] = [
         {
@@ -52,7 +52,7 @@ describe('DocumentationService', () => {
           api: 'api',
           homepage: true,
         })
-        .subscribe((environments) => {
+        .subscribe(environments => {
           expect(environments).toMatchObject(fakePages);
           done();
         });

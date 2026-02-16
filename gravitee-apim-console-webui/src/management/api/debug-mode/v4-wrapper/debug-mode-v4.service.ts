@@ -59,7 +59,7 @@ export class DebugModeV4Service extends DebugModeService {
     const pollingEvent$ = this.sendDebugEvent(debugRequest).pipe(
       // Poll each 1s to find success event. Stops after 10 seconds
       switchMap(({ apiId, debugEventId }) => interval(1000).pipe(switchMap(() => this.getDebugEvent(apiId, debugEventId)))),
-      filter((event) => event.status === 'SUCCESS'),
+      filter(event => event.status === 'SUCCESS'),
       take(1),
       map((event: DebugEvent) => convertDebugEventToDebugResponse(event)),
     );
@@ -69,7 +69,7 @@ export class DebugModeV4Service extends DebugModeService {
 
   private sendDebugEvent(request: DebugRequest): Observable<{ apiId: string; debugEventId: string }> {
     const headersAsMap = (request.headers ?? [])
-      .filter((header) => !!header.value)
+      .filter(header => !!header.value)
       .reduce(
         (acc, current) => {
           acc[current.key] = acc[current.key] ? [...acc[current.key], current.value] : [current.value];
@@ -88,13 +88,13 @@ export class DebugModeV4Service extends DebugModeService {
         },
         apiId,
       )
-      .pipe(map((event) => ({ apiId: apiId, debugEventId: event.id })));
+      .pipe(map(event => ({ apiId: apiId, debugEventId: event.id })));
   }
 
   private getDebugEvent(apiId: string, eventId: string): Observable<DebugEvent> {
     return this.eventService.findById(apiId, eventId).pipe(
-      filter((event) => event.type === 'DEBUG_API'),
-      map((event) => ({
+      filter(event => event.type === 'DEBUG_API'),
+      map(event => ({
         id: event.id,
         payload: JSON.parse(event.payload),
         status: event.properties.API_DEBUG_STATUS === 'SUCCESS' ? 'SUCCESS' : 'FAILED',

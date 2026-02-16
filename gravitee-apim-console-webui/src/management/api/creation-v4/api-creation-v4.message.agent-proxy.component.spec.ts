@@ -180,7 +180,7 @@ describe('ApiCreationV4Component - Message - Agent Proxy', () => {
 
       httpExpects.expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE', supportedListenerType: 'HTTP' }]);
 
-      await step2Harness.getAsyncEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+      await step2Harness.getAsyncEntrypoints().then(form => form.selectOptionsByIds(['sse']));
       await step2Harness.clickValidate();
       httpExpects.expectRestrictedDomainsGetRequest([]);
       httpExpects.expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);

@@ -40,7 +40,7 @@ export class DebugModeTimelineHoverComponent implements OnInit, OnDestroy {
     if (this.timelineHover) {
       this.DebugModeTimelineHoverService.hoveredChanges(this.timelineHover)
         .pipe(takeUntil(this.unsubscribe$))
-        .subscribe((isHover) => {
+        .subscribe(isHover => {
           isHover
             ? this.renderer.addClass(this.hostElement.nativeElement, 'hover')
             : this.renderer.removeClass(this.hostElement.nativeElement, 'hover');

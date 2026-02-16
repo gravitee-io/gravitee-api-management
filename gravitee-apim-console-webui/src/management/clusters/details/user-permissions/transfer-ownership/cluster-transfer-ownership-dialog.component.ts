@@ -79,8 +79,8 @@ export class ClusterTransferOwnershipDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) dialogData: TransferOwnershipDialogData,
     public dialogRef: MatDialogRef<TransferOwnershipDialogData, TransferOwnershipDialogResult>,
   ) {
-    this.poRoles = dialogData.roles.filter((role) => role.name !== 'PRIMARY_OWNER');
-    this.entityMembers = dialogData.members.filter((member) => !member.roles?.map((r) => r.name)?.includes('PRIMARY_OWNER'));
+    this.poRoles = dialogData.roles.filter(role => role.name !== 'PRIMARY_OWNER');
+    this.entityMembers = dialogData.members.filter(member => !member.roles?.map(r => r.name)?.includes('PRIMARY_OWNER'));
   }
 
   ngOnInit(): void {
@@ -88,7 +88,7 @@ export class ClusterTransferOwnershipDialogComponent implements OnInit {
   }
 
   private initForm() {
-    const defaultRolePO = this.poRoles.find((role) => role.default);
+    const defaultRolePO = this.poRoles.find(role => role.default);
     this.form = new FormGroup(
       {
         transferMode: new FormControl('ENTITY_MEMBER'),

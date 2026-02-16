@@ -71,8 +71,8 @@ describe('ApiNavigationComponent', () => {
     });
 
     describe('Banners', () => {
-      it('should display "Out of sync" banner', (done) => {
-        apiNgNavigationComponent.banners$.subscribe((banners) => {
+      it('should display "Out of sync" banner', done => {
+        apiNgNavigationComponent.banners$.subscribe(banners => {
           expect(banners).toEqual([
             {
               title: 'This API is out of sync.',
@@ -101,8 +101,8 @@ describe('ApiNavigationComponent', () => {
           })
           .flush({ ok: true });
       });
-      it('should display "API version out-of-date" banner', (done) => {
-        apiNgNavigationComponent.banners$.subscribe((banners) => {
+      it('should display "API version out-of-date" banner', done => {
+        apiNgNavigationComponent.banners$.subscribe(banners => {
           expect(banners.length).toEqual(1);
           expect(banners[0]).toMatchObject({
             title: 'API version out-of-date',
@@ -129,8 +129,8 @@ describe('ApiNavigationComponent', () => {
           })
           .flush({ ok: true });
       });
-      it('should display "API cannot be deployed" banner', (done) => {
-        apiNgNavigationComponent.banners$.subscribe((banners) => {
+      it('should display "API cannot be deployed" banner', done => {
+        apiNgNavigationComponent.banners$.subscribe(banners => {
           expect(banners).toEqual([
             {
               title: 'This API cannot be deployed.',
@@ -235,7 +235,7 @@ describe('ApiNavigationComponent', () => {
             'API Traffic',
             'Logs',
             'API Score',
-          ].map((name) =>
+          ].map(name =>
             expect.objectContaining({
               name,
               routerLink: expect.not.stringContaining('./') && expect.stringContaining(`${ENVIRONMENT_ID}/apis/${API_ID}/`),
@@ -280,7 +280,7 @@ describe('ApiNavigationComponent', () => {
             'Events',
             'Notification settings',
             'API Score',
-          ].map((name) =>
+          ].map(name =>
             expect.objectContaining({
               name,
               routerLink: expect.not.stringContaining('./') && expect.stringContaining(`${ENVIRONMENT_ID}/apis/${API_ID}/`),

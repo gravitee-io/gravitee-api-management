@@ -57,20 +57,20 @@ export class DocumentationManagementComponent extends UpgradeComponent {
     this.activatedRoute.params
       .pipe(
         distinctUntilChanged(isEqual),
-        tap((params) => {
+        tap(params => {
           if (params.apiId) {
-            this.ajsApiService.get(params.apiId).then((res) => {
+            this.ajsApiService.get(params.apiId).then(res => {
               this.readOnly = res.data?.definition_context?.origin === 'kubernetes';
             });
           }
         }),
-        switchMap((params) => {
+        switchMap(params => {
           this.firstChange = true;
           this.apiId = params.apiId;
 
           return combineLatest([
-            from(this.ajsDocumentationService.search({ type: 'FOLDER' }, this.apiId).then((response) => response.data)),
-            from(this.ajsDocumentationService.search({ type: 'SYSTEM_FOLDER' }, this.apiId).then((response) => response.data)),
+            from(this.ajsDocumentationService.search({ type: 'FOLDER' }, this.apiId).then(response => response.data)),
+            from(this.ajsDocumentationService.search({ type: 'SYSTEM_FOLDER' }, this.apiId).then(response => response.data)),
           ]);
         }),
         switchMap(([folders, systemFolders]) => {
@@ -80,18 +80,18 @@ export class DocumentationManagementComponent extends UpgradeComponent {
           return this.activatedRoute.queryParams;
         }),
         distinctUntilChanged(isEqual),
-        switchMap((queryParams) => {
+        switchMap(queryParams => {
           this.parent = queryParams.parent;
 
           return from(
             this.ajsDocumentationService
               .search(isEmpty(this.parent) ? { root: true } : { parent: this.parent }, this.apiId)
-              .then((response) => {
+              .then(response => {
                 return response.data;
               }),
           );
         }),
-        tap((pages) => {
+        tap(pages => {
           this.pages = pages;
 
           // Hack to Force the binding between Angular and AngularJS
