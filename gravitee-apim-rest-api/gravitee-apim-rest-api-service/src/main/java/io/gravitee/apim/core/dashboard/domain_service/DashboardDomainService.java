@@ -42,6 +42,10 @@ public class DashboardDomainService {
         return dashboardCrudService.findById(dashboardId);
     }
 
+    public List<Dashboard> findByOrganizationId(String organizationId) {
+        return dashboardCrudService.findByOrganizationId(organizationId);
+    }
+
     public Dashboard create(Dashboard dashboard) {
         ofNullable(dashboard.getWidgets()).ifPresent(this::validateWidgets);
         return dashboardCrudService.create(dashboard);

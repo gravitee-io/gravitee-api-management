@@ -30,6 +30,7 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetLayo
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetType;
 import java.time.OffsetDateTime;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -53,6 +54,8 @@ public interface DashboardMapper {
     Dashboard map(UpdateDashboard updateDashboard);
 
     io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Dashboard map(Dashboard dashboard);
+
+    List<io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Dashboard> mapList(List<Dashboard> dashboards);
 
     @Mapping(target = "type", expression = "java(mapWidgetTypeToString(widget.getType()))")
     @Mapping(target = "request", expression = "java(mapToDomainRequest(widget.getRequest()))")
