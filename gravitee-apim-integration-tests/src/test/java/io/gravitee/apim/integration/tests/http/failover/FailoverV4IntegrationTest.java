@@ -609,6 +609,13 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
         void should_success_on_second_retry(HttpClient client) {
             super.should_success_on_second_retry(client);
         }
+
+        @Override
+        @Test
+        @DeployApi("/apis/v4/http/failover/api-three-endpoints-query-params.json")
+        void should_success_on_second_retry_with_endpoint_having_query_params(HttpClient client) {
+            super.should_success_on_second_retry_with_endpoint_having_query_params(client);
+        }
     }
 
     @Nested
