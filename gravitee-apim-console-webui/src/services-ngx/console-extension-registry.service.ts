@@ -15,7 +15,7 @@
  */
 import { Injectable } from '@angular/core';
 
-import { ConsoleExtension, ConsoleExtensionComponent } from './console-extension-loader';
+import { ConsoleExtension } from './console-extension-loader';
 
 export interface ResolvedExtensionComponent {
   pluginId: string;
