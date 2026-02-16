@@ -60,7 +60,9 @@ public class RevokeApiSubscriptionApiKeyUseCase {
         }
 
         var subscription = subscriptionCrudService.get(input.subscriptionId);
-        if (!subscription.getApiId().equals(input.apiId)) {
+        if (
+            !subscription.getReferenceId().equals(input.referenceId) || !subscription.getReferenceType().name().equals(input.referenceType)
+        ) {
             throw new SubscriptionNotFoundException(input.subscriptionId);
         }
 
@@ -81,7 +83,7 @@ public class RevokeApiSubscriptionApiKeyUseCase {
         return new Output(revokeApiKeyDomainService.revoke(apiKey.get(), input.auditInfo()));
     }
 
-    public record Input(String apiKeyId, String apiId, String subscriptionId, AuditInfo auditInfo) {}
+    public record Input(String apiKeyId, String referenceId, String referenceType, String subscriptionId, AuditInfo auditInfo) {}
 
     public record Output(ApiKeyEntity apiKey) {}
 }

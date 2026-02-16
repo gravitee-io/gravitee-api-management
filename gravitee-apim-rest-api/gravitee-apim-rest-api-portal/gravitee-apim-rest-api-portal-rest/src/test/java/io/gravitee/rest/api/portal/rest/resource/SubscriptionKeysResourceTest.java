@@ -90,6 +90,8 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
 
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setApi(API);
+        subscriptionEntity.setReferenceId(API);
+        subscriptionEntity.setReferenceType("API");
         subscriptionEntity.setApplication(APPLICATION);
         doReturn(subscriptionEntity).when(subscriptionService).findById(eq(SUBSCRIPTION));
         doReturn(true).when(permissionService).hasPermission(any(), any(), any(), any());
@@ -196,6 +198,8 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
                     .toBuilder()
                     .id(SUBSCRIPTION)
                     .apiId(API)
+                    .referenceId(API)
+                    .referenceType(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API)
                     .applicationId(APPLICATION)
                     .build()
             )
@@ -264,6 +268,8 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
                     .toBuilder()
                     .id(SUBSCRIPTION)
                     .apiId(API)
+                    .referenceId(API)
+                    .referenceType(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API)
                     .applicationId(APPLICATION)
                     .build()
             )
@@ -307,6 +313,8 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
                     .toBuilder()
                     .id(SUBSCRIPTION)
                     .apiId(API)
+                    .referenceId(API)
+                    .referenceType(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API)
                     .applicationId(APPLICATION)
                     .build()
             )

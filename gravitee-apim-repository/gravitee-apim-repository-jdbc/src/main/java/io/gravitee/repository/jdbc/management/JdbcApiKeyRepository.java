@@ -434,6 +434,36 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     }
 
     @Override
+    public Optional<ApiKey> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType)
+        throws TechnicalException {
+        log.debug("JdbcApiKeyRepository.findByKeyAndReferenceIdAndReferenceType(****, {}, {})", referenceId, referenceType);
+        try {
+            String query =
+                getOrm().getSelectAllSql() +
+                " k" +
+                " join " +
+                keySubscriptions +
+                " ks on ks.key_id = k.id" +
+                " join " +
+                subscription +
+                " s on ks.subscription_id = s.id " +
+                " where k." +
+                escapeReservedWord("key") +
+                " = ?" +
+                " and s.reference_id = ?" +
+                " and s.reference_type = ?";
+
+            CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+
+            jdbcTemplate.query(query, rowMapper, key, referenceId, referenceType);
+
+            return rowMapper.getRows().stream().findFirst();
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to find API Key by key, referenceId and referenceType", ex);
+        }
+    }
+
+    @Override
     public Optional<ApiKey> findById(String id) throws TechnicalException {
         log.debug("JdbcApiKeyRepository.findById({})", id);
         try {

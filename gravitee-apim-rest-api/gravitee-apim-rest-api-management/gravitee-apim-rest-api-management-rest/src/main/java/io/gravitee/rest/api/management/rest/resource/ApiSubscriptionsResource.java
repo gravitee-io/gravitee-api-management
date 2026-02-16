@@ -264,7 +264,13 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @Parameter(name = "key", required = true) @CustomApiKey @NotNull @QueryParam("key") String key,
         @Parameter(name = "application", required = true) @NotNull @QueryParam("application") String application
     ) {
-        boolean canCreate = apiKeyService.canCreate(GraviteeContext.getExecutionContext(), key, api, application);
+        boolean canCreate = apiKeyService.canCreate(
+            GraviteeContext.getExecutionContext(),
+            key,
+            api,
+            io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
+            application
+        );
         return Response.ok(canCreate).build();
     }
 

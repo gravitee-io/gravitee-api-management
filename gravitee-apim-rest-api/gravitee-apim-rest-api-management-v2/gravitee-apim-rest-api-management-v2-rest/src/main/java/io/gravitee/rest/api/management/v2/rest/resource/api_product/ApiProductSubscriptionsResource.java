@@ -33,9 +33,11 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.validator.CustomApiKey;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -46,6 +48,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
@@ -73,6 +76,9 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
 
     @Inject
     private CreateSubscriptionUseCase createSubscriptionUseCase;
+
+    @Inject
+    private ApiKeyService apiKeyService;
 
     @Inject
     private ParameterService parameterService;
@@ -106,6 +112,42 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
                 .pagination(PaginationInfo.computePaginationInfo((long) totalCount, pageData.size(), paginationParam))
                 .links(computePaginationLinks(totalCount, paginationParam))
         ).build();
+    }
+
+    @GET
+    @Path("_canCreate")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.READ }) })
+    public Response canCreateApiProductSubscription(
+        @QueryParam("key") @CustomApiKey @NotNull String key,
+        @QueryParam("application") @NotNull String application
+    ) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        boolean canCreate = apiKeyService.canCreate(
+            executionContext,
+            key,
+            apiProductId,
+            SubscriptionReferenceType.API_PRODUCT.name(),
+            application
+        );
+        return Response.ok(canCreate).build();
+    }
+
+    @POST
+    @Path("_verify")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.CREATE }) })
+    public Response verifyCreateApiProductSubscription(@Valid @NotNull VerifySubscription verifySubscription) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        boolean canCreate = apiKeyService.canCreate(
+            executionContext,
+            verifySubscription.getApiKey(),
+            apiProductId,
+            SubscriptionReferenceType.API_PRODUCT.name(),
+            verifySubscription.getApplicationId()
+        );
+        return Response.ok(new VerifySubscriptionResponse().ok(canCreate)).build();
     }
 
     @POST

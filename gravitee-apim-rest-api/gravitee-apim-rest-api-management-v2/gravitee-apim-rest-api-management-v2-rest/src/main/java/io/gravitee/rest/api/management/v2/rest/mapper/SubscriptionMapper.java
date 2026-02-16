@@ -95,6 +95,9 @@ public interface SubscriptionMapper {
 
     @Named("toBaseSubscriptionsList")
     default List<BaseSubscription> mapToBaseSubscriptionList(List<String> subscriptionIds) {
+        if (subscriptionIds == null) {
+            return List.of();
+        }
         return subscriptionIds
             .stream()
             .map(id -> new BaseSubscription().id(id))

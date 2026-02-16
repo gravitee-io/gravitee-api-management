@@ -300,6 +300,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             GraviteeContext.getExecutionContext(),
             verifySubscriptionSubscription.getApiKey(),
             apiId,
+            SubscriptionReferenceType.API.name(),
             verifySubscriptionSubscription.getApplicationId()
         );
         return Response.ok(new VerifySubscriptionResponse().ok(canCreate)).build();
@@ -668,6 +669,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             new RevokeApiSubscriptionApiKeyUseCase.Input(
                 apiKeyId,
                 apiId,
+                SubscriptionReferenceType.API.name(),
                 subscriptionId,
                 AuditInfo.builder()
                     .organizationId(executionContext.getOrganizationId())
@@ -682,7 +684,6 @@ public class ApiSubscriptionsResource extends AbstractResource {
                     .build()
             )
         );
-
         return Response.ok(subscriptionMapper.mapToApiKey(result.apiKey())).build();
     }
 

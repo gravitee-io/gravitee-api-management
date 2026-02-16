@@ -28,8 +28,12 @@ servers:
         default: DEFAULT
 
 tags:
-  - name: API Products
-    description: Everything about API Products - collections of bundled APIs
+  - name: API Product
+    description: API Product lifecycle - create, read, update, delete, verify, deploy
+  - name: API Product Subscriptions
+    description: Subscribe applications to API Product plans and manage subscriptions
+  - name: API Product Plans
+    description: Define and manage plans (pricing/access tiers) for API Products
 
 paths:
   /environments/{envId}/api-products/_verify:
@@ -39,7 +43,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/envIdParam"
       tags:
-        - API Products
+        - API Product
       summary: Verify API Product name uniqueness
       description: |-
         Verify that the API Product name is unique before creating or updating an API Product.<br>
@@ -70,7 +74,7 @@ paths:
       - $ref: "#/components/parameters/envIdParam"
     get:
       tags:
-        - API Products
+        - API Product
       summary: List all API Products in the environment
       description: |-
         Retrieve a paginated list of all API Products in the specified environment.
@@ -144,7 +148,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     post:
       tags:
-        - API Products
+        - API Product
       summary: Create an API Product
       description: |-
         Create a new API Product in the given environment.
@@ -224,7 +228,7 @@ paths:
       - $ref: "#/components/parameters/apiProductIdParam"
     get:
       tags:
-        - API Products
+        - API Product
       summary: Get an API Product by ID
       parameters:
         - name: envId
@@ -252,7 +256,7 @@ paths:
                 $ref: '#/components/schemas/Error'
     put:
       tags:
-        - API Products
+        - API Product
       summary: Update an API Product by ID
       description: |
         Update an existing API Product in the environment.
@@ -324,7 +328,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
-        - API Products
+        - API Product
       summary: Delete an API Product by ID
       description: Delete an existing API Product in the environment.
       operationId: deleteApiProduct
@@ -352,7 +356,7 @@ paths:
       - $ref: "#/components/parameters/apiProductIdParam"
     post:
       tags:
-        - API Products
+        - API Product
       summary: Request a deployment to gateway instances
       description: |-
         Request a deployment for a given API Product. <br>
@@ -386,13 +390,282 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /environments/{envId}/api-products/{apiProductId}/plans:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+    get:
+      tags:
+        - API Product Plans
+      summary: List plans for the API Product
+      description: List all plans of the API Product. User must have API_PRODUCT_PLAN[READ] permission.
+      operationId: getApiProductPlans
+      parameters:
+        - name: statuses
+          in: query
+          description: Filter by plan status(es)
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/PlanStatus"
+            default: ["PUBLISHED"]
+        - name: securities
+          in: query
+          description: Filter by security type(s)
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/PlanSecurityType"
+        - name: mode
+          in: query
+          description: Filter by plan mode (STANDARD or PUSH)
+          required: false
+          schema:
+            $ref: "#/components/schemas/PlanMode"
+        - name: subscribableBy
+          in: query
+          description: Filter plans subscribable by the given user/group
+          required: false
+          schema:
+            type: string
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/perPageParam"
+      responses:
+        '200':
+          $ref: '#/components/responses/ApiProductPlansResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - API Product Plans
+      summary: Create a plan for the API Product
+      description: Create a new plan. User must have API_PRODUCT_PLAN[CREATE] permission.
+      operationId: createApiProductPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApiProductPlan'
+      responses:
+        '201':
+          description: Plan successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiProductPlan'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/plans/{planId}:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - $ref: "#/components/parameters/apiProductPlanIdParam"
+    get:
+      tags:
+        - API Product Plans
+      summary: Get an API Product plan by ID
+      description: User must have API_PRODUCT_PLAN[READ] permission.
+      operationId: getApiProductPlan
+      responses:
+        '200':
+          description: The API Product plan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiProductPlan'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - API Product Plans
+      summary: Update an API Product plan
+      description: User must have API_PRODUCT_PLAN[UPDATE] permission.
+      operationId: updateApiProductPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGenericApiProductPlan'
+      responses:
+        '200':
+          description: Plan successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiProductPlan'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - API Product Plans
+      summary: Delete an API Product plan
+      description: User must have API_PRODUCT_PLAN[DELETE] permission.
+      operationId: deleteApiProductPlan
+      responses:
+        '204':
+          description: Plan successfully deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/plans/{planId}/_close:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - $ref: "#/components/parameters/apiProductPlanIdParam"
+    post:
+      tags:
+        - API Product Plans
+      summary: Close an API Product plan
+      description: User must have API_PRODUCT_PLAN[UPDATE] permission.
+      operationId: closeApiProductPlan
+      responses:
+        '200':
+          description: Plan closed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiProductPlan'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/plans/{planId}/_publish:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - $ref: "#/components/parameters/apiProductPlanIdParam"
+    post:
+      tags:
+        - API Product Plans
+      summary: Publish an API Product plan
+      description: User must have API_PRODUCT_PLAN[UPDATE] permission.
+      operationId: publishApiProductPlan
+      responses:
+        '200':
+          description: Plan published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiProductPlan'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/plans/{planId}/_deprecate:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - $ref: "#/components/parameters/apiProductPlanIdParam"
+    post:
+      tags:
+        - API Product Plans
+      summary: Deprecate an API Product plan
+      description: User must have API_PRODUCT_PLAN[UPDATE] permission.
+      operationId: deprecateApiProductPlan
+      responses:
+        '200':
+          description: Plan deprecated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiProductPlan'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /environments/{envId}/api-products/{apiProductId}/subscriptions:
     parameters:
       - $ref: "#/components/parameters/envIdParam"
       - $ref: "#/components/parameters/apiProductIdParam"
     get:
       tags:
-        - API Products
+        - API Product Subscriptions
       summary: List subscriptions for the API Product
       description: List all subscriptions for the specified API Product. User must have API_PRODUCT_SUBSCRIPTION[READ] permission.
       operationId: getApiProductSubscriptions
@@ -435,7 +708,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     post:
       tags:
-        - API Products
+        - API Product Subscriptions
       summary: Create a subscription to an API Product plan
       description: Subscribe an application to an API Product plan. User must have API_PRODUCT_SUBSCRIPTION[CREATE] permission.
       operationId: createApiProductSubscription
@@ -467,6 +740,82 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /environments/{envId}/api-products/{apiProductId}/subscriptions/_canCreate:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - name: key
+        in: query
+        description: The API Key to check.
+        required: true
+        schema:
+          type: string
+      - name: application
+        in: query
+        description: The application ID.
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - API Product Subscriptions
+      summary: Check a subscription can be created with given API Key and application
+      description: |-
+        Check whether a subscription can be created with the given API Key and application for this API Product.
+
+        User must have API_PRODUCT_SUBSCRIPTION[READ] permission.
+      operationId: canCreateApiProductSubscription
+      responses:
+        '200':
+          description: API Key creation check result (true if the key can be used, false otherwise).
+          content:
+            application/json:
+              schema:
+                type: boolean
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/subscriptions/_verify:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+    post:
+      tags:
+        - API Product Subscriptions
+      summary: Check a subscription can be created
+      description: |-
+        Check a subscription can be created with the given API Key and application for this API Product.
+
+        User must have API_PRODUCT_SUBSCRIPTION[CREATE] permission.
+      operationId: verifyCreateApiProductSubscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifySubscription'
+      responses:
+        '200':
+          description: Verification successfully performed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifySubscriptionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /environments/{envId}/api-products/{apiProductId}/subscriptions/{subscriptionId}:
     parameters:
       - $ref: "#/components/parameters/envIdParam"
@@ -479,7 +828,7 @@ paths:
           type: string
     get:
       tags:
-        - API Products
+        - API Product Subscriptions
       summary: Get an API Product subscription by ID
       description: User must have API_PRODUCT_SUBSCRIPTION[READ] permission.
       operationId: getApiProductSubscription
@@ -504,7 +853,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     put:
       tags:
-        - API Products
+        - API Product Subscriptions
       summary: Update an API Product subscription
       description: User must have API_PRODUCT_SUBSCRIPTION[UPDATE] permission.
       operationId: updateApiProductSubscription
@@ -547,7 +896,7 @@ paths:
           type: string
     post:
       tags:
-        - API Products
+        - API Product Subscriptions
       summary: Accept an API Product subscription
       description: User must have API_PRODUCT_SUBSCRIPTION[UPDATE] permission.
       operationId: acceptApiProductSubscription
@@ -589,7 +938,7 @@ paths:
           type: string
     post:
       tags:
-        - API Products
+        - API Product Subscriptions
       summary: Reject an API Product subscription
       description: User must have API_PRODUCT_SUBSCRIPTION[UPDATE] permission.
       operationId: rejectApiProductSubscription
@@ -631,7 +980,7 @@ paths:
           type: string
     post:
       tags:
-        - API Products
+        - API Product Subscriptions
       summary: Close an API Product subscription
       description: User must have API_PRODUCT_SUBSCRIPTION[UPDATE] permission.
       operationId: closeApiProductSubscription
@@ -642,6 +991,371 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Subscription'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/subscriptions/{subscriptionId}/_pause:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - API Product Subscriptions
+      summary: Pause an API Product subscription
+      description: User must have API_PRODUCT_SUBSCRIPTION[UPDATE] permission.
+      operationId: pauseApiProductSubscription
+      responses:
+        '200':
+          description: Subscription paused
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/subscriptions/{subscriptionId}/_resume:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - API Product Subscriptions
+      summary: Resume a paused API Product subscription
+      description: User must have API_PRODUCT_SUBSCRIPTION[UPDATE] permission.
+      operationId: resumeApiProductSubscription
+      responses:
+        '200':
+          description: Subscription resumed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/subscriptions/{subscriptionId}/_resumeFailure:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - API Product Subscriptions
+      summary: Resume a failed API Product subscription
+      description: User must have API_PRODUCT_SUBSCRIPTION[UPDATE] permission.
+      operationId: resumeFailedApiProductSubscription
+      responses:
+        '200':
+          description: Subscription resumed after failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/subscriptions/{subscriptionId}/_transfer:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - API Product Subscriptions
+      summary: Transfer an API Product subscription to another plan
+      description: |-
+        Transfer the subscription to another API Product plan.
+        The targeted plan must be published and must have the same security type.
+        User must have API_PRODUCT_SUBSCRIPTION[UPDATE] permission.
+      operationId: transferApiProductSubscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferSubscription'
+      responses:
+        '200':
+          description: Subscription transferred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/subscriptions/{subscriptionId}/api-keys:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - API Product Subscriptions
+      summary: Get API Product subscription API Keys
+      description: User must have API_PRODUCT_SUBSCRIPTION[READ] permission.
+      operationId: getApiProductSubscriptionApiKeys
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/perPageParam"
+      responses:
+        '200':
+          description: Paged list of subscription API Keys
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionApiKeysResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/subscriptions/{subscriptionId}/api-keys/_renew:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - API Product Subscriptions
+      summary: Renew API Product subscription API Key
+      description: |-
+        Renew the subscription API Key; the newly created API Key is returned.
+        User must have API_PRODUCT_SUBSCRIPTION[UPDATE] permission.
+      operationId: renewApiProductSubscriptionApiKeys
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RenewApiKey'
+      responses:
+        '200':
+          description: New API Key created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKey'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: apiKeyId
+        in: path
+        required: true
+        description: The ID of the API Key
+        schema:
+          type: string
+    put:
+      tags:
+        - API Product Subscriptions
+      summary: Update an API Product subscription API Key
+      description: User must have API_PRODUCT_SUBSCRIPTION[UPDATE] permission.
+      operationId: updateApiProductSubscriptionApiKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateApiKey'
+      responses:
+        '200':
+          description: API Key updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKey'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}/_revoke:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: apiKeyId
+        in: path
+        required: true
+        description: The ID of the API Key
+        schema:
+          type: string
+    post:
+      tags:
+        - API Product Subscriptions
+      summary: Revoke an API Product subscription API Key
+      description: User must have API_PRODUCT_SUBSCRIPTION[UPDATE] permission.
+      operationId: revokeApiProductSubscriptionApiKey
+      responses:
+        '200':
+          description: API Key revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKey'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}/_reactivate:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: apiKeyId
+        in: path
+        required: true
+        description: The ID of the API Key
+        schema:
+          type: string
+    post:
+      tags:
+        - API Product Subscriptions
+      summary: Reactivate an API Product subscription API Key
+      description: User must have API_PRODUCT_SUBSCRIPTION[UPDATE] permission.
+      operationId: reactivateApiProductSubscriptionApiKey
+      responses:
+        '200':
+          description: API Key reactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKey'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -1284,6 +1998,113 @@ components:
       properties:
         reason:
           type: string
+    VerifySubscription:
+      type: object
+      description: Request to verify that a subscription can be created with the given API Key and application.
+      properties:
+        applicationId:
+          type: string
+          description: The id of the application subscribing.
+        apiKey:
+          type: string
+          description: 'The API Key that needs to be verified. Should not contain: ^ # % @ \\ / ; = ? | ~ , (space)'
+          pattern: '^[^#%@/;=?|^~, \\]*$'
+      required:
+        - applicationId
+        - apiKey
+    VerifySubscriptionResponse:
+      type: object
+      description: Response indicating whether the subscription creation can be done.
+      properties:
+        ok:
+          type: boolean
+          description: Indicates whether the creation can be done or not.
+        reason:
+          type: string
+          description: An optional reason giving details about the result.
+    TransferSubscription:
+      type: object
+      description: Request to transfer a subscription to another plan
+      properties:
+        planId:
+          type: string
+          description: The plan identifier to transfer the subscription to.
+    ApiKey:
+      type: object
+      description: API Key representation for a subscription
+      properties:
+        id:
+          type: string
+          description: The internal UUID of the API Key.
+        key:
+          type: string
+          description: The API Key value to use to call the protected API.
+        application:
+          type: object
+          description: The application owning this API Key.
+          properties:
+            id:
+              type: string
+        subscriptions:
+          type: array
+          description: The list of subscriptions using this API Key.
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+        revoked:
+          type: boolean
+          description: Flag indicating that the API Key has been revoked.
+        paused:
+          type: boolean
+          description: Flag indicating that the API Key has been paused.
+        expired:
+          type: boolean
+          description: Flag indicating that the API Key has expired.
+        expireAt:
+          type: string
+          format: date-time
+          description: The datetime when the API Key expires.
+        createdAt:
+          type: string
+          format: date-time
+          description: The datetime when the API Key has been created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: The datetime when the API Key has been updated.
+        revokedAt:
+          type: string
+          format: date-time
+          description: The datetime when the API Key has been revoked.
+    UpdateApiKey:
+      type: object
+      description: Request to update an API Key
+      properties:
+        expireAt:
+          type: string
+          format: date-time
+          description: The datetime when the API Key expires.
+    RenewApiKey:
+      type: object
+      description: Request to renew an API Key
+      properties:
+        customApiKey:
+          type: string
+          description: Optional custom API Key when custom API Key support is enabled.
+    SubscriptionApiKeysResponse:
+      type: object
+      description: Paged list of subscription API Keys
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiKey'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        links:
+          $ref: '#/components/schemas/Links'
     SubscriptionsResponse:
       type: object
       description: Paged list of subscriptions
