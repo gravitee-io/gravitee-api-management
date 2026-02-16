@@ -8,6 +8,7 @@ module.exports = {
     },
   },
   plugins: ['unused-imports'],
+  ignorePatterns: ['dist', 'coverage', "storybook-static"],
   overrides: [
     {
       files: ['*.ts'],

@@ -27,8 +27,21 @@
             "inputs": ["default", "^production", "{workspaceRoot}/jest.preset.js"],
             "cache": true
         },
-        "lint": {
+        "lint-eslint": {
             "inputs": ["default", "{workspaceRoot}/.eslintrc.js"],
+            "cache": true
+        },
+        "lint-license": {
+            "executor": "nx:run-commands",
+            "options": {
+                "fix": false,
+                "cwd": "{projectRoot}",
+                "command": "sh -c 'if [ \"$1\" = \"--fix\" ]; then license-check-and-add add -r $(date +%Y) -f license-check-config.json; else license-check-and-add check -f license-check-config.json; fi' _"
+            },
+            "cache": true
+        },
+        "lint": {
+            "dependsOn": ["lint-eslint", "lint-license"],
             "cache": true
         },
         "serve": {}
@@ -52,7 +65,7 @@
         "default": {
             "runner": "nx/tasks-runners/default",
             "options": {
-                "cacheableOperations": ["build", "lint", "test"]
+                "cacheableOperations": ["build", "lint", "lint-eslint", "lint-license", "test"]
             }
         }
     }
