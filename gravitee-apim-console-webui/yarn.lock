@@ -13516,7 +13516,7 @@ __metadata:
     jest-canvas-mock: "npm:2.5.2"
     jest-environment-jsdom: "npm:29.7.0"
     jest-junit: "npm:16.0.0"
-    jest-preset-angular: "npm:14.6.1"
+    jest-preset-angular: "npm:14.6.2"
     jquery: "npm:3.7.1"
     js-yaml: "npm:4.1.1"
     jwt-decode: "npm:4.0.0"
@@ -15165,9 +15165,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-preset-angular@npm:14.6.1":
-  version: 14.6.1
-  resolution: "jest-preset-angular@npm:14.6.1"
+"jest-preset-angular@npm:14.6.2":
+  version: 14.6.2
+  resolution: "jest-preset-angular@npm:14.6.2"
   dependencies:
     bs-logger: "npm:^0.2.6"
     esbuild: "npm:>=0.15.13"
@@ -15189,7 +15189,7 @@ __metadata:
   peerDependenciesMeta:
     jsdom:
       optional: true
-  checksum: 10c0/31c80913dc5513997f80bb546c2c355c578ba7114b33a0c1e34a29d9544d5b2cf96fed6dbfd9c0ec79a94c4155cf9758f8c816d5b96b507909a29e9173214b07
+  checksum: 10c0/e34570f6f5e0930a69053d8b546d60639d6caee0f666eb8b9e4e8dc9e9537a0d48d91d2f729487cd8eddac40b01d8b4ac64f933db750553ed8a6ac58d4c87d6e
   languageName: node
   linkType: hard
 
