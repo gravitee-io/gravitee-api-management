@@ -17,11 +17,16 @@ package io.gravitee.rest.api.management.v2.rest.resource.analytics.dashboards;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.dashboard.model.Dashboard;
 import io.gravitee.apim.core.dashboard.use_case.CreateDashboardUseCase;
+import io.gravitee.apim.core.dashboard.use_case.ListDashboardsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.DashboardMapper;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CreateDashboard;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.DashboardsResponse;
+import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -30,13 +35,16 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import lombok.CustomLog;
 
 /**
@@ -50,6 +58,26 @@ public class DashboardsResource extends AbstractResource {
 
     @Inject
     private CreateDashboardUseCase createDashboardUseCase;
+
+    @Inject
+    private ListDashboardsUseCase listDashboardsUseCase;
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_DASHBOARD, acls = { RolePermissionAction.READ }) })
+    public Response listDashboards(@BeanParam @Valid PaginationParam paginationParam) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var output = listDashboardsUseCase.execute(new ListDashboardsUseCase.Input(executionContext.getOrganizationId()));
+        List<Dashboard> allData = output.dashboards();
+        List<Dashboard> paginationData = computePaginationData(allData, paginationParam);
+
+        var response = new DashboardsResponse()
+            .data(DashboardMapper.INSTANCE.mapList(paginationData))
+            .pagination(PaginationInfo.computePaginationInfo(allData.size(), paginationData.size(), paginationParam))
+            .links(computePaginationLinks(allData.size(), paginationParam));
+
+        return Response.ok(response).build();
+    }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)

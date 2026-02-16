@@ -725,6 +725,86 @@ paths:
                                 $ref: "#/components/schemas/Error"
 
     /analytics/dashboards:
+        get:
+            operationId: listDashboards
+            summary: List custom analytics dashboards
+            description: |
+                Retrieves a paginated list of all custom analytics dashboards for the current organization.
+            tags:
+                - dashboards
+            parameters:
+                - name: page
+                  in: query
+                  description: Page number (starting from 1)
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      default: 1
+                - name: perPage
+                  in: query
+                  description: Number of items per page
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      default: 10
+            responses:
+                "200":
+                    description: List of dashboards for the current organization.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DashboardsResponse"
+                            examples:
+                                dashboards-list:
+                                    summary: A paginated list of dashboards
+                                    value:
+                                        data:
+                                            - id: "d0152e36-ad24-4f74-a4df-443074d5a796"
+                                              name: "llm-proxy"
+                                              createdBy: "e2b573b4-30c8-4c7b-a67b-ad4ab15502d1"
+                                              createdAt: "2025-10-07T06:50:30Z"
+                                              lastModified: "2025-10-07T06:50:30Z"
+                                              labels:
+                                                  graviteeio/team: "apim"
+                                              widgets:
+                                                  - id: "1"
+                                                    title: "Requests"
+                                                    type: "stats"
+                                                    layout:
+                                                        cols: 1
+                                                        rows: 1
+                                                        x: 0
+                                                        "y": 0
+                                                    request:
+                                                        type: "measures"
+                                                        timeRange:
+                                                            from: "2025-10-07T06:50:30Z"
+                                                            to: "2025-12-07T11:35:30Z"
+                                                        metrics:
+                                                            - name: "HTTP_REQUESTS"
+                                                              measures: ["COUNT"]
+                                        pagination:
+                                            page: 1
+                                            perPage: 10
+                                            pageCount: 1
+                                            pageItemsCount: 1
+                                            totalCount: 1
+                                        links:
+                                            self: "/analytics/dashboards?page=1&perPage=10"
+                "403":
+                    description: Forbidden - Insufficient permissions to list dashboards.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "500":
+                    description: Internal server error while listing dashboards.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
         post:
             operationId: createDashboard
             summary: Create a custom analytics dashboard
@@ -1820,6 +1900,94 @@ components:
                           metrics:
                               - name: "HTTP_REQUESTS"
                                 measures: ["COUNT"]
+
+        DashboardsResponse:
+            type: object
+            description: Paginated response containing a list of custom analytics dashboards.
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Dashboard"
+                    description: List of dashboards for the current page
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+                links:
+                    $ref: "#/components/schemas/Links"
+            example:
+                data:
+                    - id: "d0152e36-ad24-4f74-a4df-443074d5a796"
+                      name: "llm-proxy"
+                      createdBy: "e2b573b4-30c8-4c7b-a67b-ad4ab15502d1"
+                      createdAt: "2025-10-07T06:50:30Z"
+                      lastModified: "2025-10-07T06:50:30Z"
+                      labels:
+                          graviteeio/team: "apim"
+                      widgets:
+                          - id: "1"
+                            title: "Requests"
+                            type: "stats"
+                            layout:
+                                cols: 1
+                                rows: 1
+                                x: 0
+                                "y": 0
+                            request:
+                                type: "measures"
+                                timeRange:
+                                    from: "2025-10-07T06:50:30Z"
+                                    to: "2025-12-07T11:35:30Z"
+                                metrics:
+                                    - name: "HTTP_REQUESTS"
+                                      measures: ["COUNT"]
+                pagination:
+                    page: 1
+                    perPage: 10
+                    pageCount: 1
+                    pageItemsCount: 1
+                    totalCount: 1
+                links:
+                    self: "/analytics/dashboards?page=1&perPage=10"
+
+        Pagination:
+            description: Generic object to handle pagination data.
+            type: object
+            properties:
+                page:
+                    type: integer
+                    description: The current page.
+                perPage:
+                    type: integer
+                    description: The number of items requested per page.
+                pageCount:
+                    type: integer
+                    description: The total number of pages.
+                pageItemsCount:
+                    type: integer
+                    description: The number of items for the current page.
+                totalCount:
+                    type: integer
+                    format: int64
+                    description: The total number of items.
+
+        Links:
+            description: List of links for pagination
+            properties:
+                self:
+                    type: string
+                    description: Link to current resource
+                first:
+                    type: string
+                    description: In a paginated response, link to the first page
+                last:
+                    type: string
+                    description: In a paginated response, link to the last page
+                previous:
+                    type: string
+                    description: In a paginated response, link to the previous page. Maybe null if current is the first page
+                next:
+                    type: string
+                    description: In a paginated response, link to the next page. Maybe null if current is the last page
 
         Filter:
             description: |

@@ -17,6 +17,8 @@ package io.gravitee.rest.api.management.v2.rest.resource.analytics.dashboards;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -26,6 +28,7 @@ import fixtures.DashboardFixtures;
 import inmemory.DashboardCrudServiceInMemory;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CreateDashboard;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CustomInterval;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.DashboardsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasureName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName;
@@ -74,7 +77,7 @@ class DashboardsResourceTest extends AbstractResourceTest {
     }
 
     @Nested
-    class CreateDashboardTest {
+    class CreateDashboard {
 
         @Test
         void should_create_dashboard() {
@@ -159,7 +162,7 @@ class DashboardsResourceTest extends AbstractResourceTest {
     }
 
     @Nested
-    class CreateDashboardWidgetValidationTest {
+    class ValidateDashboard {
 
         @Test
         void should_return_400_when_facets_request_has_empty_by() {
@@ -231,6 +234,48 @@ class DashboardsResourceTest extends AbstractResourceTest {
                 .asError()
                 .hasHttpStatus(BAD_REQUEST_400)
                 .hasMessageContaining("measure");
+        }
+    }
+
+    @Nested
+    class ListDashboards {
+
+        @Test
+        void should_return_paginated_list_of_dashboards() {
+            var dashboards = DashboardFixtures.dashboardsForOrganization(ORGANIZATION, 3);
+            dashboardCrudServiceInMemory.initWith(dashboards);
+
+            var response = rootTarget().queryParam("page", 1).queryParam("perPage", 10).request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var body = response.readEntity(DashboardsResponse.class);
+            assertThat(body.getData()).hasSize(3);
+            assertThat(body.getData())
+                .extracting(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Dashboard::getName)
+                .containsExactly("Dashboard 1", "Dashboard 2", "Dashboard 3");
+            assertThat(body.getPagination()).isNotNull();
+            assertThat(body.getPagination().getPage()).isEqualTo(1);
+            assertThat(body.getPagination().getPerPage()).isEqualTo(10);
+            assertThat(body.getPagination().getTotalCount()).isEqualTo(3);
+            assertThat(body.getPagination().getPageItemsCount()).isEqualTo(3);
+            assertThat(body.getLinks()).isNotNull();
+        }
+
+        @Test
+        void should_return_empty_data_with_pagination_when_no_dashboards() {
+            var response = rootTarget().queryParam("page", 1).queryParam("perPage", 10).request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var body = response.readEntity(DashboardsResponse.class);
+            assertThat(body.getData()).isEmpty();
+            assertThat(body.getPagination()).isNotNull();
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(RolePermission.ORGANIZATION_DASHBOARD, ORGANIZATION, RolePermissionAction.READ, () ->
+                rootTarget().request().get()
+            );
         }
     }
 }
