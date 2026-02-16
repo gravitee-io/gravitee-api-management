@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
@@ -110,11 +111,18 @@ public class ApplicationSubscribersResource extends AbstractResource {
             Map<String, Long> nbHitsByApp = getNbHitsByApplication(applicationId);
 
             Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, subscriptionQuery);
-            List<Api> subscribersApis = subscriptions
+            // TODO: Include API Product on Portal. Use referenceId with api fallback for legacy/e2e compatibility.
+            List<String> apiIds = subscriptions
                 .stream()
-                .map(SubscriptionEntity::getApi)
+                .filter(sub -> !SubscriptionReferenceType.API_PRODUCT.name().equals(sub.getReferenceType()))
+                .map(sub -> sub.getReferenceId() != null ? sub.getReferenceId() : sub.getApi())
+                .filter(Objects::nonNull)
                 .distinct()
-                .map(api -> apiSearchService.findGenericById(executionContext, api, false, false, true))
+                .toList();
+            List<Api> subscribersApis = apiIds
+                .stream()
+                .map(apiId -> apiSearchService.findGenericById(executionContext, apiId, false, false, true))
+                .filter(Objects::nonNull)
                 .map(api1 -> apiMapper.convert(executionContext, api1))
                 .peek(api -> {
                     String apisURL = PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId());

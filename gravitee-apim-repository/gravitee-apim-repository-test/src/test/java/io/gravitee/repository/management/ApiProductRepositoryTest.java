@@ -149,6 +149,21 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldFindByIds() throws TechnicalException {
+        var existingId = "f66274c9-3d8f-44c5-a274-c93d8fb4c5f3";
+        Set<ApiProduct> found = apiProductsRepository.findByIds(Set.of(existingId, "non-existent-id"));
+
+        assertThat(found).hasSize(1);
+        assertThat(found.iterator().next().getId()).isEqualTo(existingId);
+        assertThat(found.iterator().next().getApiIds()).containsExactly("api1", "api2");
+    }
+
+    @Test
+    public void shouldReturnEmptyWhenFindByIdsWithEmptyCollection() throws TechnicalException {
+        assertThat(apiProductsRepository.findByIds(Set.of())).isEmpty();
+    }
+
+    @Test
     public void shouldUpdateApiProduct() throws TechnicalException {
         var id = "f66274c9-3d8f-44c5-a274-c93d8fb4c5f3";
         var date = new Date(1_470_157_767_000L);

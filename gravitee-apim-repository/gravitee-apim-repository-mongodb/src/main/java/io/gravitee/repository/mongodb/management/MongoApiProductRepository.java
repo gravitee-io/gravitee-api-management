@@ -21,6 +21,7 @@ import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.mongodb.management.internal.apiproducts.ApiProductsMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiProductMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 @Component
 @Slf4j
@@ -128,6 +130,19 @@ public class MongoApiProductRepository implements ApiProductsRepository {
             return apiProductMongos.stream().map(mapper::map).collect(Collectors.toSet());
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find api products by api id", ex);
+        }
+    }
+
+    @Override
+    public Set<ApiProduct> findByIds(Collection<String> ids) throws TechnicalException {
+        if (CollectionUtils.isEmpty(ids)) {
+            return Set.of();
+        }
+        log.debug("MongoApiProductRepository.findByIds({})", ids);
+        try {
+            return internalApiProductRepo.findAllById(ids).stream().map(mapper::map).collect(Collectors.toSet());
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find api products by ids", ex);
         }
     }
 }

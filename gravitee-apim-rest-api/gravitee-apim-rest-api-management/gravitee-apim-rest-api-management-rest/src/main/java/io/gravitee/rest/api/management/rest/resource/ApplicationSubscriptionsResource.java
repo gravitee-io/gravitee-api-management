@@ -19,6 +19,7 @@ import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.management.rest.model.Subscription;
 import io.gravitee.rest.api.management.rest.model.wrapper.SubscriptionEntityPageResult;
@@ -216,7 +217,10 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
 
         subscription.setReferenceId(subscriptionEntity.getReferenceId());
         subscription.setReferenceType(subscriptionEntity.getReferenceType());
-        if (subscriptionEntity.getReferenceId() != null && "API_PRODUCT".equals(subscriptionEntity.getReferenceType())) {
+        if (
+            subscriptionEntity.getReferenceId() != null &&
+            SubscriptionReferenceType.API_PRODUCT.name().equals(subscriptionEntity.getReferenceType())
+        ) {
             fetchApiProductAndSetSubscriptionApiProduct(executionContext, subscription, subscriptionEntity.getReferenceId());
         } else if (subscriptionEntity.getApi() != null) {
             subscription.setApi(fetchApi(executionContext, subscriptionEntity.getApi()));
@@ -245,7 +249,7 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
         String referenceId
     ) {
         subscriptionService
-            .getReferenceDisplayInfo(executionContext, "API_PRODUCT", referenceId)
+            .getReferenceDisplayInfo(executionContext, SubscriptionReferenceType.API_PRODUCT.name(), referenceId)
             .ifPresent(ref -> {
                 var input = GetApiProductsUseCase.Input.of(
                     executionContext.getEnvironmentId(),

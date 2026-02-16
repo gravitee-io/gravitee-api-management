@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
 @Repository
 @Slf4j
@@ -208,6 +209,38 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
             return new HashSet<>(aggregateApiProducts(apiProducts));
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find api products by apiId", ex);
+        }
+    }
+
+    @Override
+    public Set<ApiProduct> findByIds(Collection<String> ids) throws TechnicalException {
+        if (CollectionUtils.isEmpty(ids)) {
+            return Set.of();
+        }
+        log.debug("JdbcApiProductRepository.findByIds({})", ids);
+        try {
+            List<String> idList = new ArrayList<>(ids);
+            String sql =
+                getOrm().getSelectAllSql() +
+                " ap " +
+                "LEFT JOIN " +
+                API_PRODUCT_APIS +
+                " apa ON ap.id = apa.api_product_id " +
+                "WHERE ap.id IN (" +
+                getOrm().buildInClause(idList) +
+                ") ORDER BY ap.id";
+            List<ApiProduct> apiProducts = jdbcTemplate.query(
+                sql,
+                (ResultSet rs, int rowNum) -> {
+                    ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
+                    addApiId(apiProduct, rs);
+                    return apiProduct;
+                },
+                idList.toArray()
+            );
+            return new HashSet<>(aggregateApiProducts(apiProducts));
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to find api products by ids", ex);
         }
     }
 

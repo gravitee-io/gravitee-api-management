@@ -18,6 +18,7 @@ package io.gravitee.repository.management.apiproducts;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CrudRepository;
 import io.gravitee.repository.management.model.ApiProduct;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 
@@ -25,4 +26,5 @@ public interface ApiProductsRepository extends CrudRepository<ApiProduct, String
     Optional<ApiProduct> findByEnvironmentIdAndName(String environmentId, String name) throws TechnicalException;
     Set<ApiProduct> findByEnvironmentId(String environmentId) throws TechnicalException;
     Set<ApiProduct> findByApiId(String apiId) throws TechnicalException;
+    Set<ApiProduct> findByIds(Collection<String> ids) throws TechnicalException;
 }
