@@ -18,7 +18,6 @@ package io.gravitee.rest.api.standalone.jetty;
 import io.gravitee.apim.rest.api.automation.GraviteeAutomationApplication;
 import io.gravitee.apim.rest.api.automation.security.SecurityAutomationConfiguration;
 import io.gravitee.common.component.AbstractLifecycleComponent;
-import io.gravitee.plugin.console.ConsoleExtensionApplication;
 import io.gravitee.plugin.console.ConsoleExtensionManager;
 import io.gravitee.plugin.console.ConsoleExtensionServletFactory;
 import io.gravitee.rest.api.management.rest.resource.GraviteeManagementApplication;
@@ -142,13 +141,13 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
             contexts.add(managementV2ContextHandler);
 
             // Configuration for Console extensions.
-            contexts.add(
-                configureAPI(
-                    managementEntrypoint + "/v2/extensions",
-                    ConsoleExtensionApplication.class.getName(),
-                    SecurityManagementV2Configuration.class
-                )
-            );
+            //            contexts.add(
+            //                configureAPI(
+            //                    managementEntrypoint + "/v2/extensions",
+            //                    ConsoleExtensionApplication.class.getName(),
+            //                    SecurityManagementV2Configuration.class
+            //                )
+            //            );
 
             // Dynamic servlet extensions (e.g. MCP server)
             ConsoleExtensionManager cem = applicationContext.getBean(ConsoleExtensionManager.class);
@@ -219,9 +218,7 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
         webApplicationContext.setParent(applicationContext);
 
         // Register servlet as a singleton bean so Spring config classes can use it
-        webApplicationContext.addBeanFactoryPostProcessor(beanFactory ->
-            beanFactory.registerSingleton("mcpTransportProvider", servlet)
-        );
+        webApplicationContext.addBeanFactoryPostProcessor(beanFactory -> beanFactory.registerSingleton("mcpTransportProvider", servlet));
 
         extContext.addEventListener(new ContextLoaderListener(webApplicationContext));
 

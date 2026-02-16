@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest;
 
+import io.gravitee.plugin.console.ConsoleExtensionsResource;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.BadRequestExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ConstraintValidationExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.JsonMappingExceptionMapper;
@@ -78,6 +79,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(ApplicationsResource.class);
         register(AnalyticsDefinitionResource.class);
         register(AnalyticsComputationResource.class);
+        register(ConsoleExtensionsResource.class);
 
         // Resources deprecated at root level
         register(EndpointsResource.class);
