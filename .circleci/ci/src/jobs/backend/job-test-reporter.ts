@@ -27,7 +27,7 @@ export class TestReporterJob extends AbstractTestJob {
       'job-test-reporter',
       new commands.Run({
         name: `Run reporter tests`,
-        command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Dreporter-modules -Dskip.validation=true -T 2C`,
+        command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Dreporter-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C`,
       }),
       UbuntuExecutor.create(),
       ['gravitee-apim-reporter/gravitee-apim-reporter-coverage/target/site/jacoco-aggregate/'],

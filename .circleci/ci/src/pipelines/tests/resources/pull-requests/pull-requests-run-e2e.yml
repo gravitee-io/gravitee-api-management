@@ -199,7 +199,7 @@ jobs:
           jobName: job-validate
       - run:
           name: Validate project
-          command: mvn -s .gravitee.settings.xml validate --no-transfer-progress -Pall-modules,integration-tests-modules -T 2C
+          command: mvn -s .gravitee.settings.xml validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules,integration-tests-modules -T 2C
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
           jobName: job-validate
@@ -215,7 +215,7 @@ jobs:
           jobName: job-build
       - run:
           name: Build project
-          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc
+          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 2C -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc
           environment:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"
@@ -249,7 +249,7 @@ jobs:
             - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run definition tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -T 2C
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
       - run:
           name: Save test results
           command: |-
@@ -317,7 +317,7 @@ jobs:
             - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run gateway tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgateway-modules -Dskip.validation=true -T 2C
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgateway-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
       - run:
           name: Save test results
           command: |-
@@ -348,7 +348,7 @@ jobs:
             - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run Rest API tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -T 2C
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
       - run:
           name: Save test results
           command: |-
@@ -399,7 +399,7 @@ jobs:
             cat tests-to-run
 
             # Run tests with rerunFailingTestsCount=3 because some integration tests related to RabbitMQ or Websocket are randomly failing on the CI
-            mvn --fail-fast -s ../.gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300
+            mvn --fail-fast -s ../.gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -Dgravitee.archrules.skip=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300
       - run:
           name: Save test results
           command: |-
@@ -428,7 +428,7 @@ jobs:
             - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run plugin tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dplugin-modules -Dskip.validation=true -T 2C
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dplugin-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
       - run:
           name: Save test results
           command: |-
@@ -460,7 +460,7 @@ jobs:
             - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run reporter tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dreporter-modules -Dskip.validation=true -T 2C
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dreporter-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
       - run:
           name: Save test results
           command: |-
@@ -492,7 +492,7 @@ jobs:
             - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run repository tests
-          command: mvn --fail-fast -s .gravitee.settings.xml verify --no-transfer-progress -Drepository-modules -Dskip.validation=true -T 2C
+          command: mvn --fail-fast -s .gravitee.settings.xml verify --no-transfer-progress -Drepository-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
       - run:
           name: Save test results
           command: |-

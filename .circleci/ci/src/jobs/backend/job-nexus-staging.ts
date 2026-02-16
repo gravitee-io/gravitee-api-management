@@ -46,7 +46,7 @@ export class NexusStagingJob {
       new reusable.ReusedCommand(prepareGpgCmd),
       new commands.Run({
         name: 'Release on Nexus',
-        command: `mvn clean deploy --activate-profiles gravitee-release --batch-mode -T 4 -DskipTests -Dskip.validation=true --settings ${config.maven.settingsFile} --update-snapshots`,
+        command: `mvn clean deploy --activate-profiles gravitee-release --batch-mode -T 4 -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true --settings ${config.maven.settingsFile} --update-snapshots`,
       }),
       new reusable.ReusedCommand(saveMavenCacheCmd, { jobName: NexusStagingJob.jobName }),
     ];

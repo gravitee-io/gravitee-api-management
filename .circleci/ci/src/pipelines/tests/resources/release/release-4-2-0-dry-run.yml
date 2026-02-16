@@ -258,7 +258,7 @@ jobs:
       - cmd-prepare-gpg
       - run:
           name: Maven build APIM backend
-          command: mvn --settings .gravitee.settings.xml -B -U -P all-modules,gio-release,bundle-default clean verify -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress
+          command: mvn --settings .gravitee.settings.xml -B -U -P all-modules,gio-release,bundle-default clean verify -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress
           environment:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"

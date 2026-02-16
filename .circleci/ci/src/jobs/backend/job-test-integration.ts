@@ -58,7 +58,7 @@ echo "Following test files will run on this executor:"
 cat tests-to-run
 
 # Run tests with rerunFailingTestsCount=3 because some integration tests related to RabbitMQ or Websocket are randomly failing on the CI
-mvn --fail-fast -s ../.gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300`,
+mvn --fail-fast -s ../.gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -Dgravitee.archrules.skip=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300`,
       }),
       new commands.Run({
         name: 'Save test results',

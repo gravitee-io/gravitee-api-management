@@ -46,7 +46,7 @@ sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml`,
       new reusable.ReusedCommand(prepareGpgCommand),
       new commands.Run({
         name: 'Maven build APIM backend',
-        command: `mvn --settings ${config.maven.settingsFile} -B -U -P all-modules,gio-release,bundle-default clean verify -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress`,
+        command: `mvn --settings ${config.maven.settingsFile} -B -U -P all-modules,gio-release,bundle-default clean verify -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress`,
         environment: {
           BUILD_ID: environment.buildId,
           BUILD_NUMBER: environment.buildNum,
