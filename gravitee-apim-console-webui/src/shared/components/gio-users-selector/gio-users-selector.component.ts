@@ -54,15 +54,15 @@ export class GioUsersSelectorComponent implements OnInit {
     this.users = this.userSearchTerm.valueChanges.pipe(
       distinctUntilChanged(),
       debounceTime(100),
-      switchMap((term) => {
+      switchMap(term => {
         return term.length > 0 ? this.usersService.search(term) : of([]);
       }),
-      map((users) =>
+      map(users =>
         users
           // Filter according to input predicate
           .filter(this.userFilterPredicate)
           // Filter to exclude already selected users
-          .filter((user) => !this.selectedUsers.find((selectedUser) => selectedUser.id === user.id)),
+          .filter(user => !this.selectedUsers.find(selectedUser => selectedUser.id === user.id)),
       ),
       share(),
     );
@@ -75,7 +75,7 @@ export class GioUsersSelectorComponent implements OnInit {
   }
 
   onRemoveUserClicked(selectedUser: SearchableUser & { userPicture: string }) {
-    this.selectedUsers = this.selectedUsers.filter((user) => user.id !== selectedUser.id);
+    this.selectedUsers = this.selectedUsers.filter(user => user.id !== selectedUser.id);
   }
 
   resetSearchTerm() {

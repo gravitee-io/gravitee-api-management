@@ -36,7 +36,7 @@ describe('ApplicationMembersService', () => {
   });
 
   describe('list Application members', () => {
-    it('should call the list endpoint', (done) => {
+    it('should call the list endpoint', done => {
       const applicationId = 'test-id';
       const applicationDetails = fakeApplication({ type: 'NATIVE' });
 
@@ -52,7 +52,7 @@ describe('ApplicationMembersService', () => {
   });
 
   describe('update Application member', () => {
-    it('should call the update endpoint', (done) => {
+    it('should call the update endpoint', done => {
       const applicationId = 'test-id';
       const member = [fakeMembers()][0];
 
@@ -68,7 +68,7 @@ describe('ApplicationMembersService', () => {
   });
 
   describe('delete Application member', () => {
-    it('should call the delete endpoint', (done) => {
+    it('should call the delete endpoint', done => {
       const applicationId = 'test-id';
       const member = [fakeMembers()][0];
 
@@ -84,7 +84,7 @@ describe('ApplicationMembersService', () => {
   });
 
   describe('transfer ownership Application member', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakeNewOwnership = {
         id: 'test-id',
         reference: 'test-reference',

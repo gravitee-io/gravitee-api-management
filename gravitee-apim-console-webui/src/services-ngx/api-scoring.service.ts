@@ -34,7 +34,7 @@ export class ApiScoringService {
   public getApiScoring(apiId: string): Observable<ApiScoring> {
     const context = new HttpContext().set(ACCEPT_404, true);
     return this.httpClient.get<ApiScoring>(`${this.constants.env.v2BaseURL}/apis/${apiId}/scoring`, { context }).pipe(
-      catchError((err) => {
+      catchError(err => {
         if (err.status === 404) {
           return of(undefined);
         }

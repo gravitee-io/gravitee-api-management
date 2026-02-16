@@ -66,7 +66,7 @@ export class GioApiSelectDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.filteredOptions$ = this.searchApiControl.valueChanges.pipe(
-      filter((v) => typeof v === 'string'),
+      filter(v => typeof v === 'string'),
       debounceTime(300),
       distinctUntilChanged(),
       switchMap((term: string) =>
@@ -75,7 +75,7 @@ export class GioApiSelectDialogComponent implements OnInit {
         }),
       ),
       tap(() => (this.isApiSelected = false)),
-      map((apisResponse) => apisResponse.data),
+      map(apisResponse => apisResponse.data),
       takeUntilDestroyed(this.destroyRef),
     );
   }

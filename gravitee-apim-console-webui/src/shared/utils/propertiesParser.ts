@@ -37,7 +37,7 @@ export const parsePropertiesStringFormat = (input: string): { properties: { key:
     return defaultResult;
   }
 
-  const lines = splitToLine(input.trim()).filter((line) => line.trim());
+  const lines = splitToLine(input.trim()).filter(line => line.trim());
 
   const properties: { key: string; value: string }[] = [];
   const errors = [];
@@ -57,7 +57,7 @@ export const parsePropertiesStringFormat = (input: string): { properties: { key:
       errors.push(`Line ${i + 1} is not valid. Key can't be empty`);
       continue;
     }
-    if (properties.find((v) => v.key === key)) {
+    if (properties.find(v => v.key === key)) {
       errors.push(`Line ${i + 1} is not valid. Key '${key}' is duplicated`);
       continue;
     }

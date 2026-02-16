@@ -87,7 +87,7 @@ describe('GioApiImportDialogComponent', () => {
 
       await fileInput.dropFiles([new File(['{}'], 'gravitee-api-definition.json', { type: 'application/json' })]);
       // Wait for the file to be read
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       // expect not config needed
       const checkboxInput = await loader.getAllHarnesses(MatCheckboxHarness);
@@ -110,7 +110,7 @@ describe('GioApiImportDialogComponent', () => {
 
       await fileInput.dropFiles([new File(['{"swagger": true}'], 'swagger.json', { type: 'application/json' })]);
       // Wait for the file to be read
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       const importDocumentationInput = await loader.getHarness(
         MatCheckboxHarness.with({ selector: '[formControlName="importDocumentation"]' }),
@@ -125,7 +125,7 @@ describe('GioApiImportDialogComponent', () => {
       const policyCheckboxes = await loader.getAllHarnesses(MatCheckboxHarness.with({ ancestor: '[formgroupname="importPolicies"]' }));
 
       await parallel(() =>
-        policyCheckboxes.map(async (policy) => {
+        policyCheckboxes.map(async policy => {
           expect(await policy.isDisabled()).toBeTruthy();
         }),
       );
@@ -137,7 +137,7 @@ describe('GioApiImportDialogComponent', () => {
 
       // Can select policies if "Create flows on path is not selected"
       await parallel(() =>
-        policyCheckboxes.map(async (policy) => {
+        policyCheckboxes.map(async policy => {
           expect(await policy.isDisabled()).toBeFalsy();
         }),
       );
@@ -170,7 +170,7 @@ describe('GioApiImportDialogComponent', () => {
 
       await fileInput.dropFiles([new File(['<wsdl></wsdl>'], 'wsdl.wsdl', { type: 'application/xml' })]);
       // Wait for the file to be read
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       const checkboxInput = await loader.getAllHarnesses(MatCheckboxHarness);
       expect(checkboxInput.length).toEqual(5);
@@ -326,7 +326,7 @@ describe('GioApiImportDialogComponent', () => {
 
       await fileInput.dropFiles([new File(['<wsdl></wsdl>'], 'wsdl.wsdl', { type: 'application/xml' })]);
       // Wait for the file to be read
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       const checkboxInput = await loader.getAllHarnesses(MatCheckboxHarness);
       expect(checkboxInput.length).toEqual(5);

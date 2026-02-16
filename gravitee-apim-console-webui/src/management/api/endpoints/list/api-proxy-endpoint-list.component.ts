@@ -70,7 +70,7 @@ export class ApiProxyEndpointListComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),
         switchMap((api: ApiV2) => {
           remove(api.proxy.groups, (g: EndpointGroupV2) => g.name === groupName);
@@ -101,7 +101,7 @@ export class ApiProxyEndpointListComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),
         switchMap((api: ApiV2) => {
           remove(

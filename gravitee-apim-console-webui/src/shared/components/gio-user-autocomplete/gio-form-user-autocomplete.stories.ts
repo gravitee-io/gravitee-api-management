@@ -52,7 +52,7 @@ export default {
           useValue: {
             search: () => of(searchableUsers),
             getUserAvatar: () => 'https://i.pravatar.cc/100',
-            get: (id: string) => of(searchableUsers.find((user) => user.id === id)),
+            get: (id: string) => of(searchableUsers.find(user => user.id === id)),
           },
         },
       ],
@@ -68,13 +68,13 @@ export default {
     },
   },
   render: ({ selectedUserId, disabled }) => {
-    const userControl = new FormControl({ value: searchableUsers.find((u) => u.id === selectedUserId), disabled });
+    const userControl = new FormControl({ value: searchableUsers.find(u => u.id === selectedUserId), disabled });
 
-    userControl.valueChanges.subscribe((value) => {
+    userControl.valueChanges.subscribe(value => {
       action('UserId')(value);
     });
 
-    userControl.statusChanges.subscribe((value) => {
+    userControl.statusChanges.subscribe(value => {
       action('UserId')(value);
     });
 

@@ -27,10 +27,10 @@ export class Step3Endpoints2ConfigHarness extends ComponentHarness {
     )();
 
   async clickPrevious() {
-    return this.getButtonByText('Previous').then((button) => button.click());
+    return this.getButtonByText('Previous').then(button => button.click());
   }
 
   async clickValidate() {
-    return this.getButtonByText('Validate my endpoints').then((button) => button.click());
+    return this.getButtonByText('Validate my endpoints').then(button => button.click());
   }
 }

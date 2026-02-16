@@ -43,7 +43,7 @@ export class ApiEndpointGroupConfigurationComponent implements OnInit, OnDestroy
       .getEndpointPluginSharedConfigurationSchema(this.endpointGroupType)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
-        next: (sharedConfigSchema) => {
+        next: sharedConfigSchema => {
           this.sharedConfigurationSchema = sharedConfigSchema;
           this.initialValues = this.configurationForm.getRawValue();
         },

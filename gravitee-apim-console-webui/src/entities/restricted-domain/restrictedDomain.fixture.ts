@@ -28,7 +28,7 @@ export function fakeRestrictedDomain(attributes?: Partial<RestrictedDomain>): Re
 }
 
 export function fakeRestrictedDomains(domain: string[], attributes?: Partial<RestrictedDomain>): RestrictedDomain[] {
-  return domain.map((value) => {
+  return domain.map(value => {
     const base: RestrictedDomain = {
       domain: value,
       secured: false,

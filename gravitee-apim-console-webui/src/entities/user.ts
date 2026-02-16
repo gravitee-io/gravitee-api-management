@@ -72,6 +72,6 @@ export class User {
   }
 
   isOrganizationAdmin(): boolean {
-    return this.roles?.some((role) => role.scope === 'ORGANIZATION' && role.name === 'ADMIN');
+    return this.roles?.some(role => role.scope === 'ORGANIZATION' && role.name === 'ADMIN');
   }
 }

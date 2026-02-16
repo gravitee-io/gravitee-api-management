@@ -57,7 +57,7 @@ export class RuntimeAlertCreateGeneralComponent implements OnInit {
     if (this.alertToUpdate) {
       this.seedForm();
     } else {
-      this.generalForm.controls.rule.valueChanges.subscribe((value) => {
+      this.generalForm.controls.rule.valueChanges.subscribe(value => {
         this.generalForm.patchValue({
           description: value.description,
         });
@@ -69,7 +69,7 @@ export class RuntimeAlertCreateGeneralComponent implements OnInit {
     this.generalForm.patchValue({
       name: this.alertToUpdate.name,
       enabled: this.alertToUpdate.enabled,
-      rule: this.rules.find((rule) => rule.type === this.alertToUpdate.type),
+      rule: this.rules.find(rule => rule.type === this.alertToUpdate.type),
       severity: this.alertToUpdate.severity,
       description: this.alertToUpdate.description,
     });

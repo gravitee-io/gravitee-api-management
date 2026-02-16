@@ -59,12 +59,12 @@ export class LoginComponent implements OnInit, OnDestroy {
   ) {
     this.userCreationEnabled = constants.org.settings.management?.userCreation?.enabled ?? false;
     this.localLoginDisabled = !(constants.org.settings.authentication?.localLogin?.enabled ?? true);
-    this.identityProviders = (this.constants.org.identityProviders ?? []).map((idp) => ({
+    this.identityProviders = (this.constants.org.identityProviders ?? []).map(idp => ({
       ...idp,
       textColor: getProviderTextColor(idp),
     }));
 
-    uniq(this.identityProviders.map((i) => i.type)).forEach((type) => {
+    uniq(this.identityProviders.map(i => i.type)).forEach(type => {
       this.iconRegistry.addSvgIcon(
         `idp-${type.toLowerCase()}`,
         this.sanitizer.bypassSecurityTrustResourceUrl('assets/logo_' + type.toLowerCase() + '-idp.svg'),
@@ -135,7 +135,7 @@ const colorIsDarkAdvanced = (bgColor: string): boolean => {
   const g = parseInt(color.substring(2, 4), 16); // hexToG
   const b = parseInt(color.substring(4, 6), 16); // hexToB
   const uicolors = [r / 255, g / 255, b / 255];
-  const c = uicolors.map((col) => {
+  const c = uicolors.map(col => {
     if (col <= 0.03928) {
       return col / 12.92;
     }

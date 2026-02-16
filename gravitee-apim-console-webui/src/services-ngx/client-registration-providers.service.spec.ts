@@ -39,10 +39,10 @@ describe('ClientRegistrationProviderService', () => {
     httpTestingController.verify();
   });
 
-  it('should list providers', (done) => {
+  it('should list providers', done => {
     const mockProviders: ClientRegistrationProvider[] = [fakeClientRegistrationProvider(), fakeClientRegistrationProvider()];
 
-    clientRegistrationProvidersService.list().subscribe((response) => {
+    clientRegistrationProvidersService.list().subscribe(response => {
       expect(response).toMatchObject(mockProviders);
       done();
     });
@@ -55,11 +55,11 @@ describe('ClientRegistrationProviderService', () => {
     req.flush(mockProviders);
   });
 
-  it('should get provider by id', (done) => {
+  it('should get provider by id', done => {
     const mockProvider: ClientRegistrationProvider = fakeClientRegistrationProvider({ scopes: null });
     {
     }
-    clientRegistrationProvidersService.get('foobar').subscribe((response) => {
+    clientRegistrationProvidersService.get('foobar').subscribe(response => {
       expect(response).toMatchObject(mockProvider);
       done();
     });
@@ -72,10 +72,10 @@ describe('ClientRegistrationProviderService', () => {
     req.flush(mockProvider);
   });
 
-  it('should delete provider by id', (done) => {
+  it('should delete provider by id', done => {
     const mockProviderId = 'foobar';
 
-    clientRegistrationProvidersService.delete(mockProviderId).subscribe((response) => {
+    clientRegistrationProvidersService.delete(mockProviderId).subscribe(response => {
       expect(response).toMatchObject({});
       done();
     });
@@ -88,10 +88,10 @@ describe('ClientRegistrationProviderService', () => {
     req.flush({});
   });
 
-  it('should create provider', (done) => {
+  it('should create provider', done => {
     const mockProvider: ClientRegistrationProvider = fakeClientRegistrationProvider();
 
-    clientRegistrationProvidersService.create(mockProvider).subscribe((response) => {
+    clientRegistrationProvidersService.create(mockProvider).subscribe(response => {
       expect(response).toMatchObject(mockProvider);
       done();
     });
@@ -104,10 +104,10 @@ describe('ClientRegistrationProviderService', () => {
     req.flush(mockProvider);
   });
 
-  it('should update provider', (done) => {
+  it('should update provider', done => {
     const mockProvider: ClientRegistrationProvider = fakeClientRegistrationProvider({ scopes: null });
 
-    clientRegistrationProvidersService.update(mockProvider).subscribe((response) => {
+    clientRegistrationProvidersService.update(mockProvider).subscribe(response => {
       expect(response).toMatchObject(mockProvider);
       done();
     });

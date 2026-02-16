@@ -36,7 +36,7 @@ describe('ResourceService', () => {
   });
 
   describe('list', () => {
-    it('should call the API with params to true', (done) => {
+    it('should call the API with params to true', done => {
       const resources = [fakeResourceListItem()];
 
       resourceService
@@ -44,7 +44,7 @@ describe('ResourceService', () => {
           expandSchema: true,
           expandIcon: true,
         })
-        .subscribe((response) => {
+        .subscribe(response => {
           expect(response).toStrictEqual(resources);
           done();
         });
@@ -57,14 +57,14 @@ describe('ResourceService', () => {
         .flush(resources);
     });
 
-    it('should call the API with different params', (done) => {
+    it('should call the API with different params', done => {
       const resources = [fakeResourceListItem()];
 
       resourceService
         .list({
           expandIcon: false,
         })
-        .subscribe((response) => {
+        .subscribe(response => {
           expect(response).toStrictEqual(resources);
           done();
         });
@@ -79,11 +79,11 @@ describe('ResourceService', () => {
   });
 
   describe('getDocumentation', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const resourceId = 'resource#1';
       const resourceDocumentation = fakeResourceDocumentation();
 
-      resourceService.getDocumentation(resourceId).subscribe((response) => {
+      resourceService.getDocumentation(resourceId).subscribe(response => {
         expect(response).toStrictEqual(resourceDocumentation);
         done();
       });

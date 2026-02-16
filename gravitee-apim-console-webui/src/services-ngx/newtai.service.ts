@@ -46,8 +46,8 @@ export class NewtAIService {
 
   constructor() {
     if (this.constants?.org?.settings?.elGen?.enabled ?? false) {
-      this.gioElService.promptCallback = (p) => this.promptEL(p);
-      this.gioElService.feedbackCallback = (fs) => this.submitFeedback(fs);
+      this.gioElService.promptCallback = p => this.promptEL(p);
+      this.gioElService.feedbackCallback = fs => this.submitFeedback(fs);
     }
   }
 
@@ -59,7 +59,7 @@ export class NewtAIService {
           el: message,
           feedbackRequestId,
         })),
-        catchError((error) => of({ message: error['message'] as string })),
+        catchError(error => of({ message: error['message'] as string })),
       );
   }
   public submitFeedback(fs: FeedbackSubmission): Observable<void> {
@@ -74,7 +74,7 @@ export class NewtAIService {
       })
       .pipe(
         tap(() => this.snackBarService.success('Thanks for your feedback!')),
-        catchError((error) => {
+        catchError(error => {
           this.snackBarService.error(error.error?.message ?? 'Error while submitting feedback.');
           return EMPTY;
         }),

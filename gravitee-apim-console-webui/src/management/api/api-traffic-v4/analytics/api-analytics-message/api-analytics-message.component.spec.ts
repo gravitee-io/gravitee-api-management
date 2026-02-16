@@ -421,7 +421,7 @@ describe('ApiAnalyticsMessageComponent', () => {
       { input: { period: '1M' }, expected: 'Last month' },
       { input: { period: 'incorrect' }, expected: 'Last day' },
       { input: { otherParameter: 'otherParameter' }, expected: 'Last day' },
-    ].forEach((testParams) => {
+    ].forEach(testParams => {
       it(`should display "${testParams.expected}" time range if query parameter is ${JSON.stringify(testParams.input)}`, async () => {
         await initComponent(testParams.input);
         await expectAllAnalyticsCall();
@@ -457,7 +457,7 @@ describe('ApiAnalyticsMessageComponent', () => {
 
   function expectApiAnalyticsRequestsCountGetReq(res: AnalyticsRequestsCount) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/requests-count`;
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush(res);
@@ -465,7 +465,7 @@ describe('ApiAnalyticsMessageComponent', () => {
 
   function expectApiAnalyticsAverageConnectionDurationGetRequest(res: AnalyticsAverageConnectionDuration) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/average-connection-duration`;
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush(res);
@@ -473,7 +473,7 @@ describe('ApiAnalyticsMessageComponent', () => {
 
   function expectApiAnalyticsAverageMessagesPerRequestGetRequest(res: AnalyticsAverageConnectionDuration) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/average-messages-per-request`;
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush(res);
@@ -481,7 +481,7 @@ describe('ApiAnalyticsMessageComponent', () => {
 
   function expectApiAnalyticsResponseStatusRangesGetRequest(analyticsResponseStatusRanges: AnalyticsResponseStatusRanges) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/response-status-ranges`;
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush(analyticsResponseStatusRanges);

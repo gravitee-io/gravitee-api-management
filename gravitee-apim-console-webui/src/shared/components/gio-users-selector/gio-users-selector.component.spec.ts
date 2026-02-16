@@ -105,7 +105,7 @@ describe('GioUsersSelectorComponent', () => {
     });
 
     it('should filter according the input predicate already selected options', async () => {
-      userFilterPredicate.mockImplementation((user) => user.id !== 'flash');
+      userFilterPredicate.mockImplementation(user => user.id !== 'flash');
 
       const searchAutocomplete = await loader.getHarness(MatAutocompleteHarness);
       await searchAutocomplete.enterText('F');

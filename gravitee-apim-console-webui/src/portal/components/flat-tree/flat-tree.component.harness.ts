@@ -92,7 +92,7 @@ export class FlatTreeComponentHarness extends ComponentHarness {
 
   async selectItemByTitle(title: string): Promise<void> {
     const node = await this.getNodeHarnessByTitle(title);
-    return node.host().then((host) => host.click());
+    return node.host().then(host => host.click());
   }
 
   async getAllItemTitles(): Promise<string[]> {
@@ -121,8 +121,8 @@ export class FlatTreeComponentHarness extends ComponentHarness {
     const moreActionsButton = await this.getMoreActionsButtonById(id)();
     return moreActionsButton
       .click()
-      .then((_) => this.getEditButton())
-      .then((editButton) => editButton.click());
+      .then(_ => this.getEditButton())
+      .then(editButton => editButton.click());
   }
 
   async selectDeleteById(id: string): Promise<void> {
@@ -130,8 +130,8 @@ export class FlatTreeComponentHarness extends ComponentHarness {
     const deleteButton = this._documentRootLocator.locatorFor(MatMenuItemHarness.with({ selector: `[data-testid="delete-node-button"]` }));
     return moreActionsButton
       .click()
-      .then((_) => deleteButton())
-      .then((deleteBtn) => deleteBtn.click());
+      .then(_ => deleteButton())
+      .then(deleteBtn => deleteBtn.click());
   }
 
   async selectPublishById(id: string): Promise<void> {

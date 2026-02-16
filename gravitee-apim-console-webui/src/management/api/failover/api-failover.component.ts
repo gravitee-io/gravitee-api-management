@@ -62,7 +62,7 @@ export class ApiFailoverComponent implements OnInit, OnDestroy {
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV1V2Filter(this.snackBarService),
-        tap((api) => {
+        tap(api => {
           const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
           this.createForm(isReadOnly, api.proxy?.failover);
           this.setupDisablingFields();
@@ -90,8 +90,8 @@ export class ApiFailoverComponent implements OnInit, OnDestroy {
 
   private setupDisablingFields() {
     const controlKeys = ['maxAttempts', 'retryTimeout'];
-    this.enabled.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((checked) => {
-      controlKeys.forEach((k) => {
+    this.enabled.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(checked => {
+      controlKeys.forEach(k => {
         return checked ? this.failoverForm.get(k).enable() : this.failoverForm.get(k).disable();
       });
     });

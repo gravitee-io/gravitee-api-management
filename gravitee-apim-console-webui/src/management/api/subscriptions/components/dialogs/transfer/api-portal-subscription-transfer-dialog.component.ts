@@ -65,13 +65,13 @@ export class ApiPortalSubscriptionTransferDialogComponent implements OnInit {
     this.apiPlanService
       .list(this.data.apiId, [this.data.securityType], ['PUBLISHED'], this.data.mode, undefined, 1, 9999)
       .pipe(
-        map((response) => response.data.filter((plan) => plan.id !== this.data.currentPlanId)),
+        map(response => response.data.filter(plan => plan.id !== this.data.currentPlanId)),
 
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((plans) => {
-        this.plans = plans.map((plan) => ({ id: plan.id, name: plan.name, generalConditions: plan.generalConditions }));
-        this.showGeneralConditionsMsg = this.plans.some((info) => info.generalConditions);
+      .subscribe(plans => {
+        this.plans = plans.map(plan => ({ id: plan.id, name: plan.name, generalConditions: plan.generalConditions }));
+        this.showGeneralConditionsMsg = this.plans.some(info => info.generalConditions);
       });
   }
 

@@ -98,7 +98,7 @@ export class PortalApiListComponent implements OnInit {
     this.environmentApiHeadersService
       .getApiHeaders()
       .pipe(
-        catchError((_) => {
+        catchError(_ => {
           this.snackBarService.error('Error occurred.');
           return [];
         }),
@@ -120,7 +120,7 @@ export class PortalApiListComponent implements OnInit {
     this.portalSettingsService
       .get()
       .pipe(
-        tap((portalSettings) => {
+        tap(portalSettings => {
           this.settings = portalSettings;
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -234,8 +234,8 @@ export class PortalApiListComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirmed) => confirmed),
-        switchMap((_) => this.environmentApiHeadersService.deleteApiHeader(header)),
+        filter(confirmed => confirmed),
+        switchMap(_ => this.environmentApiHeadersService.deleteApiHeader(header)),
         tap((apiPortalHeaders: ApiPortalHeader[]) => {
           this.snackBarService.success(`API Information '${header.name}' deleted successfully`);
           this.updateDataSource(apiPortalHeaders);
@@ -271,7 +271,7 @@ export class PortalApiListComponent implements OnInit {
     this.portalSettingsService
       .get()
       .pipe(
-        switchMap((settings) => {
+        switchMap(settings => {
           const updatedSettingsPayload: PortalSettings = {
             ...settings,
             portal: {

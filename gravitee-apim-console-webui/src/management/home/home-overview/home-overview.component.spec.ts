@@ -161,7 +161,7 @@ describe('HomeOverviewComponent', () => {
 
   function expectTopApplicationsGetRequest() {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/analytics/top-apps-by-request-count`;
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush({
@@ -178,7 +178,7 @@ describe('HomeOverviewComponent', () => {
 
   function expectTopFailedAppsGetRequest() {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/analytics/top-failed-apis`;
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush({
@@ -203,7 +203,7 @@ describe('HomeOverviewComponent', () => {
   }
 
   function expectApiLifecycleStateRequest(): TestRequest {
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=group_by&field=lifecycle_state`);
     });
     req.flush({
@@ -214,7 +214,7 @@ describe('HomeOverviewComponent', () => {
     return req;
   }
   function expectResponseStatusRequest(): TestRequest {
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=group_by&field=status`);
     });
     req.flush({
@@ -226,7 +226,7 @@ describe('HomeOverviewComponent', () => {
     return req;
   }
   function expectApiStateRequest(): TestRequest {
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=group_by&field=state`);
     });
     req.flush({
@@ -235,7 +235,7 @@ describe('HomeOverviewComponent', () => {
     return req;
   }
   function expectCountApiRequest(): TestRequest {
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=count&field=api`);
     });
     req.flush({
@@ -244,7 +244,7 @@ describe('HomeOverviewComponent', () => {
     return req;
   }
   function expectCountApplicationRequest(): TestRequest {
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=count&field=application`);
     });
     req.flush({
@@ -253,7 +253,7 @@ describe('HomeOverviewComponent', () => {
     return req;
   }
   function expectSearchApiEventsRequest(): TestRequest {
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return (
         req.method === 'GET' &&
         req.url.startsWith(
@@ -270,7 +270,7 @@ describe('HomeOverviewComponent', () => {
   // v4
   function expectV4ResponseTimesGetRequest() {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/analytics/response-time-over-time`;
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush(fakeV4AnalyticsResponseTime());
@@ -279,7 +279,7 @@ describe('HomeOverviewComponent', () => {
 
   function expectV4ResponseStatusGetRequest() {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/analytics/response-status-overtime`;
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush(fakeV4AnalyticsResponseStatus());
@@ -288,7 +288,7 @@ describe('HomeOverviewComponent', () => {
 
   function expectConsoleSettingsGetRequest() {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/analytics/response-status-ranges`;
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush({ requests: {} });
@@ -296,7 +296,7 @@ describe('HomeOverviewComponent', () => {
   }
   function expectTopApisGetRequest() {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/analytics/top-hits`;
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush({ data: [] });
@@ -304,7 +304,7 @@ describe('HomeOverviewComponent', () => {
   }
   function expectGetRequestStatsForV4() {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/analytics/request-response-time`;
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush({

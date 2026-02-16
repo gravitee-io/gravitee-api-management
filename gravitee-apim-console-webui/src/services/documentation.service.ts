@@ -84,7 +84,7 @@ export class DocumentationService {
   buildPageList(pagesToFilter: any[], withRootFolder?: boolean, folderSituation?: FolderSituation) {
     const pageList = pagesToFilter
       ?.filter(
-        (p) =>
+        p =>
           p.type === 'ASCIIDOC' ||
           p.type === 'ASYNCAPI' ||
           p.type === 'MARKDOWN' ||
@@ -178,7 +178,7 @@ export class DocumentationService {
       const queryParams: string[] = [];
       if (q) {
         const keys = Object.keys(q);
-        keys?.forEach((key) => {
+        keys?.forEach(key => {
           const val = q[key];
           if (val !== undefined && val !== '') {
             queryParams.push(key + '=' + val);
@@ -241,14 +241,14 @@ export class DocumentationService {
     const deferred = this.$q.defer();
     this.$http
       .get(this.url(apiId), { params: { homepage: true } })
-      .then((response) => {
+      .then(response => {
         if ((<any[]>response.data).length > 0) {
-          this.get(apiId, response.data[0].id, true).then((response) => deferred.resolve(response));
+          this.get(apiId, response.data[0].id, true).then(response => deferred.resolve(response));
         } else {
           deferred.resolve({});
         }
       })
-      .catch((msg) => deferred.reject(msg));
+      .catch(msg => deferred.reject(msg));
 
     return deferred.promise;
   }

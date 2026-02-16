@@ -81,7 +81,7 @@ describe('ApplicationNavigationComponent', () => {
 
     it('should build sub menu items', () => {
       expect(component.subMenuItems.length).toEqual(6);
-      expect(component.subMenuItems.map((item) => item.displayName)).toEqual([
+      expect(component.subMenuItems.map(item => item.displayName)).toEqual([
         'Global settings',
         'User and group access',
         'Subscriptions',
@@ -105,7 +105,7 @@ describe('ApplicationNavigationComponent', () => {
             'Analytics',
             'Logs',
             'Notification settings',
-          ].map((name) =>
+          ].map(name =>
             expect.objectContaining({
               name,
               routerLink: expect.not.stringContaining('./') && expect.stringContaining(`${environmentId}/applications/${applicationId}/`),

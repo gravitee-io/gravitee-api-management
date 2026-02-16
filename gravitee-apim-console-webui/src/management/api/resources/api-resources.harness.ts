@@ -26,7 +26,7 @@ export class ApiResourcesHarness extends ComponentHarness {
 
     return await rows[index]
       .getCells({ columnName: 'actions' })
-      .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Button to remove a resource"]' })));
+      .then(cells => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Button to remove a resource"]' })));
   }
 
   public async clickRemoveButton(rowIndex: number) {
@@ -50,7 +50,7 @@ export class ApiResourcesHarness extends ComponentHarness {
 
     return await rows[index]
       .getCells({ columnName: 'actions' })
-      .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Button to edit a resource"]' })));
+      .then(cells => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Button to edit a resource"]' })));
   }
 
   public async editRow(index: number) {

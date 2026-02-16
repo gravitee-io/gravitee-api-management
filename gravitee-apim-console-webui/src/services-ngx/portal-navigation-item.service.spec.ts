@@ -46,9 +46,9 @@ describe('PortalNavigationItemService', () => {
   });
 
   describe('getNavigationItems', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakeResponse = fakePortalNavigationItemsResponse();
-      service.getNavigationItems('TOP_NAVBAR').subscribe((response) => {
+      service.getNavigationItems('TOP_NAVBAR').subscribe(response => {
         expect(response).toMatchObject(fakeResponse);
         done();
       });
@@ -60,11 +60,11 @@ describe('PortalNavigationItemService', () => {
   });
 
   describe('createNavigationItem', () => {
-    it('should create a PAGE navigation item', (done) => {
+    it('should create a PAGE navigation item', done => {
       const newPageItem = fakeNewPagePortalNavigationItem();
       const fakeCreatedItem = fakePortalNavigationPage({ title: newPageItem.title });
 
-      service.createNavigationItem(newPageItem).subscribe((response) => {
+      service.createNavigationItem(newPageItem).subscribe(response => {
         expect(response).toMatchObject(fakeCreatedItem);
         expect(response.type).toBe('PAGE');
         done();
@@ -78,11 +78,11 @@ describe('PortalNavigationItemService', () => {
       req.flush(fakeCreatedItem);
     });
 
-    it('should create a FOLDER navigation item', (done) => {
+    it('should create a FOLDER navigation item', done => {
       const newFolderItem = fakeNewFolderPortalNavigationItem();
       const fakeCreatedItem = fakePortalNavigationFolder({ title: newFolderItem.title });
 
-      service.createNavigationItem(newFolderItem).subscribe((response) => {
+      service.createNavigationItem(newFolderItem).subscribe(response => {
         expect(response).toMatchObject(fakeCreatedItem);
         expect(response.type).toBe('FOLDER');
         done();
@@ -96,11 +96,11 @@ describe('PortalNavigationItemService', () => {
       req.flush(fakeCreatedItem);
     });
 
-    it('should create a LINK navigation item', (done) => {
+    it('should create a LINK navigation item', done => {
       const newLinkItem = fakeNewLinkPortalNavigationItem();
       const fakeCreatedItem = fakePortalNavigationLink({ title: newLinkItem.title });
 
-      service.createNavigationItem(newLinkItem).subscribe((response) => {
+      service.createNavigationItem(newLinkItem).subscribe(response => {
         expect(response).toMatchObject(fakeCreatedItem);
         expect(response.type).toBe('LINK');
         done();

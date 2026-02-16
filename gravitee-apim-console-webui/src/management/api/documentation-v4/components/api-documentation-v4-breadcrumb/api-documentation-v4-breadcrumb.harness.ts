@@ -19,6 +19,6 @@ import { ComponentHarness } from '@angular/cdk/testing';
 export class ApiDocumentationV4BreadcrumbHarness extends ComponentHarness {
   static hostSelector = 'api-documentation-breadcrumb';
   public async getContent() {
-    return this.host().then((host) => host.text());
+    return this.host().then(host => host.text());
   }
 }

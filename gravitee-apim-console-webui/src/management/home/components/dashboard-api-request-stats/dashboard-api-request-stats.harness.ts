@@ -41,8 +41,8 @@ export class DashboardApiRequestStatsHarness extends ComponentHarness {
 
   private async getValueByLabel(label: string): Promise<string> {
     return this.getRows()
-      .then((rows) => Promise.all(rows.map((t) => t.text())))
-      .then((res) => res.find((t) => t.includes(label)))
-      .then((found) => found.replace(label, ''));
+      .then(rows => Promise.all(rows.map(t => t.text())))
+      .then(res => res.find(t => t.includes(label)))
+      .then(found => found.replace(label, ''));
   }
 }

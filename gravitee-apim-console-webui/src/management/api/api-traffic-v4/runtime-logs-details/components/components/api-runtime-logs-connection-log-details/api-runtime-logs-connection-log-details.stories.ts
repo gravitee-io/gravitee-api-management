@@ -29,7 +29,7 @@ export default {
     }),
   ],
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 800px">
       <api-runtime-logs-connection-log-details

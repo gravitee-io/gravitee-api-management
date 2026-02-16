@@ -67,7 +67,7 @@ describe('ApiAuditListComponent', () => {
 
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#auditTable' }));
     const rows = await table.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByColumnName()));
     expect(rowCells.length).toEqual(20);
     expect(rowCells[0]).toEqual({
       date: 'Apr 19, 2022, 3:32:30 PM',
@@ -84,7 +84,7 @@ describe('ApiAuditListComponent', () => {
 
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#auditTable' }));
     const rows = await table.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByColumnName()));
     expect(rowCells.length).toEqual(20);
 
     const eventInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName=event]' }));
@@ -98,7 +98,7 @@ describe('ApiAuditListComponent', () => {
 
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#auditTable' }));
     const rows = await table.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByColumnName()));
     expect(rowCells.length).toEqual(20);
 
     const rangeSelect = await loader.getHarness(MatDateRangeInputHarness.with({ selector: '[formGroupName=range]' }));
@@ -115,7 +115,7 @@ describe('ApiAuditListComponent', () => {
 
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#auditTable' }));
     const rows = await table.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByColumnName()));
     expect(rowCells.length).toEqual(20);
 
     const tableWrapper = await loader.getHarness(GioTableWrapperHarness);

@@ -22,8 +22,8 @@ export class ApiCreationCommonService {
     }
     const plans = apiCreationPayload.plans;
 
-    const keylessPlanPresent = !!plans.find((p) => p.security.type === 'KEY_LESS');
-    const authPlanPresent = !!plans.find((p) => p.security.type !== 'KEY_LESS');
+    const keylessPlanPresent = !!plans.find(p => p.security.type === 'KEY_LESS');
+    const authPlanPresent = !!plans.find(p => p.security.type !== 'KEY_LESS');
 
     return !(keylessPlanPresent && authPlanPresent);
   }

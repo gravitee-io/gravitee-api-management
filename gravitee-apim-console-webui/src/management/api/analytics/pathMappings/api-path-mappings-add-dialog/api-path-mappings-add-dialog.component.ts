@@ -77,7 +77,7 @@ export class ApiPathMappingsAddDialogComponent implements OnInit {
       .get(this.api.id)
       .pipe(
         onlyApiV2Filter(this.snackBarService),
-        switchMap((api) => {
+        switchMap(api => {
           const defVersion = mapDefinitionVersionToLabel(this.api.definitionVersion);
           if (this.selectedSwaggerDoc) {
             return this.apiService.importPathMappings(api.id, this.selectedSwaggerDoc, defVersion);

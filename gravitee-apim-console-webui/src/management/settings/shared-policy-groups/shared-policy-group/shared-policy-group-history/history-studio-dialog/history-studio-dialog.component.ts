@@ -61,11 +61,11 @@ export class HistoryStudioDialogComponent {
   protected sharedPolicyGroup = this.data.sharedPolicyGroup;
   protected isReadOnly = this.data.isReadOnly;
 
-  protected policySchemaFetcher: PolicySchemaFetcher = (policy) => this.policyV2Service.getSchema(policy.id);
-  protected policyDocumentationFetcher: PolicyDocumentationFetcher = (policy) => this.policyV2Service.getDocumentation(policy.id);
+  protected policySchemaFetcher: PolicySchemaFetcher = policy => this.policyV2Service.getSchema(policy.id);
+  protected policyDocumentationFetcher: PolicyDocumentationFetcher = policy => this.policyV2Service.getDocumentation(policy.id);
   protected policies$ = this.policyV2Service
     .list()
-    .pipe(map((policies) => policies.map((policy) => ({ ...policy, icon: this.iconService.registerSvg(policy.id, policy.icon) }))));
+    .pipe(map(policies => policies.map(policy => ({ ...policy, icon: this.iconService.registerSvg(policy.id, policy.icon) }))));
   protected startRestore = false;
 
   constructor(

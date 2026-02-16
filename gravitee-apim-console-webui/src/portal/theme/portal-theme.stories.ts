@@ -21,7 +21,7 @@ export default {
   title: 'PortalThemeComponent story',
   component: PortalThemeComponent,
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 800px">
         <portal-theme></portal-theme>

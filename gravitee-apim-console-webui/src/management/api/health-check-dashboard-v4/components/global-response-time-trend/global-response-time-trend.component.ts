@@ -56,7 +56,7 @@ export class GlobalResponseTimeTrendComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (res) => {
+        next: res => {
           this.input = [
             {
               name: 'Response time (ms)',

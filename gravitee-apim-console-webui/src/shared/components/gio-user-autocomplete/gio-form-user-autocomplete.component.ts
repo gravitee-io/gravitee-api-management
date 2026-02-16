@@ -65,15 +65,15 @@ export class GioFormUserAutocompleteComponent implements OnInit, ControlValueAcc
       distinctUntilChanged(),
       debounceTime(100),
       // Rest form control when value is no more a selected user
-      tap((value) => {
+      tap(value => {
         if (!isSearchableUser(value)) {
           this._onChange(null);
         }
       }),
-      switchMap((term) => {
+      switchMap(term => {
         return term.length > 0 ? this.usersService.search(term) : of([]);
       }),
-      map((users) =>
+      map(users =>
         users
           // Filter according to input predicate
           .filter(this.userFilterPredicate),
@@ -107,7 +107,7 @@ export class GioFormUserAutocompleteComponent implements OnInit, ControlValueAcc
       this.usersService
         .get(obj.id)
         .pipe(
-          map((user) => {
+          map(user => {
             this.userSearchTerm.setValue(user.displayName, { emitEvent: false });
           }),
         )
@@ -151,7 +151,7 @@ export class GioFormUserAutocompleteComponent implements OnInit, ControlValueAcc
         return of({ invalidUser: true });
       }
       return this.usersService.search(control.value.displayName).pipe(
-        map((users) => {
+        map(users => {
           if (users.length === 0) {
             return { invalidUser: true };
           }

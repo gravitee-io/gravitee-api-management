@@ -52,7 +52,7 @@ class TestComponent {
         role: 'alertdialog',
       })
       .afterClosed()
-      .subscribe((result) => (this.result = result));
+      .subscribe(result => (this.result = result));
   }
 }
 

@@ -52,7 +52,7 @@ export class GioPermissionDirective {
     this.permissionCheckOptions = permissionCheckOptions;
 
     if (
-      [this.permissionCheckOptions.anyOf, this.permissionCheckOptions.noneOf, this.permissionCheckOptions.allOf].filter((val) => !!val)
+      [this.permissionCheckOptions.anyOf, this.permissionCheckOptions.noneOf, this.permissionCheckOptions.allOf].filter(val => !!val)
         .length > 1
     ) {
       throw new Error('You should only set one of `anyOf`, `noneOf`, or `allOf`, but not more than one.');
@@ -83,11 +83,11 @@ export class GioPermissionDirective {
     this.changes$
       .pipe(
         switchMap(() => this.resolveRoleContextIfNeeded()),
-        map((roleContextPermissions) => this.shouldRender(roleContextPermissions)),
+        map(roleContextPermissions => this.shouldRender(roleContextPermissions)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (shouldRender) => {
+        next: shouldRender => {
           if (shouldRender) {
             this.renderMain();
           } else {
@@ -152,5 +152,5 @@ const hasAllMatching = (has: string[], permissions: string[]): boolean => {
     return false;
   }
 
-  return has.every((permission) => permissions.includes(permission));
+  return has.every(permission => permissions.includes(permission));
 };

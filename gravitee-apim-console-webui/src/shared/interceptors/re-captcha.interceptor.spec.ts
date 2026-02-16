@@ -53,7 +53,7 @@ describe('ReCaptchaInterceptor', () => {
     httpTestingController.verify();
   });
 
-  it('should set recaptcha header', (done) => {
+  it('should set recaptcha header', done => {
     httpClient.get<unknown>(testUrl).subscribe(() => {
       done();
     });

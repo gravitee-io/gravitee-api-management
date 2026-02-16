@@ -83,25 +83,25 @@ export class ApiAnalyticsMessageComponent {
   private readonly getRequestsCount$: Observable<Partial<AnalyticsRequestsCount> & { isLoading: boolean }> = this.apiAnalyticsV2Service
     .getRequestsCount(this.activatedRoute.snapshot.params.apiId)
     .pipe(
-      map((requestsCount) => ({ isLoading: false, ...requestsCount })),
+      map(requestsCount => ({ isLoading: false, ...requestsCount })),
       startWith({ isLoading: true }),
     );
 
   private readonly getAverageConnectionDuration$: Observable<Partial<AnalyticsAverageConnectionDuration> & { isLoading: boolean }> =
     this.apiAnalyticsV2Service.getAverageConnectionDuration(this.activatedRoute.snapshot.params.apiId).pipe(
-      map((requestsCount) => ({ isLoading: false, ...requestsCount })),
+      map(requestsCount => ({ isLoading: false, ...requestsCount })),
       startWith({ isLoading: true }),
     );
 
   private readonly getAverageMessagesPerRequest$: Observable<Partial<AnalyticsAverageMessagesPerRequest> & { isLoading: boolean }> =
     this.apiAnalyticsV2Service.getAverageMessagesPerRequest(this.activatedRoute.snapshot.params.apiId).pipe(
-      map((requestsCount) => ({ isLoading: false, ...requestsCount })),
+      map(requestsCount => ({ isLoading: false, ...requestsCount })),
       startWith({ isLoading: true }),
     );
 
   private readonly getResponseStatusRanges$: Observable<Partial<AnalyticsResponseStatusRanges> & { isLoading: boolean }> =
     this.apiAnalyticsV2Service.getResponseStatusRanges(this.activatedRoute.snapshot.params.apiId).pipe(
-      map((responseStatusRanges) => ({ isLoading: false, ...responseStatusRanges })),
+      map(responseStatusRanges => ({ isLoading: false, ...responseStatusRanges })),
       startWith({ isLoading: true }),
     );
 
@@ -111,8 +111,8 @@ export class ApiAnalyticsMessageComponent {
     this.apiAnalyticsV2Service.timeRangeFilter(),
   ]).pipe(
     switchMap(([api, availableEntrypoints]) => {
-      const apiEntrypointsId = flatten(api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
-      const allEntrypoints: ApiAnalyticsVM['entrypoints'] = availableEntrypoints.map((e) => ({
+      const apiEntrypointsId = flatten(api.listeners.map(l => l.entrypoints)).map(e => e.type);
+      const allEntrypoints: ApiAnalyticsVM['entrypoints'] = availableEntrypoints.map(e => ({
         id: e.id,
         name: e.name,
         icon: this.iconService.registerSvg(e.id, e.icon),
@@ -120,7 +120,7 @@ export class ApiAnalyticsMessageComponent {
 
       return this.analyticsData$(allEntrypoints, apiEntrypointsId);
     }),
-    map((analyticsData) => ({ isLoading: false, ...analyticsData })),
+    map(analyticsData => ({ isLoading: false, ...analyticsData })),
     startWith({ isLoading: true }),
   );
 
@@ -136,22 +136,22 @@ export class ApiAnalyticsMessageComponent {
     ]).pipe(
       map(([requestsCount, averageConnectionDuration, averageMessagesPerRequest, responseStatusRanges]) => {
         // Entrypoints that are configured in the API
-        const apiEntrypoints = allEntrypoints.filter((entrypoint) => apiEntrypointsId.includes(entrypoint.id));
+        const apiEntrypoints = allEntrypoints.filter(entrypoint => apiEntrypointsId.includes(entrypoint.id));
 
         // Entrypoints that are not configured in the API
         const notApiConfiguredEntrypoints = allEntrypoints
-          .filter((entrypoint) => !apiEntrypointsId.includes(entrypoint.id))
-          .filter((entrypoint) =>
+          .filter(entrypoint => !apiEntrypointsId.includes(entrypoint.id))
+          .filter(entrypoint =>
             [
               ...Object.keys(!requestsCount.isLoading ? (requestsCount.countsByEntrypoint ?? {}) : {}),
               ...Object.keys(!averageConnectionDuration.isLoading ? (averageConnectionDuration.averagesByEntrypoint ?? {}) : {}),
               ...Object.keys(!averageMessagesPerRequest.isLoading ? (averageMessagesPerRequest.averagesByEntrypoint ?? {}) : {}),
             ].includes(entrypoint.id),
           )
-          .map((entrypoint) => ({ ...entrypoint, isNotConfigured: true }));
+          .map(entrypoint => ({ ...entrypoint, isNotConfigured: true }));
 
         return {
-          entrypoints: [...apiEntrypoints, ...notApiConfiguredEntrypoints].map((entrypoint) => {
+          entrypoints: [...apiEntrypoints, ...notApiConfiguredEntrypoints].map(entrypoint => {
             return {
               ...entrypoint,
               requestStats: [

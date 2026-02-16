@@ -39,12 +39,12 @@ describe('EventService', () => {
   });
 
   describe('findById', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api#1';
       const eventId = 'event#1';
       const responseEvent = fakeEvent({ id: eventId });
 
-      eventService.findById(apiId, eventId).subscribe((result) => {
+      eventService.findById(apiId, eventId).subscribe(result => {
         expect(result).toMatchObject(responseEvent);
         done();
       });
@@ -59,16 +59,14 @@ describe('EventService', () => {
   });
 
   describe('search', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const eventId = 'event#1';
       const responseEvent = { content: [fakeEvent({ id: eventId })] };
 
-      eventService
-        .search('START_API,STOP_API,PUBLISH_API,UNPUBLISH_API', '', '', 1691505958670, 1694097958670, 1, 10)
-        .subscribe((result) => {
-          expect(result).toMatchObject(responseEvent);
-          done();
-        });
+      eventService.search('START_API,STOP_API,PUBLISH_API,UNPUBLISH_API', '', '', 1691505958670, 1694097958670, 1, 10).subscribe(result => {
+        expect(result).toMatchObject(responseEvent);
+        done();
+      });
 
       httpTestingController
         .expectOne({

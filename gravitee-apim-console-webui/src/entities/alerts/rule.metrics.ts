@@ -145,7 +145,7 @@ export class Rule {
   static findByScope(scope: Scope, cloudEnabled: boolean): Rule[] {
     const excludedCloudCategories = this.getExcludedCloudCategories(cloudEnabled);
 
-    return Rule.RULES.filter((rule) => rule.scopes.includes(scope) && !excludedCloudCategories.includes(rule.category));
+    return Rule.RULES.filter(rule => rule.scopes.includes(scope) && !excludedCloudCategories.includes(rule.category));
   }
 
   static findByScopeAndType(scope: Scope, type: string, cloudEnabled: boolean): Rule | undefined {
@@ -160,7 +160,7 @@ export class Rule {
     }
 
     return Rule.RULES.find(
-      (rule) =>
+      rule =>
         (!source || rule.source === source) &&
         rule.type === ruleType &&
         rule.scopes.includes(scope) &&
@@ -177,7 +177,7 @@ export class Rule {
     const categories = [...baseCategories[scope]];
 
     if (scope === Scope.ENVIRONMENT && cloudEnabled) {
-      return categories.filter((c) => c !== 'Node');
+      return categories.filter(c => c !== 'Node');
     }
     return categories;
   }

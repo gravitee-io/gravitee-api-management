@@ -45,11 +45,11 @@ export class MetricsSimpleConditionHarness extends ComponentHarness {
   }
 
   public async getTypeOptions() {
-    return this.getTypeSelect().then(async (select) => this.getOptions(select));
+    return this.getTypeSelect().then(async select => this.getOptions(select));
   }
 
   public async isTypeSelectDisabled() {
-    return this.getTypeSelect().then((select) => select.isDisabled());
+    return this.getTypeSelect().then(select => select.isDisabled());
   }
 
   public async selectType(text: string) {
@@ -73,41 +73,41 @@ export class MetricsSimpleConditionHarness extends ComponentHarness {
   }
 
   public async setThresholdValue(value: string) {
-    return this.getThresholdInput().then((input) => input.setValue(value));
+    return this.getThresholdInput().then(input => input.setValue(value));
   }
 
   public async getThresholdValue() {
-    return this.getThresholdInput().then((input) => input.getValue());
+    return this.getThresholdInput().then(input => input.getValue());
   }
 
   public async setLowThresholdValue(value: string) {
-    return this.getLowThresholdInput().then((input) => input.setValue(value));
+    return this.getLowThresholdInput().then(input => input.setValue(value));
   }
 
   public async getLowThresholdValue() {
-    return this.getLowThresholdInput().then((input) => input.getValue());
+    return this.getLowThresholdInput().then(input => input.getValue());
   }
 
   public async setHighThresholdValue(value: string) {
-    return this.getHighThresholdInput().then((input) => input.setValue(value));
+    return this.getHighThresholdInput().then(input => input.setValue(value));
   }
 
   public async getMultiplierValue() {
-    return this.getMultiplierInput().then((input) => input.getValue());
+    return this.getMultiplierInput().then(input => input.getValue());
   }
 
   public async setMultiplierValue(value: string) {
-    return this.getMultiplierInput().then((input) => input.setValue(value));
+    return this.getMultiplierInput().then(input => input.setValue(value));
   }
 
   public async isHighThresholdInvalid() {
     return this.getHighThresholdInput()
-      .then((input) => input.host())
-      .then((host) => host.hasClass('ng-invalid'));
+      .then(input => input.host())
+      .then(host => host.hasClass('ng-invalid'));
   }
 
   public async getHighThresholdValue() {
-    return this.getHighThresholdInput().then((input) => input.getValue());
+    return this.getHighThresholdInput().then(input => input.getValue());
   }
 
   public async getPropertyOptions() {
@@ -135,17 +135,17 @@ export class MetricsSimpleConditionHarness extends ComponentHarness {
   }
 
   public async getReferenceValue() {
-    return this.getReferenceInput().then((input) => input.getValue());
+    return this.getReferenceInput().then(input => input.getValue());
   }
 
   public async setReferenceValue(text: string) {
-    return this.getReferenceInput().then((input) => input.setValue(text));
+    return this.getReferenceInput().then(input => input.setValue(text));
   }
 
   private async getOptions(select: MatSelectHarness) {
     await select.open();
     const options = await select.getOptions();
-    return Promise.all(options.map(async (o) => o.getText()));
+    return Promise.all(options.map(async o => o.getText()));
   }
 
   private async getSelectedOption(select: MatSelectHarness) {

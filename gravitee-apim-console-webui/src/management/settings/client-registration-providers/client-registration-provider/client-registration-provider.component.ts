@@ -74,7 +74,7 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
       this.clientRegistrationProvidersService
         .get(this.activatedRoute.snapshot.params.providerId)
         .pipe(
-          tap((clientRegistrationProvider) => {
+          tap(clientRegistrationProvider => {
             this.updateMode = true;
             this.initProviderForm(clientRegistrationProvider);
           }),
@@ -106,13 +106,13 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
       ? this.clientRegistrationProvidersService
           .update({ ...providerFormValueToSave, id: this.activatedRoute.snapshot.params.providerId })
           .pipe(
-            tap((clientRegistrationProvider) => {
+            tap(clientRegistrationProvider => {
               this.snackBarService.success(`Client registration provider  ${clientRegistrationProvider.name} has been updated.`);
               this.providerForm.markAsPristine();
             }),
           )
       : this.clientRegistrationProvidersService.create(providerFormValueToSave).pipe(
-          tap((clientRegistrationProvider) => {
+          tap(clientRegistrationProvider => {
             this.snackBarService.success(`Client registration provider  ${clientRegistrationProvider.name} has been created.`);
             this.providerForm.markAsPristine();
           }),
@@ -124,7 +124,7 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        tap((clientRegistrationProvider) => {
+        tap(clientRegistrationProvider => {
           this.router.navigate(['../', clientRegistrationProvider.id], { relativeTo: this.activatedRoute });
         }),
         takeUntil(this.unsubscribe$),
@@ -147,7 +147,7 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
     this.providerForm
       .get('initial_access_token_type')
       .valueChanges.pipe(takeUntil(this.unsubscribe$))
-      .subscribe((value) => {
+      .subscribe(value => {
         // Clear or add validators depending on the selected value
         if (value === 'INITIAL_ACCESS_TOKEN') {
           this.providerForm.get('client_id').clearValidators();
@@ -289,7 +289,7 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
         }
       }
 
-      Object.values(trustStoreGroup.controls).forEach((ctrl) => ctrl.updateValueAndValidity({ emitEvent: false }));
+      Object.values(trustStoreGroup.controls).forEach(ctrl => ctrl.updateValueAndValidity({ emitEvent: false }));
     };
 
     trustStoreGroup.get('type').valueChanges.subscribe(updateValidators);
@@ -326,7 +326,7 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
         }
       }
 
-      Object.values(keyStoreGroup.controls).forEach((ctrl) => ctrl.updateValueAndValidity({ emitEvent: false }));
+      Object.values(keyStoreGroup.controls).forEach(ctrl => ctrl.updateValueAndValidity({ emitEvent: false }));
     };
 
     keyStoreGroup.get('type').valueChanges.subscribe(updateValidators);

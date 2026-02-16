@@ -57,7 +57,7 @@ describe('OpenApiToMcpToolsComponent', () => {
 
     // Set up default mock implementations
     mockValidate.mockResolvedValue(true);
-    mockDereference.mockImplementation(async (spec) => ({ schema: spec }));
+    mockDereference.mockImplementation(async spec => ({ schema: spec }));
   });
 
   beforeEach(async () => {

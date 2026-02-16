@@ -52,7 +52,7 @@ export class ClusterManageGroupsDialogHarness extends ComponentHarness {
     }
     await select.open();
     const options = await select.getOptions();
-    return Promise.all(options.map((o) => o.getText()));
+    return Promise.all(options.map(o => o.getText()));
   }
 
   public async selectGroups(groupsToSelect: string[]): Promise<void[]> {
@@ -61,7 +61,7 @@ export class ClusterManageGroupsDialogHarness extends ComponentHarness {
       return [];
     }
     await select.open();
-    return Promise.all(groupsToSelect.map((g) => select.clickOptions({ text: g })));
+    return Promise.all(groupsToSelect.map(g => select.clickOptions({ text: g })));
   }
 
   public async getSelectedGroupsText(): Promise<string | null> {

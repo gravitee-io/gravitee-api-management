@@ -45,7 +45,7 @@ export class MetricsSimpleConditionComponent implements OnInit, OnDestroy {
   public updateData: AlertCondition;
 
   ngOnInit() {
-    this.types = this.metrics.find((metric) => metric.key === this.metrics[0]?.key).conditions;
+    this.types = this.metrics.find(metric => metric.key === this.metrics[0]?.key).conditions;
 
     if (this.alertToUpdateConditions) {
       this.updateData = this.alertToUpdateConditions;
@@ -64,12 +64,12 @@ export class MetricsSimpleConditionComponent implements OnInit, OnDestroy {
   private onMetricsChanges() {
     this.form.controls.metric.valueChanges
       .pipe(
-        tap((value) => {
+        tap(value => {
           if (value != null) {
             this.metric = value;
             this.form.controls.type.enable();
             this.form.controls.type.reset();
-            this.types = this.metrics.find((metric) => metric.key === value?.key)?.conditions;
+            this.types = this.metrics.find(metric => metric.key === value?.key)?.conditions;
             this.removeControls(OPTIONAL_CONTROLS_NAMES);
           }
         }),
@@ -81,7 +81,7 @@ export class MetricsSimpleConditionComponent implements OnInit, OnDestroy {
   private onTypeChanges() {
     this.form.controls.type.valueChanges
       .pipe(
-        tap((typeValue) => {
+        tap(typeValue => {
           this.removeControls(OPTIONAL_CONTROLS_NAMES);
           this.addControls(typeValue);
         }),
@@ -160,16 +160,16 @@ export class MetricsSimpleConditionComponent implements OnInit, OnDestroy {
 
   private setMetricControl(alertToUpdateCondition: AlertCondition) {
     if ('property' in alertToUpdateCondition) {
-      this.metric = this.metrics.find((metric) => metric?.key === alertToUpdateCondition.property);
+      this.metric = this.metrics.find(metric => metric?.key === alertToUpdateCondition.property);
     }
     if ('comparison' in alertToUpdateCondition) {
-      this.metric = this.metrics.find((metric) => metric.key === alertToUpdateCondition.comparison.property);
+      this.metric = this.metrics.find(metric => metric.key === alertToUpdateCondition.comparison.property);
     }
     this.form.controls.metric.setValue(this.metric);
   }
 
   private setTypeControl(alertToUpdateCondition: AlertCondition) {
-    this.types = this.metrics.find((m) => m?.key === this.metric?.key)?.conditions;
+    this.types = this.metrics.find(m => m?.key === this.metric?.key)?.conditions;
     let type: string;
     if ('comparison' in alertToUpdateCondition) {
       type = alertToUpdateCondition.comparison.type;
@@ -183,7 +183,7 @@ export class MetricsSimpleConditionComponent implements OnInit, OnDestroy {
 
   private setOperatorControl() {
     const condition = Conditions.findByType(this.updateData.type);
-    const operator = condition.getOperators().find((o) => {
+    const operator = condition.getOperators().find(o => {
       return o?.key === this.updateData.operator;
     });
     this.form.addControl('operator', new FormControl(operator, Validators.required));
@@ -202,7 +202,7 @@ export class MetricsSimpleConditionComponent implements OnInit, OnDestroy {
   }
 
   private removeControls(controls) {
-    controls.forEach((controlKey) => {
+    controls.forEach(controlKey => {
       if (this.form.contains(controlKey)) this.form.removeControl(controlKey);
     });
   }

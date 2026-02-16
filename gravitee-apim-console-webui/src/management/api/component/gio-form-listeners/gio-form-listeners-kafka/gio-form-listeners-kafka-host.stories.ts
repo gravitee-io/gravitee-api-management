@@ -30,7 +30,7 @@ export default {
     }),
   ],
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `<gio-form-listeners-kafka-host [ngModel]="listeners" />`,
     props: args,
   }),

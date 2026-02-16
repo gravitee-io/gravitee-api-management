@@ -72,7 +72,7 @@ export class ClusterConfigurationComponent implements OnInit {
     this.clusterService
       .get(this.activatedRoute.snapshot.params.clusterId)
       .pipe(
-        tap((cluster) => {
+        tap(cluster => {
           this.initialCluster = cluster;
           this.isLoadingData = false;
 

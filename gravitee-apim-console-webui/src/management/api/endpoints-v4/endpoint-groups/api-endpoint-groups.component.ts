@@ -30,7 +30,7 @@ export class ApiEndpointGroupsComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public api$: Observable<ApiV4> = this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(
-    map((api) => api as ApiV4),
+    map(api => api as ApiV4),
     takeUntil(this.unsubscribe$),
   );
 

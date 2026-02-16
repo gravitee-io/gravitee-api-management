@@ -36,11 +36,11 @@ describe('InstanceService', () => {
   });
 
   describe('get', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const instanceId = '5bc17c57-b350-460d-817c-57b350060db3';
       const fakeInstanceObject = fakeInstance();
 
-      instanceService.get(instanceId).subscribe((instance) => {
+      instanceService.get(instanceId).subscribe(instance => {
         expect(instance).toMatchObject(fakeInstanceObject);
         done();
       });
@@ -53,12 +53,12 @@ describe('InstanceService', () => {
   });
 
   describe('getMonitoringData', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const instanceId = '5bc17c57-b350-460d-817c-57b350060db3';
       const monitoringId = '74bf7316-6475-416f-bf73-166475816fc5';
       const fakeMonitoringDataObject = fakeMonitoringData();
 
-      instanceService.getMonitoringData(instanceId, monitoringId).subscribe((monitoringData) => {
+      instanceService.getMonitoringData(instanceId, monitoringId).subscribe(monitoringData => {
         expect(monitoringData).toMatchObject(fakeMonitoringDataObject);
         done();
       });
@@ -71,7 +71,7 @@ describe('InstanceService', () => {
   });
 
   describe('search', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const includeStopped = false;
       const from = 0;
       const to = 0;
@@ -79,7 +79,7 @@ describe('InstanceService', () => {
       const size = 100;
       const fakeSearchResults = [fakeSearchResult()];
 
-      instanceService.search(includeStopped, from, to, page, size).subscribe((searchResults) => {
+      instanceService.search(includeStopped, from, to, page, size).subscribe(searchResults => {
         expect(searchResults).toMatchObject(fakeSearchResults);
         done();
       });
@@ -94,11 +94,11 @@ describe('InstanceService', () => {
   });
 
   describe('getByGatewayId', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const instanceId = '5bc17c57-b350-460d-817c-57b350060db3';
       const fakeInstanceObject = fakeInstance();
 
-      instanceService.getByGatewayId(instanceId).subscribe((instance) => {
+      instanceService.getByGatewayId(instanceId).subscribe(instance => {
         expect(instance).toMatchObject(fakeInstanceObject);
         done();
       });

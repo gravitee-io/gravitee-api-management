@@ -37,11 +37,11 @@ describe('RoleService', () => {
   });
 
   describe('list', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakeRoles = [fakeRole()];
       const scope = 'SCOPE';
 
-      roleService.list(scope).subscribe((roles) => {
+      roleService.list(scope).subscribe(roles => {
         expect(roles).toMatchObject(fakeRoles);
         done();
       });
@@ -54,12 +54,12 @@ describe('RoleService', () => {
   });
 
   describe('listMemberships', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const membershipList = [fakeMembershipListItem()];
       const scope = 'ORGANIZATION';
       const roleName = 'ADMIN';
 
-      roleService.listMemberships(scope, roleName).subscribe((memberships) => {
+      roleService.listMemberships(scope, roleName).subscribe(memberships => {
         expect(memberships).toStrictEqual(membershipList);
         done();
       });
@@ -74,7 +74,7 @@ describe('RoleService', () => {
   });
 
   describe('deleteMembership', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const roleScope = 'ORGANIZATION';
       const roleName = 'ADMIN';
       const username = 'johndoe';
@@ -91,7 +91,7 @@ describe('RoleService', () => {
   });
 
   describe('createMembership', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const roleScope = 'ORGANIZATION';
       const roleName = 'ADMIN';
       const membership = {
@@ -112,10 +112,10 @@ describe('RoleService', () => {
   });
 
   describe('getPermissionsByScopes', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const scopes = fakePermissionsByScopes();
 
-      roleService.getPermissionsByScopes().subscribe((response) => {
+      roleService.getPermissionsByScopes().subscribe(response => {
         expect(response).toStrictEqual(scopes);
         done();
       });
@@ -130,10 +130,10 @@ describe('RoleService', () => {
   });
 
   describe('getPermissionsByScope', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const scopes = fakePermissionsByScopes();
 
-      roleService.getPermissionsByScope('ENVIRONMENT').subscribe((response) => {
+      roleService.getPermissionsByScope('ENVIRONMENT').subscribe(response => {
         expect(response).toStrictEqual(scopes.ENVIRONMENT);
         done();
       });
@@ -156,7 +156,7 @@ describe('RoleService', () => {
   });
 
   describe('delete', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const roleToDelete = fakeRole({
         scope: 'ORGANIZATION',
         name: 'admin',
@@ -174,13 +174,13 @@ describe('RoleService', () => {
   });
 
   describe('get', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const roleToGet = fakeRole({
         scope: 'ORGANIZATION',
         name: 'admin',
       });
 
-      roleService.get(roleToGet.scope, roleToGet.name).subscribe((role) => {
+      roleService.get(roleToGet.scope, roleToGet.name).subscribe(role => {
         expect(role).toMatchObject(roleToGet);
         done();
       });
@@ -195,7 +195,7 @@ describe('RoleService', () => {
   });
 
   describe('update', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const roleToUpdate = fakeRole({
         scope: 'ORGANIZATION',
         name: 'admin',
@@ -214,7 +214,7 @@ describe('RoleService', () => {
   });
 
   describe('create', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const roleToCreate = fakeRole({
         scope: 'ORGANIZATION',
         name: 'admin',

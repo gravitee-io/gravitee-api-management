@@ -131,8 +131,8 @@ class EditPageComponentController implements IController {
     this.pageId = this.activatedRoute.snapshot.params.pageId;
     this.page = deepClone(this.resolvedPage);
     this.fetchers = deepClone(this.resolvedFetchers);
-    this.tabs = this.tabs.filter((tab) => !tab.isUnavailable());
-    const indexOfTab = this.tabs.findIndex((tab) => tab.name === this.activatedRoute.snapshot.queryParams.tab);
+    this.tabs = this.tabs.filter(tab => !tab.isUnavailable());
+    const indexOfTab = this.tabs.findIndex(tab => tab.name === this.activatedRoute.snapshot.queryParams.tab);
     this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
     this.currentTab = this.tabs[this.selectedTab].name;
     if (this.resolvedPage.messages && this.resolvedPage.messages.length > 0) {
@@ -192,7 +192,7 @@ class EditPageComponentController implements IController {
   initEditor() {
     this.$scope.editorReadonly = false;
     if (this.page.source != null && this.page.source.type != null) {
-      this.resolvedFetchers.forEach((fetcher) => {
+      this.resolvedFetchers.forEach(fetcher => {
         if (fetcher.id === this.page.source.type) {
           this.$scope.fetcherJsonSchema = angular.fromJson(fetcher.schema);
           this.$scope.editorReadonly = true;
@@ -209,7 +209,7 @@ class EditPageComponentController implements IController {
   save() {
     this.error = null;
     this.DocumentationService.update(this.page, this.apiId)
-      .then((response) => {
+      .then(response => {
         if (response.data.messages && response.data.messages.length > 0) {
           this.NotificationService.showError("'" + this.page.name + "' has been updated (with validation errors)");
         } else {
@@ -217,7 +217,7 @@ class EditPageComponentController implements IController {
         }
         this.ngRouter.navigate(['../'], { relativeTo: this.activatedRoute });
       })
-      .catch((err) => {
+      .catch(err => {
         this.error = { ...err.data, title: 'Sorry, unable to update page' };
       });
   }
@@ -232,9 +232,9 @@ class EditPageComponentController implements IController {
 
   onAttachedResourceUpdate() {
     this.DocumentationService.getMedia(this.page.id, this.apiId)
-      .then((mediaResponse) => (this.attachedResources = mediaResponse.data))
+      .then(mediaResponse => (this.attachedResources = mediaResponse.data))
       .then(() => this.DocumentationService.get(this.apiId, this.page.id))
-      .then((pageResponse) => (this.resolvedPage = pageResponse.data))
+      .then(pageResponse => (this.resolvedPage = pageResponse.data))
       .then(() => this.reset());
   }
 
@@ -269,7 +269,7 @@ class EditPageComponentController implements IController {
   }
 
   selectTab(idx: number) {
-    const selectedTab = this.tabs.findIndex((tab) => tab.id === idx);
+    const selectedTab = this.tabs.findIndex(tab => tab.id === idx);
 
     // Change tabs + query params if there is a change
     if (this.tabs[selectedTab].name !== this.currentTab) {

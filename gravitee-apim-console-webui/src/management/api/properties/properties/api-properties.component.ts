@@ -91,7 +91,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
     this.apiV2Service
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
-        tap((api) => {
+        tap(api => {
           if (api.definitionVersion === 'V1') {
             throw new Error('Unexpected API type. This page is compatible only for API > V1');
           }
@@ -100,15 +100,15 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
           }
           this.isV4 = api.definitionVersion === 'V4';
           if (api.definitionVersion === 'V4') {
-            this.apiProperties = api.properties?.map((p) => ({ ...p, _id: uniqueId(), dynamic: p.dynamic })) ?? [];
+            this.apiProperties = api.properties?.map(p => ({ ...p, _id: uniqueId(), dynamic: p.dynamic })) ?? [];
             this.areDynamicPropertiesRunningWithDisableConfiguration =
-              !api.services?.dynamicProperty?.enabled && api.properties.some((p) => p.dynamic);
+              !api.services?.dynamicProperty?.enabled && api.properties.some(p => p.dynamic);
           } else {
             // Keep the same behaviour in V2
             this.apiProperties =
-              api.properties?.map((p) => ({ ...p, _id: uniqueId(), dynamic: api.services?.dynamicProperty?.enabled && p.dynamic })) ?? [];
+              api.properties?.map(p => ({ ...p, _id: uniqueId(), dynamic: api.services?.dynamicProperty?.enabled && p.dynamic })) ?? [];
           }
-          this.apiProperties = api.properties?.map((p) => ({ ...p, _id: uniqueId(), dynamic: p.dynamic })) ?? [];
+          this.apiProperties = api.properties?.map(p => ({ ...p, _id: uniqueId(), dynamic: p.dynamic })) ?? [];
 
           this.isReadOnly = api.originContext?.origin === 'KUBERNETES';
 
@@ -140,8 +140,8 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
       })
       .beforeClosed()
       .pipe(
-        filter((importPropertiesFn) => importPropertiesFn !== undefined),
-        switchMap((importPropertiesFn) => this.saveProperties$(importPropertiesFn)),
+        filter(importPropertiesFn => importPropertiesFn !== undefined),
+        switchMap(importPropertiesFn => this.saveProperties$(importPropertiesFn)),
         tap(() => {
           this.snackBarService.success('Property successfully added!');
           this.ngOnInit();
@@ -161,8 +161,8 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
       })
       .beforeClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((propertyToAdd) => this.saveProperties$((existingProperties) => [...existingProperties, propertyToAdd])),
+        filter(result => !!result),
+        switchMap(propertyToAdd => this.saveProperties$(existingProperties => [...existingProperties, propertyToAdd])),
         tap(() => {
           this.snackBarService.success('Property successfully added!');
           this.ngOnInit();
@@ -173,20 +173,20 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   }
 
   editKeyProperty(_id: string, newKey: string) {
-    const property = this.apiProperties.find((p) => p._id === _id);
+    const property = this.apiProperties.find(p => p._id === _id);
 
     property.key = newKey;
     this.isDirty = true;
   }
 
   editValueProperty(_id: string, newValue: string) {
-    const property = this.apiProperties.find((p) => p._id === _id);
+    const property = this.apiProperties.find(p => p._id === _id);
 
     property.value = newValue;
     this.isDirty = true;
   }
   editEncryptedProperty(_id: string, encryptable: boolean) {
-    const property = this.apiProperties.find((p) => p._id === _id);
+    const property = this.apiProperties.find(p => p._id === _id);
 
     property.encryptable = encryptable;
 
@@ -195,14 +195,14 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   }
 
   encryptPropertyValue(_id: string) {
-    const property = this.apiProperties.find((p) => p._id === _id);
+    const property = this.apiProperties.find(p => p._id === _id);
 
     property.encryptable = true;
     this.isDirty = true;
     this.refreshTable();
   }
   renewEncryptedPropertyValue(_id: string) {
-    const property = this.apiProperties.find((p) => p._id === _id);
+    const property = this.apiProperties.find(p => p._id === _id);
 
     property.value = '';
     property.encrypted = false;
@@ -217,14 +217,14 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   }
 
   removeProperty(_id: string) {
-    this.apiProperties = this.apiProperties.filter((p) => p._id !== _id);
+    this.apiProperties = this.apiProperties.filter(p => p._id !== _id);
 
     this.isDirty = true;
     this.refreshTable();
   }
 
   onFiltersChanged(filters: GioTableWrapperFilters) {
-    const propertiesCollection: TableDataSource[] = this.apiProperties.map((p) => {
+    const propertiesCollection: TableDataSource[] = this.apiProperties.map(p => {
       return {
         _id: p._id,
         key: p.key,
@@ -242,7 +242,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   }
 
   onSave() {
-    this.saveProperties$((_) => this.apiProperties.map((p) => omit(p, ['_id'])))
+    this.saveProperties$(_ => this.apiProperties.map(p => omit(p, ['_id'])))
       .pipe(
         tap(() => {
           this.snackBarService.success('Configuration successfully saved!');
@@ -274,23 +274,23 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
           [
             Validators.required,
             isUniqueAndDoesNotMatchDefaultValue(
-              this.apiProperties.map((p) => p.key),
+              this.apiProperties.map(p => p.key),
               currentValue.key,
             ),
           ],
         );
-        keyControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => this.editKeyProperty(currentValue._id, value));
+        keyControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(value => this.editKeyProperty(currentValue._id, value));
 
         const valueControl = new UntypedFormControl({
           value: currentValue.encrypted ? '*************' : currentValue.value,
           disabled: this.isReadOnly || currentValue.encrypted || currentValue.dynamic,
         });
-        valueControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => this.editValueProperty(currentValue._id, value));
+        valueControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(value => this.editValueProperty(currentValue._id, value));
 
         const encryptedControl = new UntypedFormControl(currentValue.encrypted);
         encryptedControl.valueChanges
           .pipe(takeUntil(this.unsubscribe$))
-          .subscribe((value) => this.editEncryptedProperty(currentValue._id, value));
+          .subscribe(value => this.editEncryptedProperty(currentValue._id, value));
 
         return {
           ...previousValue,

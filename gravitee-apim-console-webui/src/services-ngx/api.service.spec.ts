@@ -47,11 +47,11 @@ describe('ApiService', () => {
   });
 
   describe('get', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'fox';
       const mockApi = fakeApi();
 
-      apiService.get(apiId).subscribe((response) => {
+      apiService.get(apiId).subscribe(response => {
         expect(response).toMatchObject(mockApi);
         done();
       });
@@ -63,10 +63,10 @@ describe('ApiService', () => {
   });
 
   describe('getFlowSchemaForm', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const mockApiFlow = fakeFlowSchema();
 
-      apiService.getFlowSchemaForm().subscribe((response) => {
+      apiService.getFlowSchemaForm().subscribe(response => {
         expect(response).toEqual(mockApiFlow);
         done();
       });
@@ -79,7 +79,7 @@ describe('ApiService', () => {
   });
 
   describe('update', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'apiId';
       const apiToUpdate = fakeUpdateApi();
 
@@ -94,10 +94,10 @@ describe('ApiService', () => {
   });
 
   describe('getAll', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const mockApis = [fakeApi()];
 
-      apiService.getAll().subscribe((response) => {
+      apiService.getAll().subscribe(response => {
         expect(response).toMatchObject(mockApis);
         done();
       });
@@ -107,11 +107,11 @@ describe('ApiService', () => {
       req.flush(mockApis);
     });
 
-    it('should call the API with environmentId', (done) => {
+    it('should call the API with environmentId', done => {
       const mockApis = [fakeApi()];
       const environmentId = 'environmentId';
 
-      apiService.getAll({ environmentId }).subscribe((response) => {
+      apiService.getAll({ environmentId }).subscribe(response => {
         expect(response).toMatchObject(mockApis);
         done();
       });
@@ -126,10 +126,10 @@ describe('ApiService', () => {
   });
 
   describe('list', () => {
-    it('should call the API with pagination default params', (done) => {
+    it('should call the API with pagination default params', done => {
       const mockApis = [fakeApi()];
 
-      apiService.list().subscribe((response) => {
+      apiService.list().subscribe(response => {
         expect(response).toMatchObject(mockApis);
         done();
       });
@@ -142,10 +142,10 @@ describe('ApiService', () => {
       req.flush(mockApis);
     });
 
-    it('should call the API with pagination query and order', (done) => {
+    it('should call the API with pagination query and order', done => {
       const mockApis = [fakeApi()];
 
-      apiService.list('toto', 'name').subscribe((response) => {
+      apiService.list('toto', 'name').subscribe(response => {
         expect(response).toMatchObject(mockApis);
         done();
       });
@@ -160,10 +160,10 @@ describe('ApiService', () => {
   });
 
   describe('isAPISynchronized', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api#1';
 
-      apiService.isAPISynchronized(apiId).subscribe((response) => {
+      apiService.isAPISynchronized(apiId).subscribe(response => {
         expect(response).toEqual({
           api_id: apiId,
           is_synchronized: true,
@@ -182,10 +182,10 @@ describe('ApiService', () => {
   });
 
   describe('getQualityMetrics', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api#1';
 
-      apiService.getQualityMetrics(apiId).subscribe((response) => {
+      apiService.getQualityMetrics(apiId).subscribe(response => {
         expect(response).toEqual({
           score: 80,
         });
@@ -202,7 +202,7 @@ describe('ApiService', () => {
   });
 
   describe('askForReview', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api#1';
 
       apiService.askForReview(apiId).subscribe(() => {
@@ -217,7 +217,7 @@ describe('ApiService', () => {
   });
 
   describe('acceptReview', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api#1';
 
       apiService.acceptReview(apiId).subscribe(() => {
@@ -232,7 +232,7 @@ describe('ApiService', () => {
   });
 
   describe('rejectReview', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api#1';
 
       apiService.rejectReview(apiId).subscribe(() => {
@@ -247,7 +247,7 @@ describe('ApiService', () => {
   });
 
   describe('start', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api#1';
 
       apiService.start(apiId).subscribe(() => {
@@ -262,7 +262,7 @@ describe('ApiService', () => {
   });
 
   describe('stop', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api#1';
 
       apiService.stop(apiId).subscribe(() => {
@@ -277,7 +277,7 @@ describe('ApiService', () => {
   });
 
   describe('delete', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api#1';
 
       apiService.delete(apiId).subscribe(() => {
@@ -292,7 +292,7 @@ describe('ApiService', () => {
   });
 
   describe('importApiDefinition', () => {
-    it('should call the API with graviteeJson', (done) => {
+    it('should call the API with graviteeJson', done => {
       apiService.importApiDefinition('graviteeJson', '{}').subscribe(() => {
         done();
       });
@@ -303,7 +303,7 @@ describe('ApiService', () => {
       req.flush({});
     });
 
-    it('should call the API with graviteeUrl', (done) => {
+    it('should call the API with graviteeUrl', done => {
       apiService.importApiDefinition('graviteeUrl', '{}').subscribe(() => {
         done();
       });
@@ -314,7 +314,7 @@ describe('ApiService', () => {
       req.flush({});
     });
 
-    it('should call the API with apiId', (done) => {
+    it('should call the API with apiId', done => {
       apiService.importApiDefinition('graviteeUrl', '{}', 'apiId').subscribe(() => {
         done();
       });
@@ -327,7 +327,7 @@ describe('ApiService', () => {
   });
 
   describe('importSwaggerApi', () => {
-    it('should call the API with graviteeJson', (done) => {
+    it('should call the API with graviteeJson', done => {
       const payload = {
         payload: '{}',
         format: 'API' as const,
@@ -348,7 +348,7 @@ describe('ApiService', () => {
       req.flush({});
     });
 
-    it('should call the API with apiId', (done) => {
+    it('should call the API with apiId', done => {
       const payload = {
         payload: '{}',
         format: 'API' as const,
@@ -371,7 +371,7 @@ describe('ApiService', () => {
   });
 
   describe('export', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'apiId';
 
       apiService.export(apiId, ['plans'], '2.0.0').subscribe(() => {
@@ -388,7 +388,7 @@ describe('ApiService', () => {
   });
 
   describe('exportCrd', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'apiId';
 
       apiService.exportCrd(apiId).subscribe(() => {
@@ -402,7 +402,7 @@ describe('ApiService', () => {
   });
 
   describe('duplicate', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api#1';
 
       apiService
@@ -445,7 +445,7 @@ describe('ApiService', () => {
       ['/aaa', expectVerifyContextPathPostRequest, null],
       ['/echo', expectVerifyContextPathFailedRequest, { contextPath: 'The path [/echo/] is already covered by an other API.' }],
     ] as any[])('should validate %p contextPath', (contextPath, expectVerifyContextPathGetRequest, error, done) => {
-      from(apiService.contextPathValidator({})(new FormControl(contextPath))).subscribe((result) => {
+      from(apiService.contextPathValidator({})(new FormControl(contextPath))).subscribe(result => {
         expect(result).toEqual(error);
         done();
       });
@@ -457,7 +457,7 @@ describe('ApiService', () => {
   });
 
   describe('importPathMappings', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api#1';
       const pageId = 'pageId';
       const apiVersion = 'apiVersion';
@@ -473,7 +473,7 @@ describe('ApiService', () => {
       req.flush({});
     });
 
-    it('should call the API without api version', (done) => {
+    it('should call the API without api version', done => {
       const apiId = 'api#1';
       const pageId = 'pageId';
 
@@ -490,7 +490,7 @@ describe('ApiService', () => {
   });
 
   describe('transferOwnership', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api#1';
 
       apiService
@@ -515,14 +515,14 @@ describe('ApiService', () => {
   });
 
   describe('getGroupIdsWithMembers', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'api#1';
       const fakeGroupsMember = {
         groupId1: [fakeGroupMember({ id: 'user#1' })],
         groupId2: [fakeGroupMember({ id: 'user#2' })],
       };
 
-      apiService.getGroupIdsWithMembers(apiId).subscribe((value) => {
+      apiService.getGroupIdsWithMembers(apiId).subscribe(value => {
         expect(value).toEqual(fakeGroupsMember);
         done();
       });
@@ -539,11 +539,11 @@ describe('ApiService', () => {
    * Metadata
    */
   describe('list API metadata', () => {
-    it('should call the list endpoint', (done) => {
+    it('should call the list endpoint', done => {
       const apiId = 'my-api';
       const metadata = [fakeMetadata({ key: 'key1' }), fakeMetadata({ key: 'key2' })];
 
-      apiService.listMetadata(apiId).subscribe((metadataList) => {
+      apiService.listMetadata(apiId).subscribe(metadataList => {
         expect(metadataList.length).toEqual(2);
         expect(metadataList[0].key).toEqual('key1');
         expect(metadataList[1].key).toEqual('key2');
@@ -560,12 +560,12 @@ describe('ApiService', () => {
   });
 
   describe('create API metadata', () => {
-    it('should call the create endpoint', (done) => {
+    it('should call the create endpoint', done => {
       const apiId = 'my-api';
       const metadata = fakeMetadata({ key: 'created-key' });
       const newMetadata = fakeNewMetadata();
 
-      apiService.createMetadata(apiId, newMetadata).subscribe((m) => {
+      apiService.createMetadata(apiId, newMetadata).subscribe(m => {
         expect(m.key).toEqual('created-key');
         done();
       });
@@ -580,12 +580,12 @@ describe('ApiService', () => {
   });
 
   describe('update API metadata', () => {
-    it('should call the update endpoint', (done) => {
+    it('should call the update endpoint', done => {
       const apiId = 'my-api';
       const metadata = fakeMetadata({ key: 'update-key', value: 'new value' });
       const updateMetadata = fakeUpdateMetadata({ key: 'update-key', value: 'new value' });
 
-      apiService.updateMetadata(apiId, updateMetadata).subscribe((m) => {
+      apiService.updateMetadata(apiId, updateMetadata).subscribe(m => {
         expect(m.key).toEqual('update-key');
         expect(m.value).toEqual('new value');
         done();
@@ -601,7 +601,7 @@ describe('ApiService', () => {
   });
 
   describe('delete API metadata', () => {
-    it('should call the delete endpoint', (done) => {
+    it('should call the delete endpoint', done => {
       const apiId = 'my-api';
 
       apiService.deleteMetadata(apiId, 'metadata-key').subscribe(() => {
@@ -621,7 +621,7 @@ describe('ApiService', () => {
    * Events **
    */
   describe('list API events', () => {
-    it('should call the list events endpoint', (done) => {
+    it('should call the list events endpoint', done => {
       const apiId = 'my-api';
       const events = [
         fakeEvent({ type: 'PUBLISH_API', created_at: new Date('2020-02-02T20:20:02') }),
@@ -629,7 +629,7 @@ describe('ApiService', () => {
         fakeEvent({ type: 'STOP_API', created_at: new Date('2020-02-22T20:22:02') }),
       ];
 
-      apiService.getApiEvents(apiId, ['PUBLISH_API', 'START_API', 'STOP_API']).subscribe((events) => {
+      apiService.getApiEvents(apiId, ['PUBLISH_API', 'START_API', 'STOP_API']).subscribe(events => {
         expect(events.length).toEqual(3);
         expect(events[0].type).toEqual('PUBLISH_API');
         expect(events[1].type).toEqual('START_API');

@@ -24,14 +24,14 @@ export class HealthAvailabilityTimeFrameHarness extends ComponentHarness {
   async hasNoData(): Promise<boolean> {
     await this.waitForTasksOutsideAngular();
     return this.getNoDataDisplayed()
-      .then((_) => true)
-      .catch((_) => false);
+      .then(_ => true)
+      .catch(_ => false);
   }
 
   async displaysChart() {
     await this.waitForTasksOutsideAngular();
     return this.getPieChart()
-      .then((_) => true)
-      .catch((_) => false);
+      .then(_ => true)
+      .catch(_ => false);
   }
 }

@@ -105,7 +105,7 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
   const ifMatchEtagInterceptor = function (ngIfMatchEtagInterceptor: IfMatchEtagInterceptor): angular.IHttpInterceptor {
     return {
       request: function (config) {
-        ngIfMatchEtagInterceptor.interceptRequest(config.method, config.url, (etagValue) => {
+        ngIfMatchEtagInterceptor.interceptRequest(config.method, config.url, etagValue => {
           config.headers[IfMatchEtagInterceptor.ETAG_HEADER_IF_MATCH] = etagValue;
         });
         return config;

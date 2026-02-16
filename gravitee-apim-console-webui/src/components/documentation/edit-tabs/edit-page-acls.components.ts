@@ -36,14 +36,14 @@ class EditPageAclsComponentController implements IController {
 
   $onChanges() {
     const scope = this.isApiPage ? 'API' : 'ENVIRONMENT';
-    this.RoleService.list(scope).then((roles) => {
+    this.RoleService.list(scope).then(roles => {
       this.roles = roles;
     });
 
     this.$scope.acls = {
       isPrivate: this.page.visibility === 'PRIVATE',
-      groups: this.page.accessControls?.filter((acl) => acl.referenceType === 'GROUP').map((group) => group.referenceId),
-      roles: this.page.accessControls?.filter((acl) => acl.referenceType === 'ROLE').map((role) => role.referenceId),
+      groups: this.page.accessControls?.filter(acl => acl.referenceType === 'GROUP').map(group => group.referenceId),
+      roles: this.page.accessControls?.filter(acl => acl.referenceType === 'ROLE').map(role => role.referenceId),
       excludedAccessControls: this.page.excludedAccessControls,
     };
 
@@ -54,10 +54,10 @@ class EditPageAclsComponentController implements IController {
         this.page.excludedAccessControls = this.$scope.acls.excludedAccessControls;
 
         this.page.accessControls = [
-          this.$scope.acls.groups?.map((acl) => ({ referenceId: acl, referenceType: 'GROUP' })),
-          this.$scope.acls.roles?.map((acl) => ({ referenceId: acl, referenceType: 'ROLE' })),
+          this.$scope.acls.groups?.map(acl => ({ referenceId: acl, referenceType: 'GROUP' })),
+          this.$scope.acls.roles?.map(acl => ({ referenceId: acl, referenceType: 'ROLE' })),
         ]
-          .filter((acl) => acl != null)
+          .filter(acl => acl != null)
           .reduce((acc, val) => acc.concat(val), []);
       },
       true,

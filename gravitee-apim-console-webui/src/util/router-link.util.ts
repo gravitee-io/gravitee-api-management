@@ -21,7 +21,7 @@ export const cleanRouterLink = (link: string) => {
 
 export const getPathFromRoot = (activatedRoute: ActivatedRoute) => {
   return activatedRoute.pathFromRoot
-    .flatMap((r) => r.snapshot.url)
-    .map((r) => r.path)
+    .flatMap(r => r.snapshot.url)
+    .map(r => r.path)
     .join('/');
 };

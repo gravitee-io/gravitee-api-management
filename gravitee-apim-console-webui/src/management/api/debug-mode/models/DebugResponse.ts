@@ -69,7 +69,7 @@ export const convertDebugEventToDebugResponse = (event: DebugEvent): DebugRespon
       ? convertRequestDebugSteps(
           event.payload.request ?? {},
           event.payload.preprocessorStep ?? {},
-          filteredDebugSteps.filter((event) => event.scope === 'ON_REQUEST' || event.scope === 'ON_REQUEST_CONTENT'),
+          filteredDebugSteps.filter(event => event.scope === 'ON_REQUEST' || event.scope === 'ON_REQUEST_CONTENT'),
         )
       : [];
 
@@ -116,7 +116,7 @@ export const convertDebugEventToDebugResponse = (event: DebugEvent): DebugRespon
       ? convertResponseDebugSteps(
           event.payload.backendResponse ?? {},
           responsePreprocessorStep ?? {},
-          filteredDebugSteps.filter((event) => event.scope === 'ON_RESPONSE' || event.scope === 'ON_RESPONSE_CONTENT'),
+          filteredDebugSteps.filter(event => event.scope === 'ON_RESPONSE' || event.scope === 'ON_RESPONSE_CONTENT'),
         )
       : [];
 

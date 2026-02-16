@@ -57,7 +57,7 @@ export class ApiGeneralInfoQualityComponent implements OnChanges, OnDestroy {
       combineLatest([this.qualityRuleService.list(), this.apiService.getQualityMetrics(this.apiId)])
         .pipe(
           tap(([qualityRules, qualityMetrics]) => {
-            forEach(qualityRules, (qualityRule) => {
+            forEach(qualityRules, qualityRule => {
               this.qualityMetricsDescription[qualityRule.id] = qualityRule.description;
             });
             this.qualityMetrics = qualityMetrics;

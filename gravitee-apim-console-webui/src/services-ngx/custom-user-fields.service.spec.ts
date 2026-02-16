@@ -39,10 +39,10 @@ describe('CustomUserFieldsService', () => {
   });
 
   describe('get custom user fields', () => {
-    it('should return the user fields', (done) => {
+    it('should return the user fields', done => {
       const fakeRes: CustomUserField[] = [fakeCustomUserField(), fakeCustomUserField()];
 
-      service.list().subscribe((res) => {
+      service.list().subscribe(res => {
         expect(res).toEqual(fakeRes);
         done();
       });
@@ -51,30 +51,30 @@ describe('CustomUserFieldsService', () => {
     });
   });
 
-  it('should create custom user fields', (done) => {
+  it('should create custom user fields', done => {
     const customUserField: CustomUserField = fakeCustomUserField();
 
-    service.create(customUserField).subscribe((_) => {
+    service.create(customUserField).subscribe(_ => {
       done();
     });
 
     expectPostCustomUserFieldsRequest(customUserField);
   });
 
-  it('should update custom user fields', (done) => {
+  it('should update custom user fields', done => {
     const customUserField: CustomUserField = fakeCustomUserField();
 
-    service.update(customUserField).subscribe((_) => {
+    service.update(customUserField).subscribe(_ => {
       done();
     });
 
     expectPutCustomUserFieldsRequest(customUserField);
   });
 
-  it('should delete custom user fields', (done) => {
+  it('should delete custom user fields', done => {
     const customUserField: CustomUserField = fakeCustomUserField();
 
-    service.delete(customUserField.key).subscribe((_) => {
+    service.delete(customUserField.key).subscribe(_ => {
       done();
     });
 

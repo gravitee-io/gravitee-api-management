@@ -55,7 +55,7 @@ class ApiHealthcheckDashboardControllerAjs {
     this.query.to = this.activatedRoute.snapshot.queryParams.to;
     this.$window.localStorage.lastHealthCheckQuery = JSON.stringify(this.query);
 
-    this.ApiService.get(this.activatedRoute.snapshot.params.apiId).then((api) => {
+    this.ApiService.get(this.activatedRoute.snapshot.params.apiId).then(api => {
       this.api = api.data;
       this.updateChart();
     });
@@ -68,20 +68,20 @@ class ApiHealthcheckDashboardControllerAjs {
   }
 
   updateChart() {
-    this.ApiService.apiHealth(this.api.id, 'availability').then((response) => {
+    this.ApiService.apiHealth(this.api.id, 'availability').then(response => {
       this.endpoint.availabilities.data = response.data;
     });
 
-    this.ApiService.apiHealth(this.api.id, 'response_time').then((response) => {
+    this.ApiService.apiHealth(this.api.id, 'response_time').then(response => {
       this.endpoint.responsetimes.data = response.data;
     });
 
     if (this.displayGatewayHC()) {
-      this.ApiService.apiHealth(this.api.id, 'availability', 'gateway').then((response) => {
+      this.ApiService.apiHealth(this.api.id, 'availability', 'gateway').then(response => {
         this.gateway.availabilities.data = response.data;
       });
 
-      this.ApiService.apiHealth(this.api.id, 'response_time', 'gateway').then((response) => {
+      this.ApiService.apiHealth(this.api.id, 'response_time', 'gateway').then(response => {
         this.gateway.responsetimes.data = response.data;
       });
     }
@@ -97,10 +97,10 @@ class ApiHealthcheckDashboardControllerAjs {
   refresh() {
     this.$window.localStorage.lastHealthCheckQuery = JSON.stringify(this.query);
 
-    this.ApiService.apiHealthLogs(this.api.id, this.query).then((logs) => {
+    this.ApiService.apiHealthLogs(this.api.id, this.query).then(logs => {
       this.logs = logs.data;
     });
-    this.ApiService.apiHealthLogs(this.api.id, assign({ transition: true }, this.query)).then((logs) => {
+    this.ApiService.apiHealthLogs(this.api.id, assign({ transition: true }, this.query)).then(logs => {
       this.transitionLogs = logs.data;
     });
 
@@ -123,14 +123,14 @@ class ApiHealthcheckDashboardControllerAjs {
       }),
     ];
 
-    this.$q.all(promises).then((responses) => {
+    this.$q.all(promises).then(responses => {
       let i = 0;
       const series = [];
-      forEach(responses, (response) => {
+      forEach(responses, response => {
         const values = response.data.values;
         if (values && values.length > 0) {
-          forEach(values, (value) => {
-            forEach(value.buckets, (bucket) => {
+          forEach(values, value => {
+            forEach(value.buckets, bucket => {
               if (bucket) {
                 // eslint-disable-next-line eqeqeq
                 const responseTimeLine = i == 0;
@@ -202,7 +202,7 @@ class ApiHealthcheckDashboardControllerAjs {
         ],
         chart: {
           events: {
-            selection: (event) => {
+            selection: event => {
               if (!event.resetSelection) {
                 this.query.from = Math.floor(event.xAxis[0].min);
                 this.query.to = Math.floor(event.xAxis[0].max);

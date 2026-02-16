@@ -68,20 +68,20 @@ export class ApiGeneralInfoPromoteDialogComponent {
       .pipe(
         map(([targetEnvs, promotions]) => {
           this.promotionTargets = targetEnvs
-            .map((promotionTarget) => ({
+            .map(promotionTarget => ({
               id: promotionTarget.id,
               name: promotionTarget.name,
-              promotionInProgress: promotions.some((promotion) => promotion.targetEnvCockpitId === promotionTarget.id),
+              promotionInProgress: promotions.some(promotion => promotion.targetEnvCockpitId === promotionTarget.id),
             }))
             .sort((target1, target2) => target1.name.localeCompare(target2.name));
 
-          this.hasPromotionInProgress = this.promotionTargets.some((target) => target.promotionInProgress);
+          this.hasPromotionInProgress = this.promotionTargets.some(target => target.promotionInProgress);
 
-          this.promoteControl.setValue(this.promotionTargets.find((target) => !target.promotionInProgress)?.id);
+          this.promoteControl.setValue(this.promotionTargets.find(target => !target.promotionInProgress)?.id);
 
           this.state = 'hasCockpit';
         }),
-        catchError((error) => {
+        catchError(error => {
           if (error.error?.technicalCode === 'installation.notAccepted') {
             const { cockpitURL } = error.error.parameters;
             this.cockpitURL = this.cockpitService.addQueryParamsForAnalytics(cockpitURL, UtmCampaign.API_PROMOTION);
@@ -98,7 +98,7 @@ export class ApiGeneralInfoPromoteDialogComponent {
   }
 
   onPromote() {
-    const promotionTarget = this.promotionTargets.find((target) => target.id === this.promoteControl.value);
+    const promotionTarget = this.promotionTargets.find(target => target.id === this.promoteControl.value);
 
     this.promotionService
       .promote(this.apiId, promotionTarget)
@@ -106,7 +106,7 @@ export class ApiGeneralInfoPromoteDialogComponent {
         tap(() => {
           this.snackBarService.success('Promotion requested.');
         }),
-        catchError((error) => {
+        catchError(error => {
           this.snackBarService.error(error.error?.message ?? error.message ?? 'An error occurred while requesting promotion.');
           return EMPTY;
         }),

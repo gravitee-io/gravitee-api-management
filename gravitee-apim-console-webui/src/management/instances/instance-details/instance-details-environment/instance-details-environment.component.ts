@@ -91,7 +91,7 @@ export class InstanceDetailsEnvironmentComponent implements OnInit, OnDestroy {
     this.instanceService
       .get(this.activatedRoute.snapshot.params.instanceId)
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((instance) => {
+      .subscribe(instance => {
         this.instance = instance;
 
         this.hasSystemProperties = this.instance.systemProperties ? Object.keys(this.instance.systemProperties).length > 0 : false;
@@ -225,7 +225,7 @@ export class InstanceDetailsEnvironmentComponent implements OnInit, OnDestroy {
       alert: 'gio:shield-alert',
     };
 
-    this.pluginsItemsDS = this.instance.plugins?.map((plugin) => {
+    this.pluginsItemsDS = this.instance.plugins?.map(plugin => {
       const pluginItem = {
         id: plugin.id,
         icon: pluginIcon[plugin.type],

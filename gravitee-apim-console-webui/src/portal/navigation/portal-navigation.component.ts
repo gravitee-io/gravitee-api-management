@@ -90,7 +90,7 @@ export class PortalNavigationComponent implements OnInit {
     this.portalUrl$ = this.portalSettingsService
       .get()
       .pipe(
-        map((settings) =>
+        map(settings =>
           isEmpty(settings?.portal?.url)
             ? undefined
             : this.constants.env.baseURL.replace('{:envId}', this.constants.org.currentEnv.id) + '/portal/redirect?version=next',

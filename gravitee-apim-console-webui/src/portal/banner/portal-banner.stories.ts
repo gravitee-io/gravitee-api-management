@@ -21,7 +21,7 @@ export default {
   title: 'DeveloperPortalBannerComponent story',
   component: PortalBannerComponent,
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 800px">
         <developer-portal-banner></developer-portal-banner>

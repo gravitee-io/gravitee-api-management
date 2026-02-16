@@ -80,7 +80,7 @@ export class EnvLogsDetailsComponent {
     }
 
     // TODO: Replace with a real API call to fetch the log by ID from the backend.
-    const foundLog = fakeEnvLogs().find((l) => l.id === logId);
+    const foundLog = fakeEnvLogs().find(l => l.id === logId);
     if (foundLog) {
       this.log.set(foundLog);
     }

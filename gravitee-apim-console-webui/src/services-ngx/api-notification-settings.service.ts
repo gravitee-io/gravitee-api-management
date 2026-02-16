@@ -40,7 +40,7 @@ export class ApiNotificationSettingsService {
   getSingleNotificationSetting(apiId: string, selectedId: string): Observable<NotificationSettings> {
     return this.http.get<NotificationSettings[]>(`${this.constants.env.baseURL}/apis/${apiId}/notificationsettings`).pipe(
       map((notifications: NotificationSettings[]) => {
-        return notifications.find((notification) => notification.id === selectedId) || notifications[0];
+        return notifications.find(notification => notification.id === selectedId) || notifications[0];
       }),
     );
   }

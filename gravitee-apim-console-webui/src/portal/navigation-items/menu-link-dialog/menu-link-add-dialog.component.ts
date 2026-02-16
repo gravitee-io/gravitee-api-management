@@ -68,7 +68,7 @@ export class MenuLinkAddDialogComponent {
   });
 
   constructor(private readonly dialogRef: MatDialogRef<MenuLinkAddDialogData, MenuLinkAddDialogResult>) {
-    this.linksType = PORTAL_MENU_LINK_TYPES.map((type) => {
+    this.linksType = PORTAL_MENU_LINK_TYPES.map(type => {
       return {
         name: toReadableMenuLinkType(type),
         type,

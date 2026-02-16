@@ -166,11 +166,11 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
     // Fetch all APIs to build a set of group IDs associated with APIs
     const apisWithGroups$ = this.apiV2Service.search({}, undefined, 1, 10000, false).pipe(
-      tap((apisResponse) => {
+      tap(apisResponse => {
         this.groupsAssociatedWithApis = new Set();
-        apisResponse.data.forEach((api) => {
+        apisResponse.data.forEach(api => {
           if (api.groups && api.groups.length > 0) {
-            api.groups.forEach((groupId) => {
+            api.groups.forEach(groupId => {
               this.groupsAssociatedWithApis.add(groupId);
             });
           }
@@ -192,10 +192,10 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     ])
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(([user, environments, groups, allGroups]) => {
-        const organizationRoles = user.roles.filter((r) => r.scope === 'ORGANIZATION');
+        const organizationRoles = user.roles.filter(r => r.scope === 'ORGANIZATION');
         this.user = {
           ...user,
-          organizationRoles: organizationRoles.map((r) => r.name ?? r.id).join(', '),
+          organizationRoles: organizationRoles.map(r => r.name ?? r.id).join(', '),
           avatarUrl: this.usersService.getUserAvatar(this.activatedRoute.snapshot.params.userId),
           badgeCSSClass: UserHelper.getStatusBadgeCSSClass(user),
           customFields: Object.entries(user.customFields ?? {}).reduce((result, [key, value]) => {
@@ -205,14 +205,14 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
         this.initOrganizationRolesForm();
 
-        this.environmentsTableDS = environments.map((e) => ({ id: e.id, name: e.name, description: e.description, roles: '' }));
+        this.environmentsTableDS = environments.map(e => ({ id: e.id, name: e.name, description: e.description, roles: '' }));
         this.initialTableDS['environmentsTableDS'] = this.environmentsTableDS;
         this.tablesUnpaginatedLength['environmentsTableDS'] = this.environmentsTableDS.length;
 
         this.initEnvironmentsRolesForm(environments);
 
-        this.groupsTableDS = groups.map((g) => {
-          const fullGroup = allGroups.find((ag) => ag.id === g.id);
+        this.groupsTableDS = groups.map(g => {
+          const fullGroup = allGroups.find(ag => ag.id === g.id);
           return {
             id: g.id,
             name: g.name,
@@ -256,8 +256,8 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     this.usersTokenService
       .getTokens(this.activatedRoute.snapshot.params.userId)
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((response) => {
-        this.tokensTableDS = response.map((token) => ({
+      .subscribe(response => {
+        this.tokensTableDS = response.map(token => ({
           id: token.id,
           createdAt: token.created_at,
           lastUseAt: token.last_use_at,
@@ -293,7 +293,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     if (this.environmentsRolesFormGroup.dirty) {
       observableToZip.push(
         from(Object.keys(this.environmentsRolesFormGroup.controls)).pipe(
-          mergeMap((envId) => {
+          mergeMap(envId => {
             const envRolesControl = this.environmentsRolesFormGroup.get(envId) as UntypedFormControl;
             if (envRolesControl.dirty) {
               return this.usersService.updateUserRoles(this.user.id, 'ENVIRONMENT', envId, envRolesControl.value);
@@ -309,7 +309,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     if (this.groupsRolesFormGroup.dirty) {
       observableToZip.push(
         from(Object.keys(this.groupsRolesFormGroup.controls)).pipe(
-          mergeMap((groupId) => {
+          mergeMap(groupId => {
             const groupRolesFormGroup = this.groupsRolesFormGroup.get(groupId) as UntypedFormGroup;
             if (groupRolesFormGroup.dirty) {
               const { GROUP, API, APPLICATION, INTEGRATION } = groupRolesFormGroup.getRawValue();
@@ -389,7 +389,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.usersService.resetPassword(this.user.id)),
         tap(() => this.snackBarService.success(`The password of user "${this.user.displayName}" has been successfully reset`)),
         catchError(({ error }) => {
@@ -428,7 +428,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.usersService.processRegistration(this.user.id, state === 'accept')),
         tap(() => this.snackBarService.success(wording[state].success)),
         catchError(({ error }) => {
@@ -475,7 +475,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.groupService.deleteMember(group.id, this.user.id, group.environmentId)),
         tap(() => this.snackBarService.success(`"${this.user.displayName}" has been deleted from the group "${group.name}"`)),
         catchError(({ error }) => {
@@ -496,15 +496,15 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       >(OrgSettingsUserDetailAddGroupDialogComponent, {
         width: '500px',
         data: {
-          groupIdAlreadyAdded: this.groupsTableDS.map((g) => g.id),
+          groupIdAlreadyAdded: this.groupsTableDS.map(g => g.id),
         },
         role: 'alertdialog',
         id: 'addGroupConfirmDialog',
       })
       .afterClosed()
       .pipe(
-        filter((groupeAdded) => !isEmpty(groupeAdded)),
-        switchMap((groupeAdded) =>
+        filter(groupeAdded => !isEmpty(groupeAdded)),
+        switchMap(groupeAdded =>
           combineLatest([
             this.groupService.addOrUpdateMemberships(
               groupeAdded.groupId,
@@ -526,7 +526,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           ]),
         ),
         tap(([, allGroups, groupeAdded]) => {
-          const fullGroup = allGroups.find((ag) => ag.id === groupeAdded.groupId);
+          const fullGroup = allGroups.find(ag => ag.id === groupeAdded.groupId);
           const newGroup: Group = {
             id: groupeAdded.groupId,
             name: fullGroup?.name ?? groupeAdded.groupId,
@@ -552,10 +552,10 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   }
 
   private initOrganizationRolesForm() {
-    const organizationRoles = this.user.roles.filter((r) => r.scope === 'ORGANIZATION');
+    const organizationRoles = this.user.roles.filter(r => r.scope === 'ORGANIZATION');
 
     this.organizationRolesControl = new UntypedFormControl({
-      value: organizationRoles.map((r) => r.id),
+      value: organizationRoles.map(r => r.id),
       disabled: this.user.status !== 'ACTIVE' || this.isReadOnly,
     });
 
@@ -572,7 +572,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
         return {
           ...result,
           [environment.id]: new UntypedFormControl({
-            value: userEnvRoles.map((r) => r.id),
+            value: userEnvRoles.map(r => r.id),
             disabled: this.user.status !== 'ACTIVE' || this.isReadOnly,
           }),
         };
@@ -606,7 +606,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
         this.toggleSaveBar(true);
       }
     });
-    this.groupsRolesFormGroup.statusChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((status) => {
+    this.groupsRolesFormGroup.statusChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(status => {
       this.invalidStateSaveBar = status !== 'VALID';
     });
   }
@@ -650,7 +650,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.usersTokenService.revokeToken(this.activatedRoute.snapshot.params.userId, token.id)),
         tap(() => this.snackBarService.success(`Token successfully deleted!`)),
         catchError(({ error }) => {

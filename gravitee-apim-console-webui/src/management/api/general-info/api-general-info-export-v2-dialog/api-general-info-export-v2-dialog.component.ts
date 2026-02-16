@@ -93,9 +93,9 @@ export class ApiGeneralInfoExportV2DialogComponent implements OnDestroy {
 
       export$ = this.apiService
         .export(this.apiId, excludes, exportJsonFromValue.exportVersion)
-        .pipe(map((blob) => ({ blob, fileName: `${this.fileName}.json` })));
+        .pipe(map(blob => ({ blob, fileName: `${this.fileName}.json` })));
     } else {
-      export$ = this.apiService.exportCrd(this.apiId).pipe(map((blob) => ({ blob, fileName: `${this.fileName}-crd.yml` })));
+      export$ = this.apiService.exportCrd(this.apiId).pipe(map(blob => ({ blob, fileName: `${this.fileName}-crd.yml` })));
     }
 
     export$
@@ -118,7 +118,7 @@ export class ApiGeneralInfoExportV2DialogComponent implements OnDestroy {
   }
 
   public getJsonOptions(value: string) {
-    return this.jsonOptions.find((option) => option.id === value);
+    return this.jsonOptions.find(option => option.id === value);
   }
 }
 

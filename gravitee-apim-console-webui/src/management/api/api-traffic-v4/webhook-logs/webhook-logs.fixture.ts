@@ -203,5 +203,5 @@ export const fakeWebhookLog = (modifier?: Partial<WebhookLog>): WebhookLog => {
 export const getWebhookLogByRequestId = (requestId: string, logs?: WebhookLog[]): WebhookLog | undefined => {
   const defaultLogs = fakeWebhookLogsResponse().data;
   const logsToSearch = logs ?? defaultLogs;
-  return logsToSearch.find((log) => log.requestId === requestId);
+  return logsToSearch.find(log => log.requestId === requestId);
 };

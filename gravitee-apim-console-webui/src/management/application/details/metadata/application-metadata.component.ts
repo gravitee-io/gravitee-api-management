@@ -49,17 +49,17 @@ export class ApplicationMetadataComponent implements OnInit, OnDestroy {
       list: () =>
         this.applicationMetadataService
           .listMetadata(applicationId)
-          .pipe(map((metadata) => ({ data: metadata, totalResults: metadata?.length ?? 0 }))),
-      create: (newMetadata) => this.applicationMetadataService.createMetadata(applicationId, newMetadata),
-      update: (updateMetadata) => this.applicationMetadataService.updateMetadata(applicationId, updateMetadata),
-      delete: (metadataKey) => this.applicationMetadataService.deleteMetadata(applicationId, metadataKey),
+          .pipe(map(metadata => ({ data: metadata, totalResults: metadata?.length ?? 0 }))),
+      create: newMetadata => this.applicationMetadataService.createMetadata(applicationId, newMetadata),
+      update: updateMetadata => this.applicationMetadataService.updateMetadata(applicationId, updateMetadata),
+      delete: metadataKey => this.applicationMetadataService.deleteMetadata(applicationId, metadataKey),
     };
     this.description = `Create notification template of application metadata to retrieve custom information about your API`;
 
     this.applicationService
       .getById(applicationId)
       .pipe(
-        tap((application) => (this.isReadonly = application.origin === 'KUBERNETES')),
+        tap(application => (this.isReadonly = application.origin === 'KUBERNETES')),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();

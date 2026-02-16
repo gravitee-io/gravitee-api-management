@@ -101,12 +101,12 @@ export class ManagementComponent {
     // Necessary to refresh view when envId changes
     this.activatedRoute.params
       .pipe(
-        map((p) => p.envHrid),
+        map(p => p.envHrid),
         distinctUntilChanged(),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
-        next: (_) => {
+        next: _ => {
           this.isLoading = true;
           this.changeDetectorRef.detectChanges();
           this.isLoading = false;
@@ -115,10 +115,10 @@ export class ManagementComponent {
 
     this.router.events
       .pipe(
-        filter((event) => event instanceof RoutesRecognized),
+        filter(event => event instanceof RoutesRecognized),
         map((event: RoutesRecognized) => event.state.root),
         startWith(this.activatedRoute.snapshot),
-        map((route) => {
+        map(route => {
           while (route.firstChild) {
             route = route.firstChild;
           }
@@ -127,7 +127,7 @@ export class ManagementComponent {
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((route) => {
+      .subscribe(route => {
         this.contextualDocumentationPage = route.data.docs?.page ?? undefined;
       });
   }

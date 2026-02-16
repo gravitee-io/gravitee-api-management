@@ -35,10 +35,10 @@ describe('ResourceV2Service', () => {
   });
 
   describe('list', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const resources = fakeResourcePlugins();
 
-      resourceService.list().subscribe((response) => {
+      resourceService.list().subscribe(response => {
         expect(response).toStrictEqual(resources);
         done();
       });
@@ -51,11 +51,11 @@ describe('ResourceV2Service', () => {
   });
 
   describe('getSchema', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const resourceId = 'resource#1';
       const resourceSchema = {};
 
-      resourceService.getSchema(resourceId).subscribe((response) => {
+      resourceService.getSchema(resourceId).subscribe(response => {
         expect(response).toStrictEqual(resourceSchema);
         done();
       });

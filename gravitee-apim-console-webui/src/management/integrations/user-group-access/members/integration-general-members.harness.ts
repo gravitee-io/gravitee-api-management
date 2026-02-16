@@ -40,14 +40,14 @@ export class IntegrationGeneralMembersHarness extends ComponentHarness {
   private transferOwnershipButtonSelector = this.locatorForOptional(MatButtonHarness.with({ text: 'Transfer ownership' }));
 
   async getTableRows(): Promise<MatRowHarness[]> {
-    return this.getMemberTableElement().then((table) => table.getRows());
+    return this.getMemberTableElement().then(table => table.getRows());
   }
 
   async getMembersName(): Promise<string[]> {
     const rows = await this.getTableRows();
     return Promise.all(
-      rows.map(async (row) => {
-        return await row.getCells().then(async (cells) => {
+      rows.map(async row => {
+        return await row.getCells().then(async cells => {
           return await cells[1].getText();
         });
       }),
@@ -63,20 +63,20 @@ export class IntegrationGeneralMembersHarness extends ComponentHarness {
   }
 
   async canSelectMemberRole(rowIndex: number): Promise<boolean> {
-    return this.getMemberRoleSelectForRowIndex(rowIndex).then(async (select) => {
+    return this.getMemberRoleSelectForRowIndex(rowIndex).then(async select => {
       return !(await select.isDisabled());
     });
   }
 
   async getMemberRoleSelectOptions(rowIndex: number, options: OptionHarnessFilters = {}): Promise<MatOptionHarness[]> {
-    return this.getMemberRoleSelectForRowIndex(rowIndex).then(async (select) => {
+    return this.getMemberRoleSelectForRowIndex(rowIndex).then(async select => {
       await select.open();
       return await select.getOptions(options);
     });
   }
 
   async isMemberRoleSelectDisabled(rowIndex: number): Promise<boolean> {
-    return this.getMemberRoleSelectForRowIndex(rowIndex).then((select) => select.isDisabled());
+    return this.getMemberRoleSelectForRowIndex(rowIndex).then(select => select.isDisabled());
   }
 
   async getMemberDeleteButton(rowIndex: number): Promise<MatButtonHarness> {
@@ -93,32 +93,32 @@ export class IntegrationGeneralMembersHarness extends ComponentHarness {
   }
 
   async isMemberDeleteButtonVisible(rowIndex: number): Promise<boolean> {
-    return this.getMemberDeleteCell(rowIndex).then(async (cell) => {
+    return this.getMemberDeleteCell(rowIndex).then(async cell => {
       const harnesses = await cell.getAllHarnesses(MatButtonHarness);
       return harnesses !== null && harnesses.length > 0;
     });
   }
 
   async isNotificationsToggleChecked(): Promise<boolean> {
-    return this.getNotificationsToggle().then((cb) => cb.isChecked());
+    return this.getNotificationsToggle().then(cb => cb.isChecked());
   }
 
   async toggleNotificationToggle(): Promise<void> {
-    return this.getNotificationsToggle().then((cb) => cb.toggle());
+    return this.getNotificationsToggle().then(cb => cb.toggle());
   }
 
   async isSaveBarVisible(): Promise<boolean> {
-    return this.getSaveBarElement().then((sb) => sb.isVisible());
+    return this.getSaveBarElement().then(sb => sb.isVisible());
   }
 
   async clickOnSave(): Promise<void> {
-    return this.getSaveBarElement().then((sb) => sb.clickSubmit());
+    return this.getSaveBarElement().then(sb => sb.clickSubmit());
   }
   async canAddMember(): Promise<boolean> {
-    return await this.locatorFor(MatButtonHarness.with({ text: /Add members/ }))().then((b) => !b.isDisabled());
+    return await this.locatorFor(MatButtonHarness.with({ text: /Add members/ }))().then(b => !b.isDisabled());
   }
   async addMember(user: SearchableUser, httpTestingController: HttpTestingController): Promise<void> {
-    await this.locatorFor(MatButtonHarness.with({ text: /Add members/ }))().then((b) => b.click());
+    await this.locatorFor(MatButtonHarness.with({ text: /Add members/ }))().then(b => b.click());
 
     const usersSelector = await this.getUsersSelector();
 
@@ -131,15 +131,15 @@ export class IntegrationGeneralMembersHarness extends ComponentHarness {
   }
 
   async getGroupsLength(): Promise<number> {
-    return this.groupsSelector().then((groups) => groups.length);
+    return this.groupsSelector().then(groups => groups.length);
   }
 
   async getGroupsNames(): Promise<string[]> {
-    return this.groupsSelector().then((groups) => Promise.all(groups.map((group) => group.getGroupTableName())));
+    return this.groupsSelector().then(groups => Promise.all(groups.map(group => group.getGroupTableName())));
   }
 
   async manageGroupsClick() {
-    return this.manageGroupsButtonSelector().then((btn) => btn.click());
+    return this.manageGroupsButtonSelector().then(btn => btn.click());
   }
 
   async isTransferOwnershipVisible() {
@@ -147,6 +147,6 @@ export class IntegrationGeneralMembersHarness extends ComponentHarness {
   }
 
   async transferOwnershipClick() {
-    return this.transferOwnershipButtonSelector().then((btn) => btn.click());
+    return this.transferOwnershipButtonSelector().then(btn => btn.click());
   }
 }

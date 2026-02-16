@@ -40,10 +40,10 @@ describe('UsersService', () => {
   });
 
   describe('list', () => {
-    it('should return users', (done) => {
+    it('should return users', done => {
       const expectedUsersResult = fakePagedResult([fakeAdminUser()]);
 
-      usersService.list().subscribe((users) => {
+      usersService.list().subscribe(users => {
         expect(users).toEqual(expectedUsersResult);
         done();
       });
@@ -56,12 +56,12 @@ describe('UsersService', () => {
       req.flush(expectedUsersResult);
     });
 
-    it('should return users with params', (done) => {
+    it('should return users with params', done => {
       const page = 2;
       const size = 25;
       const expectedUsersResult = fakePagedResult([fakeAdminUser()]);
 
-      usersService.list('Joe', page, size).subscribe((users) => {
+      usersService.list('Joe', page, size).subscribe(users => {
         expect(users).toEqual(expectedUsersResult);
         done();
       });
@@ -74,11 +74,11 @@ describe('UsersService', () => {
   });
 
   describe('get', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const userId = 'userId';
       const userToGet = fakeUser({ id: userId });
 
-      usersService.get(userId).subscribe((user) => {
+      usersService.get(userId).subscribe(user => {
         expect(user).toMatchObject(userToGet);
         done();
       });
@@ -99,11 +99,11 @@ describe('UsersService', () => {
   });
 
   describe('getUserGroups', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const userId = 'userId';
       const fakeGroups = [fakeGroup()];
 
-      usersService.getUserGroups(userId).subscribe((groups) => {
+      usersService.getUserGroups(userId).subscribe(groups => {
         expect(groups).toMatchObject(fakeGroups);
         done();
       });
@@ -116,11 +116,11 @@ describe('UsersService', () => {
   });
 
   describe('create', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const userToCreate = fakeNewPreregisterUser();
       const createdUser = fakeUser();
 
-      usersService.create(userToCreate).subscribe((user) => {
+      usersService.create(userToCreate).subscribe(user => {
         expect(user).toMatchObject({
           firstname: userToCreate.firstname,
           lastname: userToCreate.lastname,
@@ -141,7 +141,7 @@ describe('UsersService', () => {
   });
 
   describe('updateUserRoles', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const userId = 'userId';
       const referenceType = 'referenceType';
       const referenceId = 'referenceId';
@@ -159,12 +159,12 @@ describe('UsersService', () => {
   });
 
   describe('getMemberships', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const userId = 'userId';
       const type = 'application';
       const userMembership = fakeUserMembership('application');
 
-      usersService.getMemberships(userId, type).subscribe((memberships) => {
+      usersService.getMemberships(userId, type).subscribe(memberships => {
         expect(memberships).toEqual(userMembership);
         done();
       });
@@ -175,11 +175,11 @@ describe('UsersService', () => {
       req.flush(userMembership);
     });
 
-    it('should init memberships and metadata if empty response', (done) => {
+    it('should init memberships and metadata if empty response', done => {
       const userId = 'userId';
       const type = 'application';
 
-      usersService.getMemberships(userId, type).subscribe((memberships) => {
+      usersService.getMemberships(userId, type).subscribe(memberships => {
         expect(memberships.memberships).toEqual([]);
         expect(memberships.metadata).toEqual({});
         done();
@@ -193,7 +193,7 @@ describe('UsersService', () => {
   });
 
   describe('resetPassword', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const userId = 'userId';
 
       usersService.resetPassword(userId).subscribe(() => {
@@ -209,7 +209,7 @@ describe('UsersService', () => {
   });
 
   describe('processRegistration', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const userId = 'userId';
       const accepted = true;
 
@@ -226,10 +226,10 @@ describe('UsersService', () => {
   });
 
   describe('search', () => {
-    it('should return users matching params', (done) => {
+    it('should return users matching params', done => {
       const expectedUsersResult = [fakeSearchableUser()];
 
-      usersService.search('joh').subscribe((users) => {
+      usersService.search('joh').subscribe(users => {
         expect(users).toEqual(expectedUsersResult);
         done();
       });

@@ -91,13 +91,13 @@ export class CustomUserFieldsDialogComponent implements OnInit {
   public initOptions() {
     this.filteredOptions = this.form.controls.key.valueChanges.pipe(
       startWith(''),
-      map((value) => this._filter(value || '')),
+      map(value => this._filter(value || '')),
     );
   }
 
   private _filter(value: any): string[] {
     const filterValue = value.toLowerCase();
-    return this.options.filter((option) => option.toLowerCase().includes(filterValue));
+    return this.options.filter(option => option.toLowerCase().includes(filterValue));
   }
 
   public onClose() {

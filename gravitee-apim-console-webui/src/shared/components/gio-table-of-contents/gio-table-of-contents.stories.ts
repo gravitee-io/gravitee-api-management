@@ -98,7 +98,7 @@ export const Multiple: StoryObj = {
       providers: [
         {
           provide: APP_INITIALIZER,
-          useFactory: (toc) => () => {
+          useFactory: toc => () => {
             toc.addSection('', 'First section');
             toc.addSection('second', 'Second section');
           },
@@ -159,7 +159,7 @@ export const AddAndRemoveDynamically: StoryObj = {
       providers: [
         {
           provide: APP_INITIALIZER,
-          useFactory: (toc) => () => {
+          useFactory: toc => () => {
             toc.addSection('', 'First section');
           },
           deps: [GioTableOfContentsService],
@@ -212,7 +212,7 @@ export const ScrollingContainer: StoryObj = {
       providers: [
         {
           provide: APP_INITIALIZER,
-          useFactory: (toc) => () => {
+          useFactory: toc => () => {
             toc.addSection('', 'First section');
           },
           deps: [GioTableOfContentsService],

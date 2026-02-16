@@ -88,7 +88,7 @@ export class PortalBannerComponent implements OnInit {
     this.portalSettingsService
       .get()
       .pipe(
-        tap((portalSettings) => {
+        tap(portalSettings => {
           this.settings = portalSettings;
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -167,7 +167,7 @@ export class PortalBannerComponent implements OnInit {
     buttonForm.controls.enabled.valueChanges
       .pipe(
         startWith(startWithEnabledValue),
-        tap((_) => {
+        tap(_ => {
           if (buttonForm.controls.enabled.value) {
             buttonForm.controls.target.addValidators(Validators.required);
             buttonForm.controls.label.addValidators(Validators.required);

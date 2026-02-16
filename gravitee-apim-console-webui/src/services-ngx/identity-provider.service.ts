@@ -57,7 +57,7 @@ export class IdentityProviderService {
         syncMappings: identityProvider.syncMappings,
       })
       .pipe(
-        map((identityProvider) => ({
+        map(identityProvider => ({
           // Init group mapping
           groupMappings: identityProvider.groupMappings || [],
 
@@ -71,7 +71,7 @@ export class IdentityProviderService {
 
   get(id: string): Observable<IdentityProvider> {
     return this.http.get<IdentityProvider>(`${this.constants.org.baseURL}/configuration/identities/${id}`).pipe(
-      map((identityProvider) => ({
+      map(identityProvider => ({
         // Init group mapping
         groupMappings: identityProvider.groupMappings || [],
 

@@ -39,11 +39,11 @@ export class HttpErrorInterceptor implements HttpInterceptor {
       `${this.constants.org.baseURL}/user/logout`,
     ];
 
-    if (this.constants.org?.baseURL && URLS_TO_IGNORE.some((url) => isEqual(req.url, url))) {
+    if (this.constants.org?.baseURL && URLS_TO_IGNORE.some(url => isEqual(req.url, url))) {
       return next.handle(req);
     }
     return next.handle(req).pipe(
-      catchError((error) => {
+      catchError(error => {
         if (error) {
           switch (error.status) {
             case 400:

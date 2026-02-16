@@ -63,7 +63,7 @@ function transformSwagger2ToOpenApi3(parsedSpec: any): void {
     for (const operation of Object.values(pathItem || {})) {
       if (!operation?.parameters) continue;
 
-      const bodyParam = operation.parameters.find((p) => p.in === 'body');
+      const bodyParam = operation.parameters.find(p => p.in === 'body');
       if (bodyParam && 'schema' in bodyParam) {
         operation.requestBody = {
           content: {

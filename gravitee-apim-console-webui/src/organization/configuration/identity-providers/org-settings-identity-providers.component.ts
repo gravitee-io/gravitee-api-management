@@ -103,7 +103,7 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.identityProviderService.delete(identityProvider.id)),
         tap(() => this.snackBarService.success(`Identity Provider ${identityProvider.name} successfully deleted!`)),
 
@@ -128,12 +128,12 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => {
-          const idp = this.tableData.find((idp) => idp.id === identityProvider.id);
+          const idp = this.tableData.find(idp => idp.id === identityProvider.id);
           idp.activated = !idp.activated;
 
-          const activatedIdps = this.tableData.filter((idp) => idp.activated === true).map((idp) => ({ identityProvider: idp.id }));
+          const activatedIdps = this.tableData.filter(idp => idp.activated === true).map(idp => ({ identityProvider: idp.id }));
           return this.organizationService.updateActivatedIdentityProviders(activatedIdps);
         }),
         tap(() =>
@@ -161,7 +161,7 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
         tap(() => this.snackBarService.success('Configuration successfully updated!')),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((updatedConsoleSettings) => {
+      .subscribe(updatedConsoleSettings => {
         this.consoleSettings = updatedConsoleSettings;
       });
   }
@@ -171,7 +171,7 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
   }
 
   hasActivatedIdp(): boolean {
-    return this.tableData.some((idp) => idp.activated);
+    return this.tableData.some(idp => idp.activated);
   }
 
   private setDataSourceFromIdentityProviders(
@@ -179,13 +179,13 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
     activatedIdentityProviders: IdentityProviderActivation[],
   ) {
     const matTableData = identityProviders
-      .map((idp) => ({
+      .map(idp => ({
         logo: `assets/logo_${idp.type.toLowerCase()}-idp.svg`,
         id: idp.id,
         name: idp.name,
         description: idp.description,
         availableOnPortal: idp.enabled,
-        activated: activatedIdentityProviders.some((activatedIdp) => activatedIdp.identityProvider === idp.id),
+        activated: activatedIdentityProviders.some(activatedIdp => activatedIdp.identityProvider === idp.id),
         sync: idp.sync,
         updatedAt: idp.updated_at,
       }))

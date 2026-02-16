@@ -69,7 +69,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
       .get(this.apiId)
       .pipe(
         onlyApiV1V2Filter(this.snackBarService),
-        switchMap((api) => {
+        switchMap(api => {
           this.api = api;
           this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
           return this.serviceDiscoveryService.list();
@@ -93,9 +93,9 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
       .get(this.apiId)
       .pipe(
         onlyApiV2Filter(this.snackBarService),
-        switchMap((api) => {
+        switchMap(api => {
           const groupIndex =
-            this.mode === 'edit' ? api.proxy.groups.findIndex((group) => group.name === this.activatedRoute.snapshot.params.groupName) : -1;
+            this.mode === 'edit' ? api.proxy.groups.findIndex(group => group.name === this.activatedRoute.snapshot.params.groupName) : -1;
 
           const updatedGroup = toProxyGroup(
             api.proxy.groups[groupIndex],
@@ -150,7 +150,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   }
 
   private initForms(): void {
-    const group = { ...this.api.proxy.groups.find((group) => group.name === this.activatedRoute.snapshot.params.groupName) };
+    const group = { ...this.api.proxy.groups.find(group => group.name === this.activatedRoute.snapshot.params.groupName) };
 
     this.generalForm = this.formBuilder.group({
       name: [

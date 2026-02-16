@@ -129,7 +129,7 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((applications) => this.setDataSourceFromApplicationsList(applications));
+      .subscribe(applications => this.setDataSourceFromApplicationsList(applications));
   }
 
   private toQueryParams(filters: ApplicationTableFilters) {
@@ -143,7 +143,7 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
   }
 
   private setDataSourceFromApplicationsList(applications: PagedResult<Application>) {
-    this.filteredTableData = applications.data.map((a) => ({
+    this.filteredTableData = applications.data.map(a => ({
       applicationId: a.id,
       name: a.name,
       applicationPicture: a.picture_url,
@@ -179,7 +179,7 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.applicationService.restore(application.applicationId)),
         tap(() => this.snackBarService.success(`Application ${application.name} has been restored`)),
         switchMap(() =>
@@ -193,7 +193,7 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
             )
             .pipe(catchError(() => of(new PagedResult<Application>()))),
         ),
-        tap((applications) => this.setDataSourceFromApplicationsList(applications)),
+        tap(applications => this.setDataSourceFromApplicationsList(applications)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() =>

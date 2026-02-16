@@ -34,15 +34,15 @@ export class Step3EndpointListHarness extends ComponentHarness {
   }
 
   async clickPrevious() {
-    return this.getButtonByText('Previous').then((button) => button.click());
+    return this.getButtonByText('Previous').then(button => button.click());
   }
 
   async clickValidate() {
-    return this.getButtonByText('Select my endpoints').then((button) => button.click());
+    return this.getButtonByText('Select my endpoints').then(button => button.click());
   }
 
   async fillAndValidate(endpoints: string[]): Promise<void> {
-    await this.selectionList().then((f) => f.selectOptionsByIds(endpoints));
+    await this.selectionList().then(f => f.selectOptionsByIds(endpoints));
 
     return this.clickValidate();
   }

@@ -180,7 +180,7 @@ describe('ApplicationCreationComponent', () => {
 
   describe('when only one type available', () => {
     beforeEach(async () => {
-      const SIMPLE = fakeApplicationTypes().find((type) => type.id === 'simple');
+      const SIMPLE = fakeApplicationTypes().find(type => type.id === 'simple');
       expectGetEnabledApplicationTypes([SIMPLE]);
       applicationCreationForm = await loader.getHarness(ApplicationCreationFormHarness);
     });

@@ -22,7 +22,7 @@ export class TasksHarness extends ComponentHarness {
   protected getTaskCards = this.locatorForAll(MatCardHarness);
 
   public getTasks(): Promise<MatCardHarness[]> {
-    return this.getTaskCards().then(async (cards) => {
+    return this.getTaskCards().then(async cards => {
       return await Promise.all(cards);
     });
   }

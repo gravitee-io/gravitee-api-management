@@ -61,35 +61,35 @@ export class SharedPolicyGroupsAddEditDialogHarness extends ComponentHarness {
   }
 
   public async setName(text: string) {
-    await this.nameInput().then((input) => input.setValue(text));
+    await this.nameInput().then(input => input.setValue(text));
   }
   public async getName() {
-    return await this.nameInput().then((input) => input.getValue());
+    return await this.nameInput().then(input => input.getValue());
   }
 
   public async setDescription(text: string) {
-    await this.descriptionInput().then((input) => input.setValue(text));
+    await this.descriptionInput().then(input => input.setValue(text));
   }
   public async getDescription() {
-    return await this.descriptionInput().then((input) => input.getValue());
+    return await this.descriptionInput().then(input => input.getValue());
   }
 
   public async setPrerequisiteMessage(text: string) {
-    await this.prerequisiteMessageInput().then((input) => input.setValue(text));
+    await this.prerequisiteMessageInput().then(input => input.setValue(text));
   }
   public async getPrerequisiteMessage() {
-    return await this.prerequisiteMessageInput().then((input) => input.getValue());
+    return await this.prerequisiteMessageInput().then(input => input.getValue());
   }
 
   public async setPhase(text: string) {
-    const toggleGroup = await this.phaseToggleGroup().then((group) => group.getToggles({ text }));
+    const toggleGroup = await this.phaseToggleGroup().then(group => group.getToggles({ text }));
 
     if (toggleGroup.length === 1) {
       await toggleGroup[0].check();
     }
   }
   public async getPhase() {
-    const toggle = await this.phaseToggleGroup().then((group) => group.getToggles({ checked: true }));
+    const toggle = await this.phaseToggleGroup().then(group => group.getToggles({ checked: true }));
     return toggle.length === 1 ? toggle[0].getText() : '';
   }
 

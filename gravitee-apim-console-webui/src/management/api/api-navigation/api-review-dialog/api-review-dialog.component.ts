@@ -71,8 +71,8 @@ export class ApiReviewDialogComponent implements OnDestroy {
             return;
           }
 
-          this.qualityRules = qualityRules.map((qualityRule) => {
-            const apiQualityRule = apiQualityRules.find((qr) => qr.quality_rule === qualityRule.id);
+          this.qualityRules = qualityRules.map(qualityRule => {
+            const apiQualityRule = apiQualityRules.find(qr => qr.quality_rule === qualityRule.id);
             const qualityRuleVM: QualityRuleVM = {
               id: qualityRule.id,
               name: qualityRule.name,
@@ -96,7 +96,7 @@ export class ApiReviewDialogComponent implements OnDestroy {
   }
 
   onConfirm(accept: boolean) {
-    const apiQualityRulesToSave$ = this.qualityRules.map((qualityRule) => {
+    const apiQualityRulesToSave$ = this.qualityRules.map(qualityRule => {
       if (qualityRule.hasApiQualityRule) {
         return this.apiQualityRuleService.updateQualityRule(this.dialogData.apiId, qualityRule.id, qualityRule.checked);
       } else {

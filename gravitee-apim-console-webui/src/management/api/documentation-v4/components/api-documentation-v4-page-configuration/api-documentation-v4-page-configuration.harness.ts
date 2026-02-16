@@ -28,21 +28,21 @@ export class ApiDocumentationV4PageConfigurationHarness extends ComponentHarness
   private toggleExcludeGroups = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="excludeGroups"]' }));
 
   async getName(): Promise<string> {
-    return this.nameInputLocator().then((input) => input.getValue());
+    return this.nameInputLocator().then(input => input.getValue());
   }
 
   async nameFieldDisplayed(): Promise<boolean> {
     return this.nameInputLocator()
-      .then((_) => true)
-      .catch((_) => false);
+      .then(_ => true)
+      .catch(_ => false);
   }
 
   async setName(name: string) {
-    return this.nameInputLocator().then((input) => input.setValue(name));
+    return this.nameInputLocator().then(input => input.setValue(name));
   }
 
   async nameIsDisabled(): Promise<boolean> {
-    return this.nameInputLocator().then((input) => input.isDisabled());
+    return this.nameInputLocator().then(input => input.isDisabled());
   }
 
   async checkVisibility(visibility: 'PRIVATE' | 'PUBLIC') {
@@ -51,17 +51,17 @@ export class ApiDocumentationV4PageConfigurationHarness extends ComponentHarness
   }
 
   async getVisibility() {
-    return this.visibilityHarness().then((harness) => harness.getValue());
+    return this.visibilityHarness().then(harness => harness.getValue());
   }
 
   async visibilityIsDisabled(): Promise<boolean> {
-    return this.visibilityHarness().then((harness) => harness.formIsDisabled());
+    return this.visibilityHarness().then(harness => harness.formIsDisabled());
   }
 
   async getAccessControlGroups(): Promise<MatSelectHarness | null> {
-    return this.selectAccessGroupsHarness().catch((_) => null);
+    return this.selectAccessGroupsHarness().catch(_ => null);
   }
   async getExcludeGroups(): Promise<MatSlideToggleHarness | null> {
-    return this.toggleExcludeGroups().catch((_) => null);
+    return this.toggleExcludeGroups().catch(_ => null);
   }
 }

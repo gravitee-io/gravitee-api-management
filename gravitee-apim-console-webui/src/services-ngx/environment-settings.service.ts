@@ -33,7 +33,7 @@ export class EnvironmentSettingsService {
 
   load(): Observable<void> {
     return this.http.get<EnvSettings>(`${this.constants.env.baseURL}/portal`).pipe(
-      tap((settings) => {
+      tap(settings => {
         this.constants.env.settings = settings;
         this.currentSettings.next(settings);
       }),
@@ -45,7 +45,7 @@ export class EnvironmentSettingsService {
 
   get(): Observable<EnvSettings> {
     return this.currentSettings.asObservable().pipe(
-      filter((settings) => settings !== null),
+      filter(settings => settings !== null),
       shareReplay(1),
     );
   }

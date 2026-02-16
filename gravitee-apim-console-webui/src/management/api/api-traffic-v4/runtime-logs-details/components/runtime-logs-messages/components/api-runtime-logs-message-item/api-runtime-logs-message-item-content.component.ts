@@ -61,6 +61,6 @@ export class ApiRuntimeLogsMessageItemContentComponent {
     this.tabs[2].disabled = !(this.content.metadata != null);
 
     // Select the first tab that is not disabled
-    this.selected.setValue(this.tabs.findIndex((tab) => !tab.disabled));
+    this.selected.setValue(this.tabs.findIndex(tab => !tab.disabled));
   }
 }

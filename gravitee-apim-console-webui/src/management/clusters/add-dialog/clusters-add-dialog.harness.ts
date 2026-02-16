@@ -38,21 +38,21 @@ export class ClustersAddDialogHarness extends ComponentHarness {
   }
 
   public async setName(text: string) {
-    await this.nameInput().then((input) => input.setValue(text));
+    await this.nameInput().then(input => input.setValue(text));
   }
   public async getName() {
-    return await this.nameInput().then((input) => input.getValue());
+    return await this.nameInput().then(input => input.getValue());
   }
 
   public async setDescription(text: string) {
-    await this.descriptionInput().then((input) => input.setValue(text));
+    await this.descriptionInput().then(input => input.setValue(text));
   }
   public async getDescription() {
-    return await this.descriptionInput().then((input) => input.getValue());
+    return await this.descriptionInput().then(input => input.getValue());
   }
 
   public async setBootstrapServers(text: string) {
-    await this.bootstrapServersInput().then((input) => input.setValue(text));
+    await this.bootstrapServersInput().then(input => input.setValue(text));
   }
 
   async create() {

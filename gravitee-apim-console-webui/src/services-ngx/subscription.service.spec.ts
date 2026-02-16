@@ -39,12 +39,12 @@ describe('SubscriptionService', () => {
   });
 
   describe('getApiSubscriptionsByPlan', () => {
-    it('should get the api subscriptions', (done) => {
+    it('should get the api subscriptions', done => {
       const apiId = 'API#1';
       const planId = 'PLAN#1';
       const mockSubscription = fakeSubscriptionPage();
 
-      subscriptionService.getApiSubscriptionsByPlan(apiId, planId).subscribe((response) => {
+      subscriptionService.getApiSubscriptionsByPlan(apiId, planId).subscribe(response => {
         expect(response).toMatchObject([mockSubscription]);
         done();
       });
@@ -59,11 +59,11 @@ describe('SubscriptionService', () => {
   });
 
   describe('getApplicationSubscriptions', () => {
-    it('should get the application subscriptions', (done) => {
+    it('should get the application subscriptions', done => {
       const appId = 'APP#1';
       const mockSubscription = fakeSubscriptionPage();
 
-      subscriptionService.getApplicationSubscriptions(appId).subscribe((response) => {
+      subscriptionService.getApplicationSubscriptions(appId).subscribe(response => {
         expect(response).toMatchObject([mockSubscription]);
         done();
       });

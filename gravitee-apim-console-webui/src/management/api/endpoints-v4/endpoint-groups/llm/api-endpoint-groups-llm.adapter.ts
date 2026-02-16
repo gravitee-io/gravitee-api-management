@@ -37,8 +37,8 @@ export const toProviders = (api: ApiV4): Provider[] => {
   }
 
   return api.endpointGroups
-    .filter((endpointGroup) => endpointGroup.endpoints && endpointGroup.endpoints.length > 0)
-    .map((endpointGroup) => {
+    .filter(endpointGroup => endpointGroup.endpoints && endpointGroup.endpoints.length > 0)
+    .map(endpointGroup => {
       const endpoint = endpointGroup.endpoints[0];
 
       return {

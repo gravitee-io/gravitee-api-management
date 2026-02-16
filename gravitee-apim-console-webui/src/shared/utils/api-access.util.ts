@@ -18,12 +18,12 @@ import { ApiV2, ApiV4, HttpListener, KafkaListener, TcpListener } from '../../en
 
 export const getApiAccess = (api: ApiV4 | ApiV2): string[] | null => {
   if (api.definitionVersion === 'V2') {
-    return api.proxy.virtualHosts?.length > 0 ? api.proxy.virtualHosts.map((vh) => `${vh.host ?? ''}${vh.path}`) : [api.contextPath];
+    return api.proxy.virtualHosts?.length > 0 ? api.proxy.virtualHosts.map(vh => `${vh.host ?? ''}${vh.path}`) : [api.contextPath];
   }
 
   if (api.type === 'NATIVE') {
     const kafkaListenerHosts = api.listeners
-      .filter((listener) => listener.type === 'KAFKA')
+      .filter(listener => listener.type === 'KAFKA')
       .map((kafkaListener: KafkaListener) => {
         const host = kafkaListener.host ?? '';
         const port = kafkaListener.port ? `:${kafkaListener.port}` : '';
@@ -33,11 +33,11 @@ export const getApiAccess = (api: ApiV4 | ApiV2): string[] | null => {
     return kafkaListenerHosts.length > 0 ? kafkaListenerHosts : null;
   }
 
-  const tcpListenerHosts = api.listeners.filter((listener) => listener.type === 'TCP').flatMap((listener: TcpListener) => listener.hosts);
+  const tcpListenerHosts = api.listeners.filter(listener => listener.type === 'TCP').flatMap((listener: TcpListener) => listener.hosts);
 
   const httpListenerPaths = api.listeners
-    .filter((listener) => listener.type === 'HTTP')
-    .map((listener: HttpListener) => listener.paths.map((path) => `${path.host ?? ''}${path.path}`))
+    .filter(listener => listener.type === 'HTTP')
+    .map((listener: HttpListener) => listener.paths.map(path => `${path.host ?? ''}${path.path}`))
     .flat();
 
   return tcpListenerHosts.length > 0 ? tcpListenerHosts : httpListenerPaths.length > 0 ? httpListenerPaths : null;

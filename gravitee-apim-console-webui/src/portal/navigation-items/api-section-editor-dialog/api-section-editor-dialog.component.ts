@@ -136,12 +136,12 @@ export class ApiSectionEditorDialogComponent implements OnInit {
     });
 
     const initialApiIds = this.form.controls.apiIds.value ?? [];
-    this.selectedOrderedApis.set(initialApiIds.map((id) => ({ id, name: id })));
+    this.selectedOrderedApis.set(initialApiIds.map(id => ({ id, name: id })));
 
-    this.form.controls.apiIds.valueChanges.pipe(distinctUntilChanged(isEqual)).subscribe((apiIds) => {
+    this.form.controls.apiIds.valueChanges.pipe(distinctUntilChanged(isEqual)).subscribe(apiIds => {
       const ids = apiIds ?? [];
       const current = this.selectedOrderedApis();
-      this.selectedOrderedApis.set(current.filter((a) => ids.includes(a.id)));
+      this.selectedOrderedApis.set(current.filter(a => ids.includes(a.id)));
     });
 
     const disabledSet = new Set<string>([]);
@@ -149,7 +149,7 @@ export class ApiSectionEditorDialogComponent implements OnInit {
     this.rows$ = this.filters$.pipe(
       debounceTime(100),
       distinctUntilChanged(isEqual),
-      switchMap((filters) =>
+      switchMap(filters =>
         this.refresh$.pipe(
           startWith(undefined),
           tap(() => (this.isLoading = true)),
@@ -163,10 +163,10 @@ export class ApiSectionEditorDialogComponent implements OnInit {
           tap(() => (this.isLoading = false)),
         ),
       ),
-      tap((resp) => {
+      tap(resp => {
         this.total = resp.pagination?.totalCount ?? 0;
       }),
-      map((resp) =>
+      map(resp =>
         (resp.data ?? []).map((api: Api) => {
           const isV2OrV4 = this.isApiV2OrV4(api);
           const access = isV2OrV4 ? getApiAccess(api) : null;
@@ -226,11 +226,11 @@ export class ApiSectionEditorDialogComponent implements OnInit {
       return;
     }
 
-    const nextIds = currentIds.filter((id) => id !== apiId);
+    const nextIds = currentIds.filter(id => id !== apiId);
     this.form.controls.apiIds.setValue(nextIds);
 
     const current = this.selectedOrderedApis();
-    this.selectedOrderedApis.set(current.filter((a) => a.id !== apiId));
+    this.selectedOrderedApis.set(current.filter(a => a.id !== apiId));
   }
 
   onSubmit(): void {

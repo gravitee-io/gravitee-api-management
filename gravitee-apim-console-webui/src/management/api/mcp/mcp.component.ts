@@ -76,8 +76,8 @@ export class McpComponent implements OnInit {
   canEnableMcp$: Observable<boolean> = this.connectorPluginsV2Service
     .listEntrypointPlugins()
     .pipe(
-      map((plugins) =>
-        plugins.some((plugin) => plugin.id === MCP_ENTRYPOINT_ID && this.gioPermissionService.hasAnyMatching(['api-definition-u'])),
+      map(plugins =>
+        plugins.some(plugin => plugin.id === MCP_ENTRYPOINT_ID && this.gioPermissionService.hasAnyMatching(['api-definition-u'])),
       ),
     );
 
@@ -106,9 +106,9 @@ export class McpComponent implements OnInit {
 
   ngOnInit() {
     this.api$ = this.apiV2Service.get(this.apiId).pipe(
-      filter((api) => api.definitionVersion === 'V4'),
-      map((api) => ({ ...api, hasMCPEntrypoint: api.listeners?.[0].entrypoints.some((e) => e.type === MCP_ENTRYPOINT_ID) }) as ApiVM),
-      tap((api) => {
+      filter(api => api.definitionVersion === 'V4'),
+      map(api => ({ ...api, hasMCPEntrypoint: api.listeners?.[0].entrypoints.some(e => e.type === MCP_ENTRYPOINT_ID) }) as ApiVM),
+      tap(api => {
         if (api.hasMCPEntrypoint) {
           this.updateFormValues(api);
         } else {
@@ -132,14 +132,14 @@ export class McpComponent implements OnInit {
           const listeners = api.listeners;
           const httpListener = listeners[0] as HttpListener;
 
-          httpListener.entrypoints = httpListener.entrypoints.map((entrypoint) =>
+          httpListener.entrypoints = httpListener.entrypoints.map(entrypoint =>
             entrypoint.type === MCP_ENTRYPOINT_ID ? { ...entrypoint, configuration } : entrypoint,
           );
 
           listeners[0] = httpListener;
           return this.apiV2Service.update(this.apiId, { ...api, listeners });
         }),
-        tap((api) => {
+        tap(api => {
           this.snackBarService.success('MCP entrypoint has been updated successfully.');
           this.updateFormValues(api as ApiV4);
         }),
@@ -155,7 +155,7 @@ export class McpComponent implements OnInit {
         const httpListener = listeners[0] as HttpListener;
 
         // Remove MCP entrypoint
-        httpListener.entrypoints = httpListener.entrypoints.filter((entrypoint) => entrypoint.type !== MCP_ENTRYPOINT_ID);
+        httpListener.entrypoints = httpListener.entrypoints.filter(entrypoint => entrypoint.type !== MCP_ENTRYPOINT_ID);
 
         return this.apiV2Service.update(this.apiId, { ...api, listeners });
       }),
@@ -175,7 +175,7 @@ export class McpComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        switchMap((confirmed) => {
+        switchMap(confirmed => {
           if (confirmed) {
             return removeMcpEntrypoint$;
           }
@@ -191,7 +191,7 @@ export class McpComponent implements OnInit {
   }
 
   private updateFormValues(api: ApiV4): void {
-    const mcpConfiguration = api.listeners[0].entrypoints.find((e) => e.type === MCP_ENTRYPOINT_ID).configuration as MCPConfiguration;
+    const mcpConfiguration = api.listeners[0].entrypoints.find(e => e.type === MCP_ENTRYPOINT_ID).configuration as MCPConfiguration;
     this.form.patchValue({
       mcpConfig: mcpConfiguration,
     });

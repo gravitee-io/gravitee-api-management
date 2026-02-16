@@ -588,10 +588,10 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
       const policyToAdd = fakePolicyPlugin();
 
       // Override Fetcher function
-      component.policySchemaFetcher = (_policy) => {
+      component.policySchemaFetcher = _policy => {
         return of({});
       };
-      component.policyDocumentationFetcher = (_policy) => {
+      component.policyDocumentationFetcher = _policy => {
         return of('');
       };
 
@@ -655,7 +655,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
 
     it('should edit step into "PlanA"', async () => {
       // Override Fetcher function
-      component.policySchemaFetcher = (_policy) => {
+      component.policySchemaFetcher = _policy => {
         return of({
           properties: {
             content: {
@@ -667,7 +667,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
           },
         });
       };
-      component.policyDocumentationFetcher = (_policy) => {
+      component.policyDocumentationFetcher = _policy => {
         return of('');
       };
 
@@ -824,12 +824,12 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
   }
 
   function expectEntrypointsGetRequest(connectors: Partial<ConnectorPlugin>[]) {
-    const fullConnectors = connectors.map((partial) => fakeConnectorPlugin(partial));
+    const fullConnectors = connectors.map(partial => fakeConnectorPlugin(partial));
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints` }).flush(fullConnectors);
   }
 
   function expectEndpointsGetRequest(connectors: Partial<ConnectorPlugin>[]) {
-    const fullConnectors = connectors.map((partial) => fakeConnectorPlugin(partial));
+    const fullConnectors = connectors.map(partial => fakeConnectorPlugin(partial));
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`,

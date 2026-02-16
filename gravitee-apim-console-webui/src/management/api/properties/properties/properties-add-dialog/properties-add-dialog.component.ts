@@ -45,7 +45,7 @@ export class PropertiesAddDialogComponent {
     private readonly dialogRef: MatDialogRef<PropertiesAddDialogData, PropertiesAddDialogResult>,
     @Inject(MAT_DIALOG_DATA) dialogData: PropertiesAddDialogData,
   ) {
-    this.existingKeys = dialogData.properties.map((p) => p.key);
+    this.existingKeys = dialogData.properties.map(p => p.key);
     this.formGroup.get('key').addValidators([isUnique(this.existingKeys)]);
     this.formGroup.get('key').updateValueAndValidity();
   }

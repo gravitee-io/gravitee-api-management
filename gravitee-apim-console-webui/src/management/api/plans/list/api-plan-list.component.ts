@@ -49,7 +49,7 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
   public displayedColumns = ['name', 'type', 'status', 'deploy-on', 'actions'];
   public plansTableDS: PlanDS[] = [];
   public isLoadingData = true;
-  public apiPlanStatus: { name: PlanStatus; number: number | null }[] = PLAN_STATUS.map((status) => ({ name: status, number: null }));
+  public apiPlanStatus: { name: PlanStatus; number: number | null }[] = PLAN_STATUS.map(status => ({ name: status, number: null }));
   public status: PlanStatus;
   public isReadOnly = false;
   public isV2Api: boolean;
@@ -73,7 +73,7 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
-        tap((api) => {
+        tap(api => {
           this.api = api;
           this.isV2Api = api && api.definitionVersion === 'V2';
           this.isReadOnly =
@@ -147,7 +147,7 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
 
   public publishPlan(plan: Plan): void {
     const publishPlan$ =
-      this.api.definitionVersion === 'V4' && this.api.type === 'NATIVE' && this.api.listeners.some((l) => l.type === 'KAFKA')
+      this.api.definitionVersion === 'V4' && this.api.type === 'NATIVE' && this.api.listeners.some(l => l.type === 'KAFKA')
         ? this.publishNativeKafkaPlan$(plan)
         : this.httpPlanDialog$(plan);
 
@@ -157,7 +157,7 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        map((plan) => {
+        map(plan => {
           this.snackBarService.success(`The plan ${plan.name} has been published with success.`);
           this.ngOnInit();
         }),
@@ -181,13 +181,13 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.plansService.deprecate(this.api.id, plan.id)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        map((plan) => {
+        map(plan => {
           this.snackBarService.success(`The plan ${plan.name} has been deprecated with success.`);
           this.ngOnInit();
         }),
@@ -200,7 +200,7 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
     this.subscriptionService
       .getApiSubscriptionsByPlan(plan.apiId, plan.id)
       .pipe(
-        switchMap((subscriptions) => {
+        switchMap(subscriptions => {
           let content = '';
           if (plan.security?.type === 'KEY_LESS') {
             content = 'A keyless plan may have consumers. <br/>' + 'By closing this plan you will remove free access to this API.';
@@ -227,13 +227,13 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
             })
             .afterClosed();
         }),
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.plansService.close(this.api.id, plan.id)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        map((plan) => {
+        map(plan => {
           this.snackBarService.success(`The plan ${plan.name} has been closed with success.`);
           this.ngOnInit();
         }),
@@ -256,17 +256,17 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.plansService.publish(this.api.id, plan.id)),
       );
   }
 
   private publishNativeKafkaPlan$(plan: Plan): Observable<Plan> {
     return this.plansService.list(this.api.id, undefined, ['PUBLISHED'], undefined, ['-flow'], 1, 9999).pipe(
-      switchMap((plansResponse) => {
-        const publishedKeylessPlan = plansResponse.data.filter((plan) => plan.security.type === 'KEY_LESS');
-        const publishedMtlsPlan = plansResponse.data.filter((plan) => plan.security.type === 'MTLS');
-        const publishedAuthPlans = plansResponse.data.filter((plan) => plan.security.type !== 'KEY_LESS' && plan.security.type !== 'MTLS');
+      switchMap(plansResponse => {
+        const publishedKeylessPlan = plansResponse.data.filter(plan => plan.security.type === 'KEY_LESS');
+        const publishedMtlsPlan = plansResponse.data.filter(plan => plan.security.type === 'MTLS');
+        const publishedAuthPlans = plansResponse.data.filter(plan => plan.security.type !== 'KEY_LESS' && plan.security.type !== 'MTLS');
 
         if (plan.security?.type === 'KEY_LESS' && (publishedMtlsPlan.length || publishedAuthPlans.length)) {
           return this.nativeKafkaDialog$(plan, [...publishedMtlsPlan, ...publishedAuthPlans]);
@@ -287,13 +287,13 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
   }
 
   private nativeKafkaDialog$(plan: Plan, plansToClose: Plan[]): Observable<Plan> {
-    const hasMtls = plansToClose.some((p) => p.security.type === 'MTLS');
-    const hasAuth = plansToClose.some((p) => p.security.type !== 'KEY_LESS' && p.security.type !== 'MTLS');
+    const hasMtls = plansToClose.some(p => p.security.type === 'MTLS');
+    const hasAuth = plansToClose.some(p => p.security.type !== 'KEY_LESS' && p.security.type !== 'MTLS');
 
     let planTypeToPublish: string;
     let ifSubscriptionContent = '';
 
-    const plansList = plansToClose.map((p) => `- <strong>${p.name}</strong> (${this.getSecurityTypeLabel(p.security.type)})`).join('\n');
+    const plansList = plansToClose.map(p => `- <strong>${p.name}</strong> (${this.getSecurityTypeLabel(p.security.type)})`).join('\n');
 
     if (plan.security.type === 'KEY_LESS') {
       planTypeToPublish = 'Keyless';
@@ -336,8 +336,8 @@ ${ifSubscriptionContent}`;
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
-        switchMap(() => forkJoin(plansToClose.map((p) => this.plansService.close(this.api.id, p.id)))),
+        filter(confirm => confirm === true),
+        switchMap(() => forkJoin(plansToClose.map(p => this.plansService.close(this.api.id, p.id)))),
         switchMap(() => this.plansService.publish(this.api.id, plan.id)),
       );
   }
@@ -357,7 +357,7 @@ ${ifSubscriptionContent}`;
     // For full reload, we need to reset the number of plans for each status
     const getApiPlans$: Observable<Plan[]> = fullReload
       ? this.plansService.list(this.activatedRoute.snapshot.params.apiId, undefined, [...PLAN_STATUS], undefined, ['-flow'], 1, 9999).pipe(
-          map((plans) => {
+          map(plans => {
             // Update the number of plans for each status
             const plansNumber = plans.data.reduce(
               (acc, plan) => {
@@ -368,27 +368,27 @@ ${ifSubscriptionContent}`;
               {} as Record<PlanStatus, number>,
             );
 
-            this.apiPlanStatus.forEach((plan) => {
+            this.apiPlanStatus.forEach(plan => {
               plan.number = plansNumber[plan.name.toUpperCase()] ?? 0;
             });
 
             // Filter plans by status
-            return plans.data.filter((p) => p.status === selectedStatus);
+            return plans.data.filter(p => p.status === selectedStatus);
           }),
         )
       : this.plansService
           .list(this.activatedRoute.snapshot.params.apiId, undefined, [selectedStatus], undefined, ['-flow'], 1, 9999)
-          .pipe(map((response) => response.data));
+          .pipe(map(response => response.data));
 
     getApiPlans$
       .pipe(
-        map((plans) =>
-          plans.map((plan) => ({
+        map(plans =>
+          plans.map(plan => ({
             ...plan,
             securityTypeLabel: this.getSecurityTypeLabel(plan.security?.type),
           })),
         ),
-        tap((plans) => {
+        tap(plans => {
           this.router.navigate(['../plans'], {
             relativeTo: this.activatedRoute,
             queryParams: { status: this.status },
@@ -396,7 +396,7 @@ ${ifSubscriptionContent}`;
           this.plansTableDS = orderBy(plans, 'order', 'asc');
           this.isLoadingData = false;
         }),
-        catchError((error) => {
+        catchError(error => {
           this.snackBarService.error(error.message);
           return of({});
         }),
@@ -408,7 +408,7 @@ ${ifSubscriptionContent}`;
   private computePlanOptions(): void {
     this.planMenuItems = this.constantsService.getPlanMenuItems(
       this.api.definitionVersion,
-      this.api.definitionVersion === 'V4' ? this.api.listeners.map((l) => l.type) : null,
+      this.api.definitionVersion === 'V4' ? this.api.listeners.map(l => l.type) : null,
     );
   }
 }

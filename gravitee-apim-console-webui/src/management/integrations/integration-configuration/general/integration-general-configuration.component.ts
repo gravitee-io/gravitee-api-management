@@ -94,7 +94,7 @@ export class IntegrationGeneralConfigurationComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (integration) => {
+        next: integration => {
           this.integration = integration;
           this.generalInformationForm.patchValue({ name: integration.name, description: integration.description });
           this.createUrlControls(integration);
@@ -122,7 +122,7 @@ export class IntegrationGeneralConfigurationComponent {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => !!confirm),
+        filter(confirm => !!confirm),
         switchMap(() => {
           this.isLoading = true;
           return this.integrationsService.deleteIntegration(this.integration.id);
@@ -158,13 +158,13 @@ export class IntegrationGeneralConfigurationComponent {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm),
+        filter(confirm => confirm),
         switchMap(() => {
           this.isLoading = true;
           this.snackBarService.success('We’re deleting Federated APIs from this integration...');
           return this.integrationsService.deleteFederatedAPIs(this.integration.id);
         }),
-        tap((deletedApisResponse) => {
+        tap(deletedApisResponse => {
           this.isLoading = false;
           this.snackBarService.success(
             `Federated APIs have been deleted.\n` +

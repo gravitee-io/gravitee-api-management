@@ -41,7 +41,7 @@ class AddPoliciesPathController {
   add() {
     if (this.newPath.copyFromRootPath) {
       this.paths[this.newPath.path] = cloneDeep(this.paths['/']);
-      forEach(this.paths[this.newPath.path], (policy) => {
+      forEach(this.paths[this.newPath.path], policy => {
         // eslint-disable-next-line angular/no-private-call
         delete policy.$$hashKey;
       });

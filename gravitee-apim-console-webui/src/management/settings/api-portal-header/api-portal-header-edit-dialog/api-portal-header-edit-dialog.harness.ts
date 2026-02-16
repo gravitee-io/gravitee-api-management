@@ -35,11 +35,11 @@ export class ApiPortalHeaderEditDialogHarness extends ComponentHarness {
   }
 
   public async setName(name: string) {
-    return this.getNameInput().then((input) => input.setValue(name));
+    return this.getNameInput().then(input => input.setValue(name));
   }
 
   public async setValue(value: string) {
-    return this.getValueInput().then((input) => input.setValue(value));
+    return this.getValueInput().then(input => input.setValue(value));
   }
 
   public getSaveButton() {
@@ -47,6 +47,6 @@ export class ApiPortalHeaderEditDialogHarness extends ComponentHarness {
   }
 
   public async clickOnSave() {
-    return this.getSaveButton().then(async (b) => b.click());
+    return this.getSaveButton().then(async b => b.click());
   }
 }

@@ -39,11 +39,11 @@ describe('PortalPagesService', () => {
   });
 
   describe('updatePortalPage', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakePortalPage = fakePortalPageWithDetails({ content: 'test' });
       const toUpdate = { content: 'test' };
 
-      portalPagesService.patchPortalPage(fakePortalPage.id, toUpdate).subscribe((response) => {
+      portalPagesService.patchPortalPage(fakePortalPage.id, toUpdate).subscribe(response => {
         expect(response).toStrictEqual(fakePortalPage);
         done();
       });
@@ -59,11 +59,11 @@ describe('PortalPagesService', () => {
   });
 
   describe('publishPage', () => {
-    it('should call the API to publish a page', (done) => {
+    it('should call the API to publish a page', done => {
       const pageId = 'test-98';
       const fakePortalPage = fakePortalPageWithDetails({ published: true, id: pageId });
 
-      portalPagesService.publishPage(fakePortalPage.id).subscribe((response) => {
+      portalPagesService.publishPage(fakePortalPage.id).subscribe(response => {
         expect(response).toStrictEqual(fakePortalPage);
         done();
       });
@@ -80,11 +80,11 @@ describe('PortalPagesService', () => {
   });
 
   describe('unpublishPage', () => {
-    it('should call the API to unpublish a page', (done) => {
+    it('should call the API to unpublish a page', done => {
       const pageId = 'test-99';
       const fakePortalPage = fakePortalPageWithDetails({ published: false, id: pageId });
 
-      portalPagesService.unpublishPage(pageId).subscribe((response) => {
+      portalPagesService.unpublishPage(pageId).subscribe(response => {
         expect(response).toStrictEqual(fakePortalPage);
         done();
       });

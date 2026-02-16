@@ -107,7 +107,7 @@ export class ApiAnalyticsMessageFiltersBarComponent implements OnInit, OnDestroy
     this.form
       .get('period')
       .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((period) => {
+      .subscribe(period => {
         this.activeFilters = { ...this.activeFilters, period };
         if (period !== this.customPeriod) {
           this.apiAnalyticsV2Service.setTimeRangeFilter(this.getPeriodTimeRangeParams());
@@ -117,7 +117,7 @@ export class ApiAnalyticsMessageFiltersBarComponent implements OnInit, OnDestroy
     this.form
       .get('from')
       .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((from) => {
+      .subscribe(from => {
         this.minDate = from;
       });
   }
@@ -139,12 +139,12 @@ export class ApiAnalyticsMessageFiltersBarComponent implements OnInit, OnDestroy
   }
 
   private getPeriodTimeRangeParams(): TimeRangeParams {
-    return timeFrames.find((timeFrame) => timeFrame.id === this.activeFilters.period)?.timeFrameRangesParams();
+    return timeFrames.find(timeFrame => timeFrame.id === this.activeFilters.period)?.timeFrameRangesParams();
   }
 
   private initActiveFilters() {
     const { period, from, to } = this.activatedRoute.snapshot.queryParams;
-    const validPeriod = timeFrames.find((timeFrame) => timeFrame.id === period);
+    const validPeriod = timeFrames.find(timeFrame => timeFrame.id === period);
 
     if (period === this.customPeriod) {
       this.activeFilters = { period, from: +from, to: +to };

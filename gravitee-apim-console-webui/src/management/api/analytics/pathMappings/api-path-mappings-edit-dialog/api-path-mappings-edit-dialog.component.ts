@@ -67,8 +67,8 @@ export class ApiPathMappingsEditDialogComponent {
       .get(this.api.id)
       .pipe(
         onlyApiV2Filter(this.snackBarService),
-        switchMap((api) => {
-          remove(api.pathMappings, (p) => p === this.pathToUpdate);
+        switchMap(api => {
+          remove(api.pathMappings, p => p === this.pathToUpdate);
           api.pathMappings.push(this.pathFormGroup.getRawValue().path);
           return this.apiService.update(api.id, api);
         }),

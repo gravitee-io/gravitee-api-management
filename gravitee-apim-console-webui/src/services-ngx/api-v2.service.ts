@@ -62,7 +62,7 @@ export class ApiV2Service {
 
   get(id: string): Observable<Api> {
     return this.http.get<Api>(`${this.constants.env.v2BaseURL}/apis/${id}`).pipe(
-      tap((api) => {
+      tap(api => {
         this.lastApiFetch$.next(api);
       }),
     );
@@ -70,7 +70,7 @@ export class ApiV2Service {
 
   update(apiId: string, api: UpdateApi): Observable<Api> {
     return this.http.put<Api>(`${this.constants.env.v2BaseURL}/apis/${apiId}`, api).pipe(
-      tap((api) => {
+      tap(api => {
         this.lastApiFetch$.next(api);
       }),
     );
@@ -126,8 +126,8 @@ export class ApiV2Service {
         },
       })
       .pipe(
-        mergeMap((blob) => from(blob.text())),
-        map((content) => {
+        mergeMap(blob => from(blob.text())),
+        map(content => {
           return new Blob([JSON.stringify(JSON.parse(content), undefined, 2)], {
             type: 'application/json',
           });
@@ -198,7 +198,7 @@ export class ApiV2Service {
     const start = this.lastApiFetch$.value && this.lastApiFetch$.value.id === apiId ? of(this.lastApiFetch$.value) : this.get(apiId);
     return start.pipe(
       switchMap(() => this.lastApiFetch$.asObservable()),
-      filter((api) => !!api),
+      filter(api => !!api),
       distinctUntilChanged(isEqual),
       shareReplay({ bufferSize: 1, refCount: true }),
     );

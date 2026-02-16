@@ -38,14 +38,14 @@ export class ApiPlanFormHarness extends ComponentHarness {
   public getValidationToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="autoValidation"]' }));
   public validationTogglePresent(): Promise<boolean> {
     return this.getValidationToggle()
-      .then((_) => true)
-      .catch((_) => false);
+      .then(_ => true)
+      .catch(_ => false);
   }
   public getCommentRequiredToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="commentRequired"]' }));
   public commentRequiredTogglePresent(): Promise<boolean> {
     return this.getCommentRequiredToggle()
-      .then((_) => true)
-      .catch((_) => false);
+      .then(_ => true)
+      .catch(_ => false);
   }
   public getCommentMessageInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="commentMessage"]' }));
   public getShardingTagsInput = this.locatorForOptional(MatSelectHarness.with({ selector: '[formControlName="shardingTags"]' }));

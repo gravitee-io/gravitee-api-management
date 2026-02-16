@@ -66,7 +66,7 @@ export class GioTopNavComponent implements OnInit, OnDestroy {
     this.taskService
       .getTasksAutoFetch()
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((taskPagedResult) => {
+      .subscribe(taskPagedResult => {
         this.userTaskCount = taskPagedResult.page.total_elements;
         this.hasAlert = this.userTaskCount > 0;
       });
@@ -74,14 +74,14 @@ export class GioTopNavComponent implements OnInit, OnDestroy {
     this.licenseService
       .isOEM$()
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((isOEM) => {
+      .subscribe(isOEM => {
         this.isOEM = isOEM;
       });
 
     this.uiCustomizationService
       .getConsoleCustomization()
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((customization) => {
+      .subscribe(customization => {
         if (customization && customization.logo) {
           this.customLogo = customization.logo;
         }
@@ -90,7 +90,7 @@ export class GioTopNavComponent implements OnInit, OnDestroy {
     this.environmentSettingsService
       .get()
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((settings) => {
+      .subscribe(settings => {
         this.portalUrl = isEmpty(settings?.portal?.url)
           ? undefined
           : this.constants.env.baseURL.replace('{:envId}', this.constants.org.currentEnv.id) + '/portal/redirect';

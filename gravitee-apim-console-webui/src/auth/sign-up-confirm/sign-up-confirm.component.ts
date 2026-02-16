@@ -135,7 +135,7 @@ export class SignUpConfirmComponent implements OnInit, OnDestroy {
               this.signUpConfirmInProgress = false;
               this.router.navigateByUrl('/_login');
             },
-            error: (e) => {
+            error: e => {
               this.signUpConfirmInProgress = false;
               this.snackBarService.error(e.error?.message ?? 'An error occurred while confirming your account.');
             },

@@ -159,7 +159,7 @@ describe('DocumentationNewPageComponent', () => {
           const pageConfiguration = await harnessLoader.getHarness(ApiDocumentationV4PageConfigurationHarness);
           await pageConfiguration.setName('New page');
 
-          await harness.getNextButton().then(async (btn) => {
+          await harness.getNextButton().then(async btn => {
             expect(await btn.isDisabled()).toEqual(false);
             return btn.click();
           });
@@ -171,7 +171,7 @@ describe('DocumentationNewPageComponent', () => {
           const options = await harness.getSourceTypeOptions();
 
           expect(options.length).toEqual(3);
-          const sourceOptions = options.map((option) => option.text);
+          const sourceOptions = options.map(option => option.text);
           expect(sourceOptions).toEqual(['Fill in the content myself', 'Import from file', 'Link to External Source']);
           expect(options[0].disabled).toEqual(false);
           expect(options[1].disabled).toEqual(false);
@@ -196,21 +196,19 @@ describe('DocumentationNewPageComponent', () => {
           const toggleExcludeGroups = await pageConfiguration.getExcludeGroups();
           await toggleExcludeGroups.toggle();
 
-          await harness.getNextButton().then(async (btn) => {
+          await harness.getNextButton().then(async btn => {
             expect(await btn.isDisabled()).toEqual(false);
             return btn.click();
           });
 
-          await harness.getNextButton().then(async (btn) => {
+          await harness.getNextButton().then(async btn => {
             expect(await btn.isDisabled()).toEqual(false);
             return btn.click();
           });
         });
 
         it('should show markdown editor', async () => {
-          const editor = await harnessLoader
-            .getHarness(ApiDocumentationV4ContentEditorHarness)
-            .then((harness) => harness.getContentEditor());
+          const editor = await harnessLoader.getHarness(ApiDocumentationV4ContentEditorHarness).then(harness => harness.getContentEditor());
           expect(editor).toBeDefined();
 
           await editor.setValue('#TITLE \n This is the file content');
@@ -220,7 +218,7 @@ describe('DocumentationNewPageComponent', () => {
         it('should show markdown preview', async () => {
           const preview = await harnessLoader
             .getHarness(ApiDocumentationV4ContentEditorHarness)
-            .then((editor) => editor.getMarkdownPreview());
+            .then(editor => editor.getMarkdownPreview());
           expect(preview).toBeTruthy();
 
           const togglePreviewButton = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Toggle preview' }));
@@ -228,7 +226,7 @@ describe('DocumentationNewPageComponent', () => {
 
           const previewAfter = await harnessLoader
             .getHarness(ApiDocumentationV4ContentEditorHarness)
-            .then((editor) => editor.getMarkdownPreview());
+            .then(editor => editor.getMarkdownPreview());
 
           expect(previewAfter).toBeFalsy();
         });
@@ -367,14 +365,14 @@ describe('DocumentationNewPageComponent', () => {
           const pageConfiguration = await harnessLoader.getHarness(ApiDocumentationV4PageConfigurationHarness);
           await pageConfiguration.setName('New page');
 
-          await harness.getNextButton().then(async (btn) => {
+          await harness.getNextButton().then(async btn => {
             expect(await btn.isDisabled()).toEqual(false);
             return btn.click();
           });
 
           await harness.selectSourceType('IMPORT');
 
-          await harness.getNextButton().then(async (btn) => {
+          await harness.getNextButton().then(async btn => {
             expect(await btn.isDisabled()).toEqual(false);
             return btn.click();
           });
@@ -383,7 +381,7 @@ describe('DocumentationNewPageComponent', () => {
         it('should show import', async () => {
           const fileSelector = await harnessLoader
             .getHarness(ApiDocumentationV4FileUploadHarness)
-            .then((harness) => harness.getFileSelector());
+            .then(harness => harness.getFileSelector());
           expect(fileSelector).toBeDefined();
 
           const file = new File(['# Markdown content'], 'readme.md', { type: 'text/markdown' });
@@ -654,8 +652,8 @@ describe('DocumentationNewPageComponent', () => {
         const pageConfiguration = await harnessLoader.getHarness(ApiDocumentationV4PageConfigurationHarness);
         await pageConfiguration.setName('New page');
 
-        await harness.getNextButton().then(async (btn) => btn.click());
-        await harness.getNextButton().then(async (btn) => btn.click());
+        await harness.getNextButton().then(async btn => btn.click());
+        await harness.getNextButton().then(async btn => btn.click());
 
         const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
         await editor.setValue('File content');
@@ -725,7 +723,7 @@ describe('DocumentationNewPageComponent', () => {
     describe('step 2 - Determine source', () => {
       beforeEach(async () => {
         const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, DocumentationNewPageHarness);
-        await harness.getNextButton().then(async (btn) => {
+        await harness.getNextButton().then(async btn => {
           expect(await btn.isDisabled()).toEqual(false);
           return btn.click();
         });
@@ -737,7 +735,7 @@ describe('DocumentationNewPageComponent', () => {
         const options = await harness.getSourceTypeOptions();
 
         expect(options.length).toEqual(3);
-        const sourceOptions = options.map((option) => option.text);
+        const sourceOptions = options.map(option => option.text);
         expect(sourceOptions).toEqual(['Fill in the content myself', 'Import from file', 'Link to External Source']);
         expect(options[0].disabled).toEqual(false);
         expect(options[1].disabled).toEqual(false);
@@ -760,12 +758,12 @@ describe('DocumentationNewPageComponent', () => {
         const toggleExcludeGroups = await pageConfiguration.getExcludeGroups();
         await toggleExcludeGroups.toggle();
 
-        await harness.getNextButton().then(async (btn) => {
+        await harness.getNextButton().then(async btn => {
           expect(await btn.isDisabled()).toEqual(false);
           return btn.click();
         });
 
-        await harness.getNextButton().then(async (btn) => {
+        await harness.getNextButton().then(async btn => {
           expect(await btn.isDisabled()).toEqual(false);
           return btn.click();
         });

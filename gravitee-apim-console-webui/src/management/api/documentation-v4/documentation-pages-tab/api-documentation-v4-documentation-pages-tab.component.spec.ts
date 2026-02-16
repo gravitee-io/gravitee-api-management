@@ -260,7 +260,7 @@ describe('ApiDocumentationV4DocumentationPagesTab', () => {
       await init([fakeFolder({ name: 'my first folder', id: 'my-first-folder', visibility: 'PUBLIC' })], []);
       const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
       const nameDiv = await pageListHarness.getNameDivByRowIndex(0);
-      await nameDiv.host().then((host) => host.click());
+      await nameDiv.host().then(host => host.click());
 
       expect(routerNavigateSpy).toHaveBeenCalledWith(['.'], {
         relativeTo: expect.anything(),
@@ -399,7 +399,7 @@ describe('ApiDocumentationV4DocumentationPagesTab', () => {
       await init([PAGE], []);
 
       const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
-      await pageListHarness.getPublishPageButtonByRowIndex(0).then((found) => {
+      await pageListHarness.getPublishPageButtonByRowIndex(0).then(found => {
         expect(found).toBeFalsy();
       });
     });
@@ -459,7 +459,7 @@ describe('ApiDocumentationV4DocumentationPagesTab', () => {
       await init([PAGE], []);
 
       const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
-      expect(await pageListHarness.getUnpublishPageButtonByRowIndex(0).then((btn) => btn.isDisabled())).toEqual(true);
+      expect(await pageListHarness.getUnpublishPageButtonByRowIndex(0).then(btn => btn.isDisabled())).toEqual(true);
     });
 
     it('should not unpublish folder', async () => {
@@ -468,7 +468,7 @@ describe('ApiDocumentationV4DocumentationPagesTab', () => {
       await init([PAGE], []);
 
       const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
-      await pageListHarness.getUnpublishPageButtonByRowIndex(0).then((btn) => expect(btn).toBeFalsy());
+      await pageListHarness.getUnpublishPageButtonByRowIndex(0).then(btn => expect(btn).toBeFalsy());
     });
 
     it('should move page up', async () => {

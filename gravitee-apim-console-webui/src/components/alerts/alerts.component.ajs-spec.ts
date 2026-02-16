@@ -24,7 +24,7 @@ describe('AlertsComponent', () => {
   let $componentController: IComponentControllerService;
   let alertsComponent: any;
 
-  beforeEach(inject((_$componentController_) => {
+  beforeEach(inject(_$componentController_ => {
     $componentController = _$componentController_;
     alertsComponent = $componentController('alertsComponentAjs', null, {});
   }));

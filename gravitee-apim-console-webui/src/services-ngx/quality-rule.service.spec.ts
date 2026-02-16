@@ -35,10 +35,10 @@ describe('QualityRuleService', () => {
   });
 
   describe('list', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const qualityRules: QualityRule[] = [{ name: 'name', description: 'description', weight: 42 }];
 
-      qualityRuleService.list().subscribe((portalSettings) => {
+      qualityRuleService.list().subscribe(portalSettings => {
         expect(portalSettings).toMatchObject(qualityRules);
         done();
       });
@@ -50,10 +50,10 @@ describe('QualityRuleService', () => {
   });
 
   describe('add quality rule', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const qualityRule: QualityRule = { name: 'name', description: 'description', weight: 42 };
 
-      qualityRuleService.add(qualityRule).subscribe((newQualityRule) => {
+      qualityRuleService.add(qualityRule).subscribe(newQualityRule => {
         expect(newQualityRule).toMatchObject(qualityRule);
         done();
       });
@@ -65,10 +65,10 @@ describe('QualityRuleService', () => {
   });
 
   describe('update quality rule', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const updatedQualityRule: QualityRule = { name: 'name2', description: 'description2', weight: 42 };
 
-      qualityRuleService.update('1', updatedQualityRule).subscribe((selectedQualityRule) => {
+      qualityRuleService.update('1', updatedQualityRule).subscribe(selectedQualityRule => {
         expect(selectedQualityRule).toMatchObject(updatedQualityRule);
         done();
       });
@@ -80,7 +80,7 @@ describe('QualityRuleService', () => {
   });
 
   describe('delete quality rule', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const qualityRuleId = '2';
 
       qualityRuleService.delete(qualityRuleId).subscribe(() => done());

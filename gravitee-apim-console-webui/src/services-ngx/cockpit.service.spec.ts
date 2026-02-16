@@ -25,67 +25,67 @@ describe('CockpitService', () => {
     cockpitService = TestBed.inject<CockpitService>(CockpitService);
   });
 
-  it('should configure URL with API_PROMOTION campaign with exsiting query params', (done) => {
+  it('should configure URL with API_PROMOTION campaign with exsiting query params', done => {
     const enhancedURL = cockpitService.addQueryParamsForAnalytics(`${COCKPIT_URL}?foo=bar`, UtmCampaign.API_PROMOTION);
     expect(enhancedURL).toEqual(`${COCKPIT_URL}?foo=bar&utm_source=apim&utm_medium=InApp&utm_campaign=api_promotion`);
     done();
   });
 
-  it('should configure URL with API_PROMOTION campaign', (done) => {
+  it('should configure URL with API_PROMOTION campaign', done => {
     const enhancedURL = cockpitService.addQueryParamsForAnalytics(COCKPIT_URL, UtmCampaign.API_PROMOTION);
     expect(enhancedURL).toEqual(`${COCKPIT_URL}?utm_source=apim&utm_medium=InApp&utm_campaign=api_promotion`);
     done();
   });
 
-  it('should configure URL with API_DESIGNER campaign and ACCEPTED installation status', (done) => {
+  it('should configure URL with API_DESIGNER campaign and ACCEPTED installation status', done => {
     const enhancedURL = cockpitService.addQueryParamsForAnalytics(COCKPIT_URL, UtmCampaign.API_DESIGNER, 'ACCEPTED');
     expect(enhancedURL).toEqual(`${COCKPIT_URL}?utm_source=apim&utm_medium=InApp&utm_campaign=api_designer&utm_term=registered`);
     done();
   });
 
-  it('should configure URL with API_DESIGNER campaign and no installation status', (done) => {
+  it('should configure URL with API_DESIGNER campaign and no installation status', done => {
     const enhancedURL = cockpitService.addQueryParamsForAnalytics(COCKPIT_URL, UtmCampaign.API_DESIGNER);
     expect(enhancedURL).toEqual(`${COCKPIT_URL}?utm_source=apim&utm_medium=InApp&utm_campaign=api_designer&utm_term=not_registered`);
     done();
   });
 
-  it('should configure URL with API_DESIGNER campaign and not ACCEPTED installation status', (done) => {
+  it('should configure URL with API_DESIGNER campaign and not ACCEPTED installation status', done => {
     const enhancedURL = cockpitService.addQueryParamsForAnalytics(COCKPIT_URL, UtmCampaign.API_DESIGNER, 'unknown_status');
     expect(enhancedURL).toEqual(`${COCKPIT_URL}?utm_source=apim&utm_medium=InApp&utm_campaign=api_designer&utm_term=not_registered`);
     done();
   });
 
-  it('should configure URL with DiscoverCockpit campaign and PENDING installation status', (done) => {
+  it('should configure URL with DiscoverCockpit campaign and PENDING installation status', done => {
     const enhancedURL = cockpitService.addQueryParamsForAnalytics(COCKPIT_URL, UtmCampaign.DISCOVER_COCKPIT, 'PENDING');
     expect(enhancedURL).toEqual(`${COCKPIT_URL}?utm_source=apim&utm_medium=InApp&utm_campaign=discover_cockpit&utm_term=pending`);
     done();
   });
 
-  it('should configure URL with DiscoverCockpit campaign and ACCEPTED installation status', (done) => {
+  it('should configure URL with DiscoverCockpit campaign and ACCEPTED installation status', done => {
     const enhancedURL = cockpitService.addQueryParamsForAnalytics(COCKPIT_URL, UtmCampaign.DISCOVER_COCKPIT, 'ACCEPTED');
     expect(enhancedURL).toEqual(`${COCKPIT_URL}?utm_source=apim&utm_medium=InApp&utm_campaign=discover_cockpit&utm_term=registered`);
     done();
   });
 
-  it('should configure URL with DiscoverCockpit campaign and REJECTED installation status', (done) => {
+  it('should configure URL with DiscoverCockpit campaign and REJECTED installation status', done => {
     const enhancedURL = cockpitService.addQueryParamsForAnalytics(COCKPIT_URL, UtmCampaign.DISCOVER_COCKPIT, 'REJECTED');
     expect(enhancedURL).toEqual(`${COCKPIT_URL}?utm_source=apim&utm_medium=InApp&utm_campaign=discover_cockpit&utm_term=rejected`);
     done();
   });
 
-  it('should configure URL with DiscoverCockpit campaign and DELETED installation status', (done) => {
+  it('should configure URL with DiscoverCockpit campaign and DELETED installation status', done => {
     const enhancedURL = cockpitService.addQueryParamsForAnalytics(COCKPIT_URL, UtmCampaign.DISCOVER_COCKPIT, 'DELETED');
     expect(enhancedURL).toEqual(`${COCKPIT_URL}?utm_source=apim&utm_medium=InApp&utm_campaign=discover_cockpit&utm_term=removed`);
     done();
   });
 
-  it('should configure URL with DiscoverCockpit campaign and no installation status', (done) => {
+  it('should configure URL with DiscoverCockpit campaign and no installation status', done => {
     const enhancedURL = cockpitService.addQueryParamsForAnalytics(COCKPIT_URL, UtmCampaign.DISCOVER_COCKPIT);
     expect(enhancedURL).toEqual(`${COCKPIT_URL}?utm_source=apim&utm_medium=InApp&utm_campaign=discover_cockpit&utm_term=not_registered`);
     done();
   });
 
-  it('should configure URL with DiscoverCockpit campaign and unknown installation status', (done) => {
+  it('should configure URL with DiscoverCockpit campaign and unknown installation status', done => {
     const enhancedURL = cockpitService.addQueryParamsForAnalytics(COCKPIT_URL, UtmCampaign.DISCOVER_COCKPIT, 'UNKNOWN');
     expect(enhancedURL).toEqual(`${COCKPIT_URL}?utm_source=apim&utm_medium=InApp&utm_campaign=discover_cockpit&utm_term=not_registered`);
     done();

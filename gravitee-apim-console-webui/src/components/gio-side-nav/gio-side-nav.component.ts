@@ -72,13 +72,13 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.activatedRoute.params
       .pipe(
-        map((p) => p.envHrid),
+        map(p => p.envHrid),
         distinctUntilChanged(),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
-        next: (_) => {
-          this.environments = this.constants.org.environments.map((env) => ({ value: env.id, displayValue: env.name }));
+        next: _ => {
+          this.environments = this.constants.org.environments.map(env => ({ value: env.id, displayValue: env.name }));
           this.currentEnv = this.constants.org.currentEnv;
 
           this.mainMenuItems = this.buildMainMenuItems();
@@ -94,7 +94,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
 
     this.licenseExpirationDate$ = this.gioLicenseService.getExpiresAt$().pipe(distinctUntilChanged(), takeUntil(this.unsubscribe$));
 
-    this.environmentSettingsService.get().subscribe((envSettings) => {
+    this.environmentSettingsService.get().subscribe(envSettings => {
       this.mainMenuItems = this.buildMainMenuItems(envSettings);
     });
   }
@@ -273,7 +273,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
   }
 
   private getMenuItemIconRight$(licenseOptions: LicenseOptions) {
-    return this.gioLicenseService.isMissingFeature$(licenseOptions.feature).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+    return this.gioLicenseService.isMissingFeature$(licenseOptions.feature).pipe(map(notAllowed => (notAllowed ? 'gio:lock' : null)));
   }
 
   private buildFooterMenuItems(): MenuItem[] {
@@ -290,8 +290,8 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
 
   private filterMenuByPermission(menuItems: MenuItem[]): MenuItem[] {
     return menuItems
-      .filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions))
-      .map((item) => {
+      .filter(item => !item.permissions || this.permissionService.hasAnyMatching(item.permissions))
+      .map(item => {
         if (item.items) {
           const subItems = this.filterMenuByPermission(item.items);
           if (subItems.length > 0 || item.routerLink) {
@@ -306,7 +306,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
 
   private getSideNaveMenuSearchItems(): MenuSearchItem[] {
     return this.mainMenuItems
-      .map((item) => {
+      .map(item => {
         return {
           name: item.displayName,
           routerLink: `/${this.currentEnv.hrids}/${cleanRouterLink(item.routerLink)}`,
@@ -315,7 +315,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         };
       })
       .concat(
-        this.footerMenuItems.map((item) => ({
+        this.footerMenuItems.map(item => ({
           name: item.displayName,
           routerLink: `/${cleanRouterLink(item.routerLink)}`,
           category: item.category,

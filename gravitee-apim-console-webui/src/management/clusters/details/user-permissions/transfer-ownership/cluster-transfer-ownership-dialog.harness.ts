@@ -56,7 +56,7 @@ export class ClusterTransferOwnershipDialogHarness extends ComponentHarness {
   public async isSubmitEnabled(): Promise<boolean> {
     const btn = await this.getSubmitButton();
     if (!btn) return false;
-    return btn.isDisabled().then((d) => !d);
+    return btn.isDisabled().then(d => !d);
   }
 
   public async submit(): Promise<void> {

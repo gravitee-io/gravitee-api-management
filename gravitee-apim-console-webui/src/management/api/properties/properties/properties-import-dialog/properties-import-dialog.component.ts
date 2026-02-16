@@ -50,13 +50,13 @@ export class PropertiesImportDialogComponent {
     const propertiesParsed = parsePropertiesStringFormat(this.formGroup.get('properties').value);
 
     this.dialogRef.close((existingProperties: Property[]) => {
-      const existingKeysEncrypted = existingProperties.filter((p) => p.encrypted).map((p) => p.key);
+      const existingKeysEncrypted = existingProperties.filter(p => p.encrypted).map(p => p.key);
 
       // Remove encrypted properties from import
-      const propertiesToImport = propertiesParsed.properties.filter((p) => !existingKeysEncrypted.includes(p.key));
+      const propertiesToImport = propertiesParsed.properties.filter(p => !existingKeysEncrypted.includes(p.key));
 
       // Get existing properties not updated by import
-      const existingPropertiesToKeep = existingProperties.filter((p) => !propertiesToImport.map((p) => p.key).includes(p.key));
+      const existingPropertiesToKeep = existingProperties.filter(p => !propertiesToImport.map(p => p.key).includes(p.key));
 
       return [...existingPropertiesToKeep, ...propertiesToImport];
     });
@@ -64,7 +64,7 @@ export class PropertiesImportDialogComponent {
 
   // Validate properties format
   public validateProperties(properties: Property[]): ValidatorFn {
-    return (control) => {
+    return control => {
       const result: Record<string, string> = {};
       const value = control.value;
 
@@ -78,14 +78,14 @@ export class PropertiesImportDialogComponent {
       }
 
       if (propertiesParsed.properties.length > 0) {
-        const existingKeysNotEncrypted = properties.filter((p) => !p.encrypted).map((p) => p.key);
-        const duplicateKeysReplaced = propertiesParsed.properties.map((p) => p.key).filter((k) => existingKeysNotEncrypted.includes(k));
+        const existingKeysNotEncrypted = properties.filter(p => !p.encrypted).map(p => p.key);
+        const duplicateKeysReplaced = propertiesParsed.properties.map(p => p.key).filter(k => existingKeysNotEncrypted.includes(k));
         if (duplicateKeysReplaced.length > 0) {
           result.duplicateKeysReplaced = `Overwritten keys: ${duplicateKeysReplaced.join(', ')}`;
         }
 
-        const existingKeysEncrypted = properties.filter((p) => p.encrypted).map((p) => p.key);
-        const duplicateKeysNotReplaced = propertiesParsed.properties.map((p) => p.key).filter((k) => existingKeysEncrypted.includes(k));
+        const existingKeysEncrypted = properties.filter(p => p.encrypted).map(p => p.key);
+        const duplicateKeysNotReplaced = propertiesParsed.properties.map(p => p.key).filter(k => existingKeysEncrypted.includes(k));
         if (duplicateKeysNotReplaced.length > 0) {
           result.duplicateKeysNotReplaced = `Skipped keys (encrypted): ${duplicateKeysNotReplaced.join(', ')}`;
         }

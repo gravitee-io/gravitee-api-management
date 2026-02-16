@@ -114,7 +114,7 @@ export class ApplicationSubscriptionComponent {
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
+        filter(result => !!result),
         switchMap(() => this.applicationSubscriptionService.closeSubscription(applicationId, subscription.id)),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -134,7 +134,7 @@ export class ApplicationSubscriptionComponent {
     this.applicationSubscriptionService
       .getSubscription(this.activatedRoute.snapshot.params.applicationId, this.activatedRoute.snapshot.params.subscriptionId)
       .pipe(
-        switchMap((subscription) =>
+        switchMap(subscription =>
           this.applicationSubscriptionService.update(
             this.activatedRoute.snapshot.params.applicationId,
             this.activatedRoute.snapshot.params.subscriptionId,
@@ -151,7 +151,7 @@ export class ApplicationSubscriptionComponent {
           this.snackBarService.success('Consumer configuration updated.');
           this.subscriptionChanges$.next();
         }),
-        catchError((err) => {
+        catchError(err => {
           this.snackBarService.error(err.error?.message || 'An error occurred while updating consumer configuration.');
           return EMPTY;
         }),

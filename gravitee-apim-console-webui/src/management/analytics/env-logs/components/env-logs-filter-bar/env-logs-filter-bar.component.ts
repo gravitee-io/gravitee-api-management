@@ -99,8 +99,8 @@ export class EnvLogsFilterBarComponent {
   readonly entrypoints = MOCK_ENTRYPOINTS;
   readonly plans = MOCK_PLANS;
 
-  private readonly entrypointsMap = new Map(this.entrypoints.map((e) => [e.id, e.name]));
-  private readonly plansMap = new Map(this.plans.map((p) => [p.id, p.name]));
+  private readonly entrypointsMap = new Map(this.entrypoints.map(e => [e.id, e.name]));
+  private readonly plansMap = new Map(this.plans.map(p => [p.id, p.name]));
 
   form = new FormGroup<EnvLogsQuickFiltersForm>({
     period: new FormControl(ENV_LOGS_DEFAULT_PERIOD, { nonNullable: true }),
@@ -147,7 +147,7 @@ export class EnvLogsFilterBarComponent {
     if (!control) return;
 
     const currentValue = control.value as string[] | null;
-    const filtered = (currentValue ?? []).filter((v) => v !== chip.value);
+    const filtered = (currentValue ?? []).filter(v => v !== chip.value);
     control.setValue(filtered.length > 0 ? filtered : null);
   }
 

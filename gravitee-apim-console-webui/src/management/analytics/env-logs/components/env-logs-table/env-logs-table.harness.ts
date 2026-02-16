@@ -28,7 +28,7 @@ export class EnvLogsTableHarness extends ComponentHarness {
 
   public async getRowsData() {
     const rows = await this.getRows();
-    return await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    return await parallel(() => rows.map(row => row.getCellTextByColumnName()));
   }
 
   public async getMethodBadge(rowIndex: number) {

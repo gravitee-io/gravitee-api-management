@@ -53,7 +53,7 @@ export class OrgSettingsNotificationTemplatesComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.notificationTemplateService.search().subscribe((notificationTemplates) => {
+    this.notificationTemplateService.search().subscribe(notificationTemplates => {
       this.notificationTemplatesByScope = this.groupNotificationTemplatesVMByScope(notificationTemplates);
     });
   }
@@ -64,14 +64,14 @@ export class OrgSettingsNotificationTemplatesComponent implements OnInit {
     // Do not include TEMPLATES FOR ALERT if alert service is disabled
     if (!this.constants.org.settings.alert?.enabled) {
       processedNotificationTemplates = notificationTemplates.filter(
-        (notificationTemplate) => notificationTemplate.scope !== 'TEMPLATES_FOR_ALERT',
+        notificationTemplate => notificationTemplate.scope !== 'TEMPLATES_FOR_ALERT',
       );
     }
 
     return chain(processedNotificationTemplates)
       .sort((a, b) => a.scope.localeCompare(b.scope) || a.name.localeCompare(b.name))
-      .groupBy((notificationTemplate) => `${notificationTemplate.scope}-${notificationTemplate.name}`)
-      .mapValues((notificationTemplatesWithSameName) => {
+      .groupBy(notificationTemplate => `${notificationTemplate.scope}-${notificationTemplate.name}`)
+      .mapValues(notificationTemplatesWithSameName => {
         const notificationTemplate = notificationTemplatesWithSameName[0];
 
         const notificationTemplateVM: NotificationTemplateVM = {
@@ -80,7 +80,7 @@ export class OrgSettingsNotificationTemplatesComponent implements OnInit {
           name: notificationTemplate.name,
           hook: notificationTemplate.hook,
           description: notificationTemplate.description,
-          overridden: notificationTemplatesWithSameName.some((notificationTemplate) => notificationTemplate.enabled === true),
+          overridden: notificationTemplatesWithSameName.some(notificationTemplate => notificationTemplate.enabled === true),
           icon: this.getScopeIcon(notificationTemplate.scope),
         };
         return notificationTemplateVM;

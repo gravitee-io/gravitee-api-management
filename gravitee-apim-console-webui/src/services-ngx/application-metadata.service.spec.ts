@@ -35,11 +35,11 @@ describe('ApplicationMetadataService', () => {
   });
 
   describe('list Application metadata', () => {
-    it('should call the list endpoint', (done) => {
+    it('should call the list endpoint', done => {
       const applicationId = 'test-id';
       const metadata = [fakeMetadata({ key: 'key1' }), fakeMetadata({ key: 'key2' })];
 
-      applicationMetadataService.listMetadata(applicationId).subscribe((metadataList) => {
+      applicationMetadataService.listMetadata(applicationId).subscribe(metadataList => {
         expect(metadataList.length).toEqual(2);
         expect(metadataList[0].key).toEqual('key1');
         expect(metadataList[1].key).toEqual('key2');
@@ -56,12 +56,12 @@ describe('ApplicationMetadataService', () => {
   });
 
   describe('create Application metadata', () => {
-    it('should call the create endpoint', (done) => {
+    it('should call the create endpoint', done => {
       const applicationId = 'test-id';
       const metadata = fakeMetadata({ key: 'created-key' });
       const newMetadata = fakeNewMetadata();
 
-      applicationMetadataService.createMetadata(applicationId, newMetadata).subscribe((m) => {
+      applicationMetadataService.createMetadata(applicationId, newMetadata).subscribe(m => {
         expect(m.key).toEqual('created-key');
         done();
       });
@@ -76,12 +76,12 @@ describe('ApplicationMetadataService', () => {
   });
 
   describe('update Application metadata', () => {
-    it('should call the update endpoint', (done) => {
+    it('should call the update endpoint', done => {
       const applicationId = 'test-id';
       const metadata = fakeMetadata({ key: 'update-key', value: 'new value' });
       const updateMetadata = fakeUpdateMetadata({ key: 'update-key', value: 'new value' });
 
-      applicationMetadataService.updateMetadata(applicationId, updateMetadata).subscribe((m) => {
+      applicationMetadataService.updateMetadata(applicationId, updateMetadata).subscribe(m => {
         expect(m.key).toEqual('update-key');
         expect(m.value).toEqual('new value');
         done();
@@ -97,7 +97,7 @@ describe('ApplicationMetadataService', () => {
   });
 
   describe('delete Application metadata', () => {
-    it('should call the delete endpoint', (done) => {
+    it('should call the delete endpoint', done => {
       const applicationId = 'test-id';
 
       applicationMetadataService.deleteMetadata(applicationId, 'metadata-key').subscribe(() => {

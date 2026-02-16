@@ -39,7 +39,7 @@ describe('MessageService', () => {
   });
 
   describe('sendFromPortal', () => {
-    it('should call the API for sending text message from portal', (done) => {
+    it('should call the API for sending text message from portal', done => {
       const payload: TextMessagePayload = {
         channel: 'MAIL',
         recipient: { role_scope: 'APPLICATION', role_value: ['API', 'GROUP'] },
@@ -61,7 +61,7 @@ describe('MessageService', () => {
   });
 
   describe('sendFromApi', () => {
-    it('should call the API for sending http message from portal', (done) => {
+    it('should call the API for sending http message from portal', done => {
       const httpMessagePayload: HttpMessagePayload = {
         channel: 'HTTP',
         recipient: { url: 'http://notification' },

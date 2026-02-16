@@ -41,12 +41,12 @@ const toEndpointsFromApiV2 = (api: ApiV2): EndpointGroup[] => {
 
   const hasApiHealthCheckService = api.services && api.services.healthCheck && api.services.healthCheck.enabled;
 
-  return api.proxy.groups.flatMap((endpointGroup) => {
+  return api.proxy.groups.flatMap(endpointGroup => {
     return {
       name: endpointGroup.name,
       endpoints:
         endpointGroup.endpoints && endpointGroup.endpoints.length > 0
-          ? endpointGroup.endpoints.map((endpoint) => ({
+          ? endpointGroup.endpoints.map(endpoint => ({
               name: endpoint.name,
               type: endpoint.type,
               target: endpoint.target,

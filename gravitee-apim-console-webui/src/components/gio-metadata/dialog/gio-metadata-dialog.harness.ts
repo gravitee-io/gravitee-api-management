@@ -37,45 +37,45 @@ export class GioMetadataDialogHarness extends ComponentHarness {
   protected getSaveButton = this.locatorFor(MatButtonHarness.with({ text: 'Save' }));
 
   async saveButtonExists(): Promise<boolean> {
-    return this.getSaveButton().then((btn) => (btn ? true : false));
+    return this.getSaveButton().then(btn => (btn ? true : false));
   }
 
   async saveButtonEnabled(): Promise<boolean> {
     return this.getSaveButton()
-      .then((btn) => btn.isDisabled())
-      .then((disabled) => !disabled);
+      .then(btn => btn.isDisabled())
+      .then(disabled => !disabled);
   }
 
   async clickSave(): Promise<void> {
-    return this.getSaveButton().then((btn) => btn.click());
+    return this.getSaveButton().then(btn => btn.click());
   }
 
   async keyFieldExists() {
-    return this.getKeyField().then((x) => (x ? true : false));
+    return this.getKeyField().then(x => (x ? true : false));
   }
 
   async nameFieldExists() {
-    return this.getNameField().then((x) => (x ? true : false));
+    return this.getNameField().then(x => (x ? true : false));
   }
 
   async formatFieldExists() {
-    return this.getFormatField().then((x) => (x ? true : false));
+    return this.getFormatField().then(x => (x ? true : false));
   }
 
   async valueStringFieldExists() {
-    return this.getValueStringField().then((x) => (x ? true : false));
+    return this.getValueStringField().then(x => (x ? true : false));
   }
 
   async getValueStringFieldValue(): Promise<string> {
-    return this.getValueStringField().then((field) => field.getValue());
+    return this.getValueStringField().then(field => field.getValue());
   }
 
   async getValueUrlFieldValue(): Promise<string> {
-    return this.getValueUrlField().then((field) => field.getValue());
+    return this.getValueUrlField().then(field => field.getValue());
   }
 
   async getValueMailFieldValue(): Promise<string> {
-    return this.getValueMailField().then((field) => field.getValue());
+    return this.getValueMailField().then(field => field.getValue());
   }
 
   async getValueDatePicker(): Promise<MatDatepickerInputHarness> {
@@ -87,30 +87,30 @@ export class GioMetadataDialogHarness extends ComponentHarness {
   }
 
   async fillOutName(name: string) {
-    return this.getNameField().then((input) => input.setValue(name));
+    return this.getNameField().then(input => input.setValue(name));
   }
   async selectFormat(format: string) {
-    await this.getFormatField().then((select) => select.open());
+    await this.getFormatField().then(select => select.open());
     return this.getFormatField()
-      .then((select) => select.getOptions({ text: format }))
-      .then((options) => options[0].click());
+      .then(select => select.getOptions({ text: format }))
+      .then(options => options[0].click());
   }
   async fillOutValue(format: MetadataFormat, value: string) {
     switch (format) {
       case 'NUMERIC':
-        return this.getValueNumericField().then((input) => input.setValue(value));
+        return this.getValueNumericField().then(input => input.setValue(value));
       case 'URL':
-        return this.getValueUrlField().then((input) => input.setValue(value));
+        return this.getValueUrlField().then(input => input.setValue(value));
       case 'MAIL':
-        return this.getValueMailField().then((input) => input.setValue(value));
+        return this.getValueMailField().then(input => input.setValue(value));
       default:
-        return this.getValueStringField().then((input) => input.setValue(value));
+        return this.getValueStringField().then(input => input.setValue(value));
     }
   }
 
   async canSaveForm(): Promise<boolean> {
     return this.getSaveButton()
-      .then((btn) => btn.isDisabled())
-      .then((isDisabled) => !isDisabled);
+      .then(btn => btn.isDisabled())
+      .then(isDisabled => !isDisabled);
   }
 }

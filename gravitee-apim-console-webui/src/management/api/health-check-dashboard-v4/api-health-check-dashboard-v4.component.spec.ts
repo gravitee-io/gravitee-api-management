@@ -139,10 +139,10 @@ describe('ApiHealthCheckDashboardV4Component', () => {
     const tableHarness = await availabilityPerEndpointWidget.tableHarness();
 
     const headerRows = await tableHarness.getHeaderRows();
-    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+    const headerCells = await parallel(() => headerRows.map(row => row.getCellTextByColumnName()));
 
     const rows = await tableHarness.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByColumnName()));
 
     expect(headerCells).toEqual([
       {
@@ -173,10 +173,10 @@ describe('ApiHealthCheckDashboardV4Component', () => {
     const tableHarness = await availabilityPerEndpointWidget.tableHarness();
 
     const headerRows = await tableHarness.getHeaderRows();
-    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+    const headerCells = await parallel(() => headerRows.map(row => row.getCellTextByColumnName()));
 
     const rows = await tableHarness.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByColumnName()));
 
     expect(headerCells).toEqual([
       {
@@ -207,10 +207,10 @@ describe('ApiHealthCheckDashboardV4Component', () => {
     const tableHarness = await failedHealthCheckWidget.tableHarness();
 
     const headerRows = await tableHarness.getHeaderRows();
-    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+    const headerCells = await parallel(() => headerRows.map(row => row.getCellTextByColumnName()));
 
     const rows = await tableHarness.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByColumnName()));
 
     expect(headerCells).toEqual([
       {
@@ -234,7 +234,7 @@ describe('ApiHealthCheckDashboardV4Component', () => {
 
   function expectGetApiHealthResponseStatusOvertime(res = fakeApiHealthResponseTimeOvertime()) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/health/average-response-time-overtime`;
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush(res);
@@ -242,27 +242,27 @@ describe('ApiHealthCheckDashboardV4Component', () => {
 
   function expectGetApiAvailability(res: ApiAvailability = fakeApiHealthAvailability()) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/health/availability`;
-    const req = httpTestingController.match((req) => {
+    const req = httpTestingController.match(req => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
-    req.map((request) => {
+    req.map(request => {
       if (!request.cancelled) request.flush(res);
     });
   }
 
   function expectGetApiAverageResponseTime(res: ApiAverageResponseTime = fakeApiHealthAverageResponseTime()) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/health/average-response-time`;
-    const req = httpTestingController.match((req) => {
+    const req = httpTestingController.match(req => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
-    req.map((request) => {
+    req.map(request => {
       if (!request.cancelled) request.flush(res);
     });
   }
 
   function expectGetApiHealthCheckLogs(res = fakeApiHealthCheckLogs()) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/health/logs`;
-    const req = httpTestingController.expectOne((req) => {
+    const req = httpTestingController.expectOne(req => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush(res);

@@ -27,7 +27,7 @@ export default {
   title: 'Application / Subscription / Api keys',
   component: SubscriptionApiKeysComponent,
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 1000px">
         <subscription-api-keys
@@ -128,7 +128,7 @@ PendingSubscription.args = {
 };
 
 export const ForSubscriptionListPage: StoryObj = {
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 1000px">
         <subscription-api-keys

@@ -285,7 +285,7 @@ describe('ApiPropertiesComponent', () => {
       }),
     );
 
-    await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add property"]' })).then((btn) => btn.click());
+    await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add property"]' })).then(btn => btn.click());
 
     const addPropertyDialog = await rootLoader.getHarness(PropertiesAddDialogHarness);
     await addPropertyDialog.setPropertyValue({ key: 'NewProperty', value: 'value1', encryptable: true });
@@ -337,7 +337,7 @@ describe('ApiPropertiesComponent', () => {
       }),
     );
 
-    await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Import properties"]' })).then((btn) => btn.click());
+    await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Import properties"]' })).then(btn => btn.click());
 
     const importDialog = await rootLoader.getHarness(PropertiesImportDialogHarness);
 
@@ -406,7 +406,7 @@ BadProperty
   async function getCellContentByIndex(table: MatTableHarness) {
     const rows = await table.getRows();
     return await parallel(() =>
-      rows.map(async (row) => {
+      rows.map(async row => {
         const cells = await row.getCells();
         const keyInput = await cells[0].getHarness(MatInputHarness);
         const valueInput = await cells[1].getHarness(MatInputHarness);

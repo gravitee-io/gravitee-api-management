@@ -31,7 +31,7 @@ export class PortalThemeHarness extends ComponentHarness {
   private getMonacoEditor = this.locatorFor(GioMonacoEditorHarness.with({ selector: '[formControlName="customCSS"]' }));
 
   public async setPrimaryColor(color: string) {
-    return this.getPrimaryColorInput().then((input) => input.setValue(color));
+    return this.getPrimaryColorInput().then(input => input.setValue(color));
   }
 
   async getNewPortalBadge(): Promise<TestElement> {
@@ -39,19 +39,19 @@ export class PortalThemeHarness extends ComponentHarness {
   }
 
   public async getPrimaryColor() {
-    return this.getPrimaryColorInput().then((input) => input.getValue());
+    return this.getPrimaryColorInput().then(input => input.getValue());
   }
 
   public async submit() {
-    return this.getPublishButton().then((publishButton) => publishButton.click());
+    return this.getPublishButton().then(publishButton => publishButton.click());
   }
 
   public async isSubmitInvalid() {
-    return this.getPublishButton().then((publishButton) => publishButton.isDisabled());
+    return this.getPublishButton().then(publishButton => publishButton.isDisabled());
   }
 
   public reset() {
-    return this.getDiscardButton().then((discardButton) => discardButton.click());
+    return this.getDiscardButton().then(discardButton => discardButton.click());
   }
 
   async getCustomCSS(): Promise<string> {

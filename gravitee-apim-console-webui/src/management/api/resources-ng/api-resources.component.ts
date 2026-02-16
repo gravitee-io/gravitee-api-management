@@ -87,7 +87,7 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
 
   onDisplayResourceCTA({ detail: event }) {
     const resourceId = event.detail.id;
-    const featureName = this.resourceTypes.find((resourceType) => resourceType.id === resourceId).feature;
+    const featureName = this.resourceTypes.find(resourceType => resourceType.id === resourceId).feature;
     const feature = stringFeature(this.constants.customization?.ctaConfiguration, featureName);
     this.gioLicenseService.openDialog({ feature, context: UTMTags.API_CONFLUENT });
   }
@@ -101,7 +101,7 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
-        switchMap((api) => {
+        switchMap(api => {
           const updateApi = { ...api, ...this.api };
           return this.apiService.update(this.activatedRoute.snapshot.params.apiId, updateApi);
         }),

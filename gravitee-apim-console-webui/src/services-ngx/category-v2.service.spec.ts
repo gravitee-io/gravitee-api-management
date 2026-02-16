@@ -42,11 +42,11 @@ describe('CategoryV2Service', () => {
   });
 
   describe('getApis', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const categoryId = 'categoryId';
       const response = fakePagedResult<CategoryApi[]>([fakeCategoryApi()]);
 
-      categoryV2Service.getApis(categoryId).subscribe((result) => {
+      categoryV2Service.getApis(categoryId).subscribe(result => {
         expect(result).toMatchObject(response);
         done();
       });
@@ -61,13 +61,13 @@ describe('CategoryV2Service', () => {
   });
 
   describe('updateCategoryApi', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const categoryId = 'categoryId';
       const apiId = 'apiId';
       const requestBody: UpdateCategoryApi = { order: 1 };
       const responseBody: CategoryApi = fakeCategoryApi();
 
-      categoryV2Service.updateCategoryApi(categoryId, apiId, requestBody).subscribe((result) => {
+      categoryV2Service.updateCategoryApi(categoryId, apiId, requestBody).subscribe(result => {
         expect(result).toMatchObject(responseBody);
         done();
       });

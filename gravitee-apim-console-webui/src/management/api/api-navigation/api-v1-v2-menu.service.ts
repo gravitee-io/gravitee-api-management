@@ -68,7 +68,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
       this.getAnalyticsGroup(),
       this.getAuditGroup(),
       this.getNotificationsGroup(),
-    ].filter((group) => !!group);
+    ].filter(group => !!group);
 
     return { subMenuItems, groupItems };
   }
@@ -282,7 +282,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
       };
       const alertEngineIconRight$ = this.gioLicenseService
         .isMissingFeature$(alertEngineLicenseOptions.feature)
-        .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+        .pipe(map(notAllowed => (notAllowed ? 'gio:lock' : null)));
 
       analyticsGroup.items.push({
         displayName: 'Alerts',
@@ -299,9 +299,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
 
   private getAuditGroup(): MenuGroupItem {
     const license = { feature: ApimFeature.APIM_AUDIT_TRAIL, context: UTMTags.CONTEXT_API };
-    const iconRight$ = this.gioLicenseService
-      .isMissingFeature$(license.feature)
-      .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+    const iconRight$ = this.gioLicenseService.isMissingFeature$(license.feature).pipe(map(notAllowed => (notAllowed ? 'gio:lock' : null)));
 
     const auditGroup: MenuGroupItem = {
       title: 'Audit',
@@ -354,7 +352,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
       };
       const alertEngineIconRight$ = this.gioLicenseService
         .isMissingFeature$(alertEngineLicenseOptions.feature)
-        .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+        .pipe(map(notAllowed => (notAllowed ? 'gio:lock' : null)));
 
       notificationsGroup.items.push({
         displayName: 'Alerts',

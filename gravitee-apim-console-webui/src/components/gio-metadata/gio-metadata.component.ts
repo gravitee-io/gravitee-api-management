@@ -130,9 +130,9 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
       .get('source')
       .valueChanges.pipe(
         distinctUntilChanged(isEqual),
-        filter((source) => this.filtersStream.value.metadataFilters.source !== source),
+        filter(source => this.filtersStream.value.metadataFilters.source !== source),
       )
-      .subscribe((source) => {
+      .subscribe(source => {
         this.filtersStream.next({
           tableWrapper: {
             ...this.filtersStream.value.tableWrapper,
@@ -150,10 +150,10 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
     this.filtersStream
       .pipe(
         distinctUntilChanged(isEqual),
-        tap((_) => {
+        tap(_ => {
           this.form.get('source').setValue(this.filtersStream.value.metadataFilters.source);
         }),
-        switchMap((_) => this.initializeTable()),
+        switchMap(_ => this.initializeTable()),
       )
       .subscribe();
   }
@@ -176,8 +176,8 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((metadata) => !!metadata),
-        switchMap((metadata) =>
+        filter(metadata => !!metadata),
+        switchMap(metadata =>
           this.metadataSaveServices.update({
             key: metadata.key,
             format: metadata.format,
@@ -186,12 +186,12 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
             value: metadata.value,
           }),
         ),
-        tap((_) => this.snackBarService.success(`'${element.name}' updated successfully`)),
+        tap(_ => this.snackBarService.success(`'${element.name}' updated successfully`)),
         catchError(({ error }) => {
           this.snackBarService.error(error?.message ?? 'Error during update');
           return EMPTY;
         }),
-        switchMap((_) => this.initializeTable()),
+        switchMap(_ => this.initializeTable()),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
@@ -215,14 +215,14 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirmed) => confirmed),
-        switchMap((_) => this.metadataSaveServices.delete(element.key)),
-        tap((_) => this.snackBarService.success(`'${element.name}' deleted successfully`)),
+        filter(confirmed => confirmed),
+        switchMap(_ => this.metadataSaveServices.delete(element.key)),
+        tap(_ => this.snackBarService.success(`'${element.name}' deleted successfully`)),
         catchError(({ error }) => {
           this.snackBarService.error(error?.message ?? 'Error during deletion');
           return EMPTY;
         }),
-        switchMap((_) => this.initializeTable()),
+        switchMap(_ => this.initializeTable()),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
@@ -238,22 +238,22 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((metadata) => !!metadata),
-        switchMap((metadata) =>
+        filter(metadata => !!metadata),
+        switchMap(metadata =>
           this.metadataSaveServices.create({
             format: metadata.format,
             name: metadata.name,
             value: metadata.value,
           }),
         ),
-        tap((metadata) => {
+        tap(metadata => {
           this.snackBarService.success(`'${metadata.name}' created successfully`);
         }),
         catchError(({ error }) => {
           this.snackBarService.error(error?.message ? error.message : 'Error during creation');
           return EMPTY;
         }),
-        switchMap((_) => this.initializeTable()),
+        switchMap(_ => this.initializeTable()),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
@@ -307,9 +307,9 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
         sortBy: this.serializeSortByParam(this.filtersStream.value.tableWrapper.sort),
       })
       .pipe(
-        tap((metadata) => {
+        tap(metadata => {
           this.totalResults = metadata.totalResults;
-          const data = metadata.data?.map((m) => ({
+          const data = metadata.data?.map(m => ({
             name: m.name,
             defaultValue: m.defaultValue,
             format: m.format,

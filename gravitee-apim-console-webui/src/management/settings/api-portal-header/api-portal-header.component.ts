@@ -85,7 +85,7 @@ export class ApiPortalHeaderComponent implements OnInit, OnDestroy {
     this.environmentApiHeadersService
       .getHeadersList$()
       .pipe(
-        catchError((_) => {
+        catchError(_ => {
           this.snackBarService.error('Error occurred.');
           return [];
         }),

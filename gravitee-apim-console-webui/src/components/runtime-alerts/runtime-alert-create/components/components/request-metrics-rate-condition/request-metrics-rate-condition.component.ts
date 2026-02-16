@@ -70,7 +70,7 @@ export class RequestMetricsRateConditionComponent {
   @Input({ required: true }) referenceId: string;
   @Input({ required: true }) set referenceType(scope: Scope) {
     this._referenceType = scope;
-    this.properties = Metrics.filterByScope(ApiMetrics.METRICS, scope)?.filter((property) => property.supportPropertyProjection);
+    this.properties = Metrics.filterByScope(ApiMetrics.METRICS, scope)?.filter(property => property.supportPropertyProjection);
   }
   get referenceType() {
     return this._referenceType;

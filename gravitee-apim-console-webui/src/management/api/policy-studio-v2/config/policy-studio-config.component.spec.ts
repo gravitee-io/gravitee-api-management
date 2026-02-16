@@ -106,7 +106,7 @@ describe('PolicyStudioConfigComponent', () => {
 
     let done = false;
     // Expect last apiDefinition
-    policyStudioService.getApiDefinitionToSave$().subscribe((apiDefinition) => {
+    policyStudioService.getApiDefinitionToSave$().subscribe(apiDefinition => {
       expect(apiDefinition.execution_mode).toEqual('v4-emulation-engine');
       done = true;
     });

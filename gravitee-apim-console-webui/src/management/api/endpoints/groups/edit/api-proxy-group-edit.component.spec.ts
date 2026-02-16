@@ -79,7 +79,7 @@ describe('ApiProxyGroupEditComponent', () => {
       let api: ApiV2;
 
       beforeEach(async () => {
-        api = fakeApiV2((api) => ({
+        api = fakeApiV2(api => ({
           ...api,
           id: API_ID,
           proxy: {
@@ -99,7 +99,7 @@ describe('ApiProxyGroupEditComponent', () => {
 
         expectServiceDiscoveryRequest(serviceDiscovery);
 
-        await loader.getHarness(MatTabHarness.with({ label: 'General' })).then((tab) => tab.select());
+        await loader.getHarness(MatTabHarness.with({ label: 'General' })).then(tab => tab.select());
         fixture.detectChanges();
       });
 
@@ -229,7 +229,7 @@ describe('ApiProxyGroupEditComponent', () => {
       let api: ApiV2;
 
       beforeEach(async () => {
-        api = fakeApiV2((api) => ({
+        api = fakeApiV2(api => ({
           ...api,
           id: API_ID,
           proxy: {
@@ -252,7 +252,7 @@ describe('ApiProxyGroupEditComponent', () => {
         fixture.detectChanges();
 
         expectServiceDiscoverySchemaRequest();
-        await loader.getHarness(MatTabHarness.with({ label: 'General' })).then((tab) => tab.select());
+        await loader.getHarness(MatTabHarness.with({ label: 'General' })).then(tab => tab.select());
         fixture.detectChanges();
       });
 
@@ -301,7 +301,7 @@ describe('ApiProxyGroupEditComponent', () => {
         expectApiGetRequest(api);
 
         expectServiceDiscoveryRequest(serviceDiscovery);
-        await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then((tab) => tab.select());
+        await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then(tab => tab.select());
         fixture.detectChanges();
       });
 
@@ -339,13 +339,13 @@ describe('ApiProxyGroupEditComponent', () => {
 
         expectServiceDiscoveryRequest(serviceDiscovery);
 
-        await loader.getHarness(MatTabHarness.with({ label: 'Service discovery' })).then((tab) => tab.select());
+        await loader.getHarness(MatTabHarness.with({ label: 'Service discovery' })).then(tab => tab.select());
 
-        await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' })).then((slide) => slide.toggle());
+        await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' })).then(slide => slide.toggle());
 
         await loader
           .getHarness(MatSelectHarness.with({ selector: '[aria-label="Service discovery provider"]' }))
-          .then((select) => select.clickOptions({ text: 'Consul.io Service Discovery' }));
+          .then(select => select.clickOptions({ text: 'Consul.io Service Discovery' }));
 
         fixture.detectChanges();
         expectServiceDiscoverySchemaRequest();
@@ -354,14 +354,14 @@ describe('ApiProxyGroupEditComponent', () => {
       it('should display service discovery gv-schema-form and save url', async () => {
         expect(fixture.debugElement.nativeElement.querySelector('gio-form-json-schema')).toBeTruthy();
 
-        await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.clickSubmit());
+        await loader.getHarness(GioSaveBarHarness).then(saveBar => saveBar.clickSubmit());
 
         expectApiGetRequest(api);
         httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
       });
 
       it('should disable select', async () => {
-        await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' })).then((slide) => slide.toggle());
+        await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' })).then(slide => slide.toggle());
 
         expect(
           (await loader.getAllHarnesses(MatSelectHarness.with({ selector: '[aria-label="Service discovery provider"]' }))).length,
@@ -435,7 +435,7 @@ describe('ApiProxyGroupEditComponent', () => {
       expect(await lbSelect.getValueText()).toEqual(newLbType);
       fixture.detectChanges();
 
-      await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then((tab) => tab.select());
+      await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then(tab => tab.select());
 
       const endpointHttpConfigHarness = await loader.getHarness(EndpointHttpConfigHarness);
 
@@ -527,21 +527,19 @@ describe('ApiProxyGroupEditComponent', () => {
       expect(
         await loader
           .getHarness(MatSelectHarness.with({ selector: '[aria-label="Load balancing algorithm"]' }))
-          .then((select) => select.isDisabled()),
+          .then(select => select.isDisabled()),
       ).toBeTruthy();
 
-      await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then((tab) => tab.select());
+      await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then(tab => tab.select());
 
       const endpointHttpConfigHarness = await loader.getHarness(EndpointHttpConfigHarness);
 
-      expect(await endpointHttpConfigHarness.getMatInput('connectTimeout').then((input) => input.isDisabled())).toBeTruthy();
+      expect(await endpointHttpConfigHarness.getMatInput('connectTimeout').then(input => input.isDisabled())).toBeTruthy();
 
-      await loader.getHarness(MatTabHarness.with({ label: 'Service discovery' })).then((tab) => tab.select());
+      await loader.getHarness(MatTabHarness.with({ label: 'Service discovery' })).then(tab => tab.select());
 
       expect(
-        await loader
-          .getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }))
-          .then((slide) => slide.isDisabled()),
+        await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' })).then(slide => slide.isDisabled()),
       ).toBeTruthy();
 
       expect(

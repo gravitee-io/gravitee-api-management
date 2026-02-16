@@ -41,11 +41,11 @@ describe('PlanService', () => {
   });
 
   describe('getApiPlans', () => {
-    it('should get all api plans', (done) => {
+    it('should get all api plans', done => {
       const apiId = 'fox';
       const fakePlans = [fakePlan({ id: '1', name: 'free plan 😭' }), fakePlan({ id: '2', name: 'premium plan 💸' })];
 
-      planService.getApiPlans(apiId).subscribe((response) => {
+      planService.getApiPlans(apiId).subscribe(response => {
         expect(response).toMatchObject(fakePlans);
         done();
       });
@@ -58,11 +58,11 @@ describe('PlanService', () => {
       req.flush(fakePlans);
     });
 
-    it('should get only DEPRECATED api plans', (done) => {
+    it('should get only DEPRECATED api plans', done => {
       const apiId = 'fox';
       const fakePlans = [fakePlan({ id: '1', name: '✈️', status: 'DEPRECATED' })];
 
-      planService.getApiPlans(apiId, 'DEPRECATED').subscribe((response) => {
+      planService.getApiPlans(apiId, 'DEPRECATED').subscribe(response => {
         expect(response).toMatchObject(fakePlans);
         done();
       });
@@ -75,11 +75,11 @@ describe('PlanService', () => {
       req.flush(fakePlans);
     });
 
-    it('should get only PUBLISHED KEY_LESS api plans', (done) => {
+    it('should get only PUBLISHED KEY_LESS api plans', done => {
       const apiId = 'fox';
       const fakePlans = [fakePlan({ id: '1', name: '🙅🔑', security: PlanSecurityType.KEY_LESS })];
 
-      planService.getApiPlans(apiId, 'PUBLISHED', 'KEY_LESS').subscribe((response) => {
+      planService.getApiPlans(apiId, 'PUBLISHED', 'KEY_LESS').subscribe(response => {
         expect(response).toMatchObject(fakePlans);
         done();
       });
@@ -94,11 +94,11 @@ describe('PlanService', () => {
   });
 
   describe('update', () => {
-    it('should update api plans', (done) => {
+    it('should update api plans', done => {
       const api = fakeApi();
       const plan = fakePlan();
 
-      planService.update(api, plan).subscribe((response) => {
+      planService.update(api, plan).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -111,11 +111,11 @@ describe('PlanService', () => {
       planReq.flush(plan);
     });
 
-    it('should not publish apiChangeSuccess event', (done) => {
+    it('should not publish apiChangeSuccess event', done => {
       const api = fakeApi({ gravitee: '1.0.0' });
       const plan = fakePlan();
 
-      planService.update(api, plan).subscribe((response) => {
+      planService.update(api, plan).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -130,14 +130,14 @@ describe('PlanService', () => {
   });
 
   describe('create', () => {
-    it('should create api plans', (done) => {
+    it('should create api plans', done => {
       const api = fakeApi();
       const plan: NewPlan = {
         name: 'free',
         security: PlanSecurityType.API_KEY,
       };
 
-      planService.create(api, plan).subscribe((response) => {
+      planService.create(api, plan).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -152,10 +152,10 @@ describe('PlanService', () => {
   });
 
   describe('get', () => {
-    it('should get the api plan', (done) => {
+    it('should get the api plan', done => {
       const plan = fakePlan();
 
-      planService.get(plan.api, plan.id).subscribe((response) => {
+      planService.get(plan.api, plan.id).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -170,11 +170,11 @@ describe('PlanService', () => {
   });
 
   describe('publish', () => {
-    it('should publish the api plan', (done) => {
+    it('should publish the api plan', done => {
       const api = fakeApi();
       const plan = fakePlan({ api: api.id });
 
-      planService.publish(api, plan).subscribe((response) => {
+      planService.publish(api, plan).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -188,11 +188,11 @@ describe('PlanService', () => {
       req.flush(plan);
     });
 
-    it('should not publish apiChangeSuccess event', (done) => {
+    it('should not publish apiChangeSuccess event', done => {
       const api = fakeApi({ gravitee: '1.0.0' });
       const plan = fakePlan({ api: api.id });
 
-      planService.publish(api, plan).subscribe((response) => {
+      planService.publish(api, plan).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -208,11 +208,11 @@ describe('PlanService', () => {
   });
 
   describe('deprecate', () => {
-    it('should deprecate the api plan', (done) => {
+    it('should deprecate the api plan', done => {
       const api = fakeApi();
       const plan = fakePlan({ api: api.id });
 
-      planService.deprecate(api, plan).subscribe((response) => {
+      planService.deprecate(api, plan).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -226,11 +226,11 @@ describe('PlanService', () => {
       req.flush(plan);
     });
 
-    it('should not publish apiChangeSuccess event', (done) => {
+    it('should not publish apiChangeSuccess event', done => {
       const api = fakeApi({ gravitee: '1.0.0' });
       const plan = fakePlan({ api: api.id });
 
-      planService.deprecate(api, plan).subscribe((response) => {
+      planService.deprecate(api, plan).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -246,11 +246,11 @@ describe('PlanService', () => {
   });
 
   describe('close', () => {
-    it('should close the api plan', (done) => {
+    it('should close the api plan', done => {
       const api = fakeApi();
       const plan = fakePlan({ api: api.id });
 
-      planService.close(api, plan).subscribe((response) => {
+      planService.close(api, plan).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -264,11 +264,11 @@ describe('PlanService', () => {
       req.flush(plan);
     });
 
-    it('should not publish apiChangeSuccess event', (done) => {
+    it('should not publish apiChangeSuccess event', done => {
       const api = fakeApi({ gravitee: '1.0.0' });
       const plan = fakePlan({ api: api.id });
 
-      planService.close(api, plan).subscribe((response) => {
+      planService.close(api, plan).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });

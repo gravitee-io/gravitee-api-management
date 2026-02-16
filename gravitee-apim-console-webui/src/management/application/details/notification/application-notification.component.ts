@@ -55,18 +55,18 @@ export class ApplicationNotificationComponent implements OnInit, OnDestroy {
   protected canUpdate = this.permissionService.hasAnyMatching(['application-notification-u']);
   protected notifiers: Notifier[];
   protected notificationsSummary$: Observable<NotificationSummary[]> = this.notifications$.asObservable().pipe(
-    map((notifications) => {
-      return notifications?.map((notification) => {
+    map(notifications => {
+      return notifications?.map(notification => {
         return {
           id: notification.id ?? notification.config_type,
           name: notification.name,
           subscribedEvents: notification.hooks.length ?? 0,
-          notifier: this.notifiers.find((n) => n.id === notification.notifier),
+          notifier: this.notifiers.find(n => n.id === notification.notifier),
           isPortalNotification: notification.config_type === 'PORTAL',
         };
       });
     }),
-    map((notifications) => {
+    map(notifications => {
       if (notifications != null) {
         this.loading = false;
         return notifications;
@@ -110,8 +110,8 @@ export class ApplicationNotificationComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((newNotification) =>
+        filter(result => !!result),
+        switchMap(newNotification =>
           this.notificationService.create(this.applicationId, {
             name: newNotification.name,
             notifier: newNotification.notifierId,
@@ -125,9 +125,9 @@ export class ApplicationNotificationComponent implements OnInit, OnDestroy {
           this.snackBarService.success('Notification created successfully');
           this.refreshList();
         }),
-        switchMap((created) => {
+        switchMap(created => {
           return this.notificationService.getHooks().pipe(
-            switchMap((hooks) => {
+            switchMap(hooks => {
               return this.openEditDialog(hooks, created);
             }),
           );
@@ -155,7 +155,7 @@ export class ApplicationNotificationComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.notificationService.delete(this.applicationId, notification.id)),
         tap(() => {
           this.snackBarService.success(`"${notification.name}" has been deleted`);
@@ -192,7 +192,7 @@ export class ApplicationNotificationComponent implements OnInit, OnDestroy {
         width: GIO_DIALOG_WIDTH.LARGE,
         data: {
           hooks,
-          notifier: this.notifiers.find((n) => n.id === notification.notifier),
+          notifier: this.notifiers.find(n => n.id === notification.notifier),
           notification,
         },
         role: 'dialog',
@@ -200,8 +200,8 @@ export class ApplicationNotificationComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((updated) => this.notificationService.update(this.applicationId, notification.id ?? '', updated)),
+        filter(result => !!result),
+        switchMap(updated => this.notificationService.update(this.applicationId, notification.id ?? '', updated)),
         tap(() => {
           this.snackBarService.success('Notification saved successfully');
           this.refreshList();
@@ -214,7 +214,7 @@ export class ApplicationNotificationComponent implements OnInit, OnDestroy {
     this.notificationService
       .getAll(this.applicationId)
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((notifications) => {
+      .subscribe(notifications => {
         this.notifications$.next(notifications);
       });
   }

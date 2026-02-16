@@ -28,7 +28,7 @@ export class ApiEntrypointsV4AddDialogHarness extends ComponentHarness {
   private saveWithContextPathButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Validate my entrypoints' }));
   private cancelButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Cancel' }));
   public getEntrypointSelectionList() {
-    return this.entrypointListLocator().then((l) => l.getSelectionList());
+    return this.entrypointListLocator().then(l => l.getSelectionList());
   }
 
   public getContextPathForm() {

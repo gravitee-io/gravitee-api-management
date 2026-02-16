@@ -121,13 +121,13 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
     forkJoin([this.restrictedDomainService.get(), this.apiService.get(this.apiId), this.connectorPluginsV2Service.listEntrypointPlugins()])
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(([restrictedDomains, api, availableEntrypoints]) => {
-        this.domainRestrictions = restrictedDomains.map((value) => value.domain) || [];
+        this.domainRestrictions = restrictedDomains.map(value => value.domain) || [];
 
         this.isReadOnly =
           api.definitionContext?.origin === 'KUBERNETES' ||
           !this.permissionService.hasAllMatching(['api-definition-u', 'api-gateway_definition-u']);
         if (api.definitionVersion === 'V4') {
-          this.isA2ASelected = api.listeners?.some((listener) => listener.entrypoints?.some((ep) => ep.type === AGENT_TO_AGENT.id));
+          this.isA2ASelected = api.listeners?.some(listener => listener.entrypoints?.some(ep => ep.type === AGENT_TO_AGENT.id));
           this.allEntrypoints = availableEntrypoints.filter(
             ({ supportedApiType, id }) =>
               supportedApiType === api.type &&
@@ -143,8 +143,8 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
     this.displayedColumns = api.type === 'LLM_PROXY' ? ['type', 'actions'] : ['type', 'qos', 'actions'];
 
     if (api.type === 'MESSAGE' || api.type === 'NATIVE') {
-      const selectedEntrypoints = flatten(api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
-      this.shouldUpgrade = this.allEntrypoints.filter((e) => selectedEntrypoints.includes(e.id)).some(({ deployed }) => !deployed);
+      const selectedEntrypoints = flatten(api.listeners.map(l => l.entrypoints)).map(e => e.type);
+      this.shouldUpgrade = this.allEntrypoints.filter(e => selectedEntrypoints.includes(e.id)).some(({ deployed }) => !deployed);
       this.license$ = this.licenseService.getLicense$();
       this.isOEM$ = this.licenseService.isOEM$();
     }
@@ -152,24 +152,24 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
     this.api = api as ApiV4;
     this.formGroup = new UntypedFormGroup({});
 
-    const httpListeners = this.api.listeners.filter((listener) => listener.type === 'HTTP') ?? [];
+    const httpListeners = this.api.listeners.filter(listener => listener.type === 'HTTP') ?? [];
     if (httpListeners.length > 0) {
-      this.apiExistingPaths = httpListeners.flatMap((listener) => {
+      this.apiExistingPaths = httpListeners.flatMap(listener => {
         return (listener as HttpListener).paths;
       });
       this.pathsFormControl = this.formBuilder.control({ value: this.apiExistingPaths, disabled: this.isReadOnly }, Validators.required);
       this.formGroup.addControl('paths', this.pathsFormControl);
-      this.enableVirtualHost = this.apiExistingPaths.some((path) => path.host !== undefined);
+      this.enableVirtualHost = this.apiExistingPaths.some(path => path.host !== undefined);
     } else {
       this.apiExistingPaths = [];
       this.formGroup.removeControl('paths');
       this.enableVirtualHost = false;
     }
 
-    const tcpListeners = this.api.listeners.filter((listener) => listener.type === 'TCP') ?? [];
+    const tcpListeners = this.api.listeners.filter(listener => listener.type === 'TCP') ?? [];
     if (tcpListeners.length > 0) {
-      this.apiExistingHosts = tcpListeners.flatMap((listener) => {
-        return (listener as TcpListener).hosts.map((host) => {
+      this.apiExistingHosts = tcpListeners.flatMap(listener => {
+        return (listener as TcpListener).hosts.map(host => {
           return <TcpHost>{ host };
         });
       });
@@ -180,7 +180,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
       this.formGroup.removeControl('hosts');
     }
 
-    const kafkaListener: KafkaListener = this.api.listeners.find((listener) => listener.type === 'KAFKA');
+    const kafkaListener: KafkaListener = this.api.listeners.find(listener => listener.type === 'KAFKA');
     if (kafkaListener) {
       this.apiExistingKafkaHost = { host: kafkaListener.host ?? '' };
       this.hostFormControl = this.formBuilder.control({ value: this.apiExistingKafkaHost, disabled: this.isReadOnly }, Validators.required);
@@ -190,14 +190,14 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
       this.formGroup.removeControl('host');
     }
 
-    const existingEntrypoints = flatten(this.api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
+    const existingEntrypoints = flatten(this.api.listeners.map(l => l.entrypoints)).map(e => e.type);
     this.entrypointAvailableForAdd = this.allEntrypoints
-      .filter((entrypoint) => !existingEntrypoints.includes(entrypoint.id))
-      .map((entrypoint) => fromConnector(this.iconService, entrypoint));
-    const entrypoints = this.api.listeners.flatMap((l) => l.entrypoints);
+      .filter(entrypoint => !existingEntrypoints.includes(entrypoint.id))
+      .map(entrypoint => fromConnector(this.iconService, entrypoint));
+    const entrypoints = this.api.listeners.flatMap(l => l.entrypoints);
     this.dataSource = entrypoints
-      .map((entrypoint) => {
-        const matchingEntrypoint = this.allEntrypoints.find((e) => e.id === entrypoint.type);
+      .map(entrypoint => {
+        const matchingEntrypoint = this.allEntrypoints.find(e => e.id === entrypoint.type);
         if (matchingEntrypoint) {
           const entry: EntrypointVM = {
             id: entrypoint.type,
@@ -229,16 +229,16 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.apiService.get(this.api.id)),
         switchMap((api: ApiV4) => {
-          api.listeners.forEach((listener) => {
-            remove(listener.entrypoints, (e) => e.type === elementToRemove.id);
+          api.listeners.forEach(listener => {
+            remove(listener.entrypoints, e => e.type === elementToRemove.id);
           });
 
           const updateApi: UpdateApiV4 = {
             ...(api as ApiV4),
-            listeners: [...api.listeners].filter((listener) => listener.entrypoints.length > 0),
+            listeners: [...api.listeners].filter(listener => listener.entrypoints.length > 0),
           };
           return this.apiService.update(api.id, updateApi);
         }),
@@ -251,13 +251,13 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
         tap(() => this.snackBarService.success(`${elementToRemove.type} entrypoint successfully deleted!`)),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((api) => {
+      .subscribe(api => {
         this.initForm(api as ApiV4);
       });
   }
 
   addNewEntrypoint() {
-    const hasHttpListener = this.api.listeners.find((l) => l.type === 'HTTP') !== undefined;
+    const hasHttpListener = this.api.listeners.find(l => l.type === 'HTTP') !== undefined;
     // Show dialog to add a new entrypoint
     this.matDialog
       .open<ApiEntrypointsV4AddDialogComponent, ApiEntrypointsV4AddDialogComponentData>(ApiEntrypointsV4AddDialogComponent, {
@@ -266,7 +266,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        switchMap((dialogRes) => {
+        switchMap(dialogRes => {
           if (dialogRes && !isEmpty(dialogRes.selectedEntrypoints)) {
             // Save new entrypoint with default config
             return this.addEntrypointsToApi(dialogRes.selectedEntrypoints, dialogRes.paths);
@@ -276,13 +276,13 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
         tap(() => {
           this.snackBarService.success('New entrypoint successfully added!');
         }),
-        catchError((err) => {
+        catchError(err => {
           this.snackBarService.error(err.error?.message ?? err.message);
           return EMPTY;
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((api) => {
+      .subscribe(api => {
         // Update page
         this.initForm(api as ApiV4);
       });
@@ -293,8 +293,8 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.apiId)
       .pipe(
-        switchMap((api) => {
-          const currentHttpListener = this.api.listeners.find((listener) => listener.type === 'HTTP');
+        switchMap(api => {
+          const currentHttpListener = this.api.listeners.find(listener => listener.type === 'HTTP');
           const updatedHttpListener: HttpListener = {
             ...currentHttpListener,
             paths: this.enableVirtualHost
@@ -302,14 +302,14 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
               : formValue.paths?.map(({ path }) => ({ path })),
             entrypoints: currentHttpListener?.entrypoints,
           };
-          const currentTcpListener = this.api.listeners.find((listener) => listener.type === 'TCP');
+          const currentTcpListener = this.api.listeners.find(listener => listener.type === 'TCP');
           const updatedTcpListener: TcpListener = {
             ...currentTcpListener,
-            hosts: formValue.hosts?.map((host) => host.host),
+            hosts: formValue.hosts?.map(host => host.host),
             entrypoints: currentTcpListener?.entrypoints,
           };
 
-          const currentKafkaListener = this.api.listeners.find((listener) => listener.type === 'KAFKA');
+          const currentKafkaListener = this.api.listeners.find(listener => listener.type === 'KAFKA');
           const updatedKafkaListener: KafkaListener = {
             ...currentKafkaListener,
             host: formValue.host?.host,
@@ -322,8 +322,8 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
               updatedHttpListener,
               updatedTcpListener,
               updatedKafkaListener,
-              ...this.api.listeners.filter((listener) => listener.type !== 'HTTP' && listener.type !== 'TCP' && listener.type !== 'KAFKA'),
-            ].filter((listener) => listener?.entrypoints?.length > 0),
+              ...this.api.listeners.filter(listener => listener.type !== 'HTTP' && listener.type !== 'TCP' && listener.type !== 'KAFKA'),
+            ].filter(listener => listener?.entrypoints?.length > 0),
           };
 
           return this.apiService.update(this.apiId, updateApi);
@@ -335,13 +335,13 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
             this.snackBarService.success('Context-path configuration successfully saved!');
           }
         }),
-        catchError((err) => {
+        catchError(err => {
           this.snackBarService.error(err.error?.message ?? err.message);
           return EMPTY;
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((api) => {
+      .subscribe(api => {
         this.initForm(api as ApiV4);
       });
   }
@@ -361,7 +361,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
         })
         .afterClosed()
         .pipe(
-          tap((response) => {
+          tap(response => {
             if (response) {
               // Keep only the path
               const currentValue = this.formGroup.getRawValue().paths;
@@ -386,18 +386,18 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
 
     return this.apiService.get(this.apiId).pipe(
       switchMap((api: ApiV4) => {
-        const entrypointVMToAdd: ConnectorPlugin[] = this.allEntrypoints.filter((e) => entrypointsToAdd.includes(e.id));
+        const entrypointVMToAdd: ConnectorPlugin[] = this.allEntrypoints.filter(e => entrypointsToAdd.includes(e.id));
         const allListenerTypes = [
-          ...new Set([...api.listeners.map((l) => l.type), ...entrypointVMToAdd.map(({ supportedListenerType }) => supportedListenerType)]),
+          ...new Set([...api.listeners.map(l => l.type), ...entrypointVMToAdd.map(({ supportedListenerType }) => supportedListenerType)]),
         ];
         const updatedListeners: Listener[] = allListenerTypes.reduce((listeners: Listener[], listenerType) => {
-          const existingListener: Listener = api.listeners.find((l) => l.type === listenerType);
+          const existingListener: Listener = api.listeners.find(l => l.type === listenerType);
           const emptyListener: Listener = listenerType === 'HTTP' ? { type: listenerType, paths } : { type: listenerType };
           const listener = existingListener ?? emptyListener;
           const existingEntrypoints: Entrypoint[] = existingListener?.entrypoints ?? [];
           const entrypointsToAdd: Entrypoint[] = entrypointVMToAdd
-            .filter((e) => e.supportedListenerType === listenerType)
-            .map((e) => {
+            .filter(e => e.supportedListenerType === listenerType)
+            .map(e => {
               const newEntrypoint: Entrypoint = { type: e.id, configuration: {} };
               return newEntrypoint;
             });

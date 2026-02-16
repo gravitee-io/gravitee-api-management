@@ -25,30 +25,30 @@ export class MenuLinkEditHarness extends ComponentHarness {
   private getSaveBar = this.locatorFor(GioSaveBarHarness);
 
   public async setName(name: string) {
-    return this.getNameInput().then((input) => input.setValue(name));
+    return this.getNameInput().then(input => input.setValue(name));
   }
 
   public async getName() {
-    return this.getNameInput().then((input) => input.getValue());
+    return this.getNameInput().then(input => input.getValue());
   }
 
   public async setTarget(target: string) {
-    return this.getTargetInput().then((input) => input.setValue(target));
+    return this.getTargetInput().then(input => input.setValue(target));
   }
 
   public async getTarget() {
-    return this.getTargetInput().then((input) => input.getValue());
+    return this.getTargetInput().then(input => input.getValue());
   }
 
   public async submit() {
-    return this.getSaveBar().then((saveBar) => saveBar.clickSubmit());
+    return this.getSaveBar().then(saveBar => saveBar.clickSubmit());
   }
 
   public async isSubmitInvalid() {
-    return this.getSaveBar().then((saveBar) => saveBar.isSubmitButtonInvalid());
+    return this.getSaveBar().then(saveBar => saveBar.isSubmitButtonInvalid());
   }
 
   public reset() {
-    return this.getSaveBar().then((saveBar) => saveBar.clickReset());
+    return this.getSaveBar().then(saveBar => saveBar.clickReset());
   }
 }

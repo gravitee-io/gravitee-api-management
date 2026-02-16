@@ -57,8 +57,8 @@ export class ApiDocumentationV4MainPagesTabComponent implements OnInit, OnDestro
         this.api = api;
         this.isReadOnly = api.originContext?.origin === 'KUBERNETES';
         return {
-          hasCustomPages: !!pagesResponse.pages.filter((p) => !p.homepage && p.type !== 'FOLDER').length,
-          homepage: pagesResponse.pages.find((p) => p.homepage === true),
+          hasCustomPages: !!pagesResponse.pages.filter(p => !p.homepage && p.type !== 'FOLDER').length,
+          homepage: pagesResponse.pages.find(p => p.homepage === true),
         };
       }),
       catchError(() => of({ hasCustomPages: false })),
@@ -94,16 +94,16 @@ export class ApiDocumentationV4MainPagesTabComponent implements OnInit, OnDestro
       })
       .afterClosed()
       .pipe(
-        filter((confirmed) => !!confirmed),
-        switchMap((_) => this.apiDocumentationV2Service.publishDocumentationPage(this.api.id, pageId)),
+        filter(confirmed => !!confirmed),
+        switchMap(_ => this.apiDocumentationV2Service.publishDocumentationPage(this.api.id, pageId)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
-        next: (_) => {
+        next: _ => {
           this.snackBarService.success('Page published successfully');
           this.refreshPages.next(1);
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'Error while publishing page');
         },
       });
@@ -120,16 +120,16 @@ export class ApiDocumentationV4MainPagesTabComponent implements OnInit, OnDestro
       })
       .afterClosed()
       .pipe(
-        filter((confirmed) => !!confirmed),
-        switchMap((_) => this.apiDocumentationV2Service.unpublishDocumentationPage(this.api.id, pageId)),
+        filter(confirmed => !!confirmed),
+        switchMap(_ => this.apiDocumentationV2Service.unpublishDocumentationPage(this.api.id, pageId)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
-        next: (_) => {
+        next: _ => {
           this.snackBarService.success('Page unpublished successfully');
           this.refreshPages.next(1);
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'Error while unpublishing page');
         },
       });
@@ -146,16 +146,16 @@ export class ApiDocumentationV4MainPagesTabComponent implements OnInit, OnDestro
       })
       .afterClosed()
       .pipe(
-        filter((confirmed) => !!confirmed),
-        switchMap((_) => this.apiDocumentationV2Service.deleteDocumentationPage(this.activatedRoute.snapshot.params.apiId, page.id)),
+        filter(confirmed => !!confirmed),
+        switchMap(_ => this.apiDocumentationV2Service.deleteDocumentationPage(this.activatedRoute.snapshot.params.apiId, page.id)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
-        next: (_) => {
+        next: _ => {
           this.snackBarService.success('Homepage deleted successfully');
           this.refreshPages.next(1);
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'Error when deleting homepage');
         },
       });
@@ -168,6 +168,6 @@ export class ApiDocumentationV4MainPagesTabComponent implements OnInit, OnDestro
   }
 
   private getApiPages(apiId: string): Observable<ApiDocumentationPageResult> {
-    return this.refreshPages.pipe(switchMap((_) => this.apiDocumentationV2Service.getApiPages(apiId)));
+    return this.refreshPages.pipe(switchMap(_ => this.apiDocumentationV2Service.getApiPages(apiId)));
   }
 }

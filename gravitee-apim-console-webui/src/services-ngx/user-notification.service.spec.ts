@@ -35,10 +35,10 @@ describe('UserNotification', () => {
   });
 
   describe('getNotifications', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const userNotifications = [fakeUserNotification()];
 
-      userNotificationService.getNotifications().subscribe((response) => {
+      userNotificationService.getNotifications().subscribe(response => {
         expect(response).toStrictEqual(userNotifications);
         done();
       });
@@ -50,7 +50,7 @@ describe('UserNotification', () => {
   });
 
   describe('delete', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       userNotificationService.delete('12345').subscribe(() => done());
 
       httpTestingController.expectOne({ method: 'DELETE', url: `${CONSTANTS_TESTING.org.baseURL}/user/notifications/12345` }).flush(null);
@@ -58,7 +58,7 @@ describe('UserNotification', () => {
   });
 
   describe('deleteAll', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       userNotificationService.deleteAll().subscribe(() => done());
 
       httpTestingController.expectOne({ method: 'DELETE', url: `${CONSTANTS_TESTING.org.baseURL}/user/notifications` }).flush(null);

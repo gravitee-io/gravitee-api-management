@@ -310,7 +310,7 @@ export class ApiService {
   analytics(apiId: string, request: any): IHttpPromise<any> {
     let url = `${this.Constants.env.baseURL}/apis/${apiId}/analytics?`;
 
-    Object.keys(request).forEach((key) => {
+    Object.keys(request).forEach(key => {
       const val = request[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -455,28 +455,28 @@ export class ApiService {
         general_conditions: plan.general_conditions,
       });
     }
-    return promise.then(async (response) => {
+    return promise.then(async response => {
       await this.syncV2Api(api);
       return response;
     });
   }
 
   closePlan(api: { id: any }, planId: any): IHttpPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/${api.id}/plans/${planId}/_close`, {}).then(async (response) => {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${api.id}/plans/${planId}/_close`, {}).then(async response => {
       await this.syncV2Api(api);
       return response;
     });
   }
 
   publishPlan(api: { id: any }, planId: any): IHttpPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/${api.id}/plans/${planId}/_publish`, {}).then(async (response) => {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${api.id}/plans/${planId}/_publish`, {}).then(async response => {
       await this.syncV2Api(api);
       return response;
     });
   }
 
   deprecatePlan(api: { id: any }, planId: any): IHttpPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/${api.id}/plans/${planId}/_deprecate`, {}).then(async (response) => {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${api.id}/plans/${planId}/_deprecate`, {}).then(async response => {
       await this.syncV2Api(api);
       return response;
     });
@@ -500,7 +500,7 @@ export class ApiService {
       req += query;
     }
 
-    return this.$http.get<string>(req, { timeout: 30000 }).then((response) => response.data);
+    return this.$http.get<string>(req, { timeout: 30000 }).then(response => response.data);
   }
 
   getSubscribers(apiId: string, query?: string, page?: number, size?: number, exclude: ApplicationExcludeFilter[] = []): IHttpPromise<any> {
@@ -515,7 +515,7 @@ export class ApiService {
       queryParams.push(`size=${size}`);
     }
     if (exclude && exclude.length > 0) {
-      queryParams.push(exclude.map((filter) => `exclude=${filter}`).join('&'));
+      queryParams.push(exclude.map(filter => `exclude=${filter}`).join('&'));
     }
     return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/subscribers${queryParams ? '?' + queryParams.join('&') : ''}`);
   }
@@ -646,7 +646,7 @@ export class ApiService {
   apiHealthLogs(api: string, query: LogsQuery): IHttpPromise<any> {
     let url = `${this.Constants.env.baseURL}/apis/${api}/health/logs?`;
 
-    Object.keys(query).forEach((key) => {
+    Object.keys(query).forEach(key => {
       const val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -663,7 +663,7 @@ export class ApiService {
   apiHealthAverage(api, request): IHttpPromise<any> {
     let url = `${this.Constants.env.baseURL}/apis/${api}/health/average?`;
 
-    Object.keys(request).forEach((key) => {
+    Object.keys(request).forEach(key => {
       const val = request[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -743,13 +743,13 @@ export class ApiService {
 
   isEndpointNameAlreadyUsed(api: { proxy: { groups: any[] } }, name: string): boolean {
     const endpointsName: string[] = [];
-    api.proxy.groups.forEach((group) => {
+    api.proxy.groups.forEach(group => {
       endpointsName.push(group.name);
-      group.endpoints?.forEach((endpoint) => {
+      group.endpoints?.forEach(endpoint => {
         endpointsName.push(endpoint.name);
       });
     });
-    return endpointsName.filter((endpointName) => name === endpointName).length > 1;
+    return endpointsName.filter(endpointName => name === endpointName).length > 1;
   }
 
   askForReview(api: { id: string }, message?: any): IHttpPromise<any> {
@@ -806,7 +806,7 @@ export class ApiService {
    * Logs
    */
   private buildURLWithQuery(query: LogsQuery, url: string): string {
-    Object.keys(query).forEach((key) => {
+    Object.keys(query).forEach(key => {
       const val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + encodeURIComponent(val) + '&';

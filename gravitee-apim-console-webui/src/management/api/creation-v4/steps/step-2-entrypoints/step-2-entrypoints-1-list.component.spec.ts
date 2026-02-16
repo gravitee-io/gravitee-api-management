@@ -275,8 +275,8 @@ describe('Step2Entrypoints1ListComponent', () => {
 
       fixture.detectChanges();
 
-      expect(component.entrypoints.find((e) => e.id === 'agent-to-agent')).toBeUndefined();
-      expect(component.entrypoints.find((e) => e.id === 'http-get')).toBeDefined();
+      expect(component.entrypoints.find(e => e.id === 'agent-to-agent')).toBeUndefined();
+      expect(component.entrypoints.find(e => e.id === 'http-get')).toBeDefined();
     });
 
     it('should initialize for PROXY architecture', async () => {

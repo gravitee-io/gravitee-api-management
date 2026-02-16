@@ -350,7 +350,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
   apiPlans$ = this.planService
     .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, undefined, 1, 9999)
     .pipe(
-      map((plans) => plans.data),
+      map(plans => plans.data),
       shareReplay(1),
     );
 
@@ -366,15 +366,15 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // Initialize widgets
-    this.topRowTransformed$ = this.topRowWidgets.map((widgetConfig) => {
+    this.topRowTransformed$ = this.topRowWidgets.map(widgetConfig => {
       return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
     });
 
-    this.leftColumnTransformed$ = this.leftColumnWidgets.map((widgetConfig) => {
+    this.leftColumnTransformed$ = this.leftColumnWidgets.map(widgetConfig => {
       return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
     });
 
-    this.rightColumnTransformed$ = this.rightColumnWidgets.map((widgetConfig) => {
+    this.rightColumnTransformed$ = this.rightColumnWidgets.map(widgetConfig => {
       return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
     });
   }
@@ -458,7 +458,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       };
     }
 
-    const timeFrame = timeFrames.find((tf) => tf.id === normalizedPeriod) || timeFrames.find((tf) => tf.id === '1d');
+    const timeFrame = timeFrames.find(tf => tf.id === normalizedPeriod) || timeFrames.find(tf => tf.id === '1d');
     return {
       timeRangeParams: timeFrame.timeFrameRangesParams(),
       ...filters,
@@ -514,7 +514,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       fromTimestamp = +queryParams.from;
       toTimestamp = +queryParams.to;
     } else {
-      const timeFrame = timeFrames.find((tf) => tf.id === queryParams.period);
+      const timeFrame = timeFrames.find(tf => tf.id === queryParams.period);
       const timeRangeParams = timeFrame.timeFrameRangesParams();
       fromTimestamp = timeRangeParams.from;
       toTimestamp = timeRangeParams.to;

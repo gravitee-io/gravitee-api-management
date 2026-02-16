@@ -95,7 +95,7 @@ export class ApiResourcesEditDialogComponent {
     });
     this.isValid$ = this.resourceSchemaFormGroup.statusChanges.pipe(
       startWith(this.resourceSchemaFormGroup.status),
-      map((status) => status === 'VALID'),
+      map(status => status === 'VALID'),
     );
   }
 

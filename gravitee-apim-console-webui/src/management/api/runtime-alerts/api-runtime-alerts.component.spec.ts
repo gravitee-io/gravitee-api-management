@@ -92,7 +92,7 @@ describe('ApiRuntimeAlertsComponent', () => {
     const routerSpy = jest.spyOn(router, 'navigate');
 
     const createAlertButton = loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add alert"]' }));
-    await createAlertButton.then((btn) => btn.click());
+    await createAlertButton.then(btn => btn.click());
 
     expect(routerSpy).toHaveBeenCalledWith(['./new'], { relativeTo: ACTIVATED_ROUTE });
   });
@@ -103,7 +103,7 @@ describe('ApiRuntimeAlertsComponent', () => {
 
     const createAlertButton = loader.getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Add alert"]' }));
 
-    expect(await createAlertButton.then((btn) => btn.isDisabled())).toBeTruthy();
+    expect(await createAlertButton.then(btn => btn.isDisabled())).toBeTruthy();
   });
 
   it('should delete an alert', async () => {

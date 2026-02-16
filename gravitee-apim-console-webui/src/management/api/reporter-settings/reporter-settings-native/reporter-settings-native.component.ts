@@ -57,14 +57,14 @@ export class ReporterSettingsNativeComponent implements OnInit {
     this.reporterSettingsForm
       .get('enabled')!
       .valueChanges.pipe(
-        map((value) => {
+        map(value => {
           const currentApi = this.api();
           return {
             ...currentApi,
             analytics: { ...(currentApi.analytics ?? {}), enabled: value },
           };
         }),
-        switchMap((updatedApi) => this.apiService.update(updatedApi.id, updatedApi)),
+        switchMap(updatedApi => this.apiService.update(updatedApi.id, updatedApi)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();

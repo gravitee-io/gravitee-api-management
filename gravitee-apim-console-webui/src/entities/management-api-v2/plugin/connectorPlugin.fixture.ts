@@ -133,6 +133,6 @@ export const entrypointsGetResponse: ConnectorPlugin[] = [
 ];
 
 export const getEntrypointConnectorSchema = (id: string) => {
-  const entrypoint = entrypointsGetResponse.find((entrypoint) => entrypoint.id === id);
+  const entrypoint = entrypointsGetResponse.find(entrypoint => entrypoint.id === id);
   return entrypoint?.schema ? JSON.parse(entrypoint.schema) : null;
 };

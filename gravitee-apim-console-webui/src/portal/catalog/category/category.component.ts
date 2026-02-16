@@ -130,7 +130,7 @@ export class CategoryCatalogComponent implements OnInit {
 
   ngOnInit() {
     this.category$ = this.refreshData.pipe(
-      switchMap((_) => this.activatedRoute.params),
+      switchMap(_ => this.activatedRoute.params),
       switchMap(({ categoryId }) => {
         if (!!categoryId && categoryId !== 'new') {
           this.mode = 'edit';
@@ -138,7 +138,7 @@ export class CategoryCatalogComponent implements OnInit {
         }
         return of({} as Category);
       }),
-      tap((category) => {
+      tap(category => {
         this.category.next(category);
 
         this.categoryDetails = new FormGroup({
@@ -151,10 +151,10 @@ export class CategoryCatalogComponent implements OnInit {
     );
 
     this.apis$ = this.category.pipe(
-      filter((category) => !isEmpty(category)),
-      switchMap((category) => this.categoryV2Service.getApis(category.id)),
-      map((pagedResult) => {
-        return pagedResult.data.map((api) => ({
+      filter(category => !isEmpty(category)),
+      switchMap(category => this.categoryV2Service.getApis(category.id)),
+      map(pagedResult => {
+        return pagedResult.data.map(api => ({
           id: api.id,
           name: api.name,
           version: api.apiVersion,
@@ -162,8 +162,8 @@ export class CategoryCatalogComponent implements OnInit {
           order: api.order,
         }));
       }),
-      catchError((_) => of([])),
-      tap((apis) => {
+      catchError(_ => of([])),
+      tap(apis => {
         if (apis.length < 2) {
           this.displayedColumns.shift();
         }
@@ -174,11 +174,11 @@ export class CategoryCatalogComponent implements OnInit {
   onSubmit() {
     of(this.mode)
       .pipe(
-        switchMap((mode) => (mode === 'edit' ? this.updateCategory$() : this.createCategory$())),
+        switchMap(mode => (mode === 'edit' ? this.updateCategory$() : this.createCategory$())),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (category) => {
+        next: category => {
           this.snackBarService.success(`Category [${category.name}] successfully ${this.mode === 'new' ? 'created' : 'updated'}.`);
           if (this.mode === 'new') {
             this.router.navigate(['..', category.id], { relativeTo: this.activatedRoute });
@@ -192,7 +192,7 @@ export class CategoryCatalogComponent implements OnInit {
 
   private updateCategory$(): Observable<Category> {
     return this.categoryService.get(this.category.getValue().id).pipe(
-      switchMap((category) => {
+      switchMap(category => {
         const newValues = this.categoryDetails.getRawValue();
         const categoryToUpdate: UpdateCategory = {
           ...category,
@@ -224,9 +224,9 @@ export class CategoryCatalogComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result?.id),
+        filter(result => !!result?.id),
         switchMap(({ id }) => this.apiV2Service.get(id)),
-        switchMap((api) => {
+        switchMap(api => {
           if (api.categories?.includes(category.key)) {
             this.snackBarService.error(`API "${api.name}" is already defined in the category.`);
             return EMPTY;
@@ -237,7 +237,7 @@ export class CategoryCatalogComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (api) => {
+        next: api => {
           this.snackBarService.success(`API [${api.name}] has been added to the category.`);
           this.category.next(category);
         },
@@ -258,16 +258,16 @@ export class CategoryCatalogComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirmed) => confirmed),
-        switchMap((_) => this.apiV2Service.get(api.id)),
-        switchMap((api) => {
-          const categories = api.categories.filter((c) => c !== category.key);
+        filter(confirmed => confirmed),
+        switchMap(_ => this.apiV2Service.get(api.id)),
+        switchMap(api => {
+          const categories = api.categories.filter(c => c !== category.key);
           return this.apiV2Service.update(api.id, { ...api, categories });
         }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (_) => {
+        next: _ => {
           this.snackBarService.success(`'${api.name}' removed successfully`);
           this.refreshData.next(1);
         },

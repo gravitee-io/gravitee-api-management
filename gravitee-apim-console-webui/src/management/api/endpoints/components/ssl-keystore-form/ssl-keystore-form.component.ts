@@ -130,7 +130,7 @@ export class SslKeyStoreFormComponent implements OnInit, DoCheck, OnDestroy, Con
     this.internalFormGroup
       .get('type')
       .valueChanges.pipe(takeUntil(this.unsubscribe$))
-      .subscribe((type) => {
+      .subscribe(type => {
         // Clear all validators
         this.internalFormGroup.get('jksPassword').clearValidators();
         this.internalFormGroup.get('pkcs12Password').clearValidators();
@@ -157,20 +157,20 @@ export class SslKeyStoreFormComponent implements OnInit, DoCheck, OnDestroy, Con
         }
 
         // Update validators
-        Object.keys(this.internalFormGroup.controls).forEach((controlName) => {
+        Object.keys(this.internalFormGroup.controls).forEach(controlName => {
           this.internalFormGroup.get(controlName)?.updateValueAndValidity({ emitEvent: false });
         });
         this.internalFormGroup.updateValueAndValidity();
       });
 
-    this.internalFormGroup.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => {
+    this.internalFormGroup.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(value => {
       this._onChange(internalFormValueToKeyStore(value));
     });
 
     this.internalFormGroup.statusChanges
       .pipe(
         map(() => this.internalFormGroup?.touched),
-        filter((touched) => touched === true && this.isDisabled === false),
+        filter(touched => touched === true && this.isDisabled === false),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => {
@@ -239,7 +239,7 @@ const pathOrContentRequired: (pathControlName: string, contentControlName: strin
   };
 };
 
-const keyStoreTypeToInternalFormValue: (keyStore?: KeyStore) => InternalFormValue = (trustStore) => {
+const keyStoreTypeToInternalFormValue: (keyStore?: KeyStore) => InternalFormValue = trustStore => {
   switch (trustStore?.type) {
     case 'JKS': {
       const jksKeyStore = trustStore as JKSKeyStore;
@@ -277,7 +277,7 @@ const keyStoreTypeToInternalFormValue: (keyStore?: KeyStore) => InternalFormValu
   }
 };
 
-const internalFormValueToKeyStore: (internalFormValue: InternalFormValue) => KeyStore = (internalFormValue) => {
+const internalFormValueToKeyStore: (internalFormValue: InternalFormValue) => KeyStore = internalFormValue => {
   switch (internalFormValue.type) {
     case 'JKS':
       return {

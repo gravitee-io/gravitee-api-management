@@ -243,11 +243,11 @@ describe('ApiAnalyticsProxyComponent', () => {
       await initComponent();
 
       // Verify that backend calls are made with default time range (1d)
-      const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
+      const requests = httpTestingController.match(req => req.url.includes('/analytics'));
       expect(requests.length).toBeGreaterThan(0);
 
       // Check that all requests include the default time range parameters
-      requests.forEach((req) => {
+      requests.forEach(req => {
         expect(req.request.url).toContain('type=');
         expect(req.request.url).toContain('from=');
         expect(req.request.url).toContain('to=');
@@ -261,13 +261,13 @@ describe('ApiAnalyticsProxyComponent', () => {
       await initComponent({ period: 'custom', from: '1', to: '2' });
 
       // Verify that backend calls are made with 7d time range
-      const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
+      const requests = httpTestingController.match(req => req.url.includes('/analytics'));
       expect(requests.length).toBeGreaterThan(0);
 
       // Check that requests include the correct time range
       requests
-        .filter((request) => !request.cancelled)
-        .forEach((req) => {
+        .filter(request => !request.cancelled)
+        .forEach(req => {
           expect(req.request.url).toContain('from=1');
           expect(req.request.url).toContain('to=2');
           expect(req.request.url).toContain('interval=0');
@@ -280,26 +280,26 @@ describe('ApiAnalyticsProxyComponent', () => {
       await initComponent({ period: '1d' });
 
       // Get all analytics requests
-      const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
+      const requests = httpTestingController.match(req => req.url.includes('/analytics'));
 
       // Should have requests for different analytics types
-      const statsRequests = requests.filter((req) => req.request.url.includes('type=STATS'));
-      const groupByRequests = requests.filter((req) => req.request.url.includes('type=GROUP_BY'));
-      const histogramRequests = requests.filter((req) => req.request.url.includes('type=HISTOGRAM'));
+      const statsRequests = requests.filter(req => req.request.url.includes('type=STATS'));
+      const groupByRequests = requests.filter(req => req.request.url.includes('type=GROUP_BY'));
+      const histogramRequests = requests.filter(req => req.request.url.includes('type=HISTOGRAM'));
 
       expect(statsRequests.length).toBeGreaterThan(0);
       expect(groupByRequests.length).toBeGreaterThan(0);
       expect(histogramRequests.length).toBeGreaterThan(0);
 
       // Verify each type has the correct parameters
-      statsRequests.forEach((req) => {
+      statsRequests.forEach(req => {
         expect(req.request.url).toContain('type=STATS');
         expect(req.request.url).toContain('from=');
         expect(req.request.url).toContain('to=');
         expect(req.request.url).toContain('interval=2880000');
       });
 
-      groupByRequests.forEach((req) => {
+      groupByRequests.forEach(req => {
         expect(req.request.url).toContain('type=GROUP_BY');
         expect(req.request.url).toContain('from=');
         expect(req.request.url).toContain('to=');
@@ -307,7 +307,7 @@ describe('ApiAnalyticsProxyComponent', () => {
         expect(req.request.url).toContain('field=');
       });
 
-      histogramRequests.forEach((req) => {
+      histogramRequests.forEach(req => {
         expect(req.request.url).toContain('type=HISTOGRAM');
         expect(req.request.url).toContain('from=');
         expect(req.request.url).toContain('to=');
@@ -321,11 +321,11 @@ describe('ApiAnalyticsProxyComponent', () => {
     it('should include API ID in all backend calls', async () => {
       await initComponent({ period: '1d' });
 
-      const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
+      const requests = httpTestingController.match(req => req.url.includes('/analytics'));
       expect(requests.length).toBeGreaterThan(0);
 
       // Verify all requests include the API ID
-      requests.forEach((req) => {
+      requests.forEach(req => {
         expect(req.request.url).toContain(`/apis/${API_ID}/analytics`);
       });
 
@@ -336,11 +336,11 @@ describe('ApiAnalyticsProxyComponent', () => {
       await initComponent({ period: '1d' });
 
       // Should make multiple requests for different widgets
-      const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
+      const requests = httpTestingController.match(req => req.url.includes('/analytics'));
       expect(requests.length).toBeGreaterThan(5); // Multiple widgets
 
       // All requests should have the same time range parameters
-      requests.forEach((req) => {
+      requests.forEach(req => {
         // Extract time parameters from URL
         const fromMatch = req.request.url.match(/from=(\d+)/);
         const toMatch = req.request.url.match(/to=(\d+)/);
@@ -358,7 +358,7 @@ describe('ApiAnalyticsProxyComponent', () => {
   function handleAllRequests() {
     // Handle all pending requests
     const requests = httpTestingController.match(() => true);
-    requests.forEach((request) => {
+    requests.forEach(request => {
       if (request.request.url.includes('type=HISTOGRAM')) {
         request.flush(fakeAnalyticsHistogram());
       } else if (request.request.url.includes('type=GROUP_BY')) {

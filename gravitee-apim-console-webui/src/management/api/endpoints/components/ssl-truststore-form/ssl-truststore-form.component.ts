@@ -123,7 +123,7 @@ export class SslTrustStoreFormComponent implements OnInit, DoCheck, OnDestroy, C
     this.internalFormGroup
       .get('type')
       .valueChanges.pipe(takeUntil(this.unsubscribe$))
-      .subscribe((type) => {
+      .subscribe(type => {
         // Clear all validators
         this.internalFormGroup.clearValidators();
         this.internalFormGroup.get('jksPassword').clearValidators();
@@ -147,20 +147,20 @@ export class SslTrustStoreFormComponent implements OnInit, DoCheck, OnDestroy, C
         }
 
         // Update validators
-        Object.keys(this.internalFormGroup.controls).forEach((controlName) => {
+        Object.keys(this.internalFormGroup.controls).forEach(controlName => {
           this.internalFormGroup.get(controlName)?.updateValueAndValidity({ emitEvent: false });
         });
         this.internalFormGroup.updateValueAndValidity();
       });
 
-    this.internalFormGroup.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => {
+    this.internalFormGroup.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(value => {
       this._onChange(internalFormValueToTrustStore(value));
     });
 
     this.internalFormGroup.statusChanges
       .pipe(
         map(() => this.internalFormGroup?.touched),
-        filter((touched) => touched === true && this.isDisabled === false),
+        filter(touched => touched === true && this.isDisabled === false),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => {
@@ -229,7 +229,7 @@ const pathOrContentRequired: (pathControlName: string, contentControlName: strin
   };
 };
 
-const trustStoreTypeToInternalFormValue: (trustStore?: TrustStore) => InternalFormValue = (trustStore) => {
+const trustStoreTypeToInternalFormValue: (trustStore?: TrustStore) => InternalFormValue = trustStore => {
   switch (trustStore?.type) {
     case 'JKS': {
       const jksTrustStore = trustStore as JKSTrustStore;
@@ -265,7 +265,7 @@ const trustStoreTypeToInternalFormValue: (trustStore?: TrustStore) => InternalFo
   }
 };
 
-const internalFormValueToTrustStore: (internalFormValue: InternalFormValue) => TrustStore = (internalFormValue) => {
+const internalFormValueToTrustStore: (internalFormValue: InternalFormValue) => TrustStore = internalFormValue => {
   switch (internalFormValue.type) {
     case 'JKS':
       return {

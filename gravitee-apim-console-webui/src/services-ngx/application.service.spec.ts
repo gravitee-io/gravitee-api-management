@@ -42,10 +42,10 @@ describe('ApplicationService', () => {
   });
 
   describe('getAll', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const mockApplications = [fakeApplication()];
 
-      applicationService.getAll().subscribe((response) => {
+      applicationService.getAll().subscribe(response => {
         expect(response).toMatchObject(mockApplications);
         done();
       });
@@ -58,11 +58,11 @@ describe('ApplicationService', () => {
       req.flush(mockApplications);
     });
 
-    it('should call the API with environmentId', (done) => {
+    it('should call the API with environmentId', done => {
       const mockApplications = [fakeApplication()];
       const environmentId = 'environmentId';
 
-      applicationService.getAll({ environmentId }).subscribe((response) => {
+      applicationService.getAll({ environmentId }).subscribe(response => {
         expect(response).toMatchObject(mockApplications);
         done();
       });
@@ -77,10 +77,10 @@ describe('ApplicationService', () => {
   });
 
   describe('search', () => {
-    it('should search application', (done) => {
+    it('should search application', done => {
       const mockApplications = [fakeApplication()];
 
-      applicationService.list().subscribe((response) => {
+      applicationService.list().subscribe(response => {
         expect(response).toMatchObject(mockApplications);
         done();
       });
@@ -93,11 +93,11 @@ describe('ApplicationService', () => {
       req.flush(mockApplications);
     });
 
-    it('should search application with application id', (done) => {
+    it('should search application with application id', done => {
       const mockApplications = [fakeApplication()];
       const query = '0d93fd04-e834-447f-93fd-04e834047f9d';
 
-      applicationService.list(undefined, query).subscribe((response) => {
+      applicationService.list(undefined, query).subscribe(response => {
         expect(response).toMatchObject(mockApplications);
         done();
       });
@@ -112,10 +112,10 @@ describe('ApplicationService', () => {
   });
 
   describe('getById', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const mockApplication = fakeApplication({ id: 'my-app-id' });
 
-      applicationService.getById('my-app-id').subscribe((response) => {
+      applicationService.getById('my-app-id').subscribe(response => {
         expect(response).toMatchObject(mockApplication);
         done();
       });
@@ -130,10 +130,10 @@ describe('ApplicationService', () => {
   });
 
   describe('getApplicationType', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const mockApplication = fakeApplicationType({ id: 'my-app-id' });
 
-      applicationService.getApplicationType('my-app-id').subscribe((response) => {
+      applicationService.getApplicationType('my-app-id').subscribe(response => {
         expect(response).toMatchObject(mockApplication);
         done();
       });
@@ -147,10 +147,10 @@ describe('ApplicationService', () => {
     });
   });
   describe('update', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const mockApplication = fakeApplication({ id: 'my-app-id' });
 
-      applicationService.update(mockApplication).subscribe((response) => {
+      applicationService.update(mockApplication).subscribe(response => {
         expect(response).toMatchObject(mockApplication);
         done();
       });
@@ -175,12 +175,12 @@ describe('ApplicationService', () => {
   });
 
   describe('findByIds', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const app1 = fakeApplication({ id: '1' });
       const app2 = fakeApplication({ id: '2' });
       const mockApplications = [app1, app2];
 
-      applicationService.findByIds([app1.id, app2.id]).subscribe((response) => {
+      applicationService.findByIds([app1.id, app2.id]).subscribe(response => {
         expect(response).toMatchObject(mockApplications);
         done();
       });
@@ -193,12 +193,12 @@ describe('ApplicationService', () => {
       req.flush(mockApplications);
     });
 
-    it('should call the API with custom pagination', (done) => {
+    it('should call the API with custom pagination', done => {
       const app1 = fakeApplication({ id: '1' });
       const app2 = fakeApplication({ id: '2' });
       const mockApplications = [app1, app2];
 
-      applicationService.findByIds([app1.id, app2.id], 2, 42).subscribe((response) => {
+      applicationService.findByIds([app1.id, app2.id], 2, 42).subscribe(response => {
         expect(response).toMatchObject(mockApplications);
         done();
       });
@@ -218,7 +218,7 @@ describe('ApplicationService', () => {
 
       const done: string[] = [];
       // First call
-      applicationService.getLastApplicationFetch('my-app-id').subscribe((response) => {
+      applicationService.getLastApplicationFetch('my-app-id').subscribe(response => {
         expect(response).toMatchObject(mockApplication);
         done.push('first');
       });
@@ -231,7 +231,7 @@ describe('ApplicationService', () => {
         })
         .flush(mockApplication);
 
-      applicationService.getLastApplicationFetch('my-app-id').subscribe((response) => {
+      applicationService.getLastApplicationFetch('my-app-id').subscribe(response => {
         expect(response).toMatchObject(mockApplication);
         done.push('second');
       });
@@ -248,7 +248,7 @@ describe('ApplicationService', () => {
       applicationService
         .getLastApplicationFetch('my-app-id')
         .pipe(take(1))
-        .subscribe((response) => {
+        .subscribe(response => {
           expect(response).toMatchObject(mockApplicationOne);
           done.push('first');
         });
@@ -263,7 +263,7 @@ describe('ApplicationService', () => {
       applicationService
         .getLastApplicationFetch('another-app-id')
         .pipe(take(1))
-        .subscribe((response) => {
+        .subscribe(response => {
           expect(response).toMatchObject(mockApplicationTwo);
           done.push('second');
         });
@@ -282,7 +282,7 @@ describe('ApplicationService', () => {
       const mockApplication = fakeApplication({ id: 'my-app-id' });
 
       const done: string[] = [];
-      applicationService.getLastApplicationFetch('my-app-id').subscribe((response) => {
+      applicationService.getLastApplicationFetch('my-app-id').subscribe(response => {
         expect(response).toMatchObject(mockApplication);
         done.push('OK');
       });
@@ -311,8 +311,8 @@ describe('ApplicationService', () => {
     const appId = 'my-app-id';
     const subscriptions = [fakeSubscriptionPage({ application: appId })];
 
-    it('should get application paged result', (done) => {
-      applicationService.getSubscriptionsPage(appId).subscribe((response) => {
+    it('should get application paged result', done => {
+      applicationService.getSubscriptionsPage(appId).subscribe(response => {
         expect(response).toMatchObject(subscriptions);
         done();
       });
@@ -325,8 +325,8 @@ describe('ApplicationService', () => {
         .flush(subscriptions);
     });
 
-    it('should get application page 2 result', (done) => {
-      applicationService.getSubscriptionsPage(appId, null, 2, 50).subscribe((response) => {
+    it('should get application page 2 result', done => {
+      applicationService.getSubscriptionsPage(appId, null, 2, 50).subscribe(response => {
         expect(response).toMatchObject(subscriptions);
         done();
       });
@@ -339,8 +339,8 @@ describe('ApplicationService', () => {
         .flush(subscriptions);
     });
 
-    it('should get application paged result for status', (done) => {
-      applicationService.getSubscriptionsPage(appId, { status: ['ACCEPTED'] }).subscribe((response) => {
+    it('should get application paged result for status', done => {
+      applicationService.getSubscriptionsPage(appId, { status: ['ACCEPTED'] }).subscribe(response => {
         expect(response).toMatchObject(subscriptions);
         done();
       });
@@ -353,8 +353,8 @@ describe('ApplicationService', () => {
         .flush(subscriptions);
     });
 
-    it('should get application paged result for apiKey', (done) => {
-      applicationService.getSubscriptionsPage(appId, { apiKey: 'azerty' }).subscribe((response) => {
+    it('should get application paged result for apiKey', done => {
+      applicationService.getSubscriptionsPage(appId, { apiKey: 'azerty' }).subscribe(response => {
         expect(response).toMatchObject(subscriptions);
         done();
       });
@@ -367,8 +367,8 @@ describe('ApplicationService', () => {
         .flush(subscriptions);
     });
 
-    it('should get application paged result for apis', (done) => {
-      applicationService.getSubscriptionsPage(appId, { apis: ['api-1', 'api-2'] }).subscribe((response) => {
+    it('should get application paged result for apis', done => {
+      applicationService.getSubscriptionsPage(appId, { apis: ['api-1', 'api-2'] }).subscribe(response => {
         expect(response).toMatchObject(subscriptions);
         done();
       });
@@ -381,8 +381,8 @@ describe('ApplicationService', () => {
         .flush(subscriptions);
     });
 
-    it('should get application paged result for API_KEY security type', (done) => {
-      applicationService.getSubscriptionsPage(appId, { security_types: ['API_KEY'] }).subscribe((response) => {
+    it('should get application paged result for API_KEY security type', done => {
+      applicationService.getSubscriptionsPage(appId, { security_types: ['API_KEY'] }).subscribe(response => {
         expect(response).toMatchObject(subscriptions);
         done();
       });
@@ -397,7 +397,7 @@ describe('ApplicationService', () => {
   });
 
   describe('create', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const mockApplication = {
         name: 'my-app',
         description: 'my-app-description',
@@ -426,8 +426,8 @@ describe('ApplicationService', () => {
   });
 
   describe('getApiKeys', () => {
-    it('should call the API', (done) => {
-      applicationService.getApiKeys('applicationId').subscribe((apiKeys) => {
+    it('should call the API', done => {
+      applicationService.getApiKeys('applicationId').subscribe(apiKeys => {
         expect(apiKeys).toEqual([fakeApplicationSubscriptionApiKey()]);
         done();
       });
@@ -442,7 +442,7 @@ describe('ApplicationService', () => {
   });
 
   describe('renewApiKey', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       applicationService.renewApiKey('applicationId').subscribe(() => {
         done();
       });
@@ -457,7 +457,7 @@ describe('ApplicationService', () => {
   });
 
   describe('revokeApiKey', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       applicationService.revokeApiKey('applicationId', 'apiKeyId').subscribe(() => {
         done();
       });

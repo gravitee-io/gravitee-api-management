@@ -67,7 +67,7 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
 
     (hasInstallationPermission ? this.installationService.get() : of(undefined))
       .pipe(
-        tap((installation) => {
+        tap(installation => {
           this.cockpitLink = this.getCockpitLink(installation);
           this.isLoading = false;
         }),
@@ -85,7 +85,7 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
     this.policyService
       .listSwaggerPolicies()
       .pipe(
-        switchMap((policies) =>
+        switchMap(policies =>
           this.matDialog
             .open<GioApiImportDialogComponent, GioApiImportDialogData>(GioApiImportDialogComponent, {
               data: {
@@ -96,9 +96,9 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
             })
             .afterClosed(),
         ),
-        filter((apiId) => !!apiId),
-        tap((apiId) => this.router.navigate(['..', apiId], { relativeTo: this.activatedRoute })),
-        catchError((err) => {
+        filter(apiId => !!apiId),
+        tap(apiId => this.router.navigate(['..', apiId], { relativeTo: this.activatedRoute })),
+        catchError(err => {
           this.snackBarService.error(err.error?.message ?? 'An error occurred while importing the API.');
           return EMPTY;
         }),

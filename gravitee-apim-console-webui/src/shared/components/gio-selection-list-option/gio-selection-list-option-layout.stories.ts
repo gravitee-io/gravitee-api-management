@@ -112,7 +112,7 @@ export const SelectionList: StoryObj = {
           $event.stopPropagation();
           action('Action button clicked')(val);
         },
-        onSubmit: (val) => action('Submit values')(val),
+        onSubmit: val => action('Submit values')(val),
       },
       styleUrls: ['./gio-selection-list-option-layout.component.scss'],
     };
@@ -179,7 +179,7 @@ export const RadioGroup: StoryObj = {
           $event.stopPropagation();
           action('Action button clicked')(val);
         },
-        onSubmit: (val) => action('Submit values')(val),
+        onSubmit: val => action('Submit values')(val),
       },
       styleUrls: ['./gio-selection-list-option-layout.component.scss'],
     };

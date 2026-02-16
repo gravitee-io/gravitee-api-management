@@ -38,15 +38,15 @@ export class ApiScoringHarness extends ComponentHarness {
     const group = await this.summaryGroupLocator();
     const toggles = await group.getToggles();
 
-    return parallel(() => toggles.map((toggle) => toggle.getText()));
+    return parallel(() => toggles.map(toggle => toggle.getText()));
   };
 
   public getAccordion = async () => {
     return await this.accordionLocator();
   };
 
-  public evaluateButtonDisabled = () => this.evaluateButtonLocator().then((button) => button.isDisabled());
-  public clickEvaluate = () => this.evaluateButtonLocator().then((button) => button.click());
+  public evaluateButtonDisabled = () => this.evaluateButtonLocator().then(button => button.isDisabled());
+  public clickEvaluate = () => this.evaluateButtonLocator().then(button => button.click());
 
   public getTables = async () => {
     return await this.tablesLocator();

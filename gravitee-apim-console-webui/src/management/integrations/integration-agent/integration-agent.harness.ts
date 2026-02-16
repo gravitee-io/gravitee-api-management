@@ -37,7 +37,7 @@ export class IntegrationAgentHarness extends ComponentHarness {
   private accordionLocator: AsyncFactoryFn<DivHarness> = this.locatorFor(DivHarness.with({ selector: '[data-testid=accordion-header]' }));
 
   public async refreshStatus() {
-    return this.refreshStatusButtonLocator().then((button) => button.click());
+    return this.refreshStatusButtonLocator().then(button => button.click());
   }
 
   public async setAccessKeyId(str: string): Promise<void> {
@@ -50,7 +50,7 @@ export class IntegrationAgentHarness extends ComponentHarness {
 
   public async openAccordion(): Promise<void> {
     return this.accordionLocator()
-      .then((el) => el.host())
-      .then((el) => el.click());
+      .then(el => el.host())
+      .then(el => el.click());
   }
 }

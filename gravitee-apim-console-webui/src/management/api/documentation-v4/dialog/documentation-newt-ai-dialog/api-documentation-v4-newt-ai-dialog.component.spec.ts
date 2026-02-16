@@ -48,7 +48,7 @@ class TestComponent {
         data: this.data,
       })
       .afterClosed()
-      .subscribe((result) => (this.result = result));
+      .subscribe(result => (this.result = result));
   }
 }
 

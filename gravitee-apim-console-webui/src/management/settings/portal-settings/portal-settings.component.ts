@@ -162,7 +162,7 @@ export class PortalSettingsComponent implements OnInit {
   portalForm: FormGroup<PortalForm>;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public formInitialValues: unknown;
-  public defaultHttpHeaders = CorsUtil.defaultHttpHeaders.map((e) => e);
+  public defaultHttpHeaders = CorsUtil.defaultHttpHeaders.map(e => e);
   public httpMethods = CorsUtil.httpMethods;
   public isLoadingData = true;
   private destroyRef = inject(DestroyRef);
@@ -196,7 +196,7 @@ export class PortalSettingsComponent implements OnInit {
 
   public ngOnInit() {
     this.isLoadingData = true;
-    this.hasEnterpriseLicense$ = this.licenseService.getLicense$().pipe(map((license) => license.tier !== 'oss'));
+    this.hasEnterpriseLicense$ = this.licenseService.getLicense$().pipe(map(license => license.tier !== 'oss'));
     this.environmentRootRouterLink = '/' + this.constants.org.currentEnv.id;
 
     combineLatest([this.portalSettingsService.get()])
@@ -511,7 +511,7 @@ export class PortalSettingsComponent implements OnInit {
     this.portalForm
       .get('security.apikey.enabled')
       .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((selectedValue) => {
+      .subscribe(selectedValue => {
         if (!selectedValue) {
           this.portalForm.get('security.customApiKey.enabled').setValue(false);
           this.portalForm.get('security.sharedApiKey.enabled').setValue(false);
@@ -525,7 +525,7 @@ export class PortalSettingsComponent implements OnInit {
     this.portalForm
       .get('portal.homepageTitleToggle')
       .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((selectedValue) => {
+      .subscribe(selectedValue => {
         if (!selectedValue) {
           this.portalForm.get('portal.homepageTitle').setValue(null);
         }
@@ -534,7 +534,7 @@ export class PortalSettingsComponent implements OnInit {
     this.portalForm
       .get('portal.userCreation.enabled')
       .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((selectedValue) => {
+      .subscribe(selectedValue => {
         if (!selectedValue) {
           this.portalForm.get('portal.userCreation.automaticValidation.enabled').disable();
         }
@@ -546,7 +546,7 @@ export class PortalSettingsComponent implements OnInit {
     this.portalForm
       .get('openAPIDocViewer.openAPIDocType.redoc.enabled')
       .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((selectedValue) => {
+      .subscribe(selectedValue => {
         if (!selectedValue) {
           this.portalForm.get('openAPIDocViewer.openAPIDocType.defaultType').setValue('Swagger');
           this.portalForm.get('openAPIDocViewer.openAPIDocType.swagger.enabled').disable();
@@ -559,7 +559,7 @@ export class PortalSettingsComponent implements OnInit {
     this.portalForm
       .get('openAPIDocViewer.openAPIDocType.swagger.enabled')
       .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((selectedValue) => {
+      .subscribe(selectedValue => {
         if (!selectedValue) {
           this.portalForm.get('openAPIDocViewer.openAPIDocType.defaultType').setValue('Redoc');
           this.portalForm.get('openAPIDocViewer.openAPIDocType.redoc.enabled').disable();

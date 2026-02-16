@@ -35,10 +35,10 @@ describe('TaskService', () => {
   });
 
   describe('getTasks', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const tasks = [fakeTask()];
 
-      taskService.getTasks().subscribe((response) => {
+      taskService.getTasks().subscribe(response => {
         expect(response).toStrictEqual(tasks);
         done();
       });

@@ -23,7 +23,7 @@ describe('CorsUtil', () => {
 
     const allowOriginValidTestCases = [[[]], [['*']], [['X-foo', 'X-bar']]];
 
-    it.each(allowOriginValidTestCases)('should validate %p origin', (origin) => {
+    it.each(allowOriginValidTestCases)('should validate %p origin', origin => {
       const result = validator(new FormControl(origin));
       expect(result).toEqual(null);
     });

@@ -124,16 +124,16 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
     return `Compare version ${this.compareSPG[0].sharedPolicyGroup.version} with ${this.compareSPG[1].sharedPolicyGroup.version}`;
   }
   protected get disableCompareTwoSPG(): boolean {
-    return this.compareSPG.filter((e) => !isNil(e)).length < 2;
+    return this.compareSPG.filter(e => !isNil(e)).length < 2;
   }
   protected get comparePendingSPGLabel(): string {
-    const lastSelected = this.compareSPG.filter((e) => !isNil(e))?.pop();
+    const lastSelected = this.compareSPG.filter(e => !isNil(e))?.pop();
     return lastSelected
       ? `Compare version ${lastSelected.sharedPolicyGroup.version} with version to be deployed`
       : 'Select a version to compare with version to be deployed';
   }
   protected get disableComparePendingSPG(): boolean {
-    return this.compareSPG.filter((e) => !isNil(e)).length < 1;
+    return this.compareSPG.filter(e => !isNil(e)).length < 1;
   }
 
   ngOnInit() {
@@ -149,8 +149,8 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
             this.filters.pagination.size,
           ),
         ),
-        map((pagedResult) => {
-          const items: PageTableVM['items'] = pagedResult.data.map((sharedPolicyGroup) => {
+        map(pagedResult => {
+          const items: PageTableVM['items'] = pagedResult.data.map(sharedPolicyGroup => {
             const id = `${sharedPolicyGroup.version}-${sharedPolicyGroup.updatedAt.toString()}`;
 
             return {
@@ -206,7 +206,7 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((result) => result === 'RESTORE_VERSION'),
+        filter(result => result === 'RESTORE_VERSION'),
         switchMap(() => this.sharedPolicyGroupsService.restore(sharedPolicyGroup)),
       )
       .subscribe({
@@ -214,7 +214,7 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
           this.snackBarService.success('Version has been restored. Review changes and click ‘Deploy’ to finalize the restoration.');
           this.router.navigate(['../'], { relativeTo: this.activatedRoute });
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'Error during Shared Policy Group restore!');
         },
       });
@@ -272,7 +272,7 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
 
     this.pageTableVM$.next({
       ...this.pageTableVM$.value,
-      items: this.pageTableVM$.getValue().items.map((spg) => {
+      items: this.pageTableVM$.getValue().items.map(spg => {
         spg.selected = this.getSelected(spg._id);
         return spg;
       }),
@@ -281,8 +281,8 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
 
   private getSelected(spgId: string): boolean {
     return this.compareSPG
-      .filter((e) => !isNil(e))
-      .map((e) => e._id)
+      .filter(e => !isNil(e))
+      .map(e => e._id)
       .includes(spgId);
   }
 }

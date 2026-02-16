@@ -80,7 +80,7 @@ export class RequestMetricsAggregationConditionComponent implements OnInit {
   @Input({ required: true }) form: RequestMetricsAggregationFormGroup;
   @Input({ required: true }) metrics: Metrics[];
   @Input({ required: true }) set referenceType(scope: Scope) {
-    this.properties = Metrics.filterByScope(ApiMetrics.METRICS, scope)?.filter((property) => property.supportPropertyProjection);
+    this.properties = Metrics.filterByScope(ApiMetrics.METRICS, scope)?.filter(property => property.supportPropertyProjection);
   }
   @Input() public alertToUpdate: AlertTriggerEntity;
 
@@ -97,15 +97,15 @@ export class RequestMetricsAggregationConditionComponent implements OnInit {
 
   seedForm() {
     const conditions = this.alertToUpdate.conditions[0] as AlertsAggregationCondition;
-    const metric = this.metrics.find((m) => m.key === conditions.property) || null;
-    const conditionsFunction = this.functions.find((f) => f.key === conditions.function) || null;
-    const operator = this.operators.find((o) => o.key === conditions.operator) || null;
-    const timeUnit = this.timeUnits.find((t) => t.toLowerCase() === conditions.timeUnit.toLowerCase()) || null;
+    const metric = this.metrics.find(m => m.key === conditions.property) || null;
+    const conditionsFunction = this.functions.find(f => f.key === conditions.function) || null;
+    const operator = this.operators.find(o => o.key === conditions.operator) || null;
+    const timeUnit = this.timeUnits.find(t => t.toLowerCase() === conditions.timeUnit.toLowerCase()) || null;
 
     let projectionProperty = null;
     if (conditions.projections?.length) {
       const projection = conditions.projections[0];
-      projectionProperty = this.properties?.find((p) => p.key === projection?.property) || null;
+      projectionProperty = this.properties?.find(p => p.key === projection?.property) || null;
     }
 
     this.form.patchValue({

@@ -58,19 +58,19 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
   isFederated = false;
 
   conditionPages$ = this.api$.pipe(
-    switchMap((api) =>
+    switchMap(api =>
       this.documentationService.apiSearch(api.id, {
         type: 'MARKDOWN',
         api: api.id,
       }),
     ),
-    map((pages) => pages.filter((page) => page.published)),
+    map(pages => pages.filter(page => page.published)),
   );
   shardingTags$ = this.api$.pipe(
     // Only load tags if api is defined
-    switchMap((api) => combineLatest([this.tagService.list(), of(api), this.currentUserService.getTags()])),
+    switchMap(api => combineLatest([this.tagService.list(), of(api), this.currentUserService.getTags()])),
     map(([tags, api, userTags]) => {
-      return tags.map((tag) => ({
+      return tags.map(tag => ({
         ...tag,
         disabled: !includes(userTags, tag.id) || !includes(api.tags, tag.id),
       }));
@@ -103,7 +103,7 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
     this.generalForm
       .get('commentRequired')
       .valueChanges.pipe(startWith(this.generalForm.get('commentRequired').value), takeUntil(this.unsubscribe$))
-      .subscribe((value) => {
+      .subscribe(value => {
         value ? this.generalForm.get('commentMessage').enable() : this.generalForm.get('commentMessage').disable();
       });
   }

@@ -72,7 +72,7 @@ export class OrgSettingsNotificationTemplateComponent implements OnInit, OnDestr
           this.hasAlertingPlugin = alertStatus.available_plugins > 0;
           this.notificationTemplates = notificationTemplates;
           this.notificationTemplateName = this.notificationTemplates[0].name;
-          this.isTemplateToInclude = this.notificationTemplates.some((template) => template.scope.toUpperCase() === 'TEMPLATES_TO_INCLUDE');
+          this.isTemplateToInclude = this.notificationTemplates.some(template => template.scope.toUpperCase() === 'TEMPLATES_TO_INCLUDE');
 
           this.setupNotificationTemplateForm();
 
@@ -86,7 +86,7 @@ export class OrgSettingsNotificationTemplateComponent implements OnInit, OnDestr
   private setupNotificationTemplateForm() {
     this.notificationTemplatesForm = new UntypedFormGroup({});
 
-    this.notificationTemplates.forEach((notificationTemplate) => {
+    this.notificationTemplates.forEach(notificationTemplate => {
       const useCustomTemplateFormControl = new UntypedFormControl(!!notificationTemplate.enabled);
       const titleFormControl = new UntypedFormControl({ value: notificationTemplate.title, disabled: !notificationTemplate.enabled }, [
         Validators.required,
@@ -105,7 +105,7 @@ export class OrgSettingsNotificationTemplateComponent implements OnInit, OnDestr
       }
       this.notificationTemplatesForm.addControl(notificationTemplate.type, notificationTemplateForm);
 
-      useCustomTemplateFormControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => {
+      useCustomTemplateFormControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(value => {
         if (value) {
           titleFormControl.enable();
           contentFormControl.enable();
@@ -124,7 +124,7 @@ export class OrgSettingsNotificationTemplateComponent implements OnInit, OnDestr
   }
 
   submitForm() {
-    const requests = this.notificationTemplates.map((notificationTemplate) => {
+    const requests = this.notificationTemplates.map(notificationTemplate => {
       const form = this.notificationTemplatesForm.getRawValue()[notificationTemplate.type];
       const updatedNotificationTemplate: NotificationTemplate = {
         ...notificationTemplate,

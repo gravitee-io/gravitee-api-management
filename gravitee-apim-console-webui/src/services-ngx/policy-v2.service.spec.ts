@@ -35,10 +35,10 @@ describe('PolicyV2Service', () => {
   });
 
   describe('list', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const policies = [fakePoliciesPlugin()];
 
-      policyService.list().subscribe((response) => {
+      policyService.list().subscribe(response => {
         expect(response).toStrictEqual(policies);
         done();
       });
@@ -51,11 +51,11 @@ describe('PolicyV2Service', () => {
   });
 
   describe('getSchema', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const policyId = 'policy#1';
       const policySchema = {};
 
-      policyService.getSchema(policyId).subscribe((response) => {
+      policyService.getSchema(policyId).subscribe(response => {
         expect(response).toStrictEqual(policySchema);
         done();
       });
@@ -66,11 +66,11 @@ describe('PolicyV2Service', () => {
       req.flush(policySchema);
     });
 
-    it('should call the API with apiProtocolType', (done) => {
+    it('should call the API with apiProtocolType', done => {
       const policyId = 'policy#1';
       const policySchema = {};
 
-      policyService.getSchema(policyId, 'NATIVE_KAFKA').subscribe((response) => {
+      policyService.getSchema(policyId, 'NATIVE_KAFKA').subscribe(response => {
         expect(response).toStrictEqual(policySchema);
         done();
       });
@@ -85,11 +85,11 @@ describe('PolicyV2Service', () => {
   });
 
   describe('getDocumentation', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const policyId = 'policy#1';
       const policyDocumentation = 'The Doc';
 
-      policyService.getDocumentation(policyId).subscribe((response) => {
+      policyService.getDocumentation(policyId).subscribe(response => {
         expect(response).toStrictEqual(policyDocumentation);
         done();
       });
@@ -100,11 +100,11 @@ describe('PolicyV2Service', () => {
       req.flush(policyDocumentation);
     });
 
-    it('should call the API with apiProtocolType', (done) => {
+    it('should call the API with apiProtocolType', done => {
       const policyId = 'policy#1';
       const policyDocumentation = 'The Doc';
 
-      policyService.getDocumentation(policyId, 'NATIVE_KAFKA').subscribe((response) => {
+      policyService.getDocumentation(policyId, 'NATIVE_KAFKA').subscribe(response => {
         expect(response).toStrictEqual(policyDocumentation);
         done();
       });

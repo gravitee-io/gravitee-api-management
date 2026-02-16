@@ -35,10 +35,10 @@ describe('RestrictedDomainService', () => {
   });
 
   describe('get', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const restrictedDomains = [fakeRestrictedDomain()];
 
-      restrictedDomainService.get().subscribe((response) => {
+      restrictedDomainService.get().subscribe(response => {
         expect(response).toStrictEqual(restrictedDomains);
         done();
       });

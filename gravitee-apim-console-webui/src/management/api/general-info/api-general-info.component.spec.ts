@@ -182,14 +182,14 @@ describe('ApiGeneralInfoComponent', () => {
       expect(await categoriesInput.isDisabled()).toEqual(true);
 
       await Promise.all(
-        [/Import/, /Duplicate/, /Promote/].map(async (btnText) => {
+        [/Import/, /Duplicate/, /Promote/].map(async btnText => {
           const button = await loader.getHarness(MatButtonHarness.with({ text: btnText }));
           expect(await button.isDisabled()).toEqual(true);
         }),
       );
 
       await Promise.all(
-        [/Stop the API/, /Unpublish/, /Make Private/, /Deprecate/, /Delete/].map(async (btnText) => {
+        [/Stop the API/, /Unpublish/, /Make Private/, /Deprecate/, /Delete/].map(async btnText => {
           const button = await loader.getHarness(MatButtonHarness.with({ text: btnText }));
           expect(await button.isDisabled()).toEqual(true);
         }),
@@ -291,7 +291,7 @@ describe('ApiGeneralInfoComponent', () => {
         expectApiGetRequest(api);
 
         // Wait image to be covert to base64
-        await new Promise((resolve) => setTimeout(resolve, 10));
+        await new Promise(resolve => setTimeout(resolve, 10));
 
         const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
         expect(req.request.body.name).toEqual('🦊 API');
@@ -376,14 +376,14 @@ describe('ApiGeneralInfoComponent', () => {
         expect(await emulateV4EngineInput.isDisabled()).toEqual(true);
 
         await Promise.all(
-          [/Import/, /Duplicate/, /Promote/].map(async (btnText) => {
+          [/Import/, /Duplicate/, /Promote/].map(async btnText => {
             const button = await loader.getHarness(MatButtonHarness.with({ text: btnText }));
             expect(await button.isDisabled()).toEqual(true);
           }),
         );
 
         await Promise.all(
-          [/Stop the API/, /Unpublish/, /Make Private/, /Deprecate/, /Delete/].map(async (btnText) => {
+          [/Stop the API/, /Unpublish/, /Make Private/, /Deprecate/, /Delete/].map(async btnText => {
             const button = await loader.getHarness(MatButtonHarness.with({ text: btnText }));
             expect(await button.isDisabled()).toEqual(true);
           }),
@@ -849,7 +849,7 @@ describe('ApiGeneralInfoComponent', () => {
       expectApiVerifyDeployment(api, true);
 
       // Wait image to be covert to base64
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await new Promise(resolve => setTimeout(resolve, 10));
 
       const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
       expect(req.request.body.name).toEqual('🦊 API');
@@ -928,14 +928,14 @@ describe('ApiGeneralInfoComponent', () => {
       expectApiVerifyDeployment(api, true);
 
       await Promise.all(
-        [/Import/, /Duplicate/, /Promote/].map(async (btnText) => {
+        [/Import/, /Duplicate/, /Promote/].map(async btnText => {
           const button = await loader.getHarness(MatButtonHarness.with({ text: btnText }));
           expect(await button.isDisabled()).toEqual(true);
         }),
       );
 
       await Promise.all(
-        [/Stop the API/, /Unpublish/, /Make Private/, /Deprecate/, /Delete/].map(async (btnText) => {
+        [/Stop the API/, /Unpublish/, /Make Private/, /Deprecate/, /Delete/].map(async btnText => {
           const button = await loader.getHarness(MatButtonHarness.with({ text: btnText }));
           expect(await button.isDisabled()).toEqual(true);
         }),
@@ -1140,7 +1140,7 @@ describe('ApiGeneralInfoComponent', () => {
       expectCategoriesGetRequest();
 
       await Promise.all(
-        [/Import/, /Export/, /Duplicate/, /Promote/].map(async (btnText) => {
+        [/Import/, /Export/, /Duplicate/, /Promote/].map(async btnText => {
           const button = await loader.getHarnessOrNull(MatButtonHarness.with({ text: btnText }));
           expect(button).toBeNull();
         }),
@@ -1259,4 +1259,4 @@ export function newImageFile(fileName: string, type: string): File {
   return new File([''], fileName, { type });
 }
 
-const waitImageCheck = () => new Promise((resolve) => setTimeout(resolve, 1));
+const waitImageCheck = () => new Promise(resolve => setTimeout(resolve, 1));

@@ -92,7 +92,7 @@ describe('ApiHistoryV4Component', () => {
       );
 
       const table = await loader.getHarness(MatTableHarness.with({ selector: '#deploymentsTable' }));
-      expect(await table.getRows().then((value) => value[0].getCellTextByColumnName())).toEqual({
+      expect(await table.getRows().then(value => value[0].getCellTextByColumnName())).toEqual({
         version: '1  In use',
         createdAt: 'Jan 1, 2021, 12:00:00 AM',
         user: 'John Doe',
@@ -113,7 +113,7 @@ describe('ApiHistoryV4Component', () => {
 
       const table = await loader.getHarness(MatTableHarness.with({ selector: '#deploymentsTable' }));
       const rows = await table.getRows();
-      const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+      const rowCells = await parallel(() => rows.map(row => row.getCellTextByIndex()));
       expect(rowCells).toHaveLength(0);
 
       const tableElement = await table.host();

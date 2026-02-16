@@ -76,7 +76,7 @@ export class TopApplicationsByRequestsComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (res) => {
+        next: res => {
           this.topApplications = res.data;
           this.isLoading = false;
           this.onFiltersChanged(this.tableFilters);

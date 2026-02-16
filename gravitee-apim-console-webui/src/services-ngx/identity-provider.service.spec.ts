@@ -37,13 +37,13 @@ describe('IdentityProviderService', () => {
   });
 
   describe('list', () => {
-    it('should return a list of identity providers', (done) => {
+    it('should return a list of identity providers', done => {
       const identityProviders: IdentityProviderListItem[] = [
         fakeIdentityProviderListItem({ id: 'google', type: 'GOOGLE' }),
         fakeIdentityProviderListItem({ id: 'github', type: 'GITHUB' }),
       ];
 
-      identityProviderService.list().subscribe((identityProviders) => {
+      identityProviderService.list().subscribe(identityProviders => {
         expect(identityProviders).toEqual(identityProviders);
         done();
       });
@@ -56,10 +56,10 @@ describe('IdentityProviderService', () => {
   });
 
   describe('delete', () => {
-    it('should send a DELETE request', (done) => {
+    it('should send a DELETE request', done => {
       const identityProviderToDelete: IdentityProviderListItem = fakeIdentityProviderListItem({ id: 'github', type: 'GITHUB' });
 
-      identityProviderService.delete(identityProviderToDelete.id).subscribe((identityProviders) => {
+      identityProviderService.delete(identityProviderToDelete.id).subscribe(identityProviders => {
         expect(identityProviders).toEqual(identityProviders);
         done();
       });
@@ -74,12 +74,12 @@ describe('IdentityProviderService', () => {
   });
 
   describe('create', () => {
-    it('should send a POST request', (done) => {
+    it('should send a POST request', done => {
       const identityProviderToCreate = fakeNewIdentityProvider({ type: 'GITHUB' });
 
       const identityProviderCreated = fakeIdentityProvider({ id: 'newId', ...identityProviderToCreate });
 
-      identityProviderService.create(identityProviderToCreate).subscribe((identityProvider) => {
+      identityProviderService.create(identityProviderToCreate).subscribe(identityProvider => {
         expect(identityProvider).toEqual(identityProviderCreated);
         done();
       });
@@ -93,12 +93,12 @@ describe('IdentityProviderService', () => {
   });
 
   describe('update', () => {
-    it('should send a PUT request', (done) => {
+    it('should send a PUT request', done => {
       const identityProviderToUpdate = fakeIdentityProvider({ type: 'GITHUB' });
 
       const identityProviderUpdated = fakeIdentityProvider({ id: 'newId', ...identityProviderToUpdate });
 
-      identityProviderService.update(identityProviderToUpdate).subscribe((identityProvider) => {
+      identityProviderService.update(identityProviderToUpdate).subscribe(identityProvider => {
         expect(identityProvider).toEqual(identityProviderUpdated);
         done();
       });

@@ -64,9 +64,9 @@ export class CategoriesComponent implements OnInit {
     this.hasPortalNextEnabled = this.environmentSettingsService.getSnapshot().portalNext?.access?.enabled === true;
 
     this.categoriesDS$ = this.categoryList.pipe(
-      switchMap((_) => this.categoryService.list(true)),
-      map((categories) => categories.sort((a, b) => a.order - b.order)),
-      catchError((_) => of([])),
+      switchMap(_ => this.categoryService.list(true)),
+      map(categories => categories.sort((a, b) => a.order - b.order)),
+      catchError(_ => of([])),
     );
   }
 
@@ -83,12 +83,12 @@ export class CategoriesComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirmed) => confirmed),
-        switchMap((_) => this.categoryService.delete(category.id)),
+        filter(confirmed => confirmed),
+        switchMap(_ => this.categoryService.delete(category.id)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (_) => {
+        next: _ => {
           this.snackBarService.success(`'${category.name}' deleted successfully`);
           this.categoryList.next(1);
         },
@@ -116,7 +116,7 @@ export class CategoriesComponent implements OnInit {
     this.portalSettingsService
       .get()
       .pipe(
-        switchMap((settings) => {
+        switchMap(settings => {
           const newSettings = { ...settings };
           newSettings.portal.apis.categoryMode.enabled = this.portalSettingsForm.getRawValue().enabled;
           return this.portalSettingsService.save(newSettings);
@@ -143,7 +143,7 @@ export class CategoriesComponent implements OnInit {
       .updateList([categoryToMoveUp, categoryToMoveDown])
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (_) => {
+        next: _ => {
           this.snackBarService.success(`Category order has been changed`);
           this.categoryList.next(1);
         },
@@ -157,7 +157,7 @@ export class CategoriesComponent implements OnInit {
       .update(categoryToUpdate)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (_) => {
+        next: _ => {
           this.snackBarService.success(`Category [${category.name}] is now ${isHidden ? 'hidden' : 'shown'}`);
           this.categoryList.next(1);
         },

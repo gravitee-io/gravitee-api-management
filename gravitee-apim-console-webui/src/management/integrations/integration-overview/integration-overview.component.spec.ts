@@ -131,7 +131,7 @@ describe('IntegrationOverviewComponent', () => {
 
       expect(await componentHarness.getAgentStatus()).toEqual('disconnected');
 
-      const errorBanner = await componentHarness.getErrorBanner().then((e) => e.text());
+      const errorBanner = await componentHarness.getErrorBanner().then(e => e.text());
       expect(errorBanner).toEqual(
         'Check your agent status and ensure connectivity with the provider to start importing your APIs in Gravitee.',
       );

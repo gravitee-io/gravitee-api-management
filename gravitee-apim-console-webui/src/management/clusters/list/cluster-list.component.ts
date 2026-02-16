@@ -113,8 +113,8 @@ export class ClusterListComponent implements OnInit {
             this.filters.pagination.size,
           ),
         ),
-        map((pagedResult) => {
-          const items = pagedResult.data.map((cluster) => ({
+        map(pagedResult => {
+          const items = pagedResult.data.map(cluster => ({
             id: cluster.id,
             name: cluster.name,
             bootstrapServer: get(cluster.configuration, 'bootstrapServers', ''),
@@ -163,13 +163,13 @@ export class ClusterListComponent implements OnInit {
             },
           });
         }),
-        tap((cluster) => {
+        tap(cluster => {
           this.snackBarService.success('Cluster created successfully');
           return this.router.navigate([cluster.id], {
             relativeTo: this.activatedRoute,
           });
         }),
-        catchError((e) => {
+        catchError(e => {
           this.snackBarService.error(e.error?.message ?? 'An error occurred while creating the cluster!');
           return EMPTY;
         }),
@@ -194,7 +194,7 @@ export class ClusterListComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.clusterService.delete(cluster.id)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);

@@ -69,7 +69,7 @@ export class ReCaptchaService {
       if (!this.loaded) {
         await this.load();
       }
-      return grecaptcha.execute(this.siteKey, { action }).then((ReCaptchaToken) => {
+      return grecaptcha.execute(this.siteKey, { action }).then(ReCaptchaToken => {
         this.reCaptchaToken = ReCaptchaToken;
       });
     }

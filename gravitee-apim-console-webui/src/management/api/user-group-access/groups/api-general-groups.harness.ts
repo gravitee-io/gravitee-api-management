@@ -28,21 +28,21 @@ export class ApiGeneralGroupsHarness extends ComponentHarness {
   protected getSaveButton = this.locatorForOptional(MatButtonHarness.with({ text: 'Save' }));
 
   async getFillFormLabel(): Promise<string> {
-    return this.getFillForm().then((form) => form.getLabel());
+    return this.getFillForm().then(form => form.getLabel());
   }
 
   async isFillFormPresent(): Promise<boolean> {
     return this.getFillForm()
-      .then((_) => true)
-      .catch((_) => false);
+      .then(_ => true)
+      .catch(_ => false);
   }
 
   async isFillFormControlDirty(): Promise<boolean> {
-    return this.getFillForm().then((form) => form.isControlDirty());
+    return this.getFillForm().then(form => form.isControlDirty());
   }
 
   async openGroupsList(): Promise<void> {
-    return this.getGroupsList().then(async (selectList) => {
+    return this.getGroupsList().then(async selectList => {
       if (!(await selectList.isOpen())) {
         await selectList.open();
       }
@@ -50,12 +50,12 @@ export class ApiGeneralGroupsHarness extends ComponentHarness {
   }
 
   async closeGroupsList(): Promise<void> {
-    return this.getGroupsList().then((selectList) => selectList.close());
+    return this.getGroupsList().then(selectList => selectList.close());
   }
 
   async getGroups(filters: OptionHarnessFilters = {}): Promise<MatOptionHarness[]> {
     await this.openGroupsList();
-    return this.getGroupsList().then((selectList) => selectList.getOptions(filters));
+    return this.getGroupsList().then(selectList => selectList.getOptions(filters));
   }
 
   async getSelectedGroups(): Promise<MatOptionHarness[]> {
@@ -64,21 +64,21 @@ export class ApiGeneralGroupsHarness extends ComponentHarness {
 
   async selectGroups(filters: OptionHarnessFilters = {}): Promise<void> {
     await this.openGroupsList();
-    return this.getGroupsList().then((selectList) => selectList.clickOptions(filters));
+    return this.getGroupsList().then(selectList => selectList.clickOptions(filters));
   }
 
   async getGroupsListValueText(): Promise<string> {
-    return this.getGroupsList().then((selectList) => selectList.getValueText());
+    return this.getGroupsList().then(selectList => selectList.getValueText());
   }
 
   async isReadOnlyGroupsPresent(): Promise<boolean> {
     return this.getReadOnlyGroups()
-      .then((_) => true)
-      .catch((_) => false);
+      .then(_ => true)
+      .catch(_ => false);
   }
 
   async getReadOnlyGroupsText(): Promise<string> {
-    return this.getReadOnlyGroups().then((readOnlyGroups) => readOnlyGroups.text());
+    return this.getReadOnlyGroups().then(readOnlyGroups => readOnlyGroups.text());
   }
 
   async isSaveButtonVisible(): Promise<boolean> {
@@ -86,10 +86,10 @@ export class ApiGeneralGroupsHarness extends ComponentHarness {
   }
 
   async isSaveButtonDisabled(): Promise<boolean> {
-    return (await this.isSaveButtonVisible()) && this.getSaveButton().then((btn) => btn.isDisabled());
+    return (await this.isSaveButtonVisible()) && this.getSaveButton().then(btn => btn.isDisabled());
   }
 
   async clickSave(): Promise<void> {
-    return this.getSaveButton().then((btn) => btn.click());
+    return this.getSaveButton().then(btn => btn.click());
   }
 }

@@ -110,9 +110,9 @@ export class MenuLinkListComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirmed) => confirmed),
-        switchMap((_) => this.uiPortalMenuLinksService.delete(element.id)),
-        tap((_) => {
+        filter(confirmed => confirmed),
+        switchMap(_ => this.uiPortalMenuLinksService.delete(element.id)),
+        tap(_ => {
           this.snackBarService.success(`Menu link '${element.name}' deleted successfully`);
           this.initializeTable();
         }),
@@ -135,9 +135,9 @@ export class MenuLinkListComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((menuLink) => !!menuLink),
-        switchMap((menuLink) => this.uiPortalMenuLinksService.create({ ...menuLink })),
-        tap((menuLink) => {
+        filter(menuLink => !!menuLink),
+        switchMap(menuLink => this.uiPortalMenuLinksService.create({ ...menuLink })),
+        tap(menuLink => {
           this.snackBarService.success(`Menu link '${menuLink.name}' created successfully`);
           this.initializeTable();
         }),
@@ -169,7 +169,7 @@ export class MenuLinkListComponent implements OnInit, OnDestroy {
         }
         this.table.renderRows();
       },
-      error: (error) => {
+      error: error => {
         this.snackBarService.error(error?.message ? error.message : 'Error during update');
         return EMPTY;
       },
@@ -180,8 +180,8 @@ export class MenuLinkListComponent implements OnInit, OnDestroy {
     this.uiPortalMenuLinksService
       .list(1, 9999)
       .pipe(
-        map((response) =>
-          response.data.map((link) => {
+        map(response =>
+          response.data.map(link => {
             return <PortalMenuLinkListVM>{
               ...link,
               readableType: toReadableMenuLinkType(link.type),
@@ -189,8 +189,8 @@ export class MenuLinkListComponent implements OnInit, OnDestroy {
             };
           }),
         ),
-        catchError((_) => of([])),
-        tap((linkListVM) => {
+        catchError(_ => of([])),
+        tap(linkListVM => {
           if (linkListVM.length < 2) {
             this.displayedColumns.shift();
           }

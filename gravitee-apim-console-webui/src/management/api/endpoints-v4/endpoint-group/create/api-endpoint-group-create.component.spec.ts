@@ -686,7 +686,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
    * Helpers
    */
   async function isStepActive(step: Promise<MatStepHarness>): Promise<boolean> {
-    return step.then((foundStep) => foundStep.isSelected());
+    return step.then(foundStep => foundStep.isSelected());
   }
 
   async function fillOutAndValidateEndpointSelection(type = 'kafka'): Promise<void> {
@@ -716,7 +716,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
     sharedSchema: any = fakeKafkaSharedSchema,
   ): Promise<void> {
     // Choose endpoint type
-    await harness.getEndpointGroupTypeStep().then((step) => step.select());
+    await harness.getEndpointGroupTypeStep().then(step => step.select());
     await harness.selectEndpointGroup(type);
 
     if (type !== 'mock') {
@@ -750,9 +750,9 @@ describe('ApiEndpointGroupCreateComponent', () => {
     const updatedApi = cloneDeep(api);
     updatedApi.endpointGroups = [...api.endpointGroups, endpointGroup];
     updatedApi.listeners
-      .flatMap((listener) => listener.entrypoints)
-      .filter((entrypoint) => entrypoint.type === dlqEntrypoint)
-      .forEach((entrypoint) => (entrypoint.dlq = { endpoint: endpointGroup.name }));
+      .flatMap(listener => listener.entrypoints)
+      .filter(entrypoint => entrypoint.type === dlqEntrypoint)
+      .forEach(entrypoint => (entrypoint.dlq = { endpoint: endpointGroup.name }));
     expectApiGet();
     expectApiPut(updatedApi);
     expect(routerNavigationSpy).toHaveBeenCalledWith(['../../entrypoints/', dlqEntrypoint], { relativeTo: expect.anything() });

@@ -34,7 +34,7 @@ export class ResourceTypeService extends FieldType<FieldTypeConfig> {
   private resources: Observable<PlanOAuth2Resource[]> = of([]).pipe(startWith([]));
 
   private listResource$ = this.resourceService.list({ expandSchema: false, expandIcon: true }).pipe(
-    catchError((error) => {
+    catchError(error => {
       this.snackBarService.error(error.error?.message ?? 'An error occurred while loading resources.');
       return EMPTY;
     }),
@@ -50,9 +50,9 @@ export class ResourceTypeService extends FieldType<FieldTypeConfig> {
 
   public setResources(resources: Resource[]) {
     this.resources = this.listResource$.pipe(
-      map((resourceTypes) => {
-        return [...resources].map((resource) => {
-          const resourceType = resourceTypes.find((type) => type.id === resource.type);
+      map(resourceTypes => {
+        return [...resources].map(resource => {
+          const resourceType = resourceTypes.find(type => type.id === resource.type);
           const icon = resourceType?.icon ? resourceType.icon : null;
           return { icon, name: resource.name, type: resource.type };
         });
@@ -61,7 +61,7 @@ export class ResourceTypeService extends FieldType<FieldTypeConfig> {
   }
 
   public getResource(name: string, type: string): Observable<PlanOAuth2Resource> {
-    return this.resources.pipe(map((resources) => resources.find((resource) => resource.name === name && resource.type.startsWith(type))));
+    return this.resources.pipe(map(resources => resources.find(resource => resource.name === name && resource.type.startsWith(type))));
   }
 
   public filter$(term: string | undefined, type: string): Observable<PlanOAuth2Resource[]> {
@@ -73,11 +73,11 @@ export class ResourceTypeService extends FieldType<FieldTypeConfig> {
 
   private filterResources(term: string | undefined, type: string): Observable<PlanOAuth2Resource[]> {
     if (isEmpty(term)) {
-      return this.resources.pipe(map((resources) => resources.filter((resource) => resource.type.startsWith(type))));
+      return this.resources.pipe(map(resources => resources.filter(resource => resource.type.startsWith(type))));
     }
     return this.resources.pipe(
-      map((resources) =>
-        resources.filter((resource) => resource.name.toLowerCase().indexOf(term.toLowerCase()) === 0 && resource.type.startsWith(type)),
+      map(resources =>
+        resources.filter(resource => resource.name.toLowerCase().indexOf(term.toLowerCase()) === 0 && resource.type.startsWith(type)),
       ),
     );
   }

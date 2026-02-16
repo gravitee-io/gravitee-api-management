@@ -56,7 +56,7 @@ export class IntegrationsService {
     this.snackBarService.success('API ingestion is in progress. The process should only take a few minute to complete. Come back shortly!');
 
     return this.httpClient.post<IntegrationIngestionResponse>(`${this.url}/${integrationId}/_ingest`, { apiIds: apiIdsToIngest }).pipe(
-      catchError((error) => {
+      catchError(error => {
         return of({
           status: AsyncJobStatus.ERROR,
           message: `${error.error.message}`,
@@ -78,7 +78,7 @@ export class IntegrationsService {
   }
 
   public getIntegration(id: string): Observable<Integration> {
-    return this.httpClient.get<Integration>(`${this.url}/${id}`).pipe(tap((integration) => this.currentIntegration$.next(integration)));
+    return this.httpClient.get<Integration>(`${this.url}/${id}`).pipe(tap(integration => this.currentIntegration$.next(integration)));
   }
 
   public createIntegration(payload: CreateIntegrationPayload): Observable<Integration> {

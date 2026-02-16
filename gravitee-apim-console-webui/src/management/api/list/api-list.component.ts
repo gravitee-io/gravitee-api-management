@@ -170,7 +170,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     if (localStorage.getItem(`${this.constants.org.currentEnv.id}-api-list-visible-columns`)) {
       let storedColumns = JSON.parse(localStorage.getItem(`${this.constants.org.currentEnv.id}-api-list-visible-columns`));
       if (!this.isQualityDisplayed && storedColumns.includes('qualityScore')) {
-        storedColumns = storedColumns.filter((item) => item !== 'qualityScore');
+        storedColumns = storedColumns.filter(item => item !== 'qualityScore');
       }
       this.displayedColumns = storedColumns;
       this.checkedVisibleColumns = {
@@ -191,7 +191,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     this.tagService
       .list()
       .pipe(
-        map((tags) => (this.tags = tags.map((tag) => tag.id))),
+        map(tags => (this.tags = tags.map(tag => tag.id))),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
@@ -199,7 +199,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     this.categoryService
       .list()
       .pipe(
-        map((cats) => cats.forEach((cat) => this.categoriesNames.set(cat.key, cat.name))),
+        map(cats => cats.forEach(cat => this.categoriesNames.set(cat.key, cat.name))),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
@@ -255,7 +255,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             .search(body, apiSortByParamFromString(order), filters.pagination.index, filters.pagination.size)
             .pipe(catchError(() => of(new PagedResult<Api>())));
         }),
-        tap((apisPage) => {
+        tap(apisPage => {
           this.apisTableDS = this.toApisTableDS(apisPage);
           this.apisTableDSUnpaginatedLength = apisPage.pagination.totalCount;
           this.isLoadingData = false;
@@ -354,7 +354,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
 
   private toApisTableDS(apisResponse: ApisResponse): ApisTableDS {
     return apisResponse?.pagination?.totalCount > 0
-      ? apisResponse.data.map((api) => {
+      ? apisResponse.data.map(api => {
           const tableDS = {
             id: api.id,
             name: api.name,
@@ -370,7 +370,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             owner: api.primaryOwner?.displayName,
             ownerEmail: api.primaryOwner?.email,
             picture: api._links.pictureUrl,
-            categories: (api.categories ?? []).map((cat) => this.categoriesNames.get(cat)),
+            categories: (api.categories ?? []).map(cat => this.categoriesNames.get(cat)),
           };
           if (api.definitionVersion === 'V4') {
             return {
@@ -392,9 +392,9 @@ export class ApiListComponent implements OnInit, OnDestroy {
             return {
               ...tableDS,
               access: getApiAccess(apiv2),
-              isNotSynced$: this.apiService.isAPISynchronized(apiv2.id).pipe(map((a) => !a.is_synchronized)),
+              isNotSynced$: this.apiService.isAPISynchronized(apiv2.id).pipe(map(a => !a.is_synchronized)),
               qualityScore$: this.isQualityDisplayed
-                ? this.apiService.getQualityMetrics(apiv2.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
+                ? this.apiService.getQualityMetrics(apiv2.id).pipe(map(a => this.getQualityScore(Math.floor(a.score * 100))))
                 : null,
             };
           }

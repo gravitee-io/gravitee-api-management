@@ -40,7 +40,7 @@ describe('DebugApiService', () => {
   });
 
   describe('debug', () => {
-    it('calls the endpoint', (done) => {
+    it('calls the endpoint', done => {
       const api = fakeApi({
         id: 'apiId',
       });
@@ -53,7 +53,7 @@ describe('DebugApiService', () => {
       };
       const responseEvent = fakeEvent();
 
-      debugApiService.debug(api, request).subscribe((result) => {
+      debugApiService.debug(api, request).subscribe(result => {
         expect(result).toEqual(responseEvent);
         done();
       });
@@ -66,7 +66,7 @@ describe('DebugApiService', () => {
       req.flush(responseEvent);
     });
 
-    it('removes http proxy of some specific endpoints', (done) => {
+    it('removes http proxy of some specific endpoints', done => {
       const request = {
         path: '/planets',
         method: 'POST',
@@ -100,7 +100,7 @@ describe('DebugApiService', () => {
       };
       const responseEvent = fakeEvent();
 
-      debugApiService.debug(api, request).subscribe((result) => {
+      debugApiService.debug(api, request).subscribe(result => {
         expect(result).toEqual(responseEvent);
         done();
       });

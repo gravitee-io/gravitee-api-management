@@ -36,13 +36,13 @@ describe('OrganizationService', () => {
   });
 
   describe('listActivatedIdentityProviders', () => {
-    it('should return a list of identity providers', (done) => {
+    it('should return a list of identity providers', done => {
       const activatedIdentityProviders: IdentityProviderActivation[] = [
         fakeIdentityProviderActivation({ identityProvider: 'google' }),
         fakeIdentityProviderActivation({ identityProvider: 'github' }),
       ];
 
-      organizationService.listActivatedIdentityProviders().subscribe((identityProviders) => {
+      organizationService.listActivatedIdentityProviders().subscribe(identityProviders => {
         expect(identityProviders).toEqual(activatedIdentityProviders);
         done();
       });
@@ -55,7 +55,7 @@ describe('OrganizationService', () => {
   });
 
   describe('updateActivatedIdentityProviders', () => {
-    it('should send identity providers to activate', (done) => {
+    it('should send identity providers to activate', done => {
       organizationService
         .updateActivatedIdentityProviders([{ identityProvider: 'google' }, { identityProvider: 'github' }])
         .subscribe(() => {
@@ -71,10 +71,10 @@ describe('OrganizationService', () => {
   });
 
   describe('get', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const organization = fakeOrganization();
 
-      organizationService.get().subscribe((response) => {
+      organizationService.get().subscribe(response => {
         expect(response).toStrictEqual(organization);
         done();
       });
@@ -84,7 +84,7 @@ describe('OrganizationService', () => {
   });
 
   describe('update', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const updatedOrganization = fakeOrganization({ description: 'Updated description' });
 
       organizationService.update(updatedOrganization).subscribe(() => done());

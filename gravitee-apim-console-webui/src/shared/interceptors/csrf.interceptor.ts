@@ -37,12 +37,12 @@ export class CsrfInterceptor implements HttpInterceptor {
 
     return next.handle(reqWithToken).pipe(
       tap(
-        (event) => {
+        event => {
           if (event instanceof HttpResponse && event.headers?.has(CsrfInterceptor.xsrfTokenHeaderName)) {
             CsrfInterceptor.xsrfToken = event.headers.get(CsrfInterceptor.xsrfTokenHeaderName);
           }
         },
-        (error) => {
+        error => {
           if (error.headers?.has(CsrfInterceptor.xsrfTokenHeaderName)) {
             CsrfInterceptor.xsrfToken = error.headers.get(CsrfInterceptor.xsrfTokenHeaderName);
           }

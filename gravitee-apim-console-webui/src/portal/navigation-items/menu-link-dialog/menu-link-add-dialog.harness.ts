@@ -29,17 +29,17 @@ export class MenuLinkAddDialogHarness extends ComponentHarness {
   protected getSaveButton = this.locatorFor(MatButtonHarness.with({ text: 'Add Link' }));
 
   async saveButtonExists(): Promise<boolean> {
-    return this.getSaveButton().then((btn) => !!btn);
+    return this.getSaveButton().then(btn => !!btn);
   }
 
   async saveButtonEnabled(): Promise<boolean> {
     return this.getSaveButton()
-      .then((btn) => btn.isDisabled())
-      .then((disabled) => !disabled);
+      .then(btn => btn.isDisabled())
+      .then(disabled => !disabled);
   }
 
   async clickSave(): Promise<void> {
-    return this.getSaveButton().then((btn) => btn.click());
+    return this.getSaveButton().then(btn => btn.click());
   }
 
   async nameFieldExists() {
@@ -67,17 +67,17 @@ export class MenuLinkAddDialogHarness extends ComponentHarness {
   }
 
   async fillOutName(name: string) {
-    return this.getNameField().then((input) => input.setValue(name));
+    return this.getNameField().then(input => input.setValue(name));
   }
   async selectType(type: string) {
     return this.getTypeField()
-      .then((group) => group.getToggles({ text: type }))
-      .then((button) => button[0].toggle());
+      .then(group => group.getToggles({ text: type }))
+      .then(button => button[0].toggle());
   }
   async fillOutTarget(target: string) {
-    return this.getTargetField().then((input) => input.setValue(target));
+    return this.getTargetField().then(input => input.setValue(target));
   }
   async selectVisibility(visibility: string) {
-    await this.getVisibilitySelect().then((select) => select.select(visibility));
+    await this.getVisibilitySelect().then(select => select.select(visibility));
   }
 }

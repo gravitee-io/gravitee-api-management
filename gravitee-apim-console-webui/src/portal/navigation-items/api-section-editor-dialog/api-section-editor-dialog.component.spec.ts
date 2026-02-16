@@ -50,7 +50,7 @@ class TestHostComponent {
       })
       .afterClosed()
       .subscribe({
-        next: (result) => {
+        next: result => {
           this.dialogValue = result;
         },
       });
@@ -82,7 +82,7 @@ describe('ApiSectionEditorDialogComponent', () => {
 
   function expectApiSearchResponse() {
     const req = httpTestingController.expectOne(
-      (request) =>
+      request =>
         request.method === 'POST' &&
         request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search` &&
         (request.params.get('page') ?? '1') === '1' &&
@@ -111,10 +111,10 @@ describe('ApiSectionEditorDialogComponent', () => {
     expectApiSearchResponse();
 
     let dialog: ApiSectionEditorDialogHarness;
-    rootLoader.getHarness(ApiSectionEditorDialogHarness).then((h) => (dialog = h));
+    rootLoader.getHarness(ApiSectionEditorDialogHarness).then(h => (dialog = h));
     tick();
 
-    dialog.isSubmitButtonDisabled().then((disabled) => expect(disabled).toEqual(true));
+    dialog.isSubmitButtonDisabled().then(disabled => expect(disabled).toEqual(true));
     tick();
   }));
 
@@ -126,13 +126,11 @@ describe('ApiSectionEditorDialogComponent', () => {
     expectApiSearchResponse();
 
     let dialog: ApiSectionEditorDialogHarness;
-    rootLoader.getHarness(ApiSectionEditorDialogHarness).then((h) => (dialog = h));
+    rootLoader.getHarness(ApiSectionEditorDialogHarness).then(h => (dialog = h));
     tick();
 
     let checkboxes: MatCheckboxHarness[] = [];
-    rootLoader
-      .getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' }))
-      .then((c) => (checkboxes = c));
+    rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' })).then(c => (checkboxes = c));
     tick();
 
     expect(checkboxes.length).toBeGreaterThan(1);

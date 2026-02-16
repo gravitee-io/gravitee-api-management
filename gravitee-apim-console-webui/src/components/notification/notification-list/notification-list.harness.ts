@@ -24,7 +24,7 @@ export class NotificationListHarness extends ComponentHarness {
     const table = await this.getTable();
     const rows = await table.getRows();
 
-    return await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    return await parallel(() => rows.map(row => row.getCellTextByColumnName()));
   }
 
   public async getDeleteButton(index: number) {
@@ -33,7 +33,7 @@ export class NotificationListHarness extends ComponentHarness {
 
     return await rows[index]
       .getCells({ columnName: 'actions' })
-      .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=delete-button]' })));
+      .then(cells => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=delete-button]' })));
   }
 
   public async deleteRow(index: number) {
@@ -47,7 +47,7 @@ export class NotificationListHarness extends ComponentHarness {
 
     return await rows[index]
       .getCells({ columnName: 'actions' })
-      .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=edit-button]' })));
+      .then(cells => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=edit-button]' })));
   }
 
   public async editRow(index: number) {

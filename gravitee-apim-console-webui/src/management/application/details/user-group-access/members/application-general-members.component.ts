@@ -98,9 +98,9 @@ export class ApplicationGeneralMembersComponent {
           this.isReadOnly = application.origin === 'KUBERNETES';
           this.members = members;
           this.application = application;
-          this.roles = roles.map((r) => r.name) ?? [];
-          this.defaultRole = roles.find((role) => role.default);
-          this.membersTable = this.members.map((member) => {
+          this.roles = roles.map(r => r.name) ?? [];
+          this.defaultRole = roles.find(role => role.default);
+          this.membersTable = this.members.map(member => {
             return {
               id: member.id,
               role: member.role,
@@ -144,9 +144,9 @@ export class ApplicationGeneralMembersComponent {
     }
 
     return this.groupService.listById(groups, 1, groups.length).pipe(
-      tap((res) => {
+      tap(res => {
         const groupArray = res ? res.data : [];
-        this.groupData = groupArray.map((g) => ({
+        this.groupData = groupArray.map(g => ({
           id: g.id,
           name: g.name,
           isVisible: true,
@@ -165,16 +165,16 @@ export class ApplicationGeneralMembersComponent {
       .open<GioUsersSelectorComponent, GioUsersSelectorData, SearchableUser[]>(GioUsersSelectorComponent, {
         width: '500px',
         data: {
-          userFilterPredicate: (user) => !this.members.some((member) => member.id === user.id),
+          userFilterPredicate: user => !this.members.some(member => member.id === user.id),
         },
         role: 'alertdialog',
         id: 'addUserDialog',
       })
       .afterClosed()
       .pipe(
-        filter((selectedUsers) => !isEmpty(selectedUsers)),
-        tap((selectedUsers) => {
-          selectedUsers.forEach((user) => {
+        filter(selectedUsers => !isEmpty(selectedUsers)),
+        tap(selectedUsers => {
+          selectedUsers.forEach(user => {
             this.addMemberToForm(user);
           });
         }),
@@ -185,7 +185,7 @@ export class ApplicationGeneralMembersComponent {
 
   public removeMember(member: MemberDataSource) {
     if (member.notSaved) {
-      this.membersTable = this.membersTable.filter((member) => !member.notSaved);
+      this.membersTable = this.membersTable.filter(member => !member.notSaved);
       (this.form.get('members') as UntypedFormGroup).get(member.id).reset();
       (this.form.get('members') as UntypedFormGroup).removeControl(member.id);
     } else {
@@ -202,7 +202,7 @@ export class ApplicationGeneralMembersComponent {
         })
         .afterClosed()
         .pipe(
-          filter((confirm) => confirm === true),
+          filter(confirm => confirm === true),
           switchMap(() => this.applicationMembersService.delete(this.activatedRoute.snapshot.params.applicationId, member.id)),
           tap(() => {
             this.snackBarService.success(`"${member.displayName}" has been deleted`);
@@ -265,14 +265,14 @@ export class ApplicationGeneralMembersComponent {
   }
 
   private onApplicationMembersChange(memberFormId: string, role: string) {
-    const memberToUpdate = this.members.find((member) => member.id === memberFormId);
+    const memberToUpdate = this.members.find(member => member.id === memberFormId);
     if (memberToUpdate) {
       return this.applicationMembersService.update(this.activatedRoute.snapshot.params.applicationId, {
         id: memberToUpdate.id,
         role: role,
       });
     } else {
-      const memberToAdd = this.membersToAdd.find((member) => member._viewId === memberFormId);
+      const memberToAdd = this.membersToAdd.find(member => member._viewId === memberFormId);
       return this.applicationMembersService.update(this.activatedRoute.snapshot.params.applicationId, {
         id: memberToAdd.id,
         role: role,

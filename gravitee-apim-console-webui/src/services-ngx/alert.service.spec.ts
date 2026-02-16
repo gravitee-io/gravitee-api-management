@@ -37,10 +37,10 @@ describe('AlertService', () => {
   });
 
   describe('getStatus', () => {
-    it('should call the API with PLATFORM scope', (done) => {
+    it('should call the API with PLATFORM scope', done => {
       const alertStatus = fakeAlertStatus();
 
-      alertService.getStatus(Scope.ENVIRONMENT).subscribe((response) => {
+      alertService.getStatus(Scope.ENVIRONMENT).subscribe(response => {
         expect(response).toMatchObject(alertStatus);
         done();
       });
@@ -51,10 +51,10 @@ describe('AlertService', () => {
       req.flush(alertStatus);
     });
 
-    it('should call the API with API scope and referenceId', (done) => {
+    it('should call the API with API scope and referenceId', done => {
       const alertStatus = fakeAlertStatus();
 
-      alertService.getStatus(Scope.API, 'apiId').subscribe((response) => {
+      alertService.getStatus(Scope.API, 'apiId').subscribe(response => {
         expect(response).toMatchObject(alertStatus);
         done();
       });
@@ -65,10 +65,10 @@ describe('AlertService', () => {
       req.flush(alertStatus);
     });
 
-    it('should call the API with APPLICATION scope and referenceId', (done) => {
+    it('should call the API with APPLICATION scope and referenceId', done => {
       const alertStatus = fakeAlertStatus();
 
-      alertService.getStatus(Scope.APPLICATION, 'appId').subscribe((response) => {
+      alertService.getStatus(Scope.APPLICATION, 'appId').subscribe(response => {
         expect(response).toMatchObject(alertStatus);
         done();
       });
@@ -81,11 +81,11 @@ describe('AlertService', () => {
   });
 
   describe('list alerts for an API', () => {
-    it('should get API alerts', (done) => {
+    it('should get API alerts', done => {
       const apiId = 'test_api';
       const fakeAlerts = [fakeAlertTriggerEntity({ reference_id: apiId })];
 
-      alertService.listAlerts(apiId, false).subscribe((response) => {
+      alertService.listAlerts(apiId, false).subscribe(response => {
         expect(response).toMatchObject(fakeAlerts);
         done();
       });
@@ -100,7 +100,7 @@ describe('AlertService', () => {
   });
 
   describe('create alert for an API', () => {
-    it('should create API alert', (done) => {
+    it('should create API alert', done => {
       const apiId = 'test_api';
       const fakeNewAlerts = fakeNewAlertTriggerEntity();
 
@@ -116,7 +116,7 @@ describe('AlertService', () => {
   });
 
   describe('delete alert for an API', () => {
-    it('should delete API alert', (done) => {
+    it('should delete API alert', done => {
       const apiId = 'api_id';
       const alertId = 'alert_id';
 

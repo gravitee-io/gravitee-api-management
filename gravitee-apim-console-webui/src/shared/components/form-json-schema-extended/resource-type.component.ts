@@ -44,12 +44,12 @@ export class ResourceTypeComponent extends FieldType<FieldTypeConfig> implements
 
     this.filteredResources = this.formControl.valueChanges.pipe(
       startWith(''),
-      switchMap((term) => this.planOauth2ResourceTypeService.filter$(term, this.props.resourceType)),
+      switchMap(term => this.planOauth2ResourceTypeService.filter$(term, this.props.resourceType)),
     );
 
     this.resourceNotExist$ = this.formControl.valueChanges.pipe(
-      switchMap((term) => this.planOauth2ResourceTypeService.getResource(term, this.props.resourceType)),
-      map((resource) => !resource),
+      switchMap(term => this.planOauth2ResourceTypeService.getResource(term, this.props.resourceType)),
+      map(resource => !resource),
     );
   }
 }

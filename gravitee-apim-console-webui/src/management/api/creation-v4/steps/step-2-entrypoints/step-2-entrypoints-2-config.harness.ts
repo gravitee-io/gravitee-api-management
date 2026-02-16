@@ -52,25 +52,25 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
   protected getKafkaHostPort = this.locatorFor(GioFormListenersKafkaHostHarness);
 
   async clickPrevious(): Promise<void> {
-    return this.getPreviousButton().then((elt) => elt.click());
+    return this.getPreviousButton().then(elt => elt.click());
   }
 
   async clickValidate() {
-    return this.getValidateButton().then((elt) => elt.click());
+    return this.getValidateButton().then(elt => elt.click());
   }
 
   async hasValidationDisabled(): Promise<boolean> {
-    return this.getValidateButton().then((elt) => elt.isDisabled());
+    return this.getValidateButton().then(elt => elt.isDisabled());
   }
 
   async hasListenersForm(): Promise<boolean> {
     return this.getHttpListenersDiv()
-      .then((elt) => elt != null)
+      .then(elt => elt != null)
       .catch(() => false);
   }
 
   async clickListenerType() {
-    return this.getSwitchListenersTypeButton().then((elt) => elt.click());
+    return this.getSwitchListenersTypeButton().then(elt => elt.click());
   }
 
   async fillPaths(...paths: string[]) {
@@ -125,7 +125,7 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
 
   async canSwitchListenerMode() {
     return this.getSwitchListenersTypeButton()
-      .then(async (elt) => elt != null && !(await elt.isDisabled()))
+      .then(async elt => elt != null && !(await elt.isDisabled()))
       .catch(() => false);
   }
 
@@ -134,13 +134,13 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
    */
   async hasKafkaListenersForm(): Promise<boolean> {
     return this.getKafkaHostPort()
-      .then((elt) => elt != null)
+      .then(elt => elt != null)
       .catch(() => false);
   }
 
   async fillHost(newHostValue: string): Promise<void> {
     return this.getKafkaHostPort()
-      .then((component) => component.getHostInput())
-      .then((hostInput) => hostInput.setValue(newHostValue));
+      .then(component => component.getHostInput())
+      .then(hostInput => hostInput.setValue(newHostValue));
   }
 }

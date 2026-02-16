@@ -104,7 +104,7 @@ const DashboardComponent: ng.IComponentOptions = {
 
       this.$onInit = () => {
         if (this.model) {
-          each(this.model.definition, (widget) => {
+          each(this.model.definition, widget => {
             widget.$uid = this.guid();
           });
         }

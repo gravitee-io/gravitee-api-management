@@ -123,9 +123,9 @@ export class ApiAuditListComponent implements OnInit, OnDestroy {
         ),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((auditsList) => {
+      .subscribe(auditsList => {
         this.nbTotalAudit = auditsList.totalElements;
-        this.auditList = (auditsList.content ?? []).map((audit) => ({
+        this.auditList = (auditsList.content ?? []).map(audit => ({
           id: audit.id,
           date: audit.createdAt,
           user: (auditsList.metadata[`USER:${audit.user}:name`] as string) ?? audit.user,

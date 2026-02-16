@@ -37,10 +37,10 @@ describe('Installation Plugins Service', () => {
 
   describe('Endpoints', () => {
     describe('listEndpointPlugins', () => {
-      it('should call the API', (done) => {
+      it('should call the API', done => {
         const fakeConnectors = [fakeConnectorPlugin()];
 
-        service.listEndpointPlugins().subscribe((connectors) => {
+        service.listEndpointPlugins().subscribe(connectors => {
           expect(connectors).toMatchObject(fakeConnectors);
           done();
         });
@@ -55,7 +55,7 @@ describe('Installation Plugins Service', () => {
     });
 
     describe('listEndpointPluginsByApiType', () => {
-      it('should call the API', (done) => {
+      it('should call the API', done => {
         const response = [
           fakeConnectorPlugin({ name: 'z-plugin' }),
           fakeConnectorPlugin({ name: 'a-plugin' }),
@@ -63,7 +63,7 @@ describe('Installation Plugins Service', () => {
         ];
         const result = [fakeConnectorPlugin({ name: 'a-plugin' }), fakeConnectorPlugin({ name: 'z-plugin' })];
 
-        service.listEndpointPluginsByApiType('PROXY').subscribe((connectors) => {
+        service.listEndpointPluginsByApiType('PROXY').subscribe(connectors => {
           expect(connectors).toStrictEqual(result);
           done();
         });
@@ -78,10 +78,10 @@ describe('Installation Plugins Service', () => {
     });
 
     describe('v4Get', () => {
-      it('should call the API', (done) => {
+      it('should call the API', done => {
         const fakeConnectors = fakeConnectorPlugin();
 
-        service.getEndpointPlugin('endpointId').subscribe((connectors) => {
+        service.getEndpointPlugin('endpointId').subscribe(connectors => {
           expect(connectors).toEqual(fakeConnectors);
           done();
         });
@@ -98,10 +98,10 @@ describe('Installation Plugins Service', () => {
 
   describe('Entrypoints', () => {
     describe('listSyncEntrypointPlugins', () => {
-      it('should call the API', (done) => {
+      it('should call the API', done => {
         const fakeConnectors = [fakeConnectorPlugin({ supportedApiType: 'PROXY' }), fakeConnectorPlugin({ supportedApiType: 'MESSAGE' })];
 
-        service.listSyncEntrypointPlugins().subscribe((connectors) => {
+        service.listSyncEntrypointPlugins().subscribe(connectors => {
           expect(connectors).toMatchObject([fakeConnectors[0]]);
           done();
         });
@@ -116,10 +116,10 @@ describe('Installation Plugins Service', () => {
     });
 
     describe('listAsyncEntrypointPlugins', () => {
-      it('should call the API', (done) => {
+      it('should call the API', done => {
         const fakeConnectors = [fakeConnectorPlugin({ supportedApiType: 'PROXY' }), fakeConnectorPlugin({ supportedApiType: 'MESSAGE' })];
 
-        service.listAsyncEntrypointPlugins().subscribe((connectors) => {
+        service.listAsyncEntrypointPlugins().subscribe(connectors => {
           expect(connectors).toMatchObject([fakeConnectors[1]]);
           done();
         });
@@ -134,7 +134,7 @@ describe('Installation Plugins Service', () => {
     });
 
     describe('getSubscriptionSchema', () => {
-      it('should call the API', (done) => {
+      it('should call the API', done => {
         const expectedSchema: GioJsonSchema = {
           $schema: 'http://json-schema.org/draft-07/schema#',
           type: 'object',
@@ -145,7 +145,7 @@ describe('Installation Plugins Service', () => {
           },
         };
 
-        service.getEntrypointPluginSubscriptionSchema('entrypoint-id').subscribe((schema) => {
+        service.getEntrypointPluginSubscriptionSchema('entrypoint-id').subscribe(schema => {
           expect(schema).toMatchObject(expectedSchema);
           done();
         });
@@ -161,8 +161,8 @@ describe('Installation Plugins Service', () => {
 
     describe('getEntrypointPluginSchema', () => {
       const entrypoint = fakeConnectorPlugin();
-      it('should call the API', (done) => {
-        service.getEntrypointPlugin('entrypoint-id').subscribe((schema) => {
+      it('should call the API', done => {
+        service.getEntrypointPlugin('entrypoint-id').subscribe(schema => {
           expect(schema).toMatchObject(entrypoint);
           done();
         });

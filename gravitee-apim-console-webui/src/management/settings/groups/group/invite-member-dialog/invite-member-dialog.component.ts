@@ -116,7 +116,7 @@ export class InviteMemberDialogComponent implements OnInit {
   private disableAPIRoleOptions() {
     this.disabledAPIRoles.set(
       new Set(
-        this.defaultAPIRoles.filter((role) => this.isPrimaryOwnerDisabled(role) || this.isSystemRoleDisabled(role)).map((role) => role.id),
+        this.defaultAPIRoles.filter(role => this.isPrimaryOwnerDisabled(role) || this.isSystemRoleDisabled(role)).map(role => role.id),
       ),
     );
   }
@@ -126,7 +126,7 @@ export class InviteMemberDialogComponent implements OnInit {
   }
 
   private isPrimaryOwnerPresent() {
-    return this.members.some((member) => member.roles['API'] === RoleName.PRIMARY_OWNER);
+    return this.members.some(member => member.roles['API'] === RoleName.PRIMARY_OWNER);
   }
 
   private isSystemRoleDisabled(role: Role): boolean {

@@ -38,7 +38,7 @@ export class ApiAnalyticsRequestStatsHarness extends ComponentHarness {
     const rows = await this.rows();
 
     return parallel(() => {
-      return rows.map(async (row) => {
+      return rows.map(async row => {
         return {
           label: await row.getText({ childSelector: '.list__row__label' }),
           value: await row.getText({ childSelector: '.list__row__value' }),

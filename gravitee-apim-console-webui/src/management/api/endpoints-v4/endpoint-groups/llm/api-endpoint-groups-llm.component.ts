@@ -100,12 +100,12 @@ export class ApiEndpointGroupsLlmComponent {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),
-        switchMap((api) => {
+        switchMap(api => {
           const apiV4 = api as ApiV4;
           const endpointGroups = apiV4.endpointGroups || [];
-          remove(endpointGroups, (g) => g.name === groupName);
+          remove(endpointGroups, g => g.name === groupName);
           return this.apiService.update(apiV4.id, { ...apiV4, endpointGroups } as UpdateApi);
         }),
         catchError(({ error }) => {
@@ -115,7 +115,7 @@ export class ApiEndpointGroupsLlmComponent {
           return EMPTY;
         }),
         switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),
-        map((refreshedApi) => {
+        map(refreshedApi => {
           const apiV4 = refreshedApi as ApiV4;
           this.providersTableData.set(toProviders(apiV4));
           this.snackBarService.success(`Provider ${groupName} successfully deleted!`);
@@ -136,15 +136,15 @@ export class ApiEndpointGroupsLlmComponent {
       case 'OPEN_AI':
         return 'OpenAI';
       default:
-        return providerType.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+        return providerType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
   }
 
   private transformPluginsToMap(plugins: ConnectorPlugin[]): Map<string, ConnectorPluginWithIcon> {
     return new Map(
       plugins
-        .filter((plugin) => plugin.id && plugin.icon)
-        .map((plugin) => [
+        .filter(plugin => plugin.id && plugin.icon)
+        .map(plugin => [
           plugin.id!,
           {
             ...plugin,

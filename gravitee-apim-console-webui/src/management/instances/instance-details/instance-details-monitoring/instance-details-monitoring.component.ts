@@ -48,17 +48,17 @@ export class InstanceDetailsMonitoringComponent implements OnInit, OnDestroy {
     this.instanceService
       .get(this.activatedRoute.snapshot.params.instanceId)
       .pipe(
-        tap((instance) => {
+        tap(instance => {
           this.instance = instance;
           this.instanceStarted = instance.state === 'STARTED';
         }),
-        switchMap((instance) => {
+        switchMap(instance => {
           if (instance.state !== 'STARTED') {
             return of();
           }
           return of({}).pipe(
-            mergeMap((_) => this.instanceService.getMonitoringData(this.activatedRoute.snapshot.params.instanceId, this.instance.id)),
-            tap((monitoringData) => (this.monitoringData = monitoringData)),
+            mergeMap(_ => this.instanceService.getMonitoringData(this.activatedRoute.snapshot.params.instanceId, this.instance.id)),
+            tap(monitoringData => (this.monitoringData = monitoringData)),
             delay(5000),
             repeat(),
           );

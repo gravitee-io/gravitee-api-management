@@ -79,8 +79,8 @@ describe('ApiGeneralGroupsComponent', () => {
       const api = fakeApiV4({ id: apiId, groups: [] });
       await expectGetRequests(api, [groupId1, groupId2]);
       expect(await harness.getGroupsLength()).toStrictEqual(api.groups.length);
-      expect(await harness.getGroupsNames()).toEqual(api.groups.map((id) => `Group ${id}-name`));
-      api.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
+      expect(await harness.getGroupsNames()).toEqual(api.groups.map(id => `Group ${id}-name`));
+      api.groups.forEach(id => expectGetGroupMembersRequest(fakeGroup({ id })));
 
       await harness.manageGroupsClick();
       const groupsHarness = await rootLoader.getHarness(ApiGeneralGroupsHarness);
@@ -123,7 +123,7 @@ describe('ApiGeneralGroupsComponent', () => {
       expectApiMembersGetRequest(api);
       expectApiRoleGetRequest();
 
-      [groupId1, groupId2].forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
+      [groupId1, groupId2].forEach(id => expectGetGroupMembersRequest(fakeGroup({ id })));
       await harness.manageGroupsClick();
       expectApiGetRequest({ ...api, groups: mockedReturnedGroups });
       expectApiPutRequest({ ...api, groups: mockedReturnedGroups });
@@ -131,7 +131,7 @@ describe('ApiGeneralGroupsComponent', () => {
       expectGetGroupsListRequest(mockedReturnedGroups);
       expectApiMembersGetRequest({ ...api, groups: mockedReturnedGroups });
       expectApiRoleGetRequest();
-      mockedReturnedGroups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
+      mockedReturnedGroups.forEach(id => expectGetGroupMembersRequest(fakeGroup({ id })));
       fixture.detectChanges();
       expect(matDialogSpy.open).toHaveBeenCalled();
     });
@@ -153,7 +153,7 @@ describe('ApiGeneralGroupsComponent', () => {
     it('should not apply group changes if dialog is closed without saving', async () => {
       const api = fakeApiV4({ id: apiId, groups: [groupId1] });
       await expectGetRequests(api, [groupId1, groupId2]);
-      api.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
+      api.groups.forEach(id => expectGetGroupMembersRequest(fakeGroup({ id })));
       await harness.manageGroupsClick();
       const groupsHarness = await rootLoader.getHarness(ApiGeneralGroupsHarness);
       await groupsHarness.selectGroups({ text: `${groupId2}-name` });
@@ -188,7 +188,7 @@ describe('ApiGeneralGroupsComponent', () => {
           { statusText: 'Forbidden', status: 403 },
         );
 
-      expect(await harness.getGroupsNames()).toEqual(api.groups.map((id) => `Group ${id}-name`));
+      expect(await harness.getGroupsNames()).toEqual(api.groups.map(id => `Group ${id}-name`));
       expect(await harness.getGroupsLength()).toStrictEqual(api.groups.length);
 
       await harness.manageGroupsClick();
@@ -220,7 +220,7 @@ describe('ApiGeneralGroupsComponent', () => {
   function expectGetGroupsListRequest(groups: string[]) {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups?page=1&perPage=9999`, method: 'GET' })
-      .flush(fakeGroupsResponse({ data: groups.map((id) => fakeGroup({ id, name: id + '-name' })) }));
+      .flush(fakeGroupsResponse({ data: groups.map(id => fakeGroup({ id, name: id + '-name' })) }));
     fixture.detectChanges();
   }
 

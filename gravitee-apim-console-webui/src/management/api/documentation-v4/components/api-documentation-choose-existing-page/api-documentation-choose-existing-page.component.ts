@@ -60,15 +60,15 @@ export class ApiDocumentationChooseExistingPageComponent implements OnInit {
     this.apiV2Service
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
-        tap((api) => {
+        tap(api => {
           this.api = api;
           this.isReadOnly = this.api.originContext?.origin === 'KUBERNETES';
         }),
         switchMap(() => this.apiDocumentationV2Service.getApiPages(this.api.id)),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((res) => {
-        this.pages = res.pages.filter((p) => p.generalConditions !== true && p.homepage !== true);
+      .subscribe(res => {
+        this.pages = res.pages.filter(p => p.generalConditions !== true && p.homepage !== true);
         this.isLoading = false;
       });
   }
@@ -89,7 +89,7 @@ export class ApiDocumentationChooseExistingPageComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirmed) => !!confirmed),
+        filter(confirmed => !!confirmed),
         switchMap(() => this.apiDocumentationV2Service.getApiPage(this.api.id, this.selectedPageId)),
         switchMap((chosenPage: Page) =>
           this.apiDocumentationV2Service.updateDocumentationPage(this.api.id, chosenPage.id, {
@@ -103,7 +103,7 @@ export class ApiDocumentationChooseExistingPageComponent implements OnInit {
           this.snackBarService.success('Homepage chosen successfully');
           this.goBackToDefaultPage();
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'An error occurred when choosing a homepage');
         },
       });

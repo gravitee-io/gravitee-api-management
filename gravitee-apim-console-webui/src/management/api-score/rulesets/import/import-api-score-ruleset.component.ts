@@ -97,7 +97,7 @@ export class ImportApiScoreRulesetComponent implements OnInit {
   }
 
   public handleDefinitionFormatChange() {
-    this.definitionFormatValue.valueChanges.subscribe((definitionFormat) => {
+    this.definitionFormatValue.valueChanges.subscribe(definitionFormat => {
       if (definitionFormat === 'GraviteeAPI') {
         this.form.addControl('graviteeApiFormat', this.formBuilder.control('', [Validators.required]));
       } else {
