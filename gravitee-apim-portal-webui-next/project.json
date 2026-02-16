@@ -128,7 +128,8 @@
         "passWithNoTests": true
       }
     },
-    "lint": {
+    "lint": {},
+    "lint-eslint": {
       "executor": "@angular-eslint/builder:lint",
       "options": {
         "lintFilePatterns": [
@@ -137,13 +138,7 @@
         ]
       }
     },
-    "lint-license": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "license-check-and-add check -f license-check-config.json",
-        "cwd": "gravitee-apim-portal-webui-next"
-      }
-    },
+    "lint-license": {},
     "storybook": {
       "executor": "@storybook/angular:start-storybook",
       "options": {

@@ -29,19 +29,14 @@
       },
       "outputs": ["{workspaceRoot}/coverage/gravitee-dashboard"]
     },
-    "lint": {
+    "lint": {},
+    "lint-eslint": {
       "executor": "@nx/eslint:lint",
       "options": {
         "lintFilePatterns": ["gravitee-apim-webui-libs/gravitee-dashboard/**/*.ts"]
       }
     },
-    "lint-license": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "license-check-and-add check -f license-check-config.json",
-        "cwd": "gravitee-apim-webui-libs/gravitee-dashboard"
-      }
-    },
+    "lint-license": {},
     "storybook": {
       "executor": "@storybook/angular:start-storybook",
       "options": {

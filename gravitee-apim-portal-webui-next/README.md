@@ -33,11 +33,13 @@ All commands must be run from the **repository root** (not from this directory).
 Run `yarn portal-next:serve` for a dev server. Navigate to `http://localhost:4101/`. The application will automatically reload if you change any of the source files.
 
 Alternative backends:
+
 - `yarn portal-next:serve:apim-master` - Connect to apim-master backend
 
 ### Code scaffolding
 
 From the repository root:
+
 ```bash
 yarn nx generate component component-name --project=portal-next
 ```
@@ -47,6 +49,7 @@ You can also use `nx generate directive|pipe|service|class|guard|interface|enum|
 ## Build
 
 From the repository root:
+
 - `yarn portal-next:build` - Build the project in development mode
 - `yarn portal-next:build:prod` - Build the project in production mode
 
@@ -55,6 +58,7 @@ The build artifacts will be stored in `gravitee-apim-portal-webui-next/dist/`.
 ## Testing & Quality
 
 From the repository root:
+
 - `yarn portal-next:test` or `nx test portal-next` - Run unit tests via [Jest](https://jestjs.io/)
 - `yarn portal-next:lint` or `nx lint portal-next` - Run ESLint
 - `yarn portal-next:storybook` - Start Storybook on port 6006
@@ -62,6 +66,7 @@ From the repository root:
 ## Shared Libraries
 
 This project uses shared libraries located in `gravitee-apim-webui-libs/`:
+
 - `@gravitee/gravitee-markdown` (moved from `projects/gravitee-markdown`)
 - `@gravitee/gravitee-dashboard` (moved from `projects/gravitee-dashboard`)
 
