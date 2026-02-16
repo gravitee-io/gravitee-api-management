@@ -23,9 +23,9 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import java.util.List;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import java.util.List;
 
 @RequiredArgsConstructor
 @UseCase

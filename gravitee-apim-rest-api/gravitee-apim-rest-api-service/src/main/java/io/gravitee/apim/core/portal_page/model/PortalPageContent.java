@@ -17,8 +17,8 @@ package io.gravitee.apim.core.portal_page.model;
 
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidator;
 import jakarta.annotation.Nonnull;
-import lombok.Getter;
 import java.util.List;
+import lombok.Getter;
 
 @Getter
 public abstract sealed class PortalPageContent permits GraviteeMarkdownPageContent {
