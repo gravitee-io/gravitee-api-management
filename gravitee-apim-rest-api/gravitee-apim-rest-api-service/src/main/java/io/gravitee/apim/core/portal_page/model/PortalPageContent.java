@@ -15,8 +15,10 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidator;
 import jakarta.annotation.Nonnull;
 import lombok.Getter;
+import java.util.List;
 
 @Getter
 public abstract sealed class PortalPageContent permits GraviteeMarkdownPageContent {
@@ -36,7 +38,7 @@ public abstract sealed class PortalPageContent permits GraviteeMarkdownPageConte
         this.environmentId = environmentId;
     }
 
-    public abstract void update(UpdatePortalPageContent updatePortalPageContent);
+    public abstract void update(UpdatePortalPageContent updatePortalPageContent, List<PortalPageContentValidator> contentValidators);
 
     public abstract PortalPageContentType getType();
 
