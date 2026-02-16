@@ -34,18 +34,18 @@ export class ApiProxyEndpointListHarness extends ComponentHarness {
 
   public async getTableRows(index: number) {
     const table = this.locatorFor(MatTableHarness.with({ selector: `#endpointGroupsTable-${index}` }));
-    const rows = await table().then((t) => t.getCellTextByIndex());
+    const rows = await table().then(t => t.getCellTextByIndex());
 
     const resolveIconCell1 = async (row: number) =>
       await table()
-        .then((t) => t.getRows())
-        .then((rows) => rows[row].getCells())
-        .then(async (cells) => ({
+        .then(t => t.getRows())
+        .then(rows => rows[row].getCells())
+        .then(async cells => ({
           text: await cells[1].getText(),
           allIconHarnesses: await cells[1].getAllHarnesses(MatIconHarness),
         }))
         .then(async ({ text, allIconHarnesses }) => {
-          const allIcon = await parallel(() => allIconHarnesses.map((icon) => icon.getName()));
+          const allIcon = await parallel(() => allIconHarnesses.map(icon => icon.getName()));
           return [text, ...allIcon].join(' ').trim();
         });
 
@@ -67,8 +67,8 @@ export class ApiProxyEndpointListHarness extends ComponentHarness {
     await button.click();
     return await rootLoader
       .getHarness(MatDialogHarness)
-      .then((dialog) => dialog.getHarness(MatButtonHarness.with({ text: /Delete/ })))
-      .then((element) => element.click());
+      .then(dialog => dialog.getHarness(MatButtonHarness.with({ text: /Delete/ })))
+      .then(element => element.click());
   }
 
   public async deleteEndpoint(index: number, rootLoader: HarnessLoader) {
@@ -76,7 +76,7 @@ export class ApiProxyEndpointListHarness extends ComponentHarness {
     await buttons[index].click();
     return await rootLoader
       .getHarness(MatDialogHarness)
-      .then((dialog) => dialog.getHarness(MatButtonHarness.with({ text: /Delete/ })))
-      .then((element) => element.click());
+      .then(dialog => dialog.getHarness(MatButtonHarness.with({ text: /Delete/ })))
+      .then(element => element.click());
   }
 }

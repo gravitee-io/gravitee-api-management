@@ -66,7 +66,7 @@ export class ConstantsService {
   getEnabledPlanMenuItems(): PlanMenuItemVM[] {
     const planSecuritySettings: [string, { enabled: boolean }][] = Object.entries(this.constants.env?.settings?.plan?.security ?? {});
 
-    return AVAILABLE_PLANS_FOR_MENU.filter((planMenuItem) => {
+    return AVAILABLE_PLANS_FOR_MENU.filter(planMenuItem => {
       const cleanSecurityType = camelCase(planMenuItem.planFormType.replace('_', ''));
 
       // One of the portal settings security types matches the security type from PLAN_SECURITY_TYPES
@@ -81,26 +81,26 @@ export class ConstantsService {
   getPlanMenuItems(definitionVersion: DefinitionVersion, listenerTypes: ListenerType[]): PlanMenuItemVM[] {
     const availablePlanMenuItems = this.getEnabledPlanMenuItems();
 
-    if (definitionVersion === 'V4' && listenerTypes?.every((listenerType) => listenerType === 'TCP')) {
-      return availablePlanMenuItems.filter((p) => p.planFormType === 'KEY_LESS');
+    if (definitionVersion === 'V4' && listenerTypes?.every(listenerType => listenerType === 'TCP')) {
+      return availablePlanMenuItems.filter(p => p.planFormType === 'KEY_LESS');
     }
 
-    if (definitionVersion === 'V4' && listenerTypes?.every((listenerType) => listenerType === 'SUBSCRIPTION')) {
-      return availablePlanMenuItems.filter((planMenuItem) => planMenuItem.planFormType === 'PUSH');
+    if (definitionVersion === 'V4' && listenerTypes?.every(listenerType => listenerType === 'SUBSCRIPTION')) {
+      return availablePlanMenuItems.filter(planMenuItem => planMenuItem.planFormType === 'PUSH');
     }
 
-    if (definitionVersion === 'V4' && listenerTypes?.every((listenerType) => ['HTTP', 'TCP'].includes(listenerType))) {
-      return availablePlanMenuItems.filter((planMenuItem) => planMenuItem.planFormType !== 'PUSH');
+    if (definitionVersion === 'V4' && listenerTypes?.every(listenerType => ['HTTP', 'TCP'].includes(listenerType))) {
+      return availablePlanMenuItems.filter(planMenuItem => planMenuItem.planFormType !== 'PUSH');
     }
 
-    if (definitionVersion === 'V4' && listenerTypes?.every((listenerType) => listenerType === 'KAFKA')) {
-      return availablePlanMenuItems.filter((planMenuItem) => planMenuItem.planFormType !== 'PUSH');
+    if (definitionVersion === 'V4' && listenerTypes?.every(listenerType => listenerType === 'KAFKA')) {
+      return availablePlanMenuItems.filter(planMenuItem => planMenuItem.planFormType !== 'PUSH');
     }
 
     if (definitionVersion !== 'V4') {
       return availablePlanMenuItems
-        .filter((planMenuItem) => planMenuItem.planFormType !== 'PUSH')
-        .filter((planMenuItem) => planMenuItem.planFormType !== 'MTLS');
+        .filter(planMenuItem => planMenuItem.planFormType !== 'PUSH')
+        .filter(planMenuItem => planMenuItem.planFormType !== 'MTLS');
     }
 
     return availablePlanMenuItems;

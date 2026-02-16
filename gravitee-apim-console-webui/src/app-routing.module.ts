@@ -53,7 +53,7 @@ const appRoutes: Routes = [
         path: '_organization',
         component: AppComponent,
         loadChildren: () =>
-          import('./organization/configuration/organization-settings-routing.module').then((m) => m.OrganizationSettingsRoutingModule),
+          import('./organization/configuration/organization-settings-routing.module').then(m => m.OrganizationSettingsRoutingModule),
       },
       {
         path: 'environments/:envHrid/_portal',
@@ -62,7 +62,7 @@ const appRoutes: Routes = [
       {
         path: ':envHrid/_portal',
         component: AppComponent,
-        loadChildren: () => import('./portal/portal-settings-routing.module').then((m) => m.PortalSettingsRoutingModule),
+        loadChildren: () => import('./portal/portal-settings-routing.module').then(m => m.PortalSettingsRoutingModule),
       },
       {
         path: 'environments/:envHrid',
@@ -71,7 +71,7 @@ const appRoutes: Routes = [
       {
         path: ':envHrid',
         component: AppComponent,
-        loadChildren: () => import('./management/management.module').then((m) => m.ManagementModule),
+        loadChildren: () => import('./management/management.module').then(m => m.ManagementModule),
       },
       { path: '', pathMatch: 'full', redirectTo: 'default' },
     ],

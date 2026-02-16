@@ -51,7 +51,7 @@ export class ApiLoggingComponent implements OnInit, OnDestroy {
     this.consoleSettingsService
       .get()
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((settings) => {
+      .subscribe(settings => {
         this.isLoading = false;
         this.settings = settings;
 

@@ -34,7 +34,7 @@ import { PortalSettings } from '../entities/portal/portalSettings';
 export class PortalSettingsService {
   static isReadonly(settings: PortalSettings, property: string): boolean {
     if (settings && settings.metadata && settings.metadata.readonly) {
-      return settings.metadata.readonly.some((key) => key === property);
+      return settings.metadata.readonly.some(key => key === property);
     }
     return false;
   }

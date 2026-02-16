@@ -29,7 +29,7 @@ class ApiAuditControllerAjs {
     this.$scope.api = this.activatedRoute.snapshot.params.apiId;
     this.$scope.apis = [{ id: this.activatedRoute.snapshot.params.apiId }];
     this.$scope.applications = [];
-    this.AuditService.listEvents(this.activatedRoute.snapshot.params.apiId).then((response) => {
+    this.AuditService.listEvents(this.activatedRoute.snapshot.params.apiId).then(response => {
       this.$scope.events = response.data;
     });
   }

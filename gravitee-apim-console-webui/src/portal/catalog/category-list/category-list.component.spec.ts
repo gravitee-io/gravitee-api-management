@@ -162,7 +162,7 @@ describe('CategoryListComponent', () => {
       ]);
     });
     it('should show multiple categories', async () => {
-      expect(await componentHarness.getTableRows(harnessLoader).then((rows) => rows.length)).toEqual(3);
+      expect(await componentHarness.getTableRows(harnessLoader).then(rows => rows.length)).toEqual(3);
     });
     it('should sort categories by order', async () => {
       expect(await componentHarness.getNameByRowIndex(harnessLoader, 0)).toEqual('cat-1');
@@ -171,7 +171,7 @@ describe('CategoryListComponent', () => {
     });
     it('should show which categories are hidden', async () => {
       const rows = await componentHarness.getTableRows(harnessLoader);
-      const hiddenIcon = await rows[1].getCells({ columnName: 'name' }).then((cells) => cells[0].getHarnessOrNull(MatIconHarness));
+      const hiddenIcon = await rows[1].getCells({ columnName: 'name' }).then(cells => cells[0].getHarnessOrNull(MatIconHarness));
       expect(hiddenIcon).toBeTruthy();
     });
     it('should show api count', async () => {

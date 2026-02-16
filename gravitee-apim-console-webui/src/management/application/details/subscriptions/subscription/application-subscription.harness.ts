@@ -29,7 +29,7 @@ export class ApplicationSubscriptionHarness extends ComponentHarness {
   async getSubscriptionDetails(): Promise<string[][]> {
     const subscriptionDetails = await this.getSubscriptionDetailsToChunk();
 
-    const subscriptionDetailsToChunk = await parallel(() => subscriptionDetails.map(async (detail) => await detail.text()));
+    const subscriptionDetailsToChunk = await parallel(() => subscriptionDetails.map(async detail => await detail.text()));
     return chunk(subscriptionDetailsToChunk, 2);
   }
 

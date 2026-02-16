@@ -42,7 +42,7 @@ export class ApiV1PropertiesComponent extends UpgradeComponent {
     this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
       .toPromise()
-      .then((api) => {
+      .then(api => {
         this.ngOnChanges({
           resolvedApi: new SimpleChange(null, api, true),
         });

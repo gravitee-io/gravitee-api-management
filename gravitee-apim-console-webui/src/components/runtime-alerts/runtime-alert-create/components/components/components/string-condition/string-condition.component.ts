@@ -83,7 +83,7 @@ export class StringConditionComponent implements OnInit, OnDestroy {
       this.operators = condition.getOperators();
     }
 
-    this.createConditionsService.loadDataFromMetric(this.metric, this.referenceType, this.referenceId).subscribe((references) => {
+    this.createConditionsService.loadDataFromMetric(this.metric, this.referenceType, this.referenceId).subscribe(references => {
       this.references = references;
     });
 

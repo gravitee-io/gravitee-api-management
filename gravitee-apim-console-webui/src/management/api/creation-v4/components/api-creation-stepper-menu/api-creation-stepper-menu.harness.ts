@@ -21,7 +21,7 @@ export class ApiCreationStepperMenuHarness extends ComponentHarness {
   static hostSelector = 'api-creation-stepper-menu';
 
   async clickOnStepById(stepId: string) {
-    return this.locatorFor(StepperMenuStepHarness.with({ selector: `[ng-reflect-step-number='${stepId}']` }))().then((elt) => {
+    return this.locatorFor(StepperMenuStepHarness.with({ selector: `[ng-reflect-step-number='${stepId}']` }))().then(elt => {
       return elt.clickOnStepHeader();
     });
   }

@@ -29,7 +29,7 @@ export default {
     }),
   ],
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 800px">
         <api-runtime-logs-message-item [messageLog]="messageLog" [entrypointConnectorIcon]="entrypointConnectorIcon" [endpointConnectorIcon]="endpointConnectorIcon"></api-runtime-logs-message-item>

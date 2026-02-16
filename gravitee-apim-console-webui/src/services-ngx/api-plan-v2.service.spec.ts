@@ -51,7 +51,7 @@ describe('ApiPlanV2Service', () => {
   });
 
   describe('list', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakeApiPlansResponse: ApiPlansResponse = {
         data: [
           fakePlanV4({
@@ -60,7 +60,7 @@ describe('ApiPlanV2Service', () => {
         ],
       };
 
-      apiPlanV2Service.list(API_ID, undefined, undefined, undefined, undefined).subscribe((apiPlansResponse) => {
+      apiPlanV2Service.list(API_ID, undefined, undefined, undefined, undefined).subscribe(apiPlansResponse => {
         expect(apiPlansResponse.data).toEqual([
           fakePlanV4({
             id: PLAN_ID,
@@ -76,7 +76,7 @@ describe('ApiPlanV2Service', () => {
 
       req.flush(fakeApiPlansResponse);
     });
-    it('should list with statuses, security and mode', (done) => {
+    it('should list with statuses, security and mode', done => {
       const security = ['API_KEY'];
       const statuses: PlanStatus[] = ['STAGING', 'PUBLISHED'];
       const mode: PlanMode = 'STANDARD';
@@ -89,7 +89,7 @@ describe('ApiPlanV2Service', () => {
         ],
       };
 
-      apiPlanV2Service.list(API_ID, security, statuses, mode, undefined).subscribe((apiPlansResponse) => {
+      apiPlanV2Service.list(API_ID, security, statuses, mode, undefined).subscribe(apiPlansResponse => {
         expect(apiPlansResponse.data).toEqual([
           fakePlanV4({
             id: PLAN_ID,
@@ -108,7 +108,7 @@ describe('ApiPlanV2Service', () => {
   });
 
   describe('create', () => {
-    it('should create api plans', (done) => {
+    it('should create api plans', done => {
       const plan: CreatePlanV4 = {
         description: '',
         definitionVersion: 'V4',
@@ -119,7 +119,7 @@ describe('ApiPlanV2Service', () => {
         security: { type: 'API_KEY', configuration: '{}' },
       };
 
-      apiPlanV2Service.create(API_ID, plan).subscribe((response) => {
+      apiPlanV2Service.create(API_ID, plan).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -132,7 +132,7 @@ describe('ApiPlanV2Service', () => {
       planReq.flush(plan);
     });
 
-    it('should create PUSH plans using SUBSCRIPTION type', (done) => {
+    it('should create PUSH plans using SUBSCRIPTION type', done => {
       const plan: CreatePlanV4 = {
         description: '',
         definitionVersion: 'V4',
@@ -142,7 +142,7 @@ describe('ApiPlanV2Service', () => {
         mode: 'PUSH',
       };
 
-      apiPlanV2Service.create(API_ID, plan).subscribe((response) => {
+      apiPlanV2Service.create(API_ID, plan).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -158,11 +158,11 @@ describe('ApiPlanV2Service', () => {
   });
 
   describe('get', () => {
-    it('should get api plans', (done) => {
+    it('should get api plans', done => {
       const apiId = 'api-1';
       const planId = 'plan-1';
 
-      apiPlanV2Service.get(apiId, planId).subscribe((response) => {
+      apiPlanV2Service.get(apiId, planId).subscribe(response => {
         expect(response).toMatchObject({ id: planId });
         done();
       });
@@ -176,7 +176,7 @@ describe('ApiPlanV2Service', () => {
   });
 
   describe('publish', () => {
-    it('should publish api plans', (done) => {
+    it('should publish api plans', done => {
       const plan = fakePlanV4({ id: PLAN_ID, apiId: API_ID });
 
       apiPlanV2Service.publish(API_ID, PLAN_ID).subscribe(() => {
@@ -192,11 +192,11 @@ describe('ApiPlanV2Service', () => {
   });
 
   describe('update', () => {
-    it('should update api plans V2', (done) => {
+    it('should update api plans V2', done => {
       const updatePlan = fakeUpdatePlanV2();
       const plan = fakePlanV2({ id: PLAN_ID, apiId: API_ID });
 
-      apiPlanV2Service.update(API_ID, PLAN_ID, updatePlan).subscribe((response) => {
+      apiPlanV2Service.update(API_ID, PLAN_ID, updatePlan).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -209,11 +209,11 @@ describe('ApiPlanV2Service', () => {
       planReq.flush(plan);
     });
 
-    it('should update api plans V4', (done) => {
+    it('should update api plans V4', done => {
       const updatePlan = fakeUpdatePlanV4();
       const plan = fakePlanV4({ id: PLAN_ID, apiId: API_ID });
 
-      apiPlanV2Service.update(API_ID, PLAN_ID, updatePlan).subscribe((response) => {
+      apiPlanV2Service.update(API_ID, PLAN_ID, updatePlan).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -228,10 +228,10 @@ describe('ApiPlanV2Service', () => {
   });
 
   describe('get', () => {
-    it('should get the api plan', (done) => {
+    it('should get the api plan', done => {
       const plan = fakePlanV2({ id: PLAN_ID, apiId: API_ID });
 
-      apiPlanV2Service.get(API_ID, PLAN_ID).subscribe((response) => {
+      apiPlanV2Service.get(API_ID, PLAN_ID).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -246,10 +246,10 @@ describe('ApiPlanV2Service', () => {
   });
 
   describe('deprecate', () => {
-    it('should deprecate the api plan V2', (done) => {
+    it('should deprecate the api plan V2', done => {
       const plan = fakePlanV2({ id: PLAN_ID, apiId: API_ID });
 
-      apiPlanV2Service.deprecate(API_ID, PLAN_ID).subscribe((response) => {
+      apiPlanV2Service.deprecate(API_ID, PLAN_ID).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -263,10 +263,10 @@ describe('ApiPlanV2Service', () => {
       req.flush(plan);
     });
 
-    it('should deprecate the api plan V4', (done) => {
+    it('should deprecate the api plan V4', done => {
       const plan = fakePlanV4({ id: PLAN_ID, apiId: API_ID });
 
-      apiPlanV2Service.deprecate(API_ID, PLAN_ID).subscribe((response) => {
+      apiPlanV2Service.deprecate(API_ID, PLAN_ID).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -282,10 +282,10 @@ describe('ApiPlanV2Service', () => {
   });
 
   describe('close', () => {
-    it('should close the api plan V2', (done) => {
+    it('should close the api plan V2', done => {
       const plan = fakePlanV2({ id: PLAN_ID, apiId: API_ID });
 
-      apiPlanV2Service.close(API_ID, PLAN_ID).subscribe((response) => {
+      apiPlanV2Service.close(API_ID, PLAN_ID).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -299,10 +299,10 @@ describe('ApiPlanV2Service', () => {
       req.flush(plan);
     });
 
-    it('should close the api plan V4', (done) => {
+    it('should close the api plan V4', done => {
       const plan = fakePlanV4({ id: PLAN_ID, apiId: API_ID });
 
-      apiPlanV2Service.close(API_ID, PLAN_ID).subscribe((response) => {
+      apiPlanV2Service.close(API_ID, PLAN_ID).subscribe(response => {
         expect(response).toMatchObject(plan);
         done();
       });
@@ -318,10 +318,10 @@ describe('ApiPlanV2Service', () => {
   });
 
   describe('listSubscribablePlans', () => {
-    it('should list subscribable plan for the api and application', (done) => {
+    it('should list subscribable plan for the api and application', done => {
       const fakeApiPlansResponse: ApiPlansResponse = { data: [fakePlanV4({ id: PLAN_ID, apiId: API_ID })] };
 
-      apiPlanV2Service.listSubscribablePlans(API_ID, APP_ID).subscribe((response) => {
+      apiPlanV2Service.listSubscribablePlans(API_ID, APP_ID).subscribe(response => {
         expect(response).toMatchObject(fakeApiPlansResponse);
         done();
       });

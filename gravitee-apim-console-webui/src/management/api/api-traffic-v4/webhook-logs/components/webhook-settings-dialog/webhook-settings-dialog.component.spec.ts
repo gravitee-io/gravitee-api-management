@@ -48,7 +48,7 @@ class TestComponent {
         data: this.dialogData,
       })
       .afterClosed()
-      .subscribe((result) => (this.result = result));
+      .subscribe(result => (this.result = result));
   }
 }
 

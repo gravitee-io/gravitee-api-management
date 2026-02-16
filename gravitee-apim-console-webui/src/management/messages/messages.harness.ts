@@ -33,41 +33,41 @@ export class MessagesHarness extends ComponentHarness {
   protected getSubmitButton = this.locatorFor(MatButtonHarness.with({ selector: '[type=submit]' }));
 
   public getAvailableChannel(): Promise<string[]> {
-    return this.getChannelSelect().then(async (select) => {
+    return this.getChannelSelect().then(async select => {
       await select.open();
 
       const options = await select.getOptions();
-      return Promise.all(options.map(async (o) => o.getText()));
+      return Promise.all(options.map(async o => o.getText()));
     });
   }
 
   public getSelectedChannel(): Promise<string> {
-    return this.getChannelSelect().then(async (select) => {
+    return this.getChannelSelect().then(async select => {
       return select.getValueText();
     });
   }
 
   public selectChannel(channelToSelect: string) {
-    return this.getChannelSelect().then(async (select) => {
+    return this.getChannelSelect().then(async select => {
       await select.open();
       return select.clickOptions({ text: channelToSelect });
     });
   }
 
   public getAvailableRecipients(): Promise<string[]> {
-    return this.getRecipientsSelect().then(async (select) => {
+    return this.getRecipientsSelect().then(async select => {
       await select.open();
 
       const options = await select.getOptions();
-      return Promise.all(options.map(async (o) => o.getText()));
+      return Promise.all(options.map(async o => o.getText()));
     });
   }
 
   public selectRecipients(recipientsToSelect: string[]): Promise<void[]> {
-    return this.getRecipientsSelect().then(async (select) => {
+    return this.getRecipientsSelect().then(async select => {
       await select.open();
       return Promise.all(
-        recipientsToSelect.map(async (r) => {
+        recipientsToSelect.map(async r => {
           return select.clickOptions({ text: r });
         }),
       );
@@ -75,57 +75,57 @@ export class MessagesHarness extends ComponentHarness {
   }
 
   async isTitleControlDisplayed() {
-    return this.getTitleInput().then((el) => el.length > 0);
+    return this.getTitleInput().then(el => el.length > 0);
   }
 
   async isUrlControlDisplayed() {
-    return this.getUrlInput().then((el) => el.length > 0);
+    return this.getUrlInput().then(el => el.length > 0);
   }
 
   async isFormHeadersControlDisplayed() {
-    return this.getFormHeadersControl().then((el) => el.length > 0);
+    return this.getFormHeadersControl().then(el => el.length > 0);
   }
 
   async setTitle(title: string): Promise<void> {
-    return this.getTitleInput().then((input) => {
+    return this.getTitleInput().then(input => {
       expect(input.length).toEqual(1);
       return input[0].setValue(title);
     });
   }
 
   async setText(text: string): Promise<void> {
-    return this.getTextInput().then((inputs) => {
+    return this.getTextInput().then(inputs => {
       expect(inputs.length).toEqual(1);
       return inputs[0].setValue(text);
     });
   }
 
   async isSubmitButtonDisabled(): Promise<boolean> {
-    return this.getSubmitButton().then((button) => button.isDisabled());
+    return this.getSubmitButton().then(button => button.isDisabled());
   }
 
   async clickOnSubmitButton(): Promise<void> {
-    return this.getSubmitButton().then(async (button) => {
+    return this.getSubmitButton().then(async button => {
       expect(await button.isDisabled()).toBeFalsy();
       return button.click();
     });
   }
 
   async setUrl(url: string) {
-    return this.getUrlInput().then((inputs) => {
+    return this.getUrlInput().then(inputs => {
       expect(inputs.length).toEqual(1);
       return inputs[0].setValue(url);
     });
   }
 
   async setHeaders(key: string, value: string) {
-    return this.getFormHeadersControl().then((ctrl) => {
+    return this.getFormHeadersControl().then(ctrl => {
       expect(ctrl.length).toEqual(1);
       ctrl[0].addHeader({ key, value });
     });
   }
 
   async toggleUseSystemProxy() {
-    return this.getUseSystemProxyToggle().then((toggle) => toggle.toggle());
+    return this.getUseSystemProxyToggle().then(toggle => toggle.toggle());
   }
 }

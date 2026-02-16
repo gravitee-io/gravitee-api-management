@@ -134,9 +134,9 @@ export class GioChartPieComponent extends GioChartAbstractComponent implements O
       },
       series: [
         {
-          data: this.input?.map((d) => [d.label, d.value]),
+          data: this.input?.map(d => [d.label, d.value]),
           name: this.inputDescription,
-          colors: this.input?.map((d) => d.color),
+          colors: this.input?.map(d => d.color),
           type: 'pie',
         },
       ],

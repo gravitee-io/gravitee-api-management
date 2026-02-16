@@ -61,7 +61,7 @@ export class AuthService {
     }
 
     // Initialize manager for each identity provider
-    constants.org.identityProviders?.forEach((idp) => {
+    constants.org.identityProviders?.forEach(idp => {
       this.oidcManagers[idp.id] = new UserManager({
         authority: idp.authorizationEndpoint,
         client_id: idp.clientId,
@@ -92,7 +92,7 @@ export class AuthService {
   }
 
   checkAuth(): Observable<void> {
-    return new Observable<void>((observer) => {
+    return new Observable<void>(observer => {
       const providerIdSelected = this.providerIdSelectedStore;
       if (!providerIdSelected) {
         // No provider selected, we can't check auth
@@ -109,23 +109,23 @@ export class AuthService {
 
       oidcManager
         .getUser()
-        .then((user) => {
+        .then(user => {
           // If user still logged in
           if (user && !user.expired) {
             return user;
           }
           // If user not logged in, try call signinRedirectCallback
-          return oidcManager.signinRedirectCallback().then((user) => {
+          return oidcManager.signinRedirectCallback().then(user => {
             const redirectUrl = (user.state as string) ?? '/';
             return this.router.navigateByUrl(redirectUrl).then(() => user);
           });
         })
-        .then((_user) => {
+        .then(_user => {
           // Ok we are authenticated
           observer.next();
           observer.complete();
         })
-        .catch((error) => {
+        .catch(error => {
           // KO User should restart authentication
           this.providerIdSelectedStore = null;
           observer.error(error);
@@ -162,7 +162,7 @@ export class AuthService {
         },
       )
       .pipe(
-        switchMap((_response) => {
+        switchMap(_response => {
           return this.router.navigateByUrl(redirectUrl ?? '/');
         }),
         map(() => null),
@@ -185,7 +185,7 @@ export class AuthService {
         this.providerIdSelectedStore = null;
 
         return from(oidcManager.getUser()).pipe(
-          switchMap((user) =>
+          switchMap(user =>
             from([
               oidcManager.removeUser(),
               oidcManager.signoutRedirect(user ? { id_token_hint: user.id_token } : {}).catch(() => null),

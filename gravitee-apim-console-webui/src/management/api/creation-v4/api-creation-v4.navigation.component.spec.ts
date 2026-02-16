@@ -177,7 +177,7 @@ describe('ApiCreationV4Component - Navigation', () => {
   });
 
   describe('Side menu', () => {
-    it('should have 6 steps', (done) => {
+    it('should have 6 steps', done => {
       component.stepper.goToNextStep({ groupNumber: 1, component: Step1ApiDetailsComponent });
       component.stepper.validStep(() => ({ name: 'A1' }));
       component.stepper.goToNextStep({ groupNumber: 2, component: Step2Entrypoints1ListComponent });
@@ -185,7 +185,7 @@ describe('ApiCreationV4Component - Navigation', () => {
       component.stepper.goToNextStep({ groupNumber: 2, component: Step2Entrypoints2ConfigComponent });
       component.stepper.validStep(({ name }) => ({ name: `${name}>B2` }));
 
-      component.menuSteps$.subscribe((menuSteps) => {
+      component.menuSteps$.subscribe(menuSteps => {
         expect(menuSteps.length).toEqual(5);
         expect(menuSteps[0].label).toEqual('API details');
         expect(menuSteps[1].label).toEqual('Entrypoints');
@@ -355,14 +355,14 @@ describe('ApiCreationV4Component - Navigation', () => {
         const architectureHarness = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
 
         // Change architecture to async
-        expect(await architectureHarness.getArchitecture().then((s) => s.getValue())).toEqual('PROXY');
+        expect(await architectureHarness.getArchitecture().then(s => s.getValue())).toEqual('PROXY');
         await architectureHarness.fillAndValidate('MESSAGE');
 
         // check confirmation dialog and cancel
         const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
         expect(await dialogHarness).toBeTruthy();
         await dialogHarness.cancel();
-        expect(await architectureHarness.getArchitecture().then((s) => s.getValue())).toEqual('PROXY');
+        expect(await architectureHarness.getArchitecture().then(s => s.getValue())).toEqual('PROXY');
         await architectureHarness.clickValidate();
 
         // Validate step 2 list
@@ -439,7 +439,7 @@ describe('ApiCreationV4Component - Navigation', () => {
         const architectureHarness = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
 
         // Change architecture to async
-        expect(await architectureHarness.getArchitecture().then((s) => s.getValue())).toEqual('PROXY');
+        expect(await architectureHarness.getArchitecture().then(s => s.getValue())).toEqual('PROXY');
         await architectureHarness.fillAndValidate('MESSAGE');
 
         // check confirmation dialog and confirm
@@ -497,7 +497,7 @@ describe('ApiCreationV4Component - Navigation', () => {
         await dialogHarness.cancel();
 
         // Verify initial choice is selected again
-        expect(await entrypointsListHarness.getSyncEntrypoints().then((s) => s.getValue())).toEqual('http-proxy');
+        expect(await entrypointsListHarness.getSyncEntrypoints().then(s => s.getValue())).toEqual('http-proxy');
         await entrypointsListHarness.clickValidate();
         httpExpects.expectEndpointGetRequest({ id: 'http-proxy', supportedApiType: 'PROXY', name: 'HTTP Proxy' });
         fixture.detectChanges();
@@ -663,7 +663,7 @@ describe('ApiCreationV4Component - Navigation', () => {
         await dialogHarness.cancel();
 
         // Verify initial choice is selected again
-        expect(await entrypointsListHarness.getAsyncEntrypoints().then((s) => s.getListValues({ selected: true }))).toEqual([
+        expect(await entrypointsListHarness.getAsyncEntrypoints().then(s => s.getListValues({ selected: true }))).toEqual([
           'http-get',
           'http-post',
         ]);
@@ -754,7 +754,7 @@ describe('ApiCreationV4Component - Navigation', () => {
 
         // Change entrypoint to sse
         entrypointsListHarness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
-        await entrypointsListHarness.getAsyncEntrypoints().then(async (form) => {
+        await entrypointsListHarness.getAsyncEntrypoints().then(async form => {
           await form.deselectOptionByValue('http-get');
           return form.deselectOptionByValue('http-post');
         });

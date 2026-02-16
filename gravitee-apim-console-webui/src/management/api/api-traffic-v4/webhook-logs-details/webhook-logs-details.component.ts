@@ -184,7 +184,7 @@ export class WebhookLogsDetailsComponent implements OnInit {
           });
         }),
       )
-      .subscribe((response) => {
+      .subscribe(response => {
         if (response.data && response.data.length > 0) {
           const webhookLog = mapConnectionLogToWebhookLog(response.data[0]);
           this.applyLog(webhookLog);

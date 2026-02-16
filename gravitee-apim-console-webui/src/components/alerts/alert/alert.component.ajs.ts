@@ -83,14 +83,14 @@ const AlertComponentAjs: ng.IComponentOptions = {
         }
 
         this.template = this.alert.template || false;
-        this.apiByDefault = this.alert.event_rules && this.alert.event_rules.findIndex((rule) => rule.event === 'API_CREATE') !== -1;
+        this.apiByDefault = this.alert.event_rules && this.alert.event_rules.findIndex(rule => rule.event === 'API_CREATE') !== -1;
         this.initialAlert = cloneDeep(this.alert);
 
         this.selectedTab = indexOfTab > -1 ? indexOfTab : 1;
         this.currentTab = this.tabs[this.selectedTab];
       };
 
-      this.$onChanges = (changes) => {
+      this.$onChanges = changes => {
         const currentAlert = find(this.alerts, { id: this.activatedRoute.snapshot.params.alertId });
         if (this.updateMode && (!isEqual(this.alerts, changes.alerts.currentValue) || !isEqual(currentAlert, this.alert))) {
           this.alerts = changes.alerts.currentValue;
@@ -130,7 +130,7 @@ const AlertComponentAjs: ng.IComponentOptions = {
         } else {
           service = AlertService.create({ ...alert, type: rawType });
         }
-        return service.then((response) => {
+        return service.then(response => {
           this.formAlert.$setPristine();
           NotificationService.show('Alert has been saved successfully');
           const alert = response.data;
@@ -177,7 +177,7 @@ const AlertComponentAjs: ng.IComponentOptions = {
       };
 
       this.onRuleChange = () => {
-        const rule: Rule = find(this.rules, (rule) => rule.source + '@' + rule.type === this.alert.type);
+        const rule: Rule = find(this.rules, rule => rule.source + '@' + rule.type === this.alert.type);
         this.alert.source = rule.source;
         if (this.alert.filters) {
           this.alert.filters.length = 0;

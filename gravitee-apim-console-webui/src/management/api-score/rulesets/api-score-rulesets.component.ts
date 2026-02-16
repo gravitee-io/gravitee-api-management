@@ -50,7 +50,7 @@ export class ApiScoreRulesetsComponent implements OnInit {
       .listRulesets()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (res) => {
+        next: res => {
           this.isLoadingRulesets = false;
           this.rulesets = res.data;
         },
@@ -63,7 +63,7 @@ export class ApiScoreRulesetsComponent implements OnInit {
       .listFunctions()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (res) => {
+        next: res => {
           this.isLoadingFunctions = false;
           this.functions = res.data;
         },
@@ -87,7 +87,7 @@ export class ApiScoreRulesetsComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => !!confirm),
+        filter(confirm => !!confirm),
         switchMap(() => {
           this.isLoadingRulesets = true;
           return this.rulesetV2Service.deleteRuleset(id);
@@ -98,7 +98,7 @@ export class ApiScoreRulesetsComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (res) => {
+        next: res => {
           this.rulesets = res.data;
           this.snackBarService.success('Ruleset successfully deleted!');
           this.isLoadingRulesets = false;
@@ -123,7 +123,7 @@ export class ApiScoreRulesetsComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => !!confirm),
+        filter(confirm => !!confirm),
         switchMap(() => {
           this.isLoadingFunctions = true;
           return this.rulesetV2Service.deleteFunction(id);
@@ -134,7 +134,7 @@ export class ApiScoreRulesetsComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (res) => {
+        next: res => {
           this.functions = res.data;
           this.snackBarService.success('Function successfully deleted!');
           this.isLoadingFunctions = false;

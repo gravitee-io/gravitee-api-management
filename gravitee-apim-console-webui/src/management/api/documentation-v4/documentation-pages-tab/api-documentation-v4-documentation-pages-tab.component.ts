@@ -65,7 +65,7 @@ export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit,
   private pagesSignal = toSignal(this.data$);
   private existingFolderNames = computed(() =>
     this.pagesSignal()
-      ?.pages.filter((p) => p.type === 'FOLDER')
+      ?.pages.filter(p => p.type === 'FOLDER')
       .map(({ name }) => name.toLowerCase().trim()),
   );
 
@@ -102,7 +102,7 @@ export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit,
         this.specGenState = this.getSpecGenState(api, apiSpecGenRequestState);
 
         return {
-          pages: pagesResponse.pages.filter((page) => !page.homepage) ?? [],
+          pages: pagesResponse.pages.filter(page => !page.homepage) ?? [],
           breadcrumbs: pagesResponse.breadcrumb ?? [],
         };
       }),
@@ -134,7 +134,7 @@ export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit,
       })
       .afterClosed()
       .pipe(
-        filter((createFolder) => !!createFolder),
+        filter(createFolder => !!createFolder),
         switchMap((createFolder: CreateDocumentationFolder) =>
           this.apiDocumentationV2Service.createDocumentationPage(this.api.id, {
             type: 'FOLDER',
@@ -143,7 +143,7 @@ export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit,
             parentId: this.parentId,
           }),
         ),
-        switchMap((createdFolder) => this.apiDocumentationV2Service.publishDocumentationPage(this.api.id, createdFolder.id)),
+        switchMap(createdFolder => this.apiDocumentationV2Service.publishDocumentationPage(this.api.id, createdFolder.id)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
@@ -151,7 +151,7 @@ export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit,
           this.snackBarService.success('Folder created successfully');
           this.refreshPages.next(1);
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'Error while creating folder');
         },
       });
@@ -184,12 +184,12 @@ export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit,
       )
       .afterClosed()
       .pipe(
-        filter((start) => !!start),
+        filter(start => !!start),
         switchMap(() => this.apiSpecGenService.postJob(this.api.id)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
-        next: (value) => {
+        next: value => {
           this.specGenState = value?.state ?? this.specGenState;
           switch (this.specGenState) {
             case ApiSpecGenState.STARTED:
@@ -229,7 +229,7 @@ export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit,
       })
       .afterClosed()
       .pipe(
-        filter((updateFolder) => !!updateFolder),
+        filter(updateFolder => !!updateFolder),
         switchMap((updateFolder: EditDocumentationFolder) =>
           this.apiDocumentationV2Service.updateDocumentationPage(this.api.id, folder.id, {
             ...folder,
@@ -244,7 +244,7 @@ export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit,
           this.snackBarService.success('Folder updated successfully');
           this.refreshPages.next(1);
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'Error while updating folder');
         },
       });
@@ -261,16 +261,16 @@ export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit,
       })
       .afterClosed()
       .pipe(
-        filter((confirmed) => !!confirmed),
-        switchMap((_) => this.apiDocumentationV2Service.publishDocumentationPage(this.api.id, pageId)),
+        filter(confirmed => !!confirmed),
+        switchMap(_ => this.apiDocumentationV2Service.publishDocumentationPage(this.api.id, pageId)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
-        next: (_) => {
+        next: _ => {
           this.snackBarService.success('Page published successfully');
           this.refreshPages.next(1);
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'Error while publishing page');
         },
       });
@@ -287,16 +287,16 @@ export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit,
       })
       .afterClosed()
       .pipe(
-        filter((confirmed) => !!confirmed),
-        switchMap((_) => this.apiDocumentationV2Service.unpublishDocumentationPage(this.api.id, pageId)),
+        filter(confirmed => !!confirmed),
+        switchMap(_ => this.apiDocumentationV2Service.unpublishDocumentationPage(this.api.id, pageId)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
-        next: (_) => {
+        next: _ => {
           this.snackBarService.success('Page unpublished successfully');
           this.refreshPages.next(1);
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'Error while unpublishing page');
         },
       });
@@ -315,16 +315,16 @@ export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit,
       })
       .afterClosed()
       .pipe(
-        filter((confirmed) => !!confirmed),
-        switchMap((_) => this.apiDocumentationV2Service.deleteDocumentationPage(this.api.id, page?.id)),
+        filter(confirmed => !!confirmed),
+        switchMap(_ => this.apiDocumentationV2Service.deleteDocumentationPage(this.api.id, page?.id)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
-        next: (_) => {
+        next: _ => {
           this.snackBarService.success(`${page?.type === 'FOLDER' ? 'Folder' : 'Page'} deleted successfully`);
           this.refreshPages.next(1);
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'Error while deleting page');
         },
       });
@@ -350,13 +350,13 @@ export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit,
           this.snackBarService.success('Order updated successfully');
           this.refreshPages.next(1);
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'Error while changing order');
         },
       });
   }
 
   private getApiPages(apiId: string, parentId: string): Observable<ApiDocumentationPageResult> {
-    return this.refreshPages.pipe(switchMap((_) => this.apiDocumentationV2Service.getApiPages(apiId, parentId)));
+    return this.refreshPages.pipe(switchMap(_ => this.apiDocumentationV2Service.getApiPages(apiId, parentId)));
   }
 }

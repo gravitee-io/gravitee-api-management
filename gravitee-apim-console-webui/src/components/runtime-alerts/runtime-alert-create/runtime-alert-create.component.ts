@@ -100,7 +100,7 @@ export class RuntimeAlertCreateComponent implements OnInit {
       this.alertService
         .getAlert(this.activatedRoute.snapshot.params.apiId, this.alertId)
         .pipe(
-          tap((alert) => {
+          tap(alert => {
             this.alertToUpdate = alert;
             this.changeDetectorRef.detectChanges();
             this.isLoading = false;
@@ -123,11 +123,11 @@ export class RuntimeAlertCreateComponent implements OnInit {
         )
         .pipe()
         .subscribe({
-          next: (_) => {
+          next: _ => {
             this.snackBarService.success('Alert successfully updated!');
             this.router.navigate(['..'], { relativeTo: this.activatedRoute });
           },
-          error: (_) => {
+          error: _ => {
             this.snackBarService.success('Error during update!');
           },
         });
@@ -145,7 +145,7 @@ export class RuntimeAlertCreateComponent implements OnInit {
           takeUntilDestroyed(this.destroyRef),
         )
         .subscribe({
-          next: (_) => this.router.navigate(['..'], { relativeTo: this.activatedRoute }),
+          next: _ => this.router.navigate(['..'], { relativeTo: this.activatedRoute }),
         });
     }
   }

@@ -36,10 +36,10 @@ describe('TagService', () => {
   });
 
   describe('list', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const tags = [fakeTag()];
 
-      tagService.list().subscribe((response) => {
+      tagService.list().subscribe(response => {
         expect(response).toStrictEqual(tags);
         done();
       });
@@ -54,10 +54,10 @@ describe('TagService', () => {
   });
 
   describe('get', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const tag = fakeTag({ id: 'tag#1' });
 
-      tagService.get(tag.id).subscribe((response) => {
+      tagService.get(tag.id).subscribe(response => {
         expect(response).toStrictEqual(tag);
         done();
       });
@@ -72,11 +72,11 @@ describe('TagService', () => {
   });
 
   describe('create', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const newTag = fakeNewTag();
       const createdTag = fakeTag({ ...newTag, id: 'tag#1' });
 
-      tagService.create(newTag).subscribe((response) => {
+      tagService.create(newTag).subscribe(response => {
         expect(response).toStrictEqual(createdTag);
         done();
       });
@@ -92,10 +92,10 @@ describe('TagService', () => {
   });
 
   describe('update', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const tag = fakeTag({ id: 'tag#1' });
 
-      tagService.update(tag).subscribe((response) => {
+      tagService.update(tag).subscribe(response => {
         expect(response).toStrictEqual(tag);
         done();
       });
@@ -111,7 +111,7 @@ describe('TagService', () => {
   });
 
   describe('delete', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const tagId = 'tag#1';
 
       tagService.delete(tagId).subscribe(() => done());

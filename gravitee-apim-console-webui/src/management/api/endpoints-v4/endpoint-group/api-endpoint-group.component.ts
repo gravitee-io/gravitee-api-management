@@ -94,7 +94,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
           this.groupForm.markAsPristine();
           this.initialGroupFormValue = this.groupForm.getRawValue();
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error.message);
         },
       });
@@ -109,8 +109,8 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   private initializeComponent(api: ApiV4): void {
     this.api = api;
 
-    this.isHttpProxyApi = api.type === 'PROXY' && !(api.listeners.find((listener) => listener.type === 'TCP') != null);
-    this.isNativeKafkaApi = api.type === 'NATIVE' && api.listeners.some((listener) => listener.type === 'KAFKA');
+    this.isHttpProxyApi = api.type === 'PROXY' && !(api.listeners.find(listener => listener.type === 'TCP') != null);
+    this.isNativeKafkaApi = api.type === 'NATIVE' && api.listeners.some(listener => listener.type === 'KAFKA');
 
     this.initialApi = this.api;
 
@@ -163,7 +163,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
       this.apiServicePluginsV2Service
         .getApiServicePluginSchema(ApiHealthCheckV4FormComponent.HTTP_HEALTH_CHECK)
         .pipe(
-          tap((schema) => {
+          tap(schema => {
             this.healthCheckSchema = schema;
           }),
           takeUntil(this.unsubscribe$),
@@ -172,7 +172,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
 
       this.healthCheckForm.controls.enabled.valueChanges
         .pipe(startWith(this.healthCheckForm.controls.enabled.value), takeUntil(this.unsubscribe$))
-        .subscribe((enabled) => {
+        .subscribe(enabled => {
           if (enabled) {
             this.healthCheckForm.controls.configuration.enable({ emitEvent: false });
           } else {
@@ -244,7 +244,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
         })
         .afterClosed()
         .pipe(
-          filter((confirm) => confirm === true),
+          filter(confirm => confirm === true),
           switchMap(() => this.apiService.get(this.api.id)),
           map((api: ApiV4) => {
             updateDlqEntrypoint(api, matchingDlqEntrypoint, newGroupName);

@@ -21,7 +21,7 @@ export default {
   title: 'SharedPolicyGroupHistoryComponent story',
   component: SharedPolicyGroupHistoryComponent,
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 800px">
         <shared-policy-group-history></shared-policy-group-history>

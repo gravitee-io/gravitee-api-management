@@ -34,9 +34,9 @@ class ApiAlertsDashboardControllerAjs {
     this.$q
       .all({
         configuredAlerts: this.AlertService.listAlerts(Scope.API, false, this.activatedRoute.snapshot.params.apiId).then(
-          (response) => response.data,
+          response => response.data,
         ),
-        alertingStatus: this.AlertService.getStatus(Scope.API, this.activatedRoute.snapshot.params.apiId).then((response) => response.data),
+        alertingStatus: this.AlertService.getStatus(Scope.API, this.activatedRoute.snapshot.params.apiId).then(response => response.data),
       })
       .then(({ configuredAlerts, alertingStatus }) => {
         this.hasConfiguredAlerts = configuredAlerts?.length > 0;

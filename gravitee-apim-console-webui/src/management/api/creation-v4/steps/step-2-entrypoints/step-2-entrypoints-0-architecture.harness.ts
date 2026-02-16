@@ -41,15 +41,15 @@ export class Step2Entrypoints0ArchitectureHarness extends ComponentHarness {
   }
 
   async clickValidate(): Promise<void> {
-    return this.getButtonByText('Select my API architecture').then((button) => button.click());
+    return this.getButtonByText('Select my API architecture').then(button => button.click());
   }
 
   async clickPrevious(): Promise<void> {
-    return this.getButtonByText('Previous').then((button) => button.click());
+    return this.getButtonByText('Previous').then(button => button.click());
   }
 
   async fillAndValidate(architecture: string): Promise<void> {
-    await this.getArchitecture().then((f) => f.selectOptionById(architecture));
+    await this.getArchitecture().then(f => f.selectOptionById(architecture));
     return await this.clickValidate();
   }
 }

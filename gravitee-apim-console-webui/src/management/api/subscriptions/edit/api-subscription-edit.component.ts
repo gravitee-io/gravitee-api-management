@@ -144,14 +144,14 @@ export class ApiSubscriptionEditComponent implements OnInit {
     this.apiService
       .get(this.apiId)
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((api) => {
+      .subscribe(api => {
         this.isFederatedApi = api.definitionVersion === 'FEDERATED';
       });
 
     this.apiSubscriptionService
       .getById(this.apiId, this.activatedRoute.snapshot.params.subscriptionId, ['plan', 'application', 'subscribedBy'])
       .pipe(
-        switchMap((subscription) => {
+        switchMap(subscription => {
           if (subscription) {
             this.subscription = {
               id: subscription.id,
@@ -199,7 +199,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
           }
           return EMPTY;
         }),
-        catchError((err) => {
+        catchError(err => {
           this.snackBarService.error(err.message); // If user is forbidden access to application getById
           return EMPTY;
         }),
@@ -230,7 +230,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
       )
       .afterClosed()
       .pipe(
-        switchMap((result) =>
+        switchMap(result =>
           result
             ? this.apiSubscriptionService.accept(this.subscription.id, this.apiId, {
                 ...(result.customApiKey && result.customApiKey !== '' ? { customApiKey: result.customApiKey } : {}),
@@ -243,7 +243,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(
-        (subscription) => {
+        subscription => {
           if (subscription.status === 'ACCEPTED') {
             this.snackBarService.success('Subscription validated');
           } else {
@@ -251,7 +251,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
           }
           this.ngOnInit();
         },
-        (err) => this.snackBarService.error(err.message),
+        err => this.snackBarService.error(err.message),
       );
   }
 
@@ -268,15 +268,15 @@ export class ApiSubscriptionEditComponent implements OnInit {
       )
       .afterClosed()
       .pipe(
-        switchMap((result) => (result ? this.apiSubscriptionService.reject(this.subscription.id, this.apiId, result.reason) : EMPTY)),
+        switchMap(result => (result ? this.apiSubscriptionService.reject(this.subscription.id, this.apiId, result.reason) : EMPTY)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(
-        (_) => {
+        _ => {
           this.snackBarService.success(`Subscription rejected`);
           this.ngOnInit();
         },
-        (err) => this.snackBarService.error(err.message),
+        err => this.snackBarService.error(err.message),
       );
   }
 
@@ -299,17 +299,17 @@ export class ApiSubscriptionEditComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        switchMap((result) =>
+        switchMap(result =>
           result ? this.apiSubscriptionService.transfer(this.apiId, this.subscription.id, result.selectedPlanId) : EMPTY,
         ),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(
-        (_) => {
+        _ => {
           this.snackBarService.success(`Subscription successfully transferred`);
           this.ngOnInit();
         },
-        (err) => this.snackBarService.error(err.message),
+        err => this.snackBarService.error(err.message),
       );
   }
 
@@ -330,7 +330,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        switchMap((confirm) => {
+        switchMap(confirm => {
           if (confirm) {
             return this.apiSubscriptionService.pause(this.subscription.id, this.apiId);
           }
@@ -339,11 +339,11 @@ export class ApiSubscriptionEditComponent implements OnInit {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(
-        (_) => {
+        _ => {
           this.snackBarService.success(`Subscription paused`);
           this.ngOnInit();
         },
-        (err) => this.snackBarService.error(err.message),
+        err => this.snackBarService.error(err.message),
       );
   }
 
@@ -360,7 +360,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        switchMap((confirm) => {
+        switchMap(confirm => {
           if (confirm) {
             return this.apiSubscriptionService.resume(this.subscription.id, this.apiId);
           }
@@ -369,11 +369,11 @@ export class ApiSubscriptionEditComponent implements OnInit {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(
-        (_) => {
+        _ => {
           this.snackBarService.success(`Subscription resumed`);
           this.ngOnInit();
         },
-        (err) => this.snackBarService.error(err.message),
+        err => this.snackBarService.error(err.message),
       );
   }
 
@@ -390,7 +390,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        switchMap((confirm) => {
+        switchMap(confirm => {
           if (confirm) {
             return this.apiSubscriptionService.resumeFailure(this.subscription.id, this.apiId);
           }
@@ -399,11 +399,11 @@ export class ApiSubscriptionEditComponent implements OnInit {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(
-        (_) => {
+        _ => {
           this.snackBarService.success(`Subscription resumed`);
           this.ngOnInit();
         },
-        (err) => this.snackBarService.error(err.message),
+        err => this.snackBarService.error(err.message),
       );
   }
 
@@ -425,7 +425,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        switchMap((result) =>
+        switchMap(result =>
           result
             ? this.apiSubscriptionService.update(this.apiId, this.subscription.id, {
                 startingAt: this.subscription.startingAt,
@@ -438,11 +438,11 @@ export class ApiSubscriptionEditComponent implements OnInit {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(
-        (_) => {
+        _ => {
           this.snackBarService.success(`End date successfully changed`);
           this.ngOnInit();
         },
-        (err) => this.snackBarService.error(err.message),
+        err => this.snackBarService.error(err.message),
       );
   }
 
@@ -463,15 +463,15 @@ export class ApiSubscriptionEditComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        switchMap((confirm) => (confirm ? this.apiSubscriptionService.close(this.subscription.id, this.apiId) : EMPTY)),
+        switchMap(confirm => (confirm ? this.apiSubscriptionService.close(this.subscription.id, this.apiId) : EMPTY)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(
-        (_) => {
+        _ => {
           this.snackBarService.success(`Subscription closed`);
           this.ngOnInit();
         },
-        (err) => this.snackBarService.error(err.message),
+        err => this.snackBarService.error(err.message),
       );
   }
 
@@ -492,17 +492,17 @@ export class ApiSubscriptionEditComponent implements OnInit {
       )
       .afterClosed()
       .pipe(
-        switchMap((result) =>
+        switchMap(result =>
           result ? this.apiSubscriptionService.renewApiKey(this.apiId, this.subscription.id, result.customApiKey) : EMPTY,
         ),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(
-        (_) => {
+        _ => {
           this.snackBarService.success(`API Key renewed`);
           this.ngOnInit();
         },
-        (err) => this.snackBarService.error(err.message),
+        err => this.snackBarService.error(err.message),
       );
   }
 
@@ -519,15 +519,15 @@ export class ApiSubscriptionEditComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        switchMap((confirm) => (confirm ? this.apiSubscriptionService.revokeApiKey(this.apiId, this.subscription.id, apiKey.id) : EMPTY)),
+        switchMap(confirm => (confirm ? this.apiSubscriptionService.revokeApiKey(this.apiId, this.subscription.id, apiKey.id) : EMPTY)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(
-        (_) => {
+        _ => {
           this.snackBarService.success(`API Key revoked`);
           this.ngOnInit();
         },
-        (err) => this.snackBarService.error(err.message),
+        err => this.snackBarService.error(err.message),
       );
   }
 
@@ -547,17 +547,17 @@ export class ApiSubscriptionEditComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        switchMap((result) =>
+        switchMap(result =>
           result ? this.apiSubscriptionService.expireApiKey(this.apiId, this.subscription.id, apiKey.id, result.expirationDate) : EMPTY,
         ),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(
-        (_) => {
+        _ => {
           this.snackBarService.success(`API Key expiration validated`);
           this.ngOnInit();
         },
-        (err) => this.snackBarService.error(err.message),
+        err => this.snackBarService.error(err.message),
       );
   }
 
@@ -574,17 +574,15 @@ export class ApiSubscriptionEditComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        switchMap((confirm) =>
-          confirm ? this.apiSubscriptionService.reactivateApiKey(this.apiId, this.subscription.id, apiKey.id) : EMPTY,
-        ),
+        switchMap(confirm => (confirm ? this.apiSubscriptionService.reactivateApiKey(this.apiId, this.subscription.id, apiKey.id) : EMPTY)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(
-        (_) => {
+        _ => {
           this.snackBarService.success(`API Key reactivated`);
           this.ngOnInit();
         },
-        (err) => this.snackBarService.error(err.message),
+        err => this.snackBarService.error(err.message),
       );
   }
 
@@ -601,9 +599,9 @@ export class ApiSubscriptionEditComponent implements OnInit {
 
   private getApiKeysList(page: number, perPage: number): Observable<SubscriptionApiKeysResponse> {
     return this.apiSubscriptionService.listApiKeys(this.apiId, this.subscription.id, page, perPage).pipe(
-      tap((response) => {
+      tap(response => {
         this.apiKeysTotalCount = response.pagination?.totalCount;
-        this.apiKeys = response.data.map((apiKey) => ({
+        this.apiKeys = response.data.map(apiKey => ({
           id: apiKey.id,
           key: apiKey.key,
           createdAt: apiKey.createdAt,
@@ -619,7 +617,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
     this.apiSubscriptionService
       .getById(this.apiId, this.subscription.id)
       .pipe(
-        switchMap((subscription) =>
+        switchMap(subscription =>
           this.apiSubscriptionService.update(this.apiId, this.subscription.id, {
             ...subscription,
             consumerConfiguration: {
@@ -632,7 +630,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
           this.snackBarService.success('Consumer configuration updated.');
           this.ngOnInit();
         }),
-        catchError((err) => {
+        catchError(err => {
           this.snackBarService.error(err.error?.message || 'An error occurred while updating consumer configuration.');
           return EMPTY;
         }),

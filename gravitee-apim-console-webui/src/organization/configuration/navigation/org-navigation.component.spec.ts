@@ -72,7 +72,7 @@ describe('OrgNavigationComponent', () => {
 
     it('should build group items', () => {
       expect(component.groupItems.length).toEqual(6);
-      expect(component.groupItems.map((item) => item.title)).toEqual([
+      expect(component.groupItems.map(item => item.title)).toEqual([
         'Console',
         'User Management',
         'Gateway',
@@ -90,7 +90,7 @@ describe('OrgNavigationComponent', () => {
 
     it('should build group items', () => {
       expect(component.groupItems.length).toEqual(2);
-      expect(component.groupItems.map((item) => item.title)).toEqual(['Console', 'Audit']);
+      expect(component.groupItems.map(item => item.title)).toEqual(['Console', 'Audit']);
     });
   });
 });

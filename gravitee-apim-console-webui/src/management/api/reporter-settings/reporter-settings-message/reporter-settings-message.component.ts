@@ -92,7 +92,7 @@ export class ReporterSettingsMessageComponent implements OnInit {
     this.portalConfigService
       .get()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((settings) => {
+      .subscribe(settings => {
         this.settings = settings;
         this.initForm();
         this.handleEnabledChanges();
@@ -234,7 +234,7 @@ export class ReporterSettingsMessageComponent implements OnInit {
     this.form
       .get('enabled')
       .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((enabled) => {
+      .subscribe(enabled => {
         if (enabled) {
           Object.entries(this.form.controls)
             .filter(([key]) => key !== 'enabled')
@@ -262,7 +262,7 @@ export class ReporterSettingsMessageComponent implements OnInit {
     this.form
       .get('tracingEnabled')
       .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((tracingEnabled) => {
+      .subscribe(tracingEnabled => {
         if (tracingEnabled) {
           this.form.get('tracingVerbose').enable();
         } else {
@@ -275,7 +275,7 @@ export class ReporterSettingsMessageComponent implements OnInit {
     this.form
       .get('samplingType')
       .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((value) => {
+      .subscribe(value => {
         const samplingValueControl = this.form.get('samplingValue');
         samplingValueControl.setValue(this.getSamplingDefaultValue(value));
         samplingValueControl.setValidators(this.getSamplingValueValidators(value));

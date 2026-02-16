@@ -123,7 +123,7 @@ describe('ApiV4FailoverComponent', () => {
     });
   });
 
-  it.each(['kafka', 'mock'])('should update failover config for %p endpoint', async (endpointType) => {
+  it.each(['kafka', 'mock'])('should update failover config for %p endpoint', async endpointType => {
     const api = fakeApiV4({
       id: API_ID,
       endpointGroups: [

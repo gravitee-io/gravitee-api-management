@@ -30,12 +30,12 @@ export class ApiAuditsFilterFormHarness extends ComponentHarness {
 
   public async setDateRange(range: { start: string; end: string }) {
     const field = await this.getDateRangeField();
-    await field.getStartInput().then((input) => input.setValue(range.start));
-    await field.getEndInput().then((input) => input.setValue(range.end));
+    await field.getStartInput().then(input => input.setValue(range.start));
+    await field.getEndInput().then(input => input.setValue(range.end));
   }
 
   public async reset() {
-    return this.getResetButton().then((button) => button.click());
+    return this.getResetButton().then(button => button.click());
   }
 
   private getEventField = this.locatorFor(GioFormTagsInputHarness.with({ selector: '[formControlName="events"]' }));

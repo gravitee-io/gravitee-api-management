@@ -39,7 +39,7 @@ describe('LogsFiltersController', () => {
       },
     };
 
-    $timeout = jest.fn().mockImplementation((fn) => fn());
+    $timeout = jest.fn().mockImplementation(fn => fn());
 
     $log = {
       error: jest.fn(),

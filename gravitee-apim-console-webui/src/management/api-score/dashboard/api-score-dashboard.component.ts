@@ -67,7 +67,7 @@ export class ApiScoreDashboardComponent implements OnInit {
           this.isLoadingOverview = false;
           this.overviewData = res;
         },
-        error: (e) => {
+        error: e => {
           this.isLoadingOverview = false;
           this.snackBarService.error(e.error?.message ?? 'An error occurred while loading list.');
         },
@@ -90,7 +90,7 @@ export class ApiScoreDashboardComponent implements OnInit {
           this.apisScoringList = res.data;
           this.nbTotalInstances = res.pagination.totalCount;
         },
-        error: (e) => {
+        error: e => {
           this.isLoading = false;
           this.snackBarService.error(e.error?.message ?? 'An error occurred while loading list.');
         },

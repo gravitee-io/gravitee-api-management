@@ -86,14 +86,14 @@ export class ClusterGroupMembersComponent implements OnInit {
       .getMembers(this.group.id, page, perPage)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (membersResponse) => {
+        next: membersResponse => {
           this.dataSourceGroupVM = {
             isLoading: false,
             canViewGroupMembers: true,
             memberTotalCount: membersResponse.pagination.totalCount,
-            membersPageResult: membersResponse.data.map((member) => ({
+            membersPageResult: membersResponse.data.map(member => ({
               id: member.id,
-              role: member.roles.find((role) => role.scope === 'CLUSTER')?.name,
+              role: member.roles.find(role => role.scope === 'CLUSTER')?.name,
               displayName: member.displayName,
               picture: this.userService.getUserAvatar(member.id),
             })),

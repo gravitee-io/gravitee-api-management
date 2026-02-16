@@ -67,9 +67,9 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
-        tap((api) => {
+        tap(api => {
           this.api = api;
-          this.hasTcpListeners = isApiV4(api) && api.listeners.find((listener) => listener.type === 'TCP') != null;
+          this.hasTcpListeners = isApiV4(api) && api.listeners.find(listener => listener.type === 'TCP') != null;
           this.isNative = (this.api as ApiV4).type === 'NATIVE';
           this.isReadOnly =
             !this.permissionService.hasAnyMatching(['api-plan-u']) ||
@@ -90,13 +90,13 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
             }),
           });
         }),
-        catchError((error) => {
+        catchError(error => {
           this.snackBarService.error(error.error?.message ?? 'An error occurred.');
           return EMPTY;
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((plan) => {
+      .subscribe(plan => {
         const planFormType =
           this.mode === 'edit'
             ? plan.definitionVersion === 'V4' && plan.mode === 'PUSH'
@@ -104,7 +104,7 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
               : plan.security.type
             : this.activatedRoute.snapshot.queryParams.selectedPlanMenuItem;
 
-        this.planMenuItem = AVAILABLE_PLANS_FOR_MENU.find((vm) => vm.planFormType === planFormType);
+        this.planMenuItem = AVAILABLE_PLANS_FOR_MENU.find(vm => vm.planFormType === planFormType);
 
         this.changeDetectorRef.detectChanges();
       });
@@ -128,7 +128,7 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
       this.mode === 'edit'
         ? this.planService
             .get(this.activatedRoute.snapshot.params.apiId, this.activatedRoute.snapshot.params.planId)
-            .pipe(switchMap((planToUpdate) => this.planService.update(this.api.id, planToUpdate.id, { ...planToUpdate, ...planFormValue })))
+            .pipe(switchMap(planToUpdate => this.planService.update(this.api.id, planToUpdate.id, { ...planToUpdate, ...planFormValue })))
         : this.planService.create(this.api.id, {
             ...(this.api.definitionVersion === 'V4'
               ? createV4Plan(planFormValue, this.planMenuItem.planFormType)
@@ -138,7 +138,7 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
     savePlan$
       .pipe(
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
-        catchError((error) => {
+        catchError(error => {
           this.snackBarService.error(error.error?.message ?? 'An error occurs while saving configuration');
           return EMPTY;
         }),

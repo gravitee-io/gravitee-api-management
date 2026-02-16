@@ -76,8 +76,8 @@ export class ClusterManageGroupsDialogComponent implements OnInit {
   snackBarService = inject(SnackBarService);
 
   groups$: Observable<GroupsVm> = this.groupService.list(1, 9999).pipe(
-    map((groups) =>
-      groups.data.map((group) => ({
+    map(groups =>
+      groups.data.map(group => ({
         id: group.id,
         name: group.name,
       })),
@@ -90,8 +90,8 @@ export class ClusterManageGroupsDialogComponent implements OnInit {
         return 'No groups associated';
       }
       return data
-        .filter((g) => this.groupsControl?.value?.includes(g.id))
-        .map((g) => g.name)
+        .filter(g => this.groupsControl?.value?.includes(g.id))
+        .map(g => g.name)
         .join(', ');
     }),
     startWith('Loading...'),
@@ -101,7 +101,7 @@ export class ClusterManageGroupsDialogComponent implements OnInit {
     this.clusterService
       .get(this.dialogData.clusterId)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((cluster) => {
+      .subscribe(cluster => {
         this.groupsControl = new FormControl(cluster.groups);
       });
   }
@@ -115,7 +115,7 @@ export class ClusterManageGroupsDialogComponent implements OnInit {
           this.snackBarService.success('Cluster groups updated');
           this.dialogRef.close(undefined);
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error.error?.message ?? 'An error occurred while updating cluster groups');
         },
       });

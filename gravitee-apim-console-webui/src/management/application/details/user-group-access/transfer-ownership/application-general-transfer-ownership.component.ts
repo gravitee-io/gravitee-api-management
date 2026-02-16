@@ -63,13 +63,13 @@ export class ApplicationGeneralTransferOwnershipComponent implements OnInit {
       .pipe(
         tap(([app, members, roles]) => {
           this.isReadonly = app.origin === 'KUBERNETES';
-          this.applicationMembers = members.filter((member) => member.role !== 'PRIMARY_OWNER');
-          this.roles = roles.filter((role) => role.name !== 'PRIMARY_OWNER');
+          this.applicationMembers = members.filter(member => member.role !== 'PRIMARY_OWNER');
+          this.roles = roles.filter(role => role.name !== 'PRIMARY_OWNER');
         }),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => {
-        const defaultRole = this.roles.find((role) => role.default);
+        const defaultRole = this.roles.find(role => role.default);
         this.initForm(defaultRole);
       });
   }
@@ -105,7 +105,7 @@ export class ApplicationGeneralTransferOwnershipComponent implements OnInit {
     confirmDialog
       .afterClosed()
       .pipe(
-        filter((confirmed) => confirmed),
+        filter(confirmed => confirmed),
         switchMap(() =>
           this.applicationMembersService.transferOwnership(
             this.activatedRoute.snapshot.params.applicationId,

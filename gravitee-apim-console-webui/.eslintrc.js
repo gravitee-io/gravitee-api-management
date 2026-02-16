@@ -17,7 +17,7 @@ module.exports = {
       },
     },
   },
-  ignorePatterns: ['dist', 'coverage', "storybook-static", '**/*.js', '**/*.json', '**/*.html'],
+  ignorePatterns: ['dist', 'coverage', 'storybook-static', '**/*.js', '**/*.json', '**/*.html'],
   plugins: ['@typescript-eslint', 'eslint-plugin-import', 'rxjs', 'unused-imports'],
   extends: [
     'angular',

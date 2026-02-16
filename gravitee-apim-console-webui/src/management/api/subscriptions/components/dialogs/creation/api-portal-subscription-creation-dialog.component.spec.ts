@@ -85,7 +85,7 @@ class TestComponent {
       id: 'testDialog',
     });
 
-    this.dialog.afterClosed().subscribe((result) => {
+    this.dialog.afterClosed().subscribe(result => {
       if (result) {
         this.subscriptionToCreate = result.subscriptionToCreate;
       }

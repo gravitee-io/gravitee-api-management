@@ -64,9 +64,9 @@ export class InstanceListComponent implements OnInit, OnDestroy {
         ),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((searchResult) => {
+      .subscribe(searchResult => {
         this.nbTotalInstances = searchResult.totalElements;
-        this.filteredTableData = searchResult.content.map((instance) => ({
+        this.filteredTableData = searchResult.content.map(instance => ({
           id: instance.event,
           hostname: instance.hostname,
           state: instance.state,

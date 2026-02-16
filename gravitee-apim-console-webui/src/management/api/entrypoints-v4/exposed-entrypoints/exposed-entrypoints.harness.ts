@@ -20,9 +20,9 @@ export class ExposedEntrypointsHarness extends ComponentHarness {
 
   async getValues(): Promise<string[]> {
     const elements = await this.locatorForAll('.exposed-entrypoints__list__item')();
-    const values = await parallel(() => elements.map((element) => element.text()));
+    const values = await parallel(() => elements.map(element => element.text()));
 
-    return values.map((v) => v.replace(' content_copy', ''));
+    return values.map(v => v.replace(' content_copy', ''));
   }
 
   async isEmpty(): Promise<boolean> {

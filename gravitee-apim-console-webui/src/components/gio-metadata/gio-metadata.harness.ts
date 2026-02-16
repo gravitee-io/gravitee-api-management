@@ -35,37 +35,37 @@ export class GioMetadataHarness extends ComponentHarness {
   protected getSourceFilter = this.locatorFor(MatSelectHarness);
   protected getResetFiltersButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="reset-filters"]' }));
   async getAddMetadataButton(): Promise<MatButtonHarness> {
-    return this.getAddMetadataButtonHarness().catch((_) => undefined);
+    return this.getAddMetadataButtonHarness().catch(_ => undefined);
   }
 
   async addMetadataButtonIsActive() {
     return this.getAddMetadataButtonHarness()
-      .then((btn) => btn.isDisabled())
-      .then((res) => !res);
+      .then(btn => btn.isDisabled())
+      .then(res => !res);
   }
   async openAddMetadata(): Promise<void> {
-    return this.getAddMetadataButtonHarness().then((btn) => btn.click());
+    return this.getAddMetadataButtonHarness().then(btn => btn.click());
   }
 
   async countRows(): Promise<number> {
     return this.getTable()
-      .then((table) => table.getRows())
-      .then((rows) => rows.length);
+      .then(table => table.getRows())
+      .then(rows => rows.length);
   }
 
   async getRowByIndex(index: number): Promise<GioMetadataHarnessData> {
     return this.getTable()
-      .then((table) => table.getRows())
-      .then((rows) => rows[index])
-      .then((row) =>
+      .then(table => table.getRows())
+      .then(rows => rows[index])
+      .then(row =>
         Promise.all([row.getCells({ columnName: 'key' }), row.getCells({ columnName: 'name' }), row.getCells({ columnName: 'actions' })]),
       )
       .then(([keys, names, actions]) =>
         Promise.all([
           keys[0].getText(),
           names[0].getText(),
-          actions[0].getHarness(MatButtonHarness.with({ selector: '.update-metadata' })).catch((_) => undefined),
-          actions[0].getHarness(MatButtonHarness.with({ selector: '.delete-metadata' })).catch((_) => undefined),
+          actions[0].getHarness(MatButtonHarness.with({ selector: '.update-metadata' })).catch(_ => undefined),
+          actions[0].getHarness(MatButtonHarness.with({ selector: '.delete-metadata' })).catch(_ => undefined),
         ]),
       )
       .then(([key, name, updateButton, deleteButton]) => ({
@@ -82,11 +82,11 @@ export class GioMetadataHarness extends ComponentHarness {
   }
 
   public async selectSource(source: string): Promise<void> {
-    await this.getSourceFilter().then((select) => select.open());
+    await this.getSourceFilter().then(select => select.open());
     await this.getSourceFilter()
-      .then((select) => select.getOptions({ text: source }))
-      .then((option) => option[0].click());
-    return await this.getSourceFilter().then((select) => select.close());
+      .then(select => select.getOptions({ text: source }))
+      .then(option => option[0].click());
+    return await this.getSourceFilter().then(select => select.close());
   }
 
   public async sourceSelectedText(): Promise<string> {

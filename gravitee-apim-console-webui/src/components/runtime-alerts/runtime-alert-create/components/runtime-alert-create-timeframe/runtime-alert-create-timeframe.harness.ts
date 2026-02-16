@@ -31,47 +31,47 @@ export class RuntimeAlertCreateTimeframeHarness extends ComponentHarness {
 
   public async clickOnAccordion() {
     return this.getAccordion()
-      .then((accordion) => accordion.host())
-      .then((host) => host.click());
+      .then(accordion => accordion.host())
+      .then(host => host.click());
   }
 
   public async getDaysOptions() {
-    return this.getDaysSelect().then(async (select) => {
+    return this.getDaysSelect().then(async select => {
       await select.open();
       const options = await select.getOptions();
-      return Promise.all(options.map(async (o) => o.getText()));
+      return Promise.all(options.map(async o => o.getText()));
     });
   }
 
   public async selectDays(days: string[]) {
-    return await Promise.all(days.map((day) => this.getDaysSelect().then((select) => select.clickOptions({ text: day }))));
+    return await Promise.all(days.map(day => this.getDaysSelect().then(select => select.clickOptions({ text: day }))));
   }
 
   public async getSelectedDays() {
-    return this.getDaysSelect().then((select) => select.getValueText());
+    return this.getDaysSelect().then(select => select.getValueText());
   }
 
   public async toggleBusinessDays() {
-    return this.getBusinessDaysSlide().then((slide) => slide.toggle());
+    return this.getBusinessDaysSlide().then(slide => slide.toggle());
   }
 
   public async getBusinessDaysToggleValue() {
-    return this.getBusinessDaysSlide().then((slide) => slide.isChecked());
+    return this.getBusinessDaysSlide().then(slide => slide.isChecked());
   }
 
   public async toggleOfficeHours() {
-    return this.getOfficeHoursSlide().then((slide) => slide.toggle());
+    return this.getOfficeHoursSlide().then(slide => slide.toggle());
   }
 
   public async getOfficeHoursToggleValue() {
-    return this.getOfficeHoursSlide().then((slide) => slide.isChecked());
+    return this.getOfficeHoursSlide().then(slide => slide.isChecked());
   }
 
   public async getTimeRange() {
-    return this.getTimeRangeInput().then((input) => input.getValue());
+    return this.getTimeRangeInput().then(input => input.getValue());
   }
 
   public async setTimeRange(timeRange: string) {
-    return this.getTimeRangeInput().then((input) => input.setValue(timeRange));
+    return this.getTimeRangeInput().then(input => input.setValue(timeRange));
   }
 }

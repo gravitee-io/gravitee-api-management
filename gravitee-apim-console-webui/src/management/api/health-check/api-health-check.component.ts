@@ -51,7 +51,7 @@ export class ApiHealthCheckComponent implements OnInit, OnDestroy {
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV1V2Filter(this.snackBarService),
-        tap((api) => {
+        tap(api => {
           const isReadOnly =
             !this.permissionService.hasAnyMatching(['api-health-c', 'api-health-u']) || api.definitionContext?.origin === 'KUBERNETES';
 
@@ -72,7 +72,7 @@ export class ApiHealthCheckComponent implements OnInit, OnDestroy {
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV2Filter(this.snackBarService),
-        switchMap((api) => {
+        switchMap(api => {
           const apiHealthCheck = ApiHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm, false);
           this.updateEndpointsHealthCheckConfig(api.proxy?.groups);
 
@@ -96,8 +96,8 @@ export class ApiHealthCheckComponent implements OnInit, OnDestroy {
   }
 
   updateEndpointsHealthCheckConfig(groups: Proxy['groups']) {
-    groups.forEach((group) => {
-      group.endpoints?.forEach((endpoint) => {
+    groups.forEach(group => {
+      group.endpoints?.forEach(endpoint => {
         // If healthcheck is disabled, set inherit to false
         if (
           (endpoint.healthCheck?.inherit === undefined || endpoint.healthCheck?.inherit === true) &&

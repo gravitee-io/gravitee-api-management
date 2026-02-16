@@ -53,7 +53,7 @@ export class ApiHealthCheckDashboardV4FiltersComponent implements OnInit {
 
   initForm() {
     this.form = this.formBuilder.group(this.defaultFilter);
-    this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
+    this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => {
       this.activeFilter = value;
       this.apiHealthCheckDashboardV4Service.setActiveFilter(this.mapToTimeFrameRangesParams());
     });
@@ -64,6 +64,6 @@ export class ApiHealthCheckDashboardV4FiltersComponent implements OnInit {
   }
 
   mapToTimeFrameRangesParams(): TimeRangeParams {
-    return timeFrames.find((timeFrame) => timeFrame.id === this.activeFilter.timeframe)?.timeFrameRangesParams();
+    return timeFrames.find(timeFrame => timeFrame.id === this.activeFilter.timeframe)?.timeFrameRangesParams();
   }
 }

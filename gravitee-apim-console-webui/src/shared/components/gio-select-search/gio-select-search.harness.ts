@@ -73,7 +73,7 @@ export class GioSelectSearchHarness extends ComponentHarness {
   async close(): Promise<void> {
     await this._documentRootLocator
       .locatorForOptional('.cdk-overlay-backdrop')()
-      .then((res) => res.click());
+      .then(res => res.click());
   }
 
   /**

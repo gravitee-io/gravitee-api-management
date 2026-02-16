@@ -92,7 +92,7 @@ export class ApiQualityRulesComponent implements OnInit {
     this.qualityRuleService
       .list()
       .pipe(
-        tap((qualityRulesList) => {
+        tap(qualityRulesList => {
           this.qualityRulesListTable = qualityRulesList;
           this.onPropertiesFiltersChanged(this.initialFilters);
         }),
@@ -105,7 +105,7 @@ export class ApiQualityRulesComponent implements OnInit {
     this.portalSettingsService
       .get()
       .pipe(
-        tap((settings) => {
+        tap(settings => {
           this.settings = settings;
 
           const settingsPermission = !this.permissionService.hasAnyMatching([
@@ -225,7 +225,7 @@ export class ApiQualityRulesComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.qualityRuleService.delete(id)),
         tap(() => {
           this.snackBarService.success(`“${name}” has been deleted”`);
@@ -248,8 +248,8 @@ export class ApiQualityRulesComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((newQualityRule) => this.qualityRuleService.add(newQualityRule)),
+        filter(result => !!result),
+        switchMap(newQualityRule => this.qualityRuleService.add(newQualityRule)),
         tap(() => {
           this.snackBarService.success('New quality rule created successfully');
         }),
@@ -270,8 +270,8 @@ export class ApiQualityRulesComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((editedQualityRule) => this.qualityRuleService.update(element.id, editedQualityRule)),
+        filter(result => !!result),
+        switchMap(editedQualityRule => this.qualityRuleService.update(element.id, editedQualityRule)),
         tap(() => {
           this.snackBarService.success('Quality rule updated successfully');
         }),

@@ -70,7 +70,7 @@ export class GioPermissionService {
       this._setPermissions(this.gioTestingPermission);
     }
     if (this.gioTestingRolesScopePermissionProvider) {
-      this.gioTestingRolesScopePermissionProvider.forEach((roleScopePermission) => {
+      this.gioTestingRolesScopePermissionProvider.forEach(roleScopePermission => {
         this.roleScopePermissionsCache.set(
           `${roleScopePermission.roleScope}:${roleScopePermission.id}`,
           of(roleScopePermission.permissions).pipe(shareReplay({ bufferSize: 1, refCount: false })),
@@ -80,10 +80,10 @@ export class GioPermissionService {
   }
 
   loadOrganizationPermissions(user: User): void {
-    const organizationPermissions = user.roles.filter((role) => role.scope === 'ORGANIZATION');
+    const organizationPermissions = user.roles.filter(role => role.scope === 'ORGANIZATION');
     this.currentOrganizationPermissions = organizationPermissions
-      .flatMap((role) => Object.entries(role.permissions))
-      .flatMap(([key, crudValues]) => crudValues.map((crudValue) => toLower(`ORGANIZATION-${key}-${crudValue}`)));
+      .flatMap(role => Object.entries(role.permissions))
+      .flatMap(([key, crudValues]) => crudValues.map(crudValue => toLower(`ORGANIZATION-${key}-${crudValue}`)));
 
     if (this.ajsCurrentUserService) {
       // For legacy AngularJS permissions. Make permission ajs directive work (see : PermPermissionStore)
@@ -95,9 +95,9 @@ export class GioPermissionService {
 
   loadApiPermissions(apiId: string): Observable<void> {
     return this.apiService.getPermissions(apiId).pipe(
-      map((apiPermissions) => {
+      map(apiPermissions => {
         this.currentApiPermissions = Object.entries(apiPermissions).flatMap(([key, crudValues]) =>
-          crudValues.map((crudValue) => toLower(`API-${key}-${crudValue}`)),
+          crudValues.map(crudValue => toLower(`API-${key}-${crudValue}`)),
         );
 
         if (this.ajsCurrentUserService) {
@@ -112,9 +112,9 @@ export class GioPermissionService {
 
   loadEnvironmentPermissions(envId: string): Observable<void> {
     return this.environmentService.getPermissions(envId).pipe(
-      map((envPermissions) => {
+      map(envPermissions => {
         this.currentEnvironmentPermissions = Object.entries(envPermissions).flatMap(([key, crudValues]) =>
-          crudValues.map((crudValue) => toLower(`ENVIRONMENT-${key}-${crudValue}`)),
+          crudValues.map(crudValue => toLower(`ENVIRONMENT-${key}-${crudValue}`)),
         );
 
         if (this.ajsCurrentUserService) {
@@ -129,9 +129,9 @@ export class GioPermissionService {
 
   loadApplicationPermissions(applicationId: string): Observable<void> {
     return this.applicationService.getPermissions(applicationId).pipe(
-      map((applicationPermissions) => {
+      map(applicationPermissions => {
         this.currentApplicationPermissions = Object.entries(applicationPermissions).flatMap(([key, crudValues]) =>
-          crudValues.map((crudValue) => toLower(`APPLICATION-${key}-${crudValue}`)),
+          crudValues.map(crudValue => toLower(`APPLICATION-${key}-${crudValue}`)),
         );
 
         if (this.ajsCurrentUserService) {
@@ -146,9 +146,9 @@ export class GioPermissionService {
 
   loadIntegrationPermissions(integrationId: string): Observable<void> {
     return this.integrationService.getPermissions(integrationId).pipe(
-      map((integrationPermissions) => {
+      map(integrationPermissions => {
         this.currentIntegrationPermissions = Object.entries(integrationPermissions).flatMap(([key, crudValues]) =>
-          crudValues.split('').map((crudValue) => toLower(`integration-${key}-${crudValue}`)),
+          crudValues.split('').map(crudValue => toLower(`integration-${key}-${crudValue}`)),
         );
 
         if (this.ajsCurrentUserService) {
@@ -163,9 +163,9 @@ export class GioPermissionService {
 
   loadClusterPermissions(clusterId: string): Observable<void> {
     return this.clusterService.getPermissions(clusterId).pipe(
-      map((clusterPermissions) => {
+      map(clusterPermissions => {
         this.currentClusterPermissions = Object.entries(clusterPermissions).flatMap(([key, crudValues]) =>
-          crudValues.split('').map((crudValue) => toLower(`cluster-${key}-${crudValue}`)),
+          crudValues.split('').map(crudValue => toLower(`cluster-${key}-${crudValue}`)),
         );
       }),
     );
@@ -175,9 +175,9 @@ export class GioPermissionService {
     return this.groupService
       .getPermissions(groupId)
       .pipe(
-        map((integrationPermissions) =>
+        map(integrationPermissions =>
           Object.entries(integrationPermissions).flatMap(([key, crudValues]) =>
-            crudValues.split('').map((crudValue) => toLower(`group-${key}-${crudValue}`)),
+            crudValues.split('').map(crudValue => toLower(`group-${key}-${crudValue}`)),
           ),
         ),
       );
@@ -202,7 +202,7 @@ export class GioPermissionService {
     const mapToStringPermissions = (permissions: Record<string, ('C' | 'R' | 'U' | 'D')[] | string>): string[] => {
       return Object.entries(permissions).flatMap(([key, crudValuesOrString]) => {
         const crudValues = Array.isArray(crudValuesOrString) ? crudValuesOrString : crudValuesOrString.split('');
-        return crudValues.map((crudValue) => toLower(`${roleScope}-${key}-${crudValue}`));
+        return crudValues.map(crudValue => toLower(`${roleScope}-${key}-${crudValue}`));
       });
     };
 
@@ -272,8 +272,8 @@ export class GioPermissionService {
 
   clearRoleScopePermissionsCache(scope: 'API' | 'APPLICATION' | 'CLUSTER') {
     Array.from(this.roleScopePermissionsCache.keys())
-      .filter((key) => key.startsWith(`${scope}:`))
-      .forEach((key) => this.roleScopePermissionsCache.delete(key));
+      .filter(key => key.startsWith(`${scope}:`))
+      .forEach(key => this.roleScopePermissionsCache.delete(key));
   }
 
   hasAllMatching(permissions: string[]): boolean {
@@ -289,6 +289,6 @@ export class GioPermissionService {
       ...this.permissions,
     ];
 
-    return permissions.every((permission) => allUserPermissions.includes(permission));
+    return permissions.every(permission => allUserPermissions.includes(permission));
   }
 }

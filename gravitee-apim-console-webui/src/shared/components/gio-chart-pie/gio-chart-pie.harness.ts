@@ -23,13 +23,13 @@ export class GioChartPieHarness extends ComponentHarness {
 
   async hasNoData(): Promise<boolean> {
     return this.getNoDataDisplayed()
-      .then((v) => !!v)
-      .catch((_) => false);
+      .then(v => !!v)
+      .catch(_ => false);
   }
 
   async displaysChart() {
     return this.getPieChart()
-      .then((v) => !!v)
-      .catch((_) => false);
+      .then(v => !!v)
+      .catch(_ => false);
   }
 }

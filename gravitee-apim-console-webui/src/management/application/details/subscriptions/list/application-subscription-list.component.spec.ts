@@ -274,14 +274,12 @@ describe('ApplicationSubscriptionListComponent', () => {
 
     tick(800);
     if (params?.apis) {
-      params.apis
-        .split(',')
-        .forEach((id) => expectApiGetRequest(fakeProxyApiV4({ id, name: API_ID, primaryOwner: { displayName: 'PO' } })));
+      params.apis.split(',').forEach(id => expectApiGetRequest(fakeProxyApiV4({ id, name: API_ID, primaryOwner: { displayName: 'PO' } })));
     }
 
     expectSubscriptionsGetRequest(subscriptions, params?.status?.split(','), params?.apis?.split(','), params?.apiKey);
     expectApplicationGetRequest(APP);
-    subscriptions.forEach((subscription) => {
+    subscriptions.forEach(subscription => {
       expectApiGetRequest(fakeProxyApiV4({ id: subscription.api, name: 'api', primaryOwner: { displayName: 'PO' } }));
     });
   }
@@ -297,7 +295,7 @@ describe('ApplicationSubscriptionListComponent', () => {
       .flush(
         fakePagedResult(subscriptions, undefined, {
           ...Object.fromEntries(
-            subscriptions?.map((subscription) => [
+            subscriptions?.map(subscription => [
               subscription.plan,
               {
                 name: 'Plan Name',
@@ -306,7 +304,7 @@ describe('ApplicationSubscriptionListComponent', () => {
             ]),
           ),
           ...Object.fromEntries(
-            subscriptions?.map((subscription) => [
+            subscriptions?.map(subscription => [
               subscription.api,
               {
                 name: 'Api Name',
@@ -324,7 +322,7 @@ describe('ApplicationSubscriptionListComponent', () => {
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
       method: 'GET',
     });
-    requests.map((request) => {
+    requests.map(request => {
       if (!request.cancelled) request.flush(api);
     });
   };
@@ -334,7 +332,7 @@ describe('ApplicationSubscriptionListComponent', () => {
       url: `${CONSTANTS_TESTING.env.baseURL}/applications/${APPLICATION_ID}/subscribed`,
       method: 'GET',
     });
-    requests.map((request) => {
+    requests.map(request => {
       if (!request.cancelled) request.flush(apis);
     });
   };

@@ -49,7 +49,7 @@ export class PortalUserAvatarComponent implements OnInit {
 
   ngOnInit() {
     this.userData$ = this.currentUserService.current().pipe(
-      map((user) => ({
+      map(user => ({
         user,
         picture: this.currentUserService.getUserPictureUrl(user),
         shortName: this.getUserShortName(user),

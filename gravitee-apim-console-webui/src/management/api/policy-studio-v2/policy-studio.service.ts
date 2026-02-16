@@ -41,7 +41,7 @@ export class PolicyStudioService {
   }
 
   getApiDefinition$() {
-    return this.apiDefinitionSubject.asObservable().pipe(filter((value) => !!value));
+    return this.apiDefinitionSubject.asObservable().pipe(filter(value => !!value));
   }
 
   getApiDefinitionToSave$() {

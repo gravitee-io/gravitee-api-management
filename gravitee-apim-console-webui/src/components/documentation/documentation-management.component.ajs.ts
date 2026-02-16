@@ -62,8 +62,8 @@ class DocumentationManagementComponentController implements IController {
     this.currentFolder = this.getFolder(this.rootDir);
     const folderSituation = this.DocumentationService.getFolderSituation(this.systemFoldersById, this.foldersById, this.rootDir);
     this.supportedTypes = this.DocumentationService.supportedTypes(folderSituation)
-      .filter((type) => !this.apiId || type !== PageType.MARKDOWN_TEMPLATE)
-      .map((type) => ({
+      .filter(type => !this.apiId || type !== PageType.MARKDOWN_TEMPLATE)
+      .map(type => ({
         type,
         tooltip: type.replace('_', ' '),
       }));
@@ -112,7 +112,7 @@ class DocumentationManagementComponentController implements IController {
   }
 
   filterROOTAndSystemPages(pagesToFilter: any[]) {
-    return filter(pagesToFilter, (p) => p.type !== 'ROOT' && p.type !== 'SYSTEM_FOLDER' && p.type !== 'TRANSLATION');
+    return filter(pagesToFilter, p => p.type !== 'ROOT' && p.type !== 'SYSTEM_FOLDER' && p.type !== 'TRANSLATION');
   }
 
   toggleRenameFolder() {
@@ -123,7 +123,7 @@ class DocumentationManagementComponentController implements IController {
   }
 
   renameFolder() {
-    this.DocumentationService.partialUpdate('name', this.newFolderName, this.rootDir, this.apiId).then((response) => {
+    this.DocumentationService.partialUpdate('name', this.newFolderName, this.rootDir, this.apiId).then(response => {
       this.NotificationService.show('Folder ' + this.newFolderName + ' has been changed with success');
       this.breadcrumb[this.breadcrumb.length - 1].name = response.data.name;
       this.toggleRenameFolder();
@@ -136,7 +136,7 @@ class DocumentationManagementComponentController implements IController {
       this.currentFolder.visibility === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE',
       this.rootDir,
       this.apiId,
-    ).then((response) => {
+    ).then(response => {
       this.NotificationService.show(`Folder is now ${response.data.visibility}`);
       this.currentFolder.visibility = response.data.visibility;
     });
@@ -173,7 +173,7 @@ class DocumentationManagementComponentController implements IController {
           folders: this.generateCreateShortCutFolder(),
         },
       })
-      .then((destinationId) => {
+      .then(destinationId => {
         if (destinationId) {
           const newLink = {
             name: page.name,
@@ -204,7 +204,7 @@ class DocumentationManagementComponentController implements IController {
 
     const allFolders = concat(this.folders, this.systemFolders);
 
-    allFolders.forEach((f) => {
+    allFolders.forEach(f => {
       const situation = this.DocumentationService.getFolderSituation(this.systemFoldersById, this.foldersById, f.id);
       if (
         situation === FolderSituation.SYSTEM_FOLDER ||
@@ -235,7 +235,7 @@ class DocumentationManagementComponentController implements IController {
           folders: this.generateMoveToFolder(page.id, page.type),
         },
       })
-      .then((destinationId) => {
+      .then(destinationId => {
         if (destinationId) {
           this.DocumentationService.partialUpdate('parentId', destinationId === -1 ? '' : destinationId, page.id, this.apiId).then(() => {
             this.NotificationService.show('"' + page.name + '" has been moved with success');
@@ -263,7 +263,7 @@ class DocumentationManagementComponentController implements IController {
       });
     }
 
-    allFolders.forEach((f) => {
+    allFolders.forEach(f => {
       const situation = this.DocumentationService.getFolderSituation(this.systemFoldersById, this.foldersById, f.id);
       if (
         (canBeALink && (situation === FolderSituation.ROOT || situation === FolderSituation.FOLDER_IN_FOLDER)) ||
@@ -337,12 +337,12 @@ class DocumentationManagementComponentController implements IController {
     } else {
       q.root = true;
     }
-    this.DocumentationService.search(q, this.apiId).then((response) => (this.pages = this.filterROOTAndSystemPages(response.data)));
+    this.DocumentationService.search(q, this.apiId).then(response => (this.pages = this.filterROOTAndSystemPages(response.data)));
   }
 
   refreshCurrentFolder() {
     if (this.rootDir) {
-      this.DocumentationService.get(this.apiId, this.rootDir).then((response) => (this.currentFolder = response.data));
+      this.DocumentationService.get(this.apiId, this.rootDir).then(response => (this.currentFolder = response.data));
       delete this.currentTranslation;
     }
   }
@@ -390,7 +390,7 @@ class DocumentationManagementComponentController implements IController {
           confirmButton: 'Remove',
         },
       })
-      .then((response) => {
+      .then(response => {
         if (response) {
           this.DocumentationService.remove(page.id, this.apiId)
             .then(() => {
@@ -401,7 +401,7 @@ class DocumentationManagementComponentController implements IController {
                 delete this.currentTranslation;
               }
             })
-            .catch((err) => {
+            .catch(err => {
               const errorMessage = err?.data?.message || 'An unexpected error occurred while removing the page/folder.';
               this.NotificationService.showError(errorMessage);
             });
@@ -456,7 +456,7 @@ class DocumentationManagementComponentController implements IController {
   }
 
   hasExternalDoc() {
-    const externalPages = this.pages.filter((page) => Object.prototype.hasOwnProperty.call(page, 'source'));
+    const externalPages = this.pages.filter(page => Object.prototype.hasOwnProperty.call(page, 'source'));
     return externalPages.length > 0;
   }
 

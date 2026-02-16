@@ -510,7 +510,7 @@ describe('FlatTreeComponent', () => {
   describe('Permissions', () => {
     const setupPermissions = (permissions: string[]) => {
       (permissionService.hasAnyMatching as jest.Mock).mockImplementation((requestedPermissions: string[]) => {
-        return requestedPermissions.some((p) => permissions.includes(p));
+        return requestedPermissions.some(p => permissions.includes(p));
       });
     };
 

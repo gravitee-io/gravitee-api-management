@@ -84,8 +84,8 @@ export class OpenApiToMcpToolsComponent implements ControlValueAccessor {
   }
 
   private emitValue(value: string): void {
-    convertOpenApiToMcpTools(value).then((result) => {
-      this.toolDefinitions = result.result?.map((r) => r.toolDefinition);
+    convertOpenApiToMcpTools(value).then(result => {
+      this.toolDefinitions = result.result?.map(r => r.toolDefinition);
       this.handleErrors(result);
       this.onChange(result.result);
       this.onTouched();

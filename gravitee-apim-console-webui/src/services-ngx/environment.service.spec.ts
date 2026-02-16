@@ -35,10 +35,10 @@ describe('EnvironmentService', () => {
   });
 
   describe('list', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakeEnvironments = [fakeEnvironment()];
 
-      environmentService.list().subscribe((environments) => {
+      environmentService.list().subscribe(environments => {
         expect(environments).toMatchObject(fakeEnvironments);
         done();
       });
@@ -51,10 +51,10 @@ describe('EnvironmentService', () => {
   });
 
   describe('getCurrent', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const environment = fakeEnvironment();
 
-      environmentService.getCurrent().subscribe((env) => {
+      environmentService.getCurrent().subscribe(env => {
         expect(env).toMatchObject(environment);
         done();
       });

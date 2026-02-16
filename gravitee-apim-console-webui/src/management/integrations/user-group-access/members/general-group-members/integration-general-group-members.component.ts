@@ -95,20 +95,20 @@ export class IntegrationGeneralGroupMembersComponent implements OnInit, OnDestro
       .fetchGroupPermissions(this.groupData.id)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        filter((permissions) => permissions.includes('group-member-r')),
-        mergeMap((_) => this.groupService.getMembers(this.groupData.id, page, perPage)),
+        filter(permissions => permissions.includes('group-member-r')),
+        mergeMap(_ => this.groupService.getMembers(this.groupData.id, page, perPage)),
       )
       .subscribe({
-        next: (membersResponse) => {
+        next: membersResponse => {
           if (!membersResponse.pagination.totalCount || membersResponse.pagination.totalCount === 0) {
             this.destroy.emit();
             return;
           }
           this.dataSourceGroup = {
             memberTotalCount: membersResponse.pagination.totalCount,
-            membersPageResult: membersResponse.data.map((member) => ({
+            membersPageResult: membersResponse.data.map(member => ({
               id: member.id,
-              role: member.roles.find((role) => role.scope === 'INTEGRATION')?.name,
+              role: member.roles.find(role => role.scope === 'INTEGRATION')?.name,
               displayName: member.displayName,
               picture: this.userService.getUserAvatar(member.id),
             })),

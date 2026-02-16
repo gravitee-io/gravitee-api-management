@@ -37,7 +37,7 @@ describe('EventService', () => {
   });
 
   describe('findById', () => {
-    it('calls the endpoint', (done) => {
+    it('calls the endpoint', done => {
       const apiId = 'api#1';
       const eventId = 'event#1';
       const responseEvent = fakeEvent({ id: eventId });
@@ -47,7 +47,7 @@ describe('EventService', () => {
 
       eventService
         .findById(apiId, eventId)
-        .then((result) => {
+        .then(result => {
           expect(result).toEqual(responseEvent);
           done();
         })

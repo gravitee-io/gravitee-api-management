@@ -27,7 +27,7 @@ export class ApiSubscriptionEditHarness extends ComponentHarness {
   protected getBtnByText = (text: string) => this.locatorFor(MatButtonHarness.with({ text }))();
   protected getTable = this.locatorFor(MatTableHarness);
   public async goBackToSubscriptionsList(): Promise<void> {
-    return this.getBackButton().then((btn) => btn.click());
+    return this.getBackButton().then(btn => btn.click());
   }
 
   /**
@@ -113,7 +113,7 @@ export class ApiSubscriptionEditHarness extends ComponentHarness {
   }
 
   public async openTransferDialog(): Promise<void> {
-    return this.getBtnByText('Transfer').then((btn) => btn.click());
+    return this.getBtnByText('Transfer').then(btn => btn.click());
   }
 
   public async pauseBtnIsVisible(): Promise<boolean> {
@@ -121,7 +121,7 @@ export class ApiSubscriptionEditHarness extends ComponentHarness {
   }
 
   public async openPauseDialog(): Promise<void> {
-    return this.getBtnByText('Pause').then((btn) => btn.click());
+    return this.getBtnByText('Pause').then(btn => btn.click());
   }
 
   public async resumeBtnIsVisible(): Promise<boolean> {
@@ -133,11 +133,11 @@ export class ApiSubscriptionEditHarness extends ComponentHarness {
   }
 
   public async openResumeDialog(): Promise<void> {
-    return this.getBtnByText('Resume').then((btn) => btn.click());
+    return this.getBtnByText('Resume').then(btn => btn.click());
   }
 
   public async openResumeFailureDialog(): Promise<void> {
-    return this.getBtnByText('Resume from failure').then((btn) => btn.click());
+    return this.getBtnByText('Resume from failure').then(btn => btn.click());
   }
 
   public async changeEndDateBtnIsVisible(): Promise<boolean> {
@@ -145,7 +145,7 @@ export class ApiSubscriptionEditHarness extends ComponentHarness {
   }
 
   public async openChangeEndDateDialog(): Promise<void> {
-    return this.getBtnByText('Change end date').then((btn) => btn.click());
+    return this.getBtnByText('Change end date').then(btn => btn.click());
   }
 
   public async closeBtnIsVisible(): Promise<boolean> {
@@ -153,7 +153,7 @@ export class ApiSubscriptionEditHarness extends ComponentHarness {
   }
 
   public async openCloseDialog(): Promise<void> {
-    return this.getBtnByText('Close subscription').then((btn) => btn.click());
+    return this.getBtnByText('Close subscription').then(btn => btn.click());
   }
 
   public async validateBtnIsVisible(): Promise<boolean> {
@@ -161,7 +161,7 @@ export class ApiSubscriptionEditHarness extends ComponentHarness {
   }
 
   public async openValidateDialog(): Promise<void> {
-    return this.getBtnByText('Validate subscription').then((btn) => btn.click());
+    return this.getBtnByText('Validate subscription').then(btn => btn.click());
   }
 
   public async rejectBtnIsVisible(): Promise<boolean> {
@@ -169,7 +169,7 @@ export class ApiSubscriptionEditHarness extends ComponentHarness {
   }
 
   public async openRejectDialog(): Promise<void> {
-    return this.getBtnByText('Reject subscription').then((btn) => btn.click());
+    return this.getBtnByText('Reject subscription').then(btn => btn.click());
   }
 
   /**
@@ -181,43 +181,43 @@ export class ApiSubscriptionEditHarness extends ComponentHarness {
   }
 
   public async openRenewApiKeyDialog(): Promise<void> {
-    return this.getBtnByText('Renew').then((btn) => btn.click());
+    return this.getBtnByText('Renew').then(btn => btn.click());
   }
 
   public async getApiKeyByRowIndex(index: number): Promise<string> {
     return this.getTable()
-      .then((table) => table.getRows())
-      .then((rows) => rows[index].getCells({ columnName: 'key' }))
-      .then((txt) => txt[0].getHarness(MatInputHarness))
-      .then((input) => input.getValue());
+      .then(table => table.getRows())
+      .then(rows => rows[index].getCells({ columnName: 'key' }))
+      .then(txt => txt[0].getHarness(MatInputHarness))
+      .then(input => input.getValue());
   }
 
   public async getApiKeyEndDateByRowIndex(index: number): Promise<string> {
     return this.getTable()
-      .then((table) => table.getRows())
-      .then((rows) => rows[index].getCellTextByIndex({ columnName: 'endDate' }))
-      .then((txt) => txt[0]);
+      .then(table => table.getRows())
+      .then(rows => rows[index].getCellTextByIndex({ columnName: 'endDate' }))
+      .then(txt => txt[0]);
   }
 
   public async getRevokeApiKeyBtn(index: number): Promise<MatButtonHarness> {
     return this.getTable()
-      .then((table) => table.getRows())
-      .then((rows) => rows[index].getCells({ columnName: 'actions' }))
-      .then((cells) => cells[0].getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to revoke an API Key"]' })));
+      .then(table => table.getRows())
+      .then(rows => rows[index].getCells({ columnName: 'actions' }))
+      .then(cells => cells[0].getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to revoke an API Key"]' })));
   }
 
   public async getExpireApiKeyBtn(index: number): Promise<MatButtonHarness> {
     return this.getTable()
-      .then((table) => table.getRows())
-      .then((rows) => rows[index].getCells({ columnName: 'actions' }))
-      .then((cells) => cells[0].getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to expire an API Key"]' })));
+      .then(table => table.getRows())
+      .then(rows => rows[index].getCells({ columnName: 'actions' }))
+      .then(cells => cells[0].getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to expire an API Key"]' })));
   }
 
   public async getReactivateApiKeyBtn(index: number): Promise<MatButtonHarness> {
     return this.getTable()
-      .then((table) => table.getRows())
-      .then((rows) => rows[index].getCells({ columnName: 'actions' }))
-      .then((cells) => cells[0].getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to reactivate an API Key"]' })));
+      .then(table => table.getRows())
+      .then(rows => rows[index].getCells({ columnName: 'actions' }))
+      .then(cells => cells[0].getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to reactivate an API Key"]' })));
   }
 
   private async btnIsVisible(text: string): Promise<boolean> {
@@ -225,15 +225,15 @@ export class ApiSubscriptionEditHarness extends ComponentHarness {
   }
 
   private async isVisible(element: Promise<unknown>): Promise<boolean> {
-    return element.then((_) => true).catch((_) => false);
+    return element.then(_ => true).catch(_ => false);
   }
 
   private async getSubscriptionDetailText(attr: string): Promise<string> {
     return (
       this.getSubscriptionDetail(attr)
-        .then((res) => res.text({}))
+        .then(res => res.text({}))
         // Remove the copy icon if present
-        .then((txt) => txt.replace(' content_copy', '').trim())
+        .then(txt => txt.replace(' content_copy', '').trim())
     );
   }
 }

@@ -25,6 +25,6 @@ export class ToolDisplayHarness extends ComponentHarness {
    * Gets all tool elements displayed in the component
    */
   async getToolSchema(): Promise<string> {
-    return this.getToolPanel().then((tool) => tool.getTextContent());
+    return this.getToolPanel().then(tool => tool.getTextContent());
   }
 }

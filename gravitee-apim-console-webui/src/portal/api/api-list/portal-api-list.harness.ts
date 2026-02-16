@@ -85,9 +85,9 @@ export class PortalApiListHarness extends ComponentHarness {
 
   async getRowByIndex(index: number): Promise<PortalApiListHarnessData> {
     return this.tableLocator()
-      .then((table) => table.getRows())
-      .then((rows) => rows[index])
-      .then((row) =>
+      .then(table => table.getRows())
+      .then(rows => rows[index])
+      .then(row =>
         Promise.all([row.getCells({ columnName: 'name' }), row.getCells({ columnName: 'value' }), row.getCells({ columnName: 'actions' })]),
       )
       .then(([names, value, actions]) =>

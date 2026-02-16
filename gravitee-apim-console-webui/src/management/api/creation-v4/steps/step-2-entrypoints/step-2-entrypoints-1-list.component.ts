@@ -63,7 +63,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
-    const currentSelectedEntrypointIds = (currentStepPayload.selectedEntrypoints ?? []).map((p) => p.id);
+    const currentSelectedEntrypointIds = (currentStepPayload.selectedEntrypoints ?? []).map(p => p.id);
     this.architecture = currentStepPayload.architecture;
     this.license$ = this.licenseService.getLicense$();
     this.isOEM$ = this.licenseService.isOEM$();
@@ -81,22 +81,22 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
     };
 
     const connectorPlugins$: Observable<ConnectorPlugin[]> = listEntrypointPlugins[currentStepPayload.architecture].pipe(
-      map((plugins) => {
+      map(plugins => {
         if (currentStepPayload.architecture === 'PROXY') {
           // For PROXY, we filter out the MCP entrypoint plugin. MCP is manageable after the API creation.
-          return plugins.filter((p) => p.id !== MCP_ENTRYPOINT_ID);
+          return plugins.filter(p => p.id !== MCP_ENTRYPOINT_ID);
         }
         if (currentStepPayload.architecture === 'MESSAGE') {
           // For MESSAGE, we filter out the AGENT_TO_AGENT entrypoint plugin. A2A is manageable with AI architecture only.
-          return plugins.filter((p) => p.id !== AGENT_TO_AGENT.id);
+          return plugins.filter(p => p.id !== AGENT_TO_AGENT.id);
         }
         return plugins;
       }),
     );
 
-    connectorPlugins$.pipe(takeUntil(this.unsubscribe$)).subscribe((entrypointPlugins) => {
+    connectorPlugins$.pipe(takeUntil(this.unsubscribe$)).subscribe(entrypointPlugins => {
       this.entrypoints = entrypointPlugins
-        .map((entrypoint) => fromConnector(this.iconService, entrypoint))
+        .map(entrypoint => fromConnector(this.iconService, entrypoint))
         .sort((entrypoint1, entrypoint2) => {
           const name1 = entrypoint1.name.toUpperCase();
           const name2 = entrypoint2.name.toUpperCase();
@@ -110,7 +110,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
     this.formGroup
       .get('selectedEntrypointsIds')
       .valueChanges.pipe(
-        tap((selectedEntrypointsIds) => {
+        tap(selectedEntrypointsIds => {
           this.shouldUpgrade = this.connectorPluginsV2Service.selectedPluginsNotAvailable(selectedEntrypointsIds, this.entrypoints);
         }),
         takeUntil(this.unsubscribe$),
@@ -124,7 +124,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   }
 
   save() {
-    const previousSelection = this.stepService.payload?.selectedEntrypoints?.map((e) => e.id);
+    const previousSelection = this.stepService.payload?.selectedEntrypoints?.map(e => e.id);
     const newSelection = this.formGroup.value.selectedEntrypointsIds;
 
     if (previousSelection && !isEqual(newSelection, previousSelection)) {
@@ -140,7 +140,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
           },
         })
         .afterClosed()
-        .subscribe((confirmed) => {
+        .subscribe(confirmed => {
           if (confirmed) {
             this.stepService.invalidateAllNextSteps();
             this.saveChanges();
@@ -172,14 +172,14 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
 
   private doSaveSync() {
     const selectedEntrypointId = this.formGroup.getRawValue().selectedEntrypointsIds[0];
-    const selectedEntrypoint = this.entrypoints.find((e) => selectedEntrypointId.includes(e.id));
+    const selectedEntrypoint = this.entrypoints.find(e => selectedEntrypointId.includes(e.id));
 
     // pre-select the endpoint associated to current proxy entrypoint
     this.connectorPluginsV2Service
       .getEndpointPlugin(selectedEntrypoint.id)
       .pipe(
-        tap((proxyEndpoint) => {
-          this.stepService.validStep((previousPayload) => ({
+        tap(proxyEndpoint => {
+          this.stepService.validStep(previousPayload => ({
             ...previousPayload,
             type: 'PROXY',
             selectedEntrypoints: [
@@ -221,9 +221,9 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
         icon,
         deployed,
       }))
-      .filter((e) => selectedEntrypointsIds.includes(e.id));
+      .filter(e => selectedEntrypointsIds.includes(e.id));
 
-    this.stepService.validStep((previousPayload) => ({
+    this.stepService.validStep(previousPayload => ({
       ...previousPayload,
       type: 'MESSAGE',
       selectedEntrypoints,
@@ -237,15 +237,15 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
 
   private doSaveAI() {
     const selectedEntrypointsId = this.formGroup.getRawValue().selectedEntrypointsIds[0];
-    const selectedEntrypoint = this.entrypoints.find((e) => selectedEntrypointsId === e.id);
+    const selectedEntrypoint = this.entrypoints.find(e => selectedEntrypointsId === e.id);
 
     const apiType: ApiType = selectedEntrypoint.id === AGENT_TO_AGENT.id ? 'MESSAGE' : selectedEntrypoint.supportedApiType;
 
     this.connectorPluginsV2Service
       .getEndpointPlugin(selectedEntrypoint.id)
       .pipe(
-        tap((proxyEndpoint) => {
-          this.stepService.validStep((previousPayload) => ({
+        tap(proxyEndpoint => {
+          this.stepService.validStep(previousPayload => ({
             ...previousPayload,
             type: apiType,
             selectedEntrypoints: [
@@ -279,7 +279,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
 
   public onRequestUpgrade() {
     const selectedEntrypointsId = this.formGroup.getRawValue().selectedEntrypointsIds[0];
-    const selectedEntrypoint = this.entrypoints.find((e) => selectedEntrypointsId === e.id);
+    const selectedEntrypoint = this.entrypoints.find(e => selectedEntrypointsId === e.id);
 
     if (selectedEntrypoint.supportedApiType === 'LLM_PROXY') {
       this.licenseService.openDialog({

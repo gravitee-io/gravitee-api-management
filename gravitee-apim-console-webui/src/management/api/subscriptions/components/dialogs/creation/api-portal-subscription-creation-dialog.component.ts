@@ -78,14 +78,14 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
     private readonly iconService: IconService,
     private readonly snackBarService: SnackBarService,
   ) {
-    this.plans = dialogData.plans.filter((plan) => plan.security?.type !== 'KEY_LESS');
-    this.availableSubscriptionEntrypoints = dialogData.availableSubscriptionEntrypoints.map((entrypoint) => ({ type: entrypoint.type }));
+    this.plans = dialogData.plans.filter(plan => plan.security?.type !== 'KEY_LESS');
+    this.availableSubscriptionEntrypoints = dialogData.availableSubscriptionEntrypoints.map(entrypoint => ({ type: entrypoint.type }));
     this.canUseCustomApiKey = !dialogData.isFederatedApi && this.constants.env?.settings?.plan?.security?.customApiKey?.enabled;
     this.canUseSharedApiKeys = !dialogData.isFederatedApi && this.constants.env?.settings?.plan?.security?.sharedApiKey?.enabled;
   }
 
   ngOnInit(): void {
-    this.showGeneralConditionsMsg = this.plans.some((plan) => plan.generalConditions);
+    this.showGeneralConditionsMsg = this.plans.some(plan => plan.generalConditions);
 
     this.prepareSubscriptionEntrypoints();
 
@@ -148,7 +148,7 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
   }
 
   isPlanSubscribedBySelectedApp(plan: Plan) {
-    return this.currentSubscriptions?.some((subscription) => subscription.plan === plan.id);
+    return this.currentSubscriptions?.some(subscription => subscription.plan === plan.id);
   }
 
   private prepareSubscriptionEntrypoints() {
@@ -156,9 +156,9 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
       this.connectorPluginsV2Service
         .listEntrypointPlugins()
         .pipe(
-          tap((entrypointPlugins) =>
-            this.availableSubscriptionEntrypoints.forEach((entrypoint) => {
-              const connectorPlugin = entrypointPlugins.find((e) => e.id === entrypoint.type);
+          tap(entrypointPlugins =>
+            this.availableSubscriptionEntrypoints.forEach(entrypoint => {
+              const connectorPlugin = entrypointPlugins.find(e => e.id === entrypoint.type);
               if (connectorPlugin) {
                 entrypoint.name = connectorPlugin.name;
                 entrypoint.icon = this.iconService.registerSvg(connectorPlugin.id, connectorPlugin.icon);
@@ -174,12 +174,12 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
     return this.form.get('selectedApplication').valueChanges.pipe(
       distinctUntilChanged(),
       debounceTime(100),
-      filter((term) => typeof term === 'string'),
-      switchMap((term) =>
+      filter(term => typeof term === 'string'),
+      switchMap(term =>
         term.length > 0 ? this.applicationService.list('ACTIVE', term, 'name', 1, 20) : of(new PagedResult<Application>()),
       ),
-      map((applicationsPage) => applicationsPage.data),
-      tap((_) => {
+      map(applicationsPage => applicationsPage.data),
+      tap(_ => {
         this.form.get('selectedPlan')?.reset();
         this.form.get('customApiKey')?.reset();
         this.form.removeControl('apiKeyMode');
@@ -196,10 +196,10 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
       .valueChanges.pipe(
         distinctUntilChanged(),
         debounceTime(100),
-        filter((app) => app?.id),
-        switchMap((app) => this.subscriptionService.getApplicationSubscriptions(app.id)),
-        map((applicationsPage) => applicationsPage.data),
-        tap((subscriptions) => {
+        filter(app => app?.id),
+        switchMap(app => this.subscriptionService.getApplicationSubscriptions(app.id)),
+        map(applicationsPage => applicationsPage.data),
+        tap(subscriptions => {
           this.currentSubscriptions = subscriptions;
           this.form.get('selectedPlan')?.reset();
           this.form.get('customApiKey')?.reset();
@@ -216,7 +216,7 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
       .get('selectedPlan')
       .valueChanges.pipe(
         distinctUntilChanged(),
-        filter((plan) => plan?.mode === 'PUSH'),
+        filter(plan => plan?.mode === 'PUSH'),
         tap(() => {
           this.form.removeControl('apiKeyMode');
           this.form.removeControl('customApiKey');
@@ -224,8 +224,8 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
           this.form.addControl('channel', new UntypedFormControl(undefined, []));
         }),
         switchMap(() => this.form.get('selectedEntrypoint').valueChanges),
-        switchMap((entrypointId) => this.connectorPluginsV2Service.getEntrypointPluginSubscriptionSchema(entrypointId)),
-        tap((subscriptionSchema) => {
+        switchMap(entrypointId => this.connectorPluginsV2Service.getEntrypointPluginSubscriptionSchema(entrypointId)),
+        tap(subscriptionSchema => {
           this.selectedSchema = subscriptionSchema;
           this.form.addControl('entrypointConfiguration', new UntypedFormControl({}, Validators.required));
         }),
@@ -239,8 +239,8 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
       .get('selectedPlan')
       .valueChanges.pipe(
         distinctUntilChanged(),
-        filter((plan) => plan?.security?.type === 'API_KEY'),
-        switchMap((plan) => {
+        filter(plan => plan?.security?.type === 'API_KEY'),
+        switchMap(plan => {
           const selectedAppId = this.form.get('selectedApplication').value?.id;
           if (selectedAppId != null) {
             return combineLatest([
@@ -255,11 +255,11 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
         }),
         switchMap(([subscriptions, plan]) => {
           if (this.canUseSharedApiKeys && this.form.get('selectedApplication').value.api_key_mode === ApiKeyMode.UNSPECIFIED) {
-            return of(subscriptions?.data?.filter((subscription) => subscription?.api !== plan?.apiId).length >= 1);
+            return of(subscriptions?.data?.filter(subscription => subscription?.api !== plan?.apiId).length >= 1);
           }
           return of(false);
         }),
-        tap((shouldDisplayKeyModeChoice) => {
+        tap(shouldDisplayKeyModeChoice => {
           if (shouldDisplayKeyModeChoice) {
             this.form.addControl('apiKeyMode', new UntypedFormControl('', [Validators.required]));
           }
@@ -289,7 +289,7 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
           return EMPTY;
         }),
         distinctUntilChanged(),
-        tap((value) => {
+        tap(value => {
           if (this.canUseCustomApiKey && value === ApiKeyMode.EXCLUSIVE) {
             this.form.addControl('customApiKey', new UntypedFormControl('', []));
           } else {
@@ -306,7 +306,7 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
       .get('selectedPlan')
       .valueChanges.pipe(
         distinctUntilChanged(),
-        filter((plan) => plan?.security?.type === 'OAUTH2' || plan?.security?.type === 'JWT'),
+        filter(plan => plan?.security?.type === 'OAUTH2' || plan?.security?.type === 'JWT'),
         tap(() => {
           this.form.removeControl('apiKeyMode');
           this.form.removeControl('customApiKey');
@@ -339,5 +339,5 @@ const needClientId: (type: string) => boolean = (type: string): boolean => {
 
 const haveClientId: (value: any) => boolean = (value: any) => {
   const clientIdPaths = ['settings.app.client_id', 'settings.oauth.client_id'];
-  return clientIdPaths.some((path) => has(value, path));
+  return clientIdPaths.some(path => has(value, path));
 };

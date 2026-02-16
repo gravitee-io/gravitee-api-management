@@ -28,40 +28,40 @@ export class RuntimeAlertCreateGeneralHarness extends ComponentHarness {
   private getDescriptionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="description"]' }));
 
   public async setName(name: string) {
-    return this.getNameInput().then((input) => input.setValue(name));
+    return this.getNameInput().then(input => input.setValue(name));
   }
 
   public async getRulesOptions(): Promise<string[]> {
-    return this.getRuleSelect().then(async (select) => {
+    return this.getRuleSelect().then(async select => {
       await select.open();
 
       const options = await select.getOptions();
-      return Promise.all(options.map(async (o) => o.getText()));
+      return Promise.all(options.map(async o => o.getText()));
     });
   }
 
   public async selectRule(rule: string) {
-    return this.getRuleSelect().then((select) => select.clickOptions({ text: rule }));
+    return this.getRuleSelect().then(select => select.clickOptions({ text: rule }));
   }
 
   public async getSeverityOptions(): Promise<string[]> {
-    return this.getSeveritySelect().then(async (select) => {
+    return this.getSeveritySelect().then(async select => {
       await select.open();
 
       const options = await select.getOptions();
-      return Promise.all(options.map(async (o) => o.getText()));
+      return Promise.all(options.map(async o => o.getText()));
     });
   }
 
   public async selectSeverity(severity: string) {
-    return this.getSeveritySelect().then((select) => select.clickOptions({ text: severity }));
+    return this.getSeveritySelect().then(select => select.clickOptions({ text: severity }));
   }
 
   public async setDescription(name: string) {
-    return this.getDescriptionInput().then((input) => input.setValue(name));
+    return this.getDescriptionInput().then(input => input.setValue(name));
   }
 
   public async toggleEnabled() {
-    return this.getEnabledSlide().then((slide) => slide.toggle());
+    return this.getEnabledSlide().then(slide => slide.toggle());
   }
 }

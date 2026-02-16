@@ -42,14 +42,14 @@ export class GioRoleService {
       return false;
     }
     const { scope, name } = role;
-    return this.currentUserRoles.some((role) => role.scope === scope && role.name === name);
+    return this.currentUserRoles.some(role => role.scope === scope && role.name === name);
   }
 
   hasAnyMatching(roles: { scope: string; name: string }[]) {
-    return roles.filter((role) => this.hasRole(role)).length > 0;
+    return roles.filter(role => this.hasRole(role)).length > 0;
   }
 
   isOrganizationAdmin(): boolean {
-    return this.currentUserRoles?.some((role) => role.scope === 'ORGANIZATION' && role.name === 'ADMIN');
+    return this.currentUserRoles?.some(role => role.scope === 'ORGANIZATION' && role.name === 'ADMIN');
   }
 }

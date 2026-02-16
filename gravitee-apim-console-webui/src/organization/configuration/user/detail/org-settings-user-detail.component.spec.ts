@@ -848,8 +848,7 @@ describe('OrgSettingsUserDetailComponent', () => {
 
   function expectApiSearchRequest() {
     const req = httpTestingController.expectOne(
-      (request) =>
-        request.method === 'POST' && request.url.includes('/management/v2/environments/') && request.url.includes('/apis/_search'),
+      request => request.method === 'POST' && request.url.includes('/management/v2/environments/') && request.url.includes('/apis/_search'),
     );
     expect(req.request.method).toEqual('POST');
     req.flush({ data: [], pagination: { page: 1, perPage: 10000, totalCount: 0, pageCount: 0, pageItemsCount: 0 } });

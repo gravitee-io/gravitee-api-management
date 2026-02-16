@@ -82,8 +82,8 @@ export class EnableMcpEntrypointComponent implements OnInit {
           const listeners = api.listeners;
           const httpListener = listeners[0] as HttpListener;
 
-          if (httpListener.entrypoints?.some((entrypoint) => entrypoint.type === MCP_ENTRYPOINT_ID)) {
-            httpListener.entrypoints = httpListener.entrypoints.map((entrypoint) =>
+          if (httpListener.entrypoints?.some(entrypoint => entrypoint.type === MCP_ENTRYPOINT_ID)) {
+            httpListener.entrypoints = httpListener.entrypoints.map(entrypoint =>
               entrypoint.type === MCP_ENTRYPOINT_ID ? { ...entrypoint, configuration } : entrypoint,
             );
           } else {

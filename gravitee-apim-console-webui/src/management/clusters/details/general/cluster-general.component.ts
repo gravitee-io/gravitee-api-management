@@ -83,7 +83,7 @@ export class ClusterGeneralComponent implements OnInit {
     this.clusterService
       .get(this.activatedRoute.snapshot.params.clusterId)
       .pipe(
-        tap((cluster) => {
+        tap(cluster => {
           this.initialCluster = cluster;
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -133,7 +133,7 @@ export class ClusterGeneralComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.clusterService.delete(this.activatedRoute.snapshot.params.clusterId)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);

@@ -97,7 +97,7 @@ export class ApplicationCreationFormComponent implements OnInit {
     }
   >;
   groupsList: Observable<Group[]> = this.groupService.list().pipe(
-    map((groups) => {
+    map(groups => {
       this.hasGroupsToAdd = groups?.length > 0;
       return groups.sort((a, b) => a.name.localeCompare(b.name));
     }),
@@ -108,27 +108,27 @@ export class ApplicationCreationFormComponent implements OnInit {
   ngOnInit() {
     this.applicationType$ = this.applicationFormGroup.get('type').valueChanges.pipe(
       startWith(this.applicationFormGroup.get('type').value),
-      filter((typeSelected) => !!typeSelected),
-      map((typeSelected) => {
+      filter(typeSelected => !!typeSelected),
+      map(typeSelected => {
         const applicationType = this.applicationTypes.find(
-          (applicationType) => applicationType.id.toUpperCase() === typeSelected.toUpperCase(),
+          applicationType => applicationType.id.toUpperCase() === typeSelected.toUpperCase(),
         );
         return {
           ...applicationType,
           isOauth: applicationType.id.toUpperCase() !== 'SIMPLE',
           requiresRedirectUris: applicationType.requires_redirect_uris,
-          allowedGrantTypesVM: applicationType.allowed_grant_types.map((grantType) => ({
+          allowedGrantTypesVM: applicationType.allowed_grant_types.map(grantType => ({
             value: grantType.type,
             label: grantType.name,
-            disabled: applicationType.mandatory_grant_types.some((mandatoryGrantType) => mandatoryGrantType.type === grantType.type),
+            disabled: applicationType.mandatory_grant_types.some(mandatoryGrantType => mandatoryGrantType.type === grantType.type),
           })),
         };
       }),
-      tap((applicationType) => {
+      tap(applicationType => {
         if (applicationType.isOauth && applicationType.allowedGrantTypesVM.length > 0) {
           this.applicationFormGroup.get('oauthGrantTypes')?.setValidators(Validators.required);
 
-          const defaultGrantType = applicationType?.default_grant_types?.map((grantType) => grantType.type) ?? [];
+          const defaultGrantType = applicationType?.default_grant_types?.map(grantType => grantType.type) ?? [];
           this.applicationFormGroup.get('oauthGrantTypes')?.setValue(defaultGrantType);
         } else {
           this.applicationFormGroup.get('oauthGrantTypes')?.clearValidators();

@@ -39,14 +39,14 @@ export class ApiRuntimeLogsQuickFiltersHarness extends ComponentHarness {
   public getStatusChip = this.locatorFor(MatChipHarness.with({ text: /^statuses:/ }));
 
   public async moreFiltersButtonClick() {
-    return this.getMoreButton().then((btn) => btn.click());
+    return this.getMoreButton().then(btn => btn.click());
   }
 
   public clickRefresh() {
-    return this.getRefreshButton().then((button) => button.click());
+    return this.getRefreshButton().then(button => button.click());
   }
 
   public clickResetFilters() {
-    return this.getResetFiltersButton().then((button) => button.click());
+    return this.getResetFiltersButton().then(button => button.click());
   }
 }

@@ -36,7 +36,7 @@ class CorsService {
             confirmButton: 'Yes, I want to allow all origins.',
           },
         })
-        .then((response) => {
+        .then(response => {
           if (!response) {
             allowOriginArray.splice(index, 1);
           }
@@ -46,7 +46,7 @@ class CorsService {
 
       if (!validator.test(chip)) {
         let invalidRegex = false;
-        if (['{', '[', '(', '*'].some((v) => this.allowOriginPattern.includes(v))) {
+        if (['{', '[', '(', '*'].some(v => this.allowOriginPattern.includes(v))) {
           try {
             new RegExp(chip);
           } catch (e) {
@@ -74,7 +74,7 @@ class CorsService {
   isRegexValid(allowOriginArray) {
     let isValid = true;
     if (allowOriginArray) {
-      allowOriginArray.forEach((allowOrigin) => {
+      allowOriginArray.forEach(allowOrigin => {
         if ('*' !== allowOrigin && (allowOrigin.includes('(') || allowOrigin.includes('[') || allowOrigin.includes('*'))) {
           try {
             // eslint:disable-next-line:no-unused-expression

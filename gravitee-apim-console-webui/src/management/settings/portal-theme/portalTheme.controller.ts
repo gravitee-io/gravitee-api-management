@@ -88,7 +88,7 @@ class PortalThemeController {
       return !$scope.hasPreview() || ($scope.hasPreview() && $scope.isDetached);
     };
 
-    $scope.getThemeVariables = (filter) => {
+    $scope.getThemeVariables = filter => {
       const themeComponent = this.$scope.theme ? this.$scope.themeComponent : {};
       if (themeComponent.css) {
         if (filter) {
@@ -111,50 +111,50 @@ class PortalThemeController {
     });
 
     $scope.getGlobalColorVariables = () => {
-      return this.$scope.getThemeVariables((prop) => {
+      return this.$scope.getThemeVariables(prop => {
         return prop.type === 'color' && prop.name.startsWith('--gv-theme-font-color');
       });
     };
 
     $scope.getGlobalPrimaryColorVariables = () => {
-      return this.$scope.getThemeVariables((prop) => {
+      return this.$scope.getThemeVariables(prop => {
         return prop.type === 'color' && prop.description.includes('Primary');
       });
     };
 
     $scope.getGlobalHomepageColorVariables = () => {
-      return this.$scope.getThemeVariables((prop) => {
+      return this.$scope.getThemeVariables(prop => {
         return prop.type === 'color' && prop.description.includes('Homepage');
       });
     };
 
     $scope.getGlobalNeutralColorVariables = () => {
-      return this.$scope.getThemeVariables((prop) => {
+      return this.$scope.getThemeVariables(prop => {
         return prop.type === 'color' && prop.name.startsWith('--gv-theme-neutral-color');
       });
     };
 
     $scope.getGlobalHomepageVariables = () => {
-      return this.$scope.getThemeVariables((prop) => {
+      return this.$scope.getThemeVariables(prop => {
         return prop.type !== 'color' && prop.description.includes('Homepage');
       });
     };
 
     $scope.getGlobalFontFamilyVariables = () => {
-      return this.$scope.getThemeVariables((prop) => {
+      return this.$scope.getThemeVariables(prop => {
         return prop.name.startsWith('--gv-theme-font-family');
       });
     };
 
     $scope.getGlobalFontSizeVariables = () => {
-      return this.$scope.getThemeVariables((prop) => {
+      return this.$scope.getThemeVariables(prop => {
         return prop.name.startsWith('--gv-theme-font-size');
       });
     };
 
     $scope.getComponents = () => {
       if ($scope.theme) {
-        return $scope.theme.definition.data.filter((element) => element.name !== 'gv-theme');
+        return $scope.theme.definition.data.filter(element => element.name !== 'gv-theme');
       }
       return [];
     };
@@ -239,7 +239,7 @@ class PortalThemeController {
     let value = property.value;
     if (property.value === '' && property.default.startsWith('var(')) {
       const parentProperty = property.default.split(',')[0].replace('var(', '');
-      const parentCss = this.$scope.themeComponent.css.find((p) => p.name === parentProperty);
+      const parentCss = this.$scope.themeComponent.css.find(p => p.name === parentProperty);
       if (parentCss) {
         value = `(inherited from ${parentCss.description})`;
       }
@@ -248,13 +248,13 @@ class PortalThemeController {
   }
 
   hasColors(component) {
-    return component.css.find((p) => p.type.toLowerCase() === 'color') != null;
+    return component.css.find(p => p.type.toLowerCase() === 'color') != null;
   }
 
   getPlaceholder(property) {
     if (property.value === '' && property.default.startsWith('var(')) {
       const parentProperty = property.default.split(',')[0].replace('var(', '');
-      const parentCss = this.$scope.themeComponent.css.find((p) => p.name === parentProperty);
+      const parentCss = this.$scope.themeComponent.css.find(p => p.name === parentProperty);
       return `Use ${parentCss.description}: ${parentCss.value}`;
     }
     return property.description;
@@ -305,7 +305,7 @@ class PortalThemeController {
     clearInterval(this.checkConnectionRequestInterval);
   }
 
-  handleEvent = (event) => {
+  handleEvent = event => {
     if (event.data.type === 'gravitee') {
       if (this.connectionRequestInterval) {
         this.connect();
@@ -353,7 +353,7 @@ class PortalThemeController {
 
   setTheme(theme) {
     this.$scope.theme = theme;
-    this.$scope.themeComponent = theme.definition.data.find((element) => element.name === 'gv-theme');
+    this.$scope.themeComponent = theme.definition.data.find(element => element.name === 'gv-theme');
     this.initThemeImagesURL();
   }
 
@@ -363,7 +363,7 @@ class PortalThemeController {
   };
 
   loadTheme = () => {
-    return this.PortalThemeService.getCurrent().then((response) => {
+    return this.PortalThemeService.getCurrent().then(response => {
       const theme: Theme = response.data;
       this.setTheme(theme);
     });
@@ -393,7 +393,7 @@ class PortalThemeController {
       cancel: 'CANCEL',
     });
     this.$mdDialog.show(confirm).then(() => {
-      this.PortalThemeService.restoreDefaultTheme(this.$scope.theme).then((response) => {
+      this.PortalThemeService.restoreDefaultTheme(this.$scope.theme).then(response => {
         const theme: Theme = response.data;
         this.setTheme(theme);
         this.onDataChanged();
@@ -477,7 +477,7 @@ class PortalThemeController {
     if (file) {
       const reader = new FileReader();
       reader.readAsText(file);
-      reader.onload = (event) => {
+      reader.onload = event => {
         const jsonFromFile = JSON.parse(event.target.result as string);
 
         // force to false, to force the user to validate the imported theme before saving and enabling it.

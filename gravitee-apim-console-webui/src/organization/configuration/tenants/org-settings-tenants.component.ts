@@ -50,7 +50,7 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.tenantService.list().subscribe((tenants) => {
+    this.tenantService.list().subscribe(tenants => {
       this.tenants = tenants;
       this.tenantsDataSource.data = tenants;
       this.tenantsTableUnpaginatedLength = tenants.length;
@@ -72,8 +72,8 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((newTenant) => this.tenantService.create([newTenant])),
+        filter(result => !!result),
+        switchMap(newTenant => this.tenantService.create([newTenant])),
         tap(() => {
           this.snackBarService.success('Tenant successfully created!');
         }),
@@ -100,7 +100,7 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.tenantService.delete(tenant.id)),
         tap(() => this.snackBarService.success(`Tenant successfully deleted!`)),
         takeUntil(this.unsubscribe$),
@@ -120,8 +120,8 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((updatedTenant) => this.tenantService.update([updatedTenant])),
+        filter(result => !!result),
+        switchMap(updatedTenant => this.tenantService.update([updatedTenant])),
         tap(() => {
           this.snackBarService.success('Tenant successfully updated!');
         }),

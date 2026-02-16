@@ -101,7 +101,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
     if (this.api.definitionVersion !== 'V4' || (this.api as ApiV4).type === 'PROXY') {
       this.shouldUpgrade = false;
     } else {
-      this.apiService.verifyDeploy(this.api.id).subscribe((resp) => {
+      this.apiService.verifyDeploy(this.api.id).subscribe(resp => {
         this.shouldUpgrade = resp?.ok !== true;
       });
     }
@@ -160,7 +160,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.apiReviewV2Service.ask(this.api.id)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -187,7 +187,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => (state === 'START' ? this.apiService.start(this.api.id) : this.apiService.stop(this.api.id))),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -218,9 +218,9 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.apiService.get(this.api.id)),
-        switchMap((api) => {
+        switchMap(api => {
           if (api.definitionVersion === 'V2' || api.definitionVersion === 'V4' || api.definitionVersion === 'FEDERATED') {
             const apiToUpdate: UpdateApi = { ...api, lifecycleState: lifecycleState };
             return this.apiService.update(this.api.id, apiToUpdate);
@@ -257,9 +257,9 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.apiService.get(this.api.id)),
-        switchMap((api) => {
+        switchMap(api => {
           if (api.definitionVersion === 'V2' || api.definitionVersion === 'V4' || api.definitionVersion === 'FEDERATED') {
             return this.apiService.update(api.id, {
               ...api,
@@ -299,7 +299,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.apiService.delete(this.api.id, shouldClosePlans)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -330,7 +330,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.apiService.detach(this.api.id)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);

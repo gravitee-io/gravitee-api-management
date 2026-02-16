@@ -47,7 +47,7 @@ const AlertTriggerConditionComponent: ng.IComponentOptions = {
         }
 
         // Get the metric field according to the condition property
-        this.conditions = find(this.metrics as Metrics[], (metric) => metric.key === this.condition.property).conditions;
+        this.conditions = find(this.metrics as Metrics[], metric => metric.key === this.condition.property).conditions;
 
         this.onConditionChange();
       }
@@ -60,7 +60,7 @@ const AlertTriggerConditionComponent: ng.IComponentOptions = {
       if (this.operators.length === 1 && !this.condition.operator) {
         this.condition.operator = this.operators[0].key;
       }
-      const isInvalidOperator = !this.operators.some((op) => op.key === this.condition.operator);
+      const isInvalidOperator = !this.operators.some(op => op.key === this.condition.operator);
       if (isInvalidOperator && this.operators.length > 1) {
         delete this.condition.operator;
       }

@@ -84,7 +84,7 @@ export class PortalNavigationService {
 
   public getMainMenuItems(): MenuItem[] {
     return this.allMenuItems
-      .filter((item) => this.permissionService.hasAnyMatching(item.permissions))
+      .filter(item => this.permissionService.hasAnyMatching(item.permissions))
       .map(({ displayName, routerLink, icon }) => ({
         displayName,
         routerLink,

@@ -90,8 +90,8 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
         switchMap((api: ApiV4) => {
           this.api = api;
 
-          this.isHttpProxyApi = api.type === 'PROXY' && !(api.listeners.find((listener) => listener.type === 'TCP') != null);
-          this.isNativeKafkaApi = api.type === 'NATIVE' && api.listeners.some((listener) => listener.type === 'KAFKA');
+          this.isHttpProxyApi = api.type === 'PROXY' && !(api.listeners.find(listener => listener.type === 'TCP') != null);
+          this.isNativeKafkaApi = api.type === 'NATIVE' && api.listeners.some(listener => listener.type === 'KAFKA');
 
           const isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
           const canUpdate = this.permissionService.hasAnyMatching(['api-definition-u']);
@@ -205,7 +205,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.apiService.get(this.api.id)),
         map((api: ApiV4) => {
           updateDlqEntrypoint(api, matchingDlqEntrypoint, updatedEndpoint.name);
@@ -293,7 +293,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     if (this.isHttpProxyApi) {
       this.healthCheckForm.controls.enabled.valueChanges
         .pipe(startWith(this.healthCheckForm.controls.enabled.value), takeUntil(this.unsubscribe$))
-        .subscribe((enabled) => {
+        .subscribe(enabled => {
           if (enabled) {
             this.healthCheckForm.controls.configuration.enable({ emitEvent: false });
           } else {
@@ -302,7 +302,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
         });
       this.healthCheckForm.controls.inherit.valueChanges
         .pipe(startWith(this.healthCheckForm.controls.inherit.value), takeUntil(this.unsubscribe$))
-        .subscribe((inherit) => {
+        .subscribe(inherit => {
           if (inherit) {
             this.resetHealthCheckToGroup();
             this.healthCheckForm.controls.configuration.disable({ emitEvent: false });

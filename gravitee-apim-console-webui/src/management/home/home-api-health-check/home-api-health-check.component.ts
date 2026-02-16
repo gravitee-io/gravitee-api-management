@@ -130,7 +130,7 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
             )
             .pipe(catchError(() => of({ data: [] } as ApisResponse))),
         ),
-        tap((apisPage) => {
+        tap(apisPage => {
           this.apisTableDS.set(this.toApisTableDS(apisPage));
           this.apisTableDSUnpaginatedLength = apisPage?.pagination?.totalCount ?? 0;
           this.isLoadingData = false;
@@ -203,7 +203,7 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
         mergeMap(({ apis, hasNextPage }) => {
           const getApisHealth: Observable<{ apiMetrics?: ApiMetrics; isLastApiHealth: boolean }>[] = apis.map((api, index, array) =>
             this.apiService.apiHealth(api.id, 'availability').pipe(
-              map((apiMetrics) => ({ apiMetrics, isLastApiHealth: !hasNextPage && array.length - 1 <= index })),
+              map(apiMetrics => ({ apiMetrics, isLastApiHealth: !hasNextPage && array.length - 1 <= index })),
               delay(100),
             ),
           );
@@ -230,7 +230,7 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
-        next: (allApisHCStatus) => {
+        next: allApisHCStatus => {
           this.allApisHCStatus.set(allApisHCStatus);
         },
       });
@@ -258,7 +258,7 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
   }
 
   private toApisTableDS(apiR: ApisResponse): ApisTableDS[] {
-    return apiR.data.flatMap((api) => {
+    return apiR.data.flatMap(api => {
       switch (api.definitionVersion) {
         case 'FEDERATED':
           return [];
@@ -321,10 +321,10 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
   }
 
   private healthcheckEnabled(api: ApiV4): boolean {
-    const enabledInEndpoints: boolean = api.endpointGroups?.some((endpointGroup) =>
-      endpointGroup?.endpoints?.some((endpoint) => endpoint?.services?.healthCheck?.enabled),
+    const enabledInEndpoints: boolean = api.endpointGroups?.some(endpointGroup =>
+      endpointGroup?.endpoints?.some(endpoint => endpoint?.services?.healthCheck?.enabled),
     );
-    const enabledInServices: boolean = api.endpointGroups?.some((endpointGroup) => endpointGroup?.services?.healthCheck?.enabled);
+    const enabledInServices: boolean = api.endpointGroups?.some(endpointGroup => endpointGroup?.services?.healthCheck?.enabled);
 
     return enabledInServices || enabledInEndpoints;
   }

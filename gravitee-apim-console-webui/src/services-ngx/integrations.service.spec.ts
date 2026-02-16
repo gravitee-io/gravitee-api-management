@@ -45,7 +45,7 @@ describe('IntegrationsService', () => {
     it('should call API', () => {
       const fakeData: Integration[] = null;
 
-      service.getIntegrations(1, 10).subscribe((res) => {
+      service.getIntegrations(1, 10).subscribe(res => {
         expect(res).toMatchObject(fakeData);
       });
 
@@ -54,7 +54,7 @@ describe('IntegrationsService', () => {
   });
 
   describe('create', () => {
-    it('should call API', (done) => {
+    it('should call API', done => {
       const fakeData: CreateIntegrationPayload = {
         name: 'test_name',
         description: 'test_description',

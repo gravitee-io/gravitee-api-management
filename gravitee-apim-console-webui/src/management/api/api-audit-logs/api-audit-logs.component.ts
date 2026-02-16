@@ -68,7 +68,7 @@ export class ApiAuditLogsComponent {
           ...pagination,
         })
         .pipe(
-          map((result) => ({
+          map(result => ({
             data: result.data,
             pagination: result.pagination,
             isLoading: false,

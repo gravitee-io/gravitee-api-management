@@ -41,7 +41,7 @@ const AlertTriggerProjectionComponent: ng.IComponentOptions = {
         this.metrics = Metrics.filterByScope(NodeLifecycleMetrics.METRICS, this.alert.reference_type);
       }
 
-      this.metrics = filter(this.metrics, (metric) => {
+      this.metrics = filter(this.metrics, metric => {
         return metric.supportPropertyProjection;
       });
     };

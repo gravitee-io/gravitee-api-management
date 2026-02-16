@@ -62,9 +62,9 @@ describe('GioMetadataComponent', () => {
     component.metadataSaveServices = {
       type: 'API',
       list: () => of({ data: metadataList, totalResults: metadataList.length }),
-      create: (m: NewMetadata) => of(m).pipe(map((_) => fakeMetadata({ key: 'new-key' }))),
-      update: (m: UpdateMetadata) => of(m).pipe(map((_) => fakeMetadata({ key: 'key1' }))),
-      delete: (metadataKey: string) => of([metadataKey]).pipe(map((_) => void 0)),
+      create: (m: NewMetadata) => of(m).pipe(map(_ => fakeMetadata({ key: 'new-key' }))),
+      update: (m: UpdateMetadata) => of(m).pipe(map(_ => fakeMetadata({ key: 'key1' }))),
+      delete: (metadataKey: string) => of([metadataKey]).pipe(map(_ => void 0)),
     };
     fixture.detectChanges();
   };
@@ -146,12 +146,12 @@ describe('GioMetadataComponent', () => {
       await dia.selectFormat('date');
 
       expect(await dia.saveButtonEnabled()).toEqual(false);
-      await dia.getValueDatePicker().then((datePicker) => datePicker.openCalendar());
-      expect(await dia.getValueDatePicker().then((datePicker) => datePicker.isCalendarOpen())).toEqual(true);
+      await dia.getValueDatePicker().then(datePicker => datePicker.openCalendar());
+      expect(await dia.getValueDatePicker().then(datePicker => datePicker.isCalendarOpen())).toEqual(true);
       await dia
         .getValueDatePicker()
-        .then((datePicker) => datePicker.getCalendar())
-        .then((calendar) => calendar.selectCell({ today: true }));
+        .then(datePicker => datePicker.getCalendar())
+        .then(calendar => calendar.selectCell({ today: true }));
 
       expect(await dia.saveButtonEnabled()).toEqual(true);
 
@@ -159,14 +159,14 @@ describe('GioMetadataComponent', () => {
       await dia.selectFormat('boolean');
 
       expect(await dia.saveButtonEnabled()).toEqual(true);
-      await dia.getValueBooleanSelect().then((select) => select.open());
+      await dia.getValueBooleanSelect().then(select => select.open());
 
-      expect(await dia.getValueBooleanSelect().then((select) => select.getValueText())).toEqual('false');
+      expect(await dia.getValueBooleanSelect().then(select => select.getValueText())).toEqual('false');
 
       expect(await dia.saveButtonEnabled()).toEqual(true); // Value set to false
 
-      await dia.getValueBooleanSelect().then((select) => select.clickOptions({ text: 'true' }));
-      expect(await dia.getValueBooleanSelect().then((select) => select.getValueText())).toEqual('true');
+      await dia.getValueBooleanSelect().then(select => select.clickOptions({ text: 'true' }));
+      expect(await dia.getValueBooleanSelect().then(select => select.getValueText())).toEqual('true');
 
       expect(await dia.saveButtonEnabled()).toEqual(true); // Value set to true
     });

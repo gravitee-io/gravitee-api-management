@@ -37,8 +37,8 @@ import { ConnectorPluginsV2Service } from '../../../services-ngx/connector-plugi
 export class ApiCorsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  public httpMethods = CorsUtil.httpMethods.map((e) => e);
-  public defaultHttpHeaders = CorsUtil.defaultHttpHeaders.map((e) => e);
+  public httpMethods = CorsUtil.httpMethods.map(e => e);
+  public defaultHttpHeaders = CorsUtil.defaultHttpHeaders.map(e => e);
   public corsForm: UntypedFormGroup;
   public initialCorsFormValue: unknown;
   public hasEntrypointsSupportingCors = false;
@@ -62,19 +62,19 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
           let cors: Cors;
           if (api.definitionVersion === 'V4') {
             cors = api.listeners
-              .filter((listener) => listener.type === 'HTTP')
-              .map((listener) => listener as HttpListener)
-              .map((httpListener) => httpListener.cors)[0] ?? { enabled: false };
+              .filter(listener => listener.type === 'HTTP')
+              .map(listener => listener as HttpListener)
+              .map(httpListener => httpListener.cors)[0] ?? { enabled: false };
 
             const entrypointsSupportingCors = entrypoints.filter(
-              (entrypoint) => entrypoint.availableFeatures.find((feature) => feature === 'CORS') != null,
+              entrypoint => entrypoint.availableFeatures.find(feature => feature === 'CORS') != null,
             );
 
-            this.entrypointsNameSupportingCors = entrypointsSupportingCors.map((entrypoint) => entrypoint.name).join(', ');
+            this.entrypointsNameSupportingCors = entrypointsSupportingCors.map(entrypoint => entrypoint.name).join(', ');
 
             this.hasEntrypointsSupportingCors = this.hasEntrypointSupportingCors(
               api,
-              entrypointsSupportingCors.map((entrypoint) => entrypoint.id),
+              entrypointsSupportingCors.map(entrypoint => entrypoint.id),
             );
           } else if (api.definitionVersion !== 'FEDERATED' && api.definitionVersion !== 'FEDERATED_AGENT') {
             this.hasEntrypointsSupportingCors = true;
@@ -132,8 +132,8 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
 
           // Disable all Control if enabled is not checked
           const controlKeys = ['allowOrigin', 'allowMethods', 'allowHeaders', 'allowCredentials', 'maxAge', 'exposeHeaders', 'runPolicies'];
-          this.corsForm.get('enabled').valueChanges.subscribe((checked) => {
-            controlKeys.forEach((k) => {
+          this.corsForm.get('enabled').valueChanges.subscribe(checked => {
+            controlKeys.forEach(k => {
               return checked ? this.corsForm.get(k).enable() : this.corsForm.get(k).disable();
             });
           });
@@ -169,7 +169,7 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
         this.allowAllOriginsConfirmDialog
           .afterClosed()
           .pipe(takeUntil(this.unsubscribe$))
-          .subscribe((shouldAddTag) => {
+          .subscribe(shouldAddTag => {
             this.allowAllOriginsConfirmDialog = null;
             validationCb(shouldAddTag);
           });
@@ -185,7 +185,7 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
-        switchMap((api) => {
+        switchMap(api => {
           let apiToUpdate;
           if (api.definitionVersion === 'V1') {
             this.snackBarService.error('API V1 are deprecated. Please upgrade your API to V2.');
@@ -212,8 +212,8 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
           } else {
             apiToUpdate = api;
             apiToUpdate.listeners
-              .filter((listener) => listener.type === 'HTTP')
-              .forEach((listener) => {
+              .filter(listener => listener.type === 'HTTP')
+              .forEach(listener => {
                 listener.cors = {
                   ...(listener as HttpListener).cors,
                   enabled: corsFormValue.enabled,
@@ -242,8 +242,8 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
 
   private hasEntrypointSupportingCors(api: ApiV4, entrypointsIdSupportingCors: string[]) {
     return api.listeners
-      .filter((listener) => listener.type === 'HTTP')
-      .flatMap((listener) => listener.entrypoints)
-      .some((e) => entrypointsIdSupportingCors.includes(e.type));
+      .filter(listener => listener.type === 'HTTP')
+      .flatMap(listener => listener.entrypoints)
+      .some(e => entrypointsIdSupportingCors.includes(e.type));
   }
 }

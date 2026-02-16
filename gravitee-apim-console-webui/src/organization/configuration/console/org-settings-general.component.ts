@@ -44,7 +44,7 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
 
   httpMethods = CorsUtil.httpMethods;
 
-  defaultHttpHeaders: AutocompleteOptions = CorsUtil.defaultHttpHeaders.map((header) => header);
+  defaultHttpHeaders: AutocompleteOptions = CorsUtil.defaultHttpHeaders.map(header => header);
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
@@ -62,7 +62,7 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
     this.consoleSettingsService
       .get()
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((settings) => {
+      .subscribe(settings => {
         this.isLoading = false;
         this.settings = settings;
 
@@ -113,7 +113,7 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
           .get('management.userCreation.enabled')
           .valueChanges.pipe(takeUntil(this.unsubscribe$))
           // eslint-disable-next-line rxjs/no-nested-subscribe
-          .subscribe((checked) => {
+          .subscribe(checked => {
             if (checked) {
               this.formSettings.get('management.automaticValidation.enabled').enable();
               return;
@@ -135,10 +135,10 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
           'properties.sslTrust',
         ];
         // eslint-disable-next-line rxjs/no-nested-subscribe
-        this.formSettings.get('email.enabled').valueChanges.subscribe((checked) => {
+        this.formSettings.get('email.enabled').valueChanges.subscribe(checked => {
           controlKeys
-            .filter((k) => !isReadonlySetting(this.settings, `email.${k}`))
-            .forEach((k) => {
+            .filter(k => !isReadonlySetting(this.settings, `email.${k}`))
+            .forEach(k => {
               return checked ? this.formSettings.get(`email.${k}`).enable() : this.formSettings.get(`email.${k}`).disable();
             });
         });
@@ -173,7 +173,7 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
         this.allowAllOriginsConfirmDialog
           .afterClosed()
           .pipe(takeUntil(this.unsubscribe$))
-          .subscribe((shouldAddTag) => {
+          .subscribe(shouldAddTag => {
             this.allowAllOriginsConfirmDialog = null;
             validationCb(shouldAddTag);
           });

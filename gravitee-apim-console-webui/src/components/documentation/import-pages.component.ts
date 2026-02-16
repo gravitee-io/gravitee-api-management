@@ -45,7 +45,7 @@ export class DocumentationImportPagesComponent extends UpgradeComponent {
     const apiId = this.activatedRoute.snapshot.params.apiId;
 
     Promise.all([
-      this.ajsFetcherService.list().then((response) => {
+      this.ajsFetcherService.list().then(response => {
         return response.data;
       }),
       this.ajsDocumentationService
@@ -55,7 +55,7 @@ export class DocumentationImportPagesComponent extends UpgradeComponent {
           },
           apiId,
         )
-        .then((response) => (response.data && response.data.length > 0 ? response.data[0] : null)),
+        .then(response => (response.data && response.data.length > 0 ? response.data[0] : null)),
     ]).then(([resolvedFetchers, resolvedRootPage]) => {
       // Hack to Force the binding between Angular and AngularJS
       this.ngOnChanges({

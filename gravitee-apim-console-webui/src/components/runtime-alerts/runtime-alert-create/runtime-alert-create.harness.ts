@@ -32,10 +32,10 @@ export class RuntimeAlertCreateHarness extends ComponentHarness {
   private getSaveBar = this.locatorFor(GioSaveBarHarness);
 
   public async createClick() {
-    return this.getSaveBar().then((saveBar) => saveBar.clickSubmit());
+    return this.getSaveBar().then(saveBar => saveBar.clickSubmit());
   }
 
   public async isSubmitInvalid() {
-    return this.getSaveBar().then((saveBar) => saveBar.isSubmitButtonInvalid());
+    return this.getSaveBar().then(saveBar => saveBar.isSubmitButtonInvalid());
   }
 }

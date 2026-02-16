@@ -22,7 +22,7 @@ export class ApiDocumentationV4VisibilityHarness extends ComponentHarness {
   private selectionInlineLocator = this.locatorFor(GioFormSelectionInlineHarness);
 
   public getValue(): Promise<string> {
-    return this.selectionInlineLocator().then((radioGroup) => radioGroup.getSelectedValue());
+    return this.selectionInlineLocator().then(radioGroup => radioGroup.getSelectedValue());
   }
 
   public async select(value: string): Promise<void> {
@@ -31,6 +31,6 @@ export class ApiDocumentationV4VisibilityHarness extends ComponentHarness {
   }
 
   public async formIsDisabled(): Promise<boolean> {
-    return await this.selectionInlineLocator().then((radioGroup) => radioGroup.isDisabled());
+    return await this.selectionInlineLocator().then(radioGroup => radioGroup.isDisabled());
   }
 }

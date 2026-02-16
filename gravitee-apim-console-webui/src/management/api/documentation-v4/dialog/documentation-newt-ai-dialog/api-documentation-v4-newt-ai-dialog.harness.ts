@@ -23,15 +23,15 @@ export class ApiDocumentationV4NewtAiDialogHarness extends ComponentHarness {
   getGenerateButton = this.locatorFor(MatButtonHarness.with({ selector: '[type=submit]' }));
 
   async clickCancel(): Promise<void> {
-    return this.getCancelButton().then(async (b) => b.click());
+    return this.getCancelButton().then(async b => b.click());
   }
 
   async clickGenerate(): Promise<void> {
-    return this.getGenerateButton().then(async (b) => b.click());
+    return this.getGenerateButton().then(async b => b.click());
   }
 
   async getListItems(): Promise<string[]> {
     const items = await this.locatorForAll('.steps__step')();
-    return Promise.all(items.map((item) => item.text()));
+    return Promise.all(items.map(item => item.text()));
   }
 }

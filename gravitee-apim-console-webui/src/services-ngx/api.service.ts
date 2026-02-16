@@ -234,7 +234,7 @@ export class ApiService {
       )
       .pipe(
         mapTo(null),
-        catchError((error) => {
+        catchError(error => {
           let message = 'Context path is not valid.';
           try {
             const errorResponse = JSON.parse(error.error);

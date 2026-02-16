@@ -48,7 +48,7 @@ class EditLinkContentComponentController implements IController {
     if (this.page.configuration.resourceType === 'external') {
       delete this.page.configuration.inherit;
       if (this.page.translations) {
-        this.page.translations.forEach((t) => delete t.content);
+        this.page.translations.forEach(t => delete t.content);
       }
     } else if (!this.page.configuration.inherit) {
       this.page.configuration.inherit = 'true';
@@ -62,14 +62,14 @@ class EditLinkContentComponentController implements IController {
   }
 
   updateLinkNameWithPageId(resourceId: string) {
-    const relatedPage = this.pageList.find((p) => p.id === resourceId);
+    const relatedPage = this.pageList.find(p => p.id === resourceId);
     if (relatedPage) {
       this.updateLinkName(relatedPage.name);
     }
   }
 
   updateLinkNameWithCategoryId(resourceId: string) {
-    const relatedCategory = this.categoryResources.find((p) => p.id === resourceId);
+    const relatedCategory = this.categoryResources.find(p => p.id === resourceId);
     if (relatedCategory) {
       this.updateLinkName(relatedCategory.name);
     }

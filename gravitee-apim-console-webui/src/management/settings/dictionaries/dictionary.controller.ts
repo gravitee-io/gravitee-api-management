@@ -103,7 +103,7 @@ class DictionaryController {
   $onInit() {
     this.updateMode = !!this.activatedRoute?.snapshot?.params?.dictionaryId;
     if (this.activatedRoute?.snapshot?.params?.dictionaryId) {
-      this.DictionaryService.get(this.activatedRoute.snapshot.params.dictionaryId).then((response) => {
+      this.DictionaryService.get(this.activatedRoute.snapshot.params.dictionaryId).then(response => {
         this.dictionary = response.data;
 
         // If provider method isn't defined then set it to GET by default (same behavior as in the backend)
@@ -151,7 +151,7 @@ class DictionaryController {
         this.ngRouter.navigate(['../', response.data.id], { relativeTo: this.activatedRoute });
       });
     } else {
-      this.DictionaryService.update(this.dictionary).then((response) => {
+      this.DictionaryService.update(this.dictionary).then(response => {
         this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been updated');
         this.dictionary = response.data;
         this.dictProperties = this.computeProperties();
@@ -171,7 +171,7 @@ class DictionaryController {
           confirmButton: 'Yes, delete it',
         },
       })
-      .then((response) => {
+      .then(response => {
         if (response) {
           this.DictionaryService.delete(this.dictionary).then(() => {
             this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been deleted');
@@ -182,7 +182,7 @@ class DictionaryController {
   }
 
   deploy() {
-    this.DictionaryService.deploy(this.dictionary).then((response) => {
+    this.DictionaryService.deploy(this.dictionary).then(response => {
       this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been deployed');
       this.dictionary = response.data;
       this.dictProperties = this.computeProperties();
@@ -190,7 +190,7 @@ class DictionaryController {
   }
 
   start() {
-    this.DictionaryService.start(this.dictionary).then((response) => {
+    this.DictionaryService.start(this.dictionary).then(response => {
       this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been started');
       this.dictionary = response.data;
       this.dictProperties = this.computeProperties();
@@ -198,7 +198,7 @@ class DictionaryController {
   }
 
   stop() {
-    this.DictionaryService.stop(this.dictionary).then((response) => {
+    this.DictionaryService.stop(this.dictionary).then(response => {
       this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been stopped');
       this.dictionary = response.data;
       this.dictProperties = this.computeProperties();
@@ -217,7 +217,7 @@ class DictionaryController {
         template: require('html-loader!./add-property.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         clickOutsideToClose: true,
       })
-      .then((property) => {
+      .then(property => {
         if (this.dictionary.properties === undefined) {
           this.dictionary.properties = {};
         }
@@ -237,7 +237,7 @@ class DictionaryController {
     this.$mdEditDialog.small({
       modelValue: value,
       placeholder: 'Set property value',
-      save: (input) => {
+      save: input => {
         this.dictionary.properties[key] = input.$modelValue;
       },
       targetEvent: event,
@@ -263,7 +263,7 @@ class DictionaryController {
   }
 
   saveProperties() {
-    this.DictionaryService.update(this.dictionary).then((response) => {
+    this.DictionaryService.update(this.dictionary).then(response => {
       this.NotificationService.show('Properties has been updated');
       this.dictionary = response.data;
       this.dictProperties = this.computeProperties();
@@ -279,11 +279,11 @@ class DictionaryController {
   }
 
   checkSelectAll() {
-    this.selectAll = filter(this.selectedProperties, (p) => p).length === Object.keys(this.dictionary.properties).length;
+    this.selectAll = filter(this.selectedProperties, p => p).length === Object.keys(this.dictionary.properties).length;
   }
 
   hasSelectedProperties() {
-    return filter(this.selectedProperties, (p) => p).length > 0;
+    return filter(this.selectedProperties, p => p).length > 0;
   }
 
   addHTTPHeader() {
@@ -302,7 +302,7 @@ class DictionaryController {
   }
 
   computeProperties = () => {
-    return Object.entries((this.dictionary && this.dictionary.properties) || {}).map((entry) => {
+    return Object.entries((this.dictionary && this.dictionary.properties) || {}).map(entry => {
       const result: any = {};
       result.key = entry[0];
       result.value = entry[1];

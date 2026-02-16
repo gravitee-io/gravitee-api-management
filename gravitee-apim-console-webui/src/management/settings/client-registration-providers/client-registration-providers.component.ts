@@ -117,7 +117,7 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.clientRegistrationProvidersService.delete(provider.id)),
         tap(() => this.snackBarService.success(`"${provider.name}" has been deleted.`)),
         catchError(({ error }) => {
@@ -188,7 +188,7 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
 }
 
 const toProvidersTableDS = (providers: ClientRegistrationProvider[]): ProvidersTableDS[] => {
-  return (providers || []).map((provider) => {
+  return (providers || []).map(provider => {
     return {
       id: provider.id,
       name: provider.name,

@@ -54,7 +54,7 @@ export class GioApiEventsTableComponent implements OnChanges {
   tableDataSource$: Observable<TableDataSource[]> = this.filters$.pipe(
     distinctUntilChanged(isEqual),
     tap(() => (this.isLoading = true)),
-    switchMap((filters) => {
+    switchMap(filters => {
       if (filters === null) {
         return of([]);
       }
@@ -71,7 +71,7 @@ export class GioApiEventsTableComponent implements OnChanges {
           filters.pagination.size,
         )
         .pipe(
-          map((eventPage) => {
+          map(eventPage => {
             this.totalLength = eventPage.totalElements;
             const displayableEventType = {
               PUBLISH_API: 'Deploy',
@@ -80,7 +80,7 @@ export class GioApiEventsTableComponent implements OnChanges {
               STOP_API: 'Stop',
             };
 
-            return eventPage.content?.map<TableDataSource>((event) => ({
+            return eventPage.content?.map<TableDataSource>(event => ({
               apiId: event.properties['api_id'],
               apiName: event.properties['api_name'],
               apiVersion: event.properties['api_version'],

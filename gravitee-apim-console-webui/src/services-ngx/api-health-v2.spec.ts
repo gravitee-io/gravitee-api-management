@@ -42,8 +42,8 @@ describe('ApiHealthV2', () => {
     httpTestingController.verify();
   });
 
-  it('getApiHealthResponseTimeOvertime should call the API', (done) => {
-    service.getApiHealthResponseTimeOvertime(apiId, timeRange.from, timeRange.to).subscribe((res) => {
+  it('getApiHealthResponseTimeOvertime should call the API', done => {
+    service.getApiHealthResponseTimeOvertime(apiId, timeRange.from, timeRange.to).subscribe(res => {
       expect(res).toEqual(fakeApiHealthResponseTimeOvertime());
       done();
     });

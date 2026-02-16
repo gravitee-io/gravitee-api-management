@@ -41,20 +41,20 @@ export class Step2Entrypoints1ListHarness extends ComponentHarness {
   }
 
   async clickValidate(): Promise<void> {
-    return this.getButtonByText('Select my entrypoints').then((button) => button.click());
+    return this.getButtonByText('Select my entrypoints').then(button => button.click());
   }
 
   async clickPrevious(): Promise<void> {
-    return this.getButtonByText('Previous').then((button) => button.click());
+    return this.getButtonByText('Previous').then(button => button.click());
   }
 
   async fillSyncAndValidate(entrypoint: string): Promise<void> {
-    await this.getSyncEntrypoints().then((f) => f.selectOptionById(entrypoint));
+    await this.getSyncEntrypoints().then(f => f.selectOptionById(entrypoint));
     return this.clickValidate();
   }
 
   async fillAsyncAndValidate(entrypoints: string[]): Promise<void> {
-    await this.getAsyncEntrypoints().then((f) => f.selectOptionsByIds(entrypoints));
+    await this.getAsyncEntrypoints().then(f => f.selectOptionsByIds(entrypoints));
     return this.clickValidate();
   }
 }

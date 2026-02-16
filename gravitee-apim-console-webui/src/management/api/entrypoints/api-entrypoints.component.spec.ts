@@ -98,7 +98,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       expect(await saveButton.isDisabled()).toBe(true);
 
       const formListenersContextPathHarness = await loader.getHarness(GioFormListenersContextPathHarness);
-      const contextPathInput = await formListenersContextPathHarness.getLastListenerRow().then((row) => row.pathInput);
+      const contextPathInput = await formListenersContextPathHarness.getLastListenerRow().then(row => row.pathInput);
       expect(await contextPathInput.isDisabled()).toEqual(false);
       expect(await contextPathInput.getValue()).toEqual('/path');
 
@@ -129,7 +129,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       expect(saveButton.length).toEqual(0);
 
       const formListenersContextPathHarness = await loader.getHarness(GioFormListenersContextPathHarness);
-      const contextPathInput = await formListenersContextPathHarness.getLastListenerRow().then((row) => row.pathInput);
+      const contextPathInput = await formListenersContextPathHarness.getLastListenerRow().then(row => row.pathInput);
       expect(await contextPathInput.isDisabled()).toEqual(true);
       expectVerifyContextPath();
     });
@@ -143,7 +143,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       expect(await saveButton.length).toEqual(0);
 
       const formListenersContextPathHarness = await loader.getHarness(GioFormListenersContextPathHarness);
-      const contextPathInput = await formListenersContextPathHarness.getLastListenerRow().then((row) => row.pathInput);
+      const contextPathInput = await formListenersContextPathHarness.getLastListenerRow().then(row => row.pathInput);
       expect(await contextPathInput.isDisabled()).toEqual(true);
       expectVerifyContextPath();
     });
@@ -382,7 +382,7 @@ describe('ApiProxyEntrypointsComponent', () => {
 
       // Expect fetch api get and update proxy
       expect(
-        fixture.componentInstance.pathsFormControl.value.map((v) => {
+        fixture.componentInstance.pathsFormControl.value.map(v => {
           return { host: v.host, path: v.path };
         }),
       ).toEqual([
@@ -476,8 +476,8 @@ describe('ApiProxyEntrypointsComponent', () => {
     };
     httpTestingController
       .match({ url: `${CONSTANTS_TESTING.env.baseURL}/portal`, method: 'GET' })
-      .filter((r) => !r.cancelled)
-      .forEach((r) => r.flush(settings));
+      .filter(r => !r.cancelled)
+      .forEach(r => r.flush(settings));
     fixture.detectChanges();
   }
 

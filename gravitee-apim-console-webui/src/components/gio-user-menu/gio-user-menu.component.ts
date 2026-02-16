@@ -48,7 +48,7 @@ export class GioUserMenuComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.currentUserService.current().subscribe((user) => {
+    this.currentUserService.current().subscribe(user => {
       this.currentUser = user;
       this.newsletterProposed =
         (this.currentUser && !this.currentUser.firstLogin) ||

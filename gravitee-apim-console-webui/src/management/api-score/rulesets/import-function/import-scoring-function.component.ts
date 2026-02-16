@@ -58,8 +58,8 @@ export class ImportScoringFunctionComponent implements OnInit {
       .listFunctions()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (res) => {
-          this.existingFunctionsNames = res.data.map((f) => f.name);
+        next: res => {
+          this.existingFunctionsNames = res.data.map(f => f.name);
           this.isLoading = false;
         },
         error: () => {
@@ -149,7 +149,7 @@ export class ImportScoringFunctionComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => !!confirm),
+        filter(confirm => !!confirm),
         switchMap(() => {
           this.isLoading = true;
           return this.rulesetV2Service.createFunction(data);

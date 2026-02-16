@@ -24,20 +24,20 @@ export class ApiKeyValidationHarness extends ComponentHarness {
   protected getFormField = this.locatorFor(MatFormFieldHarness);
 
   public async getInputValue(): Promise<any> {
-    return this.getInput().then((input) => input.getValue());
+    return this.getInput().then(input => input.getValue());
   }
 
   public async setInputValue(value: string): Promise<void> {
-    return this.getInput().then((input) => input.setValue(value));
+    return this.getInput().then(input => input.setValue(value));
   }
 
   public async isRequired(): Promise<boolean> {
     return this.getFormField()
-      .then((formField) => formField.getControl())
-      .then((control) => control.isRequired());
+      .then(formField => formField.getControl())
+      .then(control => control.isRequired());
   }
 
   public async isValid(): Promise<boolean> {
-    return this.getFormField().then((formField) => formField.isControlValid());
+    return this.getFormField().then(formField => formField.isControlValid());
   }
 }

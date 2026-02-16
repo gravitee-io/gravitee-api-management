@@ -81,7 +81,7 @@ export class ConfigureMcpEntrypointComponent implements OnInit, ControlValueAcce
     // Subscribe to form changes to emit values
     this.formGroup.valueChanges
       .pipe(
-        tap((value) => {
+        tap(value => {
           this.onChange({
             tools: value.tools || [],
             mcpPath: value.mcpPath || DEFAULT_MCP_ENTRYPOINT_PATH,
@@ -108,7 +108,7 @@ export class ConfigureMcpEntrypointComponent implements OnInit, ControlValueAcce
         { emitEvent: false },
       );
 
-      this.toolDefinitions = tools.map((tool) => tool.toolDefinition);
+      this.toolDefinitions = tools.map(tool => tool.toolDefinition);
     }
   }
 
@@ -138,15 +138,15 @@ export class ConfigureMcpEntrypointComponent implements OnInit, ControlValueAcce
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        map((result) => result?.tools || []),
+        filter(result => !!result),
+        map(result => result?.tools || []),
         tap((tools: MCPTool[]) => {
           this.formGroup.patchValue({ tools });
           this.formGroup.markAsDirty();
           this.onTouched();
 
           // Update tool definitions based on imported tools
-          this.toolDefinitions = tools.map((tool) => tool.toolDefinition);
+          this.toolDefinitions = tools.map(tool => tool.toolDefinition);
         }),
         takeUntilDestroyed(this.destroyRef),
       )

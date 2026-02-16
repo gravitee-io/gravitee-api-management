@@ -39,14 +39,14 @@ describe('ApiMemberService', () => {
   });
 
   describe('get members', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'fox';
       const mockApiMembers: ApiMember[] = [
         { id: '1', role: 'king', displayName: 'Mufasa' },
         { id: '1', role: 'prince', displayName: 'Simba' },
       ];
 
-      apiMemberService.getMembers(apiId).subscribe((response) => {
+      apiMemberService.getMembers(apiId).subscribe(response => {
         expect(response).toMatchObject(mockApiMembers);
         done();
       });
@@ -61,7 +61,7 @@ describe('ApiMemberService', () => {
   });
 
   describe('update member', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'fox';
       const membership: ApiMembership = { id: '1', role: 'king', reference: 'ref' };
       apiMemberService.addOrUpdateMember(apiId, membership).subscribe(() => {
@@ -77,7 +77,7 @@ describe('ApiMemberService', () => {
   });
 
   describe('delete member', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiId = 'fox';
       const memberId = 'id';
       apiMemberService.deleteMember(apiId, memberId).subscribe(() => {

@@ -80,7 +80,7 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
     });
     this.listenerFormArray?.valueChanges
       .pipe(
-        tap((listeners) => listeners.length > 0 && this._onChange(listeners)),
+        tap(listeners => listeners.length > 0 && this._onChange(listeners)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
@@ -135,7 +135,7 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
     this.listenerFormArray.clear();
 
     // Populate hosts array from hosts
-    this.listeners.forEach((listener) => {
+    this.listeners.forEach(listener => {
       this.listenerFormArray.push(this.newListenerFormGroup(listener), {
         emitEvent: false,
       });
@@ -167,7 +167,7 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
   }
 
   protected getValue(): TcpHost[] {
-    return this.listenerFormArray?.controls.map((control) => {
+    return this.listenerFormArray?.controls.map(control => {
       return { host: control.get('host').value };
     });
   }
@@ -175,7 +175,7 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
   private listenersValidator(): ValidatorFn {
     return (formArray: FormArray): ValidationErrors | null => {
       const listenerFormArrayControls = formArray.controls;
-      const listenerValues: string[] = listenerFormArrayControls.map((listener) => listener.value?.host);
+      const listenerValues: string[] = listenerFormArrayControls.map(listener => listener.value?.host);
 
       if (new Set(listenerValues).size !== listenerValues.length) {
         return { host: 'Duplicated hosts not allowed' };

@@ -28,7 +28,7 @@ import { TaskService } from '../../../services-ngx/task.service';
 })
 export class HomeLayoutComponent {
   public taskLabel = this.taskService.getTasks().pipe(
-    map((tasks) => `My Tasks <span class="gio-badge-accent">${tasks.page.total_elements}</span>`),
+    map(tasks => `My Tasks <span class="gio-badge-accent">${tasks.page.total_elements}</span>`),
     startWith('Tasks'),
     // If thrown, keep the label as is
     catchError(() => of('Tasks')),

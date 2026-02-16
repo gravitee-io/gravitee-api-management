@@ -31,11 +31,11 @@ export class EditApiScoreRulesetHarness extends ComponentHarness {
   );
 
   public async setName(value: string) {
-    return this.nameLocator().then((input) => input.setValue(value));
+    return this.nameLocator().then(input => input.setValue(value));
   }
 
   public async setDescription(value: string) {
-    return this.descriptionLocator().then((input) => input.setValue(value));
+    return this.descriptionLocator().then(input => input.setValue(value));
   }
 
   public saveBarLocator = this.locatorForOptional(GioSaveBarHarness);

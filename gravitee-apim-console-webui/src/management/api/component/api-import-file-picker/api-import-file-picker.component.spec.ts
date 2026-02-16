@@ -80,7 +80,7 @@ describe('FilePickerComponent', () => {
     });
   });
 
-  it.each(['swagger', 'swaggerVersion', 'openapi'])('should emit SWAGGER file data determined from file content', async (openApiKey) => {
+  it.each(['swagger', 'swaggerVersion', 'openapi'])('should emit SWAGGER file data determined from file content', async openApiKey => {
     const snackBarSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
     const eventEmitterSpy = jest.spyOn(component.onFilePicked, 'emit');
     const newFile = new File([`{ "${openApiKey}": "bar" }`], 'file.json', { type: 'application/json' });
@@ -95,7 +95,7 @@ describe('FilePickerComponent', () => {
     });
   });
 
-  it.each(['yml', 'yaml'])('should emit SWAGGER file data determined from file extension', async (fileExtension) => {
+  it.each(['yml', 'yaml'])('should emit SWAGGER file data determined from file extension', async fileExtension => {
     const snackBarSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
     const eventEmitterSpy = jest.spyOn(component.onFilePicked, 'emit');
     const newFile = new File([''], `file.${fileExtension}`, { type: 'application/yaml' });
@@ -110,7 +110,7 @@ describe('FilePickerComponent', () => {
     });
   });
 
-  it.each(['xml', 'wsdl'])('should emit WSDL file data', async (fileExtension) => {
+  it.each(['xml', 'wsdl'])('should emit WSDL file data', async fileExtension => {
     const snackBarSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
     const eventEmitterSpy = jest.spyOn(component.onFilePicked, 'emit');
     const newFile = new File([''], `file.${fileExtension}`, { type: 'application/xml' });

@@ -31,7 +31,7 @@ export class DebugModeTimelineHoverService {
   hoveredChanges(id: string): Observable<boolean> {
     return this.hoveredMap$.pipe(
       scan((acc, curr) => Object.assign({}, acc, curr), {}),
-      map((hovered) => hovered[id] ?? false),
+      map(hovered => hovered[id] ?? false),
     );
   }
 }

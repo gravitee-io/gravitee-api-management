@@ -38,7 +38,7 @@ describe('UiCustomizationService', () => {
     httpTestingController.verify();
   });
 
-  it('should call the API', (done) => {
+  it('should call the API', done => {
     const customization: ConsoleCustomization = {
       title: 'custom title',
       logo: 'custom logo',
@@ -56,7 +56,7 @@ describe('UiCustomizationService', () => {
       },
     };
 
-    service.getConsoleCustomization().subscribe((res) => {
+    service.getConsoleCustomization().subscribe(res => {
       expect(res).toEqual(customization);
       done();
     });

@@ -50,9 +50,9 @@ describe('RuntimeAlertCreateService', () => {
     httpTestingController.verify();
   });
 
-  it('should get tenants', (done) => {
+  it('should get tenants', done => {
     const tenant = fakeTenant();
-    service.loadDataFromMetric('tenant', Scope.API, API_ID).subscribe((value) => {
+    service.loadDataFromMetric('tenant', Scope.API, API_ID).subscribe(value => {
       expect(value).toStrictEqual([new Tuple(tenant.id, tenant.name)]);
       done();
     });
@@ -65,9 +65,9 @@ describe('RuntimeAlertCreateService', () => {
     req.flush([tenant]);
   });
 
-  it('should get API plans', (done) => {
+  it('should get API plans', done => {
     const plan = fakePlan();
-    service.loadDataFromMetric('plan', Scope.API, API_ID).subscribe((value) => {
+    service.loadDataFromMetric('plan', Scope.API, API_ID).subscribe(value => {
       expect(value).toStrictEqual([new Tuple(plan.id, plan.name)]);
       done();
     });
@@ -80,9 +80,9 @@ describe('RuntimeAlertCreateService', () => {
     req.flush([plan]);
   });
 
-  it('should get APPLICATION subscriptions', (done) => {
+  it('should get APPLICATION subscriptions', done => {
     const plan = fakePlan({ id: APP_ID });
-    service.loadDataFromMetric('plan', Scope.APPLICATION, APP_ID).subscribe((value) => {
+    service.loadDataFromMetric('plan', Scope.APPLICATION, APP_ID).subscribe(value => {
       expect(value).toStrictEqual([new Tuple(plan.id, plan.name)]);
       done();
     });
@@ -99,18 +99,18 @@ describe('RuntimeAlertCreateService', () => {
   });
 
   it('should get error keys', () => {
-    service.loadDataFromMetric('error.key', Scope.API, API_ID).subscribe((value) => {
+    service.loadDataFromMetric('error.key', Scope.API, API_ID).subscribe(value => {
       expect(value).toHaveLength(gatewayErrorKeys.length);
     });
   });
 
-  it.each(['status.old', 'status.new'])('should get status keys', (key) => {
-    service.loadDataFromMetric(key, Scope.API, API_ID).subscribe((value) => {
+  it.each(['status.old', 'status.new'])('should get status keys', key => {
+    service.loadDataFromMetric(key, Scope.API, API_ID).subscribe(value => {
       expect(value).toHaveLength(statusLoader().length);
     });
   });
 
-  it('should get API V2 ENDPOINTS names', (done) => {
+  it('should get API V2 ENDPOINTS names', done => {
     const endpoint1 = { name: 'endpoint-1', type: 'type' };
     const endpoint2 = { name: 'endpoint-2', type: 'type' };
     const endpoint3 = { name: 'endpoint-3', type: 'type' };
@@ -124,7 +124,7 @@ describe('RuntimeAlertCreateService', () => {
       },
     });
 
-    service.loadDataFromMetric('endpoint.name', Scope.API, API_ID).subscribe((value) => {
+    service.loadDataFromMetric('endpoint.name', Scope.API, API_ID).subscribe(value => {
       expect(value).toStrictEqual([
         new Tuple(endpoint1.name, endpoint1.name),
         new Tuple(endpoint2.name, endpoint2.name),
@@ -141,7 +141,7 @@ describe('RuntimeAlertCreateService', () => {
       .flush(api);
   });
 
-  it('should get API V4 ENDPOINTS names', (done) => {
+  it('should get API V4 ENDPOINTS names', done => {
     const endpoint1 = fakeHTTPProxyEndpoint({ name: 'endpoint-1' });
     const endpoint2 = fakeHTTPProxyEndpoint({ name: 'endpoint-2' });
     const endpoint3 = fakeHTTPProxyEndpoint({ name: 'endpoint-3' });
@@ -150,7 +150,7 @@ describe('RuntimeAlertCreateService', () => {
       endpointGroups: [fakeEndpointGroupV4({ endpoints: [endpoint1, endpoint2] }), fakeEndpointGroupV4({ endpoints: [endpoint3] })],
     });
 
-    service.loadDataFromMetric('endpoint.name', Scope.API, API_ID).subscribe((value) => {
+    service.loadDataFromMetric('endpoint.name', Scope.API, API_ID).subscribe(value => {
       expect(value).toStrictEqual([
         new Tuple(endpoint1.name, endpoint1.name),
         new Tuple(endpoint2.name, endpoint2.name),

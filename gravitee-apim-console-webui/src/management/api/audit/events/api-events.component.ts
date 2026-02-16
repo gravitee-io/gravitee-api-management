@@ -70,7 +70,7 @@ export class ApiEventsComponent implements OnInit, OnDestroy {
         false,
       )
       .pipe(
-        tap((response) => {
+        tap(response => {
           const events = [...response.content];
           this.eventsTableDS = [
             ...this.eventsTableDS,

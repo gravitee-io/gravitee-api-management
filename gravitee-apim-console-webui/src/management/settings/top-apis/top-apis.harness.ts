@@ -27,7 +27,7 @@ export class TopApisHarness extends ComponentHarness {
     const table = await this.getTable();
     const rows = await table.getRows();
 
-    return await rows[index].getCells({ columnName: 'actions' }).then((cells) => {
+    return await rows[index].getCells({ columnName: 'actions' }).then(cells => {
       return cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=delete-top-api-button]' }));
     });
   };
@@ -42,7 +42,7 @@ export class TopApisHarness extends ComponentHarness {
 
     return await rows[index]
       .getCells({ columnName: 'actions' })
-      .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=move-up-top-api-button]' })));
+      .then(cells => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=move-up-top-api-button]' })));
   };
 
   private getDownButton = async (index: number) => {
@@ -51,7 +51,7 @@ export class TopApisHarness extends ComponentHarness {
 
     return await rows[index]
       .getCells({ columnName: 'actions' })
-      .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=move-down-top-api-button]' })));
+      .then(cells => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=move-down-top-api-button]' })));
   };
 
   public rowsNumber = async (): Promise<number> => {

@@ -40,7 +40,7 @@ export class EnvironmentNotificationSettingsService {
   getSingleNotificationSetting(selectedId: string): Observable<NotificationSettings> {
     return this.http.get<NotificationSettings[]>(`${this.constants.env.baseURL}/configuration/notificationsettings`).pipe(
       map((notifications: NotificationSettings[]) => {
-        return notifications.find((notification) => notification.id === selectedId) || notifications[0];
+        return notifications.find(notification => notification.id === selectedId) || notifications[0];
       }),
     );
   }

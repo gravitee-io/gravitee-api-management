@@ -90,7 +90,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
     this.portalConfigurationService
       .get()
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((settings) => {
+      .subscribe(settings => {
         this.contextPathPrefix = settings.portal.entrypoint.endsWith('/')
           ? settings.portal.entrypoint.slice(0, -1)
           : settings.portal.entrypoint;
@@ -98,7 +98,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
 
     this.listenerFormArray?.valueChanges
       .pipe(
-        tap((listeners) => listeners.length > 0 && this._onChange(listeners)),
+        tap(listeners => listeners.length > 0 && this._onChange(listeners)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
@@ -148,7 +148,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
     this.listenerFormArray.clear();
 
     // Populate paths array from paths
-    this.listeners.forEach((listener) => {
+    this.listeners.forEach(listener => {
       this.listenerFormArray.push(this.newListenerFormGroup(listener), {
         emitEvent: false,
       });
@@ -187,7 +187,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   public listenersValidator(): ValidatorFn {
     return (formArray: UntypedFormArray): ValidationErrors | null => {
       const listenerFormArrayControls = formArray.controls;
-      const listenerValues: string[] = listenerFormArrayControls.map((listener) => listener.value?.path);
+      const listenerValues: string[] = listenerFormArrayControls.map(listener => listener.value?.path);
 
       if (new Set(listenerValues).size !== listenerValues.length) {
         return { contextPath: 'Duplicated context path not allowed' };
@@ -197,7 +197,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   }
 
   protected getValue(): PathV4[] {
-    return this.listenerFormArray?.controls.map((control) => {
+    return this.listenerFormArray?.controls.map(control => {
       return { path: control.get('path').value };
     });
   }

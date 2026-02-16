@@ -24,23 +24,23 @@ export class ApiHealthCheckV4FormHarness extends ComponentHarness {
   private getConfigurationInput = (id: string) => this.locatorForOptional(MatInputHarness.with({ selector: `[id*="${id}"]` }))();
 
   public async getEnableToggleValue(): Promise<boolean> {
-    return this.getEnableToggle().then((toggle) => toggle.isChecked());
+    return this.getEnableToggle().then(toggle => toggle.isChecked());
   }
 
   public async toggleEnableInput(): Promise<void> {
-    return this.getEnableToggle().then((toggle) => toggle.toggle());
+    return this.getEnableToggle().then(toggle => toggle.toggle());
   }
 
   async getConfigurationInputValue(inputId: string): Promise<string> {
-    return this.getConfigurationInput(inputId).then((input) => input.getValue());
+    return this.getConfigurationInput(inputId).then(input => input.getValue());
   }
 
   async setConfigurationInputValue(inputId: string, text: string): Promise<void> {
-    await this.getConfigurationInput(inputId).then((input) => input.setValue(text));
+    await this.getConfigurationInput(inputId).then(input => input.setValue(text));
     await this.waitForTasksOutsideAngular();
   }
 
   async isConfigurationInputDisabled(inputId: string): Promise<boolean> {
-    return this.getConfigurationInput(inputId).then((input) => input.isDisabled());
+    return this.getConfigurationInput(inputId).then(input => input.isDisabled());
   }
 }

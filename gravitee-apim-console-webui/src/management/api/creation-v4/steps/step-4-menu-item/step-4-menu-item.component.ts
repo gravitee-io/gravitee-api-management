@@ -36,7 +36,7 @@ export class Step4MenuItemComponent implements OnInit {
   constructor(@Inject(MENU_ITEM_PAYLOAD) private readonly menuItemPayload: ApiCreationPayload) {}
 
   ngOnInit(): void {
-    this.menuItems = this.menuItemPayload?.plans?.map((plan) => ({
+    this.menuItems = this.menuItemPayload?.plans?.map(plan => ({
       name: plan.name,
       type: plan.mode === 'PUSH' ? 'PUSH' : plan.security.type,
     }));

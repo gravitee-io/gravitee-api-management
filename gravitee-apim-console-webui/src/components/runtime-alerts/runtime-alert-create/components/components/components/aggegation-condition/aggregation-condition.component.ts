@@ -36,7 +36,7 @@ export class AggregationConditionComponent implements OnInit {
 
   ngOnInit() {
     if (this.alertToUpdate) {
-      const property = this.properties.find((p) => p.key === this.alertToUpdate.conditions[0].projections[0].property);
+      const property = this.properties.find(p => p.key === this.alertToUpdate.conditions[0].projections[0].property);
       this.form.controls.property.setValue(property);
     }
   }

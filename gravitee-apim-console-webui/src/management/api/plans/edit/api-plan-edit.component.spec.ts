@@ -130,11 +130,11 @@ describe('ApiPlanEditComponent', () => {
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
         planForm.httpRequest(httpTestingController).expectPolicySchemaV2GetRequest('jwt', {});
 
-        await planForm.getNameInput().then((i) => i.setValue('My new plan'));
+        await planForm.getNameInput().then(i => i.setValue('My new plan'));
 
         // Click on Next buttons to display Save one
-        await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then((b) => b.click());
-        await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then((b) => b.click());
+        await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then(b => b.click());
+        await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then(b => b.click());
 
         await saveBar.clickSubmit();
 
@@ -447,10 +447,10 @@ describe('ApiPlanEditComponent', () => {
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
         planForm.httpRequest(httpTestingController).expectPolicySchemaV2GetRequest('jwt', {});
 
-        await planForm.getNameInput().then((i) => i.setValue('My new plan'));
+        await planForm.getNameInput().then(i => i.setValue('My new plan'));
 
         // Click on Next buttons to display Save one
-        await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then((b) => b.click());
+        await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then(b => b.click());
 
         await saveBar.clickSubmit();
 
@@ -611,7 +611,7 @@ describe('ApiPlanEditComponent', () => {
       expect(await planForm.getShardingTagsInput()).toBeNull();
 
       const stepper = await loader.getHarness(MatStepperHarness);
-      const stepLabels = await stepper.getSteps().then((steps) => Promise.all(steps.map((s) => s.getLabel())));
+      const stepLabels = await stepper.getSteps().then(steps => Promise.all(steps.map(s => s.getLabel())));
       expect(stepLabels).toEqual(['General']);
     });
   });

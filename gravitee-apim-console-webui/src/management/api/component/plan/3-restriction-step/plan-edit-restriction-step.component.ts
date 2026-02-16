@@ -58,7 +58,7 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
     });
 
     this.rateLimitSchema$ = this.restrictionForm.get('rateLimitEnabled').valueChanges.pipe(
-      mergeMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('rate-limit'))),
+      mergeMap(enabled => (!enabled ? of(undefined) : this.policyService.getSchema('rate-limit'))),
       tap(() =>
         this.restrictionForm.setControl('rateLimitConfig', new UntypedFormControl(this.initialFormValues?.rateLimitConfig ?? {}), {
           emitEvent: false,
@@ -69,7 +69,7 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
     );
 
     this.quotaSchema$ = this.restrictionForm.get('quotaEnabled').valueChanges.pipe(
-      mergeMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('quota'))),
+      mergeMap(enabled => (!enabled ? of(undefined) : this.policyService.getSchema('quota'))),
       tap(() =>
         this.restrictionForm.setControl('quotaConfig', new UntypedFormControl(this.initialFormValues?.quotaConfig ?? {}), {
           emitEvent: false,
@@ -80,7 +80,7 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
     );
 
     this.resourceFilteringSchema$ = this.restrictionForm.get('resourceFilteringEnabled').valueChanges.pipe(
-      mergeMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('resource-filtering'))),
+      mergeMap(enabled => (!enabled ? of(undefined) : this.policyService.getSchema('resource-filtering'))),
       tap(() =>
         this.restrictionForm.setControl(
           'resourceFilteringConfig',

@@ -84,7 +84,7 @@ export const HttpUtil = {
         return null;
       }
 
-      if (STATUS_CODES.find((statusCode) => toString(statusCode.code) === toString(value))) {
+      if (STATUS_CODES.find(statusCode => toString(statusCode.code) === toString(value))) {
         return null;
       }
 

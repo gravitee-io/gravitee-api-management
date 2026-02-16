@@ -56,7 +56,7 @@ export default {
 } as Meta;
 
 export const Default: StoryObj = {
-  render: (args) => ({
+  render: args => ({
     template: `
     <div *ngIf="!insideMatCard">
         <ng-container *ngTemplateOutlet="contentTemplate;"></ng-container>

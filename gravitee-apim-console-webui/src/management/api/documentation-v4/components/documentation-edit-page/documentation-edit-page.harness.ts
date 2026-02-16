@@ -60,15 +60,15 @@ export class DocumentationEditPageHarness extends ComponentHarness {
   }
 
   async openConfigurePageTab(): Promise<void> {
-    return await this.locateConfigurePageTab().then((tab) => tab.select());
+    return await this.locateConfigurePageTab().then(tab => tab.select());
   }
 
   async openContentTab(): Promise<void> {
-    return await this.locateContentTab().then((tab) => tab.select());
+    return await this.locateContentTab().then(tab => tab.select());
   }
 
   async openOpenApiConfigurationTab(): Promise<void> {
-    return await this.locateOpenApiConfigurationTab().then((tab) => tab.select());
+    return await this.locateOpenApiConfigurationTab().then(tab => tab.select());
   }
 
   /**

@@ -58,7 +58,7 @@ class ApiV1PoliciesControllerAjs {
     this.httpMethodsUpdated = false;
     this.schemaByPolicyId = {};
 
-    this.listAllPolicies().then((policies) => {
+    this.listAllPolicies().then(policies => {
       forEach(policies, ({ policy }) => {
         this.policiesToCopy.push(policy);
         this.policiesMap[policy.policyId] = policy;
@@ -76,7 +76,7 @@ class ApiV1PoliciesControllerAjs {
       (event, element, dropzoneElt, draggableElt, draggableObjList, draggableIndex, dropzoneObjList, dropzoneIndex) => {
         if (dropzoneObjList !== null) {
           // Automatically display the configuration associated to the dragged policy
-          this.editPolicy(dropzoneIndex, dropzoneElt.attributes['data-path'].value).then((schema) => {
+          this.editPolicy(dropzoneIndex, dropzoneElt.attributes['data-path'].value).then(schema => {
             // Automatically save if there is no json schema configuration attached to the dragged policy.
             if (schema.id === 'empty') {
               this.savePaths();
@@ -90,14 +90,14 @@ class ApiV1PoliciesControllerAjs {
   }
 
   generatePathsToCompare() {
-    return map(keys(this.apiPoliciesByPath), (p) => {
+    return map(keys(this.apiPoliciesByPath), p => {
       return this.clearPathParam(p);
     });
   }
 
   completeApiPolicies(pathMap) {
-    forEach(pathMap, (policies) => {
-      forEach(policies, (policy) => {
+    forEach(pathMap, policies => {
+      forEach(policies, policy => {
         forEach(policy, (value, property) => {
           if (property !== 'methods' && property !== 'enabled' && property !== 'description' && property !== '$$hashKey') {
             policy.policyId = property;
@@ -163,7 +163,7 @@ class ApiV1PoliciesControllerAjs {
   }
 
   listAllPolicies() {
-    return this.PolicyService.list({ expandSchema: true }).then((policies) => {
+    return this.PolicyService.list({ expandSchema: true }).then(policies => {
       return map(policies.data, (originalPolicy: any) => {
         const policy = {
           policyId: originalPolicy.id,
@@ -188,7 +188,7 @@ class ApiV1PoliciesControllerAjs {
     this.$scope.policyJsonSchemaForm = ['*'];
     this.selectedApiPolicy = this.apiPoliciesByPath[path][index];
     if (this.schemaByPolicyId[this.selectedApiPolicy.policyId] === undefined) {
-      return this.PolicyService.getSchema(this.selectedApiPolicy.policyId).then((response) => {
+      return this.PolicyService.getSchema(this.selectedApiPolicy.policyId).then(response => {
         this.$scope.policyJsonSchema = this.schemaByPolicyId[this.selectedApiPolicy.policyId] = response.data;
         this.selectedApiPolicy[this.selectedApiPolicy.policyId] = this.selectedApiPolicy[this.selectedApiPolicy.policyId] || {};
         this.checkEmptySchema();
@@ -267,7 +267,7 @@ class ApiV1PoliciesControllerAjs {
           confirmButton: 'Remove',
         },
       })
-      .then((response) => {
+      .then(response => {
         if (response) {
           forEach(this.apiPoliciesByPath[path], (policy, idx) => {
             // eslint-disable-next-line angular/no-private-call
@@ -297,7 +297,7 @@ class ApiV1PoliciesControllerAjs {
         },
       })
       .then(
-        (description) => {
+        description => {
           policy.description = description;
           this.savePaths();
         },
@@ -318,8 +318,8 @@ class ApiV1PoliciesControllerAjs {
 
   savePaths() {
     this.$scope.api.paths = cloneDeep(this.apiPoliciesByPath);
-    forEach(this.$scope.api.paths, (policies) => {
-      forEach(policies, (policy) => {
+    forEach(this.$scope.api.paths, policies => {
+      forEach(policies, policy => {
         delete policy.policyId;
         delete policy.name;
         delete policy.type;
@@ -327,10 +327,10 @@ class ApiV1PoliciesControllerAjs {
         delete policy.schema;
 
         // do not save empty fields on arrays
-        forOwn(policy, (policyAttributeValueObject) => {
-          forOwn(policyAttributeValueObject, (policyAttributeAttribute) => {
+        forOwn(policy, policyAttributeValueObject => {
+          forOwn(policyAttributeValueObject, policyAttributeAttribute => {
             if (isArray(policyAttributeAttribute)) {
-              remove(policyAttributeAttribute, (policyAttributeAttributeItem) => {
+              remove(policyAttributeAttribute, policyAttributeAttributeItem => {
                 return policyAttributeAttributeItem === undefined || '' === policyAttributeAttributeItem;
               });
             }
@@ -340,7 +340,7 @@ class ApiV1PoliciesControllerAjs {
     });
 
     const api = this.$scope.api;
-    return this.ApiService.update(api).then((updatedApi) => {
+    return this.ApiService.update(api).then(updatedApi => {
       this.NotificationService.show("API '" + updatedApi.data.name + "' saved");
       this.pathsToCompare = this.generatePathsToCompare();
 
@@ -363,7 +363,7 @@ class ApiV1PoliciesControllerAjs {
           rootCtrl: this,
         },
       })
-      .then((paths) => {
+      .then(paths => {
         this.apiPoliciesByPath = paths;
         this.savePaths();
       });
@@ -382,9 +382,9 @@ class ApiV1PoliciesControllerAjs {
           confirmButton: 'Yes, I want to migrate',
         },
       })
-      .then((response) => {
+      .then(response => {
         if (response) {
-          this.ApiService.migrateApiToPolicyStudio(this.api.id).then((_response) => {
+          this.ApiService.migrateApiToPolicyStudio(this.api.id).then(_response => {
             this.ngRouter.navigate(['../'], { relativeTo: this.activatedRoute });
           });
         }
@@ -404,7 +404,7 @@ class ApiV1PoliciesControllerAjs {
           confirmButton: 'Remove',
         },
       })
-      .then((response) => {
+      .then(response => {
         if (response) {
           delete this.apiPoliciesByPath[path];
           this.pathsInitialized[path] = false;
@@ -445,7 +445,7 @@ class ApiV1PoliciesControllerAjs {
 
   sortedPaths() {
     const paths = keys(this.apiPoliciesByPath);
-    return sortBy(paths, (path) => {
+    return sortBy(paths, path => {
       return this.clearPathParam(path);
     });
   }

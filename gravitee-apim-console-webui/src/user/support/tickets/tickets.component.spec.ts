@@ -50,7 +50,7 @@ describe('TicketsComponent', () => {
 
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#ticketsTable' }));
     const rows = await table.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByIndex()));
     expect(rowCells).toHaveLength(0);
 
     const tableElement = await table.host();
@@ -74,7 +74,7 @@ describe('TicketsComponent', () => {
 
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#ticketsTable' }));
     const rows = await table.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByIndex()));
     expect(rowCells).toStrictEqual([
       ['Sep 1, 2021, 2:00:00 PM', fakeTicket1.api, fakeTicket1.application, fakeTicket1.subject],
       ['Sep 2, 2022, 2:00:00 PM', '', '', fakeTicket2.subject],

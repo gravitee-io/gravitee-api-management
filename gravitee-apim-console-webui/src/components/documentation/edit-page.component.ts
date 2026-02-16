@@ -52,10 +52,10 @@ export class DocumentationEditPageComponent extends UpgradeComponent {
     const type = this.activatedRoute.snapshot.queryParams.type;
 
     Promise.all([
-      this.ajsFetcherService.list().then((response) => {
+      this.ajsFetcherService.list().then(response => {
         return response.data;
       }),
-      this.ajsDocumentationService.get(apiId, pageId).then((response) => response.data),
+      this.ajsDocumentationService.get(apiId, pageId).then(response => response.data),
       this.groupService.list().toPromise(),
       this.ajsDocumentationService
         .search(
@@ -64,7 +64,7 @@ export class DocumentationEditPageComponent extends UpgradeComponent {
           },
           apiId,
         )
-        .then((response) => response.data),
+        .then(response => response.data),
       this.ajsDocumentationService
         .search(
           {
@@ -72,9 +72,9 @@ export class DocumentationEditPageComponent extends UpgradeComponent {
           },
           apiId,
         )
-        .then((response) => response.data),
-      type === 'LINK' ? this.ajsDocumentationService.search({}, apiId).then((response) => response.data) : Promise.resolve(null),
-      type === 'LINK' ? this.ajsCategoryService.list().then((response) => response.data) : Promise.resolve(null),
+        .then(response => response.data),
+      type === 'LINK' ? this.ajsDocumentationService.search({}, apiId).then(response => response.data) : Promise.resolve(null),
+      type === 'LINK' ? this.ajsCategoryService.list().then(response => response.data) : Promise.resolve(null),
       type === 'MARKDOWN' || type === 'MARKDOWN_TEMPLATE'
         ? this.ajsDocumentationService
             .search(
@@ -84,9 +84,9 @@ export class DocumentationEditPageComponent extends UpgradeComponent {
               },
               apiId,
             )
-            .then((response) =>
+            .then(response =>
               response.data.filter(
-                (page) =>
+                page =>
                   page.type.toUpperCase() === 'MARKDOWN' ||
                   page.type.toUpperCase() === 'SWAGGER' ||
                   page.type.toUpperCase() === 'ASCIIDOC' ||
@@ -95,10 +95,10 @@ export class DocumentationEditPageComponent extends UpgradeComponent {
             )
         : Promise.resolve(null),
       type === 'MARKDOWN' || type === 'ASCIIDOC' || type === 'ASYNCAPI'
-        ? this.ajsDocumentationService.getMedia(pageId, apiId).then((response) => response.data)
+        ? this.ajsDocumentationService.getMedia(pageId, apiId).then(response => response.data)
         : Promise.resolve(null),
       apiId !== undefined
-        ? this.ajsApiService.get(apiId).then((res) => res.data?.definition_context?.origin === 'kubernetes')
+        ? this.ajsApiService.get(apiId).then(res => res.data?.definition_context?.origin === 'kubernetes')
         : Promise.resolve(null),
     ]).then(
       ([

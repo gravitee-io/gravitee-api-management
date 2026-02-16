@@ -103,7 +103,7 @@ export class DeleteMemberDialogComponent implements OnInit {
       startWith(''),
       debounceTime(300),
       distinctUntilChanged(),
-      map((searchTerm) => this.filterMembers(searchTerm)),
+      map(searchTerm => this.filterMembers(searchTerm)),
     );
   }
 
@@ -113,7 +113,7 @@ export class DeleteMemberDialogComponent implements OnInit {
     }
 
     const filterValue = searchTerm.toLowerCase();
-    return this.members.filter((member) => member.displayName.toLowerCase().includes(filterValue) && member.id !== this.member.id);
+    return this.members.filter(member => member.displayName.toLowerCase().includes(filterValue) && member.id !== this.member.id);
   }
 
   submit(): void {
@@ -142,8 +142,8 @@ export class DeleteMemberDialogComponent implements OnInit {
 
   private mapGroupMembership() {
     this.usersService.search(this.newPrimaryOwner.displayName).subscribe({
-      next: (response) => {
-        const reference = response.find((user) => user.id === this.newPrimaryOwner.id).reference;
+      next: response => {
+        const reference = response.find(user => user.id === this.newPrimaryOwner.id).reference;
         this.primaryOwnerMembership = {
           id: this.newPrimaryOwner.id,
           reference: reference,

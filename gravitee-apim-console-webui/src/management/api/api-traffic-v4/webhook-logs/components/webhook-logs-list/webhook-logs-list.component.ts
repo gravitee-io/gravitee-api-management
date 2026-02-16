@@ -49,7 +49,7 @@ export class WebhookLogsListComponent {
       actions: this.actionsTemplate(),
     };
 
-    if (Object.values(templates).some((tpl) => !tpl)) {
+    if (Object.values(templates).some(tpl => !tpl)) {
       return [];
     }
 

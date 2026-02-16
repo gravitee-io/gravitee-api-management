@@ -227,7 +227,7 @@ describe('ApplicationGeneralMembersComponent', () => {
       .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/_search?page=1&perPage=${groups.length || 10}`, method: 'POST' })
       .flush(
         fakeGroupsResponse({
-          data: groups.map((id) => fakeGroup({ id, name: id + '-name' })),
+          data: groups.map(id => fakeGroup({ id, name: id + '-name' })),
           pagination: {
             page: 1,
             perPage: groups.length || 10,
@@ -268,7 +268,7 @@ describe('ApplicationGeneralMembersComponent', () => {
         })
         .flush(
           fakeGroupsResponse({
-            data: groups.map((id) => fakeGroup({ id, name: id + '-name' })),
+            data: groups.map(id => fakeGroup({ id, name: id + '-name' })),
             pagination: {
               page: 1,
               perPage: groups.length,
@@ -281,7 +281,7 @@ describe('ApplicationGeneralMembersComponent', () => {
 
       fixture.detectChanges();
 
-      expect(fixture.componentInstance.groupData).toEqual(groups.map((id) => ({ id, name: `${id}-name`, isVisible: true })));
+      expect(fixture.componentInstance.groupData).toEqual(groups.map(id => ({ id, name: `${id}-name`, isVisible: true })));
     });
 
     it('should map groupData when backend returns a paginated object (real backend shape)', () => {
@@ -298,7 +298,7 @@ describe('ApplicationGeneralMembersComponent', () => {
           method: 'POST',
         })
         .flush({
-          data: groups.map((id) => fakeGroup({ id, name: id + '-name' })),
+          data: groups.map(id => fakeGroup({ id, name: id + '-name' })),
           pagination: {
             page: 1,
             perPage: groups.length,
@@ -310,7 +310,7 @@ describe('ApplicationGeneralMembersComponent', () => {
 
       fixture.detectChanges();
 
-      expect(fixture.componentInstance.groupData).toEqual(groups.map((id) => ({ id, name: `${id}-name`, isVisible: true })));
+      expect(fixture.componentInstance.groupData).toEqual(groups.map(id => ({ id, name: `${id}-name`, isVisible: true })));
     });
   });
 });

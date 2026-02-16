@@ -192,7 +192,7 @@ const toNotificationPeriod = (timeframeFormValues): NotificationPeriod => {
   }
 
   return {
-    days: timeframeFormValues.days?.map((day) => Days.dayToNumber(day)) ?? [],
+    days: timeframeFormValues.days?.map(day => Days.dayToNumber(day)) ?? [],
     zoneId: Intl.DateTimeFormat().resolvedOptions().timeZone,
     beginHour,
     endHour,

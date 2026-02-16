@@ -60,7 +60,7 @@ class AnalyticsDashboardControllerAjs {
   }
 
   $onInit() {
-    this.dashboardService.list('PLATFORM').then((response) => {
+    this.dashboardService.list('PLATFORM').then(response => {
       this.dashboards = filter(response.data, 'enabled');
 
       const dashboardId = this.activatedRoute.snapshot.queryParams.dashboard;
@@ -79,11 +79,11 @@ class AnalyticsDashboardControllerAjs {
         this.dashboard = this.dashboards[0];
       }
 
-      forEach(this.dashboards, (dashboard) => {
+      forEach(this.dashboards, dashboard => {
         if (dashboard.definition) {
           dashboard.definition = JSON.parse(dashboard.definition);
         }
-        forEach(dashboard.definition, (widget) => {
+        forEach(dashboard.definition, widget => {
           merge(widget, {
             chart: {
               service: {
@@ -132,7 +132,7 @@ class AnalyticsDashboardControllerAjs {
   searchEvents() {
     // set apis
     const apis = this.selectedAPIs
-      .map((api) => {
+      .map(api => {
         return api.id;
       })
       .join(',');
@@ -145,7 +145,7 @@ class AnalyticsDashboardControllerAjs {
 
     // search
     this.$scope.eventsFetchData = true;
-    this.eventService.search(types, apis, this.lastFrom, this.lastTo, this.query.page - 1, this.query.limit).then((response) => {
+    this.eventService.search(types, apis, this.lastFrom, this.lastTo, this.query.page - 1, this.query.limit).then(response => {
       this.events = response.data;
       this.$scope.eventsFetchData = false;
     });

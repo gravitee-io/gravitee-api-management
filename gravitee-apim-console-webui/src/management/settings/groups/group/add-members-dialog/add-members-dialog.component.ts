@@ -167,7 +167,7 @@ export class AddMembersDialogComponent implements OnInit {
 
   private disableAPIRoleOptions() {
     this.disabledAPIRoles = new Set(
-      this.defaultAPIRoles.filter((role) => this.isPrimaryOwnerDisabled(role) || this.isSystemRoleDisabled(role)).map((role) => role.id),
+      this.defaultAPIRoles.filter(role => this.isPrimaryOwnerDisabled(role) || this.isSystemRoleDisabled(role)).map(role => role.id),
     );
   }
 
@@ -184,7 +184,7 @@ export class AddMembersDialogComponent implements OnInit {
   }
 
   private isPrimaryOwnerPresent() {
-    return this.members.some((member) => member.roles['API'] === RoleName.PRIMARY_OWNER);
+    return this.members.some(member => member.roles['API'] === RoleName.PRIMARY_OWNER);
   }
 
   private isSystemRoleDisabled(role: Role): boolean {
@@ -226,9 +226,9 @@ export class AddMembersDialogComponent implements OnInit {
     }
 
     return this.usersService.search(searchTerm).pipe(
-      map((users) => {
-        const excludedIds = new Set([...this.members.map((member) => member.id), ...this.selectedUsers.map((user) => user.id)]);
-        return users.filter((user) => !excludedIds.has(user.id));
+      map(users => {
+        const excludedIds = new Set([...this.members.map(member => member.id), ...this.selectedUsers.map(user => user.id)]);
+        return users.filter(user => !excludedIds.has(user.id));
       }),
     );
   }
@@ -248,7 +248,7 @@ export class AddMembersDialogComponent implements OnInit {
 
     if (index >= 0) {
       this.selectedUsers.splice(index, 1);
-      const membershipIndex = this.memberships.findIndex((member) => member.id === user.id);
+      const membershipIndex = this.memberships.findIndex(member => member.id === user.id);
 
       if (membershipIndex >= 0) {
         this.memberships.splice(index, 1);
@@ -275,7 +275,7 @@ export class AddMembersDialogComponent implements OnInit {
   }
 
   private filterPrimaryOwners() {
-    return this.memberships.filter((membership) => membership.roles.find((role) => role.scope === 'API').name === RoleName.PRIMARY_OWNER);
+    return this.memberships.filter(membership => membership.roles.find(role => role.scope === 'API').name === RoleName.PRIMARY_OWNER);
   }
 
   onAPIRoleChange() {

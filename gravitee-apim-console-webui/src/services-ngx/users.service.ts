@@ -78,7 +78,7 @@ export class UsersService {
   getMemberships(id: string, type: 'application'): Observable<UserMembership<'application'>>;
   getMemberships(id: string, type: string): Observable<UserMembership> {
     return this.http.get<UserMembership>(`${this.constants.org.baseURL}/users/${id}/memberships?type=${type}`).pipe(
-      map((response) => ({
+      map(response => ({
         memberships: response?.memberships ?? [],
         metadata: response?.metadata ?? {},
       })),

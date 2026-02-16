@@ -72,10 +72,10 @@ export class TasksComponent implements OnInit, OnDestroy {
     this.taskService
       .getTasks()
       .pipe(
-        tap((result) => {
+        tap(result => {
           this.tasks = result;
           this.data = result.data
-            .map((task) => {
+            .map(task => {
               const data: TaskData = {
                 icon: this.getIcon(task),
                 title: this.getTitle(task),
@@ -97,7 +97,7 @@ export class TasksComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
-        error: (e) => this.snackBarService.error(e.error?.message ?? 'Failed to load tasks'),
+        error: e => this.snackBarService.error(e.error?.message ?? 'Failed to load tasks'),
       });
   }
 
@@ -147,7 +147,7 @@ export class TasksComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.promotionService.processPromotion(promotionId, false)),
         tap(() => this.snackBarService.success(`API promotion rejected`)),
         takeUntil(this.unsubscribe$),
@@ -172,7 +172,7 @@ export class TasksComponent implements OnInit, OnDestroy {
       )
       .afterClosed()
       .pipe(
-        filter((result) => result?.accepted === true),
+        filter(result => result?.accepted === true),
         switchMap(() => this.promotionService.processPromotion(promotionTaskData.promotionId, true)),
         tap(() => this.snackBarService.success(`API promotion accepted`)),
         takeUntil(this.unsubscribe$),
@@ -266,6 +266,6 @@ export class TasksComponent implements OnInit, OnDestroy {
   }
 
   private removeTask(taskToRemove: TaskData): void {
-    this.data = this.data.filter((task) => task !== taskToRemove);
+    this.data = this.data.filter(task => task !== taskToRemove);
   }
 }

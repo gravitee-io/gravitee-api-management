@@ -21,7 +21,7 @@ export default {
   title: 'Application / Subscription / Details',
   component: ApplicationSubscriptionComponent,
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 800px">
         <application-subscription></application-subscription>

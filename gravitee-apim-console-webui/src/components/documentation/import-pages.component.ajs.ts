@@ -51,7 +51,7 @@ class ImportPagesComponentController implements IController {
     this.fetchers = this.resolvedFetchers;
 
     if (!(isNil(this.page.source) || isNil(this.page.source.type))) {
-      forEach(this.fetchers, (fetcher) => {
+      forEach(this.fetchers, fetcher => {
         if (fetcher.id === this.page.source.type) {
           this.$scope.fetcherJsonSchema = angular.fromJson(fetcher.schema);
         }

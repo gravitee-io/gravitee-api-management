@@ -55,7 +55,7 @@ export class ApiAnalyticsMessageHarness extends ComponentHarness {
   > {
     const rows = await this.entrypointsRows();
     return parallel(() =>
-      rows.map(async (row) => ({
+      rows.map(async row => ({
         name: await row.getText({ childSelector: '.gio-badge-primary' }),
         isNotConfigured: (await row.getText()).includes('Not configured'),
       })),

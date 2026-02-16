@@ -69,11 +69,11 @@ export class GioTableOfContentsComponent implements OnInit, AfterViewInit, OnDes
       .subscribe(() => this.onScroll());
 
     this.sections$ = this.tableOfContentsService.getSections$().pipe(
-      map((s) => Object.values(s)),
-      tap((s) =>
+      map(s => Object.values(s)),
+      tap(s =>
         // Get all links for the scroll activation mechanism
         {
-          this.allLinks = this.sortByTopOffset(flatten(s.map((s) => s.links)));
+          this.allLinks = this.sortByTopOffset(flatten(s.map(s => s.links)));
           this.changeDetectorRef.detectChanges();
         },
       ),
@@ -86,10 +86,10 @@ export class GioTableOfContentsComponent implements OnInit, AfterViewInit, OnDes
     this.activatedRoute.fragment
       .pipe(
         debounceTime(300),
-        filter((f) => !!f),
+        filter(f => !!f),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((f) => {
+      .subscribe(f => {
         const element = document.querySelector('#toc-' + f);
         if (element) {
           element.scrollIntoView();

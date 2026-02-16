@@ -24,7 +24,7 @@ export class PropertiesImportDialogHarness extends ComponentHarness {
     this.locatorFor(MatInputHarness.with({ selector: `[formControlName="${formControlName}"]` }))();
 
   public setProperties(properties: string): Promise<void> {
-    return this.getMatInputHarness('properties').then((input) => input.setValue(properties));
+    return this.getMatInputHarness('properties').then(input => input.setValue(properties));
   }
 
   async getErrorMessage(): Promise<string | null> {
@@ -48,6 +48,6 @@ export class PropertiesImportDialogHarness extends ComponentHarness {
   }
 
   async import(): Promise<void> {
-    await this.locatorFor(MatButtonHarness.with({ text: 'Import properties' }))().then((btn) => btn.click());
+    await this.locatorFor(MatButtonHarness.with({ text: 'Import properties' }))().then(btn => btn.click());
   }
 }

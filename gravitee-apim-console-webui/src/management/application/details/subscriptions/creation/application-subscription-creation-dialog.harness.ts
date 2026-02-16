@@ -38,38 +38,38 @@ export class ApplicationSubscriptionCreationDialogHarness extends ComponentHarne
   }
 
   public async selectApi(applicationName: string) {
-    return this.getApiAutoComplete().then((autocomplete) => autocomplete.selectOption({ text: new RegExp(`.*${applicationName}.*`) }));
+    return this.getApiAutoComplete().then(autocomplete => autocomplete.selectOption({ text: new RegExp(`.*${applicationName}.*`) }));
   }
 
   public async selectPlan(planName: string) {
-    return this.getPlansRadioGroup().then((radio) => radio.checkRadioButton({ label: planName }));
+    return this.getPlansRadioGroup().then(radio => radio.checkRadioButton({ label: planName }));
   }
 
   public async isPlanDisabled(planName: string) {
     const group = await this.getPlansRadioGroup();
     const buttons = await group.getRadioButtons();
-    const options = await parallel(() => buttons.map(async (option) => ({ text: await option.getLabelText(), option })));
-    const option = options.find((option) => option.text === planName).option;
+    const options = await parallel(() => buttons.map(async option => ({ text: await option.getLabelText(), option })));
+    const option = options.find(option => option.text === planName).option;
     return option.isDisabled();
   }
 
   public async selectApiKeyMode(mode: string) {
-    return this.getApiKeyModeRadioGroup().then((radio) => radio.checkRadioButton({ label: mode }));
+    return this.getApiKeyModeRadioGroup().then(radio => radio.checkRadioButton({ label: mode }));
   }
 
   public async createSubscription() {
-    return this.getCreateButton().then((btn) => btn.click());
+    return this.getCreateButton().then(btn => btn.click());
   }
 
   public async isCreateSubscriptionDisabled() {
-    return this.getCreateButton().then((btn) => btn.isDisabled());
+    return this.getCreateButton().then(btn => btn.isDisabled());
   }
 
   public async selectEntrypoint(name: string) {
-    return this.getEntrypointSelect().then((select) => select.clickOptions({ text: name }));
+    return this.getEntrypointSelect().then(select => select.clickOptions({ text: name }));
   }
 
   public async addRequestMessage(message: string) {
-    return this.getRequestInput().then((input) => input.setValue(message));
+    return this.getRequestInput().then(input => input.setValue(message));
   }
 }

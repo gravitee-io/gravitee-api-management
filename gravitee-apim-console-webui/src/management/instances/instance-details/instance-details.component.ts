@@ -39,7 +39,7 @@ export class InstanceDetailsComponent implements OnInit, OnDestroy {
     this.instanceService
       .get(this.activatedRoute.snapshot.params.instanceId)
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((instance) => {
+      .subscribe(instance => {
         this.instance = instance;
       });
   }

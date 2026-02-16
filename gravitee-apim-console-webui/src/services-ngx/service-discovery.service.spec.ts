@@ -38,7 +38,7 @@ describe('ServiceDiscoveryService', () => {
   });
 
   describe('list', () => {
-    it('should get the service discovery list', (done) => {
+    it('should get the service discovery list', done => {
       const serviceDiscoveryList = [
         {
           id: 'consul-service-discovery',
@@ -48,7 +48,7 @@ describe('ServiceDiscoveryService', () => {
         },
       ];
 
-      serviceDiscoveryService.list().subscribe((response) => {
+      serviceDiscoveryService.list().subscribe(response => {
         expect(response).toMatchObject(serviceDiscoveryList);
         done();
       });
@@ -63,7 +63,7 @@ describe('ServiceDiscoveryService', () => {
   });
 
   describe('getSchema', () => {
-    it('should get the service discovery schema', (done) => {
+    it('should get the service discovery schema', done => {
       const schema = {
         type: 'object',
         id: 'urn:jsonschema:io:gravitee:discovery:consul:configuration:ConsulServiceDiscoveryConfiguration',
@@ -71,7 +71,7 @@ describe('ServiceDiscoveryService', () => {
         required: ['url', 'service', 'trustStoreType', 'keyStoreType'],
       };
 
-      serviceDiscoveryService.getSchema('consul-service-discovery').subscribe((response) => {
+      serviceDiscoveryService.getSchema('consul-service-discovery').subscribe(response => {
         expect(response).toMatchObject(schema);
         done();
       });

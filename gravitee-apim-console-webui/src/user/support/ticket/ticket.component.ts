@@ -41,7 +41,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.ticketService
       .getTicket(this.activatedRoute.snapshot.params['ticketId'])
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((response) => {
+      .subscribe(response => {
         this.ticket = response;
       });
   }

@@ -29,17 +29,17 @@ export class PropertiesAddDialogHarness extends ComponentHarness {
 
   async setPropertyValue({ key, value, encryptable }: { key?: string; value?: string; encryptable?: boolean }): Promise<void> {
     if (key) {
-      await this.getMatInputHarness('key').then((input) => input.setValue(key));
+      await this.getMatInputHarness('key').then(input => input.setValue(key));
     }
     if (value) {
-      await this.getMatInputHarness('value').then((input) => input.setValue(value));
+      await this.getMatInputHarness('value').then(input => input.setValue(value));
     }
     if (encryptable) {
-      await this.getMatToggleHarness('toEncrypt').then((toggle) => (encryptable ? toggle.check() : toggle.uncheck()));
+      await this.getMatToggleHarness('toEncrypt').then(toggle => (encryptable ? toggle.check() : toggle.uncheck()));
     }
   }
 
   async add(): Promise<void> {
-    await this.locatorFor(MatButtonHarness.with({ text: 'Add' }))().then((btn) => btn.click());
+    await this.locatorFor(MatButtonHarness.with({ text: 'Add' }))().then(btn => btn.click());
   }
 }

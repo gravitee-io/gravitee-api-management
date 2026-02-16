@@ -70,7 +70,7 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
         onlyApiV4Filter(this.snackBarService),
         tap((api: ApiV4) => {
           const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
-          this.hasKafkaEndpointsGroup = api?.endpointGroups?.some((endpointGroup) => endpointGroup.type === 'kafka');
+          this.hasKafkaEndpointsGroup = api?.endpointGroups?.some(endpointGroup => endpointGroup.type === 'kafka');
           this.createForm(isReadOnly, api?.failover);
           this.setupDisablingFields();
         }),
@@ -121,8 +121,8 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
     this.failoverForm
       .get('enabled')
       .valueChanges.pipe(takeUntil(this.unsubscribe$))
-      .subscribe((checked) => {
-        controlKeys.forEach((k) => {
+      .subscribe(checked => {
+        controlKeys.forEach(k => {
           return checked ? this.failoverForm.get(k).enable() : this.failoverForm.get(k).disable();
         });
       });
@@ -145,14 +145,14 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
         })
         .afterClosed();
     } else {
-      confirmUpdate$ = new Observable((subscriber) => {
+      confirmUpdate$ = new Observable(subscriber => {
         subscriber.next(true);
         subscriber.complete();
       });
     }
     return confirmUpdate$
       .pipe(
-        filter((confirm) => {
+        filter(confirm => {
           return confirm === true;
         }),
         switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),

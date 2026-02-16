@@ -51,7 +51,7 @@ export class ApiDocumentationV2Service {
     return this.http.get<ApiDocumentationPageResult>(url).pipe(
       map((result: ApiDocumentationPageResult) => {
         const filteredResult: ApiDocumentationPageResult = {
-          pages: result.pages.filter((page) => page.type === 'FOLDER' || SUPPORTED_FOR_EDIT.includes(page.type)),
+          pages: result.pages.filter(page => page.type === 'FOLDER' || SUPPORTED_FOR_EDIT.includes(page.type)),
           breadcrumb: result.breadcrumb,
         };
         return filteredResult;

@@ -89,7 +89,7 @@ export default {
     }),
   ],
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 750px; margin: 24px; padding: 24px; background-color: #f4f6fb; min-height: 100vh;">
         <div class="storybook-dialog-wrapper" style="padding: 24px; background: white; border-radius: 4px; box-shadow: 0px 11px 15px -7px rgba(0, 0, 0, 0.2), 0px 24px 38px 3px rgba(0, 0, 0, 0.14), 0px 9px 46px 8px rgba(0, 0, 0, 0.12); display: flex; flex-direction: column;">

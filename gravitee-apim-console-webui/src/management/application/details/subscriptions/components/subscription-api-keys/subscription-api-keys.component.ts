@@ -130,10 +130,10 @@ export class SubscriptionApiKeysComponent implements OnChanges {
       : this.applicationService.getApiKeys(this.applicationId);
 
     this.pageVM$ = this.filters$.pipe(
-      switchMap((filters) => getApiKeys$.pipe(map((apiKeys) => ({ apiKeys, filters })))),
+      switchMap(filters => getApiKeys$.pipe(map(apiKeys => ({ apiKeys, filters })))),
       map(({ apiKeys, filters }) => {
         const filtered = gioTableFilterCollection(
-          apiKeys.map((apiKey) => ({
+          apiKeys.map(apiKey => ({
             id: apiKey.id,
             key: apiKey.key,
             createdAt: apiKey.created_at,
@@ -175,7 +175,7 @@ export class SubscriptionApiKeysComponent implements OnChanges {
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
+        filter(result => !!result),
         switchMap(() => revokeApiKey$),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -184,7 +184,7 @@ export class SubscriptionApiKeysComponent implements OnChanges {
           this.snackBarService.success(`API Key revoked`);
           this.filters$.next(this.filters$.value);
         },
-        error: (err) => this.snackBarService.error(err.message),
+        error: err => this.snackBarService.error(err.message),
       });
   }
 
@@ -205,7 +205,7 @@ export class SubscriptionApiKeysComponent implements OnChanges {
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
+        filter(result => !!result),
         switchMap(() => renewApiKey$),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -215,7 +215,7 @@ export class SubscriptionApiKeysComponent implements OnChanges {
           this.snackBarService.success(`API Key renewed`);
           this.filters$.next(this.filters$.value);
         },
-        error: (err) => this.snackBarService.error(err.message),
+        error: err => this.snackBarService.error(err.message),
       });
   }
 }

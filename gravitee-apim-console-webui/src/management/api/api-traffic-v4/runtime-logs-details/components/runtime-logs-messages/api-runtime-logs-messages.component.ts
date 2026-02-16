@@ -78,15 +78,15 @@ export class ApiRuntimeLogsMessagesComponent implements OnInit, OnDestroy {
     this.apiLogsService
       .searchMessageLogs(this.activatedRoute.snapshot.params.apiId, this.activatedRoute.snapshot.params.requestId, pageIndex, this.pageSize)
       .pipe(
-        map((messageLogs) => {
+        map(messageLogs => {
           this.messageLogs$.next([...this.messageLogs$.getValue(), ...messageLogs.data]);
           this.pageIndex += 1;
           this.pageCount = messageLogs.pagination.pageCount;
           return messageLogs.data;
         }),
-        switchMap((messageLogs) =>
+        switchMap(messageLogs =>
           uniqBy(
-            messageLogs.flatMap((messageLog) => [
+            messageLogs.flatMap(messageLog => [
               {
                 connectorType: 'ENTRYPOINT',
                 connectorId: messageLog.entrypoint?.connectorId,

@@ -65,19 +65,19 @@ const AlertTriggerTimeframeComponent: ng.IComponentOptions = {
         });
       };
 
-      this.hasTime = (period) => {
+      this.hasTime = period => {
         return period.beginHour != null && period.endHour != null;
       };
 
-      this.isRange = (period) => {
+      this.isRange = period => {
         return this.hasTime(period) && period.beginHour !== period.endHour;
       };
 
-      this.isTime = (period) => {
+      this.isTime = period => {
         return this.hasTime(period) && period.beginHour === period.endHour;
       };
 
-      this.add = (form) => {
+      this.add = form => {
         form.$setSubmitted();
         if (form.$valid) {
           const { days, range } = form;
@@ -91,13 +91,13 @@ const AlertTriggerTimeframeComponent: ng.IComponentOptions = {
           }
 
           const period = new Period({
-            days: days.map((day) => this.days.indexOf(day) + 1).sort(),
+            days: days.map(day => this.days.indexOf(day) + 1).sort(),
             beginHour,
             endHour,
             zoneId: Intl.DateTimeFormat().resolvedOptions().timeZone,
           });
           const periods: Array<Period> = this.alert.notificationPeriods;
-          const alreadyAdd = periods.find((p) => period.equals(p)) != null;
+          const alreadyAdd = periods.find(p => period.equals(p)) != null;
           if (!alreadyAdd) {
             this.alert.notificationPeriods.push(period);
           }
@@ -150,7 +150,7 @@ const AlertTriggerTimeframeComponent: ng.IComponentOptions = {
       };
 
       this.getDays = (daysOfWeek: Array<number>) => {
-        return daysOfWeek.sort().map((dayOfWeek) => this.days[dayOfWeek - 1]);
+        return daysOfWeek.sort().map(dayOfWeek => this.days[dayOfWeek - 1]);
       };
 
       this.getDayNames = (period: Period) => {

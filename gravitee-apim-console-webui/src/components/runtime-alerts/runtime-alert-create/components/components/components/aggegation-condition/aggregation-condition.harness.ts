@@ -24,23 +24,23 @@ export class AggregationConditionHarness extends ComponentHarness {
 
   public async accordionClick() {
     return this.getAccordion()
-      .then((accordion) => accordion.host())
-      .then((host) => host.click());
+      .then(accordion => accordion.host())
+      .then(host => host.click());
   }
 
   public async getPropertyOptions() {
-    return this.getPropertySelect().then(async (select) => {
+    return this.getPropertySelect().then(async select => {
       await select.open();
       const options = await select.getOptions();
-      return Promise.all(options.map(async (o) => o.getText()));
+      return Promise.all(options.map(async o => o.getText()));
     });
   }
 
   public async selectProperty(text: string) {
-    return this.getPropertySelect().then((select) => select.clickOptions({ text }));
+    return this.getPropertySelect().then(select => select.clickOptions({ text }));
   }
 
   public async getSelectedProperty() {
-    return this.getPropertySelect().then((select) => select.getValueText());
+    return this.getPropertySelect().then(select => select.getValueText());
   }
 }

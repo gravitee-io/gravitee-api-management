@@ -45,8 +45,8 @@ export class ApiAnalyticsResponseStatusRangesComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes.responseStatusRanges && !this.responseStatusRanges?.isLoading) {
       this.input = this.responseStatusRanges?.data
-        .filter((data) => data.value > 0)
-        .map((data) => ({
+        .filter(data => data.value > 0)
+        .map(data => ({
           label: getLabel(data.label),
           value: data.value,
           color: getColor(data.label),

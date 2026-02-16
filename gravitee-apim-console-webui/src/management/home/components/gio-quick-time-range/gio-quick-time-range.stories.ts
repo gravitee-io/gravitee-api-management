@@ -43,7 +43,7 @@ export default {
 
     const timeFrameRangesParams$ = onRefresh$.pipe(
       switchMap(() => formControl.valueChanges.pipe(startWith(formControl.value))),
-      map((value) => GioQuickTimeRangeComponent.getTimeFrameRangesParams(value)),
+      map(value => GioQuickTimeRangeComponent.getTimeFrameRangesParams(value)),
     );
 
     return {

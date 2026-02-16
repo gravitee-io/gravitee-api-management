@@ -119,7 +119,7 @@ export class GioFormListenersKafkaHostComponent implements OnInit, ControlValueA
 
     this.mainForm.valueChanges
       .pipe(
-        tap((value) => this._onChange({ host: value.host })),
+        tap(value => this._onChange({ host: value.host })),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();

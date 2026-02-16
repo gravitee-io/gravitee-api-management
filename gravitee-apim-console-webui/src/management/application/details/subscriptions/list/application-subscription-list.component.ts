@@ -184,8 +184,8 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
       .subscribe(([applicationSubscriptions, application]) => {
         this.subscriptionsCount = applicationSubscriptions.page.total_elements;
 
-        this.subscriptionsTableDS = (applicationSubscriptions.data ?? []).map((subscription) => {
-          const status = this.statuses.find((status) => status.id === subscription.status);
+        this.subscriptionsTableDS = (applicationSubscriptions.data ?? []).map(subscription => {
+          const status = this.statuses.find(status => status.id === subscription.status);
 
           const planMetadata = get(applicationSubscriptions.metadata, [subscription.plan], {});
           const apiMetadata = get(applicationSubscriptions.metadata, [subscription.api], {});
@@ -238,7 +238,7 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
+        filter(result => !!result),
         switchMap(() => this.applicationSubscriptionService.closeSubscription(applicationId, subscription.id)),
         takeUntil(this.unsubscribe$),
       )
@@ -298,17 +298,17 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
     return this.applicationService
       .getSubscribedAPIList(this.activatedRoute.snapshot.params.applicationId)
       .pipe(
-        map((subscribers) =>
+        map(subscribers =>
           subscribers
-            ?.filter((subscriber) => subscriber.name.includes(searchTerm) && !this.filtersForm.controls.apis.value?.includes(subscriber.id))
-            ?.map((subscriber) => ({ value: subscriber.id, label: subscriber.name })),
+            ?.filter(subscriber => subscriber.name.includes(searchTerm) && !this.filtersForm.controls.apis.value?.includes(subscriber.id))
+            ?.map(subscriber => ({ value: subscriber.id, label: subscriber.name })),
         ),
       );
   };
 
   public displayApi: (value: string) => Observable<string> = (value: string) => {
     return this.apiService.get(value).pipe(
-      map((api) => `${api.name} (${api.primaryOwner?.displayName})`),
+      map(api => `${api.name} (${api.primaryOwner?.displayName})`),
       catchError(() => of(value)),
     );
   };
@@ -327,8 +327,8 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((result) => {
+        filter(result => !!result),
+        switchMap(result => {
           return this.applicationSubscriptionService.subscribe(
             this.activatedRoute.snapshot.params.applicationId,
             result.planId,
@@ -344,6 +344,6 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((subscription) => this.router.navigate(['.', subscription.id], { relativeTo: this.activatedRoute }));
+      .subscribe(subscription => this.router.navigate(['.', subscription.id], { relativeTo: this.activatedRoute }));
   }
 }

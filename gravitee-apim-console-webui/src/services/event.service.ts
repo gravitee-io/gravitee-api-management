@@ -31,7 +31,7 @@ export class EventService {
   }
 
   public findById(apiId: string, eventId: string): IPromise<Event> {
-    return this.$http.get<Event>(`${this.Constants.env.baseURL}/apis/${apiId}/events/${eventId}`).then((response) => response.data);
+    return this.$http.get<Event>(`${this.Constants.env.baseURL}/apis/${apiId}/events/${eventId}`).then(response => response.data);
   }
 }
 EventService.$inject = ['$http', 'Constants'];

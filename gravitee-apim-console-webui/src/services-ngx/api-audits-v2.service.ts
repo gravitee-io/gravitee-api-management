@@ -45,6 +45,6 @@ export class ApiAuditsV2Service {
   listAllApiAuditEvents(apiId: string): Observable<string[]> {
     return this.http
       .get<AuditEventsResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/audits/events`)
-      .pipe(map((response) => response.data));
+      .pipe(map(response => response.data));
   }
 }

@@ -24,8 +24,8 @@ export class ApiScoreDashboardHarness extends ComponentHarness {
   private evaluateButtonLocator = this.locatorFor(MatButtonHarness.with({ selector: "[data-testid='evaluate-button']" }));
   private tableLocator = this.locatorForOptional(MatTableHarness);
 
-  public isEvaluateButtonDisabled = () => this.evaluateButtonLocator().then((button) => button.isDisabled());
-  public clickOnEvaluate = () => this.evaluateButtonLocator().then((button) => button.click());
+  public isEvaluateButtonDisabled = () => this.evaluateButtonLocator().then(button => button.isDisabled());
+  public clickOnEvaluate = () => this.evaluateButtonLocator().then(button => button.click());
 
   public getTable = async () => {
     return await this.tableLocator();

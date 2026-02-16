@@ -87,11 +87,11 @@ class ApplicationService {
     }
 
     if (ids) {
-      url += '&' + ids.map((i) => `ids=${i}`).join('&');
+      url += '&' + ids.map(i => `ids=${i}`).join('&');
     }
 
     if (exclude && exclude.length > 0) {
-      const excludeFilters = exclude.map((filter) => `exclude=${filter}`).join('&');
+      const excludeFilters = exclude.map(filter => `exclude=${filter}`).join('&');
       url += `&${excludeFilters}`;
     }
     return this.$http.get(url);
@@ -128,7 +128,7 @@ class ApplicationService {
     }
 
     if (exclude.length > 0) {
-      const excludeFilters = exclude.map((filter) => `exclude=${filter}`).join('&');
+      const excludeFilters = exclude.map(filter => `exclude=${filter}`).join('&');
       url += `&${excludeFilters}`;
     }
 
@@ -225,7 +225,7 @@ class ApplicationService {
     let url = `${this.Constants.env.baseURL}/applications/` + application + '/analytics?';
 
     const keys = Object.keys(request);
-    forEach(keys, (key) => {
+    forEach(keys, key => {
       const val = request[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -320,7 +320,7 @@ class ApplicationService {
    */
   private buildURLWithQuery(query: LogsQuery, url) {
     const keys = Object.keys(query);
-    forEach(keys, (key) => {
+    forEach(keys, key => {
       const val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';

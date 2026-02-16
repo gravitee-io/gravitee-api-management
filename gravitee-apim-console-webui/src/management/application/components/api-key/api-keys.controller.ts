@@ -40,7 +40,7 @@ class ApiKeysController {
   }
 
   listApiKeys(): void {
-    this.ApplicationService.listApiKeys(this.application, this.subscription).then((response) => {
+    this.ApplicationService.listApiKeys(this.application, this.subscription).then(response => {
       this.keys = response.data;
     });
   }
@@ -58,7 +58,7 @@ class ApiKeysController {
           confirmButton: 'Renew',
         },
       })
-      .then((response) => {
+      .then(response => {
         if (response) {
           this.ApplicationService.renewApiKey(this.application, this.subscription).then(() => {
             this.NotificationService.show('A new API Key has been generated');
@@ -97,7 +97,7 @@ class ApiKeysController {
           confirmButton: 'Revoke',
         },
       })
-      .then((response) => {
+      .then(response => {
         if (response) {
           this.ApplicationService.revokeApiKey(this.application, this.subscription, apiKey.id).then(() => {
             this.NotificationService.show('API Key ' + apiKey.key + ' has been revoked!');

@@ -37,8 +37,5 @@ function getExistingNames(api: ApiV4): any[] {
     return [];
   }
 
-  return api.endpointGroups.flatMap((endpointGroup) => [
-    endpointGroup.name,
-    ...endpointGroup.endpoints.flatMap((endpoint) => endpoint.name),
-  ]);
+  return api.endpointGroups.flatMap(endpointGroup => [endpointGroup.name, ...endpointGroup.endpoints.flatMap(endpoint => endpoint.name)]);
 }

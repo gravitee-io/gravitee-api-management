@@ -40,43 +40,43 @@ export class ApplicationSubscriptionListHarness extends ComponentHarness {
   public async computeSubscriptionsTableCells() {
     const table = await this.getTable();
     const headerRows = await table.getHeaderRows();
-    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+    const headerCells = await parallel(() => headerRows.map(row => row.getCellTextByColumnName()));
     const rows = await table.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByIndex()));
     return { headerCells, rowCells };
   }
 
   async selectStatus(text: string) {
-    return this.getStatusSelect().then((select) => select.clickOptions({ text }));
+    return this.getStatusSelect().then(select => select.clickOptions({ text }));
   }
 
   async addApiKey(key: string) {
-    return this.getApiKeyInput().then((input) => input.setValue(key));
+    return this.getApiKeyInput().then(input => input.setValue(key));
   }
 
   async selectApi(text: string) {
-    const autocomplete = await this.getApiSelectInput().then((input) => input.getMatAutocompleteHarness());
+    const autocomplete = await this.getApiSelectInput().then(input => input.getMatAutocompleteHarness());
     const autocompleteOptions = await autocomplete.getOptions();
-    const options = await parallel(() => autocompleteOptions.map(async (option) => ({ text: await option.getText(), option })));
-    const option = options.find((option) => option.text === text);
+    const options = await parallel(() => autocompleteOptions.map(async option => ({ text: await option.getText(), option })));
+    const option = options.find(option => option.text === text);
     return option.option.click();
   }
 
   async searchApi(apiName: string) {
     return this.getApiSelectInput()
-      .then((input) => input.getMatAutocompleteHarness())
-      .then((autocomplete) => autocomplete.enterText(apiName));
+      .then(input => input.getMatAutocompleteHarness())
+      .then(autocomplete => autocomplete.enterText(apiName));
   }
 
   async getApiTags() {
-    return this.getApiSelectInput().then((input) => input.getTags());
+    return this.getApiSelectInput().then(input => input.getTags());
   }
 
   async createSubscription() {
-    return this.getCreateButton().then((btn) => btn.click());
+    return this.getCreateButton().then(btn => btn.click());
   }
 
   private async getEditButton(index: number) {
-    return this.getSubscriptionDetailButtons().then((buttons) => buttons[index]);
+    return this.getSubscriptionDetailButtons().then(buttons => buttons[index]);
   }
 }

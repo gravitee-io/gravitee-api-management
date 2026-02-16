@@ -144,16 +144,16 @@ export class SettingsNavigationService {
       },
     ];
 
-    items.forEach((groupItem) => {
-      groupItem.items = groupItem.items.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
+    items.forEach(groupItem => {
+      groupItem.items = groupItem.items.filter(item => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
     });
 
     return items;
   }
 
   public getSettingsNavigationSearchItems(environmentId: string): MenuSearchItem[] {
-    return this.getSettingsNavigationRoutes().flatMap((groupItem) =>
-      groupItem.items.map((item) => {
+    return this.getSettingsNavigationRoutes().flatMap(groupItem =>
+      groupItem.items.map(item => {
         return {
           name: item.displayName,
           routerLink: `/${environmentId}/settings/${cleanRouterLink(item.routerLink)}`,

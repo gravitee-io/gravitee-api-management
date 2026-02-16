@@ -47,7 +47,7 @@ export default {
     }),
   ],
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 870px">
         <reporter-settings-proxy [api]="api"></reporter-settings-proxy>

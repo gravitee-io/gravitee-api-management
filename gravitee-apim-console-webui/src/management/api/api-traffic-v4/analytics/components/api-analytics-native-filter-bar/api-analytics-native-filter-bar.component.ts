@@ -84,12 +84,12 @@ export class ApiAnalyticsNativeFilterBarComponent implements OnInit {
 
   public planOptions = computed<SelectOption[]>(() => {
     const plans = this.plans() || [];
-    return plans.map((plan) => ({ value: plan.id, label: plan.name }));
+    return plans.map(plan => ({ value: plan.id, label: plan.name }));
   });
 
   public applicationOptions = computed<SelectOption[]>(() => {
     const applications = this.applications() || [];
-    return applications.map((app) => ({ value: app.id, label: app.name }));
+    return applications.map(app => ({ value: app.id, label: app.name }));
   });
 
   public currentFilterChips = computed<FilterChip[]>(() => {
@@ -98,8 +98,8 @@ export class ApiAnalyticsNativeFilterBarComponent implements OnInit {
 
     if (filters?.plans?.length) {
       const plans = this.plans();
-      filters.plans.forEach((planId) => {
-        const plan = plans?.find((p) => p.id === planId);
+      filters.plans.forEach(planId => {
+        const plan = plans?.find(p => p.id === planId);
         const display = plan ? plan.name : planId;
         chips.push({
           key: 'plans',
@@ -112,7 +112,7 @@ export class ApiAnalyticsNativeFilterBarComponent implements OnInit {
     if (filters?.applications?.length) {
       const applications = this.applications();
       for (const appId of filters.applications) {
-        const application = applications?.find((p) => p.id === appId);
+        const application = applications?.find(p => p.id === appId);
         const display = application ? application.name : appId;
         chips.push({
           key: 'applications',
@@ -146,17 +146,17 @@ export class ApiAnalyticsNativeFilterBarComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.form.controls.timeframe.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((tf) => {
+    this.form.controls.timeframe.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(tf => {
       if (tf?.period && tf.period !== this.customPeriod) {
         this.emitFilters({ period: tf.period, from: null, to: null });
       }
     });
 
-    this.form.controls.plans.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((plans) => {
+    this.form.controls.plans.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(plans => {
       this.emitFilters({ plans });
     });
 
-    this.form.controls.applications.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((applications) => {
+    this.form.controls.applications.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(applications => {
       this.emitFilters({ applications });
     });
   }
@@ -182,7 +182,7 @@ export class ApiAnalyticsNativeFilterBarComponent implements OnInit {
   }
 
   private removeValueFromFilter(currentList: string[] | null, value: string, formControl: FormControl<string[] | null>): void {
-    const filteredList = (currentList || []).filter((item) => item !== value);
+    const filteredList = (currentList || []).filter(item => item !== value);
     formControl.setValue(filteredList.length > 0 ? filteredList : null);
   }
 

@@ -42,18 +42,18 @@ export class DocumentationNewPageHarness extends ComponentHarness {
   }
 
   async getSourceTypeOptions() {
-    return Promise.all(await this.sourceTypeSelectionInlineHarness().then(async (radioGroup) => await radioGroup.getSelectionCards()));
+    return Promise.all(await this.sourceTypeSelectionInlineHarness().then(async radioGroup => await radioGroup.getSelectionCards()));
   }
 
   async selectSourceType(value: string) {
-    return this.sourceTypeSelectionInlineHarness().then((radioGroup) => radioGroup.select(value));
+    return this.sourceTypeSelectionInlineHarness().then(radioGroup => radioGroup.select(value));
   }
 
   async getSourceOptions() {
-    return Promise.all(await this.sourceSelectionInlineHarness().then(async (radioGroup) => await radioGroup.getSelectionCards()));
+    return Promise.all(await this.sourceSelectionInlineHarness().then(async radioGroup => await radioGroup.getSelectionCards()));
   }
 
   async selectSource(value: string) {
-    return this.sourceSelectionInlineHarness().then((radioGroup) => radioGroup.select(value));
+    return this.sourceSelectionInlineHarness().then(radioGroup => radioGroup.select(value));
   }
 }

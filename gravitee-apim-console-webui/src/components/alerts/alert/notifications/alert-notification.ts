@@ -49,7 +49,7 @@ const AlertNotificationComponent: ng.IComponentOptions = {
             ({ data }) => {
               return { ...data, readonly: this.isReadonly };
             },
-            (response) => {
+            response => {
               if (response.status === 404) {
                 this.notifierJsonSchema = {};
                 return {
@@ -61,7 +61,7 @@ const AlertNotificationComponent: ng.IComponentOptions = {
               }
             },
           )
-          .then((notifierJsonSchema) => {
+          .then(notifierJsonSchema => {
             this.notifierJsonSchema = notifierJsonSchema;
           });
       };

@@ -30,7 +30,7 @@ class DictionariesController {
   }
 
   $onInit() {
-    this.DictionaryService.list().then((response) => (this.dictionaries = response.data));
+    this.DictionaryService.list().then(response => (this.dictionaries = response.data));
   }
 
   goTo(dictionaryId: string) {

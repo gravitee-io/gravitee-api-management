@@ -129,7 +129,7 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
           });
           this.initialRoleFormValue = this.roleForm.getRawValue();
 
-          this.rolePermissionsTableDS = permissions.map((permission) => ({
+          this.rolePermissionsTableDS = permissions.map(permission => ({
             permissionName: permission,
             isMovedToOrganizationScope: isPermissionMovedToOrganizationScope(role, permission),
           }));
@@ -175,7 +175,7 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((resultingRole) => {
+      .subscribe(resultingRole => {
         if (!this.isEditMode) {
           this.router.navigate(['.', resultingRole.name], { relativeTo: this.activatedRoute });
         } else {
@@ -186,7 +186,7 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
 
   toggleAll(rightKey: 'C' | 'R' | 'U' | 'D', change: MatCheckboxChange) {
     const permissionsFormGroup = this.roleForm.get('permissions') as UntypedFormGroup;
-    Object.values(permissionsFormGroup.controls).forEach((permission) => {
+    Object.values(permissionsFormGroup.controls).forEach(permission => {
       const rightFormControl = permission.get(rightKey);
 
       if (!rightFormControl.disabled) {
@@ -198,7 +198,7 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
 
   private updateSelectAllCheckboxState(rightKey: 'C' | 'R' | 'U' | 'D') {
     const permissionsFormGroup = this.roleForm.get('permissions') as UntypedFormGroup;
-    const nbChecked = Object.values(permissionsFormGroup.controls).filter((permission) => permission.get(rightKey).value).length;
+    const nbChecked = Object.values(permissionsFormGroup.controls).filter(permission => permission.get(rightKey).value).length;
 
     const nbPermissions = Object.keys((this.roleForm.get('permissions') as UntypedFormGroup).controls).length;
 

@@ -20,9 +20,9 @@ export const getMatchingDlqEntrypointsForGroup = (api: ApiV4, currentGroup: stri
   if (!api) {
     return [];
   }
-  const endpointNames = api.endpointGroups.find((group) => group.name === currentGroup).endpoints.map((endpoint) => endpoint.name);
+  const endpointNames = api.endpointGroups.find(group => group.name === currentGroup).endpoints.map(endpoint => endpoint.name);
   return getEntrypointsWithDlq(api).filter(
-    (entrypoint) => entrypoint.dlq.endpoint === currentGroup || endpointNames.includes(entrypoint.dlq.endpoint),
+    entrypoint => entrypoint.dlq.endpoint === currentGroup || endpointNames.includes(entrypoint.dlq.endpoint),
   );
 };
 
@@ -30,28 +30,28 @@ export const getMatchingDlqEntrypoints = (api: ApiV4, currentEndpoint: string): 
   if (!api) {
     return [];
   }
-  return getEntrypointsWithDlq(api).filter((entrypoint) => entrypoint.dlq.endpoint === currentEndpoint);
+  return getEntrypointsWithDlq(api).filter(entrypoint => entrypoint.dlq.endpoint === currentEndpoint);
 };
 
 export const updateDlqEntrypoint = (api: ApiV4, dlqEntrypoints: Entrypoint[], newName: string): void => {
   api.listeners
-    .flatMap((listener) => listener.entrypoints)
-    .filter((entrypoint) => dlqEntrypoints.map((dlqEntrypoint) => dlqEntrypoint.type).includes(entrypoint.type))
-    .forEach((dlqEntrypoint) => (dlqEntrypoint.dlq.endpoint = newName));
+    .flatMap(listener => listener.entrypoints)
+    .filter(entrypoint => dlqEntrypoints.map(dlqEntrypoint => dlqEntrypoint.type).includes(entrypoint.type))
+    .forEach(dlqEntrypoint => (dlqEntrypoint.dlq.endpoint = newName));
 };
 
 export const disableDlqEntrypoint = (api: ApiV4, dlqEntrypoints: Entrypoint[]): void => {
   api.listeners
-    .flatMap((listener) => listener.entrypoints)
-    .filter((entrypoint) => dlqEntrypoints.map((dlqEntrypoint) => dlqEntrypoint.type).includes(entrypoint.type))
-    .forEach((dlqEntrypoint) => (dlqEntrypoint.dlq = null));
+    .flatMap(listener => listener.entrypoints)
+    .filter(entrypoint => dlqEntrypoints.map(dlqEntrypoint => dlqEntrypoint.type).includes(entrypoint.type))
+    .forEach(dlqEntrypoint => (dlqEntrypoint.dlq = null));
 };
 
 function getEntrypointsWithDlq(api: ApiV4): Entrypoint[] {
-  const entrypoints = api.listeners?.flatMap((listeners) => listeners.entrypoints);
+  const entrypoints = api.listeners?.flatMap(listeners => listeners.entrypoints);
   if (!entrypoints) {
     return [];
   }
 
-  return entrypoints.filter((entrypoint) => !!entrypoint.dlq);
+  return entrypoints.filter(entrypoint => !!entrypoint.dlq);
 }

@@ -49,8 +49,8 @@ describe('ConnectorService', () => {
       },
     ];
 
-    it('should get the connector list item without any expand', (done) => {
-      connectorService.list().subscribe((response) => {
+    it('should get the connector list item without any expand', done => {
+      connectorService.list().subscribe(response => {
         expect(response).toMatchObject(mockConnectorItem);
         done();
       });
@@ -63,8 +63,8 @@ describe('ConnectorService', () => {
       req.flush(mockConnectorItem);
     });
 
-    it('should get the connector list item with schema expand', (done) => {
-      connectorService.list(true).subscribe((response) => {
+    it('should get the connector list item with schema expand', done => {
+      connectorService.list(true).subscribe(response => {
         expect(response).toMatchObject(mockConnectorItem);
         done();
       });
@@ -77,8 +77,8 @@ describe('ConnectorService', () => {
       req.flush(mockConnectorItem);
     });
 
-    it('should get the connector list item with icon expand', (done) => {
-      connectorService.list(false, true).subscribe((response) => {
+    it('should get the connector list item with icon expand', done => {
+      connectorService.list(false, true).subscribe(response => {
         expect(response).toMatchObject(mockConnectorItem);
         done();
       });
@@ -91,8 +91,8 @@ describe('ConnectorService', () => {
       req.flush(mockConnectorItem);
     });
 
-    it('should get the connector list item with icon and schema expands', (done) => {
-      connectorService.list(true, true).subscribe((response) => {
+    it('should get the connector list item with icon and schema expands', done => {
+      connectorService.list(true, true).subscribe(response => {
         expect(response).toMatchObject(mockConnectorItem);
         done();
       });

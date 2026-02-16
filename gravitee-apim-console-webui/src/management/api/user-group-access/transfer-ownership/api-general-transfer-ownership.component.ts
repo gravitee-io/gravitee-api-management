@@ -69,18 +69,18 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit, OnDestroy {
     this.api = dialogData.api;
     this.groups = dialogData.groups;
     this.roles = dialogData.roles;
-    this.apiMembers = dialogData.members.filter((member) => !member.roles?.map((r) => r.name)?.includes('PRIMARY_OWNER'));
+    this.apiMembers = dialogData.members.filter(member => !member.roles?.map(r => r.name)?.includes('PRIMARY_OWNER'));
   }
 
   ngOnInit(): void {
     this.mode = this.constants.env.settings.api.primaryOwnerMode.toUpperCase() as TransferOwnershipMode;
-    this.poGroups = this.groups.filter((group) => group.apiPrimaryOwner != null);
+    this.poGroups = this.groups.filter(group => group.apiPrimaryOwner != null);
     if (this.api.primaryOwner.type === 'GROUP') {
-      this.poGroups = this.poGroups.filter((group) => group.id !== this.api.primaryOwner.id);
+      this.poGroups = this.poGroups.filter(group => group.id !== this.api.primaryOwner.id);
     }
     this.warnUseGroupAsPrimaryOwner = (this.mode === 'HYBRID' || this.mode === 'GROUP') && isEmpty(this.poGroups);
-    this.poRoles = this.roles.filter((role) => role.name !== 'PRIMARY_OWNER');
-    const defaultRolePO = this.roles.find((role) => role.default);
+    this.poRoles = this.roles.filter(role => role.name !== 'PRIMARY_OWNER');
+    const defaultRolePO = this.roles.find(role => role.default);
     this.initForm(defaultRolePO);
   }
 

@@ -27,7 +27,7 @@ export default {
     }),
   ],
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 800px">
       <body-accordion

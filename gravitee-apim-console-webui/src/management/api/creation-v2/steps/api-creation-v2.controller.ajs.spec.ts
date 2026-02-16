@@ -33,7 +33,7 @@ describe('ApiCreationV2ControllerAjs', () => {
 
   beforeEach(() => {
     $scope = { $watch: jest.fn() };
-    $timeout = jest.fn().mockImplementation((fn) => fn());
+    $timeout = jest.fn().mockImplementation(fn => fn());
     $mdDialog = { show: jest.fn() };
     $window = {};
 

@@ -65,7 +65,7 @@ describe('SettingsNavigationService', () => {
           'User Fields',
           'Groups',
           'Notification settings',
-        ].map((name) =>
+        ].map(name =>
           expect.objectContaining({
             name,
             routerLink: expect.not.stringContaining('./') && expect.stringContaining(`${envId}/settings`),
@@ -86,7 +86,7 @@ describe('SettingsNavigationService', () => {
   it('should include Documentation when permission is granted', () => {
     init();
     const menuSearchItems = service.getSettingsNavigationSearchItems(envId);
-    const documentationItem = menuSearchItems.find((i) => i.name === 'Documentation');
+    const documentationItem = menuSearchItems.find(i => i.name === 'Documentation');
     expect(documentationItem).toBeDefined();
     expect(documentationItem?.routerLink).toContain(`${envId}/settings/documentation`);
   });
@@ -94,7 +94,7 @@ describe('SettingsNavigationService', () => {
   it('should exclude Documentation when permission is not granted', () => {
     init(false);
     const menuSearchItems = service.getSettingsNavigationSearchItems(envId);
-    const documentationItem = menuSearchItems.find((i) => i.name === 'Documentation');
+    const documentationItem = menuSearchItems.find(i => i.name === 'Documentation');
     expect(documentationItem).toBeUndefined();
   });
 
@@ -114,10 +114,10 @@ describe('SettingsNavigationService', () => {
     service = TestBed.inject(SettingsNavigationService);
     const menuSearchItems = service.getSettingsNavigationSearchItems(envId);
     // Documentation should NOT exist
-    const documentationItem = menuSearchItems.find((i) => i.name === 'Documentation');
+    const documentationItem = menuSearchItems.find(i => i.name === 'Documentation');
     expect(documentationItem).toBeUndefined();
     // Now we expect 16 items (17-1)
     expect(menuSearchItems).toHaveLength(16);
-    expect(menuSearchItems.some((i) => i.routerLink.includes('/documentation'))).toBe(false);
+    expect(menuSearchItems.some(i => i.routerLink.includes('/documentation'))).toBe(false);
   });
 });

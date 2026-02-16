@@ -27,8 +27,8 @@ export class ApiDocumentationV4EmptyStateHarness extends ComponentHarness {
 
   async clickAddNewPage(pageType: PageType) {
     return this.addNewPageButtonLocator()
-      .then((btn) => btn.click())
+      .then(btn => btn.click())
       .then(() => this.menuLocator())
-      .then((menu) => menu.clickItem({ text: new RegExp(pageType, 'i') }));
+      .then(menu => menu.clickItem({ text: new RegExp(pageType, 'i') }));
   }
 }

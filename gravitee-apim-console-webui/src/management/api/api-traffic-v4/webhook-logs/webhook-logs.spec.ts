@@ -138,7 +138,7 @@ describe('WebhookLogsComponent', () => {
     };
 
     httpTestingController
-      .expectOne((req) => {
+      .expectOne(req => {
         const baseUrl = `${CONSTANTS_TESTING.env?.v2BaseURL}/apis/${API_ID}/subscriptions`;
         return (
           req.method === 'GET' &&
@@ -206,7 +206,7 @@ describe('WebhookLogsComponent', () => {
     const baseUrl = `${CONSTANTS_TESTING.env?.v2BaseURL}/apis/${API_ID}/logs/messages`;
 
     // Use match instead of expectOne to handle multiple matching requests
-    const matchingRequests = httpTestingController.match((req) => {
+    const matchingRequests = httpTestingController.match(req => {
       // Check base URL and method
       if (req.method !== 'GET' || !req.url.startsWith(baseUrl)) {
         return false;
@@ -230,7 +230,7 @@ describe('WebhookLogsComponent', () => {
       // Parse additional parameters in format: additional=fieldName;value1,value2
       const additionalParams = req.params.getAll('additional') || [];
       const additionalMap = new Map<string, string>();
-      additionalParams.forEach((param) => {
+      additionalParams.forEach(param => {
         const [fieldName, values] = param.split(';', 2);
         if (fieldName && values) {
           additionalMap.set(fieldName.trim(), values.trim());
@@ -268,7 +268,7 @@ describe('WebhookLogsComponent', () => {
       return true;
     });
 
-    matchingRequests.forEach((request) => {
+    matchingRequests.forEach(request => {
       if (!request.cancelled) {
         request.flush({
           data: mockConnectionLogs,
@@ -415,9 +415,9 @@ describe('WebhookLogsComponent', () => {
 
       const resultPromise = firstValueFrom(resultObservable);
 
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
 
-      const matchingRequests = httpTestingController.match((req) => {
+      const matchingRequests = httpTestingController.match(req => {
         const ids = req.params.getAll('ids');
         return (
           req.method === 'GET' &&
@@ -454,7 +454,7 @@ describe('WebhookLogsComponent', () => {
       const component = fixture.componentInstance;
       const result = (await firstValueFrom((component as any).addApplicationNameToLogs(logsWithNames))) as WebhookLogsResponse;
 
-      httpTestingController.expectNone((req) => req.url.includes('/applications/_paged'));
+      httpTestingController.expectNone(req => req.url.includes('/applications/_paged'));
 
       expect(result.data[0].application?.name).toBe('Existing Name');
     });
@@ -479,7 +479,7 @@ describe('WebhookLogsComponent', () => {
       const component = fixture.componentInstance;
       const result = (await firstValueFrom((component as any).addApplicationNameToLogs(logsWithoutApps))) as WebhookLogsResponse;
 
-      httpTestingController.expectNone((req) => req.url.includes('/applications/_paged'));
+      httpTestingController.expectNone(req => req.url.includes('/applications/_paged'));
 
       expect(result.data[0].application).toBeUndefined();
     });
@@ -508,9 +508,9 @@ describe('WebhookLogsComponent', () => {
 
       const resultPromise = firstValueFrom(resultObservable);
 
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
 
-      const matchingRequests = httpTestingController.match((req) => {
+      const matchingRequests = httpTestingController.match(req => {
         const ids = req.params.getAll('ids');
         return req.method === 'GET' && req.url.includes(`${CONSTANTS_TESTING.env?.baseURL}/applications/_paged`) && ids.includes('app-3');
       });
@@ -544,9 +544,9 @@ describe('WebhookLogsComponent', () => {
 
       const resultPromise = firstValueFrom(resultObservable);
 
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
 
-      const matchingRequests = httpTestingController.match((req) => {
+      const matchingRequests = httpTestingController.match(req => {
         return req.method === 'GET' && req.url.includes(`${CONSTANTS_TESTING.env?.baseURL}/applications/_paged`);
       });
 

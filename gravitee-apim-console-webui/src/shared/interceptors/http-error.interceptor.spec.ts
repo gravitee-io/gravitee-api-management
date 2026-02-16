@@ -69,12 +69,12 @@ describe('HttpErrorInterceptor', () => {
     jest.resetAllMocks();
   });
 
-  it('should intercept 400 error', (done) => {
+  it('should intercept 400 error', done => {
     httpClient.get<unknown>(testUrl).subscribe({
       next: () => {
         fail('Should not be called');
       },
-      error: (err) => {
+      error: err => {
         expect(err.status).toEqual(400);
         expect(fakeSnackBarService.error).toHaveBeenCalledWith('Custom message');
         done();
@@ -85,7 +85,7 @@ describe('HttpErrorInterceptor', () => {
     req.flush({ message: 'Custom message' }, { status: 400, statusText: 'Bad request' });
   });
 
-  it('should intercept 401 error', (done) => {
+  it('should intercept 401 error', done => {
     httpClient.get<unknown>(testUrl).subscribe({
       next: () => {
         fail('Should not be called');
@@ -104,12 +104,12 @@ describe('HttpErrorInterceptor', () => {
     req.flush({ message: 'Custom message' }, { status: 401, statusText: 'Unauthorized' });
   });
 
-  it('should intercept 403 error', (done) => {
+  it('should intercept 403 error', done => {
     httpClient.get<unknown>(testUrl).subscribe({
       next: () => {
         fail('Should not be called');
       },
-      error: (err) => {
+      error: err => {
         expect(err.status).toEqual(403);
         expect(fakeSnackBarService.error).toHaveBeenCalledWith('Custom message');
         done();
@@ -120,12 +120,12 @@ describe('HttpErrorInterceptor', () => {
     req.flush({ message: 'Custom message' }, { status: 403, statusText: 'Forbidden' });
   });
 
-  it('should intercept 404 error', (done) => {
+  it('should intercept 404 error', done => {
     httpClient.get<unknown>(testUrl).subscribe({
       next: () => {
         fail('Should not be called');
       },
-      error: (err) => {
+      error: err => {
         expect(err.status).toEqual(404);
         expect(fakeSnackBarService.error).toHaveBeenCalledWith('Custom message');
         done();
@@ -136,12 +136,12 @@ describe('HttpErrorInterceptor', () => {
     req.flush({ message: 'Custom message' }, { status: 404, statusText: 'Not found' });
   });
 
-  it('should intercept 500 error', (done) => {
+  it('should intercept 500 error', done => {
     httpClient.get<unknown>(testUrl).subscribe({
       next: () => {
         fail('Should not be called');
       },
-      error: (err) => {
+      error: err => {
         expect(err.status).toEqual(500);
         expect(fakeSnackBarService.error).toHaveBeenCalledWith('Custom message');
         done();
@@ -152,12 +152,12 @@ describe('HttpErrorInterceptor', () => {
     req.flush({ message: 'Custom message' }, { status: 500, statusText: 'Internal server error' });
   });
 
-  it('should not intercept 400 error for specific URLs', (done) => {
+  it('should not intercept 400 error for specific URLs', done => {
     httpClient.get<unknown>(`${CONSTANTS_TESTING.org.baseURL}/user`).subscribe({
       next: () => {
         fail('Should not be called');
       },
-      error: (err) => {
+      error: err => {
         expect(err.status).toEqual(400);
         expect(fakeSnackBarService.error).not.toHaveBeenCalled();
         done();

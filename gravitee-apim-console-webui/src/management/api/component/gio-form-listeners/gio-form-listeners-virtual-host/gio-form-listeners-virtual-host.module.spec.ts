@@ -86,7 +86,7 @@ describe('GioFormListenersVirtualHostModule', () => {
     const virtualHostRows = await formVirtualHosts.getListenerRows();
 
     const listeners = await Promise.all(
-      virtualHostRows.map(async (row) => ({
+      virtualHostRows.map(async row => ({
         host: await row.hostSubDomainInput.getValue(),
         path: await row.pathInput.getValue(),
         overrideAccess: await row.overrideAccessInput.isChecked(),
@@ -316,14 +316,14 @@ describe('GioFormListenersVirtualHostModule', () => {
 
     await formPaths
       .getAddButton()
-      .then((_) => fail('The add button should not appear'))
-      .catch((err) => expect(err).toBeTruthy());
+      .then(_ => fail('The add button should not appear'))
+      .catch(err => expect(err).toBeTruthy());
   });
 
   const expectApiVerify = (inError = false) => {
     httpTestingController
       .match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/paths`, method: 'POST' })
-      .filter((r) => !r.cancelled)
-      .map((c) => c.flush({ ok: !inError, reason: inError ? 'error reason' : '' }));
+      .filter(r => !r.cancelled)
+      .map(c => c.flush({ ok: !inError, reason: inError ? 'error reason' : '' }));
   };
 });

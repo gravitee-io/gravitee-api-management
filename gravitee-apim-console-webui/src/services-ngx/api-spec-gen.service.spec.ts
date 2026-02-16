@@ -42,9 +42,9 @@ describe('ApiSpecGenService', () => {
   });
 
   describe('evaluate', () => {
-    it('should call API /_state', (done) => {
+    it('should call API /_state', done => {
       const response = { state: ApiSpecGenState.AVAILABLE } as ApiSpecGenRequestState;
-      service.getState(apiId).subscribe((data) => {
+      service.getState(apiId).subscribe(data => {
         expect(data).toEqual(response);
         done();
       });
@@ -53,10 +53,10 @@ describe('ApiSpecGenService', () => {
       req.flush(response);
     });
 
-    it('should call API /_start', (done) => {
+    it('should call API /_start', done => {
       const response = { state: ApiSpecGenState.STARTED } as ApiSpecGenRequestState;
 
-      service.postJob(apiId).subscribe((data) => {
+      service.postJob(apiId).subscribe(data => {
         expect(data).toEqual(response);
         done();
       });

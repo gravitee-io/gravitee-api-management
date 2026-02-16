@@ -295,7 +295,7 @@ describe('WebhookLogsDetailsComponent', () => {
         // The pipe should format the duration values correctly
         // The actual rendering is tested through the harness/e2e tests
         // This test ensures the data is structured correctly for the pipe
-        component.deliveryAttemptsDataSource.forEach((attempt) => {
+        component.deliveryAttemptsDataSource.forEach(attempt => {
           expect(attempt.duration).toBeDefined();
           expect(typeof attempt.duration).toBe('number');
         });

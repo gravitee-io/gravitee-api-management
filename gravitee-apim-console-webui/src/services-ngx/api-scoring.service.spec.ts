@@ -43,10 +43,10 @@ describe('ApiScoringService', () => {
   });
 
   describe('evaluate', () => {
-    it('should call API', (done) => {
+    it('should call API', done => {
       const responsePayload = fakeApiScoringTriggerResponse();
 
-      service.evaluate(apiId).subscribe((data) => {
+      service.evaluate(apiId).subscribe(data => {
         expect(data).toEqual(responsePayload);
         done();
       });

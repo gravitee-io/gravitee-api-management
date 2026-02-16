@@ -364,7 +364,7 @@ class DashboardTimeframeController {
   }
 
   updateDisplayMode() {
-    forEach(this.displayModes, (displayMode) => {
+    forEach(this.displayModes, displayMode => {
       this.$scope.$emit('filterItemChange', {
         field: displayMode.field,
         key: displayMode.key,

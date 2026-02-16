@@ -36,13 +36,13 @@ describe('ConsoleSettingsService', () => {
   });
 
   describe('save', () => {
-    it('should save consoleSettings', (done) => {
+    it('should save consoleSettings', done => {
       const consoleSettingsPayload: ConsoleSettings = {
         theme: {
           css: 'hello.css',
         },
       };
-      consoleSettingsService.save(consoleSettingsPayload).subscribe((consoleSettings) => {
+      consoleSettingsService.save(consoleSettingsPayload).subscribe(consoleSettings => {
         expect(consoleSettings).toEqual(newConsoleSettings());
         done();
       });
@@ -54,7 +54,7 @@ describe('ConsoleSettingsService', () => {
       req.flush(newConsoleSettings());
     });
 
-    it('should merge saved consoleSettings result to Constants provider', (done) => {
+    it('should merge saved consoleSettings result to Constants provider', done => {
       const consoleSettingsPayload: ConsoleSettings = {
         theme: {
           css: 'hello.css',
@@ -74,14 +74,14 @@ describe('ConsoleSettingsService', () => {
       req.flush(newConsoleSettings());
     });
 
-    it('should enable localLogin if no Idp defined', (done) => {
+    it('should enable localLogin if no Idp defined', done => {
       const consoleSettingsPayload: ConsoleSettings = {
         authentication: {
           localLogin: { enabled: false },
         },
       };
 
-      consoleSettingsService.save(consoleSettingsPayload).subscribe((consoleSettings) => {
+      consoleSettingsService.save(consoleSettingsPayload).subscribe(consoleSettings => {
         expect(consoleSettings?.authentication?.localLogin?.enabled).toEqual(true);
         done();
       });
@@ -95,8 +95,8 @@ describe('ConsoleSettingsService', () => {
   });
 
   describe('get', () => {
-    it('should return consoleSettings', (done) => {
-      consoleSettingsService.get().subscribe((consoleSettings) => {
+    it('should return consoleSettings', done => {
+      consoleSettingsService.get().subscribe(consoleSettings => {
         expect(consoleSettings).toEqual(newConsoleSettings());
         done();
       });

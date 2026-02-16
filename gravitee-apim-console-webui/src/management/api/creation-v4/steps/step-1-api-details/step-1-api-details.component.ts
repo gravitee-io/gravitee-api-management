@@ -62,7 +62,7 @@ export class Step1ApiDetailsComponent implements OnInit {
     this.licenseService
       .isOEM$()
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((isOEM) => (this.isOEM = isOEM));
+      .subscribe(isOEM => (this.isOEM = isOEM));
   }
 
   onExit() {
@@ -77,7 +77,7 @@ export class Step1ApiDetailsComponent implements OnInit {
           },
         })
         .afterClosed()
-        .subscribe((confirmed) => {
+        .subscribe(confirmed => {
           if (confirmed) {
             this.router.navigate(['..'], { relativeTo: this.activatedRoute });
           }
@@ -92,7 +92,7 @@ export class Step1ApiDetailsComponent implements OnInit {
     const apiDetailsValue = { name: formValue.name, description: formValue.description ?? '', version: formValue.version };
 
     if (this.isOEM) {
-      this.stepService.validStep((previousPayload) => ({
+      this.stepService.validStep(previousPayload => ({
         ...previousPayload,
         ...apiDetailsValue,
         architecture: 'PROXY',
@@ -104,7 +104,7 @@ export class Step1ApiDetailsComponent implements OnInit {
         component: Step2Entrypoints1ListComponent,
       });
     } else {
-      this.stepService.validStep((previousPayload) => ({
+      this.stepService.validStep(previousPayload => ({
         ...previousPayload,
         ...apiDetailsValue,
       }));

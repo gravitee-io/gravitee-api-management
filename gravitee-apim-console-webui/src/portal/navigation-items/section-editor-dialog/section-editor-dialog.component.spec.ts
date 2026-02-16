@@ -56,7 +56,7 @@ class TestHostComponent {
       })
       .afterClosed()
       .subscribe({
-        next: (result) => {
+        next: result => {
           this.dialogValue = result;
         },
       });

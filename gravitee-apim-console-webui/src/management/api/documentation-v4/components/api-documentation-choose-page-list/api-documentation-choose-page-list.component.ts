@@ -68,7 +68,7 @@ export class PageData {
     if (!this.pages) {
       return [];
     }
-    return this.pages.filter((page) => !page.parentId).map((page) => this.getPageFlatNode(page));
+    return this.pages.filter(page => !page.parentId).map(page => this.getPageFlatNode(page));
   }
 
   getPageFlatNode(page: Page, level: number = 0) {
@@ -91,7 +91,7 @@ export class PageData {
   }
 
   getChildren(parentId: string): Page[] {
-    return this.pages.filter((page) => page.parentId === parentId);
+    return this.pages.filter(page => page.parentId === parentId);
   }
 
   isExpandable(page: Page): boolean {
@@ -118,7 +118,7 @@ export class PageDataSource implements DataSource<PageFlatNode> {
   ) {}
 
   connect(collectionViewer: CollectionViewer): Observable<PageFlatNode[]> {
-    this._treeControl.expansionModel.changed.subscribe((change) => {
+    this._treeControl.expansionModel.changed.subscribe(change => {
       if ((change as SelectionChange<PageFlatNode>).added || (change as SelectionChange<PageFlatNode>).removed) {
         this.handleTreeControl(change as SelectionChange<PageFlatNode>);
       }
@@ -133,13 +133,13 @@ export class PageDataSource implements DataSource<PageFlatNode> {
 
   handleTreeControl(change: SelectionChange<PageFlatNode>) {
     if (change.added) {
-      change.added.forEach((node) => this.toggleNode(node, true));
+      change.added.forEach(node => this.toggleNode(node, true));
     }
     if (change.removed) {
       change.removed
         .slice()
         .reverse()
-        .forEach((node) => this.toggleNode(node, false));
+        .forEach(node => this.toggleNode(node, false));
     }
   }
 
@@ -154,7 +154,7 @@ export class PageDataSource implements DataSource<PageFlatNode> {
 
     setTimeout(() => {
       if (expand) {
-        const nodes = children.map((page) => this._pageData.getPageFlatNode(page, node.level + 1));
+        const nodes = children.map(page => this._pageData.getPageFlatNode(page, node.level + 1));
         this.data.splice(index + 1, 0, ...nodes);
       } else {
         const count = 0;

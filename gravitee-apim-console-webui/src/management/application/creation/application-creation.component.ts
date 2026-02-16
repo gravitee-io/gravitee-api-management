@@ -79,8 +79,8 @@ export class ApplicationCreationComponent implements OnInit {
 
   requireUserGroups = false;
   public applicationTypes$ = this.applicationTypesService.getEnabledApplicationTypes().pipe(
-    map((types) =>
-      types.map((type) => {
+    map(types =>
+      types.map(type => {
         const typeInfo = TYPES_INFOS[type.id.toUpperCase()];
         return {
           ...type,
@@ -91,7 +91,7 @@ export class ApplicationCreationComponent implements OnInit {
         };
       }),
     ),
-    tap((types) => {
+    tap(types => {
       // Set the first type as default
       this.applicationFormGroup.get('type').setValue(types[0].id.toUpperCase());
     }),
@@ -146,11 +146,11 @@ export class ApplicationCreationComponent implements OnInit {
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (application) => {
+        next: application => {
           this.snackBarService.success('Application created');
           this.router.navigate(['../', application.id], { relativeTo: this.activatedRoute });
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'An error occurred while creating the application!');
           this.isCreating = false;
         },

@@ -70,7 +70,7 @@ class DashboardFilterController implements IOnInit, IOnDestroy {
     const label = (filter.fieldLabel ? filter.fieldLabel : filter.field) + " = '" + filter.name + "'";
     const query =
       '(' +
-      map(keys(field.filters), (key) =>
+      map(keys(field.filters), key =>
         filter.field.includes('path') || filter.field.includes('host')
           ? filter.field + ':' + '\\"' + key + '\\"'
           : filter.field + ':' + key,
@@ -106,7 +106,7 @@ class DashboardFilterController implements IOnInit, IOnDestroy {
   }
 
   removeFilter(field, key, silent) {
-    const filters = remove(this.filters, (current) => {
+    const filters = remove(this.filters, current => {
       return current.key === field + '_' + key;
     });
 
@@ -132,7 +132,7 @@ class DashboardFilterController implements IOnInit, IOnDestroy {
     if (!isEmpty(fieldObject.filters)) {
       fieldObject.query =
         '(' +
-        map(keys(fieldObject.filters), (key) =>
+        map(keys(fieldObject.filters), key =>
           field.includes('path') || field.includes('host') ? field + ':' + '\\"' + key + '\\"' : field + ':' + key,
         ).join(' OR ') +
         ')';
@@ -147,7 +147,7 @@ class DashboardFilterController implements IOnInit, IOnDestroy {
   createAndSendQuery(silent) {
     // Create a query with all the current filters
     const query = Object.keys(this.fields)
-      .map((field) => this.fields[field].query)
+      .map(field => this.fields[field].query)
       .join(' AND ');
 
     // Update the query parameter
@@ -169,11 +169,11 @@ class DashboardFilterController implements IOnInit, IOnDestroy {
   private decodeQueryFilters(queryFilters) {
     const filters = Object.keys(queryFilters);
     let lastFilter;
-    filters.forEach((filter) => {
+    filters.forEach(filter => {
       const k = filter;
       const v = queryFilters[filter];
 
-      v.forEach((value) => {
+      v.forEach(value => {
         const filter: any = {};
         filter.key = value;
         filter.name = value;

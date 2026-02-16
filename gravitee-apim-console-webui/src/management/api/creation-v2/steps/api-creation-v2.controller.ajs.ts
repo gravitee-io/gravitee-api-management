@@ -175,7 +175,7 @@ class ApiCreationV2ControllerAjs {
     if (this.isFetchingGroups || !this.hasMoreGroups) return;
     this.isFetchingGroups = true;
 
-    this.groupService.listPaginated(this.currentPage, this.pageSize).then((response) => {
+    this.groupService.listPaginated(this.currentPage, this.pageSize).then(response => {
       const pageMeta = response.data.page;
       const data = response.data.data;
       this.totalPages = pageMeta.total_pages;
@@ -193,13 +193,13 @@ class ApiCreationV2ControllerAjs {
     });
   };
 
-  syncGroupData = (groups) => {
+  syncGroupData = groups => {
     const currentUserGroups = this.UserService.getCurrentUserGroups();
-    this.attachableGroups = groups.filter((group) => group.apiPrimaryOwner == null);
-    this.poGroups = groups.filter((group) => group.apiPrimaryOwner != null && currentUserGroups.includes(group.name));
+    this.attachableGroups = groups.filter(group => group.apiPrimaryOwner == null);
+    this.poGroups = groups.filter(group => group.apiPrimaryOwner != null && currentUserGroups.includes(group.name));
   };
 
-  $onChanges = (changes) => {
+  $onChanges = changes => {
     if (changes.groups && changes.groups.currentValue) {
       const groups = changes.groups.currentValue;
       this.groups = groups;
@@ -284,7 +284,7 @@ class ApiCreationV2ControllerAjs {
     if (!this.isCreating) {
       this.isCreating = true;
       // clear API pages json format
-      forEach(this.api.pages, (page) => {
+      forEach(this.api.pages, page => {
         if (!page.name) {
           page.name = page.fileName;
         }
@@ -294,12 +294,12 @@ class ApiCreationV2ControllerAjs {
       });
 
       // handle plan publish state
-      forEach(this.api.plans, (plan) => {
+      forEach(this.api.plans, plan => {
         plan.status = deployAndStart ? 'PUBLISHED' : 'STAGING';
       });
 
       if (this.api.groups != null) {
-        this.api.groups = this.api.groups.map((group) => group.name);
+        this.api.groups = this.api.groups.map(group => group.name);
       }
 
       // create API
@@ -308,11 +308,11 @@ class ApiCreationV2ControllerAjs {
       }
 
       this.ApiService.import(null, this.api, this.api.gravitee, false)
-        .then((api) => {
+        .then(api => {
           this.vm.showBusyText = false;
           return api;
         })
-        .then((api) => {
+        .then(api => {
           if (readyForReview) {
             this.ApiService.askForReview(api.data).then(() => {
               api.data.workflow_state = 'IN_REVIEW';
@@ -321,7 +321,7 @@ class ApiCreationV2ControllerAjs {
           }
           return api;
         })
-        .then((api) => {
+        .then(api => {
           if (deployAndStart) {
             this.ApiService.deploy(api.data.id).then(() => {
               this.ApiService.start(api.data).then(() => {
@@ -336,7 +336,7 @@ class ApiCreationV2ControllerAjs {
 
           return api;
         })
-        .then((api) => this.ngApiV2Service.get(api.data.id).toPromise())
+        .then(api => this.ngApiV2Service.get(api.data.id).toPromise())
         .catch(() => {
           this.vm.showBusyText = false;
           this.isCreating = false;
@@ -351,7 +351,7 @@ class ApiCreationV2ControllerAjs {
     if (this.contextPathInvalid) {
       const pathToVerify = [{ path: this.api.proxy.context_path }];
       this.ngApiV2Service.verifyPath(null, pathToVerify).subscribe(
-        (res) => {
+        res => {
           this.contextPathInvalid = !res.ok;
           if (this.contextPathInvalid) {
             this.NotificationService.show(`Invalid context path ${res.reason}`);
@@ -498,7 +498,7 @@ class ApiCreationV2ControllerAjs {
    API documentation
    */
   initDocumentationSettings() {
-    this.$scope.$watch('newApiPageFile.content', (data) => {
+    this.$scope.$watch('newApiPageFile.content', data => {
       if (data) {
         const file = {
           name: this.$scope.newApiPageFile.name,
@@ -570,7 +570,7 @@ class ApiCreationV2ControllerAjs {
         },
       })
       .then(() => {
-        this.api.pages = this.api.pages.filter((page) => page.fileName !== pageToRemove.fileName);
+        this.api.pages = this.api.pages.filter(page => page.fileName !== pageToRemove.fileName);
       });
   }
 

@@ -50,7 +50,7 @@ export class ApiAnalyticsWidgetTableComponent {
 
   firstColumnCellClick = output<ApiAnalyticsWidgetTableRowData>();
 
-  displayedColumns = computed(() => this.columns().map((column) => column.name));
+  displayedColumns = computed(() => this.columns().map(column => column.name));
   totalLength: Signal<number> = computed(() => this.data()?.length || 0);
 
   filteredTableData: Signal<ApiAnalyticsWidgetTableRowData[]> = computed(() => {

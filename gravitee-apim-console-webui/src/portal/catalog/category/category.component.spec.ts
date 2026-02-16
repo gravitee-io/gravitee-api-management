@@ -112,8 +112,8 @@ describe('CategoryCatalogComponent', () => {
 
     it('should be able to create', async () => {
       const spy = jest.spyOn(router, 'navigate');
-      await componentHarness.getNameInput(harnessLoader).then((input) => input.setValue('Cat'));
-      await componentHarness.getDescriptionInput(harnessLoader).then((input) => input.setValue('Cat desc'));
+      await componentHarness.getNameInput(harnessLoader).then(input => input.setValue('Cat'));
+      await componentHarness.getDescriptionInput(harnessLoader).then(input => input.setValue('Cat desc'));
 
       const saveBar = await componentHarness.getSaveBar(harnessLoader);
       expect(await saveBar.isVisible()).toEqual(true);
@@ -143,8 +143,8 @@ describe('CategoryCatalogComponent', () => {
     });
 
     it('should be able to update', async () => {
-      await componentHarness.getNameInput(harnessLoader).then((input) => input.setValue('Cat'));
-      await componentHarness.getDescriptionInput(harnessLoader).then((input) => input.setValue('Cat desc'));
+      await componentHarness.getNameInput(harnessLoader).then(input => input.setValue('Cat'));
+      await componentHarness.getDescriptionInput(harnessLoader).then(input => input.setValue('Cat desc'));
 
       const saveBar = await componentHarness.getSaveBar(harnessLoader);
       expect(await saveBar.isVisible()).toEqual(true);
@@ -168,12 +168,12 @@ describe('CategoryCatalogComponent', () => {
     it('should require name', async () => {
       const nameInput = await componentHarness.getNameInput(harnessLoader);
       expect(await nameInput.getValue()).toEqual(CATEGORY.name);
-      expect(await componentHarness.getSaveBar(harnessLoader).then((saveBar) => saveBar.isVisible())).toBeFalsy();
+      expect(await componentHarness.getSaveBar(harnessLoader).then(saveBar => saveBar.isVisible())).toBeFalsy();
       await nameInput.setValue('New name');
-      expect(await componentHarness.getSaveBar(harnessLoader).then((saveBar) => saveBar.isVisible())).toBeTruthy();
-      expect(await componentHarness.getSaveBar(harnessLoader).then((saveBar) => saveBar.isSubmitButtonInvalid())).toBeFalsy();
+      expect(await componentHarness.getSaveBar(harnessLoader).then(saveBar => saveBar.isVisible())).toBeTruthy();
+      expect(await componentHarness.getSaveBar(harnessLoader).then(saveBar => saveBar.isSubmitButtonInvalid())).toBeFalsy();
       await nameInput.setValue('');
-      expect(await componentHarness.getSaveBar(harnessLoader).then((saveBar) => saveBar.isSubmitButtonInvalid())).toBeTruthy();
+      expect(await componentHarness.getSaveBar(harnessLoader).then(saveBar => saveBar.isSubmitButtonInvalid())).toBeTruthy();
     });
   });
 

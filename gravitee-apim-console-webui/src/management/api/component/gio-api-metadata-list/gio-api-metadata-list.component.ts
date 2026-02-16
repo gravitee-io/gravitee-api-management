@@ -49,22 +49,22 @@ export class GioApiMetadataListComponent implements OnInit, OnDestroy {
     this.metadataSaveServices = {
       type: 'API',
       paginate: true,
-      list: (searchMetadata) =>
+      list: searchMetadata =>
         this.apiMetadataV2Service.search(this.activatedRoute.snapshot.params.apiId, searchMetadata).pipe(
-          map((resp) => ({
-            data: resp.data?.map((metadata) => ({ ...metadata }) as Metadata),
+          map(resp => ({
+            data: resp.data?.map(metadata => ({ ...metadata }) as Metadata),
             totalResults: resp.pagination?.totalCount ?? 0,
           })),
         ),
-      create: (newMetadata) => this.apiService.createMetadata(this.activatedRoute.snapshot.params.apiId, newMetadata),
-      update: (updateMetadata) => this.apiService.updateMetadata(this.activatedRoute.snapshot.params.apiId, updateMetadata),
-      delete: (metadataKey) => this.apiService.deleteMetadata(this.activatedRoute.snapshot.params.apiId, metadataKey),
+      create: newMetadata => this.apiService.createMetadata(this.activatedRoute.snapshot.params.apiId, newMetadata),
+      update: updateMetadata => this.apiService.updateMetadata(this.activatedRoute.snapshot.params.apiId, updateMetadata),
+      delete: metadataKey => this.apiService.deleteMetadata(this.activatedRoute.snapshot.params.apiId, metadataKey),
     };
     this.description = `Set metadata information on the API that can be easily accessed through Markdown templating`;
     this.apiV2Service
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((api) => {
+      .subscribe(api => {
         this.readOnly = api.definitionContext?.origin === 'KUBERNETES';
       });
   }

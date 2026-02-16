@@ -56,14 +56,14 @@ export class IntegrationGeneralGroupsComponent implements OnInit {
   ngOnInit() {
     this.isReadOnly = !this.permissionService.hasAnyMatching(['integration-member-c']);
 
-    const userGroupList: Group[] = this.groups.filter((group) => this.integration.groups?.includes(group.id));
+    const userGroupList: Group[] = this.groups.filter(group => this.integration.groups?.includes(group.id));
     this.form = this.formBuilder.group({
       selectedGroups: {
-        value: userGroupList.map((g) => g.id),
+        value: userGroupList.map(g => g.id),
         disabled: this.isReadOnly,
       },
     });
-    this.readOnlyGroupList = userGroupList.length === 0 ? 'No groups associated' : userGroupList.map((g) => g.name).join(', ');
+    this.readOnlyGroupList = userGroupList.length === 0 ? 'No groups associated' : userGroupList.map(g => g.name).join(', ');
   }
 
   save(): void {

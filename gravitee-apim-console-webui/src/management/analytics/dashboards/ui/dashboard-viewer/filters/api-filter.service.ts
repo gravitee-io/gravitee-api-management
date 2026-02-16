@@ -38,8 +38,8 @@ export class ApiFilterService {
 
   resultsLoader = (input: ResultsLoaderInput): Observable<ResultsLoaderOutput> => {
     return this.apiV2Service.search({ query: input.searchTerm }, undefined, input.page, this.itemsPerPage).pipe(
-      map((response) => ({
-        data: response.data.map((api) => ({ value: api.id, label: api.name, context: this.getEntrypoint(api) }) satisfies SelectOption),
+      map(response => ({
+        data: response.data.map(api => ({ value: api.id, label: api.name, context: this.getEntrypoint(api) }) satisfies SelectOption),
         hasNextPage: response.pagination.pageCount > input.page,
       })),
     );
@@ -64,7 +64,7 @@ export class ApiFilterService {
     }
 
     if (api.definitionVersion === 'V4') {
-      const listener = api.listeners.find((listener) => !this.isSubscriptionListener(listener).valueOf());
+      const listener = api.listeners.find(listener => !this.isSubscriptionListener(listener).valueOf());
       if (!listener) return undefined;
 
       if (this.isHttpListener(listener)) {

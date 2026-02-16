@@ -37,22 +37,22 @@ export class StepperMenuStepHarness extends ComponentHarness {
   protected getInvalidStepTitleElement = this.locatorForAll('.stepper-menu-step__header__info__title-invalid');
 
   async getStepNumber(): Promise<string> {
-    return this.getStepNumberElement().then((elt) => elt.text());
+    return this.getStepNumberElement().then(elt => elt.text());
   }
   async getStepTitle(): Promise<string> {
-    return this.getStepTitleElement().then((elt) => elt.text());
+    return this.getStepTitleElement().then(elt => elt.text());
   }
   async hasStepIcon(): Promise<boolean> {
-    return this.getIconElement().then((icon) => icon != null);
+    return this.getIconElement().then(icon => icon != null);
   }
   async getStepIconName(): Promise<string> {
-    return this.getIconElement().then((icon) => {
+    return this.getIconElement().then(icon => {
       return icon.getName();
     });
   }
 
   async getStepContent(): Promise<string> {
-    return this.locatorFor('.stepper-menu-step__content')().then((elt) => elt.text());
+    return this.locatorFor('.stepper-menu-step__content')().then(elt => elt.text());
   }
 
   async isInvalidStep(): Promise<boolean> {
@@ -61,6 +61,6 @@ export class StepperMenuStepHarness extends ComponentHarness {
   }
 
   async clickOnStepHeader() {
-    return this.getHeaderElement().then((elt) => elt.click());
+    return this.getHeaderElement().then(elt => elt.click());
   }
 }

@@ -32,7 +32,7 @@ export const gioTableFilterCollection = <T>(
   let sortedCollection: T[] = cloneDeep(collection);
 
   if (filters?.searchTerm) {
-    sortedCollection = sortedCollection.filter((element) => {
+    sortedCollection = sortedCollection.filter(element => {
       return Object.entries(element)
         .filter(([key]) => !(options?.searchTermIgnoreKeys ?? []).includes(key))
         .some(([, value]) => toString(value).toLowerCase().includes(filters.searchTerm.toLowerCase()));

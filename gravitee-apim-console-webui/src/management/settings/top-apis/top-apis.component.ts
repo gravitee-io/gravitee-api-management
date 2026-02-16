@@ -155,7 +155,7 @@ export class TopApisComponent implements OnInit {
       .pipe(
         filter((data): boolean => !!data),
         tap(() => (this.isLoading = true)),
-        switchMap((api) => this.topApiService.create(api.id)),
+        switchMap(api => this.topApiService.create(api.id)),
         tap(() => {
           this.isLoading = false;
           this.snackBarService.success(`API added successfully`);
