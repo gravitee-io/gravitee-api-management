@@ -22,6 +22,7 @@ import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.node.api.license.LicenseManager;
+import io.reactivex.rxjava3.core.Completable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
@@ -48,7 +49,12 @@ public class ApiProductManagerImpl implements ApiProductManager {
 
     @Override
     public void register(ReactableApiProduct apiProduct) {
-        register(apiProduct, false);
+        register(apiProduct, Completable.complete()).blockingAwait();
+    }
+
+    @Override
+    public Completable register(ReactableApiProduct apiProduct, Completable doBeforeEmit) {
+        return Completable.defer(() -> register(apiProduct, false, doBeforeEmit));
     }
 
     @Override
@@ -66,7 +72,7 @@ public class ApiProductManagerImpl implements ApiProductManager {
         return apiProducts.values();
     }
 
-    private boolean register(ReactableApiProduct apiProduct, boolean force) {
+    private Completable register(ReactableApiProduct apiProduct, boolean force, Completable doBeforeEmit) {
         // License check: API Products require universe tier
         var license = licenseManager.getOrganizationLicenseOrPlatform(apiProduct.getOrganizationId());
         if (!Objects.equals(license.getTier(), "universe")) {
@@ -74,7 +80,7 @@ public class ApiProductManagerImpl implements ApiProductManager {
                 "The API Product [{}] can not be deployed because it is not allowed by the current license (universe tier)",
                 apiProduct.getName()
             );
-            return false;
+            return Completable.complete();
         }
 
         // Get currently deployed API Product
@@ -89,41 +95,41 @@ public class ApiProductManagerImpl implements ApiProductManager {
 
         // Deploy new API Product
         if (apiProductToDeploy) {
-            deploy(apiProduct);
-            return true;
+            return deploy(apiProduct, doBeforeEmit);
         }
 
         // Update existing API Product
         if (apiProductToUpdate) {
-            update(apiProduct);
-            return true;
+            return update(apiProduct, doBeforeEmit);
         }
 
-        return false;
+        return Completable.complete();
     }
 
-    private void deploy(ReactableApiProduct apiProduct) {
+    private Completable deploy(ReactableApiProduct apiProduct, Completable doBeforeEmit) {
         log.debug("Deploying API Product [{}]", apiProduct.getId());
 
         apiProducts.put(apiProduct.getId(), apiProduct);
         apiProductRegistry.register(apiProduct);
 
-        // Emit DEPLOY event after successful registration
-        emitApiProductChangedEvent(ApiProductEventType.DEPLOY, apiProduct);
-
-        log.info("API Product [{}] has been deployed", apiProduct.getId());
+        Completable emit = Completable.fromRunnable(() -> {
+            emitApiProductChangedEvent(ApiProductEventType.DEPLOY, apiProduct);
+            log.info("API Product [{}] has been deployed", apiProduct.getId());
+        });
+        return (doBeforeEmit != null ? doBeforeEmit : Completable.complete()).andThen(emit);
     }
 
-    private void update(ReactableApiProduct apiProduct) {
+    private Completable update(ReactableApiProduct apiProduct, Completable doBeforeEmit) {
         log.debug("Updating API Product [{}]", apiProduct.getId());
 
         apiProducts.put(apiProduct.getId(), apiProduct);
         apiProductRegistry.register(apiProduct);
 
-        // Emit UPDATE event after successful registration
-        emitApiProductChangedEvent(ApiProductEventType.UPDATE, apiProduct);
-
-        log.info("API Product [{}] has been updated", apiProduct.getId());
+        Completable emit = Completable.fromRunnable(() -> {
+            emitApiProductChangedEvent(ApiProductEventType.UPDATE, apiProduct);
+            log.info("API Product [{}] has been updated", apiProduct.getId());
+        });
+        return (doBeforeEmit != null ? doBeforeEmit : Completable.complete()).andThen(emit);
     }
 
     private void undeploy(String apiProductId) {

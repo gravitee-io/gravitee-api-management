@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.manager.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -25,9 +26,12 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
+import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
+import io.reactivex.rxjava3.core.Completable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Set;
@@ -287,6 +291,64 @@ class ApiProductManagerImplTest {
             manager.register(newProduct);
 
             verify(apiProductRegistry, times(2)).register(any(ReactableApiProduct.class));
+        }
+    }
+
+    @Nested
+    class RegisterWithCallbackTest {
+
+        @Test
+        void should_run_beforeEmit_callback_before_emitting_event_on_deploy() {
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
+            boolean[] callbackRan = { false };
+
+            manager.register(apiProduct, Completable.fromRunnable(() -> callbackRan[0] = true)).blockingAwait();
+
+            assertThat(callbackRan[0]).isTrue();
+            verify(apiProductRegistry).register(apiProduct);
+            verify(eventManager).publishEvent(eq(ApiProductEventType.DEPLOY), any(ApiProductChangedEvent.class));
+        }
+
+        @Test
+        void should_run_beforeEmit_callback_before_emitting_event_on_update() {
+            Date oldDate = new Date(System.currentTimeMillis() - 10000);
+            Date newDate = new Date();
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            ReactableApiProduct newProduct = createApiProduct("product-1", "env-1", newDate);
+            newProduct.setName("Updated");
+            boolean[] callbackRan = { false };
+
+            manager.register(oldProduct);
+            manager.register(newProduct, Completable.fromRunnable(() -> callbackRan[0] = true)).blockingAwait();
+
+            assertThat(callbackRan[0]).isTrue();
+            verify(eventManager).publishEvent(eq(ApiProductEventType.UPDATE), any(ApiProductChangedEvent.class));
+        }
+
+        @Test
+        void should_deploy_successfully_when_no_op_beforeEmit() {
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
+
+            manager.register(apiProduct, Completable.complete()).blockingAwait();
+
+            verify(apiProductRegistry).register(apiProduct);
+            verify(eventManager).publishEvent(eq(ApiProductEventType.DEPLOY), any(ApiProductChangedEvent.class));
+        }
+
+        @Test
+        void should_not_run_beforeEmit_when_product_not_deployed_or_updated() {
+            ReactableApiProduct existingProduct = createApiProduct("product-1", "env-1", new Date());
+            manager.register(existingProduct);
+
+            Date olderDate = new Date(System.currentTimeMillis() - 10000);
+            ReactableApiProduct olderProduct = createApiProduct("product-1", "env-1", olderDate);
+            olderProduct.setName("Older");
+            boolean[] callbackRan = { false };
+
+            manager.register(olderProduct, Completable.fromRunnable(() -> callbackRan[0] = true)).blockingAwait();
+
+            assertThat(callbackRan[0]).isFalse();
+            verify(apiProductRegistry, times(1)).register(any(ReactableApiProduct.class));
         }
     }
 

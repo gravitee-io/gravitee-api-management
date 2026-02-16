@@ -23,6 +23,8 @@ import io.gravitee.gateway.services.sync.process.distributed.service.Distributed
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -38,32 +40,55 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
     private final PlanService planService;
     private final DistributedSyncService distributedSyncService;
     private final ApiProductPlanDefinitionCache apiProductPlanDefinitionCache;
+    private final ApiProductSubscriptionRefresher subscriptionRefresher;
 
     @Override
     public Completable deploy(ApiProductReactorDeployable deployable) {
-        return Completable.fromRunnable(() -> {
-            ReactableApiProduct reactableApiProduct = deployable.reactableApiProduct();
-            String apiProductId = deployable.apiProductId();
+        ReactableApiProduct reactableApiProduct = deployable.reactableApiProduct();
+        String apiProductId = deployable.apiProductId();
 
-            try {
-                log.debug("Deploying API Product [{}]", apiProductId);
-                apiProductManager.register(reactableApiProduct);
+        log.debug("Deploying API Product [{}]", apiProductId);
+        // Capture old product before register() replaces it (needed to compute removed APIs on update)
+        ReactableApiProduct oldProduct = apiProductManager.get(apiProductId);
+        Set<String> newApiIds = reactableApiProduct.getApiIds() != null ? reactableApiProduct.getApiIds() : Set.of();
 
-                // Register API Product in PlanService for subscription validation
-                registerApiProductPlans(deployable);
-
-                log.debug("API Product [{}] deployed successfully", apiProductId);
-            } catch (Exception e) {
-                throw new SyncException(
-                    String.format(
-                        "An error occurred when trying to deploy API Product %s [%s].",
-                        reactableApiProduct.getName(),
-                        apiProductId
-                    ),
-                    e
+        Completable doBeforeEmit = Completable.complete();
+        if (oldProduct != null && oldProduct.getApiIds() != null && !oldProduct.getApiIds().isEmpty()) {
+            Set<String> removedApiIds = oldProduct
+                .getApiIds()
+                .stream()
+                .filter(id -> !newApiIds.contains(id))
+                .collect(Collectors.toSet());
+            if (!removedApiIds.isEmpty()) {
+                doBeforeEmit = doBeforeEmit.andThen(
+                    subscriptionRefresher.unregisterRemovedApis(
+                        removedApiIds,
+                        deployable.subscribablePlans(),
+                        Set.of(reactableApiProduct.getEnvironmentId())
+                    )
                 );
             }
-        });
+        }
+        doBeforeEmit = doBeforeEmit.andThen(Completable.fromRunnable(() -> registerApiProductPlans(deployable)));
+        doBeforeEmit = doBeforeEmit.andThen(
+            subscriptionRefresher.refresh(deployable.subscribablePlans(), Set.of(reactableApiProduct.getEnvironmentId()))
+        );
+
+        return apiProductManager
+            .register(reactableApiProduct, doBeforeEmit)
+            .doOnComplete(() -> log.debug("API Product [{}] deployed successfully", apiProductId))
+            .onErrorResumeNext(e ->
+                Completable.error(
+                    new SyncException(
+                        String.format(
+                            "An error occurred when trying to deploy API Product %s [%s].",
+                            reactableApiProduct.getName(),
+                            apiProductId
+                        ),
+                        e
+                    )
+                )
+            );
     }
 
     private void registerApiProductPlans(ApiProductReactorDeployable deployable) {
@@ -95,6 +120,17 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
 
             try {
                 log.debug("Undeploying API Product [{}]", apiProductId);
+
+                // Capture product and plans BEFORE unregister removes them (needed for subscription/API key cleanup)
+                ReactableApiProduct currentProduct = apiProductManager.get(apiProductId);
+                Set<String> subscribablePlans = planService.getSubscribablePlansForApiProduct(apiProductId);
+
+                // Unregister subscriptions and API keys for all APIs in the product (must run before manager unregister)
+                if (currentProduct != null && currentProduct.getApiIds() != null && !currentProduct.getApiIds().isEmpty()) {
+                    subscriptionRefresher
+                        .unregisterRemovedApis(currentProduct.getApiIds(), subscribablePlans, Set.of(currentProduct.getEnvironmentId()))
+                        .blockingAwait();
+                }
 
                 apiProductManager.unregister(apiProductId);
 
