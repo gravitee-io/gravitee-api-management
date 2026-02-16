@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest;
 
+import io.gravitee.rest.api.kafkaexplorer.resource.KafkaExplorerResource;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.BadRequestExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ConstraintValidationExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.JsonMappingExceptionMapper;
@@ -89,6 +90,9 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(ResourcesResource.class);
         register(IntegrationsResource.class);
         register(AsyncJobsResource.class);
+
+        // Kafka Explorer
+        register(KafkaExplorerResource.class);
 
         register(MultiPartFeature.class);
 
