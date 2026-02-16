@@ -17,16 +17,35 @@
   --mat-button-filled-container-shape: 50%;
   --mat-button-filled-horizontal-padding: 18px;
   --mat-button-text-horizontal-padding: 18px;
+  --mdc-filled-button-container-shape: 4px;
+  --mat-filled-button-horizontal-padding: 18px;
+  --mat-text-button-horizontal-padding: 18px;
 
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
 }
 
 button[mat-flat-button],
-button[mat-button],
+button[mat-button]:not(.nav-button),
 button[mat-icon-button] {
   width: 44px;
   min-width: auto;
-  border-radius: 50%;
+  border-radius: 4px;
+}
+
+button[mat-flat-button] {
+  background-color: transparent;
+  color: #000000;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+}
+
+button.nav-button {
+  min-width: auto;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
 }

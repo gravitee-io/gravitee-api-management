@@ -21,27 +21,20 @@ import { RouterLink } from '@angular/router';
 
 import { CategoryCardComponent } from '../../../components/category-card/category-card.component';
 import { Category } from '../../../entities/categories/categories';
-import { ConfigService } from '../../../services/config.service';
 import { ObservabilityBreakpointService } from '../../../services/observability-breakpoint.service';
-import { CatalogBannerComponent } from '../components/catalog-banner/catalog-banner.component';
 
 @Component({
   selector: 'app-categories-view',
   standalone: true,
-  imports: [CatalogBannerComponent, MatCardModule, CategoryCardComponent, MatButton, RouterLink, NgClass],
+  imports: [MatCardModule, CategoryCardComponent, MatButton, RouterLink, NgClass],
   templateUrl: './categories-view.component.html',
   styleUrl: './categories-view.component.scss',
 })
 export class CategoriesViewComponent {
-  showBanner: boolean;
   categories: InputSignal<Category[]> = input<Category[]>([]);
 
   categoriesViewContainerClasses = computed(() => ({
     'categories-view__container--mobile': this.isMobile(),
   }));
   protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
-
-  constructor(private readonly configService: ConfigService) {
-    this.showBanner = !!this.configService.configuration?.portalNext?.banner?.enabled;
-  }
 }

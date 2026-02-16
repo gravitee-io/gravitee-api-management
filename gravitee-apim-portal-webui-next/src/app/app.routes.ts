@@ -35,8 +35,6 @@ import { ApplicationTabSettingsComponent } from './applications/application/appl
 import { ApplicationComponent } from './applications/application/application.component';
 import { ApplicationsComponent } from './applications/applications.component';
 import { CreateApplicationComponent } from './applications/create-application/create-application.component';
-import { CategoriesViewComponent } from './catalog/categories-view/categories-view.component';
-import { CategoryApisComponent } from './catalog/categories-view/category-apis/category-apis.component';
 import { TabsViewComponent } from './catalog/tabs-view/tabs-view.component';
 import { DocumentationComponent } from './documentation/components/documentation.component';
 import { documentationResolver } from './documentation/resolvers/documentation.resolver';
@@ -50,12 +48,10 @@ import { NavigationPageFullWidthComponent } from '../components/navigation-page-
 import { ConfigureConsumerComponent } from '../components/subscription/webhook/configure-consumer/configure-consumer.component';
 import { anonymousGuard } from '../guards/anonymous.guard';
 import { authGuard } from '../guards/auth.guard';
-import { catalogCategoriesViewGuard } from '../guards/catalog-categories-view.guard';
 import { catalogTabsViewGuard } from '../guards/catalog-tabs-view.guard';
 import { redirectGuard } from '../guards/redirect.guard';
 import { apiResolver } from '../resolvers/api.resolver';
 import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
-import { categoriesResolver } from '../resolvers/categories.resolver';
 import { homepageContentResolver } from '../resolvers/homepage-content.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
 import { ApiTabToolsComponent } from './api/api-details/api-tab-tools/api-tab-tools.component';
@@ -143,47 +139,24 @@ export const routes: Routes = [
     component: NavigationPageFullWidthComponent,
   },
   {
+    path: 'categories',
+    redirectTo: 'catalog',
+    pathMatch: 'full',
+  },
+  {
+    path: 'categories/catalog',
+    redirectTo: 'catalog',
+    pathMatch: 'full',
+  },
+  {
     path: 'catalog',
     canActivateChild: [redirectGuard, authGuard],
-    data: { breadcrumb: 'Catalog' },
+    data: { breadcrumb: { skip: true } },
     children: [
       {
         path: '',
-        component: TabsViewComponent,
         canActivate: [catalogTabsViewGuard],
-        resolve: {
-          categories: categoriesResolver,
-        },
-      },
-      {
-        path: 'all',
-        redirectTo: '',
-        pathMatch: 'full',
-      },
-      {
-        path: 'categories',
-        canActivateChild: [catalogCategoriesViewGuard],
-        resolve: {
-          categories: categoriesResolver,
-        },
-        children: [
-          {
-            path: '',
-            data: { breadcrumb: { skip: true } },
-            component: CategoriesViewComponent,
-          },
-          {
-            path: ':categoryId',
-            data: { breadcrumb: { alias: 'categoryName' } },
-            children: [
-              {
-                path: '',
-                component: CategoryApisComponent,
-              },
-              ...apiRoutes,
-            ],
-          },
-        ],
+        component: TabsViewComponent,
       },
       ...apiRoutes,
     ],
