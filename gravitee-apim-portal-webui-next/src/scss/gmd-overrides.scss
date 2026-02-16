@@ -15,21 +15,16 @@
  */
 @use '@gravitee/gravitee-markdown' as gmd;
 @use './theme' as theme;
-@use '@gravitee/gravitee-markdown/src/lib/scss/theme' as gmd-theme;
+
 
 :root {
-  @include gmd.theme-overrides(
-    (
-      container-shape: theme.$container-shape,
+  @include gmd.theme-overrides((container-shape: theme.$container-shape,
       primary-color: theme.$primary-main-color,
       on-primary-color: theme.$default-text-contrast-color,
       outline-color: theme.$border-color,
-    )
-  );
+    ));
 
-  @include gmd.button-overrides(
-    (
-      text-container-shape: theme.$container-shape,
+  @include gmd.button-overrides((text-container-shape: theme.$container-shape,
       text-label-text-color: theme.$button-text-text-color,
 
       outlined-container-shape: theme.$container-shape,
@@ -40,66 +35,47 @@
       filled-container-color: theme.$button-filled-container-color,
       filled-container-shape: theme.$container-shape,
       filled-label-text-color: theme.$button-filled-text-color,
-    )
-  );
+    ));
 
-  @include gmd.card-overrides(
-    (
-      container-shape: theme.$card-container-shape,
+  @include gmd.card-overrides((container-shape: theme.$card-container-shape,
       container-color: theme.$card-background-color,
       outline-width: theme.$card-border-width,
       outline-color: theme.$card-border-color,
       elevation-shadow: theme.$card-elevation,
       text-color: theme.$card-text-color,
-    )
-  );
+    ));
 
-  @include gmd.input-overrides(
-    (
-      outlined-label-text-color: theme.$default-text-color,
+  @include gmd.input-overrides((outlined-label-text-color: theme.$default-text-color,
       outlined-input-text-color: theme.$default-text-color,
       outlined-outline-color: theme.$border-color,
       outlined-container-shape: theme.$container-shape,
       outlined-focus-outline-color: theme.$primary-main-color,
       error-text-color: theme.$error-main-color,
-    )
-  );
+    ));
 
-  @include gmd.textarea-overrides(
-    (
-      outlined-label-text-color: theme.$default-text-color,
+  @include gmd.textarea-overrides((outlined-label-text-color: theme.$default-text-color,
       outlined-input-text-color: theme.$default-text-color,
       outlined-outline-color: theme.$border-color,
       outlined-container-shape: theme.$container-shape,
       outlined-focus-outline-color: theme.$primary-main-color,
       outlined-disabled-container-color: color-mix(in srgb, theme.$card-background-color 50%, transparent),
       error-text-color: theme.$error-main-color,
-    )
-  );
+    ));
 
-  @include gmd.select-overrides(
-    (
-      outlined-label-text-color: theme.$default-text-color,
+  @include gmd.select-overrides((outlined-label-text-color: theme.$default-text-color,
       outlined-input-text-color: theme.$default-text-color,
       outlined-outline-color: theme.$border-color,
       outlined-container-shape: theme.$container-shape,
       outlined-focus-outline-color: theme.$primary-main-color,
       outlined-disabled-container-color: color-mix(in srgb, theme.$card-background-color 50%, transparent),
       error-text-color: theme.$error-main-color,
-    )
-  );
+    ));
 
-  @include gmd.checkbox-overrides(
-    (
-      outlined-label-text-color: theme.$default-text-color,
+  @include gmd.checkbox-overrides((outlined-label-text-color: theme.$default-text-color,
       error-text-color: theme.$error-main-color,
-    )
-  );
+    ));
 
-  @include gmd.radio-overrides(
-    (
-      outlined-label-text-color: theme.$default-text-color,
+  @include gmd.radio-overrides((outlined-label-text-color: theme.$default-text-color,
       error-text-color: theme.$error-main-color,
-    )
-  );
+    ));
 }
