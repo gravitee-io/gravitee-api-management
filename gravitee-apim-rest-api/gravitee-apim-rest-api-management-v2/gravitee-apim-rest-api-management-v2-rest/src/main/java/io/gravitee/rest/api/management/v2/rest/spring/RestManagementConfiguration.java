@@ -24,6 +24,7 @@ import io.gravitee.apim.infra.domain_service.user.UserContextLoaderImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.rest.api.kafkaexplorer.spring.KafkaExplorerSpringConfiguration;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
@@ -38,7 +39,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({ ServiceConfiguration.class, UsecaseSpringConfiguration.class })
+@Import({ ServiceConfiguration.class, UsecaseSpringConfiguration.class, KafkaExplorerSpringConfiguration.class })
 @EnableAsync
 public class RestManagementConfiguration {
 

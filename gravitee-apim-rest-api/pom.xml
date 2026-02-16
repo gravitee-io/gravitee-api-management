@@ -54,6 +54,7 @@
         <module>gravitee-apim-rest-api-spec-converter</module>
         <module>gravitee-apim-rest-api-test-fixtures</module>
         <module>gravitee-apim-rest-api-coverage</module>
+        <module>gravitee-apim-rest-api-kafka-explorer</module>
     </modules>
 
     <dependencyManagement>
