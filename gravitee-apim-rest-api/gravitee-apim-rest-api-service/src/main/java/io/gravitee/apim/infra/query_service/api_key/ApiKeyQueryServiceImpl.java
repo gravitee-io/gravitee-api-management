@@ -76,4 +76,26 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
             );
         }
     }
+
+    @Override
+    public Optional<ApiKeyEntity> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType) {
+        try {
+            if (!"API".equals(referenceType) && !"API_PRODUCT".equals(referenceType)) {
+                throw new IllegalArgumentException("Unsupported reference type: " + referenceType);
+            }
+            return apiKeyRepository
+                .findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)
+                .map(ApiKeyAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                String.format(
+                    "An error occurs while trying to find API key by [key=%s], [referenceId=%s], [referenceType=%s]",
+                    key,
+                    referenceId,
+                    referenceType
+                ),
+                e
+            );
+        }
+    }
 }

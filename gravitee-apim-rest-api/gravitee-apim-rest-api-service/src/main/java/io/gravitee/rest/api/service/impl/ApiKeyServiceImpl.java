@@ -538,23 +538,45 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
     @Override
     public boolean canCreate(ExecutionContext executionContext, String apiKeyValue, SubscriptionEntity subscription) {
-        return canCreate(executionContext, apiKeyValue, subscription.getApi(), subscription.getApplication());
+        String referenceId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
+        String referenceType = subscription.getReferenceType() != null ? subscription.getReferenceType() : "API";
+        return canCreate(executionContext, apiKeyValue, referenceId, referenceType, subscription.getApplication());
     }
 
     @Override
-    public boolean canCreate(ExecutionContext executionContext, String apiKey, String apiId, String applicationId) {
-        log.debug("Check if an API Key can be created for api {} and application {}", apiId, applicationId);
-
+    public boolean canCreate(
+        ExecutionContext executionContext,
+        String apiKey,
+        String referenceId,
+        String referenceType,
+        String applicationId
+    ) {
+        log.debug(
+            "Check if an API Key can be created for reference {} (type {}) and application {}",
+            referenceId,
+            referenceType,
+            applicationId
+        );
         return findByKeyAndEnvironmentId(executionContext, apiKey)
             .stream()
-            .noneMatch(existingKey -> isConflictingKey(existingKey, apiId, applicationId));
+            .noneMatch(existingKey -> isConflictingKeyForReference(existingKey, referenceId, referenceType, applicationId));
     }
 
-    private boolean isConflictingKey(ApiKeyEntity existingKey, String apiId, String applicationId) {
+    private boolean isConflictingKeyForReference(ApiKeyEntity existingKey, String referenceId, String referenceType, String applicationId) {
         if (!existingKey.getApplication().getId().equals(applicationId)) {
             return true;
         }
-        return existingKey.getSubscriptions().stream().map(SubscriptionEntity::getApi).anyMatch(apiId::equals);
+        return existingKey
+            .getSubscriptions()
+            .stream()
+            .anyMatch(
+                sub ->
+                    (sub.getReferenceId() != null &&
+                        sub.getReferenceType() != null &&
+                        referenceId.equals(sub.getReferenceId()) &&
+                        referenceType.equals(sub.getReferenceType())) ||
+                    ("API".equals(referenceType) && referenceId.equals(sub.getApi()))
+            );
     }
 
     @Override

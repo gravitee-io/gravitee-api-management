@@ -24,4 +24,5 @@ public interface ApiKeyQueryService {
     Stream<ApiKeyEntity> findByApplication(String applicationId);
     Optional<ApiKeyEntity> findByKeyAndApiId(String key, String apiId);
     Stream<ApiKeyEntity> findBySubscription(String subscriptionId);
+    Optional<ApiKeyEntity> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType);
 }

@@ -25,9 +25,10 @@ import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 
 /**
- * Revoke an API Key of an API's subscription.
+ * Revoke an API Key of a subscription (API or API_PRODUCT).
  */
 @UseCase
 public class RevokeSubscriptionApiKeyUseCase {
@@ -51,16 +52,18 @@ public class RevokeSubscriptionApiKeyUseCase {
 
     public Output execute(Input input) {
         var subscription = subscriptionCrudService.get(input.subscriptionId);
-
-        var apiKey = apiKeyQueryService.findByKeyAndApiId(input.key, subscription.getApiId());
+        if (
+            !subscription.getReferenceId().equals(input.referenceId) || !subscription.getReferenceType().name().equals(input.referenceType)
+        ) {
+            throw new SubscriptionNotFoundException(input.subscriptionId);
+        }
+        final var apiKey = apiKeyQueryService.findByKeyAndReferenceIdAndReferenceType(input.key, input.referenceId, input.referenceType);
         if (apiKey.isEmpty()) {
             throw new ApiKeyNotFoundException();
         }
-
         if (!apiKey.get().hasSubscription(input.subscriptionId)) {
             throw new ApiKeyNotFoundException();
         }
-
         var application = applicationCrudService.findById(
             new ExecutionContext(input.auditInfo().organizationId(), input.auditInfo().environmentId()),
             apiKey.get().getApplicationId()
@@ -74,11 +77,10 @@ public class RevokeSubscriptionApiKeyUseCase {
                 )
             );
         }
-
         return new Output(revokeApiKeyDomainService.revoke(apiKey.get(), input.auditInfo()));
     }
 
-    public record Input(String subscriptionId, String key, AuditInfo auditInfo) {}
+    public record Input(String subscriptionId, String key, String referenceId, String referenceType, AuditInfo auditInfo) {}
 
     public record Output(ApiKeyEntity apiKey) {}
 }

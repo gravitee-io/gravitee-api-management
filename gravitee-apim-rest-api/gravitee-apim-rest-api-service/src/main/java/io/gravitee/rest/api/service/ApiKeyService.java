@@ -63,7 +63,7 @@ public interface ApiKeyService {
 
     boolean canCreate(ExecutionContext executionContext, String apiKey, SubscriptionEntity subscription);
 
-    boolean canCreate(ExecutionContext executionContext, String apiKey, String apiId, String applicationId);
+    boolean canCreate(ExecutionContext executionContext, String apiKey, String referenceId, String referenceType, String applicationId);
 
     Collection<ApiKeyEntity> search(ExecutionContext executionContext, ApiKeyQuery query);
 }

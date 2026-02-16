@@ -67,8 +67,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public ApiKeyQueryServiceInMemory apiKeyQueryService(ApiKeyCrudServiceInMemory apiKeyCrudService) {
-        return new ApiKeyQueryServiceInMemory(apiKeyCrudService);
+    public ApiKeyQueryServiceInMemory apiKeyQueryService(
+        ApiKeyCrudServiceInMemory apiKeyCrudService,
+        SubscriptionCrudServiceInMemory subscriptionCrudService
+    ) {
+        return new ApiKeyQueryServiceInMemory(apiKeyCrudService, subscriptionCrudService);
     }
 
     @Bean
