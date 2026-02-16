@@ -27,7 +27,7 @@ export class TestDefinitionJob extends AbstractTestJob {
       'job-test-definition',
       new commands.Run({
         name: `Run definition tests`,
-        command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -T 2C`,
+        command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C`,
       }),
       OpenJdkExecutor.create('small'),
       ['gravitee-apim-definition/gravitee-apim-definition-coverage/target/site/jacoco-aggregate/'],

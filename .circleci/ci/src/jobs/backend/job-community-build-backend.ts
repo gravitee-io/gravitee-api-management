@@ -35,7 +35,7 @@ export class CommunityBuildBackendJob {
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: jobName }),
       new commands.Run({
         name: 'Build project',
-        command: `mvn clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C`,
+        command: `mvn clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 2C`,
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName: jobName }),

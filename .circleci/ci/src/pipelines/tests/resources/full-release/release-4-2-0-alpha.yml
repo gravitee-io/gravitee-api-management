@@ -411,7 +411,7 @@ jobs:
       - cmd-prepare-gpg
       - run:
           name: Maven build APIM backend
-          command: mvn --settings .gravitee.settings.xml -B -U -P all-modules,gio-release,bundle-default clean verify -DskipTests=true -Dskip.validation -T 4 --no-transfer-progress
+          command: mvn --settings .gravitee.settings.xml -B -U -P all-modules,gio-release,bundle-default clean verify -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress
           environment:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"
@@ -720,7 +720,7 @@ jobs:
       - cmd-prepare-gpg
       - run:
           name: Release on Nexus
-          command: mvn clean deploy --activate-profiles gravitee-release --batch-mode -T 4 -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
+          command: mvn clean deploy --activate-profiles gravitee-release --batch-mode -T 4 -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true --settings .gravitee.settings.xml --update-snapshots
       - cmd-save-maven-job-cache:
           jobName: job-nexus-staging
   job-trigger-saas-docker-images:
