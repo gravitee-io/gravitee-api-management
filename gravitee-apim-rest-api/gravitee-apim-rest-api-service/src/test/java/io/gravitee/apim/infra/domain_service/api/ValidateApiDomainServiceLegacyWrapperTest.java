@@ -29,6 +29,7 @@ import fixtures.definition.FlowFixtures;
 import io.gravitee.apim.core.api.domain_service.ApiLifecycleStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.GroupValidationService;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.exception.InvalidApiLifecycleStateException;
 import io.gravitee.apim.core.api.exception.NativeApiWithMultipleFlowsException;
 import io.gravitee.apim.core.api.model.Api;
@@ -172,6 +173,9 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 .when(flowValidationDomainService)
                 .validateAndSanitizeHttpV4(any(), any());
 
+            var sanitizedResources = List.of(Resource.builder().name("sanitized").build());
+            when(apiValidationService.validateAndSanitize(any())).thenReturn(sanitizedResources);
+
             var result = service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
 
             CoreAssertions.assertThat(result)
@@ -191,7 +195,19 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 soft
                     .assertThat(result.getApiDefinitionHttpV4().getServices().getDynamicProperty().getConfiguration())
                     .isEqualTo("sanitized");
+                soft.assertThat(result.getApiDefinitionHttpV4().getResources()).isEqualTo(sanitizedResources);
             });
+        }
+
+        @Test
+        void should_sanitize_resources() {
+            var api = ApiFixtures.aProxyApiV4();
+            var sanitizedResources = List.of(Resource.builder().name("sanitized").build());
+            when(apiValidationService.validateAndSanitize(any())).thenReturn(sanitizedResources);
+
+            var result = service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
+
+            Assertions.assertThat(result.getApiDefinitionHttpV4().getResources()).isEqualTo(sanitizedResources);
         }
 
         @Test
@@ -277,6 +293,9 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 .when(flowValidationDomainService)
                 .validateAndSanitizeNativeV4(any());
 
+            var sanitizedResources = List.of(Resource.builder().name("sanitized").build());
+            when(apiValidationService.validateAndSanitize(any())).thenReturn(sanitizedResources);
+
             var result = service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
 
             CoreAssertions.assertThat(result)
@@ -312,7 +331,19 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                     .assertThat(result.getApiDefinitionNativeV4().getServices().getDynamicProperty().getConfiguration())
                     .isEqualTo("sanitized");
                 soft.assertThat(result.getApiDefinitionNativeV4().getAnalytics().isEnabled()).isTrue();
+                soft.assertThat(result.getApiDefinitionNativeV4().getResources()).isEqualTo(sanitizedResources);
             });
+        }
+
+        @Test
+        void should_sanitize_resources() {
+            var api = ApiFixtures.aNativeApi();
+            var sanitizedResources = List.of(Resource.builder().name("sanitized").build());
+            when(apiValidationService.validateAndSanitize(any())).thenReturn(sanitizedResources);
+
+            var result = service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
+
+            Assertions.assertThat(result.getApiDefinitionNativeV4().getResources()).isEqualTo(sanitizedResources);
         }
 
         @Test
@@ -424,14 +455,12 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 .when(flowValidationDomainService)
                 .validateAndSanitizeNativeV4(any());
 
-            var sanitizedResources = List.of(Resource.builder().name("sanitized").build());
-            doAnswer(invocation -> sanitizedResources)
-                .when(resourcesValidationService)
-                .validateAndSanitize(any());
-
             when(apiLifecycleStateDomainService.validateAndSanitizeForUpdate(any(), any(), any())).thenReturn(
                 Api.ApiLifecycleState.PUBLISHED
             );
+
+            var sanitizedResourcesFromValidationService = List.of(Resource.builder().name("sanitized").build());
+            when(apiValidationService.validateAndSanitize(any())).thenReturn(sanitizedResourcesFromValidationService);
 
             var result = service.validateAndSanitizeForUpdate(exisitingApi, newApi, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
 
@@ -467,8 +496,20 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 soft
                     .assertThat(result.getApiDefinitionNativeV4().getServices().getDynamicProperty().getConfiguration())
                     .isEqualTo("sanitized");
-                soft.assertThat(result.getApiDefinitionNativeV4().getResources()).isEqualTo(sanitizedResources);
+                soft.assertThat(result.getApiDefinitionNativeV4().getResources()).isEqualTo(sanitizedResourcesFromValidationService);
             });
+        }
+
+        @Test
+        void should_sanitize_resources() {
+            var existingApi = ApiFixtures.aNativeApi();
+            var newApi = ApiFixtures.aNativeApi();
+            var sanitizedResources = List.of(Resource.builder().name("sanitized").build());
+            when(apiValidationService.validateAndSanitize(any())).thenReturn(sanitizedResources);
+
+            var result = service.validateAndSanitizeForUpdate(existingApi, newApi, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
+
+            Assertions.assertThat(result.getApiDefinitionNativeV4().getResources()).isEqualTo(sanitizedResources);
         }
 
         @Test
