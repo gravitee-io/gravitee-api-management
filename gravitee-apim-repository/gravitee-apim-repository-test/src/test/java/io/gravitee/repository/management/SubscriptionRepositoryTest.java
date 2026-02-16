@@ -521,6 +521,38 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     }
 
     @Test
+    public void shouldSearchByReferenceTypeOnlyApi() throws TechnicalException {
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().referenceType(SubscriptionReferenceType.API).build()
+        );
+
+        assertNotNull(subscriptions);
+        assertFalse(subscriptions.isEmpty());
+        subscriptions.forEach(sub ->
+            assertTrue(
+                "Each result must be API or legacy (null) referenceType",
+                sub.getReferenceType() == null || sub.getReferenceType() == SubscriptionReferenceType.API
+            )
+        );
+        Set<String> ids = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
+        assertTrue("Should include API subscription sub1", ids.contains("sub1"));
+    }
+
+    @Test
+    public void shouldSearchByReferenceTypeOnlyApiProduct() throws TechnicalException {
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().referenceType(SubscriptionReferenceType.API_PRODUCT).build()
+        );
+
+        assertNotNull(subscriptions);
+        assertFalse(subscriptions.isEmpty());
+        subscriptions.forEach(sub -> assertEquals(SubscriptionReferenceType.API_PRODUCT, sub.getReferenceType()));
+        Set<String> ids = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
+        assertTrue(ids.contains("sub-api-product-1"));
+        assertTrue(ids.contains("sub-api-product-2"));
+    }
+
+    @Test
     public void shouldSearchByReferenceIdsAndType() throws TechnicalException {
         // Criteria with referenceIds/referenceType for API subscriptions
         List<Subscription> subscriptions = this.subscriptionRepository.search(

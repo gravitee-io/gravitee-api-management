@@ -74,12 +74,29 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             }
         }
 
-        if (criteria.getReferenceType() != null && criteria.getReferenceIds() != null && !criteria.getReferenceIds().isEmpty()) {
-            dataPipeline.add(match(eq("referenceType", criteria.getReferenceType().name())));
-            if (criteria.getReferenceIds().size() == 1) {
-                dataPipeline.add(match(eq("referenceId", criteria.getReferenceIds().iterator().next())));
+        if (criteria.getReferenceType() != null) {
+            if (criteria.getReferenceIds() == null || criteria.getReferenceIds().isEmpty()) {
+                // Filter by type only (e.g. Portal API-only): include legacy subscriptions with null referenceType
+                if (criteria.getReferenceType() == SubscriptionReferenceType.API) {
+                    dataPipeline.add(
+                        match(
+                            or(
+                                eq("referenceType", SubscriptionReferenceType.API.name()),
+                                eq("referenceType", null),
+                                exists("referenceType", false)
+                            )
+                        )
+                    );
+                } else {
+                    dataPipeline.add(match(eq("referenceType", criteria.getReferenceType().name())));
+                }
             } else {
-                dataPipeline.add(match(in("referenceId", criteria.getReferenceIds())));
+                dataPipeline.add(match(eq("referenceType", criteria.getReferenceType().name())));
+                if (criteria.getReferenceIds().size() == 1) {
+                    dataPipeline.add(match(eq("referenceId", criteria.getReferenceIds().iterator().next())));
+                } else {
+                    dataPipeline.add(match(in("referenceId", criteria.getReferenceIds())));
+                }
             }
         }
 

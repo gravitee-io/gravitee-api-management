@@ -330,11 +330,23 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
         started = addStringsWhereClause(criteria.getPlans(), "s." + escapeReservedWord("plan"), argsList, builder, started);
         started = addStringsWhereClause(criteria.getApplications(), "s.application", argsList, builder, started);
-        if (criteria.getReferenceType() != null && !isEmpty(criteria.getReferenceIds())) {
-            started = addStringsWhereClause(criteria.getReferenceIds(), "s.reference_id", argsList, builder, started);
+        if (criteria.getReferenceType() != null) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("s.reference_type = ?");
-            argsList.add(criteria.getReferenceType().name());
+            if (
+                isEmpty(criteria.getReferenceIds()) &&
+                criteria.getReferenceType() == io.gravitee.repository.management.model.SubscriptionReferenceType.API
+            ) {
+                // Filter by API only (e.g. Portal): include legacy subscriptions with null reference_type
+                builder.append("( s.reference_type = ? OR s.reference_type IS NULL )");
+                argsList.add(criteria.getReferenceType().name());
+            } else {
+                builder.append("s.reference_type = ?");
+                argsList.add(criteria.getReferenceType().name());
+                started = true;
+                if (!isEmpty(criteria.getReferenceIds())) {
+                    started = addStringsWhereClause(criteria.getReferenceIds(), "s.reference_id", argsList, builder, started);
+                }
+            }
             started = true;
         }
 

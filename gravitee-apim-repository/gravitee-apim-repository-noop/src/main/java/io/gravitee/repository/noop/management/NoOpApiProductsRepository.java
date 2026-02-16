@@ -18,6 +18,7 @@ package io.gravitee.repository.noop.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
 import io.gravitee.repository.management.model.ApiProduct;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 
@@ -61,6 +62,11 @@ public class NoOpApiProductsRepository implements ApiProductsRepository {
 
     @Override
     public Set<ApiProduct> findByApiId(String apiId) throws TechnicalException {
+        return Set.of();
+    }
+
+    @Override
+    public Set<ApiProduct> findByIds(Collection<String> ids) throws TechnicalException {
         return Set.of();
     }
 }

@@ -121,10 +121,12 @@ public class ApplicationSubscribersResourceTest extends AbstractResourceTest {
 
         SubscriptionEntity s1 = new SubscriptionEntity();
         s1.setApi("api-1");
+        s1.setReferenceId("api-1");
         s1.setApplication(APPLICATION_ID);
         s1.setStatus(SubscriptionStatus.ACCEPTED);
         SubscriptionEntity s2 = new SubscriptionEntity();
         s2.setApi("api-2");
+        s2.setReferenceId("api-2");
         s2.setApplication(APPLICATION_ID);
         s2.setStatus(SubscriptionStatus.ACCEPTED);
         doReturn(Arrays.asList(s1, s2)).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
@@ -193,9 +195,11 @@ public class ApplicationSubscribersResourceTest extends AbstractResourceTest {
 
         SubscriptionEntity s1 = new SubscriptionEntity();
         s1.setApi("api-A");
+        s1.setReferenceId("api-A");
         s1.setApplication(APPLICATION_ID);
         SubscriptionEntity s2 = new SubscriptionEntity();
         s2.setApi("api-B");
+        s2.setReferenceId("api-B");
         s2.setApplication(APPLICATION_ID);
         doReturn(Arrays.asList(s2, s1)).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
 
@@ -221,5 +225,41 @@ public class ApplicationSubscribersResourceTest extends AbstractResourceTest {
         assertEquals(2, apisResponse.getData().size());
         assertEquals("api-B", apisResponse.getData().get(0).getId());
         assertEquals("api-A", apisResponse.getData().get(1).getId());
+    }
+
+    @Test
+    public void shouldExcludeApiProductSubscriptionsFromSubscribers() {
+        ApplicationListItem app = buildAppItem(APPLICATION_ID, USER_NAME);
+        Page<ApplicationListItem> page = new Page<>(Collections.singletonList(app), 1, 1, 1);
+        doReturn(page)
+            .when(applicationService)
+            .search(eq(GraviteeContext.getExecutionContext()), argThat(q -> q.getIds().contains(APPLICATION_ID)), isNull(), any());
+
+        TopHitsAnalytics emptyAnalytics = new TopHitsAnalytics();
+        emptyAnalytics.setValues(new HashMap<>());
+        doReturn(emptyAnalytics).when(analyticsService).execute(eq(GraviteeContext.getExecutionContext()), any(GroupByQuery.class));
+
+        SubscriptionEntity apiSub = new SubscriptionEntity();
+        apiSub.setReferenceId("api-only");
+        apiSub.setApplication(APPLICATION_ID);
+        SubscriptionEntity apiProductSub = new SubscriptionEntity();
+        apiProductSub.setReferenceId("api-product-id");
+        apiProductSub.setReferenceType("API_PRODUCT");
+        apiProductSub.setApplication(APPLICATION_ID);
+        doReturn(Arrays.asList(apiSub, apiProductSub)).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+
+        io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        apiEntity.setId("api-only");
+        doReturn(apiEntity)
+            .when(apiSearchService)
+            .findGenericById(eq(GraviteeContext.getExecutionContext()), eq("api-only"), eq(false), eq(false), eq(true));
+        Api mappedApi = new Api().id("api-only").name("API Only");
+        doReturn(mappedApi).when(apiMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+
+        final Response response = target(APPLICATION_ID).path("subscribers").request().get();
+        assertEquals(OK_200, response.getStatus());
+        ApisResponse apisResponse = response.readEntity(ApisResponse.class);
+        assertEquals(1, apisResponse.getData().size());
+        assertEquals("api-only", apisResponse.getData().get(0).getId());
     }
 }

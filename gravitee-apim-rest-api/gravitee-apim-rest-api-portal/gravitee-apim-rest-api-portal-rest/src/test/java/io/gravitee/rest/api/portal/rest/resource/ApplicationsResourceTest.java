@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
@@ -298,9 +299,6 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         List<SubscriptionEntity> subscriptions = new ArrayList<>(Arrays.asList(sub1, sub2, sub3));
         subscriptions.forEach(s -> s.setStatus(SubscriptionStatus.ACCEPTED));
 
-        SubscriptionQuery query = new SubscriptionQuery();
-        query.setApplications(Arrays.asList("A", "B"));
-        query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED));
         doReturn(subscriptions).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
 
         final Response response = target().request().get();
@@ -310,6 +308,10 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         Links links = applicationsResponse.getLinks();
         assertNotNull(links);
+
+        ArgumentCaptor<SubscriptionQuery> queryCaptor = ArgumentCaptor.forClass(SubscriptionQuery.class);
+        verify(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), queryCaptor.capture());
+        assertEquals(GenericPlanEntity.ReferenceType.API, queryCaptor.getValue().getReferenceType());
 
         Map<String, Object> metadataSubscriptions = applicationsResponse.getMetadata().get(METADATA_SUBSCRIPTIONS_KEY);
 

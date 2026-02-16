@@ -54,6 +54,9 @@ import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryS
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
+import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
+import io.gravitee.apim.infra.json.jackson.JacksonJsonDeserializer;
+import io.gravitee.apim.infra.json.jackson.JacksonJsonSerializer;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
@@ -62,7 +65,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
 import io.gravitee.repository.management.model.ApiKey;
+import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
@@ -93,6 +98,7 @@ import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.application.TlsSettings;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
+import io.gravitee.rest.api.model.subscription.ReferenceDisplayInfo;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -243,8 +249,8 @@ public class SubscriptionServiceTest {
     @Mock
     private SubscriptionValidationService subscriptionValidationService;
 
-    @Mock
-    private SubscriptionAdapter subscriptionAdapter;
+    @Spy
+    private final SubscriptionAdapter subscriptionAdapter = createSubscriptionAdapter();
 
     @Mock
     private AcceptSubscriptionDomainService acceptSubscriptionDomainService;
@@ -264,6 +270,9 @@ public class SubscriptionServiceTest {
 
     @Mock
     private ApiKeyRepository apiKeyRepository;
+
+    @Mock
+    private ApiProductsRepository apiProductsRepository;
 
     @Mock
     private MembershipService membershipService;
@@ -304,16 +313,13 @@ public class SubscriptionServiceTest {
         application = new ApplicationEntity();
         application.setId(APPLICATION_ID);
         application.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
+    }
 
-        when(subscriptionAdapter.map(any())).thenAnswer(invocation -> {
-            io.gravitee.apim.core.subscription.model.SubscriptionEntity core = invocation.getArgument(0);
-            SubscriptionEntity entity = new SubscriptionEntity();
-            entity.setId(core.getId());
-            entity.setStatus(core.getStatus() != null ? SubscriptionStatus.valueOf(core.getStatus().name()) : null);
-            entity.setProcessedBy(core.getProcessedBy());
-            entity.setApplication(core.getApplicationId());
-            return entity;
-        });
+    private static SubscriptionAdapter createSubscriptionAdapter() {
+        SubscriptionAdapterImpl adapter = new SubscriptionAdapterImpl();
+        adapter.setJsonDeserializer(new JacksonJsonDeserializer());
+        adapter.setJsonSerializer(new JacksonJsonSerializer());
+        return adapter;
     }
 
     @Test
@@ -2977,6 +2983,145 @@ public class SubscriptionServiceTest {
 
         // The original request should not be changed
         assertThat(subscriptionEntity.getRequest()).isEqualTo(newSubscriptionEntity.getRequest());
+    }
+
+    @Test
+    public void getReferenceDisplayInfo_returns_empty_when_referenceType_null() {
+        assertThat(subscriptionService.getReferenceDisplayInfo(GraviteeContext.getExecutionContext(), null, "api-1")).isEmpty();
+        verifyNoInteractions(apiSearchService, apiProductsRepository);
+    }
+
+    @Test
+    public void getReferenceDisplayInfo_returns_empty_when_referenceId_null() {
+        assertThat(subscriptionService.getReferenceDisplayInfo(GraviteeContext.getExecutionContext(), "API", null)).isEmpty();
+        verifyNoInteractions(apiSearchService, apiProductsRepository);
+    }
+
+    @Test
+    public void getReferenceDisplayInfo_returns_empty_for_unknown_reference_type() {
+        assertThat(subscriptionService.getReferenceDisplayInfo(GraviteeContext.getExecutionContext(), "UNKNOWN", "id")).isEmpty();
+        verifyNoInteractions(apiSearchService, apiProductsRepository);
+    }
+
+    @Test
+    public void getReferenceDisplayInfo_returns_api_display_info_for_API_type() throws Exception {
+        GenericApiEntity api = mock(GenericApiEntity.class);
+        when(api.getId()).thenReturn(API_ID);
+        when(api.getName()).thenReturn("My API");
+        when(api.getApiVersion()).thenReturn("1.0");
+        when(api.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+        when(api.getPrimaryOwner()).thenReturn(primaryOwnerEntity);
+        when(primaryOwnerEntity.getId()).thenReturn(USER_ID);
+        when(primaryOwnerEntity.getDisplayName()).thenReturn("Owner");
+        when(
+            apiSearchService.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API_ID), eq(false), eq(false), eq(false))
+        ).thenReturn(api);
+
+        Optional<ReferenceDisplayInfo> result = subscriptionService.getReferenceDisplayInfo(
+            GraviteeContext.getExecutionContext(),
+            "API",
+            API_ID
+        );
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo(API_ID);
+        assertThat(result.get().getName()).isEqualTo("My API");
+        assertThat(result.get().getVersion()).isEqualTo("1.0");
+        assertThat(result.get().getOwnerId()).isEqualTo(USER_ID);
+        assertThat(result.get().getOwnerDisplayName()).isEqualTo("Owner");
+        verify(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID, false, false, false);
+    }
+
+    @Test
+    public void getReferenceDisplayInfo_returns_api_product_display_info_for_API_PRODUCT_type() throws Exception {
+        String productId = "product-1";
+        ApiProduct apiProduct = new ApiProduct();
+        apiProduct.setId(productId);
+        apiProduct.setName("My Product");
+        apiProduct.setVersion("2.0");
+        when(apiProductsRepository.findById(productId)).thenReturn(Optional.of(apiProduct));
+        when(
+            membershipService.getPrimaryOwnerUserId(
+                eq(GraviteeContext.getExecutionContext().getOrganizationId()),
+                eq(io.gravitee.rest.api.model.MembershipReferenceType.API_PRODUCT),
+                eq(productId)
+            )
+        ).thenReturn(USER_ID);
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), eq(USER_ID))).thenReturn(
+            io.gravitee.rest.api.model.UserEntity.builder().firstname("Product").lastname("Owner").build()
+        );
+
+        Optional<ReferenceDisplayInfo> result = subscriptionService.getReferenceDisplayInfo(
+            GraviteeContext.getExecutionContext(),
+            "API_PRODUCT",
+            productId
+        );
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo(productId);
+        assertThat(result.get().getName()).isEqualTo("My Product");
+        assertThat(result.get().getVersion()).isEqualTo("2.0");
+        assertThat(result.get().getOwnerDisplayName()).isEqualTo("Product Owner");
+        verify(apiProductsRepository).findById(productId);
+    }
+
+    @Test
+    public void getReferenceDisplayInfo_returns_empty_when_API_lookup_throws() {
+        when(
+            apiSearchService.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API_ID), eq(false), eq(false), eq(false))
+        ).thenThrow(new RuntimeException("API not found"));
+
+        Optional<ReferenceDisplayInfo> result = subscriptionService.getReferenceDisplayInfo(
+            GraviteeContext.getExecutionContext(),
+            "API",
+            API_ID
+        );
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void getReferenceDisplayInfo_returns_empty_when_API_PRODUCT_not_found() throws Exception {
+        when(apiProductsRepository.findById("missing")).thenReturn(Optional.empty());
+
+        Optional<ReferenceDisplayInfo> result = subscriptionService.getReferenceDisplayInfo(
+            GraviteeContext.getExecutionContext(),
+            "API_PRODUCT",
+            "missing"
+        );
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void getReferenceDisplayInfo_returns_api_product_with_empty_display_name_when_user_lookup_fails() throws Exception {
+        String productId = "product-1";
+        ApiProduct apiProduct = new ApiProduct();
+        apiProduct.setId(productId);
+        apiProduct.setName("My Product");
+        when(apiProductsRepository.findById(productId)).thenReturn(Optional.of(apiProduct));
+        when(
+            membershipService.getPrimaryOwnerUserId(
+                eq(GraviteeContext.getExecutionContext().getOrganizationId()),
+                eq(io.gravitee.rest.api.model.MembershipReferenceType.API_PRODUCT),
+                eq(productId)
+            )
+        ).thenReturn(USER_ID);
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), eq(USER_ID))).thenThrow(
+            new RuntimeException("User not found")
+        );
+
+        Optional<ReferenceDisplayInfo> result = subscriptionService.getReferenceDisplayInfo(
+            GraviteeContext.getExecutionContext(),
+            "API_PRODUCT",
+            productId
+        );
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo(productId);
+        assertThat(result.get().getName()).isEqualTo("My Product");
+        assertThat(result.get().getOwnerId()).isEqualTo(USER_ID);
+        assertThat(result.get().getOwnerDisplayName()).isEmpty();
     }
 
     private Map<String, Map<String, Object>> prepareMetadata() {
