@@ -38,11 +38,11 @@ export class PublishJob {
       target === 'nexus'
         ? new commands.Run({
             name: 'Maven Package and deploy to Nexus Snapshots',
-            command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -s ${config.maven.settingsFile} -U`,
+            command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C -s ${config.maven.settingsFile} -U`,
           })
         : new commands.Run({
             name: 'Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)',
-            command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 2C -s ${config.maven.settingsFile} -U -P gio-artifactory-snapshot`,
+            command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C -s ${config.maven.settingsFile} -U -P gio-artifactory-snapshot`,
           }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName }),
