@@ -1,0 +1,99 @@
+{
+  "id": "my-api-v4-three-endpoints-query-params",
+  "name": "my-api-v4-three-endpoints-query-params",
+  "gravitee": "4.0.0",
+  "type": "proxy",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy"
+        }
+      ]
+    }
+  ],
+  "failover": {
+    "enabled": true,
+    "maxRetries": 2,
+    "slowCallDuration": 500,
+    "perSubscription": false
+  },
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/endpoint-1?e=1"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        },
+        {
+          "name": "second",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/endpoint-2?e=2"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        },
+        {
+          "name": "third",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/endpoint-3?e=3"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "flow-1",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "START_WITH",
+          "methods": [
+            "GET"
+          ]
+        }
+      ]
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}
