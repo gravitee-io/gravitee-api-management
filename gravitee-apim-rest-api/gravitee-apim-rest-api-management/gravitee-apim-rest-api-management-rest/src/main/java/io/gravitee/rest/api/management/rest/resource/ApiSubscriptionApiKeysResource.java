@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.ApiKeyService;
@@ -145,7 +146,10 @@ public class ApiSubscriptionApiKeysResource extends AbstractApiKeyResource {
 
     private SubscriptionEntity checkSubscription(String subscription) {
         SubscriptionEntity searchedSubscription = subscriptionService.findById(subscription);
-        if (api.equalsIgnoreCase(searchedSubscription.getApi())) {
+        if (
+            api.equalsIgnoreCase(searchedSubscription.getReferenceId()) &&
+            searchedSubscription.getReferenceType().equalsIgnoreCase(GenericPlanEntity.ReferenceType.API.name())
+        ) {
             return searchedSubscription;
         }
         throw new SubscriptionNotFoundException(subscription);
