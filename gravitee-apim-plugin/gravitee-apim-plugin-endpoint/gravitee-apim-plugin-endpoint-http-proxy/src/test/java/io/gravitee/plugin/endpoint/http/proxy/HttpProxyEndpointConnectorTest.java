@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.ApiType;
@@ -126,6 +127,8 @@ class HttpProxyEndpointConnectorTest {
         lenient().when(ctx.getTracer()).thenReturn(new Tracer(null, new NoOpTracer()));
 
         requestHeaders = HttpHeaders.create();
+        // request.parameters() can't be null. See https://github.com/gravitee-io/gravitee-common/blob/master/src/main/java/io/gravitee/common/util/URIUtils.java#L74
+        lenient().when(request.parameters()).thenReturn(new LinkedMultiValueMap<>());
         lenient().when(request.pathInfo()).thenReturn("");
         lenient().when(request.headers()).thenReturn(requestHeaders);
         lenient().when(request.chunks()).thenReturn(Flowable.empty());

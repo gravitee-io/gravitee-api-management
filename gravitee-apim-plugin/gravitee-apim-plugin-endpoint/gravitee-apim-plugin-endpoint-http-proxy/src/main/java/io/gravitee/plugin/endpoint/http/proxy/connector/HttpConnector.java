@@ -30,14 +30,12 @@ import static io.gravitee.plugin.endpoint.http.proxy.client.UriHelper.URI_QUERY_
 import static io.gravitee.plugin.endpoint.http.proxy.client.UriHelper.URI_QUERY_DELIMITER_CHAR_SEQUENCE;
 
 import io.gravitee.common.http.HttpHeader;
-import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
-import io.gravitee.definition.model.v4.http.ProtocolVersion;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
-import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.api.context.http.HttpResponse;
@@ -285,7 +283,8 @@ public class HttpConnector implements ProxyConnector {
 
     private void prepareUriAndQueryParameters(final HttpExecutionContext ctx, final RequestOptions requestOptions) {
         final HttpRequest request = ctx.request();
-        final MultiValueMap<String, String> requestParameters = request.parameters();
+        final MultiValueMap<String, String> requestParameters = new LinkedMultiValueMap<>();
+        request.parameters().forEach((k, v) -> v.forEach(value -> requestParameters.add(k, value)));
         addParameters(requestParameters, targetParameters);
 
         String customEndpointTarget = ctx.getAttribute(ATTR_REQUEST_ENDPOINT);
