@@ -1,0 +1,52 @@
+openapi: 3.0.3
+info:
+    title: Gravitee.io APIM - Kafka Explorer
+    description: |-
+        Kafka cluster exploration and management API for Gravitee APIM.
+    contact:
+        email: team-apim@graviteesource.com
+    license:
+        name: Apache 2.0
+        url: http://www.apache.org/licenses/LICENSE-2.0.html
+    version: 1.0.0
+
+tags:
+    - name: Kafka Explorer
+      description: Kafka Explorer module information
+
+paths:
+    /kafka-explorer/info:
+        get:
+            tags:
+                - Kafka Explorer
+            summary: Get Kafka Explorer module information
+            description: |
+                Returns information about the Kafka Explorer module including version, status, and available features.
+            operationId: getKafkaExplorerInfo
+            responses:
+                "200":
+                    description: Module information
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerInfoResponse"
+
+components:
+    schemas:
+        KafkaExplorerInfoResponse:
+            type: object
+            properties:
+                version:
+                    type: string
+                    description: Module version
+                status:
+                    type: string
+                    description: Current module status
+                features:
+                    type: array
+                    description: List of available features
+                    items:
+                        type: string
+                message:
+                    type: string
+                    description: Human-readable status message
