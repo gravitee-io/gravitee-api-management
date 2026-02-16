@@ -17,6 +17,9 @@ package io.gravitee.apim.core.gravitee_markdown;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
+import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidator;
+import io.gravitee.apim.core.portal_page.model.PortalPageContent;
+import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -30,7 +33,7 @@ import lombok.RequiredArgsConstructor;
  */
 @DomainService
 @RequiredArgsConstructor
-public class GraviteeMarkdownValidator {
+public class GraviteeMarkdownValidator implements PortalPageContentValidator {
 
     /**
      * Validates that GMD content is not null or empty.
@@ -44,6 +47,19 @@ public class GraviteeMarkdownValidator {
      */
     public void validateNotEmpty(GraviteeMarkdownContainer container) {
         String content = container.getGmdContent();
+        if (content == null || content.trim().isEmpty()) {
+            throw new GraviteeMarkdownContentEmptyException();
+        }
+    }
+
+    @Override
+    public boolean appliesTo(PortalPageContent existingContent) {
+        return existingContent instanceof GraviteeMarkdownContainer;
+    }
+
+    @Override
+    public void validateForUpdate(UpdatePortalPageContent updateContent) {
+        var content = updateContent.getContent();
         if (content == null || content.trim().isEmpty()) {
             throw new GraviteeMarkdownContentEmptyException();
         }
