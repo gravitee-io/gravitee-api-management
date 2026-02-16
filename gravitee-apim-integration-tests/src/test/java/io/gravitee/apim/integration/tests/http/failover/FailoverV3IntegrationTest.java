@@ -21,6 +21,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static io.gravitee.apim.gateway.tests.sdk.utils.URLUtils.exchangePort;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -385,6 +386,40 @@ public class FailoverV3IntegrationTest {
             wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint-1")));
             wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint-2")));
             wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint-3")));
+        }
+
+        @Test
+        @DeployApi("/apis/http/failover/api-three-endpoints-query-params.json")
+        void should_success_on_second_retry_with_endpoint_having_query_params(HttpClient client) {
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // and only one group with 3 endpoints (round-robin load balancing)
+            // And Given backend answers in 750ms on all endpoints, expect the third that answers immediately
+            wiremock.stubFor(get(urlPathEqualTo("/endpoint-1")).willReturn(ok(RESPONSE_FROM_BACKEND + " - 1").withFixedDelay(750)));
+            wiremock.stubFor(get(urlPathEqualTo("/endpoint-2")).willReturn(ok(RESPONSE_FROM_BACKEND + " - 2").withFixedDelay(750)));
+            wiremock.stubFor(get(urlPathEqualTo("/endpoint-3")).willReturn(ok(RESPONSE_FROM_BACKEND + " - 3")));
+
+            // When requesting the API
+            client
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    // Then the API response should be 200
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    // Then the API response body should be the one from third endpoint
+                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND + " - 3");
+                    return true;
+                });
+
+            // Then the backend should have been called 1 time per endpoint (thanks to load balancing)
+            wiremock.verify(getRequestedFor(urlEqualTo("/endpoint-1?e=1")));
+            wiremock.verify(getRequestedFor(urlEqualTo("/endpoint-2?e=2")));
+            wiremock.verify(getRequestedFor(urlEqualTo("/endpoint-3?e=3")));
         }
     }
 
