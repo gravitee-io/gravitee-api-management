@@ -64,7 +64,7 @@ export class GioDiffComponent implements OnChanges {
   public computeDiff() {
     const diff = Diff.createPatch(' ', this.left, this.right);
 
-    this.hasChanges = !!Diff.parsePatch(diff).some((d) => d.hunks.length);
+    this.hasChanges = !!Diff.parsePatch(diff).some(d => d.hunks.length);
     if (!this.hasChanges) {
       this.outputFormat = 'raw';
     }

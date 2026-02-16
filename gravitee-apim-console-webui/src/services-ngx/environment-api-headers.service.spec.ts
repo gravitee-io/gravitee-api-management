@@ -50,7 +50,7 @@ describe('environment api headers service', () => {
   });
 
   describe('getApiHeaders', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakeHeaders = [fakeApiPortalHeaders()];
       environmentApiHeadersService.getApiHeaders().subscribe((headers: ApiPortalHeader[]) => {
         expect(headers).toMatchObject(fakeHeaders);
@@ -63,7 +63,7 @@ describe('environment api headers service', () => {
   });
 
   describe('createApiHeader', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const headerDialogResult: {
         name: string;
         value: string;
@@ -80,7 +80,7 @@ describe('environment api headers service', () => {
   });
 
   describe('updateApiHeader', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiPortalHeader: ApiPortalHeader = fakeApiPortalHeaders();
       environmentApiHeadersService.updateApiHeader(apiPortalHeader).subscribe(() => {
         done();
@@ -101,7 +101,7 @@ describe('environment api headers service', () => {
   });
 
   describe('deleteApiHeader', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const apiPortalHeader: ApiPortalHeader = fakeApiPortalHeaders();
       environmentApiHeadersService.deleteApiHeader(apiPortalHeader).subscribe(() => {
         done();

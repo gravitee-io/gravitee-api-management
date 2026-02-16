@@ -59,7 +59,7 @@ export class ApiAnalyticsV2Service {
 
   getRequestsCount(apiId: string): Observable<AnalyticsRequestsCount> {
     return this.timeRangeFilter().pipe(
-      filter((data) => !!data),
+      filter(data => !!data),
       switchMap(({ from, to }) => {
         const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/requests-count?from=${from}&to=${to}`;
         return this.http.get<AnalyticsRequestsCount>(url);
@@ -69,7 +69,7 @@ export class ApiAnalyticsV2Service {
 
   getAverageConnectionDuration(apiId: string): Observable<AnalyticsAverageConnectionDuration> {
     return this.timeRangeFilter().pipe(
-      filter((data) => !!data),
+      filter(data => !!data),
       switchMap(({ from, to }) => {
         const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/average-connection-duration?from=${from}&to=${to}`;
         return this.http.get<AnalyticsAverageConnectionDuration>(url);
@@ -79,7 +79,7 @@ export class ApiAnalyticsV2Service {
 
   getAverageMessagesPerRequest(apiId: string): Observable<AnalyticsAverageMessagesPerRequest> {
     return this.timeRangeFilter().pipe(
-      filter((data) => !!data),
+      filter(data => !!data),
       switchMap(({ from, to }) => {
         const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/average-messages-per-request?from=${from}&to=${to}`;
         return this.http.get<AnalyticsAverageMessagesPerRequest>(url);
@@ -89,7 +89,7 @@ export class ApiAnalyticsV2Service {
 
   getResponseStatusRanges(apiId: string): Observable<AnalyticsResponseStatusRanges> {
     return this.timeRangeFilter().pipe(
-      filter((data) => !!data),
+      filter(data => !!data),
       switchMap(({ from, to }) => {
         const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-status-ranges?from=${from}&to=${to}`;
         return this.http.get<AnalyticsResponseStatusRanges>(url);
@@ -99,7 +99,7 @@ export class ApiAnalyticsV2Service {
 
   getResponseTimeOverTime(apiId: string): Observable<AnalyticsResponseTimeOverTime> {
     return this.timeRangeFilter().pipe(
-      filter((data) => !!data),
+      filter(data => !!data),
       switchMap(({ from, to }) => {
         const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-time-over-time?from=${from}&to=${to}`;
         return this.http.get<AnalyticsResponseTimeOverTime>(url);

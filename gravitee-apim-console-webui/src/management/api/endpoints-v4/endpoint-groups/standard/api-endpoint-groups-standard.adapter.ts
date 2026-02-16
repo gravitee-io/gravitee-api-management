@@ -53,13 +53,13 @@ const toEndpointsFromApiV4 = (api: ApiV4, tenants: Tenant[]): EndpointGroup[] =>
     return [];
   }
 
-  const isNativeKafkaApi = api.type === 'NATIVE' && api.listeners.some((listener) => listener.type === 'KAFKA');
+  const isNativeKafkaApi = api.type === 'NATIVE' && api.listeners.some(listener => listener.type === 'KAFKA');
 
   return api.endpointGroups.flatMap((endpointGroup, endpointGroupIndex) => {
     const loadBalancerType = endpointGroup?.loadBalancer?.type?.replace(/_/g, ' ');
     const endpointsDisplayedColumns = ['drag-icon', 'name', 'general', 'options', 'tenants', 'weight', 'actions'];
     if (api.type === 'NATIVE') {
-      remove(endpointsDisplayedColumns, (o) => o === 'weight');
+      remove(endpointsDisplayedColumns, o => o === 'weight');
     }
     const partialEndpointGroup = {
       name: endpointGroup.name,
@@ -83,7 +83,7 @@ const toEndpointsFromApiV4 = (api: ApiV4, tenants: Tenant[]): EndpointGroup[] =>
                 general: toGeneralInfo(api, endpoint),
                 nameBadge,
                 options,
-                tenants: endpoint.tenants?.map((tenantId) => tenants.find((tenant) => tenant.id === tenantId)?.name ?? tenantId),
+                tenants: endpoint.tenants?.map(tenantId => tenants.find(tenant => tenant.id === tenantId)?.name ?? tenantId),
                 weight: endpoint.weight,
                 configuration: endpoint.configuration,
               } satisfies Endpoint;
@@ -92,16 +92,16 @@ const toEndpointsFromApiV4 = (api: ApiV4, tenants: Tenant[]): EndpointGroup[] =>
       endpointsDisplayedColumns,
     };
 
-    if (!partialEndpointGroup.endpoints.some((endpoint) => endpoint.options.length > 0)) {
-      remove(endpointsDisplayedColumns, (o) => o === 'options');
+    if (!partialEndpointGroup.endpoints.some(endpoint => endpoint.options.length > 0)) {
+      remove(endpointsDisplayedColumns, o => o === 'options');
     }
 
-    if (!partialEndpointGroup.endpoints.some((endpoint) => endpoint.tenants?.length > 0)) {
-      remove(endpointsDisplayedColumns, (o) => o === 'tenants');
+    if (!partialEndpointGroup.endpoints.some(endpoint => endpoint.tenants?.length > 0)) {
+      remove(endpointsDisplayedColumns, o => o === 'tenants');
     }
 
     if (isEmpty(partialEndpointGroup.generalColumnName)) {
-      remove(endpointsDisplayedColumns, (o) => o === 'general');
+      remove(endpointsDisplayedColumns, o => o === 'general');
     }
 
     return {

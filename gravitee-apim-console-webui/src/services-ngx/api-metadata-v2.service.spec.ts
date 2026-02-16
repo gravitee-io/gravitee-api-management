@@ -49,7 +49,7 @@ describe('ApiMetadataV2Service', () => {
       { queryParams: { source: 'GLOBAL', sortBy: '-name' }, queryURL: '?page=1&perPage=10&source=GLOBAL&sortBy=-name' },
     ])('call the service with: $queryParams should call API with: $queryURL', ({ queryParams, queryURL }: any, done: jest.DoneCallback) => {
       const fakeResponse = fakeMetadataResponse({ data: [fakeMetadata()] });
-      service.search(API_ID, queryParams).subscribe((apiPlansResponse) => {
+      service.search(API_ID, queryParams).subscribe(apiPlansResponse => {
         expect(apiPlansResponse.data).toEqual(fakeResponse.data);
         done();
       });

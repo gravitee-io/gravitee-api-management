@@ -25,7 +25,7 @@ export function hostAsyncValidator(apiV2Service: ApiV2Service, apiId?: string, l
     if (formControl && formControl.dirty) {
       return timer(250).pipe(
         switchMap(() => apiV2Service.verifyHosts(apiId, listenerType, [formControl.value])),
-        map((res) => (res.ok ? null : { listeners: res.reason })),
+        map(res => (res.ok ? null : { listeners: res.reason })),
       );
     }
     return of(null);

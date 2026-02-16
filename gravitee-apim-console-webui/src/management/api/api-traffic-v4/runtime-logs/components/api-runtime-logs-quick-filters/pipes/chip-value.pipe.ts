@@ -30,7 +30,7 @@ export class ChipValuePipe implements PipeTransform {
 
     if (Array.isArray(filter)) {
       return filter
-        .map((value) => {
+        .map(value => {
           if (value.label) {
             return value.label;
           }

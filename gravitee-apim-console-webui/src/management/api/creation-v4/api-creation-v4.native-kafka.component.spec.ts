@@ -304,7 +304,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
       discardPeriodicTasks();
       const step5Harness = await harnessLoader.getHarness(Step5SummaryHarness);
       // httpExpects.expectApiGetPortalConfiguration();
-      expect(await step5Harness.getDeployMyApiButton().then((btn) => btn.isDisabled())).toEqual(true);
+      expect(await step5Harness.getDeployMyApiButton().then(btn => btn.isDisabled())).toEqual(true);
     }));
   });
 });

@@ -86,7 +86,7 @@ export class SharedPolicyGroupsAddEditDialogComponent {
     const apiType = isEdit(data) ? data.sharedPolicyGroup.apiType : data.apiType;
 
     this.apiTypeLabel = apiType === 'MESSAGE' ? 'Message' : 'Proxy';
-    this.phases = PHASE_BY_API_TYPE[apiType].map((phase) => ({ name: toReadableFlowPhase(phase), value: phase }));
+    this.phases = PHASE_BY_API_TYPE[apiType].map(phase => ({ name: toReadableFlowPhase(phase), value: phase }));
 
     this.formGroup = new FormGroup({
       name: new FormControl(isEdit(data) ? data.sharedPolicyGroup.name : '', Validators.required),
@@ -100,7 +100,7 @@ export class SharedPolicyGroupsAddEditDialogComponent {
 
     this.isValid$ = this.formGroup.statusChanges.pipe(
       startWith(this.formGroup.status),
-      map((status) => status === 'VALID'),
+      map(status => status === 'VALID'),
     );
   }
 

@@ -29,13 +29,13 @@ class RoleService {
   }
 
   listScopes() {
-    return this.fetchScopes().then((permissionsByScope) => {
+    return this.fetchScopes().then(permissionsByScope => {
       return permissionsByScope;
     });
   }
 
   listPermissionsByScope(scope: string) {
-    return this.fetchScopes().then((permissionsByScope) => {
+    return this.fetchScopes().then(permissionsByScope => {
       return permissionsByScope[scope];
     });
   }
@@ -45,7 +45,7 @@ class RoleService {
   }
 
   get(roleScope, roleName) {
-    return this.$http.get(`${this.Constants.org.baseURL}/configuration/rolescopes/` + roleScope + '/roles/' + roleName).then((response) => {
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/rolescopes/` + roleScope + '/roles/' + roleName).then(response => {
       const role = response.data;
       role.scope = toUpper(role.scope);
       return role;
@@ -53,7 +53,7 @@ class RoleService {
   }
 
   list(scope: string) {
-    return this.$http.get(`${this.Constants.org.baseURL}/configuration/rolescopes/` + scope + '/roles').then((response) => {
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/rolescopes/` + scope + '/roles').then(response => {
       return map(response.data, (role: any) => {
         role.scope = toUpper(role.scope);
         return role;
@@ -62,7 +62,7 @@ class RoleService {
   }
 
   create(role) {
-    return this.$http.post(`${this.Constants.org.baseURL}/configuration/rolescopes/` + role.scope + '/roles', role).then((response) => {
+    return this.$http.post(`${this.Constants.org.baseURL}/configuration/rolescopes/` + role.scope + '/roles', role).then(response => {
       const role = response.data;
       role.scope = toUpper(role.scope);
       return role;
@@ -72,7 +72,7 @@ class RoleService {
   update(role) {
     return this.$http
       .put(`${this.Constants.org.baseURL}/configuration/rolescopes/` + role.scope + '/roles/' + role.name, role)
-      .then((response) => {
+      .then(response => {
         const role = response.data;
         role.scope = toUpper(role.scope);
         return role;
@@ -86,7 +86,7 @@ class RoleService {
   listUsers(roleScope, roleName) {
     return this.$http
       .get(`${this.Constants.org.baseURL}/configuration/rolescopes/` + roleScope + '/roles/' + roleName + '/users')
-      .then((response) => response.data);
+      .then(response => response.data);
   }
 
   deleteUser(role, username) {
@@ -103,7 +103,7 @@ class RoleService {
     if (this.permissionsByScope) {
       return this.$q.resolve(this.permissionsByScope);
     } else {
-      return this.$http.get(`${this.Constants.org.baseURL}/configuration/rolescopes/`).then((response) => {
+      return this.$http.get(`${this.Constants.org.baseURL}/configuration/rolescopes/`).then(response => {
         this.permissionsByScope = response.data;
         return this.permissionsByScope;
       });

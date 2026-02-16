@@ -93,7 +93,7 @@ describe('GioFormListenersTcpHostsModule', () => {
       const hostRows = await formHosts.getListenerRows();
 
       const hosts = await Promise.all(
-        hostRows.map(async (row) => ({
+        hostRows.map(async row => ({
           host: await row.hostInput.getValue(),
         })),
       );
@@ -243,8 +243,8 @@ describe('GioFormListenersTcpHostsModule', () => {
 
       await formHosts
         .getAddButton()
-        .then((_) => fail('The add button should not appear'))
-        .catch((err) => expect(err).toBeTruthy());
+        .then(_ => fail('The add button should not appear'))
+        .catch(err => expect(err).toBeTruthy());
     });
   });
 
@@ -341,8 +341,8 @@ describe('GioFormListenersTcpHostsModule', () => {
 
         const req = httpTestingController.match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/hosts`, method: 'POST' });
         req
-          .filter((r) => !r.cancelled)
-          .forEach((req) => {
+          .filter(r => !r.cancelled)
+          .forEach(req => {
             expect(req.request.body.apiId).toEqual('api-id');
           });
         httpTestingController.verify({ ignoreCancelled: true });
@@ -353,8 +353,8 @@ describe('GioFormListenersTcpHostsModule', () => {
   const expectApiVerify = (inError = false) => {
     httpTestingController
       .match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/hosts`, method: 'POST' })
-      .filter((r) => !r.cancelled)
-      .map((c) => c.flush({ ok: !inError, reason: inError ? 'error reason' : '' }));
+      .filter(r => !r.cancelled)
+      .map(c => c.flush({ ok: !inError, reason: inError ? 'error reason' : '' }));
   };
 
   function expectVerifyHosts(hosts: string[], withApiId = false) {

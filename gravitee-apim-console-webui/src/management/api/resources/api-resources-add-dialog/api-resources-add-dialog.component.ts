@@ -83,16 +83,16 @@ export class ApiResourcesAddDialogComponent {
       startWith({ search: '', category: undefined }),
       map(({ category, search }) => {
         return data.resources
-          .filter((r) => isEmpty(category) || category.includes(r.category ?? 'others'))
-          .filter((policy) => {
+          .filter(r => isEmpty(category) || category.includes(r.category ?? 'others'))
+          .filter(policy => {
             return search ? toLower(policy.name).includes(toLower(search)) : true;
           });
       }),
 
-      map((resources) => resources.sort((a, b) => a.id.localeCompare(b.id))),
+      map(resources => resources.sort((a, b) => a.id.localeCompare(b.id))),
     );
 
-    this.categories = Array.from(new Set(data.resources.map((r) => r.category ?? 'others')))
+    this.categories = Array.from(new Set(data.resources.map(r => r.category ?? 'others')))
       // sort and add others at the end
       .sort((a, b) => a.localeCompare(b))
       .sort((a, b) => (a === 'others' ? 1 : b === 'others' ? -1 : 0));
@@ -100,7 +100,7 @@ export class ApiResourcesAddDialogComponent {
 
   public select() {
     this.dialogRef.close({
-      resource: this.data.resources.find((r) => r.id === this.resourceSelect.value),
+      resource: this.data.resources.find(r => r.id === this.resourceSelect.value),
     });
   }
 }

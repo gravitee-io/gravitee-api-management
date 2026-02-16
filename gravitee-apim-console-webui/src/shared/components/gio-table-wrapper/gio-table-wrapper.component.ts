@@ -130,11 +130,11 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
     this.changeDetectorRef.detectChanges();
 
     // Keep top and bottom paginator in sync.
-    this.paginatorTop.page.pipe(takeUntil(this.unsubscribe$)).subscribe((page) => {
+    this.paginatorTop.page.pipe(takeUntil(this.unsubscribe$)).subscribe(page => {
       this.paginatorBottom.pageIndex = page.pageIndex;
       this.paginatorBottom.pageSize = page.pageSize;
     });
-    this.paginatorBottom.page.pipe(takeUntil(this.unsubscribe$)).subscribe((page) => {
+    this.paginatorBottom.page.pipe(takeUntil(this.unsubscribe$)).subscribe(page => {
       this.paginatorTop.pageIndex = page.pageIndex;
       this.paginatorTop.pageSize = page.pageSize;
     });
@@ -148,7 +148,7 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
       this.sort?.sortChange,
     ];
 
-    merge(...observableToMerge.filter((observable) => !!observable))
+    merge(...observableToMerge.filter(observable => !!observable))
       .pipe(
         map(() => {
           // In each event get all values
@@ -183,7 +183,7 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
         startWith(this.filters ?? INITIAL_FILTERS_VALUE),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((filters) => {
+      .subscribe(filters => {
         this.filters = filters;
         this.filtersChange.emit(filters);
       });

@@ -43,7 +43,7 @@ class AnalyticsService {
   analytics(request) {
     let url = `${this.Constants.env.baseURL}/platform/analytics` + '?';
     const keys = Object.keys(request);
-    forEach(keys, (key) => {
+    forEach(keys, key => {
       const val = request[key];
       if (val !== null && val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -80,7 +80,7 @@ class AnalyticsService {
     const q = activatedRoute?.snapshot?.queryParams?.q;
     if (q) {
       const queryFilters = {};
-      q.split(/\s(OR|AND)\s/).forEach((q) => {
+      q.split(/\s(OR|AND)\s/).forEach(q => {
         if (q.includes(':')) {
           const keyParam = this.cleanParam(q.substring(0, q.indexOf(':')));
           const valueParam = this.cleanParam(q.substring(q.indexOf(':') + 1));
@@ -118,7 +118,7 @@ class AnalyticsService {
   }
 
   setFetchedLogs(logs) {
-    this.logs = logs.map((log) => log.id);
+    this.logs = logs.map(log => log.id);
   }
 
   getFetchedLogs() {
@@ -130,7 +130,7 @@ class AnalyticsService {
    */
   private buildURLWithQuery(query: LogsQuery, url) {
     const keys = Object.keys(query);
-    forEach(keys, (key) => {
+    forEach(keys, key => {
       const val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';

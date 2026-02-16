@@ -67,6 +67,6 @@ export class PolicyService {
       .get(`${this.constants.env.baseURL}/policies/${policyId}/documentation`, {
         responseType: 'text',
       })
-      .pipe(map((buffer) => buffer.toString()));
+      .pipe(map(buffer => buffer.toString()));
   }
 }

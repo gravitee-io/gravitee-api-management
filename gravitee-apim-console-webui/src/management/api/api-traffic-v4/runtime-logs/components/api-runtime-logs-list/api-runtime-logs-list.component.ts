@@ -107,10 +107,10 @@ export class ApiRuntimeLogsListComponent {
           localStorage.getItem(`${this.constants.org.currentEnv.id}-${this.apiType}-logs-list-visible-columns`),
         );
         this.displayedColumnsOption = storedColumns;
-        const displayedColumns = Object.keys(storedColumns).filter((key) => storedColumns[key]);
+        const displayedColumns = Object.keys(storedColumns).filter(key => storedColumns[key]);
         this.displayedColumns.set(displayedColumns);
       } else {
-        this.displayedColumns.set(this.columnsAvailable().map((c) => c.name));
+        this.displayedColumns.set(this.columnsAvailable().map(c => c.name));
         this.displayedColumnsOption = this.displayedColumns().reduce(
           (acc, curr) => {
             acc[curr] = true;

@@ -60,7 +60,7 @@ export class MissingDataConditionComponent implements OnInit {
     const { duration, timeUnit } = this.alertToUpdate.conditions[0] as MissingDataCondition;
 
     this.form.patchValue({
-      timeUnit: this.timeUnits.find((i) => i.toLowerCase() === timeUnit?.toString()?.toLowerCase()),
+      timeUnit: this.timeUnits.find(i => i.toLowerCase() === timeUnit?.toString()?.toLowerCase()),
       duration,
     });
   }

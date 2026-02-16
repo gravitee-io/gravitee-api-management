@@ -40,7 +40,7 @@ export const IsLoggedInGuard: CanActivateFn = (_route: ActivatedRouteSnapshot, s
 
   return authService.checkAuth().pipe(
     switchMap(() => currentUserService.current()),
-    map((user) => {
+    map(user => {
       if (!user) {
         throw new Error('User not logged in!');
       }

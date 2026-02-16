@@ -73,7 +73,7 @@ export class TopFailedApisComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (res) => {
+        next: res => {
           this.topFailedApis = res.data;
           this.isLoading = false;
           this.onFiltersChanged(this.tableFilters);

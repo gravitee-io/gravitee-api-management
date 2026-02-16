@@ -146,7 +146,7 @@ export abstract class BaseFilterBarHarness extends ComponentHarness {
 
   async hasDateRangeError(): Promise<boolean> {
     const errors = await this.getErrorMessages();
-    return errors.some((error) => error.toLowerCase().includes('date range') || error.toLowerCase().includes('earlier'));
+    return errors.some(error => error.toLowerCase().includes('date range') || error.toLowerCase().includes('earlier'));
   }
 
   async getFormValidationState(): Promise<{ isValid: boolean; errors: string[] }> {

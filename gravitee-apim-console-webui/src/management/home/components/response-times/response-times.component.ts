@@ -57,7 +57,7 @@ export class ResponseTimesComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (analyticsV4AverageResponseTimes) => {
+        next: analyticsV4AverageResponseTimes => {
           this.chartInput = [
             {
               name: 'Response time (ms)',

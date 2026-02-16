@@ -55,7 +55,7 @@ export class DashboardService {
     // Filtering
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      list = list.filter((d) => d.name.toLowerCase().includes(term));
+      list = list.filter(d => d.name.toLowerCase().includes(term));
     }
 
     // Sorting

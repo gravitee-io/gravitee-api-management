@@ -165,7 +165,7 @@ describe('ApiLogsConfigurationComponent', () => {
       });
       expectApiGetRequest(api);
 
-      await loader.getHarness(MatSlideToggleHarness).then((toggle) => toggle.toggle());
+      await loader.getHarness(MatSlideToggleHarness).then(toggle => toggle.toggle());
       fixture.detectChanges();
 
       const modeGroup = await loader.getHarness(
@@ -186,7 +186,7 @@ describe('ApiLogsConfigurationComponent', () => {
       await contentGroup.select('HEADERS');
       expect(await contentGroup.getSelectedValue()).toStrictEqual('HEADERS');
 
-      await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.clickSubmit());
+      await loader.getHarness(GioSaveBarHarness).then(saveBar => saveBar.clickSubmit());
 
       expectApiGetRequest(api);
       expectApiPutRequest({
@@ -211,10 +211,10 @@ describe('ApiLogsConfigurationComponent', () => {
       });
       expectApiGetRequest(api);
 
-      await loader.getHarness(MatSlideToggleHarness).then((toggle) => toggle.toggle());
+      await loader.getHarness(MatSlideToggleHarness).then(toggle => toggle.toggle());
       fixture.detectChanges();
 
-      await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.clickSubmit());
+      await loader.getHarness(GioSaveBarHarness).then(saveBar => saveBar.clickSubmit());
 
       expectApiGetRequest(api);
       expectApiPutRequestError(api.id);
@@ -245,8 +245,8 @@ describe('ApiLogsConfigurationComponent', () => {
         expect(await group.isDisabled()).toBe(true);
       }
 
-      expect(await loader.getHarness(MatSlideToggleHarness).then((toggle) => toggle.isDisabled())).toStrictEqual(true);
-      expect(await loader.getHarness(MatInputHarness).then((input) => input.isDisabled())).toStrictEqual(true);
+      expect(await loader.getHarness(MatSlideToggleHarness).then(toggle => toggle.isDisabled())).toStrictEqual(true);
+      expect(await loader.getHarness(MatInputHarness).then(input => input.isDisabled())).toStrictEqual(true);
     });
   });
 

@@ -50,7 +50,7 @@ class ApiImportDialogStoryComponent {
       })
       .afterClosed()
       .pipe(
-        tap((confirmed) => {
+        tap(confirmed => {
           action('confirmed?')(confirmed);
         }),
       )
@@ -88,7 +88,7 @@ export default {
       type: { name: 'object', value: {} },
     },
   },
-  render: (args) => ({
+  render: args => ({
     template: `<gio-api-import-dialog-story [policies]="policies" [apiId]="apiId"></gio-api-import-dialog-story>`,
     props: { ...args },
   }),
@@ -98,7 +98,7 @@ export default {
 } as Meta;
 
 export const Default: StoryObj = {
-  play: (context) => {
+  play: context => {
     const button = context.canvasElement.querySelector('#open-dialog') as HTMLButtonElement;
     button.click();
   },
@@ -140,7 +140,7 @@ Default.args = {
 };
 
 export const UpdateMode: StoryObj = {
-  play: (context) => {
+  play: context => {
     const button = context.canvasElement.querySelector('#open-dialog') as HTMLButtonElement;
     button.click();
   },

@@ -39,12 +39,12 @@ describe('NotificationTemplateService', () => {
   });
 
   describe('search', () => {
-    it('should return the list of NotificationTemplate', (done) => {
+    it('should return the list of NotificationTemplate', done => {
       const hook = 'hook1';
       const scope = 'scope1';
       const notificationTemplates = [fakeNotificationTemplate()];
 
-      notificationTemplateService.search({ scope, hook }).subscribe((response) => {
+      notificationTemplateService.search({ scope, hook }).subscribe(response => {
         expect(response).toEqual(notificationTemplates);
         done();
       });
@@ -56,10 +56,10 @@ describe('NotificationTemplateService', () => {
       req.flush(notificationTemplates);
     });
 
-    it('should works without search params', (done) => {
+    it('should works without search params', done => {
       const notificationTemplates = [fakeNotificationTemplate()];
 
-      notificationTemplateService.search().subscribe((response) => {
+      notificationTemplateService.search().subscribe(response => {
         expect(response).toEqual(notificationTemplates);
         done();
       });
@@ -69,7 +69,7 @@ describe('NotificationTemplateService', () => {
       req.flush(notificationTemplates);
     });
 
-    it('should works with empty search params', (done) => {
+    it('should works with empty search params', done => {
       const notificationTemplates = [fakeNotificationTemplate()];
 
       notificationTemplateService
@@ -77,7 +77,7 @@ describe('NotificationTemplateService', () => {
           scope: '',
           hook: '',
         })
-        .subscribe((response) => {
+        .subscribe(response => {
           expect(response).toEqual(notificationTemplates);
           done();
         });
@@ -89,7 +89,7 @@ describe('NotificationTemplateService', () => {
   });
 
   describe('create', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const notificationTemplate = {
         content: 'Content',
         created_at: 1633417938291,
@@ -103,7 +103,7 @@ describe('NotificationTemplateService', () => {
 
       const createdNotificationTemplate = fakeNotificationTemplate({ ...notificationTemplate, id: 'templateId' });
 
-      notificationTemplateService.create(notificationTemplate).subscribe((response) => {
+      notificationTemplateService.create(notificationTemplate).subscribe(response => {
         expect(response).toEqual(createdNotificationTemplate);
         done();
       });
@@ -116,10 +116,10 @@ describe('NotificationTemplateService', () => {
   });
 
   describe('update', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const updatedNotificationTemplate = fakeNotificationTemplate();
 
-      notificationTemplateService.update(updatedNotificationTemplate).subscribe((response) => {
+      notificationTemplateService.update(updatedNotificationTemplate).subscribe(response => {
         expect(response).toEqual(updatedNotificationTemplate);
         done();
       });

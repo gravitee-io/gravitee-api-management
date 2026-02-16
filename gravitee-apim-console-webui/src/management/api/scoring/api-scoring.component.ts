@@ -88,7 +88,7 @@ export class ApiScoringComponent implements OnInit {
           sourceId: this.apiId,
         }),
       ),
-      map((response) => {
+      map(response => {
         response?.data?.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
         const lastJob = response?.data?.[0];
         if (lastJob?.updatedAt && 3_600_000 > new Date().getTime() - new Date(lastJob?.updatedAt).getTime()) {
@@ -109,7 +109,7 @@ export class ApiScoringComponent implements OnInit {
   private initialize() {
     this.isScoringRequestPending()
       .pipe(
-        switchMap((isPending) => {
+        switchMap(isPending => {
           return combineLatest([this.apiService.get(this.apiId), this.apiScoringService.getApiScoring(this.apiId)]).pipe(
             map(([api, apiScoring]) => {
               return {
@@ -145,7 +145,7 @@ export class ApiScoringComponent implements OnInit {
             }
           }
         },
-        error: (e) => {
+        error: e => {
           this.isLoading = false;
           this.snackBarService.error(e.error?.message ?? 'An error occurred while getting your API Scoring.');
         },
@@ -175,8 +175,8 @@ export class ApiScoringComponent implements OnInit {
 
   private getEvaluationErrors(apiScoring: ApiScoring): ScoreEvaluationErrors[] {
     return apiScoring.assets
-      .filter((asset) => asset?.errors?.length > 0)
-      .map((asset) => ({
+      .filter(asset => asset?.errors?.length > 0)
+      .map(asset => ({
         assetName: asset.name,
         errors: asset.errors,
       }));
@@ -184,12 +184,12 @@ export class ApiScoringComponent implements OnInit {
 
   private formatEvaluationErrors(evaluationErrors: ScoreEvaluationErrors[]): string {
     let errorMessage = 'Errors occurred while scoring this API:';
-    evaluationErrors.forEach((asset) => {
+    evaluationErrors.forEach(asset => {
       errorMessage += '\n';
       if (asset.assetName) {
         errorMessage += '\nAsset: ' + asset.assetName;
       }
-      asset.errors.forEach((error) => {
+      asset.errors.forEach(error => {
         errorMessage += '\nCode: ' + error.code + '\n' + 'Path: ' + error.path.toString();
       });
     });

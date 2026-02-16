@@ -84,7 +84,7 @@ describe('WebhookLogsQuickFiltersComponent', () => {
 
   it('should emit active period when selection changes', () => {
     const filtersSpy = jest.spyOn(component.filtersChanged, 'emit');
-    const nonDefaultPeriod = component.periods.find((period) => period.value !== DEFAULT_PERIOD.value)!;
+    const nonDefaultPeriod = component.periods.find(period => period.value !== DEFAULT_PERIOD.value)!;
     component.quickFiltersForm.setValue({
       statuses: [],
       applications: [],

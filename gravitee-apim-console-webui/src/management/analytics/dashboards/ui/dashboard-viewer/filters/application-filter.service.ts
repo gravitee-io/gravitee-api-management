@@ -31,8 +31,8 @@ export class ApplicationFilterService {
 
   resultsLoader = (input: ResultsLoaderInput): Observable<ResultsLoaderOutput> => {
     return this.applicationService.list('ACTIVE', input.searchTerm, undefined, input.page, this.itemsPerPage).pipe(
-      map((response) => ({
-        data: response.data.map((cluster) => ({ value: cluster.id, label: cluster.name }) satisfies SelectOption),
+      map(response => ({
+        data: response.data.map(cluster => ({ value: cluster.id, label: cluster.name }) satisfies SelectOption),
         hasNextPage: response.page.total_pages > input.page,
       })),
     );

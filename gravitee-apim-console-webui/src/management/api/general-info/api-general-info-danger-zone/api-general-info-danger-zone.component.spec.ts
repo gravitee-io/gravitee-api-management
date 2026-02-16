@@ -207,7 +207,7 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
     createComponent(api);
 
     const upgradeButton = fixture.debugElement.query(
-      (elem) => elem.name === 'button' && elem.nativeElement.textContent === 'Request upgrade',
+      elem => elem.name === 'button' && elem.nativeElement.textContent === 'Request upgrade',
     );
     expect(upgradeButton).toBeNull();
   });
@@ -222,7 +222,7 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
     expectApiVerifyDeployment(api, false);
 
     const upgradeButton = fixture.debugElement.query(
-      (elem) => elem.name === 'button' && elem.nativeElement.textContent === 'Request upgrade',
+      elem => elem.name === 'button' && elem.nativeElement.textContent === 'Request upgrade',
     );
     expectLicenseGetRequest();
     expect(upgradeButton).not.toBeNull();

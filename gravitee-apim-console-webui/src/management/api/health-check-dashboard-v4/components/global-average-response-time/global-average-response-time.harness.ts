@@ -22,6 +22,6 @@ export class AverageResponseTimeHarness extends ComponentHarness {
   private widget = this.locatorForOptional(SpanHarness.with({ selector: '[data-testid=averageResponseTime]' }));
 
   public async getWidgetValue() {
-    return await this.widget().then((value) => value.getText());
+    return await this.widget().then(value => value.getText());
   }
 }

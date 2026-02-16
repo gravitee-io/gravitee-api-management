@@ -140,7 +140,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
       period: new UntypedFormControl({ value: DEFAULT_PERIOD, disabled: true }),
       entrypoints: new UntypedFormControl({ value: this.initialValues.entrypoints, disabled: true }),
       plans: new UntypedFormControl({
-        value: this.initialValues.plans?.map((plan) => plan.value) ?? DEFAULT_FILTERS.plans,
+        value: this.initialValues.plans?.map(plan => plan.value) ?? DEFAULT_FILTERS.plans,
         disabled: true,
       }),
       methods: new UntypedFormControl({ value: this.initialValues.methods, disabled: true }),
@@ -198,7 +198,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
   }
 
   private onQuickFiltersFormChanges() {
-    this.quickFiltersForm.valueChanges.pipe(distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$)).subscribe((values) => {
+    this.quickFiltersForm.valueChanges.pipe(distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$)).subscribe(values => {
       if (values.period && values.period === DEFAULT_PERIOD) {
         this.moreFiltersValues = { ...this.moreFiltersValues, period: values.period };
       } else {
@@ -233,8 +233,8 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
 
   private plansFromValues(ids: string[]): MultiFilter {
     return ids?.length > 0
-      ? ids.map((id) => {
-          const plan = this.plans.find((p) => p.id === id);
+      ? ids.map(id => {
+          const plan = this.plans.find(p => p.id === id);
           return { label: plan.name, value: plan.id };
         })
       : DEFAULT_FILTERS.plans;

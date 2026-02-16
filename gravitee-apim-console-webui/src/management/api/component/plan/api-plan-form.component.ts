@@ -357,7 +357,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
       .pipe(
         map(() => this.getPlanFormValue()),
         distinctUntilChanged(isEqual),
-        tap((plan) => {
+        tap(plan => {
           this._onChange(plan);
           this._onTouched();
         }),
@@ -396,9 +396,9 @@ const planToInternalFormValue = (
   const restriction: InternalPlanFormValue['restriction'] = {};
   if (mode === 'create' && plan.flows?.length > 0) {
     if (isV2Api) {
-      const flow = plan.flows.map((flow) => flow as FlowV2)[0];
+      const flow = plan.flows.map(flow => flow as FlowV2)[0];
       if (flow.enabled) {
-        flow.pre.forEach((step) => {
+        flow.pre.forEach(step => {
           if (step.policy === 'rate-limit' && step.enabled) {
             restriction.rateLimitEnabled = true;
             restriction.rateLimitConfig = step.configuration;
@@ -414,9 +414,9 @@ const planToInternalFormValue = (
         });
       }
     } else {
-      const flow = plan.flows.map((flow) => flow as FlowV4)[0];
+      const flow = plan.flows.map(flow => flow as FlowV4)[0];
       if (flow.enabled) {
-        flow.request.forEach((step) => {
+        flow.request.forEach(step => {
           if (step.policy === 'rate-limit' && step.enabled) {
             restriction.rateLimitEnabled = true;
             restriction.rateLimitConfig = step.configuration;

@@ -47,7 +47,7 @@ class GioInformationDialogStoryComponent {
       })
       .afterClosed()
       .pipe(
-        tap((confirmed) => {
+        tap(confirmed => {
           action('confirmed?')(confirmed);
         }),
       )
@@ -72,7 +72,7 @@ export default {
       type: { name: 'object', value: {} },
     },
   },
-  render: (args) => ({
+  render: args => ({
     template: `<gio-connector-dialog-story [name]="name" [pluginMoreInformation]="pluginMoreInformation"></gio-connector-dialog-story>`,
     props: { ...args },
   }),
@@ -82,7 +82,7 @@ export default {
 } as Meta;
 
 export const Default: StoryObj = {
-  play: (context) => {
+  play: context => {
     const button = context.canvasElement.querySelector('#open-dialog') as HTMLButtonElement;
     button.click();
   },

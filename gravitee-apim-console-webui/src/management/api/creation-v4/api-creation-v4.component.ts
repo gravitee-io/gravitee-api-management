@@ -89,12 +89,12 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
   public isCreatingApi = false;
 
   menuSteps$: Observable<MenuStepItem[]> = this.stepper.steps$.pipe(
-    map((steps) => {
+    map(steps => {
       // For each group, get the last step valid if present. To have the last state & full payload
-      return this.stepper.groups.map((group) => {
-        const stepsGroup = steps.filter((step) => step.group.groupNumber === group.groupNumber);
-        const lastValidStep = stepsGroup.reverse().find((step) => step.state === 'valid');
-        const hasInvalidStep = stepsGroup.find((step) => step.state === 'invalid');
+      return this.stepper.groups.map(group => {
+        const stepsGroup = steps.filter(step => step.group.groupNumber === group.groupNumber);
+        const lastValidStep = stepsGroup.reverse().find(step => step.state === 'valid');
+        const hasInvalidStep = stepsGroup.find(step => step.state === 'invalid');
         const groupState = hasInvalidStep ? 'invalid' : (lastValidStep?.state ?? 'initial');
 
         return {
@@ -124,7 +124,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     });
 
     // When the stepper change, update the current step
-    this.stepper.currentStep$.pipe(takeUntil(this.unsubscribe$)).subscribe((apiCreationStep) => {
+    this.stepper.currentStep$.pipe(takeUntil(this.unsubscribe$)).subscribe(apiCreationStep => {
       const apiCreationStepService = new ApiCreationStepService(this.stepper, apiCreationStep);
 
       this.currentStep = {
@@ -140,14 +140,14 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     // When then stepper is finished, create the API
     this.stepper.finished$
       .pipe(
-        switchMap((p) => this.createApi$(p)),
-        switchMap((previousResult) => this.createAndPublishPlans$(previousResult)),
-        switchMap((previousResult) => this.startApi$(previousResult)),
-        switchMap((previousResult) => this.askForReview$(previousResult)),
+        switchMap(p => this.createApi$(p)),
+        switchMap(previousResult => this.createAndPublishPlans$(previousResult)),
+        switchMap(previousResult => this.startApi$(previousResult)),
+        switchMap(previousResult => this.askForReview$(previousResult)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(
-        (finalResult) => {
+        finalResult => {
           if (isEmpty(finalResult.errorMessages)) {
             this.snackBarService.success(`API ${finalResult.result.deployed ? 'deployed' : 'created'} successfully!`);
           } else {
@@ -158,7 +158,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
             this.router.navigate(['.', finalResult.result.api.id], { relativeTo: this.activatedRoute });
           }
         },
-        (error) => {
+        error => {
           // When the error is blocking
           this.snackBarService.error(error.message ?? 'An error occurred while creating the API');
         },
@@ -183,7 +183,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     // Create one listener per supportedListenerType and add all supported entrypoints
     const listeners: Listener[] = listenersType.reduce((listeners, listenersType) => {
       const entrypoints: Entrypoint[] = apiCreationPayload.selectedEntrypoints
-        .filter((e) => e.supportedListenerType === listenersType)
+        .filter(e => e.supportedListenerType === listenersType)
         .map(({ id, configuration, selectedQos }) => ({
           type: id,
           configuration: configuration,
@@ -206,7 +206,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
       listeners: listeners,
       type: apiCreationPayload.type,
       endpointGroups: apiCreationPayload.selectedEndpoints.map(
-        (endpoint) =>
+        endpoint =>
           ({
             name: apiCreationPayload.customGroupName ?? `Default ${endpoint.name} group`,
             type: endpoint.id,
@@ -225,8 +225,8 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     };
 
     return this.apiV2Service.create(newV4Api).pipe(
-      map((apiEntity) => ({ apiCreationPayload, result: { api: apiEntity }, errorMessages: [] })),
-      catchError((err) => {
+      map(apiEntity => ({ apiCreationPayload, result: { api: apiEntity }, errorMessages: [] })),
+      catchError(err => {
         // Blocking error - If thrown, stop observable chain
         return throwError({ message: err.error?.message ?? `Error occurred when creating API!` });
       }),
@@ -243,21 +243,21 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
     // For each plan
     return from(previousResult.apiCreationPayload.plans).pipe(
-      concatMap((plan) =>
+      concatMap(plan =>
         // Create it
         this.apiPlanV2Service.create(api.id, { ...plan, definitionVersion: 'V4' }).pipe(
-          filter((_) => canPublishPlans),
-          concatMap((plan) =>
+          filter(_ => canPublishPlans),
+          concatMap(plan =>
             // If create success, publish it
             this.apiPlanV2Service.publish(api.id, plan.id).pipe(
               // If publish failed, return error message as result
-              catchError((err) => {
+              catchError(err => {
                 return of(`Error while publishing plan "${plan.name}": ${err.error?.message}.`);
               }),
             ),
           ),
           // If create failed, return error message as result
-          catchError((err) => {
+          catchError(err => {
             return of(`Error while creating plan "${plan.name}": ${err.error?.message}.`);
           }),
         ),
@@ -295,7 +295,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
     return this.apiV2Service.start(previousResult.result.api.id).pipe(
       map(() => ({ ...previousResult, result: { ...previousResult.result, deployed: true } })),
-      catchError((err) => {
+      catchError(err => {
         return of({
           ...previousResult,
           errorMessages: [...previousResult.errorMessages, `Error while starting API: ${err.error?.message}.`],
@@ -311,7 +311,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
     return this.apiReviewV2Service.ask(previousResult.result.api.id).pipe(
       map(() => previousResult),
-      catchError((err) => {
+      catchError(err => {
         return of({
           ...previousResult,
           errorMessages: [...previousResult.errorMessages, `Error while asking for review: ${err.error?.message}.`],
@@ -325,7 +325,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
       case 'HTTP':
         return { paths: apiCreationPayload.paths };
       case 'TCP':
-        return { hosts: apiCreationPayload.hosts.map((host) => host.host) };
+        return { hosts: apiCreationPayload.hosts.map(host => host.host) };
       case 'KAFKA':
         return { host: apiCreationPayload.host?.host, port: apiCreationPayload.port?.port };
       default:

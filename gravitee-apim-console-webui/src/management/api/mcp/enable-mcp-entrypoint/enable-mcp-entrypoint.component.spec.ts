@@ -77,7 +77,7 @@ describe('EnableMcpEntrypointComponent', () => {
     const mcpConfigurationForm = await harnessLoader.getHarness(ConfigureMcpEntrypointHarness);
     await mcpConfigurationForm.setMcpPathValue('/cats-rule');
 
-    await getSaveBar().then((saveBar) => saveBar.clickSubmit());
+    await getSaveBar().then(saveBar => saveBar.clickSubmit());
 
     const oldApi = fakeProxyApiV4({ id: API_ID });
     const newApi = { ...oldApi };
@@ -111,10 +111,10 @@ describe('EnableMcpEntrypointComponent', () => {
    * Get component elements
    */
   async function getTitle(): Promise<string> {
-    return harnessLoader.getHarness(MatCardHarness).then((card) => card.getTitleText());
+    return harnessLoader.getHarness(MatCardHarness).then(card => card.getTitleText());
   }
   async function getSubtitle(): Promise<string> {
-    return harnessLoader.getHarness(MatCardHarness).then((card) => card.getSubtitleText());
+    return harnessLoader.getHarness(MatCardHarness).then(card => card.getSubtitleText());
   }
   async function getSaveBar(): Promise<GioSaveBarHarness> {
     return harnessLoader.getHarness(GioSaveBarHarness);

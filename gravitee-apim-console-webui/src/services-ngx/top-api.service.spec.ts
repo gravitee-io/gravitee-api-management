@@ -56,7 +56,7 @@ describe('TopApiService', () => {
     it('should call API', () => {
       const fakeData: TopApi[] = [fakeTopApi()];
 
-      service.getList().subscribe((res) => {
+      service.getList().subscribe(res => {
         expect(res).toMatchObject(fakeData);
       });
 
@@ -65,7 +65,7 @@ describe('TopApiService', () => {
   });
 
   describe('create', () => {
-    it('should call API', (done) => {
+    it('should call API', done => {
       const fakeData: TopApi = fakeTopApi({ api: 'TEST' });
 
       service.create(fakeData.api).subscribe(() => {
@@ -81,7 +81,7 @@ describe('TopApiService', () => {
   });
 
   describe('update', () => {
-    it('should call API', (done) => {
+    it('should call API', done => {
       const fakeData: TopApi[] = [fakeTopApi()];
 
       service.update(fakeData).subscribe(() => {
@@ -98,7 +98,7 @@ describe('TopApiService', () => {
   });
 
   describe('delete', () => {
-    it('should call API', (done) => {
+    it('should call API', done => {
       const fakeData: TopApi = fakeTopApi({ api: 'test123' });
 
       service.delete(fakeData.api).subscribe(() => {

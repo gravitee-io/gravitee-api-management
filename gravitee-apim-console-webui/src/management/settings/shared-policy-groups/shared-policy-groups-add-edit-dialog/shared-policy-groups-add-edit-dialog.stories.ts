@@ -45,7 +45,7 @@ class StoryDialogComponent {
         },
       )
       .afterClosed()
-      .subscribe((result) => {
+      .subscribe(result => {
         action('Close')({ result });
       });
   }
@@ -57,7 +57,7 @@ export default {
 } as Meta;
 
 export const Default: StoryObj = {
-  play: (context) => {
+  play: context => {
     const button = context.canvasElement.querySelector('#open-dialog') as HTMLButtonElement;
     button.click();
   },

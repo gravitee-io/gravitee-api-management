@@ -110,9 +110,9 @@ export class GioChartBarComponent extends GioChartAbstractComponent implements O
         },
       },
 
-      series: (this.options?.reverseStack ? [...this.data].reverse() : this.data)?.map((item) => ({
+      series: (this.options?.reverseStack ? [...this.data].reverse() : this.data)?.map(item => ({
         name: item.name,
-        data: item.values?.map((value) => (value === null ? null : round(value, 2))),
+        data: item.values?.map(value => (value === null ? null : round(value, 2))),
         type: 'column',
         color: item.color || defineBarColors(item.name),
       })),

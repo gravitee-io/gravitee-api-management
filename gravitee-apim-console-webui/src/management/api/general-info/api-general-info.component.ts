@@ -128,7 +128,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
     merge(this.activatedRoute.params, this.refresh$.pipe(map(() => this.activatedRoute.snapshot.params)))
       .pipe(
-        switchMap((params) => {
+        switchMap(params => {
           this.apiId = params.apiId;
           return combineLatest([this.apiService.get(this.apiId), this.categoryService.list()]);
         }),
@@ -282,11 +282,11 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
     this.apiService
       .getApiProductsForApi(this.apiId)
       .pipe(
-        map((response) => response.data && response.data.length > 0),
+        map(response => response.data && response.data.length > 0),
         catchError(() => of(false)),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((isUsedInProducts) => {
+      .subscribe(isUsedInProducts => {
         this.isApiUsedInProducts = isUsedInProducts;
         const allowedInApiProductsControl = this.apiDetailsForm.get('allowedInApiProducts');
         if (!allowedInApiProductsControl) return;
@@ -359,7 +359,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
         tap(() => {
           this.snackBarService.success('Configuration successfully saved!');
         }),
-        catchError((err) => {
+        catchError(err => {
           this.snackBarService.error(err.error?.message ?? err.message);
           return EMPTY;
         }),
@@ -376,7 +376,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
     this.policyService
       .listSwaggerPolicies()
       .pipe(
-        switchMap((policies) =>
+        switchMap(policies =>
           this.matDialog
             .open<GioApiImportDialogComponent, GioApiImportDialogData>(GioApiImportDialogComponent, {
               data: {
@@ -388,11 +388,11 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
             })
             .afterClosed(),
         ),
-        filter((apiId) => !!apiId),
+        filter(apiId => !!apiId),
         tap(() => {
           this.refresh$.next();
         }),
-        catchError((err) => {
+        catchError(err => {
           this.snackBarService.error(err.error?.message ?? 'An error occurred while importing the API.');
           return EMPTY;
         }),
@@ -412,8 +412,8 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((apiDuplicated) => !!apiDuplicated),
-        switchMap((apiDuplicated) => this.router.navigate(['../', apiDuplicated.id], { relativeTo: this.activatedRoute })),
+        filter(apiDuplicated => !!apiDuplicated),
+        switchMap(apiDuplicated => this.router.navigate(['../', apiDuplicated.id], { relativeTo: this.activatedRoute })),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
@@ -468,7 +468,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter((result): result is MigrateDialogResult => !!result?.confirmed),
-        switchMap((result) => {
+        switchMap(result => {
           if (result.state !== 'MIGRATABLE' && result.state !== 'CAN_BE_FORCED') {
             return throwError(() => new Error(`Unexpected migration state received: ${result.state}`));
           }
@@ -485,7 +485,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
           this.snackBarService.success(successMessage);
           this.ngOnInit();
         },
-        error: (err) => {
+        error: err => {
           this.snackBarService.error(err.error?.message ?? err.message);
         },
       });
@@ -503,7 +503,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 const isImgUrl = (url: string): Promise<boolean> => {
   const img = new Image();
   img.src = url;
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     img.onerror = () => resolve(false);
     img.onload = () => resolve(true);
   });

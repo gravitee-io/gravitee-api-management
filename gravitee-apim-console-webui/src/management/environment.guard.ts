@@ -45,12 +45,12 @@ export const EnvironmentGuard: {
     let currentEnvironment = null;
 
     return environmentService.list().pipe(
-      switchMap((environments) => {
+      switchMap(environments => {
         if (!environments || environments.length === 0) {
           throw new Error('No environment found!');
         }
 
-        currentEnvironment = environments.find((e) => e.id.toLowerCase() === paramEnv || e.hrids?.includes(paramEnv));
+        currentEnvironment = environments.find(e => e.id.toLowerCase() === paramEnv || e.hrids?.includes(paramEnv));
 
         // Redirect to first environment if no environment is found
         if (!currentEnvironment) {
@@ -64,7 +64,7 @@ export const EnvironmentGuard: {
         return of(currentEnvironment.id);
       }),
       // Load permissions
-      switchMap((envId) => {
+      switchMap(envId => {
         return gioPermissionService.loadEnvironmentPermissions(envId);
       }),
       // Load env settings

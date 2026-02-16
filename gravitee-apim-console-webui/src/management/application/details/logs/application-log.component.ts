@@ -50,7 +50,7 @@ export class ApplicationLogComponent extends UpgradeComponent {
       )
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
-        next: (log) => {
+        next: log => {
           this.ngOnChanges({
             log: new SimpleChange(null, log, true),
             activatedRoute: new SimpleChange(null, this.activatedRoute, true),

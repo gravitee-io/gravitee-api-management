@@ -61,7 +61,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
     this.homeService
       .timeRangeParams()
       .pipe(
-        tap((timeRangeParams) => {
+        tap(timeRangeParams => {
           this.timeRangeParams = timeRangeParams;
         }),
         takeUntil(this.unsubscribe$),
@@ -76,7 +76,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
           this.apiNb = undefined;
           this.applicationNb = undefined;
         }),
-        switchMap((val) =>
+        switchMap(val =>
           forkJoin([
             this.statsService.getCount({
               field: 'application',
@@ -105,7 +105,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       .timeRangeParams()
       .pipe(
         tap(() => (this.apiLifecycleState = undefined)),
-        switchMap((val) =>
+        switchMap(val =>
           this.statsService.getGroupBy({
             field: 'lifecycle_state',
             interval: val.interval,
@@ -113,7 +113,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
             to: val.to,
           }),
         ),
-        tap((data) => (this.apiLifecycleState = data)),
+        tap(data => (this.apiLifecycleState = data)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.changeDetectorRef.markForCheck());
@@ -123,7 +123,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       .timeRangeParams()
       .pipe(
         tap(() => (this.apiState = undefined)),
-        switchMap((val) =>
+        switchMap(val =>
           this.statsService.getGroupBy({
             field: 'state',
             interval: val.interval,
@@ -131,7 +131,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
             to: val.to,
           }),
         ),
-        tap((data) => (this.apiState = data)),
+        tap(data => (this.apiState = data)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.changeDetectorRef.markForCheck());
@@ -141,7 +141,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       .timeRangeParams()
       .pipe(
         tap(() => (this.apiResponseStatus = undefined)),
-        switchMap((val) =>
+        switchMap(val =>
           this.statsService.getGroupBy({
             field: 'status',
             interval: val.interval,
@@ -150,7 +150,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
             ranges: '100:199;200:299;300:399;400:499;500:599',
           }),
         ),
-        tap((data) => (this.apiResponseStatus = data || {})),
+        tap(data => (this.apiResponseStatus = data || {})),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.changeDetectorRef.markForCheck());
@@ -160,11 +160,11 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       .timeRangeParams()
       .pipe(
         tap(() => (this.v4ApiAnalyticsResponseStatusRanges = undefined)),
-        switchMap((val) => this.statsService.getV4ApiResponseStatus(val.from, val.to)),
+        switchMap(val => this.statsService.getV4ApiResponseStatus(val.from, val.to)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
-        next: (data) => {
+        next: data => {
           this.v4ApiAnalyticsResponseStatusRanges = {
             isLoading: false,
             data: Object.entries(data.ranges ?? {}).map(([label, value]) => ({ label, value: toNumber(value) })),
@@ -181,7 +181,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       .timeRangeParams()
       .pipe(
         tap(() => (this.topApis = undefined)),
-        switchMap((val) => this.statsService.getTopApis(val.from, val.to)),
+        switchMap(val => this.statsService.getTopApis(val.from, val.to)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
@@ -199,8 +199,8 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
       .timeRangeParams()
       .pipe(
         tap(() => (this.requestStats = undefined)),
-        switchMap((val) => this.statsService.getRequestResponseStats(val.from, val.to)),
-        tap((data) => (this.requestStats = data)),
+        switchMap(val => this.statsService.getRequestResponseStats(val.from, val.to)),
+        tap(data => (this.requestStats = data)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.changeDetectorRef.markForCheck());

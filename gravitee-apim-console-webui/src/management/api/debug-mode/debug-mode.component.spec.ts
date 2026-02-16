@@ -133,7 +133,7 @@ describe('DebugModeComponent with DebugModeV2Service', () => {
     }));
 
     it('should display timeline', async () => {
-      const timeLineCards = [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()].map((card) => {
+      const timeLineCards = [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()].map(card => {
         const content = card.querySelector('.debug-mode-timeline-card__content').textContent;
         const state = card.querySelector('mat-icon.error') ? 'ERROR' : card.querySelector('mat-icon.skipped') ? 'SKIPPED' : undefined;
         return {
@@ -191,7 +191,7 @@ describe('DebugModeComponent with DebugModeV2Service', () => {
 
     it('should display inspector content for selected policy', () => {
       [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()]
-        .find((card) => card.textContent.includes('Header  Assign Attributes'))
+        .find(card => card.textContent.includes('Header  Assign Attributes'))
         .click();
       fixture.detectChanges();
 
@@ -202,7 +202,7 @@ describe('DebugModeComponent with DebugModeV2Service', () => {
 
     it('should display inspector content on selected policy with overview', () => {
       [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()]
-        .find((card) => card.textContent.includes('Header  Assign Attributes'))
+        .find(card => card.textContent.includes('Header  Assign Attributes'))
         .click();
       fixture.detectChanges();
 
@@ -217,7 +217,7 @@ describe('DebugModeComponent with DebugModeV2Service', () => {
 
       // Select card and expect inspector content
       [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()]
-        .find((card) => card.textContent.includes('Header  Assign Attributes'))
+        .find(card => card.textContent.includes('Header  Assign Attributes'))
         .click();
       fixture.detectChanges();
       expect(getInspectorContent()).not.toEqual(null);
@@ -355,7 +355,7 @@ describe('DebugModeComponent with DebugModeV4Service', () => {
     }));
 
     it('should display timeline', () => {
-      const timeLineCards = [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()].map((card) => {
+      const timeLineCards = [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()].map(card => {
         const content = card.querySelector('.debug-mode-timeline-card__content').textContent;
         const state = card.querySelector('mat-icon.error') ? 'ERROR' : card.querySelector('mat-icon.skipped') ? 'SKIPPED' : undefined;
         return {
@@ -413,7 +413,7 @@ describe('DebugModeComponent with DebugModeV4Service', () => {
 
     it('should display inspector content for selected policy', () => {
       [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()]
-        .find((card) => card.textContent.includes('Header  Assign Attributes'))
+        .find(card => card.textContent.includes('Header  Assign Attributes'))
         .click();
       fixture.detectChanges();
 
@@ -424,7 +424,7 @@ describe('DebugModeComponent with DebugModeV4Service', () => {
 
     it('should display inspector content on selected policy with overview', () => {
       [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()]
-        .find((card) => card.textContent.includes('Header  Assign Attributes'))
+        .find(card => card.textContent.includes('Header  Assign Attributes'))
         .click();
       fixture.detectChanges();
 
@@ -439,7 +439,7 @@ describe('DebugModeComponent with DebugModeV4Service', () => {
 
       // Select card and expect inspector content
       [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()]
-        .find((card) => card.textContent.includes('Header  Assign Attributes'))
+        .find(card => card.textContent.includes('Header  Assign Attributes'))
         .click();
       fixture.detectChanges();
       expect(getInspectorContent()).not.toEqual(null);

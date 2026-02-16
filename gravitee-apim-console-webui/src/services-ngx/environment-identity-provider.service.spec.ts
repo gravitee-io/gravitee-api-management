@@ -35,7 +35,7 @@ describe('EnvironmentIdentityProviderService', () => {
   });
 
   describe('list activated', () => {
-    it('should return a list of activated identity providers', (done) => {
+    it('should return a list of activated identity providers', done => {
       const activatedIdentityProviders: IdentityProviderActivation[] = [
         fakeIdentityProviderActivation({ identityProvider: 'gravitee-am' }),
       ];
@@ -51,7 +51,7 @@ describe('EnvironmentIdentityProviderService', () => {
       req.flush(activatedIdentityProviders);
     });
 
-    it('should update a list of activated identity providers', (done) => {
+    it('should update a list of activated identity providers', done => {
       const activatedIdentityProviders: IdentityProviderActivation[] = [
         fakeIdentityProviderActivation({ identityProvider: 'gravitee-am' }),
       ];

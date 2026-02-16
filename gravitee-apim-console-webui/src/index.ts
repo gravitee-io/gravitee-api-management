@@ -42,7 +42,7 @@ fetchData().then(({ constants, build }) => {
 
   angular.module('gravitee-management').constant('Constants', constants);
 
-  const initAppTitle = ($rootScope) => {
+  const initAppTitle = $rootScope => {
     $rootScope.consoleTitle = constants.org.settings.management.title;
   };
   initAppTitle.$inject = ['$rootScope'];
@@ -50,10 +50,7 @@ fetchData().then(({ constants, build }) => {
 });
 
 function fetchData(): Promise<{ constants: Constants; build: any }> {
-  return Promise.all([
-    fetch('build.json', requestConfig).then((r) => r.json()),
-    fetch('constants.json', requestConfig).then((r) => r.json()),
-  ])
+  return Promise.all([fetch('build.json', requestConfig).then(r => r.json()), fetch('constants.json', requestConfig).then(r => r.json())])
     .then(([buildResponse, constantsResponse]) => {
       const baseURL = sanitizeBaseURLs(constantsResponse.baseURL);
       const enforcedOrganizationId = getEnforcedOrganizationId({
@@ -64,7 +61,7 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
         enforcedOrganizationId ? `${baseURL}/v2/ui/bootstrap?organizationId=${enforcedOrganizationId}` : `${baseURL}/v2/ui/bootstrap`,
         requestConfig,
       )
-        .then((r) => getSuccessJsonDataOrThrowError(r))
+        .then(r => getSuccessJsonDataOrThrowError(r))
         .then((bootstrapResponse: { baseURL: string; organizationId: string }) => ({
           bootstrapResponse,
           build: buildResponse,
@@ -78,9 +75,9 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
       constants.production = production ?? true;
 
       return Promise.all([
-        fetch(`${constants.org.baseURL}/console`, requestConfig).then((r) => getSuccessJsonDataOrThrowError(r)),
-        fetch(`${constants.org.v2BaseURL}/ui/customization`, requestConfig).then((r) => (r.status === 200 ? r.json() : null)),
-        fetch(`${constants.org.baseURL}/social-identities`, requestConfig).then((r) => getSuccessJsonDataOrThrowError(r)),
+        fetch(`${constants.org.baseURL}/console`, requestConfig).then(r => getSuccessJsonDataOrThrowError(r)),
+        fetch(`${constants.org.v2BaseURL}/ui/customization`, requestConfig).then(r => (r.status === 200 ? r.json() : null)),
+        fetch(`${constants.org.baseURL}/social-identities`, requestConfig).then(r => getSuccessJsonDataOrThrowError(r)),
       ]).then(([consoleResponse, uiCustomizationResponse, identityProvidersResponse]) => {
         constants.org.settings = consoleResponse;
         constants.org.identityProviders = identityProvidersResponse;
@@ -96,7 +93,7 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
         return { constants, build };
       });
     })
-    .catch((error) => {
+    .catch(error => {
       document.getElementById('gravitee-error').style.display = 'block';
       document.getElementById('gravitee-error-banner-message').innerText = 'Management API unreachable or error occurs, please check logs';
       document.getElementById('loader').style.display = 'none';
@@ -177,7 +174,7 @@ function customizeUI(uiCustomization: ConsoleCustomization) {
       menuBackground: uiCustomization.theme.menuBackground,
       menuActive: uiCustomization.theme.menuActive,
     });
-    styles.forEach((style) => {
+    styles.forEach(style => {
       document.documentElement.style.setProperty(style.key, style.value);
     });
     document.getElementById('favicon').setAttribute('href', uiCustomization.favicon);
@@ -206,7 +203,7 @@ function bootstrapApplication(constants: Constants) {
     { provide: 'LicenseConfiguration', useValue: licenseConfiguration },
   ])
     .bootstrapModule(AppModule)
-    .catch((err) => {
+    .catch(err => {
       // eslint-disable-next-line
       console.error(err);
     });
@@ -219,7 +216,7 @@ function getSuccessJsonDataOrThrowError(response: Response): Promise<any> {
       .catch(() => {
         throw new Error('Management API unreachable or error occurs, please check logs');
       })
-      .then((json) => {
+      .then(json => {
         throw new Error(json.error?.message ?? json.message ?? 'Management API unreachable or error occurs');
       });
   }

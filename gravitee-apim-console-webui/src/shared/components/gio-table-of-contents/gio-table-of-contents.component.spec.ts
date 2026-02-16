@@ -157,10 +157,10 @@ describe('GioTableOfContentsComponent', () => {
     expect(getSectionsName()).toEqual(['Fox section']);
   });
 
-  const getLinksText = () => [...fixture.nativeElement.querySelectorAll('.toc__link')].map((el) => el.innerHTML);
-  const getActiveLinks = () => [...fixture.nativeElement.querySelectorAll('.toc__link.active')].map((el) => el.innerHTML);
+  const getLinksText = () => [...fixture.nativeElement.querySelectorAll('.toc__link')].map(el => el.innerHTML);
+  const getActiveLinks = () => [...fixture.nativeElement.querySelectorAll('.toc__link.active')].map(el => el.innerHTML);
   const getSectionName = () => fixture.nativeElement.querySelector('.toc__section-name')?.innerHTML;
-  const getSectionsName = () => [...fixture.nativeElement.querySelectorAll('.toc__section-name')].map((e) => e?.innerHTML);
+  const getSectionsName = () => [...fixture.nativeElement.querySelectorAll('.toc__section-name')].map(e => e?.innerHTML);
 });
 
 const fakeLink = (attr: Partial<TocSectionLink>): TocSectionLink => {

@@ -73,7 +73,7 @@ const SettingsAnalyticsComponentAjs: ng.IComponentOptions = {
       };
 
       this.save = () => {
-        PortalSettingsService.save(this.settings).then((response) => {
+        PortalSettingsService.save(this.settings).then(response => {
           merge(Constants.env.settings, response.data);
           NotificationService.show('Configuration saved');
           this.formSettings.$setPristine();
@@ -98,7 +98,7 @@ const SettingsAnalyticsComponentAjs: ng.IComponentOptions = {
               confirmButton: 'Delete',
             },
           })
-          .then((response) => {
+          .then(response => {
             if (response) {
               DashboardService.delete(dashboard).then(() => {
                 NotificationService.show("Dashboard '" + dashboard.name + "' has been deleted");

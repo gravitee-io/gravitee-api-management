@@ -88,7 +88,7 @@ export class ApiCreationV4SpecStepperHelper {
     const entrypointsList = await this.harnessLoader.getHarness(Step2Entrypoints1ListHarness);
     this.httpExpects.expectEntrypointsGetRequest(entrypoints);
     if (architecture === 'MESSAGE') {
-      await entrypointsList.fillAsyncAndValidate(entrypoints.map((entrypoint) => entrypoint.id));
+      await entrypointsList.fillAsyncAndValidate(entrypoints.map(entrypoint => entrypoint.id));
     } else if (architecture === 'AI') {
       if (entrypoints.length !== 1) {
         throw new Error('Only one entrypoint is supported for AI api');
@@ -131,16 +131,16 @@ export class ApiCreationV4SpecStepperHelper {
     this.httpExpects.expectRestrictedDomainsGetRequest([]);
     this.httpExpects.expectSchemaGetRequest(entrypoints);
 
-    if (entrypoints.some((entrypoint) => entrypoint.supportedListenerType === 'TCP')) {
+    if (entrypoints.some(entrypoint => entrypoint.supportedListenerType === 'TCP')) {
       await entrypointsConfig.fillHosts(...hosts);
       this.httpExpects.expectVerifyHosts(hosts);
     } else if (
-      entrypoints.some((entrypoint) => entrypoint.supportedListenerType !== 'SUBSCRIPTION' && entrypoint.supportedApiType !== 'NATIVE')
+      entrypoints.some(entrypoint => entrypoint.supportedListenerType !== 'SUBSCRIPTION' && entrypoint.supportedApiType !== 'NATIVE')
     ) {
       this.httpExpects.expectApiGetPortalConfiguration();
       await entrypointsConfig.fillPaths(...paths);
       this.httpExpects.expectVerifyContextPath();
-    } else if (entrypoints.some((entrypoint) => entrypoint.supportedListenerType === 'KAFKA')) {
+    } else if (entrypoints.some(entrypoint => entrypoint.supportedListenerType === 'KAFKA')) {
       this.httpExpects.expectApiGetPortalConfiguration();
       await entrypointsConfig.fillHost(host);
       this.httpExpects.expectVerifyHosts([host]);
@@ -159,7 +159,7 @@ export class ApiCreationV4SpecStepperHelper {
     const endpointsList = await this.harnessLoader.getHarness(Step3EndpointListHarness);
     this.httpExpects.expectEndpointsGetRequest(endpoints);
 
-    await endpointsList.fillAndValidate(endpoints.map((endpoint) => endpoint.id));
+    await endpointsList.fillAndValidate(endpoints.map(endpoint => endpoint.id));
   }
 
   async fillAndValidateStep3_2_EndpointsConfig(

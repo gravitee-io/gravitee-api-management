@@ -39,29 +39,29 @@ export class ApiRuntimeLogsMessagesHarness extends ComponentHarness {
   public endpointConnectorIcon = this.locatorFor(MatIconHarness.with({ selector: '[data-testId=endpoint-connector-icon]' }));
 
   public clickOnConnectionLogsTab = async () => {
-    return this.connectionLogsTabSelector().then((tab) => tab.select());
+    return this.connectionLogsTabSelector().then(tab => tab.select());
   };
 
   public clickOnMessagesTab = async () => {
-    return this.messagesTabSelector().then((tab) => tab.select());
+    return this.messagesTabSelector().then(tab => tab.select());
   };
 
   public clickOnEntrypointTab = async (label: string) => {
-    return this.entrypointTabGroupSelector().then((tabGroup) => tabGroup.selectTab({ label: label }));
+    return this.entrypointTabGroupSelector().then(tabGroup => tabGroup.selectTab({ label: label }));
   };
   public clickOnEndpointTab = async (label: string) => {
-    return this.endpointTabGroupSelector().then((tabGroup) => tabGroup.selectTab({ label: label }));
+    return this.endpointTabGroupSelector().then(tabGroup => tabGroup.selectTab({ label: label }));
   };
 
   public getEntrypointTabBody = async () => {
-    return await this.entrypointTabBodySelector().then((tabBody) => tabBody.getText());
+    return await this.entrypointTabBodySelector().then(tabBody => tabBody.getText());
   };
   public getEndpointTabBody = async () => {
-    return await this.endpointTabBodySelector().then((tabBody) => tabBody.getText());
+    return await this.endpointTabBodySelector().then(tabBody => tabBody.getText());
   };
 
   public load5More = async () => {
-    return await this.load5MoreSelector().then((tab) => tab.click());
+    return await this.load5MoreSelector().then(tab => tab.click());
   };
 
   public getMessages = () => {

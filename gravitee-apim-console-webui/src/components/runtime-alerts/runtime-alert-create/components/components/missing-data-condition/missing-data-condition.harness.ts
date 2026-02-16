@@ -25,26 +25,26 @@ export class MissingDataConditionHarness extends ComponentHarness {
   private getTimeUnitSelect = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="timeUnit"]' }));
 
   public async getDurationValue() {
-    return this.getDurationInput().then((input) => input.getValue());
+    return this.getDurationInput().then(input => input.getValue());
   }
 
   public async setDurationValue(value: string) {
-    return this.getDurationInput().then((input) => input.setValue(value));
+    return this.getDurationInput().then(input => input.setValue(value));
   }
 
   public async getTimeUnitOptions() {
-    return this.getTimeUnitSelect().then(async (select) => {
+    return this.getTimeUnitSelect().then(async select => {
       await select.open();
       const options = await select.getOptions();
-      return Promise.all(options.map(async (o) => o.getText()));
+      return Promise.all(options.map(async o => o.getText()));
     });
   }
 
   public async selectTimeUnit(text: string) {
-    return this.getTimeUnitSelect().then((select) => select.clickOptions({ text }));
+    return this.getTimeUnitSelect().then(select => select.clickOptions({ text }));
   }
 
   public async getSelectedTimeUnit() {
-    return this.getTimeUnitSelect().then((select) => select.getValueText());
+    return this.getTimeUnitSelect().then(select => select.getValueText());
   }
 }

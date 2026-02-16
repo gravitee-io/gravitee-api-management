@@ -81,10 +81,10 @@ export class ApiAnalyticsProxyFilterBarHarness extends BaseFilterBarHarness {
   }
 
   async showsChipByText(text: string): Promise<boolean> {
-    return this.locatorForOptional(MatChipHarness.with({ text }))().then((chip) => !!chip);
+    return this.locatorForOptional(MatChipHarness.with({ text }))().then(chip => !!chip);
   }
 
   async getFilterChipCount(): Promise<number> {
-    return this.getFilterChips().then((chips) => chips.length);
+    return this.getFilterChips().then(chips => chips.length);
   }
 }

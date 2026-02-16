@@ -169,7 +169,7 @@ class LogsFiltersController {
     const q = this.activatedRoute.snapshot.queryParams.q;
     if (q) {
       this.decodeQueryFilters(q);
-      forEach(this.displayModes, (displayMode) => {
+      forEach(this.displayModes, displayMode => {
         if (this.filters[displayMode.field]) {
           this.displayMode = displayMode;
         }
@@ -220,7 +220,7 @@ class LogsFiltersController {
   }
 
   updateDisplayMode() {
-    forEach(this.displayModes, (displayMode) => {
+    forEach(this.displayModes, displayMode => {
       delete this.filters[displayMode.field];
     });
     delete this.filters[this.displayMode.field];
@@ -232,8 +232,8 @@ class LogsFiltersController {
   private decodeQueryFilters(query) {
     const filters = query
       .split(/\s+AND\s+/) // Split by AND first
-      .map((segment) => segment.replace(/^\((.+)\)$/, '$1')) // Remove outer parentheses
-      .flatMap((segment) => segment.split(/\s+OR\s+/)); // Split OR conditions (returns original if no OR found)
+      .map(segment => segment.replace(/^\((.+)\)$/, '$1')) // Remove outer parentheses
+      .flatMap(segment => segment.split(/\s+OR\s+/)); // Split OR conditions (returns original if no OR found)
 
     for (let i = 0; i < filters.length; i++) {
       const filter = filters[i].replace(/[()]/g, '');
@@ -345,9 +345,9 @@ class LogsFiltersController {
 
   private buildQuery(filters): string {
     let query = '';
-    const keys = filter(Object.keys(filters), (key) => filters[key] !== undefined && filters[key].length > 0);
+    const keys = filter(Object.keys(filters), key => filters[key] !== undefined && filters[key].length > 0);
     let index = 0;
-    forEach(keys, (key) => {
+    forEach(keys, key => {
       let val = filters[key];
 
       // 1. add the first / for uri
@@ -384,7 +384,7 @@ class LogsFiltersController {
     if (strict) {
       val = list[_val];
     } else {
-      val = list[filter(Object.keys(list), (elt) => elt.toLowerCase().includes(_val.toLowerCase())).pop()];
+      val = list[filter(Object.keys(list), elt => elt.toLowerCase().includes(_val.toLowerCase())).pop()];
     }
     return val ? val : _val;
   }
@@ -394,7 +394,7 @@ class LogsFiltersController {
       const searchResult = await this.ApplicationService.getSubscribedAPI(this.activatedRoute.snapshot.params.applicationId);
       let result = searchResult.data;
       if (term) {
-        result = searchResult.data.filter((api) => {
+        result = searchResult.data.filter(api => {
           return api.name.toLowerCase().includes(term.toLowerCase());
         });
       }

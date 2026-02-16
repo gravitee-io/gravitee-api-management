@@ -22,6 +22,6 @@ export class IntegrationStatusHarness extends ComponentHarness {
   private spanLocator = this.locatorFor('span');
 
   public getAgentStatus() {
-    return this.spanLocator().then((span) => span.text());
+    return this.spanLocator().then(span => span.text());
   }
 }

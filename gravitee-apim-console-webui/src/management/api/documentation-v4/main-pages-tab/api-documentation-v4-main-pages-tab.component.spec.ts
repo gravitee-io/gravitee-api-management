@@ -157,7 +157,7 @@ describe('ApiDocumentationV4MainPagesTab', () => {
   }
 
   async function createNewPage(pageType: PageType) {
-    await getCreateNewPageButton().then((btn) => btn.click());
+    await getCreateNewPageButton().then(btn => btn.click());
     const pageTypeMenu = await harnessLoader.getHarness(MatMenuHarness);
     return await pageTypeMenu.clickItem({ text: new RegExp(pageType, 'i') });
   }

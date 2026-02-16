@@ -36,7 +36,7 @@ describe('AnalyticsService', () => {
   });
 
   describe('getStats', () => {
-    it('should call the API for STATS analytics', (done) => {
+    it('should call the API for STATS analytics', done => {
       const fromTimestamp = 1677339613055;
       const toTimestamp = 1679931613055;
       const interval = 86400000;
@@ -58,7 +58,7 @@ describe('AnalyticsService', () => {
         from: fromTimestamp,
         to: toTimestamp,
       };
-      analyticsService.getGroupBy(params).subscribe((response) => {
+      analyticsService.getGroupBy(params).subscribe(response => {
         expect(response).toMatchObject(fakeAnalytics);
         done();
       });
@@ -71,7 +71,7 @@ describe('AnalyticsService', () => {
       req.flush(fakeAnalytics);
     });
 
-    it('should call the API for GROUP_BY analytics', (done) => {
+    it('should call the API for GROUP_BY analytics', done => {
       const fromTimestamp = 1677339613055;
       const toTimestamp = 1679931613055;
       const interval = 86400000;
@@ -99,7 +99,7 @@ describe('AnalyticsService', () => {
         from: fromTimestamp,
         to: toTimestamp,
       };
-      analyticsService.getGroupBy(params).subscribe((response) => {
+      analyticsService.getGroupBy(params).subscribe(response => {
         expect(response).toMatchObject(fakeAnalytics);
         done();
       });
@@ -112,7 +112,7 @@ describe('AnalyticsService', () => {
       req.flush(fakeAnalytics);
     });
 
-    it('should call the API for COUNT analytics', (done) => {
+    it('should call the API for COUNT analytics', done => {
       const fromTimestamp = 1677339613055;
       const toTimestamp = 1679931613055;
       const interval = 86400000;
@@ -127,7 +127,7 @@ describe('AnalyticsService', () => {
         from: fromTimestamp,
         to: toTimestamp,
       };
-      analyticsService.getCount(params).subscribe((response) => {
+      analyticsService.getCount(params).subscribe(response => {
         expect(response).toMatchObject(fakeAnalytics);
         done();
       });

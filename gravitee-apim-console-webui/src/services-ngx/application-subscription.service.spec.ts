@@ -41,10 +41,10 @@ describe('ApplicationSubscriptionService', () => {
   });
 
   describe('getSubscription', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const expectedSubscription = fakeSubscription({ id: 'subscriptionId' });
 
-      service.getSubscription('applicationId', 'subscriptionId').subscribe((subscription) => {
+      service.getSubscription('applicationId', 'subscriptionId').subscribe(subscription => {
         expect(subscription).toEqual(expectedSubscription);
         done();
       });
@@ -59,7 +59,7 @@ describe('ApplicationSubscriptionService', () => {
   });
 
   describe('closeSubscription', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       service.closeSubscription('applicationId', 'subscriptionId').subscribe(() => {
         done();
       });
@@ -74,8 +74,8 @@ describe('ApplicationSubscriptionService', () => {
   });
 
   describe('getApiKeys', () => {
-    it('should call the API', (done) => {
-      service.getApiKeys('applicationId', 'subscriptionId').subscribe((apiKeys) => {
+    it('should call the API', done => {
+      service.getApiKeys('applicationId', 'subscriptionId').subscribe(apiKeys => {
         expect(apiKeys).toEqual([fakeApplicationSubscriptionApiKey()]);
         done();
       });
@@ -90,7 +90,7 @@ describe('ApplicationSubscriptionService', () => {
   });
 
   describe('renewApiKey', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       service.renewApiKey('applicationId', 'subscriptionId').subscribe(() => {
         done();
       });
@@ -105,7 +105,7 @@ describe('ApplicationSubscriptionService', () => {
   });
 
   describe('revokeApiKey', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       service.revokeApiKey('applicationId', 'subscriptionId', 'apiKeyId').subscribe(() => {
         done();
       });
@@ -120,7 +120,7 @@ describe('ApplicationSubscriptionService', () => {
   });
 
   describe('subscribe', () => {
-    it('should subscribe to api', (done) => {
+    it('should subscribe to api', done => {
       const appId = 'app-id';
       const planId = 'plan-id';
       const newSubscription = fakeNewSubscriptionEntity();

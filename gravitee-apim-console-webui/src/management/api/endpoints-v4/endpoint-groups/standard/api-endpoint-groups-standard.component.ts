@@ -89,13 +89,13 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
       .pipe(
         tap(([apiV4, plugins, tenants]: [ApiV4, ConnectorPlugin[], Tenant[]]) => {
           this.api = apiV4;
-          this.isA2ASelcted = this.api.listeners?.some((listener) => listener.entrypoints?.some((ep) => ep.type === AGENT_TO_AGENT.id));
+          this.isA2ASelcted = this.api.listeners?.some(listener => listener.entrypoints?.some(ep => ep.type === AGENT_TO_AGENT.id));
           this.groupsTableData = toEndpoints(apiV4, tenants);
 
           const canUpdate = this.permissionService.hasAnyMatching(['api-definition-u']);
           this.isReadOnly = this.api.definitionContext?.origin === 'KUBERNETES' || !canUpdate;
           this.plugins = new Map(
-            plugins.map((plugin) => [
+            plugins.map(plugin => [
               plugin.id,
               {
                 ...plugin,
@@ -104,7 +104,7 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
             ]),
           );
 
-          this.shouldUpgrade = this.groupsTableData.some((group) => !this.plugins.get(group.type)?.deployed);
+          this.shouldUpgrade = this.groupsTableData.some(group => !this.plugins.get(group.type)?.deployed);
 
           this.license$ = this.licenseService.getLicense$();
           this.isOEM$ = this.licenseService.isOEM$();
@@ -138,10 +138,10 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),
         switchMap((api: ApiV4) => {
-          remove(api.endpointGroups, (g) => g.name === groupName);
+          remove(api.endpointGroups, g => g.name === groupName);
           disableDlqEntrypoint(api, matchingDlqEntrypoint);
           return this.apiService.update(api.id, { ...api } as UpdateApi);
         }),
@@ -181,10 +181,10 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),
         switchMap((api: ApiV4) => {
-          remove(find(api.endpointGroups, (g) => g.name === groupName).endpoints, (e) => e.name === endpointName);
+          remove(find(api.endpointGroups, g => g.name === groupName).endpoints, e => e.name === endpointName);
           disableDlqEntrypoint(api, matchingDlqEntrypoint);
           return this.apiService.update(api.id, { ...api } as UpdateApi);
         }),
@@ -246,7 +246,7 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         switchMap((api: ApiV4) => {
-          const groupToUpdate = api.endpointGroups.find((g) => g.name === groupName);
+          const groupToUpdate = api.endpointGroups.find(g => g.name === groupName);
           if (!groupToUpdate) {
             // Normally not happen. to help debugging if needed
             throw new Error('Group not found!');

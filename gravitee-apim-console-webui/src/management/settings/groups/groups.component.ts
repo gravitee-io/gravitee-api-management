@@ -147,16 +147,16 @@ export class GroupsComponent implements OnInit {
       .listPaginated(this.defaultFilters.pagination.index, this.defaultFilters.pagination.size, searchTerm)
       .pipe(
         filter(Boolean),
-        map((groupsPage) => {
+        map(groupsPage => {
           this.noOfRecords = groupsPage.page.total_elements;
           this.filteredData = groupsPage.data;
-          return groupsPage.data.map((group) => ({
+          return groupsPage.data.map(group => ({
             ...group,
             shouldAddToNewAPIs: this.checkEventRule(group, 'API_CREATE'),
             shouldAddToNewApplications: this.checkEventRule(group, 'APPLICATION_CREATE'),
           }));
         }),
-        map((groups) => {
+        map(groups => {
           this.groups.next(groups);
           this.filterData(this.defaultFilters);
           this.disableCreateGroup();
@@ -176,7 +176,7 @@ export class GroupsComponent implements OnInit {
   }
 
   private checkEventRule(group: Group, event: string) {
-    return group.event_rules ? group.event_rules.some((rule) => rule.event === event) : false;
+    return group.event_rules ? group.event_rules.some(rule => rule.event === event) : false;
   }
 
   private initializeSettingsForm() {
@@ -186,7 +186,7 @@ export class GroupsComponent implements OnInit {
       this.consoleSettingsService
         .get()
         .pipe(
-          tap((response) => {
+          tap(response => {
             this.settings = response;
             this.initializeFormValues();
           }),
@@ -224,12 +224,12 @@ export class GroupsComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirmed) => confirmed),
-        switchMap((_) => this.groupService.delete(group.id)),
+        filter(confirmed => confirmed),
+        switchMap(_ => this.groupService.delete(group.id)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (_) => {
+        next: _ => {
           this.snackBarService.success(`Successfully deleted the group.`);
           this.loadGroups();
         },
@@ -243,7 +243,7 @@ export class GroupsComponent implements OnInit {
     this.consoleSettingsService
       .save(this.settings)
       .pipe(
-        tap((response) => {
+        tap(response => {
           this.settings = response;
           this.initializeFormValues();
           this.snackBarService.success('Successfully updated groups settings.');
@@ -269,9 +269,9 @@ export class GroupsComponent implements OnInit {
 
   private disableDeleteGroup() {
     if (!this.permissionService.hasAnyMatching(['environment-group-d'])) {
-      this.protectedGroups = new Set(this.groups.value.map((group) => group.id));
+      this.protectedGroups = new Set(this.groups.value.map(group => group.id));
     } else {
-      this.protectedGroups = new Set(this.groups.value.filter((group) => group.apiPrimaryOwner).map((group) => group.id));
+      this.protectedGroups = new Set(this.groups.value.filter(group => group.apiPrimaryOwner).map(group => group.id));
     }
   }
 

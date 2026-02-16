@@ -25,26 +25,26 @@ export class ApiEntrypointsV4GeneralHarness extends ComponentHarness {
 
   async hasEntrypointsTable(): Promise<boolean> {
     return this.tableLocator()
-      .then((_) => true)
-      .catch((_) => false);
+      .then(_ => true)
+      .catch(_ => false);
   }
   async getEntrypointsTableRows(): Promise<MatRowHarness[]> {
-    return this.tableLocator().then((table) => table.getRows());
+    return this.tableLocator().then(table => table.getRows());
   }
 
   async getDeleteBtnByRowIndex(index: number): Promise<MatButtonHarness> {
     return this.getEntrypointsTableRows()
-      .then((rows) => rows[index].getCells({ columnName: 'actions' }))
-      .then((actionCell) => actionCell[0].getAllHarnesses(MatButtonHarness))
-      .then((actionButtons) => actionButtons[1]);
+      .then(rows => rows[index].getCells({ columnName: 'actions' }))
+      .then(actionCell => actionCell[0].getAllHarnesses(MatButtonHarness))
+      .then(actionButtons => actionButtons[1]);
   }
   async deleteEntrypointByIndex(index: number): Promise<void> {
-    return this.getDeleteBtnByRowIndex(index).then((btn) => btn.click());
+    return this.getDeleteBtnByRowIndex(index).then(btn => btn.click());
   }
 
   async canToggleListenerMode(): Promise<boolean> {
     return this.switchListenerModeLocator()
-      .then(async (btn) => btn != null && !(await btn.isDisabled()))
+      .then(async btn => btn != null && !(await btn.isDisabled()))
       .catch(() => false);
   }
 

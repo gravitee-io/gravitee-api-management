@@ -78,7 +78,7 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
             }),
           });
 
-          this.configForm.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => {
+          this.configForm.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(value => {
             this.policyStudioService.saveApiDefinition({
               ...this.apiDefinition,
               flow_mode: value.flowConfiguration.flow_mode,

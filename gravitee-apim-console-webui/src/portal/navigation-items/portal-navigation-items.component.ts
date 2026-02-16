@@ -105,7 +105,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   readonly actionsDisabled = computed(() => this.contentLoadError() || !this.selectedNavigationItem());
 
   // Route State
-  private readonly navId$ = this.activatedRoute.queryParams.pipe(map((params) => params['navId'] ?? null));
+  private readonly navId$ = this.activatedRoute.queryParams.pipe(map(params => params['navId'] ?? null));
   readonly navId = toSignal(this.navId$, { initialValue: null });
   readonly isLoadingPageContent = signal(false);
 
@@ -115,8 +115,8 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   private readonly refreshMenuList = new BehaviorSubject(1);
   readonly menuLinks$: Observable<PortalNavigationItem[]> = this.refreshMenuList.pipe(
     switchMap(() => this.portalNavigationItemsService.getNavigationItems('TOP_NAVBAR')),
-    map((response) => response.items ?? []),
-    tap((items) => {
+    map(response => response.items ?? []),
+    tap(items => {
       const currentNavId = this.navId();
 
       // If no navId in query params, navigate to first PAGE item
@@ -230,14 +230,14 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((result) =>
+        filter(result => !!result),
+        switchMap(result =>
           this.createApisInOrder(existingItem?.id, result.apiIds ?? []).pipe(
-            map((lastCreatedId) => lastCreatedId ?? existingItem?.id ?? null),
+            map(lastCreatedId => lastCreatedId ?? existingItem?.id ?? null),
           ),
         ),
         filter((id): id is string => typeof id === 'string' && id.length > 0),
-        tap((id) => {
+        tap(id => {
           this.refreshMenuList.next(1);
           this.navigateToItemByNavId(id);
         }),
@@ -258,7 +258,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
     confirmDiscardChanges(this.matDialog)
       .pipe(
-        filter((confirmed) => !!confirmed),
+        filter(confirmed => !!confirmed),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => action());
@@ -300,7 +300,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           this.contentLoadError.set(false);
           this.isLoadingPageContent.set(false);
         }),
-        switchMap((node) => {
+        switchMap(node => {
           const navItem = node?.data;
           if (!navItem || navItem.type !== 'PAGE') {
             this.contentControl.reset('');
@@ -311,10 +311,10 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           this.isLoadingPageContent.set(true);
           return this.loadPageContent((navItem as PortalNavigationPage).portalPageContentId);
         }),
-        filter((result) => result !== null),
+        filter(result => result !== null),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((result) => {
+      .subscribe(result => {
         this.isLoadingPageContent.set(false);
 
         if (result.success) {
@@ -341,7 +341,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       return null;
     }
 
-    const foundItem = menuLinks?.find((item) => item.id === navId);
+    const foundItem = menuLinks?.find(item => item.id === navId);
 
     return foundItem
       ? {
@@ -364,7 +364,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     }
 
     return of(...apiIds).pipe(
-      exhaustMap((apiId) =>
+      exhaustMap(apiId =>
         this.create({
           title: '',
           type: 'API',
@@ -372,9 +372,9 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           parentId,
           visibility: 'PUBLIC',
           apiId,
-        } as NewPortalNavigationItem).pipe(map((created) => created.id)),
+        } as NewPortalNavigationItem).pipe(map(created => created.id)),
       ),
-      map((id) => id ?? null),
+      map(id => id ?? null),
       catchError(() => {
         this.snackBarService.error('Failed to create API navigation items');
         return of(null);
@@ -396,8 +396,8 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((result) => {
+        filter(result => !!result),
+        switchMap(result => {
           if (mode === 'create') {
             return this.create({
               title: result.title,
@@ -468,7 +468,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           }),
           takeUntilDestroyed(this.destroyRef),
         )
-        .subscribe((content) => {
+        .subscribe(content => {
           this.contentControl.reset(content);
           this.initialContent.set(content);
         });
@@ -530,7 +530,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         })
         .afterClosed()
         .pipe(
-          filter((confirmed) => !!confirmed),
+          filter(confirmed => !!confirmed),
           switchMap(() =>
             this.update(navItem.id, {
               ...navItem,
@@ -586,7 +586,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       })
       .afterClosed()
       .pipe(
-        filter((confirmed) => confirmed === true),
+        filter(confirmed => confirmed === true),
         exhaustMap(() => this.onDeleteSection(node)),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -597,7 +597,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     const { node, newParentId, newOrder } = $event;
 
     if (node.type === 'API' && newParentId) {
-      const parent = this.menuLinks().find((i) => i.id === newParentId);
+      const parent = this.menuLinks().find(i => i.id === newParentId);
       if (parent?.type === 'API') {
         this.snackBarService.error('API cannot be moved under an API navigation item');
         this.refreshMenuList.next(1);
@@ -610,7 +610,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     } else {
       confirmDiscardChanges(this.matDialog)
         .pipe(
-          filter((confirmed) => !!confirmed),
+          filter(confirmed => !!confirmed),
           switchMap(() => this.updateItemOrderAndRefreshList(newParentId, newOrder, node.data)),
           takeUntilDestroyed(this.destroyRef),
         )
@@ -652,7 +652,7 @@ export function findFirstAvailablePage(
   // 1. Index elements by parentId to avoid filtering the full array at each recursive step
   const childrenMap = new Map<string | null, PortalNavigationItem[]>();
 
-  items.forEach((item) => {
+  items.forEach(item => {
     const pId = item.parentId ?? null;
     if (!childrenMap.has(pId)) childrenMap.set(pId, []);
     childrenMap.get(pId)!.push(item);

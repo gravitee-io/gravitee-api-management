@@ -25,32 +25,32 @@ export class ThresholdConditionHarness extends ComponentHarness {
   private getThresholdInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="threshold"]' }));
 
   public async getOperatorOptions() {
-    return this.getOperatorSelect().then(async (select) => {
+    return this.getOperatorSelect().then(async select => {
       await select.open();
       const options = await select.getOptions();
-      return Promise.all(options.map(async (o) => o.getText()));
+      return Promise.all(options.map(async o => o.getText()));
     });
   }
 
   public async selectOperator(text: string) {
-    this.getOperatorSelect().then((select) => select.clickOptions({ text }));
+    this.getOperatorSelect().then(select => select.clickOptions({ text }));
   }
 
   public async getSelectedOperator() {
-    return this.getOperatorSelect().then((select) => select.getValueText());
+    return this.getOperatorSelect().then(select => select.getValueText());
   }
 
   public async setThresholdValue(value: string) {
-    return this.getThresholdInput().then((input) => input.setValue(value));
+    return this.getThresholdInput().then(input => input.setValue(value));
   }
 
   public async getThresholdValue() {
-    return this.getThresholdInput().then((input) => input.getValue());
+    return this.getThresholdInput().then(input => input.getValue());
   }
 
   public async isThresholdInvalid() {
     return this.getThresholdInput()
-      .then((input) => input.host())
-      .then((host) => host.hasClass('ng-invalid'));
+      .then(input => input.host())
+      .then(host => host.hasClass('ng-invalid'));
   }
 }

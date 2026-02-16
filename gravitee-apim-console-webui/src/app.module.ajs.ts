@@ -409,7 +409,7 @@ angular.module('gravitee-management', [
 
 const graviteeManagementModule = angular.module('gravitee-management');
 
-const includeSpinnerConfig = (cfpLoadingBarProvider) => {
+const includeSpinnerConfig = cfpLoadingBarProvider => {
   cfpLoadingBarProvider.includeSpinner = false;
 };
 includeSpinnerConfig.$inject = ['cfpLoadingBarProvider'];
@@ -418,10 +418,10 @@ graviteeManagementModule.config(includeSpinnerConfig);
 graviteeManagementModule.config(interceptorConfig);
 
 // Hack to disable location provider. Now we only use angular
-const disableAjsLocationProvider = ($provide) => {
+const disableAjsLocationProvider = $provide => {
   $provide.decorator('$browser', [
     '$delegate',
-    ($delegate) => {
+    $delegate => {
       $delegate.onUrlChange = () => null;
       $delegate.url = () => '';
 

@@ -40,20 +40,20 @@ export class Step4Security1PlansHarness extends ComponentHarness {
 
   async getColumnTextByRowIndex(index: number): Promise<{ name: string; mode: string; security: string }> {
     return this.matTable()
-      .then((x) => x.getRows())
-      .then((rows) => rows[index])
-      .then((row) => row.getCellTextByColumnName())
-      .then((cell) => ({ name: cell.name, mode: cell.mode, security: cell.security }));
+      .then(x => x.getRows())
+      .then(rows => rows[index])
+      .then(row => row.getCellTextByColumnName())
+      .then(cell => ({ name: cell.name, mode: cell.mode, security: cell.security }));
   }
 
   async countNumberOfRows(): Promise<number> {
     return this.matTable()
-      .then((table) => table.getRows())
-      .then((rows) => rows.length);
+      .then(table => table.getRows())
+      .then(rows => rows.length);
   }
 
   async clickRemovePlanButton(): Promise<void> {
-    return this.getButtonBySelector('[aria-label="Remove plan"]').then((btn) => btn.click());
+    return this.getButtonBySelector('[aria-label="Remove plan"]').then(btn => btn.click());
   }
 
   async clickPrevious() {
@@ -74,16 +74,16 @@ export class Step4Security1PlansHarness extends ComponentHarness {
     isNativeKafka: boolean = false,
     isFakeAsync: boolean = false,
   ): Promise<void> {
-    await this.getButtonBySelector('[aria-label="Add new plan"]').then((b) => b.click());
+    await this.getButtonBySelector('[aria-label="Add new plan"]').then(b => b.click());
     const planSecurityDropdown = await this.locatorFor(MatMenuHarness)();
-    expect(await planSecurityDropdown.getItems().then((items) => items.length)).toEqual(4);
+    expect(await planSecurityDropdown.getItems().then(items => items.length)).toEqual(4);
 
     await planSecurityDropdown.clickItem({ text: 'API Key' });
 
     const apiPlanFormHarness = await this.locatorFor(ApiPlanFormHarness)();
 
     apiPlanFormHarness.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-    await apiPlanFormHarness.getNameInput().then((i) => i.setValue(planName));
+    await apiPlanFormHarness.getNameInput().then(i => i.setValue(planName));
 
     const nextButton = await this.getButtonByText('Next');
     expect(await nextButton.isDisabled()).toEqual(false);
@@ -107,19 +107,19 @@ export class Step4Security1PlansHarness extends ComponentHarness {
 
   async editDefaultKeylessPlanNameAndAddRateLimit(newPlanName: string, httpTestingController: HttpTestingController): Promise<void> {
     const tableDefaultKeylessActionsCell = await this.matTable()
-      .then((t) => t.getRows())
-      .then((row) => row[0])
-      .then((row) => row.getCells({ columnName: 'actions' }))
-      .then((cell) => cell[0]);
+      .then(t => t.getRows())
+      .then(row => row[0])
+      .then(row => row.getCells({ columnName: 'actions' }))
+      .then(cell => cell[0]);
 
     // Click on Edit plan button
-    await tableDefaultKeylessActionsCell.getHarness(MatButtonHarness.with({ selector: '[aria-label="Edit plan"]' })).then((b) => b.click());
+    await tableDefaultKeylessActionsCell.getHarness(MatButtonHarness.with({ selector: '[aria-label="Edit plan"]' })).then(b => b.click());
 
     const apiPlanFormHarness = await this.locatorFor(ApiPlanFormHarness)();
 
     apiPlanFormHarness.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
     // Change plan name
-    await apiPlanFormHarness.getNameInput().then((i) => i.setValue(newPlanName));
+    await apiPlanFormHarness.getNameInput().then(i => i.setValue(newPlanName));
 
     await (await this.getButtonByText('Next')).click();
     const rateLimitToggle = await apiPlanFormHarness.getRateLimitEnabledInput();
@@ -128,7 +128,7 @@ export class Step4Security1PlansHarness extends ComponentHarness {
     // When form has initial value, value is patched and multiple requests can be sent to get the schema. Need to use match here, but we check that at least one request is done
     const req = httpTestingController
       .match({ url: `${CONSTANTS_TESTING.env.baseURL}/policies/rate-limit/schema`, method: 'GET' })
-      .filter((req) => !req.cancelled);
+      .filter(req => !req.cancelled);
     expect(req.length).toEqual(1);
     req[0].flush({});
 
@@ -137,9 +137,9 @@ export class Step4Security1PlansHarness extends ComponentHarness {
   }
 
   async getPlanNames(): Promise<string[]> {
-    await this.getButtonBySelector('[aria-label="Add new plan"]').then((b) => b.click());
+    await this.getButtonBySelector('[aria-label="Add new plan"]').then(b => b.click());
     const planSecurityDropdown = await this.locatorFor(MatMenuHarness)();
     const items = await planSecurityDropdown.getItems();
-    return Promise.all(items.map((item) => item.getText()));
+    return Promise.all(items.map(item => item.getText()));
   }
 }

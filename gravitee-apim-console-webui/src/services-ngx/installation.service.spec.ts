@@ -35,10 +35,10 @@ describe('InstallationService', () => {
   });
 
   describe('get', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const installation = fakeInstallation();
 
-      installationService.get().subscribe((response) => {
+      installationService.get().subscribe(response => {
         expect(response).toMatchObject(installation);
         done();
       });

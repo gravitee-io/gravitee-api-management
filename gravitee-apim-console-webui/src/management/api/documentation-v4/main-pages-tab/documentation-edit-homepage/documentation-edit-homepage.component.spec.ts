@@ -139,12 +139,12 @@ describe('DocumentationEditHomepageComponent', () => {
       await editPage.checkVisibility('PUBLIC');
 
       const harness = await harnessLoader.getHarness(DocumentationNewPageHarness);
-      await harness.getNextButton().then(async (btn) => {
+      await harness.getNextButton().then(async btn => {
         expect(await btn.isDisabled()).toEqual(false);
         return btn.click();
       });
 
-      await harness.getNextButton().then(async (btn) => {
+      await harness.getNextButton().then(async btn => {
         expect(await btn.isDisabled()).toEqual(false);
         return btn.click();
       });

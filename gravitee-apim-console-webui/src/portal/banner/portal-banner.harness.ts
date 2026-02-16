@@ -40,39 +40,39 @@ export class PortalBannerHarness extends ComponentHarness {
   private locateBannerRadio = (title: string) => this.locatorFor(BannerRadioButtonHarness.with({ title }))();
 
   public async setTitle(title: string) {
-    return this.getTitleInput().then((input) => input.setValue(title));
+    return this.getTitleInput().then(input => input.setValue(title));
   }
 
   public async getTitle() {
-    return this.getTitleInput().then((input) => input.getValue());
+    return this.getTitleInput().then(input => input.getValue());
   }
 
   public async setSubtitle(subtitle: string) {
-    return this.getSubtitleInput().then((input) => input.setValue(subtitle));
+    return this.getSubtitleInput().then(input => input.setValue(subtitle));
   }
 
   public async getSubtitle() {
-    return this.getSubtitleInput().then((input) => input.getValue());
+    return this.getSubtitleInput().then(input => input.getValue());
   }
 
   public async enableBanner(): Promise<void> {
     return await this.locateBannerRadio('Featured banner')
-      .then((bannerRadio) => bannerRadio.getRadioButton())
-      .then((radio) => radio.check());
+      .then(bannerRadio => bannerRadio.getRadioButton())
+      .then(radio => radio.check());
   }
 
   public async disableBanner(): Promise<void> {
     return await this.locateBannerRadio('None')
-      .then((bannerRadio) => bannerRadio.getRadioButton())
-      .then((radio) => radio.check());
+      .then(bannerRadio => bannerRadio.getRadioButton())
+      .then(radio => radio.check());
   }
 
   public async submit() {
-    return this.getSaveBar().then((saveBar) => saveBar.clickSubmit());
+    return this.getSaveBar().then(saveBar => saveBar.clickSubmit());
   }
 
   public reset() {
-    return this.getSaveBar().then((saveBar) => saveBar.clickReset());
+    return this.getSaveBar().then(saveBar => saveBar.clickReset());
   }
 
   /**
@@ -88,7 +88,7 @@ export class PortalBannerHarness extends ComponentHarness {
   }
 
   public async getPrimaryButtonEnableToggle(): Promise<MatSlideToggleHarness> {
-    return await this.locateAllToggles().then((toggles) => toggles[0]);
+    return await this.locateAllToggles().then(toggles => toggles[0]);
   }
 
   public async getPrimaryButtonVisibilityValue(): Promise<string> {
@@ -112,7 +112,7 @@ export class PortalBannerHarness extends ComponentHarness {
   }
 
   public async getSecondaryButtonEnableToggle(): Promise<MatSlideToggleHarness> {
-    return await this.locateAllToggles().then((toggles) => toggles[1]);
+    return await this.locateAllToggles().then(toggles => toggles[1]);
   }
 
   public async getSecondaryButtonVisibilityValue(): Promise<string> {
@@ -142,8 +142,8 @@ export class PortalBannerHarness extends ComponentHarness {
     const publicOption = inlineHarnesses[0];
     const privateOption = inlineHarnesses[1];
     if (visibilityOptionValue === 'PUBLIC') {
-      return await publicOption.host().then((opt) => opt.click());
+      return await publicOption.host().then(opt => opt.click());
     }
-    return await privateOption.host().then((opt) => opt.click());
+    return await privateOption.host().then(opt => opt.click());
   }
 }

@@ -34,7 +34,7 @@ export class BannerRadioButtonHarness extends ComponentHarness {
   }
 
   public async getTitle(): Promise<string> {
-    return await this.locateTitle().then((el) => el.text());
+    return await this.locateTitle().then(el => el.text());
   }
 
   public async getRadioButton(): Promise<MatRadioButtonHarness> {

@@ -70,10 +70,10 @@ describe('ApiDocumentationV2Service', () => {
   describe('getPage', () => {
     const PAGE_ID = 'page-id';
     beforeEach(() => init());
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakeResponse = fakeMarkdown();
 
-      service.getApiPage(API_ID, PAGE_ID).subscribe((response) => {
+      service.getApiPage(API_ID, PAGE_ID).subscribe(response => {
         expect(response).toEqual(fakeResponse);
         done();
       });
@@ -89,10 +89,10 @@ describe('ApiDocumentationV2Service', () => {
 
   describe('getApiPages', () => {
     beforeEach(() => init());
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakeResponse = { pages: [], breadcrumb: [] };
 
-      service.getApiPages(API_ID, 'ROOT').subscribe((response) => {
+      service.getApiPages(API_ID, 'ROOT').subscribe(response => {
         expect(response).toEqual(fakeResponse);
         done();
       });
@@ -105,7 +105,7 @@ describe('ApiDocumentationV2Service', () => {
       req.flush(fakeResponse);
     });
 
-    it('should filter the non supported page type', (done) => {
+    it('should filter the non supported page type', done => {
       const markdown = fakeMarkdown();
       const folder = fakeFolder();
       const swagger = fakeSwagger();
@@ -126,7 +126,7 @@ describe('ApiDocumentationV2Service', () => {
         breadcrumb: [],
       };
 
-      service.getApiPages(API_ID, 'ROOT').subscribe((response) => {
+      service.getApiPages(API_ID, 'ROOT').subscribe(response => {
         expect(response).toEqual({
           pages: [markdown, folder, asciiDoc, asyncApi, swagger],
           breadcrumb: [],
@@ -142,7 +142,7 @@ describe('ApiDocumentationV2Service', () => {
       req.flush(fakeResponse);
     });
 
-    it('should sort breadcrumb by position', (done) => {
+    it('should sort breadcrumb by position', done => {
       const fakeResponse = {
         pages: [],
         breadcrumb: [
@@ -152,7 +152,7 @@ describe('ApiDocumentationV2Service', () => {
         ],
       };
 
-      service.getApiPages(API_ID, 'ROOT').subscribe((response) => {
+      service.getApiPages(API_ID, 'ROOT').subscribe(response => {
         expect(response.breadcrumb).toEqual([
           { name: 'folder 1', position: 1, id: 'folder-1' },
           { name: 'folder 2', position: 2, id: 'folder-2' },
@@ -172,14 +172,14 @@ describe('ApiDocumentationV2Service', () => {
 
   describe('createDocumentation', () => {
     beforeEach(() => init());
-    it('should call the API to create folder', (done) => {
+    it('should call the API to create folder', done => {
       const fakeResponse: Page = {};
       const createFolder: CreateDocumentationFolder = {
         type: 'FOLDER',
         name: 'folder',
         visibility: 'PUBLIC',
       };
-      service.createDocumentationPage(API_ID, createFolder).subscribe((response) => {
+      service.createDocumentationPage(API_ID, createFolder).subscribe(response => {
         expect(response).toEqual(fakeResponse);
         done();
       });
@@ -192,7 +192,7 @@ describe('ApiDocumentationV2Service', () => {
       req.flush(fakeResponse);
     });
 
-    it('should call the API to create page', (done) => {
+    it('should call the API to create page', done => {
       const fakeResponse: Page = {};
       const createPage: CreateDocumentation = {
         type: 'MARKDOWN',
@@ -200,7 +200,7 @@ describe('ApiDocumentationV2Service', () => {
         name: 'page',
         content: '#TITLE \n content',
       };
-      service.createDocumentationPage(API_ID, createPage).subscribe((response) => {
+      service.createDocumentationPage(API_ID, createPage).subscribe(response => {
         expect(response).toEqual(fakeResponse);
         done();
       });
@@ -217,7 +217,7 @@ describe('ApiDocumentationV2Service', () => {
   describe('updateDocumentation', () => {
     beforeEach(() => init());
     const PAGE_ID = 'page-id';
-    it('should call the API to update markdown page', (done) => {
+    it('should call the API to update markdown page', done => {
       const fakeResponse: Page = {};
       const editPage: EditDocumentationMarkdown = {
         type: 'FOLDER',
@@ -225,7 +225,7 @@ describe('ApiDocumentationV2Service', () => {
         visibility: 'PUBLIC',
         content: 'new content',
       };
-      service.updateDocumentationPage(API_ID, PAGE_ID, editPage).subscribe((response) => {
+      service.updateDocumentationPage(API_ID, PAGE_ID, editPage).subscribe(response => {
         expect(response).toEqual(fakeResponse);
         done();
       });
@@ -241,9 +241,9 @@ describe('ApiDocumentationV2Service', () => {
   describe('publishPage', () => {
     beforeEach(() => init());
     const PAGE_ID = 'page-id';
-    it('should call the API to publish page', (done) => {
+    it('should call the API to publish page', done => {
       const fakeResponse: Page = fakeMarkdown();
-      service.publishDocumentationPage(API_ID, PAGE_ID).subscribe((response) => {
+      service.publishDocumentationPage(API_ID, PAGE_ID).subscribe(response => {
         expect(response).toEqual(fakeResponse);
         done();
       });
@@ -259,9 +259,9 @@ describe('ApiDocumentationV2Service', () => {
   describe('unpublishPage', () => {
     beforeEach(() => init());
     const PAGE_ID = 'page-id';
-    it('should call the API to unpublish page', (done) => {
+    it('should call the API to unpublish page', done => {
       const fakeResponse: Page = fakeMarkdown();
-      service.unpublishDocumentationPage(API_ID, PAGE_ID).subscribe((response) => {
+      service.unpublishDocumentationPage(API_ID, PAGE_ID).subscribe(response => {
         expect(response).toEqual(fakeResponse);
         done();
       });
@@ -277,9 +277,9 @@ describe('ApiDocumentationV2Service', () => {
   describe('fetchPage', () => {
     beforeEach(() => init());
     const PAGE_ID = 'page-id';
-    it('should call the API to fetch page', (done) => {
+    it('should call the API to fetch page', done => {
       const fakeResponse: Page = fakeMarkdown();
-      service.fetchDocumentationPage(API_ID, PAGE_ID).subscribe((response) => {
+      service.fetchDocumentationPage(API_ID, PAGE_ID).subscribe(response => {
         expect(response).toEqual(fakeResponse);
         done();
       });

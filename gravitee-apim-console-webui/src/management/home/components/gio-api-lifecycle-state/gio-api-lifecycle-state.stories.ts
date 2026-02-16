@@ -26,7 +26,7 @@ export default {
     moduleMetadata({
       imports: [GioApiLifecycleStateModule, BrowserAnimationsModule],
     }),
-    componentWrapperDecorator((story) => `<div style="height:400px;width: 400px">${story}</div>`),
+    componentWrapperDecorator(story => `<div style="height:400px;width: 400px">${story}</div>`),
   ],
   render: ({ data }) => ({
     props: { data },

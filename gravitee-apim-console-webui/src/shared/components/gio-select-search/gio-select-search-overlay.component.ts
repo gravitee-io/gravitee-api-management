@@ -85,7 +85,7 @@ export class GioSelectSearchOverlayComponent implements OnInit, AfterViewInit {
       .pipe(
         startWith(''),
         distinctUntilChanged(),
-        tap((value) => {
+        tap(value => {
           this.scrollToTop();
           this.searchChange.next(value || '');
         }),

@@ -28,7 +28,7 @@ import { ConsoleSettings } from '../entities/consoleSettings';
 export class ConsoleSettingsService {
   static isReadonly(settings: ConsoleSettings, property: string): boolean {
     if (settings && settings.metadata && settings.metadata.readonly) {
-      return settings.metadata.readonly.some((key) => key === property);
+      return settings.metadata.readonly.some(key => key === property);
     }
     return false;
   }
@@ -51,7 +51,7 @@ export class ConsoleSettingsService {
     );
 
     return this.http.post<ConsoleSettings>(`${this.constants.org.baseURL}/settings`, consoleSettings).pipe(
-      tap((consoleSettings) => {
+      tap(consoleSettings => {
         // FIXME : It's not very nice to directly modify a provider like that. We should create a service or find another way to do it.
         // To be seen at the end of the Angular migration
         merge(this.constants.org.settings, consoleSettings);

@@ -107,7 +107,7 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.roleService.delete(scope, role.name)),
         tap(() => this.snackBarService.success(`Role ${role.name} successfully deleted!`)),
         catchError(() => {
@@ -120,7 +120,7 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
   }
 
   private convertToRoleVMs(roles: Role[]): RoleVM[] {
-    return roles.map((role) => ({
+    return roles.map(role => ({
       name: role.name,
       description: role.description,
       isDefault: role.default,

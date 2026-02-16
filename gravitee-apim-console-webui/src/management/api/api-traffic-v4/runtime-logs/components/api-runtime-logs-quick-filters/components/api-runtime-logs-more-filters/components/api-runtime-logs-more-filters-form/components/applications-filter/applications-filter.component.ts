@@ -47,13 +47,13 @@ export class ApplicationsFilterComponent implements ControlValueAccessor {
 
   public autocompleteOptions: (searchTerm: string) => Observable<AutocompleteOptions> = (searchTerm: string) => {
     return this.applicationService.list(null, searchTerm).pipe(
-      map((apps) => {
-        return apps?.data?.map((application) => {
+      map(apps => {
+        return apps?.data?.map(application => {
           const data = {
             value: application.id,
             label: `${application.name} ( ${application.owner?.displayName} )`,
           };
-          if (!this._applicationsCache.find((cache) => cache.value === application.id)) {
+          if (!this._applicationsCache.find(cache => cache.value === application.id)) {
             this._applicationsCache.push(data);
           }
           return data;
@@ -67,9 +67,9 @@ export class ApplicationsFilterComponent implements ControlValueAccessor {
 
   public displayValueWith: DisplayValueWithFn = (value: string) => {
     return this.applicationService.getById(value).pipe(
-      map((application) => {
+      map(application => {
         const label = `${application.name} ( ${application.owner?.displayName} )`;
-        if (!this._applicationsCache.find((cache) => cache.value === application.id)) {
+        if (!this._applicationsCache.find(cache => cache.value === application.id)) {
           this._applicationsCache.push({ value: application.id, label });
           this.applicationCache.emit(this._applicationsCache);
         }

@@ -39,7 +39,7 @@ describe('FetcherService', () => {
   });
 
   describe('list FetcherListItem', () => {
-    it('should call the create endpoint', (done) => {
+    it('should call the create endpoint', done => {
       const id1 = 'id1';
       const id2 = 'id2';
       const schema1 =
@@ -49,7 +49,7 @@ describe('FetcherService', () => {
 
       const fetcherListItem = [fakeFetcherListItem({ id: id1, schema: schema1 }), fakeFetcherListItem({ id: id2, schema: schema2 })];
 
-      fetcherService.getList().subscribe((fetcherListItem) => {
+      fetcherService.getList().subscribe(fetcherListItem => {
         expect(fetcherListItem.length).toEqual(2);
         expect(fetcherListItem[0].schema).toEqual(schema1);
         expect(fetcherListItem[1].schema).toEqual(schema2);

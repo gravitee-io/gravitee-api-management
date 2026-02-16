@@ -125,10 +125,10 @@ export class CategoryListComponent implements OnInit {
     }
 
     this.categoriesDS$ = this.categoryList.pipe(
-      switchMap((_) => this.categoryService.list(true)),
-      map((categories) => categories.sort((a, b) => a.order - b.order)),
-      catchError((_) => of([])),
-      tap((categories) => {
+      switchMap(_ => this.categoryService.list(true)),
+      map(categories => categories.sort((a, b) => a.order - b.order)),
+      catchError(_ => of([])),
+      tap(categories => {
         if (categories.length < 2) {
           this.displayedColumns.shift();
         }
@@ -138,7 +138,7 @@ export class CategoryListComponent implements OnInit {
       .get()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (settings) => {
+        next: settings => {
           this.initializeForm(settings);
         },
       });
@@ -157,12 +157,12 @@ export class CategoryListComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirmed) => confirmed),
-        switchMap((_) => this.categoryService.delete(category.id)),
+        filter(confirmed => confirmed),
+        switchMap(_ => this.categoryService.delete(category.id)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (_) => {
+        next: _ => {
           this.snackBarService.success(`'${category.name}' deleted successfully`);
           this.categoryList.next(1);
         },
@@ -184,7 +184,7 @@ export class CategoryListComponent implements OnInit {
       .update(categoryToUpdate)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (_) => {
+        next: _ => {
           this.snackBarService.success(`Category [${category.name}] is now ${isHidden ? 'hidden' : 'shown'}`);
           this.categoryList.next(1);
         },
@@ -197,7 +197,7 @@ export class CategoryListComponent implements OnInit {
       this.categoriesDS$
         .pipe(
           take(1),
-          switchMap((categories) => {
+          switchMap(categories => {
             const { previousIndex, currentIndex } = event;
             const categoryToMove = categories.splice(previousIndex, 1)[0];
             categories.splice(currentIndex, 0, categoryToMove);
@@ -227,7 +227,7 @@ export class CategoryListComponent implements OnInit {
     this.portalSettingsService
       .get()
       .pipe(
-        switchMap((settings) =>
+        switchMap(settings =>
           this.portalSettingsService.save({
             ...settings,
             portalNext: {
@@ -241,7 +241,7 @@ export class CategoryListComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (settings) => {
+        next: settings => {
           this.initializeForm(settings);
         },
       });

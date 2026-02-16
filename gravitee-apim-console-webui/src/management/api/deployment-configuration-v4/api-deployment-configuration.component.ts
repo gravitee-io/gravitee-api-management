@@ -86,7 +86,7 @@ export class ApiDeploymentConfigurationComponent implements OnInit, OnDestroy {
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV2V4Filter(this.snackBarService),
-        switchMap((api) => this.apiService.update(api.id, { ...api, tags: this.deploymentsForm.get('tags').value ?? [] })),
+        switchMap(api => this.apiService.update(api.id, { ...api, tags: this.deploymentsForm.get('tags').value ?? [] })),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);

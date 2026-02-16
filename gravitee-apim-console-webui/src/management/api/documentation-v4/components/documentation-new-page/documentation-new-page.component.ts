@@ -176,8 +176,8 @@ export class DocumentationNewPageComponent implements OnInit {
       .getList()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(
-        (fetchers) =>
-          (this.fetchers = fetchers.map((f) => {
+        fetchers =>
+          (this.fetchers = fetchers.map(f => {
             return {
               id: f.id,
               name: f.name,
@@ -187,7 +187,7 @@ export class DocumentationNewPageComponent implements OnInit {
           })),
       );
 
-    this.form.controls.sourceType.valueChanges.pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
+    this.form.controls.sourceType.valueChanges.pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(value => {
       if (value === 'EXTERNAL') {
         this.form.controls.content.clearValidators();
         this.form.controls.source.addValidators([Validators.required]);
@@ -205,7 +205,7 @@ export class DocumentationNewPageComponent implements OnInit {
     this.form.controls.source.valueChanges
       .pipe(
         distinctUntilChanged(),
-        tap((_) => {
+        tap(_ => {
           // Clear variable, wait, and re-init is a hack to force re-rendering of GioJsonSchemaForm
           this.selectedFetcherSchema = undefined;
           this.sourceConfiguration = undefined;
@@ -213,9 +213,9 @@ export class DocumentationNewPageComponent implements OnInit {
         debounceTime(10),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((value) => {
+      .subscribe(value => {
         this.sourceConfiguration = new FormControl<unknown>({}, [Validators.required]);
-        this.selectedFetcherSchema = this.fetchers.find((f) => f.id === value)?.schema;
+        this.selectedFetcherSchema = this.fetchers.find(f => f.id === value)?.schema;
       });
   }
 
@@ -235,7 +235,7 @@ export class DocumentationNewPageComponent implements OnInit {
   createAndPublish() {
     this.createPage()
       .pipe(
-        switchMap((page) => this.apiDocumentationService.publishDocumentationPage(this.api.id, page.id)),
+        switchMap(page => this.apiDocumentationService.publishDocumentationPage(this.api.id, page.id)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
@@ -243,7 +243,7 @@ export class DocumentationNewPageComponent implements OnInit {
           this.snackBarService.success('Page created and published successfully');
           this.goBackToPageList();
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'Cannot publish page');
         },
       });
@@ -277,7 +277,7 @@ export class DocumentationNewPageComponent implements OnInit {
       homepage: this.createHomepage === true,
       content: formValue.content,
       parentId: this.parentId || 'ROOT',
-      accessControls: formValue.stepOne.accessControlGroups.map((referenceId) => ({ referenceId, referenceType: 'GROUP' })),
+      accessControls: formValue.stepOne.accessControlGroups.map(referenceId => ({ referenceId, referenceType: 'GROUP' })),
       excludedAccessControls: formValue.stepOne.excludeGroups,
       ...(formValue.sourceType === 'EXTERNAL' &&
         formValue.source && {

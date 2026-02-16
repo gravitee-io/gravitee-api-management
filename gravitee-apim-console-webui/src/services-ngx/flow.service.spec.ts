@@ -37,10 +37,10 @@ describe('FlowService', () => {
   });
 
   describe('getConfigurationSchemaForm', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const flowConfigurationSchema = fakeFlowConfigurationSchema();
 
-      flowService.getConfigurationSchemaForm().subscribe((response) => {
+      flowService.getConfigurationSchemaForm().subscribe(response => {
         expect(response).toStrictEqual(flowConfigurationSchema);
         done();
       });
@@ -55,10 +55,10 @@ describe('FlowService', () => {
   });
 
   describe('getPlatformFlowSchemaForm', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const platformFlowSchema = fakePlatformFlowSchema();
 
-      flowService.getPlatformFlowSchemaForm().subscribe((response) => {
+      flowService.getPlatformFlowSchemaForm().subscribe(response => {
         expect(response).toStrictEqual(platformFlowSchema);
         done();
       });
@@ -73,10 +73,10 @@ describe('FlowService', () => {
   });
 
   describe('getConfiguration', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const platformFlowSchema = fakeOrganizationFlowConfiguration();
 
-      flowService.getConfiguration().subscribe((response) => {
+      flowService.getConfiguration().subscribe(response => {
         expect(response).toStrictEqual(platformFlowSchema);
         done();
       });

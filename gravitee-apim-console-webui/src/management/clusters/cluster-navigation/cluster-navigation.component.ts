@@ -71,14 +71,14 @@ export class ClusterNavigationComponent implements OnInit, OnDestroy {
   private readonly gioMenuSearchService = inject(GioMenuSearchService);
 
   ngOnInit() {
-    this.gioMenuService.reduced$.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
+    this.gioMenuService.reduced$.pipe(takeUntil(this.unsubscribe$)).subscribe(reduced => {
       this.hasBreadcrumb = reduced;
     });
 
     this.clusterService
       .get(this.activatedRoute.snapshot.params.clusterId)
       .pipe(
-        tap((cluster) => {
+        tap(cluster => {
           this.cluster = cluster;
 
           this.subMenuItems = this.filterMenuByPermission([
@@ -106,14 +106,14 @@ export class ClusterNavigationComponent implements OnInit, OnDestroy {
             },
           ]);
 
-          this.selectedItemWithTabs = this.subMenuItems.find((item) => item.tabs && this.isTabActive(item.tabs));
+          this.selectedItemWithTabs = this.subMenuItems.find(item => item.tabs && this.isTabActive(item.tabs));
 
           this.gioMenuSearchService.addMenuSearchItems(this.getClusterNavigationSearchItems());
         }),
         switchMap(() => this.router.events),
-        filter((event) => event instanceof NavigationEnd),
+        filter(event => event instanceof NavigationEnd),
         tap(() => {
-          this.selectedItemWithTabs = this.subMenuItems.find((item) => item.tabs && this.isTabActive(item.tabs));
+          this.selectedItemWithTabs = this.subMenuItems.find(item => item.tabs && this.isTabActive(item.tabs));
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -141,7 +141,7 @@ export class ClusterNavigationComponent implements OnInit, OnDestroy {
   computeBreadcrumbItems(): string[] {
     const breadcrumbItems: string[] = [];
 
-    this.subMenuItems.forEach((item) => {
+    this.subMenuItems.forEach(item => {
       if (this.isActive(item)) {
         breadcrumbItems.push(item.displayName);
       }
@@ -151,12 +151,12 @@ export class ClusterNavigationComponent implements OnInit, OnDestroy {
   }
 
   isTabActive(tabs: MenuItem[]): boolean {
-    return flatMap(tabs, (tab) => tab).some((tab) => this.isActive(tab));
+    return flatMap(tabs, tab => tab).some(tab => this.isActive(tab));
   }
 
   private filterMenuByPermission(menuItems: MenuItem[]): MenuItem[] {
     if (menuItems) {
-      return menuItems.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
+      return menuItems.filter(item => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
     }
     return [];
   }
@@ -174,7 +174,7 @@ export class ClusterNavigationComponent implements OnInit, OnDestroy {
         groupIds: [environmentId, clusterId],
       });
 
-      item.tabs?.forEach((tab) => {
+      item.tabs?.forEach(tab => {
         acc.push({
           name: tab.displayName,
           routerLink: `${parentRouterLink}/${cleanRouterLink(tab.routerLink)}`,

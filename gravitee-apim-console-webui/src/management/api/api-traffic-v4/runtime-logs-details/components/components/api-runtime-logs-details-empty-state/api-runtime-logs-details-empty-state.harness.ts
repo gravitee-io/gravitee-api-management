@@ -21,5 +21,5 @@ export class ApiRuntimeLogsDetailsEmptyStateHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-details-empty-state';
 
   private openSettingsButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testId=open-settings-button]' }));
-  public clickOpenSettingsButton = async () => await this.openSettingsButton().then((btn) => btn.click());
+  public clickOpenSettingsButton = async () => await this.openSettingsButton().then(btn => btn.click());
 }

@@ -52,11 +52,11 @@ export class ApiLoggingHarness extends ComponentHarness {
   );
 
   public saveSettings = async (): Promise<void> => {
-    return this.getSaveButton().then((saveButton) => saveButton.clickSubmit());
+    return this.getSaveButton().then(saveButton => saveButton.clickSubmit());
   };
 
   public isSaveButtonInvalid = async (): Promise<boolean> => {
-    return this.getSaveButton().then((saveButton) => saveButton.isSubmitButtonInvalid());
+    return this.getSaveButton().then(saveButton => saveButton.isSubmitButtonInvalid());
   };
 
   public isMaxDurationFieldDisabled = async (): Promise<boolean> => {
@@ -72,7 +72,7 @@ export class ApiLoggingHarness extends ComponentHarness {
   };
 
   public toggleAuditEnabled = async (): Promise<void> => {
-    return this.getAuditEnabledSlideToggle().then((toggle) => toggle.toggle());
+    return this.getAuditEnabledSlideToggle().then(toggle => toggle.toggle());
   };
 
   public isAuditTrailEnabledToggleDisabled = async (): Promise<boolean> => {
@@ -80,7 +80,7 @@ export class ApiLoggingHarness extends ComponentHarness {
   };
 
   public toggleAuditTrailEnabled = async (): Promise<void> => {
-    return this.getAuditTrailEnabledSlideToggle().then((toggle) => toggle.toggle());
+    return this.getAuditTrailEnabledSlideToggle().then(toggle => toggle.toggle());
   };
 
   public isUserDisplayedToggleDisabled = async (): Promise<boolean> => {
@@ -88,7 +88,7 @@ export class ApiLoggingHarness extends ComponentHarness {
   };
 
   public toggleUserDisplayed = async (): Promise<void> => {
-    return this.getUserDisplayedSlideToggle().then((toggle) => toggle.toggle());
+    return this.getUserDisplayedSlideToggle().then(toggle => toggle.toggle());
   };
 
   public setCountDefault = async (value: string): Promise<void> => {
@@ -219,22 +219,22 @@ export class ApiLoggingHarness extends ComponentHarness {
   };
 
   private setValueFor = async (formFieldPromise: Promise<MatFormFieldHarness>, value: string): Promise<void> => {
-    return formFieldPromise.then((formField) => formField.getControl(MatInputHarness)).then((input) => input.setValue(value));
+    return formFieldPromise.then(formField => formField.getControl(MatInputHarness)).then(input => input.setValue(value));
   };
 
   private fieldHasErrors = async (formFieldPromise: Promise<MatFormFieldHarness>): Promise<boolean> => {
-    return formFieldPromise.then((formField) => formField.hasErrors());
+    return formFieldPromise.then(formField => formField.hasErrors());
   };
 
   private getTextErrorsFor = async (formFieldPromise: Promise<MatFormFieldHarness>): Promise<string[]> => {
-    return formFieldPromise.then((formField) => formField.getTextErrors());
+    return formFieldPromise.then(formField => formField.getTextErrors());
   };
 
   private isToggleDisabled = async (togglePromise: Promise<MatSlideToggleHarness>) => {
-    return togglePromise.then((formField) => formField.isDisabled());
+    return togglePromise.then(formField => formField.isDisabled());
   };
 
   private isFormFieldDisabled = async (formFieldPromise: Promise<MatFormFieldHarness>) => {
-    return formFieldPromise.then((formField) => formField.isDisabled());
+    return formFieldPromise.then(formField => formField.isDisabled());
   };
 }

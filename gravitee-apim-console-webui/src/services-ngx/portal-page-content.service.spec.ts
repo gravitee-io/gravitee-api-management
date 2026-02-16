@@ -38,11 +38,11 @@ describe('PortalPageContentService', () => {
   });
 
   describe('getPageContent', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const contentId = 'content-1';
       const fakePageContent = fakePortalPageContent({ id: contentId });
 
-      service.getPageContent(contentId).subscribe((response) => {
+      service.getPageContent(contentId).subscribe(response => {
         expect(response).toMatchObject(fakePageContent);
         done();
       });
@@ -54,11 +54,11 @@ describe('PortalPageContentService', () => {
   });
 
   describe('createPageContent', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const newPageContent = fakeNewPortalPageContent();
       const fakeCreatedContent = fakePortalPageContent({ content: newPageContent.content });
 
-      service.createPageContent(newPageContent).subscribe((response) => {
+      service.createPageContent(newPageContent).subscribe(response => {
         expect(response).toMatchObject(fakeCreatedContent);
         done();
       });
@@ -73,12 +73,12 @@ describe('PortalPageContentService', () => {
   });
 
   describe('updatePageContent', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const contentId = 'content-1';
       const updateContent = { content: 'Updated content' };
       const fakeUpdatedContent = fakePortalPageContent({ id: contentId, content: updateContent.content });
 
-      service.updatePageContent(contentId, updateContent).subscribe((response) => {
+      service.updatePageContent(contentId, updateContent).subscribe(response => {
         expect(response).toMatchObject(fakeUpdatedContent);
         done();
       });

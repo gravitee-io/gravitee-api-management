@@ -81,7 +81,7 @@ export class ApiRuntimeAlertsComponent implements OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.alertService.deleteAlert(this.activatedRoute.snapshot.params.apiId, alert.id)),
         catchError(() => {
           this.snackBarService.error('An error occurred while deleting your alert.');
@@ -97,7 +97,7 @@ export class ApiRuntimeAlertsComponent implements OnDestroy {
     this.alertService
       .listAlerts(this.activatedRoute.snapshot.params.apiId, true)
       .pipe(
-        tap((alerts) => this.alerts$.next(alerts)),
+        tap(alerts => this.alerts$.next(alerts)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();

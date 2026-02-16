@@ -39,10 +39,10 @@ describe('CategoryService', () => {
   });
 
   describe('list', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const response: Category[] = [{ id: 'Id', name: 'Fox', key: 'fox' }];
 
-      categoryService.list().subscribe((result) => {
+      categoryService.list().subscribe(result => {
         expect(result).toMatchObject(response);
         done();
       });
@@ -56,11 +56,11 @@ describe('CategoryService', () => {
     });
   });
   describe('update', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const requestBody: Category = { id: 'Id', name: 'Fox', key: 'fox' };
       const responseBody: Category = { id: 'Id', name: 'Fox 2', key: 'fox 2' };
 
-      categoryService.update(requestBody).subscribe((result) => {
+      categoryService.update(requestBody).subscribe(result => {
         expect(result).toMatchObject(responseBody);
         done();
       });
@@ -74,11 +74,11 @@ describe('CategoryService', () => {
     });
   });
   describe('updateList', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const requestBody: Category[] = [{ id: 'Id', name: 'Fox', key: 'fox' }];
       const responseBody: Category[] = [{ id: 'Id', name: 'Fox 2', key: 'fox 2' }];
 
-      categoryService.updateList(requestBody).subscribe((result) => {
+      categoryService.updateList(requestBody).subscribe(result => {
         expect(result).toMatchObject(responseBody);
         done();
       });
@@ -92,9 +92,9 @@ describe('CategoryService', () => {
     });
   });
   describe('delete', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const categoryId = 'cat-id';
-      categoryService.delete(categoryId).subscribe((result) => {
+      categoryService.delete(categoryId).subscribe(result => {
         expect(result).toMatchObject({});
         done();
       });

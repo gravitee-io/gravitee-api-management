@@ -35,10 +35,10 @@ describe('AuditService', () => {
   });
 
   describe('listByOrganization', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakeAuditPage = fakeMetadataPageAudit();
 
-      auditService.listByOrganization().subscribe((response) => {
+      auditService.listByOrganization().subscribe(response => {
         expect(response).toEqual(fakeAuditPage);
         done();
       });
@@ -51,12 +51,12 @@ describe('AuditService', () => {
         .flush(fakeAuditPage);
     });
 
-    it('should call the API with environment filters', (done) => {
+    it('should call the API with environment filters', done => {
       const fakeAuditPage = fakeMetadataPageAudit();
 
       auditService
         .listByOrganization({ event: 'HELLO', referenceType: 'ENVIRONMENT', apiId: 'NOOP', environmentId: 'envId' })
-        .subscribe((response) => {
+        .subscribe(response => {
           expect(response).toEqual(fakeAuditPage);
           done();
         });
@@ -69,10 +69,10 @@ describe('AuditService', () => {
         .flush(fakeAuditPage);
     });
 
-    it('should call the API with application filters', (done) => {
+    it('should call the API with application filters', done => {
       const fakeAuditPage = fakeMetadataPageAudit();
 
-      auditService.listByOrganization({ referenceType: 'APPLICATION', applicationId: 'appId' }).subscribe((response) => {
+      auditService.listByOrganization({ referenceType: 'APPLICATION', applicationId: 'appId' }).subscribe(response => {
         expect(response).toEqual(fakeAuditPage);
         done();
       });
@@ -85,10 +85,10 @@ describe('AuditService', () => {
         .flush(fakeAuditPage);
     });
 
-    it('should call the API with api filters', (done) => {
+    it('should call the API with api filters', done => {
       const fakeAuditPage = fakeMetadataPageAudit();
 
-      auditService.listByOrganization({ referenceType: 'API', apiId: 'apiId', environmentId: 'NOOP' }).subscribe((response) => {
+      auditService.listByOrganization({ referenceType: 'API', apiId: 'apiId', environmentId: 'NOOP' }).subscribe(response => {
         expect(response).toEqual(fakeAuditPage);
         done();
       });
@@ -101,10 +101,10 @@ describe('AuditService', () => {
         .flush(fakeAuditPage);
     });
 
-    it('should call the API with from & to filters', (done) => {
+    it('should call the API with from & to filters', done => {
       const fakeAuditPage = fakeMetadataPageAudit();
 
-      auditService.listByOrganization({ from: 10000, to: 20000 }).subscribe((response) => {
+      auditService.listByOrganization({ from: 10000, to: 20000 }).subscribe(response => {
         expect(response).toEqual(fakeAuditPage);
         done();
       });
@@ -119,10 +119,10 @@ describe('AuditService', () => {
   });
 
   describe('list', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakeAuditPage = fakeMetadataPageAudit();
 
-      auditService.list().subscribe((response) => {
+      auditService.list().subscribe(response => {
         expect(response).toEqual(fakeAuditPage);
         done();
       });
@@ -137,10 +137,10 @@ describe('AuditService', () => {
   });
 
   describe('getAllEventsNameByOrganization', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakeEvents = ['HELLO', 'WORLD'];
 
-      auditService.getAllEventsNameByOrganization().subscribe((response) => {
+      auditService.getAllEventsNameByOrganization().subscribe(response => {
         expect(response).toEqual(fakeEvents);
         done();
       });
@@ -155,10 +155,10 @@ describe('AuditService', () => {
   });
 
   describe('getAllEventsName', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakeEvents = ['HELLO', 'WORLD'];
 
-      auditService.getAllEventsName().subscribe((response) => {
+      auditService.getAllEventsName().subscribe(response => {
         expect(response).toEqual(fakeEvents);
         done();
       });

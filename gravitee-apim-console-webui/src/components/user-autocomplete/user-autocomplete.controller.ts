@@ -48,7 +48,7 @@ class UserAutocompleteController {
 
   searchUser(query) {
     if (query) {
-      return this.UserService.search(query).then((response) => {
+      return this.UserService.search(query).then(response => {
         let result = sortBy(response.data, ['displayName']);
 
         if (this.userFilterFn && typeof this.userFilterFn === 'function') {

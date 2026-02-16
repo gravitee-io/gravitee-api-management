@@ -72,7 +72,7 @@ export class GioEntrypointsSelectionListComponent implements OnDestroy, ControlV
       .getEntrypointPluginMoreInformation(entrypoint.id)
       .pipe(
         catchError(() => of({})),
-        switchMap((pluginMoreInformation) =>
+        switchMap(pluginMoreInformation =>
           this.matDialog
             .open<GioInformationDialogComponent, GioConnectorDialogData, boolean>(GioInformationDialogComponent, {
               data: {

@@ -56,7 +56,7 @@ class EditPageAttachedResourcesComponentController implements IController {
           this.DocumentationService.addMedia(fd, this.page.id, this.apiId)
             .then(() => this.onSave())
             .then(() => this.NotificationService.show(fileName + ' has been attached'))
-            .catch((error) => {
+            .catch(error => {
               this.NotificationService.showError(error.data?.message || 'An error occurred while uploading the media.');
             });
         }
@@ -75,10 +75,10 @@ class EditPageAttachedResourcesComponentController implements IController {
           confirmButton: 'Remove',
         },
       })
-      .then((response) => {
+      .then(response => {
         if (response) {
           this.page.attached_media = this.page.attached_media.filter(
-            (media) =>
+            media =>
               !(media.mediaHash === resource.hash && media.mediaName === resource.fileName && media.attachedAt === resource.createAt),
           );
           this.DocumentationService.update(this.page, this.apiId)

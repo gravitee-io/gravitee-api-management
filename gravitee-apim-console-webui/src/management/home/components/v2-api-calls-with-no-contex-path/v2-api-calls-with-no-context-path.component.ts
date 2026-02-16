@@ -71,7 +71,7 @@ export class V2ApiCallsWithNoContextPathComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (res) => {
+        next: res => {
           this.platformLogs = res.logs;
           this.totalLength = res.total;
           this.isLoading = false;

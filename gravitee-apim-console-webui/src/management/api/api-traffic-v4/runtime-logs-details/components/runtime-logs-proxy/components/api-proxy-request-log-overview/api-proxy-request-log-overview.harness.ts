@@ -23,6 +23,6 @@ export class ApiProxyRequestLogOverviewHarness extends AbstractApiRuntimeLogsPro
 
   public async getBodies(): Promise<string[]> {
     const editors = await this.locatorForAll(GioMonacoEditorHarness)();
-    return await parallel(() => editors.map((editor) => editor.getValue()));
+    return await parallel(() => editors.map(editor => editor.getValue()));
   }
 }

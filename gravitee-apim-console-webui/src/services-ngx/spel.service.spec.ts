@@ -35,10 +35,10 @@ describe('SpelService', () => {
   });
 
   describe('getGrammar', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const grammar = fakeGrammar();
 
-      spelService.getGrammar().subscribe((response) => {
+      spelService.getGrammar().subscribe(response => {
         expect(response).toStrictEqual(grammar);
         done();
       });

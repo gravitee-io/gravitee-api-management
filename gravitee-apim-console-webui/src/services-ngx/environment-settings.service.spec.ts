@@ -49,7 +49,7 @@ describe('EnvironmentSettingsService', () => {
 
     // Subscribe before calling load
     const expectedGetSettingsValue = [];
-    environmentSettingsService.get().subscribe((settings) => {
+    environmentSettingsService.get().subscribe(settings => {
       expectedGetSettingsValue.push(settings);
     });
 
@@ -69,7 +69,7 @@ describe('EnvironmentSettingsService', () => {
 
     // Subscribe after calling load
     const expectedGetSettingsSecondValue = [];
-    environmentSettingsService.get().subscribe((settings) => {
+    environmentSettingsService.get().subscribe(settings => {
       expectedGetSettingsSecondValue.push(settings);
     });
     expect(expectedGetSettingsSecondValue).toEqual([envSettingsMock]);

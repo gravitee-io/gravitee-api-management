@@ -35,10 +35,10 @@ describe('PortalConfigurationService', () => {
   });
 
   describe('get', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const portalConfigurationToGet = fakePortalConfiguration();
 
-      service.get().subscribe((portalSettings) => {
+      service.get().subscribe(portalSettings => {
         expect(portalSettings).toMatchObject(portalConfigurationToGet);
         done();
       });
@@ -53,10 +53,10 @@ describe('PortalConfigurationService', () => {
   });
 
   describe('getByEnvConfiguration', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const portalConfigurationToGet = fakePortalConfiguration();
 
-      service.getByEnvironmentId('custom_env').subscribe((portalSettings) => {
+      service.getByEnvironmentId('custom_env').subscribe(portalSettings => {
         expect(portalSettings).toMatchObject(portalConfigurationToGet);
         done();
       });

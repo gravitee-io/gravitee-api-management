@@ -31,19 +31,19 @@ export class IfMatchEtagInterceptor implements HttpInterceptor {
   public static ETAG_HEADER_IF_MATCH = 'If-Match';
 
   private urlToKeyMatchers: ((url: string) => string | undefined)[] = [
-    (url) => {
+    url => {
       const matchArray = url.match(new RegExp(`/management/organizations/([^\\/]+)/environments/([^\\/]+)/apis/([^\\/]+)`));
       if (matchArray) {
         return `api-${matchArray[3]}`;
       }
     },
-    (url) => {
+    url => {
       const matchArray = url.match(new RegExp(`/management/v2/environments/([^\\/]+)/apis/([^\\/]+)`));
       if (matchArray) {
         return `api-${matchArray[2]}`;
       }
     },
-    (url) => {
+    url => {
       const matchArray = url.match(new RegExp(`/management/v2/organizations/([^\\/]+)/environments/([^\\/]+)/apis/([^\\/]+)`));
       if (matchArray) {
         return `api-${matchArray[3]}`;
@@ -76,14 +76,14 @@ export class IfMatchEtagInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     req = req.clone();
 
-    this.interceptRequest(req.method, req.url, (etagValue) => {
+    this.interceptRequest(req.method, req.url, etagValue => {
       req = req.clone({
         headers: req.headers.set(IfMatchEtagInterceptor.ETAG_HEADER_IF_MATCH, etagValue),
       });
     });
 
     return next.handle(req).pipe(
-      map((event) => {
+      map(event => {
         if (event instanceof HttpResponse) {
           this.interceptResponse(event.url, event.headers.get(IfMatchEtagInterceptor.ETAG_HEADER));
         }

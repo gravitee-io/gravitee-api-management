@@ -34,66 +34,66 @@ export class ApiEndpointHarness extends ComponentHarness {
   private getHealthCheckInheritToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName=inherit]' }));
 
   public async fillInputName(name: string) {
-    return this.getNameInput().then((input) => input.setValue(name));
+    return this.getNameInput().then(input => input.setValue(name));
   }
 
   public async getEndpointName() {
-    return this.getNameInput().then((input) => input.getValue());
+    return this.getNameInput().then(input => input.getValue());
   }
 
   public async isSaveButtonDisabled() {
-    return this.getSaveButton().then((button) => button.isDisabled());
+    return this.getSaveButton().then(button => button.isDisabled());
   }
 
   public async clickSaveButton() {
-    return this.getSaveButton().then((button) => button.click());
+    return this.getSaveButton().then(button => button.click());
   }
 
   public async clickPreviousButton() {
-    return this.getPreviousButton().then((button) => button.click());
+    return this.getPreviousButton().then(button => button.click());
   }
 
   public async isConfigurationButtonToggled() {
-    return this.getConfigurationToggle().then((toggle) => toggle.isChecked());
+    return this.getConfigurationToggle().then(toggle => toggle.isChecked());
   }
 
   public async toggleConfigurationButton() {
-    return this.getConfigurationToggle().then((toggle) => toggle.toggle());
+    return this.getConfigurationToggle().then(toggle => toggle.toggle());
   }
 
   public async isHealthCheckInheritButtonToggled() {
-    return this.getHealthCheckInheritToggle().then((toggle) => toggle.isChecked());
+    return this.getHealthCheckInheritToggle().then(toggle => toggle.isChecked());
   }
 
   public async toggleHealthCheckInheritButton() {
-    return this.getHealthCheckInheritToggle().then((toggle) => toggle.toggle());
+    return this.getHealthCheckInheritToggle().then(toggle => toggle.toggle());
   }
 
   public async isWeightButtonShown(): Promise<boolean> {
     return this.getWeightButton()
-      .then((_) => true)
-      .catch((_) => false);
+      .then(_ => true)
+      .catch(_ => false);
   }
 
   public async fillWeightButton(weight: number) {
-    return this.getWeightButton().then((button) => button.setValue(weight.toString()));
+    return this.getWeightButton().then(button => button.setValue(weight.toString()));
   }
 
   public async clickConfigurationTab() {
-    return this.getConfigurationTab().then((tab) => tab.select());
+    return this.getConfigurationTab().then(tab => tab.select());
   }
 
   public async clickHealthCheckTab() {
-    return this.getHealthCheckTab().then((tab) => tab.select());
+    return this.getHealthCheckTab().then(tab => tab.select());
   }
 
   public healthCheckTabIsVisible(): Promise<boolean> {
     return this.getHealthCheckTab()
-      .then((_) => true)
-      .catch((_) => false);
+      .then(_ => true)
+      .catch(_ => false);
   }
 
   public async selectTenant(tenant: string): Promise<void> {
-    return this.getTenantsSelect().then((select) => select.clickOptions({ text: tenant }));
+    return this.getTenantsSelect().then(select => select.clickOptions({ text: tenant }));
   }
 }

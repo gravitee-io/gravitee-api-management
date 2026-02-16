@@ -324,9 +324,9 @@ describe('AppNotificationComponent', () => {
         expectNotificationSettingsRequest([PORTAL_NOTIFICATION]);
 
         const dialog = await rootLoader.getHarness(NotificationEditDialogHarness);
-        await dialog.getHookCheckbox('APIKEY_EXPIRED').then((checkbox) => checkbox.uncheck());
-        await dialog.getHookCheckbox('API_UPDATED').then((checkbox) => checkbox.uncheck());
-        await dialog.getHookCheckbox('API_STARTED').then((checkbox) => checkbox.check());
+        await dialog.getHookCheckbox('APIKEY_EXPIRED').then(checkbox => checkbox.uncheck());
+        await dialog.getHookCheckbox('API_UPDATED').then(checkbox => checkbox.uncheck());
+        await dialog.getHookCheckbox('API_STARTED').then(checkbox => checkbox.check());
         await dialog.save();
 
         const req = httpTestingController.expectOne({
@@ -392,8 +392,8 @@ describe('AppNotificationComponent', () => {
 
         const dialog = await rootLoader.getHarness(NotificationEditDialogHarness);
         await dialog.fillConfig('new-config');
-        await dialog.getHookCheckbox('APIKEY_EXPIRED').then((checkbox) => checkbox.toggle());
-        await dialog.getHookCheckbox('API_STOPPED').then((checkbox) => checkbox.check());
+        await dialog.getHookCheckbox('APIKEY_EXPIRED').then(checkbox => checkbox.toggle());
+        await dialog.getHookCheckbox('API_STOPPED').then(checkbox => checkbox.check());
         await dialog.save();
 
         const req = httpTestingController.expectOne({
@@ -450,8 +450,8 @@ describe('AppNotificationComponent', () => {
         const dialog = await rootLoader.getHarness(NotificationEditDialogHarness);
         await dialog.fillConfig('new-config');
         await dialog.toggleUseSystemProxy();
-        await dialog.getHookCheckbox('API_UPDATED').then((checkbox) => checkbox.uncheck());
-        await dialog.getHookCheckbox('APIKEY_REVOKED').then((checkbox) => checkbox.check());
+        await dialog.getHookCheckbox('API_UPDATED').then(checkbox => checkbox.uncheck());
+        await dialog.getHookCheckbox('APIKEY_REVOKED').then(checkbox => checkbox.check());
         await dialog.save();
 
         const req = httpTestingController.expectOne({
@@ -488,7 +488,7 @@ describe('AppNotificationComponent', () => {
       expectNotificationSettingsRequest([PORTAL_NOTIFICATION, EMAIL_NOTIFICATION, WEBHOOK_NOTIFICATION]);
 
       const dialog = await rootLoader.getHarness(NotificationEditDialogHarness);
-      await dialog.getHookCheckbox('APIKEY_EXPIRED').then((checkbox) => checkbox.uncheck());
+      await dialog.getHookCheckbox('APIKEY_EXPIRED').then(checkbox => checkbox.uncheck());
       await dialog.save();
 
       httpTestingController

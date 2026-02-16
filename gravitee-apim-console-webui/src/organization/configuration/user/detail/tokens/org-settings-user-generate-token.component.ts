@@ -76,7 +76,7 @@ export class OrgSettingsUserGenerateTokenComponent implements OnDestroy {
     this.usersTokenService
       .createToken(this.userId, newToken)
       .pipe(
-        tap((response) => {
+        tap(response => {
           this.snackBarService.success('Token successfully created!');
           this.token = response;
         }),
@@ -87,13 +87,13 @@ export class OrgSettingsUserGenerateTokenComponent implements OnDestroy {
         switchMap(() => {
           const envIdFormConstants = get(this.constants, 'org.currentEnv.id');
           if (!envIdFormConstants) {
-            return this.environmentService.list().pipe(map((envs) => get(envs, '[0]id', this.envIdForExampleOfUse)));
+            return this.environmentService.list().pipe(map(envs => get(envs, '[0]id', this.envIdForExampleOfUse)));
           }
           return of(envIdFormConstants);
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((envIdForExampleOfUse) => {
+      .subscribe(envIdForExampleOfUse => {
         this.envIdForExampleOfUse = envIdForExampleOfUse;
         this.hasBeenGenerated = true;
       });

@@ -296,9 +296,9 @@ describe('ApiSubscriptionEditComponent', () => {
       expect(await transferDialog.getTitleText()).toEqual('Transfer your subscription');
 
       const radioGroup = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatRadioGroupHarness);
-      expect(await radioGroup.getRadioButtons().then((buttons) => buttons.length)).toEqual(2);
-      expect(await radioGroup.getRadioButtons({ label: 'other' }).then((btn) => btn[0].isDisabled())).toEqual(true);
-      expect(await radioGroup.getRadioButtons({ label: 'new' }).then((btn) => btn[0].isDisabled())).toEqual(false);
+      expect(await radioGroup.getRadioButtons().then(buttons => buttons.length)).toEqual(2);
+      expect(await radioGroup.getRadioButtons({ label: 'other' }).then(btn => btn[0].isDisabled())).toEqual(true);
+      expect(await radioGroup.getRadioButtons({ label: 'new' }).then(btn => btn[0].isDisabled())).toEqual(false);
       const transferBtn = await transferDialog.getHarness(MatButtonHarness.with({ text: 'Transfer' }));
       expect(await transferBtn.isDisabled()).toEqual(true);
 
@@ -347,7 +347,7 @@ describe('ApiSubscriptionEditComponent', () => {
         'STANDARD',
       );
 
-      await transferDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' })).then((btn) => btn.click());
+      await transferDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' })).then(btn => btn.click());
 
       expect(await harness.getPlan()).toEqual('Default plan (API_KEY)');
     });
@@ -370,7 +370,7 @@ describe('ApiSubscriptionEditComponent', () => {
       );
       expect(await pauseDialog.getTitleText()).toEqual('Pause your subscription');
       // expect the dialog specific to sharedApiKeyMode to be present
-      expect(await pauseDialog.getContentText().then((txt) => txt.indexOf(API_KEYS_DIALOG_TXT) !== -1)).toEqual(true);
+      expect(await pauseDialog.getContentText().then(txt => txt.indexOf(API_KEYS_DIALOG_TXT) !== -1)).toEqual(true);
 
       const pauseBtn = await pauseDialog.getHarness(MatButtonHarness.with({ text: 'Pause' }));
       expect(await pauseBtn.isDisabled()).toEqual(false);
@@ -411,7 +411,7 @@ describe('ApiSubscriptionEditComponent', () => {
       const pauseDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
         MatDialogHarness.with({ selector: '#confirmPauseSubscriptionDialog' }),
       );
-      expect(await pauseDialog.getContentText().then((txt) => txt.indexOf(API_KEYS_DIALOG_TXT))).toEqual(-1);
+      expect(await pauseDialog.getContentText().then(txt => txt.indexOf(API_KEYS_DIALOG_TXT))).toEqual(-1);
     });
   });
 
@@ -963,8 +963,8 @@ describe('ApiSubscriptionEditComponent', () => {
 
       await renewDialog
         .getHarness(ApiKeyValidationHarness)
-        .then((_) => fail('ApiKeyValidationComponent should not be present'))
-        .catch((err) => expect(err).toBeTruthy());
+        .then(_ => fail('ApiKeyValidationComponent should not be present'))
+        .catch(err => expect(err).toBeTruthy());
 
       const renewBtn = await renewDialog.getHarness(MatButtonHarness.with({ text: 'Renew' }));
       expect(await renewBtn.isDisabled()).toEqual(false);
@@ -1027,8 +1027,8 @@ describe('ApiSubscriptionEditComponent', () => {
       const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness
         .getRevokeApiKeyBtn(0)
-        .then((_) => fail('Revoke button should not be visible'))
-        .catch((err) => expect(err).toBeTruthy());
+        .then(_ => fail('Revoke button should not be visible'))
+        .catch(err => expect(err).toBeTruthy());
     });
     it('should not appear if subscription status is pending', async () => {
       const pendingSubscription = BASIC_SUBSCRIPTION();
@@ -1039,8 +1039,8 @@ describe('ApiSubscriptionEditComponent', () => {
       const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness
         .getRevokeApiKeyBtn(0)
-        .then((_) => fail('Revoke button should not be visible'))
-        .catch((err) => expect(err).toBeTruthy());
+        .then(_ => fail('Revoke button should not be visible'))
+        .catch(err => expect(err).toBeTruthy());
     });
     it('should not appear if user lacks permissions', async () => {
       await initComponent({ permissions: ['api-subscription-r', 'api-subscription-c', 'api-subscription-d'] });
@@ -1049,8 +1049,8 @@ describe('ApiSubscriptionEditComponent', () => {
       const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness
         .getRevokeApiKeyBtn(0)
-        .then((_) => fail('Revoke button should not be visible'))
-        .catch((err) => expect(err).toBeTruthy());
+        .then(_ => fail('Revoke button should not be visible'))
+        .catch(err => expect(err).toBeTruthy());
     });
     it('should revoke API Key', async () => {
       await initComponent();
@@ -1165,7 +1165,7 @@ describe('ApiSubscriptionEditComponent', () => {
       expectApiKeyListGet();
 
       const harness = await loader.getHarness(ApiSubscriptionEditHarness);
-      await harness.getExpireApiKeyBtn(0).then((btn) => btn.click());
+      await harness.getExpireApiKeyBtn(0).then(btn => btn.click());
 
       const changeEndDateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
         MatDialogHarness.with({ selector: '#expireApiKeyDialog' }),
@@ -1184,8 +1184,8 @@ describe('ApiSubscriptionEditComponent', () => {
       const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness
         .getReactivateApiKeyBtn(0)
-        .then((_) => fail('Reactivate button should not be visible'))
-        .catch((err) => expect(err).toBeTruthy());
+        .then(_ => fail('Reactivate button should not be visible'))
+        .catch(err => expect(err).toBeTruthy());
     });
     it('should reactivate API Key', async () => {
       await initComponent();

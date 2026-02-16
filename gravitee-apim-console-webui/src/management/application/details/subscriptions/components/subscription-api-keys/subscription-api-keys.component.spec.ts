@@ -136,7 +136,7 @@ describe('SubscriptionApiKeysComponent', () => {
   it('should revoke API key', async () => {
     await componentHarness.revokeApiKey();
 
-    await rootLoader.getHarness(GioConfirmDialogHarness).then((dialog) => dialog.confirm());
+    await rootLoader.getHarness(GioConfirmDialogHarness).then(dialog => dialog.confirm());
 
     httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/subscriptions/subscriptionId/apikeys/1`,
@@ -147,7 +147,7 @@ describe('SubscriptionApiKeysComponent', () => {
   it('should renew API key', async () => {
     await componentHarness.renewApiKey();
 
-    await rootLoader.getHarness(GioConfirmDialogHarness).then((dialog) => dialog.confirm());
+    await rootLoader.getHarness(GioConfirmDialogHarness).then(dialog => dialog.confirm());
 
     httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/subscriptions/subscriptionId/apikeys/_renew`,

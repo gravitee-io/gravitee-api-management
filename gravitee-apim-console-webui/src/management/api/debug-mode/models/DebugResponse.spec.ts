@@ -387,7 +387,7 @@ describe('convertDebugEventToDebugResponse', () => {
     const mockDebugEventWithOnlyRequestPolicies = fakeDebugEvent();
 
     mockDebugEventWithOnlyRequestPolicies.payload.debugSteps = mockDebugEventWithOnlyRequestPolicies.payload.debugSteps.filter(
-      (event) => event.scope === 'ON_REQUEST' || event.scope === 'ON_REQUEST_CONTENT',
+      event => event.scope === 'ON_REQUEST' || event.scope === 'ON_REQUEST_CONTENT',
     );
 
     const debugResponse = convertDebugEventToDebugResponse(mockDebugEventWithOnlyRequestPolicies);
@@ -400,7 +400,7 @@ describe('convertDebugEventToDebugResponse', () => {
     const mockDebugEventWithOnlyResponsePolicies = fakeDebugEvent();
 
     mockDebugEventWithOnlyResponsePolicies.payload.debugSteps = mockDebugEventWithOnlyResponsePolicies.payload.debugSteps.filter(
-      (event) => event.scope === 'ON_RESPONSE' || event.scope === 'ON_RESPONSE_CONTENT',
+      event => event.scope === 'ON_RESPONSE' || event.scope === 'ON_RESPONSE_CONTENT',
     );
 
     const debugResponse = convertDebugEventToDebugResponse(mockDebugEventWithOnlyResponsePolicies);

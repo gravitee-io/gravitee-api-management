@@ -158,7 +158,7 @@ export class DocumentationEditPageComponent implements OnInit {
     this.isReadOnly = this.api.originContext?.origin === 'KUBERNETES' || !this.permissionService.hasAnyMatching(['api-documentation-u']);
 
     const accessControlGroups = this.page.accessControls
-      ? this.page.accessControls.filter((ac) => ac.referenceType === 'GROUP').map((ac) => ac.referenceId)
+      ? this.page.accessControls.filter(ac => ac.referenceType === 'GROUP').map(ac => ac.referenceId)
       : [];
 
     this.form = new FormGroup<EditPageForm>({
@@ -205,7 +205,7 @@ export class DocumentationEditPageComponent implements OnInit {
 
     this.form.controls.openApiConfiguration.controls.entrypointsAsServers.valueChanges
       .pipe(distinctUntilChanged(isEqual), takeUntilDestroyed(this.destroyRef))
-      .subscribe((enabled) => {
+      .subscribe(enabled => {
         if (enabled) {
           this.form.controls.openApiConfiguration.controls.tryItURL.disable();
         } else {
@@ -218,7 +218,7 @@ export class DocumentationEditPageComponent implements OnInit {
     this.form.valueChanges
       .pipe(
         distinctUntilChanged(isEqual),
-        tap((_) => {
+        tap(_ => {
           this.formUnchanged = isEqual(this.initialFormValue, this.form.getRawValue());
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -236,15 +236,15 @@ export class DocumentationEditPageComponent implements OnInit {
       });
 
     this.fetcherSchema$ = this.fetcherService.getList().pipe(
-      map((fetchers) => {
-        const currentSchema = fetchers.find((f) => f.id === this.page.source.type)?.schema;
+      map(fetchers => {
+        const currentSchema = fetchers.find(f => f.id === this.page.source.type)?.schema;
         return currentSchema ? JSON.parse(currentSchema) : undefined;
       }),
-      catchError((_) => of([])),
+      catchError(_ => of([])),
     );
 
     this.sourceConfigurationChanged$ = this.form.controls.sourceConfiguration.valueChanges.pipe(
-      map((_) => !isEqual(this.initialFormValue['sourceConfiguration'], this.form.getRawValue().sourceConfiguration)),
+      map(_ => !isEqual(this.initialFormValue['sourceConfiguration'], this.form.getRawValue().sourceConfiguration)),
     );
   }
 
@@ -269,7 +269,7 @@ export class DocumentationEditPageComponent implements OnInit {
   updateAndPublish() {
     this.updatePage()
       .pipe(
-        switchMap((page) => this.apiDocumentationService.publishDocumentationPage(this.api.id, page.id)),
+        switchMap(page => this.apiDocumentationService.publishDocumentationPage(this.api.id, page.id)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
@@ -278,7 +278,7 @@ export class DocumentationEditPageComponent implements OnInit {
 
           this.goBackToPageList();
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'Cannot publish page');
         },
       });
@@ -287,9 +287,9 @@ export class DocumentationEditPageComponent implements OnInit {
   private updatePage(): Observable<Page> {
     const formValue = this.form.getRawValue();
     return this.apiDocumentationService.getApiPage(this.api.id, this.page.id).pipe(
-      switchMap((page) => {
-        const nonGroupAccessControls = page.accessControls ? page.accessControls.filter((ac) => ac.referenceType !== 'GROUP') : [];
-        const selectedGroupAccessControls: AccessControl[] = formValue.pageConfiguration.accessControlGroups.map((referenceId) => ({
+      switchMap(page => {
+        const nonGroupAccessControls = page.accessControls ? page.accessControls.filter(ac => ac.referenceType !== 'GROUP') : [];
+        const selectedGroupAccessControls: AccessControl[] = formValue.pageConfiguration.accessControlGroups.map(referenceId => ({
           referenceId,
           referenceType: 'GROUP',
         }));
@@ -342,16 +342,16 @@ export class DocumentationEditPageComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirmed) => !!confirmed),
-        switchMap((_) => this.apiDocumentationService.deleteDocumentationPage(this.api.id, this.page.id)),
+        filter(confirmed => !!confirmed),
+        switchMap(_ => this.apiDocumentationService.deleteDocumentationPage(this.api.id, this.page.id)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (_) => {
+        next: _ => {
           this.snackBarService.success('Page deleted successfully');
           this.goBackToPageList();
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'Error while deleting page');
         },
       });
@@ -362,14 +362,14 @@ export class DocumentationEditPageComponent implements OnInit {
       .fetchDocumentationPage(this.api.id, this.page.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (page) => {
+        next: page => {
           this.initialFormValue['content'] = page.content;
 
           this.form.controls.content.setValue(page.content);
           this.form.controls.content.updateValueAndValidity();
           this.snackBarService.success('Page content refreshed successfully.');
         },
-        error: (_) => {
+        error: _ => {
           this.snackBarService.error('Error while refreshing page content.');
         },
       });

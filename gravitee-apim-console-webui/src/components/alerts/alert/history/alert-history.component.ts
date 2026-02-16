@@ -33,7 +33,7 @@ const AlertHistoryComponent: ng.IComponentOptions = {
       };
 
       this.$onInit = () => {
-        AlertService.listAlertEvents(this.alert).then((response) => {
+        AlertService.listAlertEvents(this.alert).then(response => {
           this.events = response.data;
         });
       };
@@ -44,7 +44,7 @@ const AlertHistoryComponent: ng.IComponentOptions = {
           to: this.lastTo,
           page: this.query.page - 1,
           size: this.query.limit,
-        }).then((response) => {
+        }).then(response => {
           this.events = response.data;
         });
       };

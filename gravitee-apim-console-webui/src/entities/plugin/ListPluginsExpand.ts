@@ -16,6 +16,6 @@
 export type ListPluginsExpand = 'icon' | 'schema' | 'schemaSubscription';
 
 export function toQueryParams(expands?: ListPluginsExpand[]): string {
-  const queryParams = expands?.map((expand) => `expand=${expand}`).join('&');
+  const queryParams = expands?.map(expand => `expand=${expand}`).join('&');
   return queryParams && queryParams.length ? `?${queryParams}` : '';
 }

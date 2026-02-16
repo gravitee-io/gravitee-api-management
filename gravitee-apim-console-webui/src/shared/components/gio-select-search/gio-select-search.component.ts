@@ -93,7 +93,7 @@ export class GioSelectSearchComponent implements ControlValueAccessor, OnDestroy
   placeholder = input<string>('Search...');
   resultsLoader = input<(data: ResultsLoaderInput) => Observable<ResultsLoaderOutput>>(({ searchTerm }) => {
     const data: SelectOption[] = searchTerm
-      ? this.options().filter((option) => option.label.toLowerCase().includes(searchTerm.toLowerCase()))
+      ? this.options().filter(option => option.label.toLowerCase().includes(searchTerm.toLowerCase()))
       : this.options();
     return of({ data, hasNextPage: false });
   });
@@ -230,7 +230,7 @@ export class GioSelectSearchComponent implements ControlValueAccessor, OnDestroy
     });
 
     this.componentRef.instance.loadMoreChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.searchParams.update((params) => ({
+      this.searchParams.update(params => ({
         ...params,
         page: params.page + 1,
       }));
@@ -322,7 +322,7 @@ export class GioSelectSearchComponent implements ControlValueAccessor, OnDestroy
   }
 
   private accumulateNewOptions(newOptions: SelectOption[], hasNextPage: boolean): ResultsState {
-    const newUniqueOptions = newOptions.filter((option) => !this.accumulatedOptions.some(({ value }) => value === option.value));
+    const newUniqueOptions = newOptions.filter(option => !this.accumulatedOptions.some(({ value }) => value === option.value));
     this.accumulatedOptions = [...this.accumulatedOptions, ...newUniqueOptions];
 
     return {

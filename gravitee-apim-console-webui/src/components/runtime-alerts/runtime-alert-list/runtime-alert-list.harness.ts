@@ -27,14 +27,14 @@ export class RuntimeAlertListHarness extends ComponentHarness {
     const table = await this.getAlertTable();
 
     const headerRows = await table.getHeaderRows();
-    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+    const headerCells = await parallel(() => headerRows.map(row => row.getCellTextByColumnName()));
 
     const rows = await table.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByIndex()));
     return { headerCells, rowCells };
   }
 
   async deleteAlert(index: number) {
-    return this.getDeleteButtons().then((btn) => btn[index].click());
+    return this.getDeleteButtons().then(btn => btn[index].click());
   }
 }

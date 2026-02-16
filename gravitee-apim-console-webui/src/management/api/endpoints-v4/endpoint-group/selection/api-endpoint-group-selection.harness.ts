@@ -35,6 +35,6 @@ export class ApiEndpointGroupSelectionHarness extends ComponentHarness {
   async getAllEndpointIds(): Promise<string[]> {
     const group = await this.getEndpointsRadioGroup();
     const buttons = await group.getRadioButtons();
-    return Promise.all(buttons.map((b) => b.getValue()));
+    return Promise.all(buttons.map(b => b.getValue()));
   }
 }

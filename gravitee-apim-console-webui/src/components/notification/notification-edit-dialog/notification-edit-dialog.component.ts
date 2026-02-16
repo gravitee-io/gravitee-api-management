@@ -68,7 +68,7 @@ export class NotificationEditDialogComponent {
     }
     const raw = this.staticForm.getRawValue();
 
-    const cleansedGroups = raw.groups ? Object.values(raw.groups).filter((g) => g !== this.primaryOwner) : [];
+    const cleansedGroups = raw.groups ? Object.values(raw.groups).filter(g => g !== this.primaryOwner) : [];
 
     this.dialogRef.close({
       ...this.notification,
@@ -76,7 +76,7 @@ export class NotificationEditDialogComponent {
       useSystemProxy: raw?.notifier?.useSystemProxy,
       groups: cleansedGroups,
       hooks: Object.values(raw.hooks)
-        .map((category) => {
+        .map(category => {
           return Object.entries(category)
             .filter(([_, value]) => value)
             .map(([key, _]) => key);

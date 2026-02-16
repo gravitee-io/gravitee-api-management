@@ -35,7 +35,7 @@ describe('PolicyService', () => {
   });
 
   describe('list', () => {
-    it('should call the API with params to true', (done) => {
+    it('should call the API with params to true', done => {
       const policies = [fakePolicyListItem()];
 
       policyService
@@ -44,7 +44,7 @@ describe('PolicyService', () => {
           expandIcon: true,
           withoutResource: true,
         })
-        .subscribe((response) => {
+        .subscribe(response => {
           expect(response).toStrictEqual(policies);
           done();
         });
@@ -55,7 +55,7 @@ describe('PolicyService', () => {
       req.flush(policies);
     });
 
-    it('should call the API with different params', (done) => {
+    it('should call the API with different params', done => {
       const policies = [fakePolicyListItem()];
 
       policyService
@@ -63,7 +63,7 @@ describe('PolicyService', () => {
           expandSchema: false,
           expandIcon: true,
         })
-        .subscribe((response) => {
+        .subscribe(response => {
           expect(response).toStrictEqual(policies);
           done();
         });
@@ -76,10 +76,10 @@ describe('PolicyService', () => {
   });
 
   describe('listSwaggerPolicies', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const policies = [fakePolicyListItem()];
 
-      policyService.listSwaggerPolicies().subscribe((response) => {
+      policyService.listSwaggerPolicies().subscribe(response => {
         expect(response).toStrictEqual(policies);
         done();
       });
@@ -92,11 +92,11 @@ describe('PolicyService', () => {
   });
 
   describe('getSchema', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const policyId = 'policy#1';
       const policySchema = fakePolicySchema();
 
-      policyService.getSchema(policyId).subscribe((response) => {
+      policyService.getSchema(policyId).subscribe(response => {
         expect(response).toStrictEqual(policySchema);
         done();
       });
@@ -109,11 +109,11 @@ describe('PolicyService', () => {
   });
 
   describe('getDocumentation', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const policyId = 'policy#1';
       const policySchema = fakePolicyDocumentation().content;
 
-      policyService.getDocumentation(policyId).subscribe((response) => {
+      policyService.getDocumentation(policyId).subscribe(response => {
         expect(response).toStrictEqual(policySchema);
         done();
       });

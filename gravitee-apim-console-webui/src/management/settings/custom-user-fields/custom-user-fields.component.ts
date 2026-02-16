@@ -68,7 +68,7 @@ export class CustomUserFieldsComponent implements OnInit {
       .list()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (response) => {
+        next: response => {
           this.isLoading = false;
           this.nbTotalInstances = response.length;
           this.customUserFields = this.customUserFieldsFiltered = response;
@@ -98,14 +98,14 @@ export class CustomUserFieldsComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((dialogResult) => !!dialogResult),
-        switchMap((dialogResult) => {
+        filter(dialogResult => !!dialogResult),
+        switchMap(dialogResult => {
           this.isLoading = true;
           return this.customUserFieldsService.create(dialogResult);
         }),
       )
       .subscribe({
-        next: (customUserField) => {
+        next: customUserField => {
           this.initList();
           this.snackBarService.success(`Field ${customUserField.key} created successfully`);
         },
@@ -127,8 +127,8 @@ export class CustomUserFieldsComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((data) => !!data),
-        switchMap((data) => {
+        filter(data => !!data),
+        switchMap(data => {
           this.isLoading = true;
           return this.customUserFieldsService.update(data);
         }),
@@ -159,7 +159,7 @@ export class CustomUserFieldsComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => !!confirm),
+        filter(confirm => !!confirm),
         switchMap(() => {
           this.isLoading = true;
           return this.customUserFieldsService.delete(field.key);

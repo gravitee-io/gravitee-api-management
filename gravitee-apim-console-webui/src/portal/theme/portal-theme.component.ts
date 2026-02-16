@@ -126,7 +126,7 @@ export class PortalThemeComponent implements OnInit {
   isFormSubmitDisabled$: Signal<boolean> = computed(() => this.isFormNotValid$() || this.isFormUnchanged$());
 
   private formValue$: Signal<ThemeVM> = toSignal(this.portalThemeForm.valueChanges);
-  private isFormNotValid$: Signal<boolean> = toSignal(this.portalThemeForm.statusChanges.pipe(map((status) => status !== 'VALID')), {
+  private isFormNotValid$: Signal<boolean> = toSignal(this.portalThemeForm.statusChanges.pipe(map(status => status !== 'VALID')), {
     initialValue: true,
   });
 
@@ -207,7 +207,7 @@ export class PortalThemeComponent implements OnInit {
           this.initialFormValue$.set(this.convertThemeToThemeVM(theme));
           this.reset();
         }),
-        catchError((err) => {
+        catchError(err => {
           this.snackBarService.error(err.error?.message ?? err.message);
           return EMPTY;
         }),

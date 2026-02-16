@@ -80,8 +80,8 @@ export class GioMetadataDialogComponent implements OnInit, AfterViewChecked {
     }
 
     const initialFormValue = this.form.value;
-    this.form.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => {
-      this.hasChange = Object.keys(initialFormValue).some((key) => value[key] !== initialFormValue[key]);
+    this.form.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(value => {
+      this.hasChange = Object.keys(initialFormValue).some(key => value[key] !== initialFormValue[key]);
     });
 
     this.form

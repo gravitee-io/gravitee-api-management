@@ -34,11 +34,11 @@ const AuditComponent: ng.IComponentOptions = {
         });
         this.query = new AuditQuery();
         this.onPaginate = this.onPaginate.bind(this);
-        AuditService.list(null, this.api).then((response) => this.handleAuditResponseData(response.data));
+        AuditService.list(null, this.api).then(response => this.handleAuditResponseData(response.data));
         this.queryLogType = 'all';
       };
 
-      this.handleAuditResponseData = (responseData) => {
+      this.handleAuditResponseData = responseData => {
         this.auditLogs = responseData.content;
         this.metadata = responseData.metadata;
         this.enhanceAuditLogs(this.auditLogs);
@@ -49,8 +49,8 @@ const AuditComponent: ng.IComponentOptions = {
         };
       };
 
-      this.enhanceAuditLogs = (auditLogs) => {
-        forEach(auditLogs, (log) => {
+      this.enhanceAuditLogs = auditLogs => {
+        forEach(auditLogs, log => {
           log.prettyPatch = JSON.stringify(JSON.parse(log.patch), null, '  ');
           log.displayPatch = false;
           log.displayProperties = false;
@@ -58,7 +58,7 @@ const AuditComponent: ng.IComponentOptions = {
       };
 
       this.onPaginate = () => {
-        AuditService.list(this.query, this.api).then((response) => {
+        AuditService.list(this.query, this.api).then(response => {
           this.handleAuditResponseData(response.data);
         });
       };
@@ -70,7 +70,7 @@ const AuditComponent: ng.IComponentOptions = {
         return ref.id;
       };
 
-      this.getDisplayableProperties = (properties) => {
+      this.getDisplayableProperties = properties => {
         return mapValues(properties, (v, k) => this.metadata[k + ':' + v + ':name']);
       };
 
@@ -94,7 +94,7 @@ const AuditComponent: ng.IComponentOptions = {
           this.query.application = null;
         }
 
-        AuditService.list(this.query, this.api).then((response) => {
+        AuditService.list(this.query, this.api).then(response => {
           this.handleAuditResponseData(response.data);
         });
       };

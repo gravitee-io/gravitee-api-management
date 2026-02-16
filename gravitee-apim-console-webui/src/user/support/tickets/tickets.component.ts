@@ -65,9 +65,9 @@ export class TicketsComponent implements OnInit {
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((searchResult) => {
+      .subscribe(searchResult => {
         this.nbTotalInstances = searchResult.totalElements;
-        this.filteredTableData = searchResult.content.map((ticket) => ({
+        this.filteredTableData = searchResult.content.map(ticket => ({
           id: ticket.id,
           createdAt: ticket.created_at,
           api: ticket.api,

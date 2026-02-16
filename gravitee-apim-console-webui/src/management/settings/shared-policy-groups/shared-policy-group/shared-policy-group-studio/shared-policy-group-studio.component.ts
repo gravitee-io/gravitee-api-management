@@ -74,7 +74,7 @@ export class SharedPolicyGroupStudioComponent {
   protected sharedPolicyGroup = toSignal(
     this.refresh$.pipe(
       switchMap(() => this.sharedPolicyGroupsService.get(this.activatedRoute.snapshot.params.sharedPolicyGroupId)),
-      map((sharedPolicyGroup) => ({
+      map(sharedPolicyGroup => ({
         ...sharedPolicyGroup,
         // Restore unsaved steps if any
         steps: this.enableSaveButton ? this.sharedPolicyGroup().steps : sharedPolicyGroup.steps,
@@ -82,11 +82,11 @@ export class SharedPolicyGroupStudioComponent {
       })),
     ),
   );
-  protected policySchemaFetcher: PolicySchemaFetcher = (policy) => this.policyV2Service.getSchema(policy.id);
-  protected policyDocumentationFetcher: PolicyDocumentationFetcher = (policy) => this.policyV2Service.getDocumentation(policy.id);
+  protected policySchemaFetcher: PolicySchemaFetcher = policy => this.policyV2Service.getSchema(policy.id);
+  protected policyDocumentationFetcher: PolicyDocumentationFetcher = policy => this.policyV2Service.getDocumentation(policy.id);
   protected policies$ = this.policyV2Service
     .list()
-    .pipe(map((policies) => policies.map((policy) => ({ ...policy, icon: this.iconService.registerSvg(policy.id, policy.icon) }))));
+    .pipe(map(policies => policies.map(policy => ({ ...policy, icon: this.iconService.registerSvg(policy.id, policy.icon) }))));
   protected enableSaveButton = false;
   protected toReadableFlowPhase = toReadableFlowPhase;
 
@@ -103,8 +103,8 @@ export class SharedPolicyGroupStudioComponent {
       )
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((payload) =>
+        filter(result => !!result),
+        switchMap(payload =>
           this.sharedPolicyGroupsService.update(sharedPolicyGroup.id, {
             name: payload.name,
             description: payload.description,
@@ -119,7 +119,7 @@ export class SharedPolicyGroupStudioComponent {
           this.snackBarService.success('Shared Policy Group updated');
           this.refresh$.next();
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'Error during Shared Policy Group update!');
         },
       });
@@ -134,7 +134,7 @@ export class SharedPolicyGroupStudioComponent {
           this.snackBarService.success('Shared Policy Group deployed successfully');
           this.refresh$.next();
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'Error during Shared Policy Group deployment!');
         },
       });
@@ -149,7 +149,7 @@ export class SharedPolicyGroupStudioComponent {
           this.snackBarService.success('Shared Policy Group undeployed successfully');
           this.refresh$.next();
         },
-        error: (error) => {
+        error: error => {
           this.snackBarService.error(error?.error?.message ?? 'Error during Shared Policy Group undeployment!');
         },
       });
@@ -171,7 +171,7 @@ export class SharedPolicyGroupStudioComponent {
           this.snackBarService.success('Shared Policy Group updated');
           this.refresh$.next();
         },
-        error: (error) => {
+        error: error => {
           this.enableSaveButton = true;
           this.snackBarService.error(error?.error?.message ?? 'Error during Shared Policy Group update!');
         },

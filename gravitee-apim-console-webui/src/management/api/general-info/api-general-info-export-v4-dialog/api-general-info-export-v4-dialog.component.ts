@@ -99,9 +99,9 @@ export class ApiGeneralInfoExportV4DialogComponent implements OnDestroy {
         .export(this.apiId, {
           excludeAdditionalData,
         })
-        .pipe(map((blob) => ({ blob, fileName: `${this.fileName}.json` })));
+        .pipe(map(blob => ({ blob, fileName: `${this.fileName}.json` })));
     } else {
-      export$ = this.apiService.exportCRD(this.apiId).pipe(map((blob) => ({ blob, fileName: `${this.fileName}-crd.yml` })));
+      export$ = this.apiService.exportCRD(this.apiId).pipe(map(blob => ({ blob, fileName: `${this.fileName}-crd.yml` })));
     }
 
     export$

@@ -46,7 +46,7 @@ export class ApiMetrics extends Metrics {
 
   static ERROR_KEY: ApiMetrics = new ApiMetrics('error.key', 'Error Key', [StringCondition.TYPE], true, undefined, () => {
     const keys: Tuple[] = [];
-    gatewayErrorKeys.forEach((key) => {
+    gatewayErrorKeys.forEach(key => {
       keys.push(new Tuple(key, key));
     });
 
@@ -75,8 +75,8 @@ export class ApiMetrics extends Metrics {
       const tenants: Tuple[] = [];
 
       // PLATFORM: Search for all registered tenants
-      ($injector.get('TenantService') as TenantService).list().then((result) => {
-        result.data.forEach((tenant) => {
+      ($injector.get('TenantService') as TenantService).list().then(result => {
+        result.data.forEach(tenant => {
           tenants.push(new Tuple(tenant.id, tenant.name));
         });
       });
@@ -96,15 +96,15 @@ export class ApiMetrics extends Metrics {
 
       if (type === 2) {
         // PLATFORM: Search for all registered APIs
-        ($injector.get('ApiService') as ApiService).searchApis().then((result) => {
-          result.data.forEach((api) => {
+        ($injector.get('ApiService') as ApiService).searchApis().then(result => {
+          result.data.forEach(api => {
             apis.push(new Tuple(api.id, api.name));
           });
         });
       } else if (type === 1) {
         // APPLICATION: Search for all subscribed APIs
-        ($injector.get('ApplicationService') as ApplicationService).getSubscribedAPI(id).then((result) => {
-          result.data.forEach((api) => {
+        ($injector.get('ApplicationService') as ApplicationService).getSubscribedAPI(id).then(result => {
+          result.data.forEach(api => {
             apis.push(new Tuple(api.id, api.name));
           });
         });
@@ -125,8 +125,8 @@ export class ApiMetrics extends Metrics {
 
       if (type === 0) {
         // API: Search for all subscribed applications
-        ($injector.get('ApiService') as ApiService).getSubscribers(id).then((result) => {
-          result.data.forEach((application) => {
+        ($injector.get('ApiService') as ApiService).getSubscribers(id).then(result => {
+          result.data.forEach(application => {
             applications.push(new Tuple(application.id, application.name));
           });
         });
@@ -147,16 +147,16 @@ export class ApiMetrics extends Metrics {
 
       if (type === 0) {
         // API: Search for all published plans
-        ($injector.get('ApiService') as ApiService).getPublishedApiPlans(id).then((result) => {
-          result.data.forEach((plan) => {
+        ($injector.get('ApiService') as ApiService).getPublishedApiPlans(id).then(result => {
+          result.data.forEach(plan => {
             plans.push(new Tuple(plan.id, plan.name));
           });
         });
       } else if (type === 1) {
         // APPLICATION: Search for all subscribed plan
-        ($injector.get('ApplicationService') as ApplicationService).listSubscriptions(id).then((result) => {
-          const keyPlans = keys(keyBy(result.data.data, (sub) => sub.plan));
-          each(keyPlans, (plan) => {
+        ($injector.get('ApplicationService') as ApplicationService).listSubscriptions(id).then(result => {
+          const keyPlans = keys(keyBy(result.data.data, sub => sub.plan));
+          each(keyPlans, plan => {
             plans.push(new Tuple(plan, result.data.metadata[plan].name));
           });
         });

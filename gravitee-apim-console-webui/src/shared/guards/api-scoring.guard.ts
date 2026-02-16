@@ -29,8 +29,8 @@ export class ApiScoringGuard implements CanActivate {
 
   canActivate() {
     return this.environmentSettingsService.get().pipe(
-      map((envSettings) => envSettings.apiScore.enabled),
-      catchError((_) => of(false)),
+      map(envSettings => envSettings.apiScore.enabled),
+      catchError(_ => of(false)),
     );
   }
 }

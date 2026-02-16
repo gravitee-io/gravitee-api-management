@@ -63,8 +63,8 @@ export class HealthcheckMetrics extends Metrics {
       const tenants: Tuple[] = [];
 
       // PLATFORM: Search for all registered tenants
-      ($injector.get('TenantService') as TenantService).list().then((result) => {
-        result.data.forEach((tenant) => {
+      ($injector.get('TenantService') as TenantService).list().then(result => {
+        result.data.forEach(tenant => {
           tenants.push(new Tuple(tenant.id, tenant.name));
         });
       });

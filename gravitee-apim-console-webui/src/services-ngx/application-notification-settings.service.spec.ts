@@ -36,7 +36,7 @@ describe('ApplicationNotificationSettingsService', () => {
   });
 
   describe('delete', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       applicationNotificationSettingsService.delete('123', '456').subscribe(() => done());
 
       httpTestingController
@@ -49,7 +49,7 @@ describe('ApplicationNotificationSettingsService', () => {
   });
 
   describe('get notifiers', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const notifier = [fakeNotifier({ id: 'notifier-a', name: 'Notifier A' })];
 
       applicationNotificationSettingsService.getNotifiers('123').subscribe(() => done());
@@ -64,7 +64,7 @@ describe('ApplicationNotificationSettingsService', () => {
   });
 
   describe('get notification settings', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const notificationSettings = [fakeNotificationSettings({ name: 'Test name', id: 'test id' })];
 
       applicationNotificationSettingsService.getAll('123').subscribe(() => done());
@@ -79,7 +79,7 @@ describe('ApplicationNotificationSettingsService', () => {
   });
 
   describe('create', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakeNewNotificationSettings = {
         name: 'test name',
         notifier: 'test notifier',

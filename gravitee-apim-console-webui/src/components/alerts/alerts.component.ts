@@ -56,8 +56,8 @@ export class AlertsComponent extends UpgradeComponent {
 
     this.reload.pipe(startWith({}), takeUntil(this.unsubscribe$)).subscribe(() => {
       const alertsPromise = apiId
-        ? this.ajsAlertService.listAlerts(AlertScope.API, true, apiId).then((response) => response.data)
-        : this.ajsAlertService.listAlerts(AlertScope.ENVIRONMENT, true).then((response) => response.data);
+        ? this.ajsAlertService.listAlerts(AlertScope.API, true, apiId).then(response => response.data)
+        : this.ajsAlertService.listAlerts(AlertScope.ENVIRONMENT, true).then(response => response.data);
 
       Promise.all([alertsPromise]).then(([alerts]) => {
         // Hack to Force the binding between Angular and AngularJS

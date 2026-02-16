@@ -46,7 +46,7 @@ class ChartDirective {
         }
 
         let lastOptions;
-        scope.$watch('options', (newOptions) => {
+        scope.$watch('options', newOptions => {
           setTimeout(() => {
             displayChart(newOptions, chartElement);
             lastOptions = newOptions;
@@ -72,7 +72,7 @@ class ChartDirective {
         }
 
         function initSynchronizedCharts() {
-          element.bind('mousemove touchmove touchstart', (e) => {
+          element.bind('mousemove touchmove touchstart', e => {
             let chart, i, event, points;
 
             for (i = 0; i < Highcharts.charts.length; i++) {
@@ -86,7 +86,7 @@ class ChartDirective {
                 points = map(chart.series, (serie: any) => {
                   return serie.searchPoint(event, true);
                 });
-                points = filter(points, (point) => {
+                points = filter(points, point => {
                   return point;
                 });
 
@@ -161,7 +161,7 @@ class ChartDirective {
 
             newOptions.series = sortBy(newOptions.series, 'name');
 
-            forEach(newOptions.series, (serie) => {
+            forEach(newOptions.series, serie => {
               serie.data = sortBy(serie.data, 'name');
             });
 
@@ -170,7 +170,7 @@ class ChartDirective {
                 formatter: function () {
                   // TODO: check this
                   // let s = '<b>' + Highcharts.dateFormat('%A, %b %d, %H:%M', new Date(this.x)) + '</b>';
-                  const nbCol = Math.trunc(this.points.filter((p) => p.y).length / 10);
+                  const nbCol = Math.trunc(this.points.filter(p => p.y).length / 10);
                   const dateFormat = newOptions.dateFormat || '%A, %b %d, %H:%M';
                   let s = '<div><b>' + Highcharts.dateFormat(dateFormat, this.x) + '</b></div>';
                   s += '<div class="' + (nbCol >= 2 ? 'gv-tooltip gv-tooltip-' + (nbCol > 5 ? 5 : nbCol) : '') + '">';
@@ -180,7 +180,7 @@ class ChartDirective {
                     }).length
                   ) {
                     let i = 0;
-                    forEach(this.points, (point) => {
+                    forEach(this.points, point => {
                       if (point.y) {
                         const name =
                           ' ' +

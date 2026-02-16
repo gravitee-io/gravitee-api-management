@@ -64,7 +64,7 @@ export class ApiDocumentationV4PagesListComponent implements OnInit, OnChanges {
   public pagesIncludeNonFolders: boolean;
 
   ngOnInit(): void {
-    this.pagesIncludeNonFolders = this.pages.some((page) => page.type !== 'FOLDER');
+    this.pagesIncludeNonFolders = this.pages.some(page => page.type !== 'FOLDER');
   }
 
   ngOnChanges(changes: SimpleChanges): void {

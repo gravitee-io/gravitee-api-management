@@ -106,7 +106,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
     this.identityProviderFormGroup
       .get('type')
       .valueChanges.pipe(distinctUntilChanged(), takeUntil(this.unsubscribe$))
-      .subscribe((type) => {
+      .subscribe(type => {
         this.identityProviderType = type;
         this.identityProviderFormGroup.markAsUntouched();
       });
@@ -121,11 +121,11 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
             this.initialIdentityProviderValue = cloneDeep(identityProvider);
 
             this.identityProviderFormGroup.addControl('groupMappings', new UntypedFormArray([]), { emitEvent: false });
-            identityProvider.groupMappings.forEach((groupMapping) => this.addGroupMappingToIdentityProviderFormGroup(groupMapping, false));
+            identityProvider.groupMappings.forEach(groupMapping => this.addGroupMappingToIdentityProviderFormGroup(groupMapping, false));
 
             this.allEnvironments = environments;
             this.identityProviderFormGroup.addControl('roleMappings', new UntypedFormArray([]), { emitEvent: false });
-            identityProvider.roleMappings.forEach((roleMapping) => this.addRoleMappingToIdentityProviderFormGroup(roleMapping, false));
+            identityProvider.roleMappings.forEach(roleMapping => this.addRoleMappingToIdentityProviderFormGroup(roleMapping, false));
 
             this.isLoading = false;
           }),
@@ -151,7 +151,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
 
     // clean previous form group
     if (!isEmpty(this.identityProviderFormControlKeys)) {
-      this.identityProviderFormControlKeys.forEach((key) => {
+      this.identityProviderFormControlKeys.forEach(key => {
         this.identityProviderFormGroup.removeControl(key);
       });
 
@@ -199,7 +199,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((identityProvider) => {
+      .subscribe(identityProvider => {
         if (this.mode === 'new') {
           this.router.navigate(['../', identityProvider.id], { relativeTo: this.activatedRoute });
         } else {
@@ -261,7 +261,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
   onFormReset() {
     const groupMappings = this.identityProviderFormGroup.get('groupMappings') as UntypedFormArray;
     groupMappings.clear();
-    this.initialIdentityProviderValue.groupMappings.forEach((groupMapping) =>
+    this.initialIdentityProviderValue.groupMappings.forEach(groupMapping =>
       this.addGroupMappingToIdentityProviderFormGroup(groupMapping, false),
     );
   }

@@ -53,7 +53,7 @@ export class CreateIntegrationComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.chooseProviderForm.valueChanges.subscribe((e) => {
+    this.chooseProviderForm.valueChanges.subscribe(e => {
       const wellKnownUrls = this.addInformationForm.get('wellKnownUrls');
       if (e.provider === A2A_PROVIDER) {
         wellKnownUrls.addValidators([Validators.required]);
@@ -86,7 +86,7 @@ export class CreateIntegrationComponent implements OnInit {
           this.snackBarService.success(`Integration ${payload.name} created successfully`);
           this.router.navigate([`../${integration.id}`], { relativeTo: this.activatedRoute });
         },
-        error: (_) => {
+        error: _ => {
           this.isLoading = false;
           this.snackBarService.error('An error occurred. Integration not created');
           return EMPTY;

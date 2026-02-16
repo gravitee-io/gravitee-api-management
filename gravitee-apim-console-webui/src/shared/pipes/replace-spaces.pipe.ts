@@ -22,6 +22,6 @@ import { Pipe, PipeTransform } from '@angular/core';
 export class ReplaceSpacesPipe implements PipeTransform {
   transform(line: string): string {
     // Transform spaces if there are more than occurrence next to each other.
-    return line.replace(/\s{2,}/g, (match) => '\xa0'.repeat(match.length));
+    return line.replace(/\s{2,}/g, match => '\xa0'.repeat(match.length));
   }
 }

@@ -47,133 +47,133 @@ export class ReporterSettingsMessageHarness extends ComponentHarness {
   public toggleEnabled = async () => (await this.getEnabledToggle()).toggle();
 
   public saveSettings = async (): Promise<void> => {
-    return this.getSaveButton().then((saveButton) => saveButton.clickSubmit());
+    return this.getSaveButton().then(saveButton => saveButton.clickSubmit());
   };
 
   public isSaveButtonInvalid = async (): Promise<boolean> => {
-    return this.getSaveButton().then((saveButton) => saveButton.isSubmitButtonInvalid());
+    return this.getSaveButton().then(saveButton => saveButton.isSubmitButtonInvalid());
   };
 
   public resetSettings = async (): Promise<void> => {
-    return this.getSaveButton().then((saveButton) => saveButton.clickReset());
+    return this.getSaveButton().then(saveButton => saveButton.clickReset());
   };
 
   public isEntrypointChecked = async (): Promise<boolean> => {
-    return await this.getEntrypointToggle().then((checkbox) => checkbox.isChecked());
+    return await this.getEntrypointToggle().then(checkbox => checkbox.isChecked());
   };
   public isEntrypointDisabled = async () => (await this.getEntrypointToggle()).isDisabled();
 
   public toggleEntrypoint = async (): Promise<void> => {
-    return await this.getEntrypointToggle().then((checkbox) => checkbox.toggle());
+    return await this.getEntrypointToggle().then(checkbox => checkbox.toggle());
   };
 
   public isEndpointChecked = async (): Promise<boolean> => {
-    return await this.getEndpointToggle().then((checkbox) => checkbox.isChecked());
+    return await this.getEndpointToggle().then(checkbox => checkbox.isChecked());
   };
   public isEndpointDisabled = async () => (await this.getEndpointToggle()).isDisabled();
 
   public toggleEndpoint = async (): Promise<void> => {
-    return await this.getEndpointToggle().then((checkbox) => checkbox.toggle());
+    return await this.getEndpointToggle().then(checkbox => checkbox.toggle());
   };
 
   public isRequestPhaseChecked = async (): Promise<boolean> => {
-    return await this.getRequestPhaseToggle().then((checkbox) => checkbox.isChecked());
+    return await this.getRequestPhaseToggle().then(checkbox => checkbox.isChecked());
   };
 
   public checkRequestPhase = async (): Promise<void> => {
-    return await this.getRequestPhaseToggle().then((checkbox) => checkbox.check());
+    return await this.getRequestPhaseToggle().then(checkbox => checkbox.check());
   };
 
   public uncheckRequestPhase = async (): Promise<void> => {
-    return await this.getRequestPhaseToggle().then((checkbox) => checkbox.uncheck());
+    return await this.getRequestPhaseToggle().then(checkbox => checkbox.uncheck());
   };
 
   public isResponsePhaseChecked = async (): Promise<boolean> => {
-    return await this.getResponsePhaseToggle().then((checkbox) => checkbox.isChecked());
+    return await this.getResponsePhaseToggle().then(checkbox => checkbox.isChecked());
   };
 
   public checkResponsePhase = async (): Promise<void> => {
-    return await this.getResponsePhaseToggle().then((checkbox) => checkbox.check());
+    return await this.getResponsePhaseToggle().then(checkbox => checkbox.check());
   };
 
   public uncheckResponsePhase = async (): Promise<void> => {
-    return await this.getResponsePhaseToggle().then((checkbox) => checkbox.uncheck());
+    return await this.getResponsePhaseToggle().then(checkbox => checkbox.uncheck());
   };
 
   public isMessageContentChecked = async (): Promise<boolean> => {
-    return await this.getMessageContentToggle().then((checkbox) => checkbox.isChecked());
+    return await this.getMessageContentToggle().then(checkbox => checkbox.isChecked());
   };
 
   public isMessageContentDisabled = async (): Promise<boolean> => {
-    return await this.getMessageContentToggle().then((checkbox) => checkbox.isDisabled());
+    return await this.getMessageContentToggle().then(checkbox => checkbox.isDisabled());
   };
 
   public checkMessageContent = async (): Promise<void> => {
-    return await this.getMessageContentToggle().then((checkbox) => checkbox.check());
+    return await this.getMessageContentToggle().then(checkbox => checkbox.check());
   };
 
   public isMessageHeadersChecked = async (): Promise<boolean> => {
-    return await this.getMessageHeadersToggle().then((checkbox) => checkbox.isChecked());
+    return await this.getMessageHeadersToggle().then(checkbox => checkbox.isChecked());
   };
 
   public isMessageHeadersDisabled = async (): Promise<boolean> => {
-    return await this.getMessageHeadersToggle().then((checkbox) => checkbox.isDisabled());
+    return await this.getMessageHeadersToggle().then(checkbox => checkbox.isDisabled());
   };
 
   public checkMessageHeaders = async (): Promise<void> => {
-    return await this.getMessageHeadersToggle().then((checkbox) => checkbox.check());
+    return await this.getMessageHeadersToggle().then(checkbox => checkbox.check());
   };
 
   public isMessageMetadataChecked = async (): Promise<boolean> => {
-    return await this.getMessageMetadataToggle().then((checkbox) => checkbox.isChecked());
+    return await this.getMessageMetadataToggle().then(checkbox => checkbox.isChecked());
   };
 
   public isMessageMetadataDisabled = async (): Promise<boolean> => {
-    return await this.getMessageMetadataToggle().then((checkbox) => checkbox.isDisabled());
+    return await this.getMessageMetadataToggle().then(checkbox => checkbox.isDisabled());
   };
 
   public checkMessageMetadata = async (): Promise<void> => {
-    return await this.getMessageMetadataToggle().then((checkbox) => checkbox.check());
+    return await this.getMessageMetadataToggle().then(checkbox => checkbox.check());
   };
 
   public isHeadersChecked = async (): Promise<boolean> => {
-    return await this.getHeadersToggle().then((checkbox) => checkbox.isChecked());
+    return await this.getHeadersToggle().then(checkbox => checkbox.isChecked());
   };
 
   public isHeadersDisabled = async (): Promise<boolean> => {
-    return await this.getHeadersToggle().then((checkbox) => checkbox.isDisabled());
+    return await this.getHeadersToggle().then(checkbox => checkbox.isDisabled());
   };
 
   public checkHeaders = async (): Promise<void> => {
-    return await this.getHeadersToggle().then((checkbox) => checkbox.check());
+    return await this.getHeadersToggle().then(checkbox => checkbox.check());
   };
 
   public getMessageCondition = async (): Promise<string> => {
-    return await this.getMessageConditionInput().then((input) => input.getValue());
+    return await this.getMessageConditionInput().then(input => input.getValue());
   };
 
   public addMessageCondition = async (condition: string): Promise<void> => {
-    return await this.getMessageConditionInput().then((input) => input.setValue(condition));
+    return await this.getMessageConditionInput().then(input => input.setValue(condition));
   };
 
   public getRequestCondition = async (): Promise<string> => {
-    return await this.getRequestConditionInput().then((input) => input.getValue());
+    return await this.getRequestConditionInput().then(input => input.getValue());
   };
 
   public addRequestCondition = async (condition: string): Promise<void> => {
-    return await this.getRequestConditionInput().then((input) => input.setValue(condition));
+    return await this.getRequestConditionInput().then(input => input.setValue(condition));
   };
 
   public choseSamplingType(type: string): Promise<void> {
     return this.getSamplingTypeToggle()
-      .then((group) => group.getToggles({ text: type }))
-      .then((toggles) => toggles[0].check());
+      .then(group => group.getToggles({ text: type }))
+      .then(toggles => toggles[0].check());
   }
 
   public getSamplingType = async (): Promise<string> => {
     return await this.getSamplingTypeToggle()
-      .then((group) => group.getToggles())
-      .then(async (toggles) => {
+      .then(group => group.getToggles())
+      .then(async toggles => {
         for (const toggle of toggles) {
           if (await toggle.isChecked()) {
             return toggle.getText();
@@ -191,17 +191,17 @@ export class ReporterSettingsMessageHarness extends ComponentHarness {
   };
 
   public getSamplingValue = async (): Promise<string> => {
-    return await this.getSamplingValueInput().then((input) => input.getValue());
+    return await this.getSamplingValueInput().then(input => input.getValue());
   };
 
   public getSamplingValueErrors = async (): Promise<string[]> => {
-    return await this.getSamplingValueFormField().then(async (formField) => {
+    return await this.getSamplingValueFormField().then(async formField => {
       return formField.getTextErrors();
     });
   };
 
   public samplingValueHasErrors = async (): Promise<boolean> => {
-    return await this.getSamplingValueFormField().then(async (formField) => {
+    return await this.getSamplingValueFormField().then(async formField => {
       return formField.hasErrors();
     });
   };

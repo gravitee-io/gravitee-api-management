@@ -69,7 +69,7 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV1V2Filter(this.snackBarService),
-        tap((api) => {
+        tap(api => {
           this.api = api;
           this.pathMappingsDS = this.toPathMappingDS(api);
           this.isLoadingData = false;
@@ -83,7 +83,7 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
         type: 'SWAGGER',
         api: this.activatedRoute.snapshot.params.apiId,
       })
-      .subscribe((response) => {
+      .subscribe(response => {
         this.swaggerDocs = response;
       });
   }
@@ -107,11 +107,11 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),
         onlyApiV2Filter(this.snackBarService),
-        switchMap((api) => {
-          remove(api.pathMappings, (p) => p === path);
+        switchMap(api => {
+          remove(api.pathMappings, p => p === path);
           return this.apiService.update(api.id, api);
         }),
         tap(() => this.snackBarService.success(`The path mapping ${path} has been successfully deleted!`)),
@@ -126,7 +126,7 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
   }
 
   private toPathMappingDS(api: ApiV1 | ApiV2): PathMappingDS[] {
-    return sortBy(api.pathMappings).map((path) => ({ path }));
+    return sortBy(api.pathMappings).map(path => ({ path }));
   }
 
   addPathMapping() {

@@ -33,7 +33,7 @@ export class ApiEndpointGroupsStandardHarness extends ComponentHarness {
 
   public async getTableRows(index: number) {
     const table = this.locatorFor(MatTableHarness.with({ selector: `[data-testid=groupsTable-${index}]` }));
-    return await table().then((t) => t.getCellTextByIndex());
+    return await table().then(t => t.getCellTextByIndex());
   }
 
   public async deleteEndpointGroup(index: number, rootLoader: HarnessLoader) {
@@ -41,12 +41,12 @@ export class ApiEndpointGroupsStandardHarness extends ComponentHarness {
     await button.click();
     return await rootLoader
       .getHarness(MatDialogHarness)
-      .then((dialog) => dialog.getHarness(MatButtonHarness.with({ text: /Delete/ })))
-      .then((element) => element.click());
+      .then(dialog => dialog.getHarness(MatButtonHarness.with({ text: /Delete/ })))
+      .then(element => element.click());
   }
 
   public async isEndpointGroupDeleteButtonVisible(): Promise<boolean> {
-    return this.getDeleteEndpointGroupButtons().then((buttons) => buttons?.length > 0);
+    return this.getDeleteEndpointGroupButtons().then(buttons => buttons?.length > 0);
   }
 
   public async deleteEndpoint(index: number, rootLoader: HarnessLoader) {
@@ -54,16 +54,16 @@ export class ApiEndpointGroupsStandardHarness extends ComponentHarness {
     await button.click();
     return await rootLoader
       .getHarness(MatDialogHarness)
-      .then((dialog) => dialog.getHarness(MatButtonHarness.with({ text: /Delete/ })))
-      .then((element) => element.click());
+      .then(dialog => dialog.getHarness(MatButtonHarness.with({ text: /Delete/ })))
+      .then(element => element.click());
   }
 
   public async isEndpointDeleteDisabled(index: number) {
-    return this.getDeleteEndpointButtons().then((buttons) => buttons[index].isDisabled());
+    return this.getDeleteEndpointButtons().then(buttons => buttons[index].isDisabled());
   }
 
   public async isEndpointDeleteButtonVisible(): Promise<boolean> {
-    return this.getDeleteEndpointButtons().then((buttons) => buttons?.length > 0);
+    return this.getDeleteEndpointButtons().then(buttons => buttons?.length > 0);
   }
 
   public async clickAddEndpoint(index: number) {
@@ -72,7 +72,7 @@ export class ApiEndpointGroupsStandardHarness extends ComponentHarness {
   }
 
   public async isAddEndpointButtonVisible(): Promise<boolean> {
-    return this.getAddEndpointButtons().then((buttons) => buttons?.length > 0);
+    return this.getAddEndpointButtons().then(buttons => buttons?.length > 0);
   }
 
   public async clickEditEndpoint(index: number) {
@@ -81,11 +81,11 @@ export class ApiEndpointGroupsStandardHarness extends ComponentHarness {
   }
 
   public async isEditEndpointButtonVisible(): Promise<boolean> {
-    return this.getEditEndpointButtons().then((buttons) => buttons?.length > 0);
+    return this.getEditEndpointButtons().then(buttons => buttons?.length > 0);
   }
 
   public async isViewEndpointButtonVisible(): Promise<boolean> {
-    return this.getViewEndpointButtons().then((buttons) => buttons?.length > 0);
+    return this.getViewEndpointButtons().then(buttons => buttons?.length > 0);
   }
 
   public async moveGroupUp(index: number) {
@@ -107,7 +107,7 @@ export class ApiEndpointGroupsStandardHarness extends ComponentHarness {
   }
 
   public async isEditEndpointGroupNameFieldAvailable(index: number): Promise<boolean> {
-    return await this.getEditEndpointGroupButtons().then((buttons) => !!buttons[index]);
+    return await this.getEditEndpointGroupButtons().then(buttons => !!buttons[index]);
   }
 
   public async clickEditEndpointGroup(index: number) {
@@ -117,8 +117,8 @@ export class ApiEndpointGroupsStandardHarness extends ComponentHarness {
 
   public async isAddEndpointGroupDisplayed(): Promise<boolean> {
     return await this.getAddEndpointGroupButton()
-      .then((_) => true)
-      .catch((_) => false);
+      .then(_ => true)
+      .catch(_ => false);
   }
 
   public async isAddEndpointGroupClickable(): Promise<boolean> {

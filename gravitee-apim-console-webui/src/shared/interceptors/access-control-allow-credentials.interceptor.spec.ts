@@ -43,7 +43,7 @@ describe('AccessControlAllowCredentialsInterceptor', () => {
     httpTestingController.verify();
   });
 
-  it('should set withCredentials to true', (done) => {
+  it('should set withCredentials to true', done => {
     httpClient.get<unknown>(testUrl).subscribe(() => {
       done();
     });

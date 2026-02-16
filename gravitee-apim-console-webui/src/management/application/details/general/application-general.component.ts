@@ -219,7 +219,7 @@ export class ApplicationGeneralComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.applicationService.delete(this.activatedRoute.snapshot.params.applicationId)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);

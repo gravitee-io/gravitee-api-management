@@ -21,7 +21,7 @@ export default {
   title: 'SharedPolicyGroupStudioComponent story',
   component: SharedPolicyGroupStudioComponent,
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 800px">
         <shared-policy-group-studio></shared-policy-group-studio>

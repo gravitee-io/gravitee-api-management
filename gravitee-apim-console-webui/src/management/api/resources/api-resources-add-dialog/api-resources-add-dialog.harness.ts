@@ -68,7 +68,7 @@ export class ApiResourcesAddDialogHarness extends ComponentHarness {
     const radioGroup = await this.getRadioGroup();
     const buttons = await radioGroup.getRadioButtons();
 
-    return parallel(() => buttons.map((button) => button.getLabelText()));
+    return parallel(() => buttons.map(button => button.getLabelText()));
   }
 
   public async toggleFilterByCategory(category: string): Promise<void> {

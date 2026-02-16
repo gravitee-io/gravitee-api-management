@@ -58,7 +58,7 @@ describe('OrganizationNavigationService', () => {
           'Templates',
           'Audit',
           'Discover Gravitee Cloud',
-        ].map((name) =>
+        ].map(name =>
           expect.objectContaining({
             name,
             routerLink: expect.not.stringContaining('./') && expect.stringContaining(`_organization/`),

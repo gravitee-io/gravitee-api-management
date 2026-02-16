@@ -21,7 +21,7 @@ export default {
   title: 'NoMcpEntrypoint story',
   component: NoMcpEntrypointComponent,
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 800px">
         <no-mcp-entrypoint />

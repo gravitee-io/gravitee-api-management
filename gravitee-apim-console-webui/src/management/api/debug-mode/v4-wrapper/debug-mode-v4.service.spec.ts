@@ -289,7 +289,7 @@ describe('DebugModeV4Service', () => {
           headers: [],
           path: '',
         })
-        .subscribe((response) => {
+        .subscribe(response => {
           expect(response.preprocessorStep).toStrictEqual(mockDebugEvent.payload.preprocessorStep);
           expect(response.backendResponse).toStrictEqual(mockDebugEvent.payload.backendResponse);
           expect(response.request).toStrictEqual(mockDebugEvent.payload.request);
@@ -319,7 +319,7 @@ describe('DebugModeV4Service', () => {
           headers: [],
           path: '',
         })
-        .subscribe((response) => {
+        .subscribe(response => {
           expect(response).toStrictEqual({
             isLoading: false,
             executionMode: null,

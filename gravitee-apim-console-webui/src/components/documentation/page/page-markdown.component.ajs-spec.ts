@@ -25,7 +25,7 @@ describe('PageMarkdownController', () => {
   let $componentController: IComponentControllerService;
   let pageMarkdownComponent: PageMarkdownController;
 
-  beforeEach(inject((_$componentController_) => {
+  beforeEach(inject(_$componentController_ => {
     $componentController = _$componentController_;
     pageMarkdownComponent = $componentController('gvPageMarkdown', null, {});
     pageMarkdownComponent.page = {

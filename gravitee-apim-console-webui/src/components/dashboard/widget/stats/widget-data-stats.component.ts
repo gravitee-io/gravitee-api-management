@@ -36,13 +36,13 @@ const WidgetDataStatsComponent: ng.IComponentOptions = {
         const gvStats = $element.children()[0];
 
         const stats = {};
-        if (Object.values(this.data).some((data) => data !== 0)) {
-          this.chartData.forEach((data) => {
+        if (Object.values(this.data).some(data => data !== 0)) {
+          this.chartData.forEach(data => {
             stats[data.key] = this.data[data.key];
           });
         }
 
-        const options = this.chartData.map((data) => {
+        const options = this.chartData.map(data => {
           return {
             key: data.key,
             unit: data.unit,
@@ -50,7 +50,7 @@ const WidgetDataStatsComponent: ng.IComponentOptions = {
             label: data.label,
             fallback:
               data.fallback &&
-              data.fallback.map((fallback) => {
+              data.fallback.map(fallback => {
                 return { key: fallback.key, label: fallback.label };
               }),
           };

@@ -25,7 +25,7 @@ export class ApiAuditsTableHarness extends ComponentHarness {
     const table = await this.getTable();
     const rows = await table.getRows();
 
-    return await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+    return await parallel(() => rows.map(row => row.getCellTextByColumnName()));
   }
 
   public async paginator() {

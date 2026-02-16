@@ -79,9 +79,9 @@ export class IdentityProvidersComponent implements OnInit {
     combineLatest([this.identityProviderService.list(), this.environmentIdentityProviderService.list(), this.portalSettingsService.get()])
       .pipe(
         tap(([identityProvider, activatedIdentityProvider, portalSettings]) => {
-          this.activatedIdentityProvider = activatedIdentityProvider.map((activated) => ({ identityProvider: activated.identityProvider }));
-          this.identityProviderListTable = identityProvider.map((identityProvider) => {
-            const matchedId = activatedIdentityProvider.find((item) => item.identityProvider === identityProvider.id);
+          this.activatedIdentityProvider = activatedIdentityProvider.map(activated => ({ identityProvider: activated.identityProvider }));
+          this.identityProviderListTable = identityProvider.map(identityProvider => {
+            const matchedId = activatedIdentityProvider.find(item => item.identityProvider === identityProvider.id);
             return {
               ...identityProvider,
               isActivated: !!matchedId,
@@ -108,7 +108,7 @@ export class IdentityProvidersComponent implements OnInit {
     this.portalSettingsService
       .get()
       .pipe(
-        switchMap((settings) =>
+        switchMap(settings =>
           this.portalSettingsService.save({
             ...settings,
             authentication: {
@@ -160,10 +160,10 @@ export class IdentityProvidersComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         tap(() => {
           if (element.isActivated) {
-            this.activatedIdentityProvider = this.activatedIdentityProvider.filter((obj) => obj.identityProvider !== element.id);
+            this.activatedIdentityProvider = this.activatedIdentityProvider.filter(obj => obj.identityProvider !== element.id);
           } else {
             this.activatedIdentityProvider.push({
               identityProvider: element.id,

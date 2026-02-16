@@ -50,8 +50,8 @@ describe('SharedPolicyGroupsService', () => {
   });
 
   describe('list', () => {
-    it('should call the API', (done) => {
-      service.list().subscribe((SPGs) => {
+    it('should call the API', done => {
+      service.list().subscribe(SPGs => {
         expect(SPGs.data.length).toEqual(1);
         done();
       });
@@ -61,8 +61,8 @@ describe('SharedPolicyGroupsService', () => {
   });
 
   describe('create', () => {
-    it('should call the API', (done) => {
-      service.create(fakeCreateSharedPolicyGroup()).subscribe((spg) => {
+    it('should call the API', done => {
+      service.create(fakeCreateSharedPolicyGroup()).subscribe(spg => {
         expect(spg).toBeTruthy();
         done();
       });
@@ -72,8 +72,8 @@ describe('SharedPolicyGroupsService', () => {
   });
 
   describe('get', () => {
-    it('should call the API', (done) => {
-      service.get(fakeSharedPolicyGroup().id).subscribe((spg) => {
+    it('should call the API', done => {
+      service.get(fakeSharedPolicyGroup().id).subscribe(spg => {
         expect(spg).toBeTruthy();
         done();
       });
@@ -83,8 +83,8 @@ describe('SharedPolicyGroupsService', () => {
   });
 
   describe('update', () => {
-    it('should call the API', (done) => {
-      service.update('spgId', fakeUpdateSharedPolicyGroup()).subscribe((spg) => {
+    it('should call the API', done => {
+      service.update('spgId', fakeUpdateSharedPolicyGroup()).subscribe(spg => {
         expect(spg).toBeTruthy();
         done();
       });
@@ -94,7 +94,7 @@ describe('SharedPolicyGroupsService', () => {
   });
 
   describe('delete', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       service.delete('spgId').subscribe(() => {
         done();
       });
@@ -103,7 +103,7 @@ describe('SharedPolicyGroupsService', () => {
   });
 
   describe('deploy', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       service.deploy('spgId').subscribe(() => {
         done();
       });
@@ -112,7 +112,7 @@ describe('SharedPolicyGroupsService', () => {
   });
 
   describe('undeploy', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       service.undeploy('spgId').subscribe(() => {
         done();
       });
@@ -121,8 +121,8 @@ describe('SharedPolicyGroupsService', () => {
   });
 
   describe('getSharedPolicyGroupPolicyPlugin', () => {
-    it('should call the API', (done) => {
-      service.getSharedPolicyGroupPolicyPlugin().subscribe((policyPlugins) => {
+    it('should call the API', done => {
+      service.getSharedPolicyGroupPolicyPlugin().subscribe(policyPlugins => {
         expect(policyPlugins.length).toEqual(1);
         done();
       });
@@ -132,8 +132,8 @@ describe('SharedPolicyGroupsService', () => {
   });
 
   describe('listHistories', () => {
-    it('should call the API', (done) => {
-      service.listHistories('spgId').subscribe((SPGs) => {
+    it('should call the API', done => {
+      service.listHistories('spgId').subscribe(SPGs => {
         expect(SPGs.data.length).toEqual(1);
         done();
       });
@@ -143,8 +143,8 @@ describe('SharedPolicyGroupsService', () => {
   });
 
   describe('restore', () => {
-    it('should call the API', (done) => {
-      service.restore(fakeSharedPolicyGroup()).subscribe((spg) => {
+    it('should call the API', done => {
+      service.restore(fakeSharedPolicyGroup()).subscribe(spg => {
         expect(spg).toBeTruthy();
         done();
       });

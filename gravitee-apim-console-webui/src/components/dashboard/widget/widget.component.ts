@@ -43,7 +43,7 @@ const WidgetComponent: ng.IComponentOptions = {
         $scope.$broadcast('onWidgetResize');
       });
 
-      this.$onChanges = (changes) => {
+      this.$onChanges = changes => {
         if (changes.customTimeframe && changes.customTimeframe.currentValue) {
           this.customTimeframe = changes.customTimeframe.currentValue;
           this.changeTimeframe(this.customTimeframe);
@@ -66,7 +66,7 @@ const WidgetComponent: ng.IComponentOptions = {
 
       $scope.$on('$destroy', unregisterFn);
 
-      this.changeTimeframe = (timeframe) => {
+      this.changeTimeframe = timeframe => {
         if (this.widget.chart && this.widget.chart.request) {
           let query;
 
@@ -98,16 +98,16 @@ const WidgetComponent: ng.IComponentOptions = {
         const queryFilters = this.AnalyticsService.getQueryFilters(this.activatedRoute);
         if (queryFilters) {
           let filters;
-          if (Object.keys(queryFilters).find((q) => q === field)) {
-            filters = Object.keys(queryFilters).filter((q) => chartRequest.ranges || q !== field);
+          if (Object.keys(queryFilters).find(q => q === field)) {
+            filters = Object.keys(queryFilters).filter(q => chartRequest.ranges || q !== field);
           } else {
             filters = Object.keys(queryFilters);
           }
 
           chartRequest.query = [
             chartRequest.query,
-            filters.map((f) => {
-              const formattedParams = queryFilters[f].map((qp) => {
+            filters.map(f => {
+              const formattedParams = queryFilters[f].map(qp => {
                 const formattedValue = this.AnalyticsService.buildQueryParam(qp, f);
                 return `${f}:${formattedValue}`;
               });
@@ -116,7 +116,7 @@ const WidgetComponent: ng.IComponentOptions = {
             }),
           ]
             .reduce((acc, val) => acc.concat(val), [])
-            .filter((part) => part)
+            .filter(part => part)
             .join(' AND ');
         }
 
@@ -138,7 +138,7 @@ const WidgetComponent: ng.IComponentOptions = {
 
         this.widget.chart.service.function
           .apply(this.widget.chart.service.caller, args)
-          .then((response) => {
+          .then(response => {
             this.results = response.data;
             if (this.widget.chart.type === 'line') {
               if (response.data.timestamp) {
@@ -151,13 +151,13 @@ const WidgetComponent: ng.IComponentOptions = {
                     response.data.timestamp.to,
                     0,
                     10,
-                  ).then((response) => {
+                  ).then(response => {
                     this.results.events = response.data;
                   });
                 } else {
                   return this.eventService
                     .search(['PUBLISH_API'], [], response.data.timestamp.from, response.data.timestamp.to, 0, 10)
-                    .then((response) => {
+                    .then(response => {
                       this.results.events = response.data;
                     });
                 }
@@ -165,7 +165,7 @@ const WidgetComponent: ng.IComponentOptions = {
             } else if (this.widget.chart.percent) {
               delete chartRequest.query;
               chartRequest.type = 'count';
-              return this.widget.chart.service.function.apply(this.widget.chart.service.caller, args).then((responseTotal) => {
+              return this.widget.chart.service.function.apply(this.widget.chart.service.caller, args).then(responseTotal => {
                 forEach(this.results.values, (value, key) => {
                   this.results.values[key] = value + '/' + round((value / responseTotal.data.hits) * 100, 2);
                 });

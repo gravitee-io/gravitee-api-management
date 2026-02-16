@@ -39,13 +39,13 @@ export class ApiImportFilePickerComponent implements OnInit {
   constructor() {
     effect(() => {
       this.accept = this.allowedFileExtensions()
-        .map((ext) => '.' + ext)
+        .map(ext => '.' + ext)
         .join(',');
     });
   }
 
   ngOnInit() {
-    this.filePickerControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value) => this.onImportFile(value));
+    this.filePickerControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => this.onImportFile(value));
   }
 
   protected async onImportFile(event: (NewFile | string)[] | undefined) {

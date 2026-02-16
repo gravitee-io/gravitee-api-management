@@ -50,12 +50,12 @@ describe('ApiSubscriptionV2Service', () => {
   });
 
   describe('list', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const fakeApiSubscriptionsResponse: ApiSubscriptionsResponse = {
         data: [fakeSubscription()],
       };
 
-      apiSubscriptionV2Service.list(API_ID).subscribe((apiSubscriptionsResponse) => {
+      apiSubscriptionV2Service.list(API_ID).subscribe(apiSubscriptionsResponse => {
         expect(apiSubscriptionsResponse.data).toEqual([fakeSubscription()]);
         done();
       });
@@ -68,14 +68,14 @@ describe('ApiSubscriptionV2Service', () => {
       req.flush(fakeApiSubscriptionsResponse);
     });
 
-    it('should list with all query params', (done) => {
+    it('should list with all query params', done => {
       const fakeApiSubscriptionsResponse: ApiSubscriptionsResponse = {
         data: [fakeSubscription()],
       };
 
       apiSubscriptionV2Service
         .list(API_ID, '1', '10', ['ACCEPTED', 'CLOSED'], ['app1', 'app2'], ['plan1', 'plan2'], 'apiKey', ['plan', 'application'])
-        .subscribe((apiSubscriptionsResponse) => {
+        .subscribe(apiSubscriptionsResponse => {
           expect(apiSubscriptionsResponse.data).toEqual([fakeSubscription()]);
           done();
         });
@@ -90,7 +90,7 @@ describe('ApiSubscriptionV2Service', () => {
   });
 
   describe('export', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       apiSubscriptionV2Service.exportAsCSV(API_ID).subscribe(() => {
         done();
       });
@@ -103,7 +103,7 @@ describe('ApiSubscriptionV2Service', () => {
       req.flush(null);
     });
 
-    it('should export with all query params', (done) => {
+    it('should export with all query params', done => {
       apiSubscriptionV2Service
         .exportAsCSV(API_ID, '1', '10', ['ACCEPTED', 'CLOSED'], ['app1', 'app2'], ['plan1', 'plan2'], 'apiKey')
         .subscribe(() => {
@@ -121,9 +121,9 @@ describe('ApiSubscriptionV2Service', () => {
 
   describe('getById', () => {
     const SUBSCRIPTION_ID = 'my-subscription';
-    it('should call API', (done) => {
+    it('should call API', done => {
       const subscription = fakeSubscription({ id: SUBSCRIPTION_ID });
-      apiSubscriptionV2Service.getById(API_ID, SUBSCRIPTION_ID, ['application', 'plan', 'subscribedBy']).subscribe((response) => {
+      apiSubscriptionV2Service.getById(API_ID, SUBSCRIPTION_ID, ['application', 'plan', 'subscribedBy']).subscribe(response => {
         expect(response).toEqual(subscription);
         done();
       });
@@ -139,7 +139,7 @@ describe('ApiSubscriptionV2Service', () => {
 
   describe('update', () => {
     const SUBSCRIPTION_ID = 'my-subscription';
-    it('should call API', (done) => {
+    it('should call API', done => {
       const startDate = new Date();
       const endDate = new Date(new Date().setFullYear(2050));
       const metadata = { nice: 'metadata' };
@@ -159,7 +159,7 @@ describe('ApiSubscriptionV2Service', () => {
           metadata,
           consumerConfiguration,
         })
-        .subscribe((response) => {
+        .subscribe(response => {
           expect(response).toEqual(subscription);
           done();
         });
@@ -181,9 +181,9 @@ describe('ApiSubscriptionV2Service', () => {
   describe('transfer', () => {
     const SUBSCRIPTION_ID = 'my-subscription';
     const PLAN_ID = 'my-plan';
-    it('should call API', (done) => {
+    it('should call API', done => {
       const subscription = fakeSubscription({ id: SUBSCRIPTION_ID });
-      apiSubscriptionV2Service.transfer(API_ID, SUBSCRIPTION_ID, PLAN_ID).subscribe((response) => {
+      apiSubscriptionV2Service.transfer(API_ID, SUBSCRIPTION_ID, PLAN_ID).subscribe(response => {
         expect(response).toEqual(subscription);
         done();
       });
@@ -200,9 +200,9 @@ describe('ApiSubscriptionV2Service', () => {
 
   describe('pause', () => {
     const SUBSCRIPTION_ID = 'my-subscription';
-    it('should call API', (done) => {
+    it('should call API', done => {
       const subscription = fakeSubscription({ id: SUBSCRIPTION_ID });
-      apiSubscriptionV2Service.pause(SUBSCRIPTION_ID, API_ID).subscribe((response) => {
+      apiSubscriptionV2Service.pause(SUBSCRIPTION_ID, API_ID).subscribe(response => {
         expect(response).toEqual(subscription);
         done();
       });
@@ -219,9 +219,9 @@ describe('ApiSubscriptionV2Service', () => {
 
   describe('resume', () => {
     const SUBSCRIPTION_ID = 'my-subscription';
-    it('should call API', (done) => {
+    it('should call API', done => {
       const subscription = fakeSubscription({ id: SUBSCRIPTION_ID });
-      apiSubscriptionV2Service.resume(SUBSCRIPTION_ID, API_ID).subscribe((response) => {
+      apiSubscriptionV2Service.resume(SUBSCRIPTION_ID, API_ID).subscribe(response => {
         expect(response).toEqual(subscription);
         done();
       });
@@ -237,7 +237,7 @@ describe('ApiSubscriptionV2Service', () => {
   });
 
   describe('creation', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const createSubscription: CreateSubscription = {
         applicationId: APPLICATION_ID,
         planId: PLAN_ID,
@@ -248,7 +248,7 @@ describe('ApiSubscriptionV2Service', () => {
         apiKeyMode: 'EXCLUSIVE',
       };
 
-      apiSubscriptionV2Service.create(API_ID, createSubscription).subscribe((subscription) => {
+      apiSubscriptionV2Service.create(API_ID, createSubscription).subscribe(subscription => {
         expect(subscription).toEqual(fakeSubscription());
         done();
       });
@@ -264,9 +264,9 @@ describe('ApiSubscriptionV2Service', () => {
 
   describe('close', () => {
     const SUBSCRIPTION_ID = 'my-subscription';
-    it('should call API', (done) => {
+    it('should call API', done => {
       const subscription = fakeSubscription({ id: SUBSCRIPTION_ID });
-      apiSubscriptionV2Service.close(SUBSCRIPTION_ID, API_ID).subscribe((response) => {
+      apiSubscriptionV2Service.close(SUBSCRIPTION_ID, API_ID).subscribe(response => {
         expect(response).toEqual(subscription);
         done();
       });
@@ -282,7 +282,7 @@ describe('ApiSubscriptionV2Service', () => {
   });
 
   describe('verify', () => {
-    it('should call the endpoint', (done) => {
+    it('should call the endpoint', done => {
       const apiId = 'my-api-id';
       const verifySubscription: VerifySubscription = {
         applicationId: 'my-app-id',
@@ -290,7 +290,7 @@ describe('ApiSubscriptionV2Service', () => {
       };
       const mockApi = fakeApi();
 
-      apiSubscriptionV2Service.verify(apiId, verifySubscription).subscribe((response) => {
+      apiSubscriptionV2Service.verify(apiId, verifySubscription).subscribe(response => {
         expect(response).toMatchObject(mockApi);
         done();
       });
@@ -306,7 +306,7 @@ describe('ApiSubscriptionV2Service', () => {
 
   describe('accept', () => {
     const SUBSCRIPTION_ID = 'my-subscription';
-    it('should call API', (done) => {
+    it('should call API', done => {
       const subscription = fakeSubscription({ id: SUBSCRIPTION_ID });
       const acceptSubscription: AcceptSubscription = {
         startingAt: new Date(),
@@ -314,7 +314,7 @@ describe('ApiSubscriptionV2Service', () => {
         reason: 'a really good reason',
         customApiKey: 'fresh-api-key',
       };
-      apiSubscriptionV2Service.accept(SUBSCRIPTION_ID, API_ID, acceptSubscription).subscribe((response) => {
+      apiSubscriptionV2Service.accept(SUBSCRIPTION_ID, API_ID, acceptSubscription).subscribe(response => {
         expect(response).toEqual(subscription);
         done();
       });
@@ -331,10 +331,10 @@ describe('ApiSubscriptionV2Service', () => {
 
   describe('reject', () => {
     const SUBSCRIPTION_ID = 'my-subscription';
-    it('should call API', (done) => {
+    it('should call API', done => {
       const subscription = fakeSubscription({ id: SUBSCRIPTION_ID });
       const reason = 'a very good reason';
-      apiSubscriptionV2Service.reject(SUBSCRIPTION_ID, API_ID, reason).subscribe((response) => {
+      apiSubscriptionV2Service.reject(SUBSCRIPTION_ID, API_ID, reason).subscribe(response => {
         expect(response).toEqual(subscription);
         done();
       });
@@ -352,10 +352,10 @@ describe('ApiSubscriptionV2Service', () => {
   describe('list API Keys', () => {
     const API_KEY_ID = 'my-api-key';
     const SUBSCRIPTION_ID = 'my-subscription-id';
-    it('should call API', (done) => {
+    it('should call API', done => {
       const apiKey = fakeApiKey({ id: API_KEY_ID });
       const apiKeyResponse = { data: [apiKey] };
-      apiSubscriptionV2Service.listApiKeys(API_ID, SUBSCRIPTION_ID).subscribe((response) => {
+      apiSubscriptionV2Service.listApiKeys(API_ID, SUBSCRIPTION_ID).subscribe(response => {
         expect(response).toEqual(apiKeyResponse);
         done();
       });
@@ -372,10 +372,10 @@ describe('ApiSubscriptionV2Service', () => {
   describe('renew API Key', () => {
     const API_KEY_ID = 'my-api-key';
     const SUBSCRIPTION_ID = 'my-subscription-id';
-    it('should call API', (done) => {
+    it('should call API', done => {
       const apiKey = fakeApiKey({ id: API_KEY_ID });
       const customApiKey = 'my-custom-api-key';
-      apiSubscriptionV2Service.renewApiKey(API_ID, SUBSCRIPTION_ID, customApiKey).subscribe((response) => {
+      apiSubscriptionV2Service.renewApiKey(API_ID, SUBSCRIPTION_ID, customApiKey).subscribe(response => {
         expect(response).toEqual(apiKey);
         done();
       });
@@ -393,9 +393,9 @@ describe('ApiSubscriptionV2Service', () => {
   describe('revoke API Key', () => {
     const API_KEY_ID = 'my-api-key';
     const SUBSCRIPTION_ID = 'my-subscription-id';
-    it('should call API', (done) => {
+    it('should call API', done => {
       const apiKey = fakeApiKey({ id: API_KEY_ID });
-      apiSubscriptionV2Service.revokeApiKey(API_ID, SUBSCRIPTION_ID, API_KEY_ID).subscribe((response) => {
+      apiSubscriptionV2Service.revokeApiKey(API_ID, SUBSCRIPTION_ID, API_KEY_ID).subscribe(response => {
         expect(response).toEqual(apiKey);
         done();
       });
@@ -413,10 +413,10 @@ describe('ApiSubscriptionV2Service', () => {
   describe('expire API Key', () => {
     const API_KEY_ID = 'my-api-key';
     const SUBSCRIPTION_ID = 'my-subscription-id';
-    it('should call API', (done) => {
+    it('should call API', done => {
       const apiKey = fakeApiKey({ id: API_KEY_ID });
       const expireAt = new Date();
-      apiSubscriptionV2Service.expireApiKey(API_ID, SUBSCRIPTION_ID, API_KEY_ID, expireAt).subscribe((response) => {
+      apiSubscriptionV2Service.expireApiKey(API_ID, SUBSCRIPTION_ID, API_KEY_ID, expireAt).subscribe(response => {
         expect(response).toEqual(apiKey);
         done();
       });
@@ -434,9 +434,9 @@ describe('ApiSubscriptionV2Service', () => {
   describe('reactivate API Key', () => {
     const API_KEY_ID = 'my-api-key';
     const SUBSCRIPTION_ID = 'my-subscription-id';
-    it('should call API', (done) => {
+    it('should call API', done => {
       const apiKey = fakeApiKey({ id: API_KEY_ID });
-      apiSubscriptionV2Service.reactivateApiKey(API_ID, SUBSCRIPTION_ID, API_KEY_ID).subscribe((response) => {
+      apiSubscriptionV2Service.reactivateApiKey(API_ID, SUBSCRIPTION_ID, API_KEY_ID).subscribe(response => {
         expect(response).toEqual(apiKey);
         done();
       });

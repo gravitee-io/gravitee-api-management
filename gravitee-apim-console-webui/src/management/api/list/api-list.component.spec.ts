@@ -231,14 +231,14 @@ describe('ApisListComponent', () => {
       it('should allow new search on request throw', fakeAsync(async () => {
         await initComponent([]);
 
-        await loader.getHarness(GioTableWrapperHarness).then((tableWrapper) => tableWrapper.setSearchValue('bad-search'));
+        await loader.getHarness(GioTableWrapperHarness).then(tableWrapper => tableWrapper.setSearchValue('bad-search'));
         await tick(400);
         const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=25`);
         expect(req.request.body).toEqual({ query: 'bad-search' });
 
         req.flush('Internal error', { status: 500, statusText: 'Internal error' });
 
-        await loader.getHarness(GioTableWrapperHarness).then((tableWrapper) => tableWrapper.setSearchValue('good-search'));
+        await loader.getHarness(GioTableWrapperHarness).then(tableWrapper => tableWrapper.setSearchValue('good-search'));
 
         expectApisListRequest([], null, 'good-search');
       }));
@@ -259,16 +259,14 @@ describe('ApisListComponent', () => {
         const apis = [planetsApi, unicornsApi];
         await initComponent(apis);
 
-        const nameSort = await loader
-          .getHarness(MatSortHeaderHarness.with({ selector: '#name' }))
-          .then((sortHarness) => sortHarness.host());
+        const nameSort = await loader.getHarness(MatSortHeaderHarness.with({ selector: '#name' })).then(sortHarness => sortHarness.host());
         await nameSort.click();
-        apis.map((api) => expectSyncedApi(api.id, true));
+        apis.map(api => expectSyncedApi(api.id, true));
         expectApisListRequest(apis, 'name');
 
         fixture.detectChanges();
         await nameSort.click();
-        apis.map((api) => expectSyncedApi(api.id, true));
+        apis.map(api => expectSyncedApi(api.id, true));
         expectApisListRequest(apis, '-name');
       }));
 
@@ -280,14 +278,14 @@ describe('ApisListComponent', () => {
 
         const accessSort = await loader
           .getHarness(MatSortHeaderHarness.with({ selector: '#access' }))
-          .then((sortHarness) => sortHarness.host());
+          .then(sortHarness => sortHarness.host());
         await accessSort.click();
-        apis.map((api) => expectSyncedApi(api.id, true));
+        apis.map(api => expectSyncedApi(api.id, true));
         expectApisListRequest(apis, 'paths');
 
         fixture.detectChanges();
         await accessSort.click();
-        apis.map((api) => expectSyncedApi(api.id, true));
+        apis.map(api => expectSyncedApi(api.id, true));
         expectApisListRequest(apis, '-paths');
       }));
 
@@ -542,10 +540,10 @@ describe('ApisListComponent', () => {
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#apisTable' }));
 
     const headerRows = await table.getHeaderRows();
-    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+    const headerCells = await parallel(() => headerRows.map(row => row.getCellTextByColumnName()));
 
     const rows = await table.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByIndex()));
     return { headerCells, rowCells };
   }
 

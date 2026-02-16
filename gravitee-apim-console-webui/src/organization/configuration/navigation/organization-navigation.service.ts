@@ -57,14 +57,14 @@ export class OrganizationNavigationService {
         this.appendNotificationsItems(),
         this.appendAuditItems(),
         this.appendCockpitItems(),
-      ].filter((item) => item != null);
+      ].filter(item => item != null);
     }
     return groupItems;
   }
 
   public getOrganizationNavigationSearchItems(): MenuSearchItem[] {
-    return this.getOrganizationNavigationRoutes().flatMap((groupItem) =>
-      groupItem.items.map((item) => {
+    return this.getOrganizationNavigationRoutes().flatMap(groupItem =>
+      groupItem.items.map(item => {
         return {
           name: item.displayName,
           routerLink: `/_organization/${cleanRouterLink(item.routerLink)}`,
@@ -143,7 +143,7 @@ export class OrganizationNavigationService {
     const licenseOptions = { feature: ApimFeature.APIM_AUDIT_TRAIL, context: UTMTags.CONTEXT_ORGANIZATION };
     const iconRight$ = this.gioLicenseService
       .isMissingFeature$(licenseOptions.feature)
-      .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+      .pipe(map(notAllowed => (notAllowed ? 'gio:lock' : null)));
     const items = this.filterMenuByPermission([
       {
         displayName: 'Audit',
@@ -168,6 +168,6 @@ export class OrganizationNavigationService {
   }
 
   private filterMenuByPermission(menuItems: MenuItem[]): MenuItem[] {
-    return menuItems.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
+    return menuItems.filter(item => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
   }
 }

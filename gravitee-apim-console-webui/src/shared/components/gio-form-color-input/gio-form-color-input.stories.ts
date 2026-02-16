@@ -54,7 +54,7 @@ export const Simple: StoryObj = {
   render: ({ color, placeholder, required, disabled }) => {
     const colorControl = new FormControl({ value: color, disabled });
 
-    colorControl.valueChanges.subscribe((value) => {
+    colorControl.valueChanges.subscribe(value => {
       action('Color')(value);
     });
 

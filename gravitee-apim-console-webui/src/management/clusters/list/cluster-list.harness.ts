@@ -32,7 +32,7 @@ export class ClustersListPageHarness extends ComponentHarness {
 
     return await rows[index]
       .getCells({ columnName: 'actions' })
-      .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Button to edit"]' })));
+      .then(cells => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Button to edit"]' })));
   }
 
   public async getRemoveButton(index: number) {
@@ -41,10 +41,10 @@ export class ClustersListPageHarness extends ComponentHarness {
 
     return await rows[index]
       .getCells({ columnName: 'actions' })
-      .then((cells) => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Button to remove Cluster"]' })));
+      .then(cells => cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Button to remove Cluster"]' })));
   }
 
   public async clickAddButton() {
-    await this.getAddButton().then((button) => button.click());
+    await this.getAddButton().then(button => button.click());
   }
 }

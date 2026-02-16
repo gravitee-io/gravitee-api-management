@@ -75,7 +75,7 @@ export class ApiHealthCheckFormComponent implements OnChanges, OnDestroy {
         disabled: isReadOnly,
       }),
       headers: new UntypedFormControl({
-        value: [...(healthCheckStep?.request?.headers ?? [])].map((header) => ({ key: header.name, value: header.value })),
+        value: [...(healthCheckStep?.request?.headers ?? [])].map(header => ({ key: header.name, value: header.value })),
         disabled: isReadOnly,
       }),
       fromRoot: new UntypedFormControl({
@@ -85,7 +85,7 @@ export class ApiHealthCheckFormComponent implements OnChanges, OnDestroy {
       // Assertions
       assertions: new UntypedFormArray(
         [...(healthCheckStep?.response?.assertions ?? ['#response.status == 200'])].map(
-          (assertion) =>
+          assertion =>
             new UntypedFormControl(
               {
                 value: assertion,
@@ -128,7 +128,7 @@ export class ApiHealthCheckFormComponent implements OnChanges, OnDestroy {
             method: healthCheckForm.get('method').value,
             path: healthCheckForm.get('path').value,
             body: healthCheckForm.get('body').value,
-            headers: [...healthCheckForm.get('headers').value].map((h) => ({ name: h.key, value: h.value })),
+            headers: [...healthCheckForm.get('headers').value].map(h => ({ name: h.key, value: h.value })),
             fromRoot: healthCheckForm.get('fromRoot').value,
           },
           response: {
@@ -188,8 +188,8 @@ export class ApiHealthCheckFormComponent implements OnChanges, OnDestroy {
         takeUntil(this.unsubscribe$),
       );
 
-      this.isDisabled$.subscribe((disableAll) => {
-        controlKeys.forEach((k) => {
+      this.isDisabled$.subscribe(disableAll => {
+        controlKeys.forEach(k => {
           return disableAll
             ? this.healthCheckForm.get(k).disable({ emitEvent: false })
             : this.healthCheckForm.get(k).enable({ emitEvent: false });
@@ -201,7 +201,7 @@ export class ApiHealthCheckFormComponent implements OnChanges, OnDestroy {
       this.healthCheckForm
         .get('inherit')
         .valueChanges.pipe(startWith(this.healthCheckForm.get('inherit').value), takeUntil(this.unsubscribe$))
-        .subscribe((checked) => {
+        .subscribe(checked => {
           // If inherit is checked, "enable" value is set to inherit health check enable value.
           if (checked) {
             this.healthCheckForm.get('enabled').disable({ emitEvent: true });

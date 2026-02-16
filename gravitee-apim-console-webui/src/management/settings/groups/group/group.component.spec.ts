@@ -199,7 +199,7 @@ describe('GroupComponent', () => {
     it('should submit form to create group', async () => {
       expectGetDefaultRoles();
       const spy = jest.spyOn(router, 'navigate');
-      await getNameInput().then((input) => input.setValue('Group 1'));
+      await getNameInput().then(input => input.setValue('Group 1'));
       const saveBar = await getSaveBar();
       expect(await saveBar.isVisible()).toEqual(true);
       expect(await saveBar.isSubmitButtonVisible()).toEqual(true);
@@ -284,7 +284,7 @@ describe('GroupComponent', () => {
       expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
-      await getNameInput().then((input) => input.setValue('Test Group 1'));
+      await getNameInput().then(input => input.setValue('Test Group 1'));
       const saveBar = await getSaveBar();
       expect(await saveBar.isVisible()).toEqual(true);
       expect(await saveBar.isSubmitButtonVisible()).toEqual(true);
@@ -357,7 +357,7 @@ describe('GroupComponent', () => {
       const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
       const rows = await tableHarness.getRows();
       expect(rows.length).toEqual(1);
-      const cell = await rows[0].getCells({ columnName: 'name' }).then((cells) => cells[0]);
+      const cell = await rows[0].getCells({ columnName: 'name' }).then(cells => cells[0]);
       const text = await cell.getText();
       expect(text).toEqual('Test Member 1');
     });
@@ -370,7 +370,7 @@ describe('GroupComponent', () => {
       expectGetGroupApplications();
       const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
       const rows = await tableHarness.getRows();
-      const cell = await rows[0].getCells({ columnName: 'actions' }).then((cells) => cells[0]);
+      const cell = await rows[0].getCells({ columnName: 'actions' }).then(cells => cells[0]);
       const deleteButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Remove member from group"]' }));
       await deleteButton.click();
       const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
@@ -387,7 +387,7 @@ describe('GroupComponent', () => {
       expectGetGroupApplications();
       const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
       const rows = await tableHarness.getRows();
-      const cell = await rows[0].getCells({ columnName: 'actions' }).then((cells) => cells[0]);
+      const cell = await rows[0].getCells({ columnName: 'actions' }).then(cells => cells[0]);
       const editButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Modify member settings"]' }));
       await editButton.click();
       const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
@@ -441,7 +441,7 @@ describe('GroupComponent', () => {
       const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#invitationsDataTable' }));
       const rows = await tableHarness.getRows();
       expect(rows.length).toEqual(1);
-      const cell = await rows[0].getCells({ columnName: 'guestEmail' }).then((cells) => cells[0]);
+      const cell = await rows[0].getCells({ columnName: 'guestEmail' }).then(cells => cells[0]);
       const text = await cell.getText();
       expect(text).toEqual('temp@temp.com');
     });
@@ -458,7 +458,7 @@ describe('GroupComponent', () => {
       expectGetInvitations();
       const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#invitationsDataTable' }));
       const rows = await tableHarness.getRows();
-      const cell = await rows[0].getCells({ columnName: 'guestActions' }).then((cells) => cells[0]);
+      const cell = await rows[0].getCells({ columnName: 'guestActions' }).then(cells => cells[0]);
       const deleteButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Delete invitation"]' }));
       await deleteButton.click();
       const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
@@ -485,7 +485,7 @@ describe('GroupComponent', () => {
       const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#groupApplicationsDataTable' }));
       const rows = await tableHarness.getRows();
       expect(rows.length).toEqual(1);
-      const cell = await rows[0].getCells({ columnName: 'applicationName' }).then((cells) => cells[0]);
+      const cell = await rows[0].getCells({ columnName: 'applicationName' }).then(cells => cells[0]);
       const text = await cell.getText();
       expect(text).toEqual('Test Application 1');
     });
@@ -508,7 +508,7 @@ describe('GroupComponent', () => {
       const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#groupApisDataTable' }));
       const rows = await tableHarness.getRows();
       expect(rows.length).toEqual(1);
-      const cell = await rows[0].getCells({ columnName: 'apiName' }).then((cells) => cells[0]);
+      const cell = await rows[0].getCells({ columnName: 'apiName' }).then(cells => cells[0]);
       const text = await cell.getText();
       expect(text).toEqual('Test API 1 Private');
     });

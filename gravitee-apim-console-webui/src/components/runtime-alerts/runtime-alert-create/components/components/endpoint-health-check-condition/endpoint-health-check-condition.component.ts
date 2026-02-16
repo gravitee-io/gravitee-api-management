@@ -45,7 +45,7 @@ type EndpointHealthCheckFormGroup = FormGroup<{
 export class EndpointHealthCheckConditionComponent {
   @Input({ required: true }) form: EndpointHealthCheckFormGroup;
   @Input({ required: true }) set referenceType(scope: Scope) {
-    this.properties = Metrics.filterByScope(HealthcheckMetrics.METRICS, scope)?.filter((property) => property.supportPropertyProjection);
+    this.properties = Metrics.filterByScope(HealthcheckMetrics.METRICS, scope)?.filter(property => property.supportPropertyProjection);
   }
   @Input() public alertToUpdate: AlertTriggerEntity;
   protected properties: Metrics[];

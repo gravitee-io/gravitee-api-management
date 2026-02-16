@@ -23,7 +23,7 @@ export class ApiGeneralInfoExportV4DialogHarness extends ComponentHarness {
   public async getExportOptions() {
     const checkboxes = await this.locatorForAll(MatCheckboxHarness.with({ selector: '.content__options__option' }))();
 
-    return parallel(() => checkboxes.map(async (checkbox) => checkbox.getLabelText()));
+    return parallel(() => checkboxes.map(async checkbox => checkbox.getLabelText()));
   }
 
   public async setExportOptions(options: string[]): Promise<void> {

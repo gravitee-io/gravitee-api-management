@@ -98,14 +98,14 @@ export class ApiDocumentationV4PageConfigurationComponent implements OnInit, OnC
 
     this.form.controls.name.valueChanges
       .pipe(
-        tap((val) => this.name.set(val)),
+        tap(val => this.name.set(val)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
 
     this.form.controls.accessControlGroups.valueChanges
       .pipe(
-        tap((value) => {
+        tap(value => {
           if (value.length === 0) {
             this.form.controls.excludeGroups.setValue(false);
             this.form.controls.excludeGroups.disable();
@@ -131,7 +131,7 @@ export class ApiDocumentationV4PageConfigurationComponent implements OnInit, OnC
 
   private setExistingNames(): void {
     this.existingNames = this.apiPages
-      .filter((page) => page.type === this.pageType && (!this.pageId || page.id !== this.pageId))
-      .map((page) => page.name.toLowerCase().trim());
+      .filter(page => page.type === this.pageType && (!this.pageId || page.id !== this.pageId))
+      .map(page => page.name.toLowerCase().trim());
   }
 }

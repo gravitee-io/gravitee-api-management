@@ -29,7 +29,7 @@ class NotificationService {
           .hideDelay(preconditionFailed ? 10000 : 3000)
           .theme(errorStatus ? 'toast-error' : 'toast-success'),
       )
-      .then((response) => {
+      .then(response => {
         if (response === 'ok') {
           window.location.reload();
         }

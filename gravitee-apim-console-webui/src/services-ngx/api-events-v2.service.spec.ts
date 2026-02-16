@@ -51,7 +51,7 @@ describe('ApiEventsV2Service', () => {
       { queryParams: { types: 'PUBLISH_API,START_API' }, queryURL: '?page=1&perPage=10&types=PUBLISH_API,START_API' },
     ])('call the service with: $queryParams should call API with: $queryURL', ({ queryParams, queryURL }: any, done: jest.DoneCallback) => {
       const fakeResponse = fakePagedResult([fakeEvent({ properties: { API: API_ID, USER: 'user-id' } })]);
-      service.searchApiEvents(API_ID, queryParams).subscribe((apiPlansResponse) => {
+      service.searchApiEvents(API_ID, queryParams).subscribe(apiPlansResponse => {
         expect(apiPlansResponse.data).toEqual(fakeResponse.data);
         done();
       });

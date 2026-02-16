@@ -35,9 +35,9 @@ export class NotificationEditDialogHarness extends ComponentHarness {
   public async getAllHooks() {
     const all = await this.getAllHookCheckboxes();
     return Promise.all(
-      all.map((checkbox) =>
-        checkbox.getName().then((name) =>
-          checkbox.isChecked().then((isChecked) => ({
+      all.map(checkbox =>
+        checkbox.getName().then(name =>
+          checkbox.isChecked().then(isChecked => ({
             name,
             checked: isChecked,
           })),

@@ -21,7 +21,7 @@ export function toGioFormHeader(record: Record<string, string> | undefined): Hea
     return [];
   }
 
-  return Object.keys(record).map((key) => {
+  return Object.keys(record).map(key => {
     return { key, value: record[key] };
   });
 }
@@ -41,7 +41,7 @@ export function uniqueKeysValidator(): ValidatorFn {
       return null;
     }
 
-    const keys = headers.map((header) => header.key);
+    const keys = headers.map(header => header.key);
     const uniqueKeys = new Set(keys);
 
     return keys.length === uniqueKeys.size ? null : { nonUniqueKeys: true };

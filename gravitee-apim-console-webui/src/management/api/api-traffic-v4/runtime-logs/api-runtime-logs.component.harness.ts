@@ -29,223 +29,223 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
   public banner = this.locatorForOptional(DivHarness.with({ selector: '.banner' }));
 
   async getQuickFiltersChips() {
-    return this.quickFiltersHarness().then((quickFilters) => quickFilters.getChips());
+    return this.quickFiltersHarness().then(quickFilters => quickFilters.getChips());
   }
 
   async selectPeriodQuickFilter() {
-    return this.quickFiltersHarness().then((quickFilters) => quickFilters.getPeriodSelectInput());
+    return this.quickFiltersHarness().then(quickFilters => quickFilters.getPeriodSelectInput());
   }
 
   async getPeriodChip() {
-    return this.quickFiltersHarness().then((quickFilters) => quickFilters.getPeriodChip());
+    return this.quickFiltersHarness().then(quickFilters => quickFilters.getPeriodChip());
   }
 
   async getPeriodChipText() {
     return this.quickFiltersHarness()
-      .then((quickFilters) => quickFilters.getPeriodChip())
-      .then((chip) => chip.getText());
+      .then(quickFilters => quickFilters.getPeriodChip())
+      .then(chip => chip.getText());
   }
 
   async removePeriodChip() {
     return this.getPeriodChip()
-      .then((chip) => chip.getRemoveButton())
-      .then((button) => button.click());
+      .then(chip => chip.getRemoveButton())
+      .then(button => button.click());
   }
 
   async getApplicationsTags() {
     return this.quickFiltersHarness()
-      .then((harness) => harness.getApplicationsTags())
-      .then((input) => input.getTags());
+      .then(harness => harness.getApplicationsTags())
+      .then(input => input.getTags());
   }
 
   async searchApplication(appName: string) {
     return this.moreFiltersHarness()
-      .then((harness) => harness.getApplicationAutocomplete())
-      .then((autocomplete) => autocomplete.enterText(appName));
+      .then(harness => harness.getApplicationAutocomplete())
+      .then(autocomplete => autocomplete.enterText(appName));
   }
 
   async selectedApplication(text: string) {
     return this.moreFiltersHarness()
-      .then((harness) => harness.getApplicationAutocomplete())
-      .then((autocomplete) => autocomplete.getOptions({ text }))
-      .then((options) => (options.length > 0 ? options[0].click() : Promise.reject('No option found')));
+      .then(harness => harness.getApplicationAutocomplete())
+      .then(autocomplete => autocomplete.getOptions({ text }))
+      .then(options => (options.length > 0 ? options[0].click() : Promise.reject('No option found')));
   }
 
   async getApplicationsChip() {
-    return this.quickFiltersHarness().then((quickFilters) => quickFilters.getApplicationsChip());
+    return this.quickFiltersHarness().then(quickFilters => quickFilters.getApplicationsChip());
   }
 
   async getApplicationsChipText() {
     return this.quickFiltersHarness()
-      .then((quickFilters) => quickFilters.getApplicationsChip())
-      .then((chip) => chip.getText());
+      .then(quickFilters => quickFilters.getApplicationsChip())
+      .then(chip => chip.getText());
   }
 
   async removeApplicationsChip() {
     return this.getApplicationsChip()
-      .then((chip) => chip.getRemoveButton())
-      .then((button) => button.click());
+      .then(chip => chip.getRemoveButton())
+      .then(button => button.click());
   }
 
   async getSelectedPlans() {
     return this.quickFiltersHarness()
-      .then((harness) => harness.getPlansSelect())
-      .then((select) => select.getValueText());
+      .then(harness => harness.getPlansSelect())
+      .then(select => select.getValueText());
   }
 
   async selectPlan(text: string) {
     return this.quickFiltersHarness()
-      .then((harness) => harness.getPlansSelect())
-      .then((select) => select.clickOptions({ text }));
+      .then(harness => harness.getPlansSelect())
+      .then(select => select.clickOptions({ text }));
   }
 
   async getPlanChip() {
-    return this.quickFiltersHarness().then((harness) => harness.getPlansChip());
+    return this.quickFiltersHarness().then(harness => harness.getPlansChip());
   }
 
   async removePlanChip() {
     return this.getPlanChip()
-      .then((chip) => chip.getRemoveButton())
-      .then((button) => button.click());
+      .then(chip => chip.getRemoveButton())
+      .then(button => button.click());
   }
 
   async moreFiltersButtonClick() {
     return this.quickFiltersHarness()
-      .then((harness) => harness.getMoreButton())
-      .then((btn) => btn.click());
+      .then(harness => harness.getMoreButton())
+      .then(btn => btn.click());
   }
 
   async selectPeriodFromMoreFilters() {
-    return this.moreFiltersHarness().then((quickFilters) => quickFilters.getPeriodSelectInput());
+    return this.moreFiltersHarness().then(quickFilters => quickFilters.getPeriodSelectInput());
   }
 
   async setFromDate(date: string) {
     return this.moreFiltersHarness()
-      .then((harness) => harness.getFromInput())
-      .then((input) => input.setValue(date));
+      .then(harness => harness.getFromInput())
+      .then(input => input.setValue(date));
   }
 
   async setToDate(date: string) {
     return this.moreFiltersHarness()
-      .then((harness) => harness.getToInput())
-      .then((input) => input.setValue(date));
+      .then(harness => harness.getToInput())
+      .then(input => input.setValue(date));
   }
 
   async getToDate() {
     return this.moreFiltersHarness()
-      .then((harness) => harness.getToInput())
-      .then((input) => input.getValue());
+      .then(harness => harness.getToInput())
+      .then(input => input.getValue());
   }
 
   async getFromDate() {
     return this.moreFiltersHarness()
-      .then((harness) => harness.getFromInput())
-      .then((input) => input.getValue());
+      .then(harness => harness.getFromInput())
+      .then(input => input.getValue());
   }
 
   async moreFiltersClearAll() {
     return this.moreFiltersHarness()
-      .then((harness) => harness.getClearAllButton())
-      .then((btn) => btn.click());
+      .then(harness => harness.getClearAllButton())
+      .then(btn => btn.click());
   }
 
   async moreFiltersApply() {
     return this.moreFiltersHarness()
-      .then((harness) => harness.getApplyButton())
-      .then((btn) => btn.click());
+      .then(harness => harness.getApplyButton())
+      .then(btn => btn.click());
   }
 
   async isMoreFiltersApplyDisabled() {
     return this.moreFiltersHarness()
-      .then((harness) => harness.getApplyButton())
-      .then((btn) => btn.isDisabled());
+      .then(harness => harness.getApplyButton())
+      .then(btn => btn.isDisabled());
   }
 
   async closeMoreFilters() {
     this.moreFiltersHarness()
-      .then((harness) => harness.getCloseButton())
-      .then((btn) => btn.click());
+      .then(harness => harness.getCloseButton())
+      .then(btn => btn.click());
   }
 
   async getFromChipText() {
     return this.quickFiltersHarness()
-      .then((quickFilters) => quickFilters.getFromChip())
-      .then((chip) => chip.getText());
+      .then(quickFilters => quickFilters.getFromChip())
+      .then(chip => chip.getText());
   }
 
   async removeFromChip() {
     return this.quickFiltersHarness()
-      .then((quickFilters) => quickFilters.getFromChip())
-      .then((chip) => chip.getRemoveButton())
-      .then((btn) => btn.click());
+      .then(quickFilters => quickFilters.getFromChip())
+      .then(chip => chip.getRemoveButton())
+      .then(btn => btn.click());
   }
 
   async getFromInputValue() {
     return this.moreFiltersHarness()
-      .then((quickFilters) => quickFilters.getFromInput())
-      .then((chip) => chip.getValue());
+      .then(quickFilters => quickFilters.getFromInput())
+      .then(chip => chip.getValue());
   }
 
   async getToChipText() {
     return this.quickFiltersHarness()
-      .then((quickFilters) => quickFilters.getToChip())
-      .then((chip) => chip.getText());
+      .then(quickFilters => quickFilters.getToChip())
+      .then(chip => chip.getText());
   }
 
   async removeToChip() {
     return this.quickFiltersHarness()
-      .then((quickFilters) => quickFilters.getToChip())
-      .then((chip) => chip.getRemoveButton())
-      .then((btn) => btn.click());
+      .then(quickFilters => quickFilters.getToChip())
+      .then(chip => chip.getRemoveButton())
+      .then(btn => btn.click());
   }
 
   async getToInputValue() {
     return this.moreFiltersHarness()
-      .then((quickFilters) => quickFilters.getToInput())
-      .then((chip) => chip.getValue());
+      .then(quickFilters => quickFilters.getToInput())
+      .then(chip => chip.getValue());
   }
 
   async selectPeriodInMoreFilters(text: string) {
-    return this.selectPeriodFromMoreFilters().then((select) => select.clickOptions({ text }));
+    return this.selectPeriodFromMoreFilters().then(select => select.clickOptions({ text }));
   }
 
   async moreFiltersPeriodText() {
-    return this.selectPeriodFromMoreFilters().then((select) => select.getValueText());
+    return this.selectPeriodFromMoreFilters().then(select => select.getValueText());
   }
 
   async getSelectedMethods() {
     return this.quickFiltersHarness()
-      .then((harness) => harness.getMethodsSelect())
-      .then((select) => select.getValueText());
+      .then(harness => harness.getMethodsSelect())
+      .then(select => select.getValueText());
   }
 
   async selectMethod(text: string) {
     return this.quickFiltersHarness()
-      .then((harness) => harness.getMethodsSelect())
-      .then((select) => select.clickOptions({ text }));
+      .then(harness => harness.getMethodsSelect())
+      .then(select => select.clickOptions({ text }));
   }
 
   async getMethodsChip() {
-    return this.quickFiltersHarness().then((harness) => harness.getMethodsChip());
+    return this.quickFiltersHarness().then(harness => harness.getMethodsChip());
   }
 
   async getMethodsChipText() {
     return this.quickFiltersHarness()
-      .then((harness) => harness.getMethodsChip())
-      .then((chip) => chip.getText());
+      .then(harness => harness.getMethodsChip())
+      .then(chip => chip.getText());
   }
 
   async removeMethodsChip() {
     return this.getMethodsChip()
-      .then((chip) => chip.getRemoveButton())
-      .then((button) => button.click());
+      .then(chip => chip.getRemoveButton())
+      .then(button => button.click());
   }
 
   async addInputStatusesChip(text: string) {
     return this.moreFiltersHarness()
-      .then((harness) => harness.getStatusesChips())
-      .then((chipList) => chipList.getInput())
-      .then(async (input) => {
+      .then(harness => harness.getStatusesChips())
+      .then(chipList => chipList.getInput())
+      .then(async input => {
         await input.setValue(text);
         return input.blur();
       });
@@ -253,29 +253,29 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
 
   async getStatusesInputChips() {
     return this.moreFiltersHarness()
-      .then((harness) => harness.getStatusesChips())
-      .then((chipList) => chipList.getRows())
-      .then((chips) => Promise.all(chips.map((chip) => chip.getText())));
+      .then(harness => harness.getStatusesChips())
+      .then(chipList => chipList.getRows())
+      .then(chips => Promise.all(chips.map(chip => chip.getText())));
   }
 
   async removeInputStatusChip(text: string) {
     return this.moreFiltersHarness()
-      .then((harness) => harness.getStatusesChips())
-      .then((chipList) => chipList.getRows({ text }))
-      .then((chips) => chips[0].getRemoveButton())
-      .then((btn) => btn.click());
+      .then(harness => harness.getStatusesChips())
+      .then(chipList => chipList.getRows({ text }))
+      .then(chips => chips[0].getRemoveButton())
+      .then(btn => btn.click());
   }
 
   async removeStatusChip() {
     return this.quickFiltersHarness()
-      .then((quickFilters) => quickFilters.getStatusChip())
-      .then((chip) => chip.getRemoveButton())
-      .then((btn) => btn.click());
+      .then(quickFilters => quickFilters.getStatusChip())
+      .then(chip => chip.getRemoveButton())
+      .then(btn => btn.click());
   }
 
   async getStatusChip() {
     return this.quickFiltersHarness()
-      .then((quickFilters) => quickFilters.getStatusChip())
-      .then((chip) => chip.getText());
+      .then(quickFilters => quickFilters.getStatusChip())
+      .then(chip => chip.getText());
   }
 }

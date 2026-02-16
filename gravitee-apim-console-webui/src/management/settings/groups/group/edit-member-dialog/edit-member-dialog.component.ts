@@ -153,7 +153,7 @@ export class EditMemberDialogComponent implements OnInit {
     this.usersService
       .search(this.member.displayName)
       .pipe(
-        map((users: SearchableUser[]) => (this.user = users.length > 0 ? users.find((u) => u.id === this.member.id) : undefined)),
+        map((users: SearchableUser[]) => (this.user = users.length > 0 ? users.find(u => u.id === this.member.id) : undefined)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
@@ -193,7 +193,7 @@ export class EditMemberDialogComponent implements OnInit {
 
   private disableAPIRoleOptions() {
     this.disabledAPIRoles = new Set(
-      this.defaultAPIRoles.filter((role) => this.isPrimaryOwnerDisabled(role) || this.isSystemRoleDisabled(role)).map((role) => role.id),
+      this.defaultAPIRoles.filter(role => this.isPrimaryOwnerDisabled(role) || this.isSystemRoleDisabled(role)).map(role => role.id),
     );
   }
 
@@ -218,9 +218,9 @@ export class EditMemberDialogComponent implements OnInit {
       this.usersService
         .search(this.downgradedMember.displayName)
         .pipe(
-          map((users) => {
+          map(users => {
             const ownerId = this.downgradedMember.id;
-            const reference = users.find((u) => u.id === ownerId).reference;
+            const reference = users.find(u => u.id === ownerId).reference;
             const ownerMembership = this.mapGroupMembership(ownerId, reference, RoleName.OWNER);
             const primaryOwnerMembership = this.mapGroupMembership(this.user.id, this.user.reference, RoleName.PRIMARY_OWNER);
             this.setGroupAdminRole(primaryOwnerMembership);
@@ -236,8 +236,8 @@ export class EditMemberDialogComponent implements OnInit {
       this.usersService
         .search(this.selectedPrimaryOwner.displayName)
         .pipe(
-          map((users) => {
-            const reference = users.find((user) => user.id === this.selectedPrimaryOwner.id).reference;
+          map(users => {
+            const reference = users.find(user => user.id === this.selectedPrimaryOwner.id).reference;
             const primaryOwnerMembership = this.mapGroupMembership(this.selectedPrimaryOwner.id, reference, RoleName.PRIMARY_OWNER);
             this.memberships = [ownerMembership, primaryOwnerMembership];
             this.matDialogRef.close({ memberships: this.memberships });
@@ -311,7 +311,7 @@ export class EditMemberDialogComponent implements OnInit {
     }
 
     const filterValue = searchTerm.toLowerCase();
-    return this.members.filter((member) => member.displayName.toLowerCase().includes(filterValue) && member.id !== this.member.id);
+    return this.members.filter(member => member.displayName.toLowerCase().includes(filterValue) && member.id !== this.member.id);
   }
 
   onChange() {
@@ -322,7 +322,7 @@ export class EditMemberDialogComponent implements OnInit {
     if (this.isUpgradeRole() && this.ifPrimaryOwnerPresent()) {
       this.editMemberForm.controls.searchTerm.disable();
       this.editMemberForm.controls.searchTerm.removeValidators(Validators.required);
-      this.downgradedMember = this.members.find((member) => member.roles['API'] === RoleName.PRIMARY_OWNER);
+      this.downgradedMember = this.members.find(member => member.roles['API'] === RoleName.PRIMARY_OWNER);
       this.selectedPrimaryOwner = this.member;
       this.ownershipTransferMessage = `${this.downgradedMember.displayName} is the API primary owner. The primary ownership will be transferred to ${this.member.displayName} and ${this.downgradedMember.displayName} will be updated as owner.`;
       this.disableSubmit = false;
@@ -339,7 +339,7 @@ export class EditMemberDialogComponent implements OnInit {
   }
 
   private ifPrimaryOwnerPresent() {
-    return this.members.some((member) => member.roles['API'] === RoleName.PRIMARY_OWNER);
+    return this.members.some(member => member.roles['API'] === RoleName.PRIMARY_OWNER);
   }
 
   private isDowngradeRole() {

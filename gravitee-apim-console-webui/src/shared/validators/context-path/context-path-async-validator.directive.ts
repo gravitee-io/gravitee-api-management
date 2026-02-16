@@ -24,7 +24,7 @@ export function contextPathAsyncValidator(apiV2Service: ApiV2Service, apiId?: st
     if (formControl && formControl.dirty) {
       return timer(250).pipe(
         switchMap(() => apiV2Service.verifyPath(apiId, [{ path: formControl.value }])),
-        map((res) => (res.ok ? null : { listeners: res.reason })),
+        map(res => (res.ok ? null : { listeners: res.reason })),
       );
     }
     return of(null);

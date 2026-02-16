@@ -101,7 +101,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
           },
         })
         .afterClosed()
-        .subscribe((confirmed) => {
+        .subscribe(confirmed => {
           if (confirmed) {
             this.stepService.removeAllNextSteps();
             this.saveByApiType();
@@ -143,7 +143,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   }
 
   private doSaveSync() {
-    this.stepService.validStep((previousPayload) => ({
+    this.stepService.validStep(previousPayload => ({
       ...previousPayload,
       architecture: 'PROXY',
     }));
@@ -154,7 +154,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   }
 
   private doSaveAsync() {
-    this.stepService.validStep((previousPayload) => ({
+    this.stepService.validStep(previousPayload => ({
       ...previousPayload,
       architecture: 'MESSAGE',
     }));
@@ -171,7 +171,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
     ])
       .pipe(
         tap(([nativeKafkaEntrypoint, nativeKafkaEndpoint]) => {
-          this.stepService.validStep((previousPayload) => ({
+          this.stepService.validStep(previousPayload => ({
             ...previousPayload,
             selectedEntrypoints: [
               {
@@ -205,7 +205,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   }
 
   private doSaveAI() {
-    this.stepService.validStep((previousPayload) => ({
+    this.stepService.validStep(previousPayload => ({
       ...previousPayload,
       architecture: 'AI',
     }));

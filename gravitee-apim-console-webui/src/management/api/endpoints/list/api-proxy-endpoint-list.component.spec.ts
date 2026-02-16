@@ -189,7 +189,7 @@ describe('ApiProxyEndpointListComponent', () => {
 
       await rootLoader
         .getHarness(MatIconHarness.with({ selector: '[mattooltip="Health check is enabled"]' }))
-        .catch((error) =>
+        .catch(error =>
           expect(error.message).toEqual(
             'Failed to find element matching one of the following queries:\n' +
               '(_MatIconHarness with host element matching selector: ".mat-icon" satisfying the constraints: host matches selector "[mattooltip="Health check is enabled"]")',

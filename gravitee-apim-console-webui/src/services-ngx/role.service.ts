@@ -35,7 +35,7 @@ export class RoleService {
   list(scope: string): Observable<Role[]> {
     return this.http
       .get<Role[]>(`${this.constants.org.baseURL}/configuration/rolescopes/${scope}/roles`)
-      .pipe(map((roles) => roles.map((role) => ({ ...role, scope: role.scope.toUpperCase() as RoleScope }))));
+      .pipe(map(roles => roles.map(role => ({ ...role, scope: role.scope.toUpperCase() as RoleScope }))));
   }
 
   getPermissionsByScopes(): Observable<PermissionsByScopes> {
@@ -58,13 +58,13 @@ export class RoleService {
       throw new Error(`Invalid scope. The accepted scopes are ${availableScopes.join(' | ')}`);
     }
 
-    return this.getPermissionsByScopes().pipe(map((s) => s[scope]));
+    return this.getPermissionsByScopes().pipe(map(s => s[scope]));
   }
 
   get(scope: string, roleName: string): Observable<Role> {
     return this.http
       .get<Role>(`${this.constants.org.baseURL}/configuration/rolescopes/${scope}/roles/${roleName}`)
-      .pipe(map((role) => ({ ...role, scope: role.scope.toUpperCase() as RoleScope })));
+      .pipe(map(role => ({ ...role, scope: role.scope.toUpperCase() as RoleScope })));
   }
 
   create(role: Role): Observable<Role> {

@@ -62,19 +62,19 @@ export class ApiNotificationComponent implements OnInit, OnDestroy {
   private apiPrimaryOwner: string;
   private isApiPrimaryOwner: boolean;
   protected notificationsSummary$: Observable<NotificationSummary[]> = this.notifications$.asObservable().pipe(
-    map((notifications) => {
-      return notifications?.map((notification) => {
+    map(notifications => {
+      return notifications?.map(notification => {
         return {
           id: notification.id ?? notification.config_type,
           name: notification.name,
           subscribedEvents: notification.hooks.length ?? 0,
-          notifier: this.notifiers.find((n) => n.id === notification.notifier),
+          notifier: this.notifiers.find(n => n.id === notification.notifier),
           isPortalNotification: notification.config_type === 'PORTAL',
           isReadonly: notification.origin && notification.origin !== 'MANAGEMENT',
         };
       });
     }),
-    map((notifications) => {
+    map(notifications => {
       if (notifications != null) {
         this.loading = false;
         return notifications;
@@ -107,9 +107,9 @@ export class ApiNotificationComponent implements OnInit, OnDestroy {
       .subscribe(([notifiers, notifications, api, groups, primaryOwner, currentUser]) => {
         this.notifiers = notifiers;
         this.notifications$.next(notifications);
-        this.groupData = api.groups?.map((id) => ({
+        this.groupData = api.groups?.map(id => ({
           id,
-          name: groups.data.find((g) => g.id === id)?.name,
+          name: groups.data.find(g => g.id === id)?.name,
           isVisible: true,
         }));
         this.apiPrimaryOwner = primaryOwner.id;
@@ -135,8 +135,8 @@ export class ApiNotificationComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((newNotification) =>
+        filter(result => !!result),
+        switchMap(newNotification =>
           this.notificationService.create(this.apiId, {
             name: newNotification.name,
             notifier: newNotification.notifierId,
@@ -150,9 +150,9 @@ export class ApiNotificationComponent implements OnInit, OnDestroy {
           this.snackBarService.success('Notification created successfully');
           this.refreshList();
         }),
-        switchMap((created) => {
+        switchMap(created => {
           return this.notificationService.getHooks().pipe(
-            switchMap((hooks) => {
+            switchMap(hooks => {
               return this.openEditDialog(hooks, created);
             }),
           );
@@ -180,7 +180,7 @@ export class ApiNotificationComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.notificationService.delete(this.apiId, notification.id)),
         tap(() => {
           this.snackBarService.success(`"${notification.name}" has been deleted`);
@@ -217,7 +217,7 @@ export class ApiNotificationComponent implements OnInit, OnDestroy {
         width: GIO_DIALOG_WIDTH.LARGE,
         data: {
           hooks,
-          notifier: this.notifiers.find((n) => n.id === notification.notifier),
+          notifier: this.notifiers.find(n => n.id === notification.notifier),
           notification,
           primaryOwner: this.apiPrimaryOwner,
           isPrimaryOwner: this.isApiPrimaryOwner,
@@ -229,8 +229,8 @@ export class ApiNotificationComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((result) => !!result),
-        switchMap((updated) => this.notificationService.update(this.apiId, notification.id ?? '', updated)),
+        filter(result => !!result),
+        switchMap(updated => this.notificationService.update(this.apiId, notification.id ?? '', updated)),
         tap(() => {
           this.snackBarService.success('Notification saved successfully');
           this.refreshList();
@@ -243,13 +243,13 @@ export class ApiNotificationComponent implements OnInit, OnDestroy {
     this.notificationService
       .getAll(this.apiId)
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((notifications) => {
+      .subscribe(notifications => {
         this.notifications$.next(notifications);
       });
   }
 
   private withPrimaryOwner() {
-    if (this.groupData.filter((g) => g.id === this.apiPrimaryOwner).flat().length === 0) {
+    if (this.groupData.filter(g => g.id === this.apiPrimaryOwner).flat().length === 0) {
       this.groupData.unshift({ id: this.apiPrimaryOwner, name: 'Primary Owner' });
     }
     return this.groupData;

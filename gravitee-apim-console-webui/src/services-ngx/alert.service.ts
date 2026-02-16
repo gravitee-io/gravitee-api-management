@@ -62,7 +62,7 @@ export class AlertService {
   getAlert(apiId: string, alertId: string, withEventCounts = true): Observable<AlertTriggerEntity> {
     return this.http
       .get<AlertTriggerEntity[]>(`${this.constants.env.baseURL}/apis/${apiId}/alerts?event_counts=${withEventCounts}`)
-      .pipe(map((alerts: AlertTriggerEntity[]) => alerts.find((alert) => alert.id === alertId)));
+      .pipe(map((alerts: AlertTriggerEntity[]) => alerts.find(alert => alert.id === alertId)));
   }
 
   createAlert(apiId: string, newAlert: NewAlertTriggerEntity) {

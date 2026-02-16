@@ -38,19 +38,19 @@ export class ApiEndpointGroupCreateHarness extends ComponentHarness {
   }
 
   async isEndpointGroupTypeStepSelected(): Promise<boolean> {
-    return await this.getEndpointGroupTypeStep().then((step) => step.isSelected());
+    return await this.getEndpointGroupTypeStep().then(step => step.isSelected());
   }
 
   async selectEndpointGroup(type: string): Promise<void> {
-    return this.getEndpointGroupRadio().then((radioGroup) => radioGroup.selectOptionById(type));
+    return this.getEndpointGroupRadio().then(radioGroup => radioGroup.selectOptionById(type));
   }
 
   async getEndpointGroupTypes(): Promise<string[]> {
-    return this.getEndpointGroupRadio().then((radioGroup) => radioGroup.getValues());
+    return this.getEndpointGroupRadio().then(radioGroup => radioGroup.getValues());
   }
 
   async getSelectedEndpointGroupId(): Promise<string> {
-    return this.getEndpointGroupRadio().then((radioGroup) => radioGroup.getValue());
+    return this.getEndpointGroupRadio().then(radioGroup => radioGroup.getValue());
   }
 
   async getValidateEndpointGroupSelectionButton(): Promise<MatButtonHarness> {
@@ -67,7 +67,7 @@ export class ApiEndpointGroupCreateHarness extends ComponentHarness {
   }
 
   async goBackToEndpointGroups(): Promise<void> {
-    return this.getButtonByText('Exit').then((btn) => btn.click());
+    return this.getButtonByText('Exit').then(btn => btn.click());
   }
 
   // Step 2: General
@@ -76,23 +76,23 @@ export class ApiEndpointGroupCreateHarness extends ComponentHarness {
   }
 
   async isGeneralStepSelected(): Promise<boolean> {
-    return await this.getGeneralStep().then((step) => step.isSelected());
+    return await this.getGeneralStep().then(step => step.isSelected());
   }
 
   async getNameValue(): Promise<string> {
-    return this.getEndpointGroupGeneralHarness().then((harness) => harness.getNameValue());
+    return this.getEndpointGroupGeneralHarness().then(harness => harness.getNameValue());
   }
 
   async setNameValue(text: string): Promise<void> {
-    return this.getEndpointGroupGeneralHarness().then((harness) => harness.setNameValue(text));
+    return this.getEndpointGroupGeneralHarness().then(harness => harness.setNameValue(text));
   }
 
   public async getLoadBalancerValue() {
-    return this.getEndpointGroupGeneralHarness().then((harness) => harness.getLoadBalancerValue());
+    return this.getEndpointGroupGeneralHarness().then(harness => harness.getLoadBalancerValue());
   }
 
   public async setLoadBalancerValue(value: string) {
-    return this.getEndpointGroupGeneralHarness().then((harness) => harness.setLoadBalancerValue(value));
+    return this.getEndpointGroupGeneralHarness().then(harness => harness.setLoadBalancerValue(value));
   }
 
   async getValidateGeneralInformationButton(): Promise<MatButtonHarness> {
@@ -103,7 +103,7 @@ export class ApiEndpointGroupCreateHarness extends ComponentHarness {
     return await this.isButtonClickable(this.getValidateGeneralInformationButton());
   }
   async validateGeneralInformation(): Promise<void> {
-    return this.getValidateGeneralInformationButton().then((btn) => btn.click());
+    return this.getValidateGeneralInformationButton().then(btn => btn.click());
   }
 
   // Step 3: Configuration
@@ -126,16 +126,16 @@ export class ApiEndpointGroupCreateHarness extends ComponentHarness {
 
   async isConfigurationFormShown(): Promise<boolean> {
     return this.locatorFor('gio-form-json-schema')()
-      .then((_) => true)
-      .catch((_) => false);
+      .then(_ => true)
+      .catch(_ => false);
   }
 
   async getConfigurationInputValue(inputId: string): Promise<string> {
-    return this.getConfigurationInput(inputId).then((input) => input.getValue());
+    return this.getConfigurationInput(inputId).then(input => input.getValue());
   }
 
   async setConfigurationInputValue(inputId: string, text: string): Promise<void> {
-    await this.getConfigurationInput(inputId).then((input) => input.setValue(text));
+    await this.getConfigurationInput(inputId).then(input => input.setValue(text));
     await this.waitForTasksOutsideAngular();
   }
 
@@ -152,17 +152,17 @@ export class ApiEndpointGroupCreateHarness extends ComponentHarness {
   }
 
   async createEndpointGroup(): Promise<void> {
-    return this.getCreateEndpointGroupButton().then((btn) => btn.click());
+    return this.getCreateEndpointGroupButton().then(btn => btn.click());
   }
 
   async createDlqEndpointGroup(): Promise<void> {
-    return this.getCreateDlqEndpointGroupButton().then((btn) => btn.click());
+    return this.getCreateDlqEndpointGroupButton().then(btn => btn.click());
   }
 
   private async bannerBodyContainsText(text: string): Promise<boolean> {
     return this.getBannerBody()
-      .then((div) => div.getText())
-      .then((txt) => txt.includes(text));
+      .then(div => div.getText())
+      .then(txt => txt.includes(text));
   }
 
   private async isButtonClickable(button: Promise<MatButtonHarness>): Promise<boolean> {

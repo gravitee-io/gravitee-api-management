@@ -37,7 +37,7 @@ export class CustomUserFieldsHarness extends ComponentHarness {
     const table = await this.getTable();
     const rows = await table.getRows();
 
-    return await rows[index].getCells({ columnName: 'actions' }).then((cells) => {
+    return await rows[index].getCells({ columnName: 'actions' }).then(cells => {
       return cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=edit-button]' }));
     });
   };
@@ -51,7 +51,7 @@ export class CustomUserFieldsHarness extends ComponentHarness {
     const table = await this.getTable();
     const rows = await table.getRows();
 
-    return await rows[index].getCells({ columnName: 'actions' }).then((cells) => {
+    return await rows[index].getCells({ columnName: 'actions' }).then(cells => {
       return cells[0].getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=delete-button]' }));
     });
   };

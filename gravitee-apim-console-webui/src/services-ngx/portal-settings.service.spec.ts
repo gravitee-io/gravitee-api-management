@@ -35,10 +35,10 @@ describe('PortalSettingsService', () => {
   });
 
   describe('get', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const portalSettingsToGet = fakePortalSettings();
 
-      portalSettingsService.get().subscribe((portalSettings) => {
+      portalSettingsService.get().subscribe(portalSettings => {
         expect(portalSettings).toMatchObject(portalSettingsToGet);
         done();
       });
@@ -48,7 +48,7 @@ describe('PortalSettingsService', () => {
   });
 
   describe('save', () => {
-    it('should call the API', (done) => {
+    it('should call the API', done => {
       const portalSettingsToSave = fakePortalSettings();
 
       portalSettingsService.save(portalSettingsToSave).subscribe(() => {

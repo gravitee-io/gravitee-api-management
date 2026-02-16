@@ -76,14 +76,14 @@ export class AvailabilityPerFieldComponent implements OnInit {
     this.availabilityData$ = this.apiHealthV2Service.activeFilter().pipe(
       takeUntilDestroyed(this.destroyRef),
       tap(() => (this.isLoading = true)),
-      switchMap((timeRangeParam) =>
+      switchMap(timeRangeParam =>
         this.apiHealthV2Service.getApiAvailability(this.apiId, timeRangeParam.from, timeRangeParam.to, this.field),
       ),
     );
     this.responseTimeData$ = this.apiHealthV2Service.activeFilter().pipe(
       takeUntilDestroyed(this.destroyRef),
       tap(() => (this.isLoading = true)),
-      switchMap((timeRangeParam) =>
+      switchMap(timeRangeParam =>
         this.apiHealthV2Service.getApiAverageResponseTime(this.apiId, timeRangeParam.from, timeRangeParam.to, this.field),
       ),
     );
@@ -91,13 +91,13 @@ export class AvailabilityPerFieldComponent implements OnInit {
     zip(this.availabilityData$, this.responseTimeData$, (availabilityData: ApiAvailability, responseTimeData: ApiAverageResponseTime) =>
       this.mergeGroups(responseTimeData, availabilityData),
     ).subscribe({
-      next: (mergedData) => {
+      next: mergedData => {
         this.isLoading = false;
         this.dataSource = mergedData;
         this.filteredDataSource = this.dataSource.slice(0, 5);
         this.totalLength = this.dataSource.length;
       },
-      error: (e) => {
+      error: e => {
         this.isLoading = false;
         this.snackBarService.error(e.error?.message ?? 'An error occurred while loading list.');
       },
@@ -111,7 +111,7 @@ export class AvailabilityPerFieldComponent implements OnInit {
       return [];
     }
 
-    Object.keys(responseTimes.group).forEach((key) => {
+    Object.keys(responseTimes.group).forEach(key => {
       if (key in availability.group) {
         tableData.push({
           name: key,

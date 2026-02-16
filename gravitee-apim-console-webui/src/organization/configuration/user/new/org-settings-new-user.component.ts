@@ -64,7 +64,7 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
     this.identityProviderService
       .list()
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((identityProviders) => {
+      .subscribe(identityProviders => {
         this.identityProviders = identityProviders;
 
         let sourceFormControl = {};
@@ -89,7 +89,7 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
           .get('type')
           ?.valueChanges.pipe(takeUntil(this.unsubscribe$))
           // eslint-disable-next-line rxjs/no-nested-subscribe
-          .subscribe((type) => {
+          .subscribe(type => {
             this.userForm.removeControl('firstName');
             this.userForm.removeControl('lastName');
             this.userForm.removeControl('email');
@@ -108,7 +108,7 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
           .get('source')
           ?.valueChanges.pipe(takeUntil(this.unsubscribe$))
           // eslint-disable-next-line rxjs/no-nested-subscribe
-          .subscribe((source) => {
+          .subscribe(source => {
             if (source !== this.graviteeIdp.id) {
               this.userForm.get('sourceId').addValidators(Validators.required);
             } else {

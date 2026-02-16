@@ -130,8 +130,8 @@ describe('ApiCreationV4Component - OEM', () => {
 
       await harnessLoader
         .getHarness(Step2Entrypoints0ArchitectureHarness)
-        .then((_) => fail('Should not load architecture choice'))
-        .catch((err) => expect(err).toBeTruthy());
+        .then(_ => fail('Should not load architecture choice'))
+        .catch(err => expect(err).toBeTruthy());
       httpExpects.expectEntrypointsGetRequest([
         { id: 'http-proxy', supportedApiType: 'PROXY', name: 'HTTP Proxy', supportedListenerType: 'HTTP' },
       ]);
@@ -140,7 +140,7 @@ describe('ApiCreationV4Component - OEM', () => {
       expect(entrypointListHarness).toBeTruthy();
 
       const syncEntrypoints = await entrypointListHarness.getSyncEntrypoints();
-      expect(await syncEntrypoints.getValues().then((values) => values.length === 1 && values[0] === 'http-proxy'));
+      expect(await syncEntrypoints.getValues().then(values => values.length === 1 && values[0] === 'http-proxy'));
     });
 
     it('should create the API', fakeAsync(async () => {

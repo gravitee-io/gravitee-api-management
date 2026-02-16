@@ -57,12 +57,12 @@ export class ApiRuntimeLogsComponent implements OnInit {
   apiPlans$ = this.planService
     .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, undefined, 1, 9999)
     .pipe(
-      map((plans) => plans.data),
+      map(plans => plans.data),
       shareReplay(1),
     );
   entrypoints$ = this.connectorPluginsService.listEntrypointPlugins().pipe(
-    map((plugins) => {
-      return plugins.map((plugin) => {
+    map(plugins => {
+      return plugins.map(plugin => {
         return { id: plugin.id, name: plugin.name };
       });
     }),
@@ -105,7 +105,7 @@ export class ApiRuntimeLogsComponent implements OnInit {
     this.apiLogsService
       .searchConnectionLogs(this.activatedRoute.snapshot.params.apiId, queryParam)
       .pipe(
-        tap((apiLogsResponse) => {
+        tap(apiLogsResponse => {
           this.apiLogsSubject$.next(apiLogsResponse);
           this.loading = false;
           this.router.navigate(['.'], {
@@ -137,13 +137,13 @@ export class ApiRuntimeLogsComponent implements OnInit {
         map(([applications, plans]) => {
           return {
             plans:
-              planIds?.map((id) => {
-                const plan = plans.find((p) => p.id === id);
+              planIds?.map(id => {
+                const plan = plans.find(p => p.id === id);
                 return { value: id, label: plan.name };
               }) ?? undefined,
             applications:
-              applicationIds?.map((id) => {
-                const application = applications.data.find((app) => app.id === id);
+              applicationIds?.map(id => {
+                const application = applications.data.find(app => app.id === id);
                 return { value: id, label: `${application.name} ( ${application.owner?.displayName} )` };
               }) ?? undefined,
             from: this.activatedRoute.snapshot.queryParams?.from
@@ -157,7 +157,7 @@ export class ApiRuntimeLogsComponent implements OnInit {
           };
         }),
       )
-      .subscribe((data) => {
+      .subscribe(data => {
         this.initialValues = data;
       });
   }

@@ -29,8 +29,8 @@ export class ApiGeneralGroupMembersHarness extends ComponentHarness {
 
   public groupTableExistsByGroupName(): Promise<boolean> {
     return this.getGroupTable()
-      .then((_) => true)
-      .catch((_) => false);
+      .then(_ => true)
+      .catch(_ => false);
   }
 
   public async isLoading(): Promise<boolean> {
@@ -40,11 +40,11 @@ export class ApiGeneralGroupMembersHarness extends ComponentHarness {
 
   public userCannotViewGroupMembers(): Promise<boolean> {
     return this.getDoNotHavePermissionMessage()
-      .then((_) => true)
-      .catch((_) => false);
+      .then(_ => true)
+      .catch(_ => false);
   }
 
   public getGroupTableName(): Promise<string> {
-    return this.groupTableNameSelector().then((tableName) => tableName.text());
+    return this.groupTableNameSelector().then(tableName => tableName.text());
   }
 }

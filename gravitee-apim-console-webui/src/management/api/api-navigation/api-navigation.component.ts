@@ -281,7 +281,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     }),
     shareReplay(1),
   );
-  public hasBanner$ = this.banners$.pipe(map((banners) => banners.length > 0));
+  public hasBanner$ = this.banners$.pipe(map(banners => banners.length > 0));
 
   private unsubscribe$ = new Subject();
   constructor(
@@ -302,7 +302,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.gioMenuService.reduced$.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
+    this.gioMenuService.reduced$.pipe(takeUntil(this.unsubscribe$)).subscribe(reduced => {
       this.hasBreadcrumb = reduced;
     });
 
@@ -311,8 +311,8 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     this.apiV2Service
       .getLastApiFetch(this.activatedRoute.snapshot.params.apiId)
       .pipe(
-        tap((api) => (this.currentApi = api)),
-        tap((api) => {
+        tap(api => (this.currentApi = api)),
+        tap(api => {
           const menu = this.computeMenu(api).getMenu(api);
           this.groupItems = menu.groupItems;
           this.subMenuItems = menu.subMenuItems;
@@ -323,7 +323,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
           this.selectedItemHeader = this.findActiveMenuItemHeader();
         }),
         switchMap(() => this.router.events),
-        filter((event) => event instanceof NavigationEnd),
+        filter(event => event instanceof NavigationEnd),
         map((event: NavigationEnd) => event),
         tap(() => {
           this.selectedItemWithTabs = this.findMenuItemWithTabs();
@@ -355,11 +355,11 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
   }
 
   private findActiveMenuItem(items: MenuItem[]) {
-    return items.filter((item) => item?.tabs).find((item) => this.isTabActive(item?.tabs));
+    return items.filter(item => item?.tabs).find(item => this.isTabActive(item?.tabs));
   }
 
   private findActiveMenuItemHeader() {
-    return this.subMenuItems.find((item) => this.isActive(item) || this.isTabActive(item.tabs))?.header;
+    return this.subMenuItems.find(item => this.isActive(item) || this.isTabActive(item.tabs))?.header;
   }
 
   isActive(item: MenuItem): boolean {
@@ -375,14 +375,14 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
   }
 
   isTabActive(tabs: MenuItem[]): boolean {
-    return flatMap(tabs, (tab) => tab).some((tab) => this.isActive(tab));
+    return flatMap(tabs, tab => tab).some(tab => this.isActive(tab));
   }
 
   public computeBreadcrumbItems(): string[] {
     const breadcrumbItems: string[] = [];
 
-    this.groupItems.forEach((groupItem) => {
-      groupItem.items.forEach((item) => {
+    this.groupItems.forEach(groupItem => {
+      groupItem.items.forEach(item => {
         if (this.isActive(item)) {
           breadcrumbItems.push(groupItem.title);
           breadcrumbItems.push(item.displayName);
@@ -406,7 +406,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
         environmentId,
         apiId,
         parentRouterLink,
-        this.groupItems.flatMap((item) => item.items),
+        this.groupItems.flatMap(item => item.items),
       ),
     );
   }
@@ -428,7 +428,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
         });
       }
 
-      item.tabs?.forEach((tab) => {
+      item.tabs?.forEach(tab => {
         if (tab.routerLink !== 'DISABLED') {
           acc.push({
             name: tab.displayName,

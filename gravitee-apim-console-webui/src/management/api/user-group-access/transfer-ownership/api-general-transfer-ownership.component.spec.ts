@@ -283,11 +283,11 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
       // Only one select with groups
       const groupOptions = await rootLoader
         .getHarness(MatSelectHarness.with({ selector: '[formControlName="groupId"]' }))
-        .then(async (harness) => {
+        .then(async harness => {
           await harness.open();
           return await harness.getOptions();
         });
-      expect(await Promise.all(groupOptions.map(async (opt) => await opt.getText()))).toEqual(['group1', 'group2']);
+      expect(await Promise.all(groupOptions.map(async opt => await opt.getText()))).toEqual(['group1', 'group2']);
     });
   });
 

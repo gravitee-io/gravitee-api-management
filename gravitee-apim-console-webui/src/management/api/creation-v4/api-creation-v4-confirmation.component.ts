@@ -40,7 +40,7 @@ export class ApiCreationV4ConfirmationComponent implements OnInit {
     this.apiV2Service
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((api) => {
+      .subscribe(api => {
         this.api = api;
         this.apiType = (api as ApiV4).type;
       });

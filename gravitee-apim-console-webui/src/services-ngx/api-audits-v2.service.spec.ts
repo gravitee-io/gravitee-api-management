@@ -50,7 +50,7 @@ describe('ApiAuditsV2Service', () => {
       { queryParams: { events: 'API_CREATED,API_UPDATED' }, queryURL: '?page=1&perPage=10&events=API_CREATED,API_UPDATED' },
     ])('call the service with: $queryParams should call API with: $queryURL', ({ queryParams, queryURL }: any, done: jest.DoneCallback) => {
       const fakeResponse = fakePagedResult([fakeAudit({ reference: { id: API_ID, type: 'API', name: 'My API' } })]);
-      service.searchApiAudit(API_ID, queryParams).subscribe((apiPlansResponse) => {
+      service.searchApiAudit(API_ID, queryParams).subscribe(apiPlansResponse => {
         expect(apiPlansResponse.data).toEqual(fakeResponse.data);
         done();
       });
@@ -65,12 +65,12 @@ describe('ApiAuditsV2Service', () => {
   });
 
   describe('listAllApiAuditEvents', () => {
-    it('call the service', (done) => {
+    it('call the service', done => {
       const fakeResponse: AuditEventsResponse = {
         data: ['API_CREATED'],
       };
 
-      service.listAllApiAuditEvents(API_ID).subscribe((events) => {
+      service.listAllApiAuditEvents(API_ID).subscribe(events => {
         expect(events).toEqual(fakeResponse.data);
         done();
       });

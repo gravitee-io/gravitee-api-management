@@ -44,7 +44,7 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
         this.widget = this.parent.widget;
       };
 
-      this.$onChanges = (changes) => {
+      this.$onChanges = changes => {
         if (changes.data) {
           const data = changes.data.currentValue;
           this.paging = 1;
@@ -78,11 +78,11 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
         }
       };
 
-      this.selectItem = (item) => {
+      this.selectItem = item => {
         this.updateQuery(item, true);
       };
 
-      this.deselectItem = (item) => {
+      this.deselectItem = item => {
         this.updateQuery(item, false);
       };
 

@@ -82,9 +82,9 @@ export class DashboardsListComponent {
   private readonly dashboardsResource = toSignal(
     toObservable(this.filters).pipe(
       debounceTime(200),
-      switchMap((filters) =>
+      switchMap(filters =>
         this.dashboardService.list(filters.searchTerm, filters.sort, filters.pagination.index, filters.pagination.size).pipe(
-          map((result) => ({ isLoading: false, result })),
+          map(result => ({ isLoading: false, result })),
           startWith({ isLoading: true, result: undefined }),
         ),
       ),
@@ -97,10 +97,10 @@ export class DashboardsListComponent {
   public isLoading = computed(() => this.dashboardsResource().isLoading);
 
   public onFiltersChanged(event: GioTableWrapperFilters) {
-    this.filters.update((f) => ({ ...f, ...event }));
+    this.filters.update(f => ({ ...f, ...event }));
   }
 
   public onSortChanged(sort: { active: string; direction: string }) {
-    this.filters.update((f) => ({ ...f, sort: { active: sort.active, direction: sort.direction as 'asc' | 'desc' } }));
+    this.filters.update(f => ({ ...f, sort: { active: sort.active, direction: sort.direction as 'asc' | 'desc' } }));
   }
 }

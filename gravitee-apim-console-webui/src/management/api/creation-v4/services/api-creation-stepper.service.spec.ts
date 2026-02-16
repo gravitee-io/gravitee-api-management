@@ -43,7 +43,7 @@ describe('ApiCreationStepperService', () => {
 
   let currentStep: ApiCreationStep;
 
-  apiCreationStepperService.currentStep$.subscribe((step) => {
+  apiCreationStepperService.currentStep$.subscribe(step => {
     currentStep = step;
   });
 
@@ -58,7 +58,7 @@ describe('ApiCreationStepperService', () => {
   });
 
   it('should save step(1) and go to next step(2-1)', () => {
-    apiCreationStepperService.validStep((previousPayload) => ({ ...previousPayload, name: 'Step 1' }));
+    apiCreationStepperService.validStep(previousPayload => ({ ...previousPayload, name: 'Step 1' }));
     apiCreationStepperService.goToNextStep({
       groupNumber: 2,
       component: 'Step2-1Component' as any,
@@ -68,17 +68,17 @@ describe('ApiCreationStepperService', () => {
     expect(currentStep.group.label).toEqual('Step 2');
   });
 
-  it('should save step(2-1) and go to next step(2-2)', (done) => {
-    apiCreationStepperService.validStep((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 2.1` }));
+  it('should save step(2-1) and go to next step(2-2)', done => {
+    apiCreationStepperService.validStep(previousPayload => ({ ...previousPayload, name: `${previousPayload.name} > Step 2.1` }));
 
     apiCreationStepperService.goToNextStep({
       groupNumber: 2,
       component: 'Step2-2Component' as any,
     });
 
-    apiCreationStepperService.steps$.subscribe((steps) => {
+    apiCreationStepperService.steps$.subscribe(steps => {
       expect(steps.length).toEqual(3);
-      expect(steps.find((step) => step.id === 'step-2-2')).toEqual({
+      expect(steps.find(step => step.id === 'step-2-2')).toEqual({
         id: 'step-2-2',
         component: 'Step2-2Component',
         group: {
@@ -94,7 +94,7 @@ describe('ApiCreationStepperService', () => {
   });
 
   it('should save step(2-2) and go to next step(3)', () => {
-    apiCreationStepperService.validStep((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 2.2` }));
+    apiCreationStepperService.validStep(previousPayload => ({ ...previousPayload, name: `${previousPayload.name} > Step 2.2` }));
 
     apiCreationStepperService.goToNextStep({
       groupNumber: 3,
@@ -106,7 +106,7 @@ describe('ApiCreationStepperService', () => {
   });
 
   it('should save and go to next step(4)', () => {
-    apiCreationStepperService.validStep((previousPayload) => ({ ...previousPayload, name: `${previousPayload.name} > Step 3` }));
+    apiCreationStepperService.validStep(previousPayload => ({ ...previousPayload, name: `${previousPayload.name} > Step 3` }));
 
     apiCreationStepperService.goToNextStep({
       groupNumber: 4,
@@ -126,22 +126,22 @@ describe('ApiCreationStepperService', () => {
 
   it('should go to step 1 and change patch payload', () => {
     apiCreationStepperService.goToStepLabel('Step 1');
-    apiCreationStepperService.validStep((previousPayload) => {
+    apiCreationStepperService.validStep(previousPayload => {
       previousPayload.selectedEndpoints.push({ id: '2', name: 'new value', icon: 'gio:language', deployed: true });
 
       return { ...previousPayload, name: 'Step 1 - edited' };
     });
   });
 
-  it('should re add secondary step at step 2', (done) => {
+  it('should re add secondary step at step 2', done => {
     apiCreationStepperService.goToNextStep({
       groupNumber: 2,
       component: 'Step2-1Component' as any,
     });
 
-    apiCreationStepperService.steps$.subscribe((steps) => {
+    apiCreationStepperService.steps$.subscribe(steps => {
       expect(steps.length).toEqual(5);
-      expect(steps.find((step) => step.id === 'step-2-2')).toBeDefined();
+      expect(steps.find(step => step.id === 'step-2-2')).toBeDefined();
       done();
     });
   });
@@ -160,8 +160,8 @@ describe('ApiCreationStepperService', () => {
     });
   });
 
-  it('should finish stepper', (done) => {
-    apiCreationStepperService.finished$.subscribe((payload) => {
+  it('should finish stepper', done => {
+    apiCreationStepperService.finished$.subscribe(payload => {
       expect(payload).toEqual({
         selectedEndpoints: [
           { id: '1', name: 'initial value', icon: 'gio:language', deployed: true },
@@ -174,7 +174,7 @@ describe('ApiCreationStepperService', () => {
     apiCreationStepperService.finishStepper();
   });
 
-  it('should remove all next steps', (done) => {
+  it('should remove all next steps', done => {
     const stepperService = new ApiCreationStepperService(
       [
         {
@@ -194,7 +194,7 @@ describe('ApiCreationStepperService', () => {
     stepperService.goToNextStep({ groupNumber: 2, component: 'Step 2.2' as any });
     stepperService.goToStepLabel('Step 1');
     stepperService.removeAllNextSteps();
-    stepperService.steps$.subscribe((steps) => {
+    stepperService.steps$.subscribe(steps => {
       expect(steps.length).toEqual(1);
       expect(steps).toEqual([
         {

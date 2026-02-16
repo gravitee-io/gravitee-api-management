@@ -122,10 +122,10 @@ describe('ApiPlanFormComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     testComponent = fixture.componentInstance;
     testComponent.mode = mode;
-    testComponent.planMenuItem = AVAILABLE_PLANS_FOR_MENU.find((vm) => vm.planFormType === planFormType);
+    testComponent.planMenuItem = AVAILABLE_PLANS_FOR_MENU.find(vm => vm.planFormType === planFormType);
     testComponent.api = api;
     testComponent.apiType = apiType;
-    testComponent.isTcpApi = isApiV4(api) && api.listeners.find((listener) => listener.type === 'TCP') != null;
+    testComponent.isTcpApi = isApiV4(api) && api.listeners.find(listener => listener.type === 'TCP') != null;
   };
 
   afterEach(() => {
@@ -267,7 +267,7 @@ describe('ApiPlanFormComponent', () => {
 
         const shardingTagsInput = await planForm.getShardingTagsInput();
         await shardingTagsInput.clickOptions({ text: /Tag 1/ });
-        await shardingTagsInput.getOptions({ text: /Tag 2/ }).then((options) => options[0].isDisabled());
+        await shardingTagsInput.getOptions({ text: /Tag 2/ }).then(options => options[0].isDisabled());
 
         const excludedGroupsInput = await planForm.getExcludedGroupsInput();
         await excludedGroupsInput.clickOptions({ text: 'Group A' });
@@ -416,7 +416,7 @@ describe('ApiPlanFormComponent', () => {
 
         const shardingTagsInput = await planForm.getShardingTagsInput();
         await shardingTagsInput.clickOptions({ text: /Tag 1/ });
-        await shardingTagsInput.getOptions({ text: /Tag 2/ }).then((options) => options[0].isDisabled());
+        await shardingTagsInput.getOptions({ text: /Tag 2/ }).then(options => options[0].isDisabled());
 
         const excludedGroupsInput = await planForm.getExcludedGroupsInput();
         await excludedGroupsInput.clickOptions({ text: 'Group A' });
@@ -563,7 +563,7 @@ describe('ApiPlanFormComponent', () => {
 
         const shardingTagsInput = await planForm.getShardingTagsInput();
         await shardingTagsInput.clickOptions({ text: /Tag 1/ });
-        await shardingTagsInput.getOptions({ text: /Tag 2/ }).then((options) => options[0].isDisabled());
+        await shardingTagsInput.getOptions({ text: /Tag 2/ }).then(options => options[0].isDisabled());
 
         const excludedGroupsInput = await planForm.getExcludedGroupsInput();
         await excludedGroupsInput.clickOptions({ text: 'Group A' });
@@ -1108,7 +1108,7 @@ describe('ApiPlanFormComponent', () => {
     expect(testComponent.planControl.valid).toEqual(false);
 
     const stepsHarness = await loader.getAllHarnesses(MatStepHarness);
-    const steps = await Promise.all(stepsHarness.map((step) => step.getLabel()));
+    const steps = await Promise.all(stepsHarness.map(step => step.getLabel()));
     expect(steps).toEqual(['General', 'Restriction']);
   });
 
@@ -1162,7 +1162,7 @@ describe('ApiPlanFormComponent', () => {
       const shardingTagsInput = await planForm.getShardingTagsInput();
       expect(await shardingTagsInput.getValueText()).toContain('Tag 1');
       await shardingTagsInput.clickOptions({ text: /Tag 1/ }); // Unselect Tag 1
-      await shardingTagsInput.getOptions({ text: /Tag 2/ }).then((options) => options[0].isDisabled());
+      await shardingTagsInput.getOptions({ text: /Tag 2/ }).then(options => options[0].isDisabled());
 
       const excludedGroupsInput = await planForm.getExcludedGroupsInput();
       await excludedGroupsInput.clickOptions({ text: 'Group A' });
@@ -1306,7 +1306,7 @@ describe('ApiPlanFormComponent', () => {
         const shardingTagsInput = await planForm.getShardingTagsInput();
         expect(await shardingTagsInput.getValueText()).toContain('Tag 1');
         await shardingTagsInput.clickOptions({ text: /Tag 1/ }); // Unselect Tag 1
-        await shardingTagsInput.getOptions({ text: /Tag 2/ }).then((options) => options[0].isDisabled());
+        await shardingTagsInput.getOptions({ text: /Tag 2/ }).then(options => options[0].isDisabled());
 
         const excludedGroupsInput = await planForm.getExcludedGroupsInput();
         await excludedGroupsInput.clickOptions({ text: 'Group A' });
@@ -1378,7 +1378,7 @@ describe('ApiPlanFormComponent', () => {
         expect(testComponent.planControl.valid).toEqual(false);
 
         const stepsHarness = await loader.getAllHarnesses(MatStepHarness);
-        const steps = await Promise.all(stepsHarness.map((step) => step.getLabel()));
+        const steps = await Promise.all(stepsHarness.map(step => step.getLabel()));
         expect(steps).toEqual(['General']);
       });
     });
@@ -1453,7 +1453,7 @@ describe('ApiPlanFormComponent', () => {
       expect(testComponent.planControl.valid).toEqual(false);
 
       const stepsHarness = await loader.getAllHarnesses(MatStepHarness);
-      const steps = await Promise.all(stepsHarness.map((step) => step.getLabel()));
+      const steps = await Promise.all(stepsHarness.map(step => step.getLabel()));
       expect(steps).toEqual(['General', 'mTLS authentication configuration', 'Restriction']);
     });
 
@@ -1475,7 +1475,7 @@ describe('ApiPlanFormComponent', () => {
       expect(testComponent.planControl.valid).toEqual(false);
 
       const stepsHarness = await loader.getAllHarnesses(MatStepHarness);
-      const steps = await Promise.all(stepsHarness.map((step) => step.getLabel()));
+      const steps = await Promise.all(stepsHarness.map(step => step.getLabel()));
       expect(steps).toEqual(['General']);
     });
   });

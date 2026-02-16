@@ -39,10 +39,10 @@ class ApiAnalyticsOverviewControllerAjs {
   $onInit() {
     this.$q
       .all({
-        dashboards: this.DashboardService.list('API').then((response) => response.data),
-        api: this.ApiService.get(this.activatedRoute.snapshot.params.apiId).then((response) => response.data),
+        dashboards: this.DashboardService.list('API').then(response => response.data),
+        api: this.ApiService.get(this.activatedRoute.snapshot.params.apiId).then(response => response.data),
       })
-      .then((results) => {
+      .then(results => {
         this.api = results.api;
         this.dashboards = filter(results.dashboards, 'enabled');
 
@@ -64,11 +64,11 @@ class ApiAnalyticsOverviewControllerAjs {
           this.dashboard = this.dashboards[0];
         }
 
-        forEach(this.dashboards, (dashboard) => {
+        forEach(this.dashboards, dashboard => {
           if (dashboard.definition) {
             dashboard.definition = JSON.parse(dashboard.definition);
           }
-          forEach(dashboard.definition, (widget) => {
+          forEach(dashboard.definition, widget => {
             merge(widget, {
               root: this.api.id,
               chart: {

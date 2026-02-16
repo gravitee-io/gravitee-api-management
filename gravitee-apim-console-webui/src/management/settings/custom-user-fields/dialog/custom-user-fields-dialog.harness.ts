@@ -33,11 +33,11 @@ export class CustomUserFieldsDialogHarness extends ComponentHarness {
   }
 
   public async setKey(name: string) {
-    return this.getKeyInput().then((input) => input.setValue(name));
+    return this.getKeyInput().then(input => input.setValue(name));
   }
 
   public async setLabel(value: string) {
-    return this.getLabelInput().then((input) => input.setValue(value));
+    return this.getLabelInput().then(input => input.setValue(value));
   }
 
   public getSaveButton() {
@@ -45,6 +45,6 @@ export class CustomUserFieldsDialogHarness extends ComponentHarness {
   }
 
   public async clickOnSave() {
-    return this.getSaveButton().then(async (b) => b.click());
+    return this.getSaveButton().then(async b => b.click());
   }
 }

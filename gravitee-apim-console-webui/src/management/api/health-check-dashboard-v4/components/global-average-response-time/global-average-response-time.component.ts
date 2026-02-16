@@ -57,7 +57,7 @@ export class GlobalAverageResponseTimeComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (averageResponseTime) => {
+        next: averageResponseTime => {
           this.isLoading = false;
           if (averageResponseTime && averageResponseTime.global) {
             this.averageResponseTime = averageResponseTime.global;

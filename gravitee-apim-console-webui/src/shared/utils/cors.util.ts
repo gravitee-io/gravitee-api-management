@@ -92,11 +92,11 @@ export const CorsUtil = {
   ] as const,
 
   allowOriginValidator: (): ValidatorFn => {
-    return (control) => {
+    return control => {
       const allowOriginArray = control.value;
       const invalidOrigin = [];
 
-      allowOriginArray.forEach((allowOrigin) => {
+      allowOriginArray.forEach(allowOrigin => {
         if ('*' !== allowOrigin && (allowOrigin.includes('(') || allowOrigin.includes('[') || allowOrigin.includes('*'))) {
           try {
             // eslint:disable-next-line:no-unused-expression

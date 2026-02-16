@@ -101,25 +101,25 @@ export class OrgSettingsPlatformPoliciesComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         tap(() => {
           this.isLoading = true;
           this.isSaveButtonDisabled = true;
         }),
         switchMap(() => this.organizationService.get()),
         map(
-          (organization) =>
+          organization =>
             ({
               ...organization,
               flowMode: this.definitionToSave.flow_mode ?? organization.flowMode,
               flows:
-                this.definitionToSave.flows?.map((flow) => ({
+                this.definitionToSave.flows?.map(flow => ({
                   ...flow,
-                  consumers: (flow.consumers ?? []).map((consumer) => ({ consumerType: 'TAG', consumerId: consumer })),
+                  consumers: (flow.consumers ?? []).map(consumer => ({ consumerType: 'TAG', consumerId: consumer })),
                 })) ?? organization.flows,
             }) as Organization,
         ),
-        switchMap((organizationToSave) => this.organizationService.update(organizationToSave)),
+        switchMap(organizationToSave => this.organizationService.update(organizationToSave)),
         tap(() => {
           this.snackBarService.success('Platform policies successfully updated!');
         }),

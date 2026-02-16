@@ -100,7 +100,7 @@ export default {
     }),
   ],
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 870px">
         <reporter-settings-message [api]="api"></reporter-settings-message>

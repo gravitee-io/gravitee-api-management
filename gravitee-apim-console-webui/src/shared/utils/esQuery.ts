@@ -27,10 +27,10 @@ export type EsFilter = IsInFilter;
 export function toQuery(filters: EsFilter[]): string | null {
   if (!filters.length) return null;
   return filters
-    .map((filter) => {
+    .map(filter => {
       switch (filter.type) {
         case 'isin':
-          return `${filter.field}:(${filter.values.map((v) => `"${v}"`).join(' OR ')})`;
+          return `${filter.field}:(${filter.values.map(v => `"${v}"`).join(' OR ')})`;
         default:
           throw new Error(`Unknown filter type: ${filter.type}`);
       }

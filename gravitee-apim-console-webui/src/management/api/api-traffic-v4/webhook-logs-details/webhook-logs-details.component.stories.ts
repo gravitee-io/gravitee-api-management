@@ -41,7 +41,7 @@ export default {
     }),
   ],
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `
       <div style="width: 1200px; margin: 24px; padding: 24px; background-color: #f4f6fb; min-height: 100vh;">
         <webhook-logs-details></webhook-logs-details>

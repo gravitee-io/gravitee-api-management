@@ -51,7 +51,7 @@ export class GroupService {
 
   addOrUpdateMemberships(groupId: string, groupMemberships: GroupMembership[], environmentId?: string): Observable<void> {
     // Remove Membership with empty roles
-    const filterEmptyMembershipRoles = (groupMembership: GroupMembership[]) => groupMembership.filter((m) => !isEmpty(m.roles));
+    const filterEmptyMembershipRoles = (groupMembership: GroupMembership[]) => groupMembership.filter(m => !isEmpty(m.roles));
 
     const groupMembershipToSend = filterEmptyMembershipRoles(groupMemberships);
     if (isEmpty(groupMembershipToSend)) {

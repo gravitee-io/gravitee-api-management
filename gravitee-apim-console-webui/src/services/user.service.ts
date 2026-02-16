@@ -60,7 +60,7 @@ class UserService {
   }
 
   get(code: string): ng.IPromise<User> {
-    return this.$http.get(`${this.Constants.org.baseURL}/users/` + code).then((response) => Object.assign(new User(), response.data));
+    return this.$http.get(`${this.Constants.org.baseURL}/users/` + code).then(response => Object.assign(new User(), response.data));
   }
 
   remove(userId: string): ng.IPromise<any> {
@@ -104,7 +104,7 @@ class UserService {
   }
 
   refreshEnvironmentPermissions(): ng.IPromise<User> {
-    return this.EnvironmentService.getPermissions(this.Constants.org.currentEnv.id).then((response) => {
+    return this.EnvironmentService.getPermissions(this.Constants.org.currentEnv.id).then(response => {
       this.currentUser.userEnvironmentPermissions = this.getEnvironmentPermissions(response);
       return this.$q.resolve<User>(this.currentUser);
     });
@@ -112,7 +112,7 @@ class UserService {
 
   refreshCurrent(): ng.IPromise<User> {
     this.currentUser = null; // force refresh of user profil
-    return this.current().then((user) => {
+    return this.current().then(user => {
       // once user profile is loaded, broadcast information to the app
       this.$rootScope.$emit('graviteeUserRefresh', { user: user, refresh: true });
       return user;
@@ -156,13 +156,13 @@ class UserService {
 
       return this.$q
         .all(promises)
-        .then((response) => {
+        .then(response => {
           this.currentUser = Object.assign(new User(), response[0].data as UserDetails);
 
           this.currentUser.userPermissions = [];
-          forEach(this.currentUser.roles, (role) => {
-            forEach(keys(role.permissions), (permission) => {
-              forEach(role.permissions[permission], (right) => {
+          forEach(this.currentUser.roles, role => {
+            forEach(keys(role.permissions), permission => {
+              forEach(role.permissions[permission], right => {
                 if (role.scope === 'ORGANIZATION') {
                   const permissionName = role.scope + '-' + permission + '-' + right;
                   this.currentUser.userPermissions.push(toLower(permissionName));
@@ -177,16 +177,16 @@ class UserService {
 
             if (includes(apiOrApplicationResponse.config.url, 'applications')) {
               this.currentUser.userApplicationPermissions = [];
-              forEach(keys(apiOrApplicationResponse.data), (permission) => {
-                forEach(apiOrApplicationResponse.data[permission], (right) => {
+              forEach(keys(apiOrApplicationResponse.data), permission => {
+                forEach(apiOrApplicationResponse.data[permission], right => {
                   const permissionName = 'APPLICATION-' + permission + '-' + right;
                   this.currentUser.userApplicationPermissions.push(toLower(permissionName));
                 });
               });
             } else if (includes(apiOrApplicationResponse.config.url, 'apis')) {
               this.currentUser.userApiPermissions = [];
-              forEach(keys(apiOrApplicationResponse.data), (permission) => {
-                forEach(apiOrApplicationResponse.data[permission], (right) => {
+              forEach(keys(apiOrApplicationResponse.data), permission => {
+                forEach(apiOrApplicationResponse.data[permission], right => {
                   const permissionName = 'API-' + permission + '-' + right;
                   this.currentUser.userApiPermissions.push(toLower(permissionName));
                 });
@@ -212,18 +212,18 @@ class UserService {
 
   reloadPermissions() {
     const rights: string[] = this.RoleService.listRights();
-    this.RoleService.listScopes().then((permissionsByScope) => {
+    this.RoleService.listScopes().then(permissionsByScope => {
       const allPermissions: string[] = [];
       forEach(permissionsByScope, (permissions, scope) => {
-        forEach(permissions, (permission) => {
-          forEach(rights, (right) => {
+        forEach(permissions, permission => {
+          forEach(rights, right => {
             const permissionName = scope + '-' + permission + '-' + right;
             allPermissions.push(toLower(permissionName));
           });
         });
       });
 
-      this.PermPermissionStore.defineManyPermissions(allPermissions, (permissionName) => {
+      this.PermPermissionStore.defineManyPermissions(allPermissions, permissionName => {
         return (
           includes(this.currentUser.userPermissions, permissionName) ||
           includes(this.currentUser.userEnvironmentPermissions, permissionName) ||
@@ -310,8 +310,8 @@ class UserService {
     }
 
     const permissions = [] as string[];
-    forEach(keys(response.data), (permission) => {
-      forEach(response.data[permission], (right) => {
+    forEach(keys(response.data), permission => {
+      forEach(response.data[permission], right => {
         const permissionName = `ENVIRONMENT-${permission}-${right}`.toLowerCase();
         permissions.push(permissionName);
       });
@@ -331,7 +331,7 @@ class UserService {
     return (
       api.owner.type === ApiPrimaryOwnerType.GROUP &&
       groups[api.owner.id] &&
-      groups[api.owner.id].some((member) => member.roles[RoleScope.API] === RoleName.PRIMARY_OWNER && member.id === this.currentUser?.id)
+      groups[api.owner.id].some(member => member.roles[RoleScope.API] === RoleName.PRIMARY_OWNER && member.id === this.currentUser?.id)
     );
   }
 }

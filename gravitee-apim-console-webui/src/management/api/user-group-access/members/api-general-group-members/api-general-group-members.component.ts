@@ -96,7 +96,7 @@ export class ApiGeneralGroupMembersComponent implements OnInit, OnDestroy {
       .getMembers(this.groupData.id, page, perPage)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
-        next: (membersResponse) => {
+        next: membersResponse => {
           if (!membersResponse.pagination.totalCount || membersResponse.pagination.totalCount === 0) {
             this.destroy.emit();
             return;
@@ -105,9 +105,9 @@ export class ApiGeneralGroupMembersComponent implements OnInit, OnDestroy {
             isLoading: false,
             canViewGroupMembers: true,
             memberTotalCount: membersResponse.pagination.totalCount,
-            membersPageResult: membersResponse.data.map((member) => ({
+            membersPageResult: membersResponse.data.map(member => ({
               id: member.id,
-              role: member.roles.find((role) => role.scope === 'API')?.name,
+              role: member.roles.find(role => role.scope === 'API')?.name,
               displayName: member.displayName,
               picture: this.userService.getUserAvatar(member.id),
             })),

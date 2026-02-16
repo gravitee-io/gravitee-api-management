@@ -60,7 +60,7 @@ export class GioTableOfContentsService {
     const section = this.sectionsLinks[sectionId];
 
     section.links.splice(
-      section.links.findIndex((i) => i.id === linkId),
+      section.links.findIndex(i => i.id === linkId),
       1,
     );
 

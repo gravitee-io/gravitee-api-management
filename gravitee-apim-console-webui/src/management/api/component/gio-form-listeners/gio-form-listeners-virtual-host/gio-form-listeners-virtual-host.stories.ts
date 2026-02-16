@@ -37,7 +37,7 @@ export default {
     }),
   ],
   argTypes: {},
-  render: (args) => ({
+  render: args => ({
     template: `<gio-form-listeners-virtual-host [ngModel]="listeners" [domainRestrictions]="domainRestrictions"></gio-form-listeners-virtual-host>`,
     props: args,
   }),
@@ -68,10 +68,10 @@ export const Filled: StoryObj = {
 };
 
 export const ReactiveForm: StoryObj = {
-  render: (args) => {
+  render: args => {
     const formControl = new FormControl(args.listeners);
 
-    formControl.valueChanges.subscribe((value) => {
+    formControl.valueChanges.subscribe(value => {
       action('Listeners')(value);
     });
 

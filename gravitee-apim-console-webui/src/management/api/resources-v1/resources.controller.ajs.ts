@@ -77,7 +77,7 @@ class ApiV1ResourcesControllerAjs {
             schema: data,
           };
         },
-        (response) => {
+        response => {
           if (response.status === 404) {
             return {
               schema: {},
@@ -113,7 +113,7 @@ class ApiV1ResourcesControllerAjs {
           schema: data,
         };
       },
-      (response) => {
+      response => {
         if (response.status === 404) {
           this.resourceJsonSchema = {};
           return {
@@ -140,7 +140,7 @@ class ApiV1ResourcesControllerAjs {
           confirmButton: 'Remove',
         },
       })
-      .then((response) => {
+      .then(response => {
         if (response) {
           this.resolvedApi.resources.splice(resourceIdx, 1);
           this.updateApi();

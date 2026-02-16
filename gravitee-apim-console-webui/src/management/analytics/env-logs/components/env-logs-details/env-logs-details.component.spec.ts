@@ -27,7 +27,7 @@ import { fakeEnvLogs } from '../../models/env-log.fixture';
 
 describe('EnvLogsDetailsComponent', () => {
   const logId = 'log-1';
-  const log = fakeEnvLogs().find((l) => l.id === logId)!;
+  const log = fakeEnvLogs().find(l => l.id === logId)!;
 
   async function createComponent(params: Record<string, string> = { logId }) {
     await TestBed.configureTestingModule({
@@ -91,7 +91,7 @@ describe('EnvLogsDetailsComponent', () => {
 
     const headers = component.requestHeaders();
 
-    const headerKeys = headers.map((h) => h.key);
+    const headerKeys = headers.map(h => h.key);
     const sortedKeys = [...headerKeys].sort((a, b) => a.localeCompare(b));
     expect(headerKeys).toEqual(sortedKeys);
 
