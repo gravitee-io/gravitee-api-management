@@ -42,6 +42,14 @@ public class DashboardCrudServiceInMemory implements DashboardCrudService, InMem
     }
 
     @Override
+    public List<Dashboard> findByOrganizationId(String organizationId) {
+        return storage
+            .stream()
+            .filter(d -> organizationId.equals(d.getOrganizationId()))
+            .toList();
+    }
+
+    @Override
     public Dashboard update(Dashboard dashboard) {
         var index = findIndex(storage, d -> d.getId().equals(dashboard.getId()));
         if (index.isPresent()) {

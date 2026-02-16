@@ -13,20 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.dashboard.crud_service;
+package io.gravitee.apim.core.dashboard.use_case;
 
+import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.dashboard.domain_service.DashboardDomainService;
 import io.gravitee.apim.core.dashboard.model.Dashboard;
 import java.util.List;
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
-public interface DashboardCrudService {
-    Dashboard create(Dashboard dashboard);
+@UseCase
+@RequiredArgsConstructor
+public class ListDashboardsUseCase {
 
-    Optional<Dashboard> findById(String dashboardId);
+    private final DashboardDomainService dashboardDomainService;
 
-    List<Dashboard> findByOrganizationId(String organizationId);
+    public record Input(String organizationId) {}
 
-    Dashboard update(Dashboard dashboard);
+    public record Output(List<Dashboard> dashboards) {}
 
-    void delete(String dashboardId);
+    public Output execute(Input input) {
+        return new Output(dashboardDomainService.findByOrganizationId(input.organizationId()));
+    }
 }
