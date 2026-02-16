@@ -133,7 +133,18 @@ describe('API - V4 - Native Kafka - Import - Gravitee Definition - Only API -', 
         expect(apiV4.tags).toEqual(apiToImport.api.tags);
         expect(apiV4.services).toEqual(apiToImport.api.services);
         expect(apiV4.properties).toEqual(apiToImport.api.properties);
-        expect(apiV4.resources).toEqual(apiToImport.api.resources);
+        const apiToImportWithValidConfig = [
+          {
+            ...apiToImport.api.resources[0],
+            configuration: {
+              maxEntriesLocalHeap: 1000,
+              timeToIdleSeconds: 0,
+              timeToLiveSeconds: 0,
+            },
+          },
+        ];
+
+        expect(apiV4.resources).toEqual(apiToImportWithValidConfig);
       });
 
       afterAll(async () => {
