@@ -42,7 +42,7 @@ public class LicenseDomainService {
         var license = licenseManager.getOrganizationLicenseOrPlatform(organizationId);
 
         // For now federation feature is allowed for any enterprise license
-        return !Objects.equals(license.getTier(), "oss");
+        return license == null || !Objects.equals(license.getTier(), "oss");
     }
 
     /**
