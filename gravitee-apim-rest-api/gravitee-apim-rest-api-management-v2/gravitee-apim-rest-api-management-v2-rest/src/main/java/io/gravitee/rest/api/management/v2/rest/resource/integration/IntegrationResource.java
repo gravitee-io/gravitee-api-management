@@ -110,7 +110,13 @@ public class IntegrationResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.INTEGRATION_DEFINITION, acls = { RolePermissionAction.READ }) })
     public Response getIntegrationById(@PathParam("integrationId") String integrationId) {
         var integration = getIntegrationUsecase
-            .execute(new GetIntegrationUseCase.Input(integrationId, GraviteeContext.getCurrentOrganization()))
+            .execute(
+                new GetIntegrationUseCase.Input(
+                    integrationId,
+                    GraviteeContext.getCurrentOrganization(),
+                    GraviteeContext.getCurrentEnvironment()
+                )
+            )
             .integration();
 
         return Response.ok(IntegrationMapper.INSTANCE.map(integration)).build();

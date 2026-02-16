@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
 import io.gravitee.apim.core.integration.use_case.CreateIntegrationUseCase;
+import io.gravitee.apim.core.integration.use_case.GetIntegrationUseCase;
 import io.gravitee.apim.core.integration.use_case.GetIntegrationsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.IntegrationMapper;
@@ -55,6 +56,9 @@ public class IntegrationsResource extends AbstractResource {
 
     @Inject
     private GetIntegrationsUseCase getIntegrationsUsecase;
+
+    @Inject
+    private GetIntegrationUseCase getIntegrationUsecase;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -103,7 +107,13 @@ public class IntegrationsResource extends AbstractResource {
     }
 
     @Path("{integrationId}")
-    public IntegrationResource getIntegrationResource() {
+    public IntegrationResource getIntegrationResource(
+        @PathParam("orgId") String orgId,
+        @PathParam("envId") String environmentId,
+        @PathParam("integrationId") String integrationId
+    ) {
+        // check if integration exists
+        getIntegrationUsecase.execute(new GetIntegrationUseCase.Input(integrationId, orgId, environmentId));
         return resourceContext.getResource(IntegrationResource.class);
     }
 }
