@@ -197,8 +197,6 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
 
         // Validate and clean definition
         NativeApi newDefinition = validateAndSanitizeNativeV4Definition(nativeApiToBeUpdated, executionContext);
-        // Validate and clean resources
-        newDefinition.setResources(resourcesValidationService.validateAndSanitize(nativeApiToBeUpdated.getResources()));
 
         toBeUpdatedApi.setApiDefinitionValue(newDefinition);
 
@@ -222,6 +220,8 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         apiDefinition.setFlows(flowValidationDomainService.validateAndSanitizeNativeV4(apiDefinition.getFlows()));
 
         apiDefinition.setAnalytics(apiDefinition.getAnalytics() != null ? apiDefinition.getAnalytics() : new NativeAnalytics());
+
+        apiDefinition.setResources(apiValidationService.validateAndSanitize(apiDefinition.getResources()));
 
         apiValidationService.validateDynamicProperties(
             apiDefinition.getServices() != null ? apiDefinition.getServices().getDynamicProperty() : null
