@@ -103,7 +103,8 @@ public class ApiSubscriptionApikeysResourceTest extends AbstractResourceTest {
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setId("test-subscription-id");
         subscription.setApplication(APPLICATION_ID);
-        subscription.setApi("Another_api");
+        subscription.setReferenceId("Another_api");
+        subscription.setReferenceType("API");
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
 
         Response response = envTarget("/_renew").request().post(null);
@@ -124,7 +125,8 @@ public class ApiSubscriptionApikeysResourceTest extends AbstractResourceTest {
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setId("test-subscription-id");
         subscription.setApplication(APPLICATION_ID);
-        subscription.setApi(API_ID);
+        subscription.setReferenceId(API_ID);
+        subscription.setReferenceType("API");
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
 
         ApplicationEntity application = new ApplicationEntity();
