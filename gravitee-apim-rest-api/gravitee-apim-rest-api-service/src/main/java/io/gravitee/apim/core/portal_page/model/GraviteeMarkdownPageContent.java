@@ -18,9 +18,9 @@ package io.gravitee.apim.core.portal_page.model;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContainer;
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidator;
 import jakarta.annotation.Nonnull;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
-import java.util.List;
 
 @Getter
 public final class GraviteeMarkdownPageContent extends PortalPageContent implements GraviteeMarkdownContainer {
@@ -32,19 +32,19 @@ public final class GraviteeMarkdownPageContent extends PortalPageContent impleme
     private String content;
 
     public GraviteeMarkdownPageContent(
-            @Nonnull PortalPageContentId id,
-            @Nonnull String organizationId,
-            @Nonnull String environmentId,
-            @Nonnull String content
+        @Nonnull PortalPageContentId id,
+        @Nonnull String organizationId,
+        @Nonnull String environmentId,
+        @Nonnull String content
     ) {
         super(id, organizationId, environmentId);
         this.content = content;
     }
 
     public static GraviteeMarkdownPageContent create(
-            @Nonnull String organizationId,
-            @Nonnull String environmentId,
-            @Nonnull String content
+        @Nonnull String organizationId,
+        @Nonnull String environmentId,
+        @Nonnull String content
     ) {
         return new GraviteeMarkdownPageContent(PortalPageContentId.random(), organizationId, environmentId, content);
     }
@@ -54,10 +54,14 @@ public final class GraviteeMarkdownPageContent extends PortalPageContent impleme
     }
 
     @Override
-    public void update(@Nonnull UpdatePortalPageContent updateGraviteeMarkdownPageContent, List<PortalPageContentValidator> contentValidators) {
-        contentValidators.stream()
-                .filter(validator -> validator.appliesTo(this))
-                .forEach(validator -> validator.validateForUpdate(updateGraviteeMarkdownPageContent));
+    public void update(
+        @Nonnull UpdatePortalPageContent updateGraviteeMarkdownPageContent,
+        List<PortalPageContentValidator> contentValidators
+    ) {
+        contentValidators
+            .stream()
+            .filter(validator -> validator.appliesTo(this))
+            .forEach(validator -> validator.validate(updateGraviteeMarkdownPageContent));
         this.content = updateGraviteeMarkdownPageContent.getContent();
     }
 

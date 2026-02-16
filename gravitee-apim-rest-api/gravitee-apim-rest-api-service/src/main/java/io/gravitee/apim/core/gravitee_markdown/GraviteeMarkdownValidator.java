@@ -17,9 +17,6 @@ package io.gravitee.apim.core.gravitee_markdown;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
-import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidator;
-import io.gravitee.apim.core.portal_page.model.PortalPageContent;
-import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -33,7 +30,7 @@ import lombok.RequiredArgsConstructor;
  */
 @DomainService
 @RequiredArgsConstructor
-public class GraviteeMarkdownValidator implements PortalPageContentValidator {
+public class GraviteeMarkdownValidator {
 
     /**
      * Validates that GMD content is not null or empty.
@@ -42,24 +39,10 @@ public class GraviteeMarkdownValidator implements PortalPageContentValidator {
      * Callers can pass domain entities that implement the interface, or use lambda syntax
      * for functional-style validation: {@code validateNotEmpty(() -> content)}.</p>
      *
-     * @param container the container holding GMD content
+     * @param content GMD content
      * @throws GraviteeMarkdownContentEmptyException if content is null, empty, or whitespace-only
      */
-    public void validateNotEmpty(GraviteeMarkdownContainer container) {
-        String content = container.getGmdContent();
-        if (content == null || content.trim().isEmpty()) {
-            throw new GraviteeMarkdownContentEmptyException();
-        }
-    }
-
-    @Override
-    public boolean appliesTo(PortalPageContent existingContent) {
-        return existingContent instanceof GraviteeMarkdownContainer;
-    }
-
-    @Override
-    public void validateForUpdate(UpdatePortalPageContent updateContent) {
-        var content = updateContent.getContent();
+    public void validateNotEmpty(String content) {
         if (content == null || content.trim().isEmpty()) {
             throw new GraviteeMarkdownContentEmptyException();
         }
