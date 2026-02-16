@@ -136,6 +136,22 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
     }
 
     @Override
+    public List<ApiKeyMongo> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType) {
+        List<Bson> pipeline = List.of(
+            match(eq("key", key)),
+            lookup(tablePrefix + "subscriptions", "subscriptions", "_id", "sub"),
+            unwind("$sub"),
+            match(and(eq("sub.referenceId", referenceId), eq("sub.referenceType", referenceType)))
+        );
+
+        AggregateIterable<Document> aggregate = mongoTemplate
+            .getCollection(mongoTemplate.getCollectionName(ApiKeyMongo.class))
+            .aggregate(pipeline);
+
+        return getListFromAggregate(aggregate);
+    }
+
+    @Override
     public List<ApiKeyMongo> findByPlan(String plan) {
         List<Bson> pipeline = new ArrayList<>();
         pipeline.add(lookup(tablePrefix + "subscriptions", "subscriptions", "_id", "sub"));

@@ -32,6 +32,8 @@ public interface ApiKeyMongoRepositoryCustom {
 
     List<ApiKeyMongo> findByKeyAndApi(String key, String api);
 
+    List<ApiKeyMongo> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType);
+
     List<ApiKeyMongo> findByPlan(String plan);
 
     UpdateResult addSubscription(String id, String subscriptionId);

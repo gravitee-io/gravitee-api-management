@@ -17,30 +17,38 @@ package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
-import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
+import fixtures.SubscriptionFixtures;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.GetSubscriptionsUseCase;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.VerifySubscription;
+import io.gravitee.rest.api.management.v2.rest.model.VerifySubscriptionResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,6 +66,9 @@ class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Inject
     private CreateSubscriptionUseCase createSubscriptionUseCase;
+
+    @Inject
+    private ApiKeyService apiKeyService;
 
     @Override
     protected String contextPath() {
@@ -83,7 +94,191 @@ class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(getSubscriptionsUseCase, createSubscriptionUseCase);
+        reset(getSubscriptionsUseCase, createSubscriptionUseCase, apiKeyService);
+    }
+
+    @Nested
+    class VerifyCreateApiProductSubscriptionTest {
+
+        private static final String APPLICATION_ID = "my-application";
+
+        @BeforeEach
+        void before() {
+            reset(apiKeyService);
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(RolePermission.API_PRODUCT_SUBSCRIPTION, API_PRODUCT_ID, RolePermissionAction.CREATE, () ->
+                rootTarget().path("_verify").request().post(json(SubscriptionFixtures.aVerifySubscription()))
+            );
+        }
+
+        @Test
+        void should_return_400_when_invalid_api_key_pattern() {
+            Response response = rootTarget().path("_verify").request().post(json(SubscriptionFixtures.aVerifySubscription().apiKey("###")));
+            assertEquals(BAD_REQUEST_400, response.getStatus());
+
+            Error error = response.readEntity(Error.class);
+            assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
+            assertEquals("Validation error", error.getMessage());
+        }
+
+        @Test
+        void should_return_400_when_missing_api_key() {
+            Response response = rootTarget().path("_verify").request().post(json(SubscriptionFixtures.aVerifySubscription().apiKey(null)));
+            assertEquals(BAD_REQUEST_400, response.getStatus());
+
+            Error error = response.readEntity(Error.class);
+            assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
+            assertEquals("Validation error", error.getMessage());
+        }
+
+        @Test
+        void should_return_400_when_missing_application() {
+            Response response = rootTarget()
+                .path("_verify")
+                .request()
+                .post(json(SubscriptionFixtures.aVerifySubscription().applicationId(null)));
+            assertEquals(BAD_REQUEST_400, response.getStatus());
+
+            Error error = response.readEntity(Error.class);
+            assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
+            assertEquals("Validation error", error.getMessage());
+        }
+
+        @Test
+        void should_verify_subscription_ok_true() {
+            when(
+                apiKeyService.canCreate(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq("apiKey"),
+                    eq(API_PRODUCT_ID),
+                    eq(SubscriptionReferenceType.API_PRODUCT.name()),
+                    eq(APPLICATION_ID)
+                )
+            ).thenReturn(true);
+
+            VerifySubscription verifySubscription = SubscriptionFixtures.aVerifySubscription()
+                .applicationId(APPLICATION_ID)
+                .apiKey("apiKey");
+            Response response = rootTarget().path("_verify").request().post(json(verifySubscription));
+            assertEquals(OK_200, response.getStatus());
+
+            VerifySubscriptionResponse verifyResponse = response.readEntity(VerifySubscriptionResponse.class);
+            assertTrue(verifyResponse.getOk());
+        }
+
+        @Test
+        void should_verify_subscription_ok_false() {
+            when(
+                apiKeyService.canCreate(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq("apiKey"),
+                    eq(API_PRODUCT_ID),
+                    eq(SubscriptionReferenceType.API_PRODUCT.name()),
+                    eq(APPLICATION_ID)
+                )
+            ).thenReturn(false);
+
+            VerifySubscription verifySubscription = SubscriptionFixtures.aVerifySubscription()
+                .applicationId(APPLICATION_ID)
+                .apiKey("apiKey");
+            Response response = rootTarget().path("_verify").request().post(json(verifySubscription));
+            assertEquals(OK_200, response.getStatus());
+
+            VerifySubscriptionResponse verifyResponse = response.readEntity(VerifySubscriptionResponse.class);
+            assertFalse(verifyResponse.getOk());
+        }
+    }
+
+    @Nested
+    class CanCreateApiProductSubscriptionTest {
+
+        private static final String APPLICATION_ID = "my-application";
+        private static final String API_KEY = "valid-api-key";
+
+        @BeforeEach
+        void before() {
+            reset(apiKeyService);
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(RolePermission.API_PRODUCT_SUBSCRIPTION, API_PRODUCT_ID, RolePermissionAction.READ, () ->
+                rootTarget().path("_canCreate").queryParam("key", API_KEY).queryParam("application", APPLICATION_ID).request().get()
+            );
+        }
+
+        @Test
+        void should_return_400_when_key_query_param_omitted() {
+            Response response = rootTarget().path("_canCreate").queryParam("application", APPLICATION_ID).request().get();
+            assertEquals(BAD_REQUEST_400, response.getStatus());
+            verifyNoInteractions(apiKeyService);
+        }
+
+        @Test
+        void should_return_400_when_key_query_param_invalid_format() {
+            Response response = rootTarget()
+                .path("_canCreate")
+                .queryParam("key", "short")
+                .queryParam("application", APPLICATION_ID)
+                .request()
+                .get();
+            assertEquals(BAD_REQUEST_400, response.getStatus());
+            verifyNoInteractions(apiKeyService);
+        }
+
+        @Test
+        void should_return_400_when_application_query_param_omitted() {
+            Response response = rootTarget().path("_canCreate").queryParam("key", API_KEY).request().get();
+            assertEquals(BAD_REQUEST_400, response.getStatus());
+            verifyNoInteractions(apiKeyService);
+        }
+
+        @Test
+        void should_return_200_true_when_canCreate_returns_true() {
+            when(
+                apiKeyService.canCreate(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(API_KEY),
+                    eq(API_PRODUCT_ID),
+                    eq(SubscriptionReferenceType.API_PRODUCT.name()),
+                    eq(APPLICATION_ID)
+                )
+            ).thenReturn(true);
+
+            Response response = rootTarget()
+                .path("_canCreate")
+                .queryParam("key", API_KEY)
+                .queryParam("application", APPLICATION_ID)
+                .request()
+                .get();
+            assertEquals(OK_200, response.getStatus());
+            assertTrue(response.readEntity(Boolean.class));
+        }
+
+        @Test
+        void should_return_200_false_when_canCreate_returns_false() {
+            when(
+                apiKeyService.canCreate(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(API_KEY),
+                    eq(API_PRODUCT_ID),
+                    eq(SubscriptionReferenceType.API_PRODUCT.name()),
+                    eq(APPLICATION_ID)
+                )
+            ).thenReturn(false);
+
+            Response response = rootTarget()
+                .path("_canCreate")
+                .queryParam("key", API_KEY)
+                .queryParam("application", APPLICATION_ID)
+                .request()
+                .get();
+            assertEquals(OK_200, response.getStatus());
+            assertFalse(response.readEntity(Boolean.class));
+        }
     }
 
     @Nested

@@ -115,4 +115,16 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
      * @throws TechnicalException
      */
     List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
+
+    /**
+     * Find an API Key by key, reference id, and reference type (API or API_PRODUCT).
+     *
+     * @param key API Key
+     * @param referenceId API or API_PRODUCT id
+     * @param referenceType "API" or "API_PRODUCT"
+     * @return Optional API Key
+     * @throws TechnicalException
+     */
+    Optional<ApiKey> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType)
+        throws TechnicalException;
 }

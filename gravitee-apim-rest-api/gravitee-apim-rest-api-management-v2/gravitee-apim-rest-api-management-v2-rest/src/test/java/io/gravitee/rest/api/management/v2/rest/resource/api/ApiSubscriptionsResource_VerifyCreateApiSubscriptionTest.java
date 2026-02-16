@@ -105,7 +105,15 @@ public class ApiSubscriptionsResource_VerifyCreateApiSubscriptionTest extends Ab
 
     @Test
     public void should_verify_subscription() {
-        when(apiKeyService.canCreate(GraviteeContext.getExecutionContext(), "apiKey", API, APPLICATION)).thenReturn(true);
+        when(
+            apiKeyService.canCreate(
+                GraviteeContext.getExecutionContext(),
+                "apiKey",
+                API,
+                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
+                APPLICATION
+            )
+        ).thenReturn(true);
 
         final VerifySubscription verifySubscription = SubscriptionFixtures.aVerifySubscription()
             .applicationId(APPLICATION)
@@ -119,7 +127,15 @@ public class ApiSubscriptionsResource_VerifyCreateApiSubscriptionTest extends Ab
 
     @Test
     public void should_verify_subscription_false_response() {
-        when(apiKeyService.canCreate(GraviteeContext.getExecutionContext(), "apiKey", API, APPLICATION)).thenReturn(false);
+        when(
+            apiKeyService.canCreate(
+                GraviteeContext.getExecutionContext(),
+                "apiKey",
+                API,
+                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
+                APPLICATION
+            )
+        ).thenReturn(false);
 
         final VerifySubscription verifySubscription = SubscriptionFixtures.aVerifySubscription()
             .applicationId(APPLICATION)

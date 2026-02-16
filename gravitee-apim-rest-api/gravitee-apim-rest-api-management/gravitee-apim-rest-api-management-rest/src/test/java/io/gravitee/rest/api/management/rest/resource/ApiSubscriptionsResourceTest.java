@@ -322,7 +322,15 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Test
     public void get_canCreate_should_call_service_and_return_http_200_containing_true() {
-        when(apiKeyService.canCreate(GraviteeContext.getExecutionContext(), API_KEY, API_NAME, APP_NAME)).thenReturn(true);
+        when(
+            apiKeyService.canCreate(
+                GraviteeContext.getExecutionContext(),
+                API_KEY,
+                API_NAME,
+                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
+                APP_NAME
+            )
+        ).thenReturn(true);
 
         Response response = envTarget("/_canCreate").queryParam("key", API_KEY).queryParam("application", APP_NAME).request().get();
 
@@ -332,7 +340,15 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Test
     public void get_canCreate_should_call_service_and_return_http_200_containing_false() {
-        when(apiKeyService.canCreate(GraviteeContext.getExecutionContext(), API_KEY, API_NAME, APP_NAME)).thenReturn(false);
+        when(
+            apiKeyService.canCreate(
+                GraviteeContext.getExecutionContext(),
+                API_KEY,
+                API_NAME,
+                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
+                APP_NAME
+            )
+        ).thenReturn(false);
 
         Response response = envTarget("/_canCreate").queryParam("key", API_KEY).queryParam("application", APP_NAME).request().get();
 
@@ -342,9 +358,15 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Test
     public void get_canCreate_should_return_http_500_on_exception() {
-        when(apiKeyService.canCreate(GraviteeContext.getExecutionContext(), API_KEY, API_NAME, APP_NAME)).thenThrow(
-            TechnicalManagementException.class
-        );
+        when(
+            apiKeyService.canCreate(
+                GraviteeContext.getExecutionContext(),
+                API_KEY,
+                API_NAME,
+                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
+                APP_NAME
+            )
+        ).thenThrow(TechnicalManagementException.class);
 
         Response response = envTarget("/_canCreate").queryParam("key", API_KEY).queryParam("application", APP_NAME).request().get();
 

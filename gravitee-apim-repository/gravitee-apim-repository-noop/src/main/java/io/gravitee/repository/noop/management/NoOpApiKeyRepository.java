@@ -51,6 +51,12 @@ public class NoOpApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
+    public Optional<ApiKey> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType)
+        throws TechnicalException {
+        return Optional.empty();
+    }
+
+    @Override
     public ApiKey create(ApiKey apiKey) throws TechnicalException {
         return null;
     }

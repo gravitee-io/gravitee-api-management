@@ -28,6 +28,7 @@ import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.SubscriptionCrudServiceInMemory;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.management.v2.rest.model.ApiKey;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
@@ -104,7 +105,15 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends AbstractApiSubscr
     @Test
     public void should_return_404_if_subscription_associated_to_another_api() {
         subscriptionCrudServiceInMemory.initWith(
-            List.of(fixtures.core.model.SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION).apiId("another-api").build())
+            List.of(
+                fixtures.core.model.SubscriptionFixtures.aSubscription()
+                    .toBuilder()
+                    .id(SUBSCRIPTION)
+                    .apiId("another-api")
+                    .referenceId("another-api")
+                    .referenceType(SubscriptionReferenceType.API)
+                    .build()
+            )
         );
         apiKeyCrudServiceInMemory.initWith(
             List.of(
@@ -127,7 +136,15 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends AbstractApiSubscr
     @Test
     public void should_return_404_if_api_key_associated_to_another_subscription() {
         subscriptionCrudServiceInMemory.initWith(
-            List.of(fixtures.core.model.SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION).apiId(API).build())
+            List.of(
+                fixtures.core.model.SubscriptionFixtures.aSubscription()
+                    .toBuilder()
+                    .id(SUBSCRIPTION)
+                    .apiId(API)
+                    .referenceId(API)
+                    .referenceType(SubscriptionReferenceType.API)
+                    .build()
+            )
         );
         apiKeyCrudServiceInMemory.initWith(
             List.of(
@@ -153,6 +170,8 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends AbstractApiSubscr
                     .toBuilder()
                     .id(SUBSCRIPTION)
                     .apiId(API)
+                    .referenceId(API)
+                    .referenceType(SubscriptionReferenceType.API)
                     .applicationId(APPLICATION)
                     .build()
             )
@@ -198,6 +217,8 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends AbstractApiSubscr
                     .toBuilder()
                     .id(SUBSCRIPTION)
                     .apiId(API)
+                    .referenceId(API)
+                    .referenceType(SubscriptionReferenceType.API)
                     .applicationId(APPLICATION)
                     .build()
             )

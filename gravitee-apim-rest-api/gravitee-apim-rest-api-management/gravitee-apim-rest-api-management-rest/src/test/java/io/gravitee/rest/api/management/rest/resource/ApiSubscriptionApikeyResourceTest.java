@@ -33,6 +33,7 @@ import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.SubscriptionCrudServiceInMemory;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
@@ -96,7 +97,15 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
     @Test
     public void delete_should_revoke_and_return_http_204() {
         subscriptionCrudServiceInMemory.initWith(
-            List.of(SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION_ID).apiId(API_ID).build())
+            List.of(
+                SubscriptionFixtures.aSubscription()
+                    .toBuilder()
+                    .id(SUBSCRIPTION_ID)
+                    .apiId(API_ID)
+                    .referenceId(API_ID)
+                    .referenceType(SubscriptionReferenceType.API)
+                    .build()
+            )
         );
         applicationCrudServiceInMemory.initWith(
             List.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.EXCLUSIVE).id(APPLICATION_ID).build())
@@ -126,7 +135,15 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
     @Test
     public void delete_should_return_http_404_when_apikey_on_another_subscription() {
         subscriptionCrudServiceInMemory.initWith(
-            List.of(SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION_ID).apiId(API_ID).build())
+            List.of(
+                SubscriptionFixtures.aSubscription()
+                    .toBuilder()
+                    .id(SUBSCRIPTION_ID)
+                    .apiId(API_ID)
+                    .referenceId(API_ID)
+                    .referenceType(SubscriptionReferenceType.API)
+                    .build()
+            )
         );
         applicationCrudServiceInMemory.initWith(
             List.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.EXCLUSIVE).id(APPLICATION_ID).build())
@@ -155,7 +172,15 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
     @Test
     public void delete_should_return_http_500_on_exception() {
         subscriptionCrudServiceInMemory.initWith(
-            List.of(SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION_ID).apiId(API_ID).build())
+            List.of(
+                SubscriptionFixtures.aSubscription()
+                    .toBuilder()
+                    .id(SUBSCRIPTION_ID)
+                    .apiId(API_ID)
+                    .referenceId(API_ID)
+                    .referenceType(SubscriptionReferenceType.API)
+                    .build()
+            )
         );
         applicationCrudServiceInMemory.initWith(
             List.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.EXCLUSIVE).id(APPLICATION_ID).build())

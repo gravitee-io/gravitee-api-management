@@ -828,7 +828,13 @@ public class ApiKeyServiceTest {
 
         when(apiKeyRepository.findByKeyAndEnvironmentId(apiKeyToCreate, ENVIRONMENT_ID)).thenReturn(Collections.emptyList());
 
-        boolean canCreate = apiKeyService.canCreate(GraviteeContext.getExecutionContext(), apiKeyToCreate, apiId, applicationId);
+        boolean canCreate = apiKeyService.canCreate(
+            GraviteeContext.getExecutionContext(),
+            apiKeyToCreate,
+            apiId,
+            io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
+            applicationId
+        );
 
         assertTrue(canCreate);
     }
@@ -856,7 +862,13 @@ public class ApiKeyServiceTest {
         when(subscriptionService.findByIdIn(List.of("subscription-1"))).thenReturn(Set.of(subscriptionEntity));
         when(apiKeyRepository.findByKeyAndEnvironmentId(apiKeyToCreate, ENVIRONMENT_ID)).thenReturn(List.of(existingApiKey));
 
-        boolean canCreate = apiKeyService.canCreate(GraviteeContext.getExecutionContext(), apiKeyToCreate, apiId, applicationId);
+        boolean canCreate = apiKeyService.canCreate(
+            GraviteeContext.getExecutionContext(),
+            apiKeyToCreate,
+            apiId,
+            io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
+            applicationId
+        );
 
         assertTrue(canCreate);
     }
@@ -887,7 +899,13 @@ public class ApiKeyServiceTest {
         when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(applicationId))).thenReturn(application);
         when(subscriptionService.findByIdIn(argThat(subscriptionIds::containsAll))).thenReturn(subscriptions);
 
-        boolean canCreate = apiKeyService.canCreate(GraviteeContext.getExecutionContext(), apiKeyToCreate, apiId, applicationId);
+        boolean canCreate = apiKeyService.canCreate(
+            GraviteeContext.getExecutionContext(),
+            apiKeyToCreate,
+            apiId,
+            io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
+            applicationId
+        );
 
         assertFalse(canCreate);
     }
@@ -920,7 +938,13 @@ public class ApiKeyServiceTest {
         when(subscriptionService.findByIdIn(argThat(subscriptionIds::containsAll))).thenReturn(Set.of(subscriptionEntity));
         when(apiKeyRepository.findByKeyAndEnvironmentId(apiKeyToCreate, ENVIRONMENT_ID)).thenReturn(List.of(existingApiKey));
 
-        boolean canCreate = apiKeyService.canCreate(GraviteeContext.getExecutionContext(), apiKeyToCreate, apiId, applicationId);
+        boolean canCreate = apiKeyService.canCreate(
+            GraviteeContext.getExecutionContext(),
+            apiKeyToCreate,
+            apiId,
+            io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
+            applicationId
+        );
 
         assertFalse(canCreate);
     }
@@ -931,7 +955,13 @@ public class ApiKeyServiceTest {
         String apiId = "my-api-id";
         String applicationId = "my-application-id";
         when(apiKeyRepository.findByKeyAndEnvironmentId(apiKeyToCreate, ENVIRONMENT_ID)).thenThrow(TechnicalManagementException.class);
-        apiKeyService.canCreate(GraviteeContext.getExecutionContext(), apiKeyToCreate, apiId, applicationId);
+        apiKeyService.canCreate(
+            GraviteeContext.getExecutionContext(),
+            apiKeyToCreate,
+            apiId,
+            io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
+            applicationId
+        );
     }
 
     @Test(expected = TechnicalManagementException.class)

@@ -134,6 +134,16 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
+    public Optional<ApiKey> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType)
+        throws TechnicalException {
+        return internalApiKeyRepo
+            .findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)
+            .stream()
+            .findFirst()
+            .map(this::toApiKey);
+    }
+
+    @Override
     public Set<ApiKey> findAll() throws TechnicalException {
         return internalApiKeyRepo.findAll().stream().map(this::toApiKey).collect(toSet());
     }
