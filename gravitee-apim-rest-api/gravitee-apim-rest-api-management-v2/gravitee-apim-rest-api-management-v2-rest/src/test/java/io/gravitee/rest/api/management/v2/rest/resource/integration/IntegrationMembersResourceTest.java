@@ -22,12 +22,17 @@ import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.ApiFixtures;
+import fixtures.core.model.IntegrationFixture;
 import fixtures.core.model.LicenseFixtures;
+import inmemory.ApiCrudServiceInMemory;
+import inmemory.IntegrationCrudServiceInMemory;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
@@ -71,6 +76,12 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
     @Autowired
     LicenseManager licenseManager;
 
+    @Autowired
+    ApiCrudServiceInMemory apiCrudServiceInMemory;
+
+    @Autowired
+    IntegrationCrudServiceInMemory integrationCrudServiceInMemory;
+
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/integrations/" + INTEGRATION_ID + "/members";
@@ -93,7 +104,9 @@ public class IntegrationMembersResourceTest extends AbstractResourceTest {
             List.of(BaseUserEntity.builder().id(USER_NAME).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
         );
 
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION)).thenReturn(LicenseFixtures.anEnterpriseLicense());
+        when(licenseManager.getOrganizationLicenseOrPlatform(anyString())).thenReturn(LicenseFixtures.anEnterpriseLicense());
+        integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration()));
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi()));
     }
 
     @AfterEach
