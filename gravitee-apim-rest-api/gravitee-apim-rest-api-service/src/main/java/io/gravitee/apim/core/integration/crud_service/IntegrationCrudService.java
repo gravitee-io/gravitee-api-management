@@ -31,6 +31,10 @@ public interface IntegrationCrudService {
 
     Optional<Integration> findById(String id);
 
+    default Optional<Integration> findByIdAndEnvironment(String id, String environment) {
+        return findById(id).filter(integration -> integration.environmentId().equals(environment));
+    }
+
     <T extends Integration> T update(T integration);
 
     void delete(String id);
