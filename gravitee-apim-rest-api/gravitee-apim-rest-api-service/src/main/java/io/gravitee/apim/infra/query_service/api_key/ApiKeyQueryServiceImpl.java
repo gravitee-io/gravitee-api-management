@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
 import io.gravitee.apim.infra.adapter.ApiKeyAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -80,7 +81,10 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
     @Override
     public Optional<ApiKeyEntity> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType) {
         try {
-            if (!"API".equals(referenceType) && !"API_PRODUCT".equals(referenceType)) {
+            if (
+                !SubscriptionReferenceType.API.name().equals(referenceType) &&
+                !SubscriptionReferenceType.API_PRODUCT.name().equals(referenceType)
+            ) {
                 throw new IllegalArgumentException("Unsupported reference type: " + referenceType);
             }
             return apiKeyRepository

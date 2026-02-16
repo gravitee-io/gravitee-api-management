@@ -37,6 +37,7 @@ import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.model.Application;
@@ -234,6 +235,8 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
         SubscriptionQuery query = new SubscriptionQuery();
         query.setApplications(subscriptionApplicationIds);
         query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED));
+        //TODO: API Product subscriptions should be included in the subscriber count on list
+        query.setReferenceType(GenericPlanEntity.ReferenceType.API);
 
         final Map<String, List<Subscription>> subscriptions = subscriptionService
             .search(executionContext, query)

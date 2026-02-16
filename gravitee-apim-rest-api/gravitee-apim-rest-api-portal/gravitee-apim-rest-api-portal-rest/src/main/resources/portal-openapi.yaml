@@ -4880,8 +4880,17 @@ components:
                     description: Unique identifier of a subscription.
                     type: string
                 api:
-                    description: Subscribed API.
+                    description: Subscribed API (API id; same as reference_id when reference_type is API).
                     type: string
+                reference_id:
+                    description: Reference id (API id or API Product id). Use with reference_type for subscription context.
+                    type: string
+                reference_type:
+                    description: Reference type of the subscription (API or API_PRODUCT). Portal returns API subscriptions only.
+                    type: string
+                    enum:
+                        - API
+                        - API_PRODUCT
                 application:
                     description: Subscribing application.
                     type: string

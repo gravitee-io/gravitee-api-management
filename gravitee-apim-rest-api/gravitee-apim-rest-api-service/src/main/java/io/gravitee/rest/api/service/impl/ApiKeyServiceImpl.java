@@ -34,6 +34,7 @@ import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -575,7 +576,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                         sub.getReferenceType() != null &&
                         referenceId.equals(sub.getReferenceId()) &&
                         referenceType.equals(sub.getReferenceType())) ||
-                    ("API".equals(referenceType) && referenceId.equals(sub.getApi()))
+                    (SubscriptionReferenceType.API.name().equals(referenceType) && referenceId.equals(sub.getApi()))
             );
     }
 

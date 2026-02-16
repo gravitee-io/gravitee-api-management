@@ -22,6 +22,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.management.rest.model.Subscription;
 import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -263,9 +264,9 @@ public class ApplicationSubscriptionResource extends AbstractResource {
         subscription.setReferenceType(subscriptionEntity.getReferenceType());
         if (subscriptionEntity.getReferenceId() != null && subscriptionEntity.getReferenceType() != null) {
             String refType = subscriptionEntity.getReferenceType();
-            if ("API_PRODUCT".equals(refType)) {
+            if (SubscriptionReferenceType.API_PRODUCT.name().equals(refType)) {
                 fetchAndSetSubscriptionApiProduct(executionContext, subscription, subscriptionEntity.getReferenceId());
-            } else if ("API".equals(refType)) {
+            } else if (SubscriptionReferenceType.API.name().equals(refType)) {
                 subscription.setApi(fetchApi(executionContext, subscriptionEntity.getReferenceId()));
             }
         } else if (subscriptionEntity.getApi() != null) {
@@ -335,9 +336,9 @@ public class ApplicationSubscriptionResource extends AbstractResource {
         subscription.setReferenceType(subscriptionEntity.getReferenceType() != null ? subscriptionEntity.getReferenceType().name() : null);
         if (subscriptionEntity.getReferenceId() != null && subscriptionEntity.getReferenceType() != null) {
             String refType = subscriptionEntity.getReferenceType().name();
-            if ("API_PRODUCT".equals(refType)) {
+            if (SubscriptionReferenceType.API_PRODUCT.name().equals(refType)) {
                 fetchAndSetSubscriptionApiProduct(executionContext, subscription, subscriptionEntity.getReferenceId());
-            } else if ("API".equals(refType)) {
+            } else if (SubscriptionReferenceType.API.name().equals(refType)) {
                 subscription.setApi(fetchApi(executionContext, subscriptionEntity.getReferenceId()));
             }
         } else if (subscriptionEntity.getReferenceId() != null) {
@@ -360,7 +361,7 @@ public class ApplicationSubscriptionResource extends AbstractResource {
 
     private void fetchAndSetSubscriptionApiProduct(ExecutionContext executionContext, Subscription subscription, String referenceId) {
         subscriptionService
-            .getReferenceDisplayInfo(executionContext, "API_PRODUCT", referenceId)
+            .getReferenceDisplayInfo(executionContext, SubscriptionReferenceType.API_PRODUCT.name(), referenceId)
             .ifPresent(ref -> {
                 var input = GetApiProductsUseCase.Input.of(
                     executionContext.getEnvironmentId(),

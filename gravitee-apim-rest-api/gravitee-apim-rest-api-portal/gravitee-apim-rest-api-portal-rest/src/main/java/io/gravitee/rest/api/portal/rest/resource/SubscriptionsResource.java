@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
 import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
@@ -162,6 +163,9 @@ public class SubscriptionsResource extends AbstractResource {
         query.setApi(apiId);
         query.setApplication(applicationId);
         query.setStatuses(statuses);
+        if (apiId == null || apiId.isEmpty()) {
+            query.setReferenceType(GenericPlanEntity.ReferenceType.API);
+        }
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (applicationId == null) {

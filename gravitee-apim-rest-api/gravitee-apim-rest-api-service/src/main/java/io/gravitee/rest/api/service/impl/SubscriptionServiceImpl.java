@@ -295,12 +295,12 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
         Set<String> apiIds = subscribedRefKeys
             .stream()
-            .filter(refKey -> !"API_PRODUCT".equals(refKey.refType()))
+            .filter(refKey -> !SubscriptionReferenceType.API_PRODUCT.name().equals(refKey.refType()))
             .map(SubscriptionReferenceKey::refId)
             .collect(toSet());
         Set<String> apiProductIds = subscribedRefKeys
             .stream()
-            .filter(refKey -> "API_PRODUCT".equals(refKey.refType()))
+            .filter(refKey -> SubscriptionReferenceType.API_PRODUCT.name().equals(refKey.refType()))
             .map(SubscriptionReferenceKey::refId)
             .collect(toSet());
 
@@ -329,7 +329,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         return subscribedRefKeys
             .stream()
             .map(refKey ->
-                "API_PRODUCT".equals(refKey.refType())
+                SubscriptionReferenceType.API_PRODUCT.name().equals(refKey.refType())
                     ? toSubscribedRef(apiProductsById.get(refKey.refId()), ApiProduct::getId, ApiProduct::getName)
                     : toSubscribedRef(apisById.get(refKey.refId()), GenericApiEntity::getId, GenericApiEntity::getName)
             )
@@ -357,57 +357,66 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         if (referenceId == null || referenceType == null) {
             return Optional.empty();
         }
+        final SubscriptionReferenceType type;
         try {
-            if ("API_PRODUCT".equals(referenceType)) {
-                return getApiProductReferenceDisplayInfo(executionContext, referenceId);
-            }
-            if ("API".equals(referenceType)) {
-                return getApiReferenceDisplayInfo(executionContext, referenceId);
-            }
+            type = SubscriptionReferenceType.valueOf(referenceType);
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
+        try {
+            return switch (type) {
+                case API_PRODUCT -> getApiProductReferenceDisplayInfo(executionContext, referenceId);
+                case API -> getApiReferenceDisplayInfo(executionContext, referenceId);
+            };
         } catch (Exception e) {
             log.debug("Could not load reference display info for {} {}: {}", referenceType, referenceId, e.getMessage());
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 
     private Optional<ReferenceDisplayInfo> getApiProductReferenceDisplayInfo(ExecutionContext executionContext, String referenceId)
         throws TechnicalException {
         return apiProductsRepository
             .findById(referenceId)
-            .map(apiProduct ->
-                ReferenceDisplayInfo.builder()
+            .map(apiProduct -> {
+                String ownerUserId = getPrimaryOwnerUserIdOrNull(executionContext, apiProduct.getId());
+                return ReferenceDisplayInfo.builder()
                     .id(apiProduct.getId())
                     .name(apiProduct.getName())
                     .version(Objects.requireNonNullElse(apiProduct.getVersion(), ""))
-                    .ownerId(Objects.requireNonNullElse(getPrimaryOwnerUserIdOrNull(executionContext, apiProduct.getId()), ""))
-                    .ownerDisplayName(getPrimaryOwnerDisplayName(executionContext, apiProduct.getId()))
-                    .build()
-            );
+                    .ownerId(Objects.requireNonNullElse(ownerUserId, ""))
+                    .ownerDisplayName(getDisplayNameForUserId(executionContext, ownerUserId))
+                    .build();
+            });
     }
 
     private String getPrimaryOwnerDisplayName(ExecutionContext executionContext, String productId) {
-        String ownerUserId = getPrimaryOwnerUserIdOrNull(executionContext, productId);
-        if (ownerUserId == null) {
+        return getDisplayNameForUserId(executionContext, getPrimaryOwnerUserIdOrNull(executionContext, productId));
+    }
+
+    private String getDisplayNameForUserId(ExecutionContext executionContext, String userId) {
+        if (userId == null) {
             return "";
         }
         try {
-            return Objects.requireNonNullElse(userService.findById(executionContext, ownerUserId).getDisplayName(), "");
+            return Objects.requireNonNullElse(userService.findById(executionContext, userId).getDisplayName(), "");
         } catch (Exception ex) {
-            log.debug("Could not load primary owner for API Product {}", productId, ex);
+            log.debug("Could not load display name for user {}", userId, ex);
             return "";
         }
     }
 
     private Optional<ReferenceDisplayInfo> getApiReferenceDisplayInfo(ExecutionContext executionContext, String referenceId) {
         GenericApiEntity api = apiSearchService.findGenericById(executionContext, referenceId, false, false, false);
+        var primaryOwner = api.getPrimaryOwner();
         return Optional.of(
             ReferenceDisplayInfo.builder()
                 .id(api.getId())
                 .name(api.getName())
                 .version(Objects.requireNonNullElse(api.getApiVersion(), ""))
                 .definitionVersion(api.getDefinitionVersion())
-                .ownerId(api.getPrimaryOwner().getId())
-                .ownerDisplayName(api.getPrimaryOwner().getDisplayName())
+                .ownerId(primaryOwner != null ? primaryOwner.getId() : "")
+                .ownerDisplayName(primaryOwner != null ? primaryOwner.getDisplayName() : "")
                 .build()
         );
     }
@@ -1742,6 +1751,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             if (query.getReferenceType() == GenericPlanEntity.ReferenceType.API) {
                 builder.apis(Collections.singleton(query.getReferenceId()));
             }
+        } else if (
+            query.getReferenceType() != null && query.getReferenceId() == null && (query.getApis() == null || query.getApis().isEmpty())
+        ) {
+            // Filter by reference type only (e.g. Portal: API subscriptions only)
+            builder.referenceType(SubscriptionReferenceType.valueOf(query.getReferenceType().name()));
         } else if (query.getApis() != null && !query.getApis().isEmpty()) {
             builder.referenceIds(query.getApis());
             builder.referenceType(SubscriptionReferenceType.API);
@@ -1955,7 +1969,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .map(withApis -> {
                 Set<String> apiIds = subscriptions
                     .stream()
-                    .filter(sub -> "API".equals(sub.getReferenceType()) && sub.getReferenceId() != null)
+                    .filter(sub -> SubscriptionReferenceType.API.name().equals(sub.getReferenceType()) && sub.getReferenceId() != null)
                     .map(SubscriptionEntity::getReferenceId)
                     .collect(toSet());
                 return apiSearchService
@@ -1969,26 +1983,22 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .map(withApiProducts -> {
                 Set<String> apiProductIds = subscriptions
                     .stream()
-                    .filter(sub -> "API_PRODUCT".equals(sub.getReferenceType()) && sub.getReferenceId() != null)
+                    .filter(
+                        sub -> SubscriptionReferenceType.API_PRODUCT.name().equals(sub.getReferenceType()) && sub.getReferenceId() != null
+                    )
                     .map(SubscriptionEntity::getReferenceId)
                     .collect(toSet());
                 if (apiProductIds.isEmpty()) {
                     return Collections.<String, ApiProduct>emptyMap();
                 }
-                Map<String, ApiProduct> apiProductsByProductId = new HashMap<>();
-                for (String productId : apiProductIds) {
-                    try {
-                        apiProductsRepository
-                            .findById(productId)
-                            .ifPresent(apiProduct -> apiProductsByProductId.put(apiProduct.getId(), apiProduct));
-                    } catch (TechnicalException ex) {
-                        throw new TechnicalManagementException(
-                            "An error occurs while trying to find API Products for subscription metadata",
-                            ex
-                        );
-                    }
+                try {
+                    return apiProductsRepository.findByIds(apiProductIds).stream().collect(toMap(ApiProduct::getId, Function.identity()));
+                } catch (TechnicalException ex) {
+                    throw new TechnicalManagementException(
+                        "An error occurs while trying to find API Products for subscription metadata",
+                        ex
+                    );
                 }
-                return apiProductsByProductId;
             });
         final Optional<Map<String, String>> productIdToPrimaryOwnerDisplayName = apiProductsById.map(products ->
             getProductIdToPrimaryOwnerDisplayNameMap(executionContext, products.keySet())
@@ -2124,7 +2134,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         Map<String, String> primaryOwnerDisplayNameByProductId
     ) {
         if (
-            "API_PRODUCT".equals(subscription.getReferenceType()) &&
+            SubscriptionReferenceType.API_PRODUCT.name().equals(subscription.getReferenceType()) &&
             subscription.getReferenceId() != null &&
             apiProducts.containsKey(subscription.getReferenceId())
         ) {
@@ -2150,6 +2160,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         entity.setId(subscription.getId());
         entity.setReferenceId(subscription.getReferenceId());
         entity.setReferenceType(subscription.getReferenceType() != null ? subscription.getReferenceType().name() : null);
+        entity.setApi(subscription.getApi() != null ? subscription.getApi() : subscription.getReferenceId());
         entity.setPlan(subscription.getPlan());
         entity.setProcessedAt(subscription.getProcessedAt());
         entity.setStatus(SubscriptionStatus.valueOf(subscription.getStatus().name()));
