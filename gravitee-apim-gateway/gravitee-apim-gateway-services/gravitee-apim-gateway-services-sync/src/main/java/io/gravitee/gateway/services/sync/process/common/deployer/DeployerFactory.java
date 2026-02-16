@@ -73,6 +73,8 @@ public class DeployerFactory {
 
     private final ApiProductPlanDefinitionCache apiProductPlanDefinitionCache;
 
+    private final ApiProductSubscriptionRefresher apiProductSubscriptionRefresher;
+
     public SubscriptionDeployer createSubscriptionDeployer() {
         return new SubscriptionDeployer(
             subscriptionService,
@@ -121,6 +123,17 @@ public class DeployerFactory {
     }
 
     public ApiProductDeployer createApiProductDeployer() {
-        return new ApiProductDeployer(apiProductManager, planCache, distributedSyncService, apiProductPlanDefinitionCache);
+        if (apiProductSubscriptionRefresher == null) {
+            throw new IllegalStateException(
+                "ApiProductSubscriptionRefresher is not available. API Product deploy requires repository sync to be enabled."
+            );
+        }
+        return new ApiProductDeployer(
+            apiProductManager,
+            planCache,
+            distributedSyncService,
+            apiProductPlanDefinitionCache,
+            apiProductSubscriptionRefresher
+        );
     }
 }

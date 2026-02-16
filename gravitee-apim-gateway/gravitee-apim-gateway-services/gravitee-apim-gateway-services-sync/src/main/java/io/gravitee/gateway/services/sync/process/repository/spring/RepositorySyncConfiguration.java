@@ -18,9 +18,12 @@ package io.gravitee.gateway.services.sync.process.repository.spring;
 import static io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_BULK_ITEMS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.gateway.api.service.ApiKeyService;
+import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
+import io.gravitee.gateway.services.sync.process.common.deployer.ApiProductSubscriptionRefresher;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.distributed.DistributedSynchronizer;
@@ -327,6 +330,25 @@ public class RepositorySyncConfiguration {
     @Bean
     public ApiProductPlanAppender apiProductPlanAppender(PlanRepository planRepository) {
         return new ApiProductPlanAppender(planRepository);
+    }
+
+    @Bean
+    public ApiProductSubscriptionRefresher apiProductSubscriptionRefresher(
+        SubscriptionRepository subscriptionRepository,
+        ApiKeyRepository apiKeyRepository,
+        SubscriptionMapper subscriptionMapper,
+        ApiKeyMapper apiKeyMapper,
+        SubscriptionService subscriptionService,
+        ApiKeyService apiKeyService
+    ) {
+        return new ApiProductSubscriptionRefresher(
+            subscriptionRepository,
+            apiKeyRepository,
+            subscriptionMapper,
+            apiKeyMapper,
+            subscriptionService,
+            apiKeyService
+        );
     }
 
     @Bean
