@@ -65,6 +65,11 @@
 
 		<!-- Gravitee dependencies -->
 		<dependency>
+			<groupId>io.gravitee.apim.plugin.console</groupId>
+			<artifactId>gravitee-apim-plugin-console-extension-handler</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>io.gravitee.apim.definition</groupId>
 			<artifactId>gravitee-apim-definition-jackson</artifactId>
 			<version>${project.version}</version>

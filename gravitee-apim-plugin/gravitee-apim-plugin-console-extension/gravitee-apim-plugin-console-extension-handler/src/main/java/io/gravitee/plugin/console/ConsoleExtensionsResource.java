@@ -33,7 +33,7 @@ import java.util.List;
  *
  * @author GraviteeSource Team
  */
-@Path("")
+@Path("/extensions")
 public class ConsoleExtensionsResource {
 
     @Inject

@@ -26,7 +26,6 @@ import org.springframework.context.ApplicationContext;
  * @author GraviteeSource Team
  */
 public interface ConsoleExtensionServletFactory {
-
     /**
      * Creates the HTTP servlet that handles requests for this extension.
      *

@@ -57,8 +57,9 @@ public class ConsoleExtensionHandler implements PluginHandler {
                 URLClassLoader classLoader = new URLClassLoader(plugin.dependencies(), getClass().getClassLoader());
                 Class<?> pluginClass = classLoader.loadClass(className);
                 if (ConsoleExtensionServletFactory.class.isAssignableFrom(pluginClass)) {
-                    ConsoleExtensionServletFactory factory =
-                        (ConsoleExtensionServletFactory) pluginClass.getDeclaredConstructor().newInstance();
+                    ConsoleExtensionServletFactory factory = (ConsoleExtensionServletFactory) pluginClass
+                        .getDeclaredConstructor()
+                        .newInstance();
                     consoleExtensionManager.registerServletFactory(plugin.id(), factory);
                 } else {
                     consoleExtensionManager.registerResourceClass(plugin.id(), pluginClass);
