@@ -64,10 +64,7 @@ export async function loadConsoleExtensions(baseURL: string): Promise<void> {
         script.src = scriptUrl;
         script.async = true;
         script.onload = () => resolve();
-        script.onerror = () => {
-          console.warn(`Failed to load console extension: ${ext.id}`);
-          resolve();
-        };
+        script.onerror = () => resolve();
         document.head.appendChild(script);
       });
     });
@@ -75,7 +72,7 @@ export async function loadConsoleExtensions(baseURL: string): Promise<void> {
     await Promise.all(loadPromises);
 
     (window as any).__GRAVITEE_CONSOLE_EXTENSIONS__ = uiExtensions;
-  } catch (e) {
-    console.warn('Failed to load console extensions', e);
+  } catch {
+    // silently ignore — extensions are optional
   }
 }

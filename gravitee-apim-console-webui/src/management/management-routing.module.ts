@@ -24,6 +24,7 @@ import { InstanceDetailsEnvironmentComponent } from './instances/instance-detail
 import { InstanceDetailsMonitoringComponent } from './instances/instance-details/instance-details-monitoring/instance-details-monitoring.component';
 import { EnvAuditComponent } from './audit/env-audit.component';
 import { MessagesComponent } from './messages/messages.component';
+import { PluginContentComponent } from './plugin-content/plugin-content.component';
 
 import { TasksComponent } from '../user/tasks/tasks.component';
 import { UserComponent } from '../user/my-accout/user.component';
@@ -31,7 +32,6 @@ import { ApimFeature } from '../shared/components/gio-license/gio-license-data';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
 import { PermissionGuard } from '../shared/components/gio-permission/gio-permission.guard';
 import { ApiScoringGuard } from '../shared/guards/api-scoring.guard';
-import { PluginContentComponent } from './plugin-content/plugin-content.component';
 
 const managementRoutes: Routes = [
   {
