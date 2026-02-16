@@ -322,7 +322,8 @@ describe('API - Plan', () => {
 
       let foundSubscription = find(foundSubscriptions.data, (sub) => sub.id === createdSubscription.id);
       expect(foundSubscription).toBeTruthy();
-      expect(foundSubscription.api).toBe(createdApi.id);
+      expect(foundSubscription.referenceId).toBe(createdApi.id);
+      expect(foundSubscription.referenceType).toBe('API');
       expect(foundSubscription.application).toBe(createdApplication.id);
       expect(foundSubscription.plan).toBe(createdPlan.id);
     });
