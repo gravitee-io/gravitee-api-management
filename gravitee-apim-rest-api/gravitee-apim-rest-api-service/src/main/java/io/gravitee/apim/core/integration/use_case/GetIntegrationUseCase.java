@@ -50,7 +50,9 @@ public class GetIntegrationUseCase {
             throw noLicenseForFederation();
         }
 
-        var integration = integrationCrudService.findById(integrationId).orElseThrow(() -> new IntegrationNotFoundException(integrationId));
+        var integration = integrationCrudService
+            .findByIdAndEnvironment(integrationId, input.environmentId())
+            .orElseThrow(() -> new IntegrationNotFoundException(integrationId));
         var primaryOwner = integrationPrimaryOwnerDomainService
             .getIntegrationPrimaryOwner(input.organizationId(), integration.id())
             .map(po -> new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName()))
@@ -73,7 +75,7 @@ public class GetIntegrationUseCase {
     }
 
     @Builder
-    public record Input(String integrationId, String organizationId) {}
+    public record Input(String integrationId, String organizationId, String environmentId) {}
 
     public record Output(IntegrationView integration) {}
 }
