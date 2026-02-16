@@ -51,7 +51,7 @@ public class GetIntegrationUseCase {
         }
 
         Integration integration = integrationCrudService
-            .findById(integrationId)
+            .findByIdAndEnvironment(integrationId, input.environmentId())
             .orElseThrow(() -> new IntegrationNotFoundException(integrationId));
 
         var agentStatus = integrationAgent
@@ -70,7 +70,7 @@ public class GetIntegrationUseCase {
     }
 
     @Builder
-    public record Input(String integrationId, String organizationId) {}
+    public record Input(String integrationId, String organizationId, String environmentId) {}
 
     public record Output(IntegrationView integration) {}
 }

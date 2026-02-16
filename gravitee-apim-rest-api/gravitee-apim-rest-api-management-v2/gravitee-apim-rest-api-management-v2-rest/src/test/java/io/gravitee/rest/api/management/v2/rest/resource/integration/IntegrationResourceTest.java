@@ -20,6 +20,7 @@ import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponseApisInner.StateEnum.NEW;
 import static io.gravitee.rest.api.management.v2.rest.resource.integration.IntegrationsResourceTest.INTEGRATION_PROVIDER;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -124,7 +125,9 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             List.of(BaseUserEntity.builder().id(USER_NAME).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
         );
 
-        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION)).thenReturn(LicenseFixtures.anEnterpriseLicense());
+        when(licenseManager.getOrganizationLicenseOrPlatform(anyString())).thenReturn(LicenseFixtures.anEnterpriseLicense());
+        integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration()));
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi()));
     }
 
     @AfterEach
@@ -219,6 +222,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         @Test
         public void should_throw_error_when_integration_not_found() {
             //Given
+            integrationCrudServiceInMemory.reset();
             //When
             Response response = target.request().get();
 
@@ -271,6 +275,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         @Test
         public void should_throw_error_when_integration_not_found() {
             //Given
+            integrationCrudServiceInMemory.reset();
             var entity = Entity.entity(new ApisIngest(), MediaType.APPLICATION_JSON_TYPE);
 
             //When
@@ -368,6 +373,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         @Test
         public void should_throw_error_when_integration_to_update_not_found() {
             //Given
+            integrationCrudServiceInMemory.reset();
             var updatedName = "updated-name";
             var updatedDescription = "updated-description";
 
@@ -431,6 +437,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         public void should_delete_integration() {
             //Given
             integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration()));
+            apiCrudServiceInMemory.reset();
             //When
             Response response = target.request().delete();
 
@@ -441,6 +448,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_404_when_integration_to_delete_not_found() {
+            integrationCrudServiceInMemory.reset();
             Response response = target.request().delete();
 
             assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
