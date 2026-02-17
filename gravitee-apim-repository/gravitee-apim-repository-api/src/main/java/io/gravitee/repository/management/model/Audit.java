@@ -80,6 +80,7 @@ public class Audit {
         SHARED_POLICY_GROUP,
         CLUSTER,
         API_PRODUCT,
+        CLIENT_CERTIFICATE,
     }
 
     private String id;
