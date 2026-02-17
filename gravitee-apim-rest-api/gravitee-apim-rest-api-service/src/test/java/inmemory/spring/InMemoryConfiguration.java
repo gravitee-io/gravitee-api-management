@@ -545,9 +545,4 @@ public class InMemoryConfiguration {
     public SubscriptionFormQueryServiceInMemory subscriptionFormQueryService() {
         return new SubscriptionFormQueryServiceInMemory();
     }
-
-    @Bean
-    public HtmlAttributeParserInMemory htmlAttributeParser() {
-        return new HtmlAttributeParserInMemory();
-    }
 }
