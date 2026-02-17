@@ -68,6 +68,10 @@ export class SubscriptionService {
     return this.http.put<Subscription>(`${this.configService.baseURL}/subscriptions/${subscriptionId}`, updatedSubscription);
   }
 
+  close(subscriptionId: string) {
+    return this.http.post<void>(`${this.configService.baseURL}/subscriptions/${subscriptionId}/_close`, null);
+  }
+
   resumeConsumerStatus(subscriptionId: string): Observable<Subscription> {
     return this.http.post<Subscription>(`${this.configService.baseURL}/subscriptions/${subscriptionId}/_resumeFailure`, null);
   }
