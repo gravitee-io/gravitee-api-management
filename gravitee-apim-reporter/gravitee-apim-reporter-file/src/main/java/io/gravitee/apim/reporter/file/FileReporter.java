@@ -27,16 +27,14 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class FileReporter extends AbstractService<Reporter> implements Reporter {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileReporter.class);
 
     private final FileReporterConfiguration configuration;
 
@@ -83,9 +81,9 @@ public class FileReporter extends AbstractService<Reporter> implements Reporter 
 
             Future.join(writers.values().stream().map(VertxFileWriter::initialize).toList()).onComplete(event -> {
                 if (event.succeeded()) {
-                    LOGGER.info("File reporter successfully started");
+                    log.info("File reporter successfully started");
                 } else {
-                    LOGGER.info("An error occurs while starting file reporter", event.cause());
+                    log.error("An error occurs while starting file reporter", event.cause());
                 }
             });
         }
@@ -96,9 +94,9 @@ public class FileReporter extends AbstractService<Reporter> implements Reporter 
         if (configuration.isEnabled()) {
             Future.join(writers.values().stream().map(VertxFileWriter::stop).toList()).onComplete(event -> {
                 if (event.succeeded()) {
-                    LOGGER.info("File reporter successfully stopped");
+                    log.info("File reporter successfully stopped");
                 } else {
-                    LOGGER.info("An error occurs while stopping file reporter", event.cause());
+                    log.error("An error occurs while stopping file reporter", event.cause());
                 }
             });
         }

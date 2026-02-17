@@ -21,14 +21,14 @@ import io.gravitee.apim.reporter.common.bulk.sender.BulkSender;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.elasticsearch.client.Client;
 import io.reactivex.rxjava3.core.Completable;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 public class ElasticBulkSender extends AbstractService<BulkSender> implements BulkSender {
 

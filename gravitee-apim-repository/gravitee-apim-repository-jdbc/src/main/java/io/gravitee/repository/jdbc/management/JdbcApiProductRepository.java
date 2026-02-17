@@ -24,14 +24,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
 @Repository
-@Slf4j
+@CustomLog
 public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProduct, String> implements ApiProductsRepository {
 
     private final String API_PRODUCT_APIS;

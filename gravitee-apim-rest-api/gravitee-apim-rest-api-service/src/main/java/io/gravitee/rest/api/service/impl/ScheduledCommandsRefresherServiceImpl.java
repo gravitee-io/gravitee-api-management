@@ -32,7 +32,7 @@ import io.gravitee.rest.api.service.ScheduledCommandService;
 import io.gravitee.rest.api.service.event.CommandEvent;
 import java.util.Arrays;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @Component
 public class ScheduledCommandsRefresherServiceImpl
     extends AbstractService<ScheduledCommandsRefresherServiceImpl>
