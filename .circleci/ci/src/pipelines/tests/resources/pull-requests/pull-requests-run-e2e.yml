@@ -525,6 +525,13 @@ jobs:
           name: Test APIM Libs (affected)
           command: yarn nx affected -t test --exclude=console,portal-next --coverage --maxWorkers=2
       - cmd-notify-on-failure
+      - run:
+          name: Ensure coverage files exist
+          command: |-
+            mkdir -p gravitee-apim-webui-libs/gravitee-markdown/coverage
+            mkdir -p gravitee-apim-webui-libs/gravitee-dashboard/coverage
+            touch gravitee-apim-webui-libs/gravitee-markdown/coverage/lcov.info
+            touch gravitee-apim-webui-libs/gravitee-dashboard/coverage/lcov.info
       - persist_to_workspace:
           root: .
           paths:
