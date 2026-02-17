@@ -50,4 +50,15 @@ describe('SubscriptionService', () => {
 
     req.flush(subscriptionResponse);
   });
+
+  it('should close subscription', done => {
+    service.close('subscriptionId').subscribe(() => {
+      done();
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/subscriptions/subscriptionId/_close`);
+    expect(req.request.method).toEqual('POST');
+
+    req.flush(null);
+  });
 });
