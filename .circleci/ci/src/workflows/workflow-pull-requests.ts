@@ -393,15 +393,10 @@ export class PullRequestsWorkflow {
       );
     }
 
-    if (!filterJobs || shouldBuildPortal(environment.changedFiles)) {
+    // Lint & Test APIM Portal Next
+    if (!filterJobs || shouldBuildPortalNext(environment.changedFiles)) {
       const webuiLintTestJobNx = WebuiLintTestJob.createNx(dynamicConfig, environment);
       dynamicConfig.addJob(webuiLintTestJobNx);
-
-      const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig, environment);
-      dynamicConfig.addJob(webuiLintTestJob);
-
-      const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
-      dynamicConfig.addJob(portalWebuiBuildJob);
 
       const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(sonarCloudAnalysisJob);
@@ -414,6 +409,28 @@ export class PullRequestsWorkflow {
           'nx-project': 'portal-next',
           'max-workers': '2',
         }),
+        new workflow.WorkflowJob(sonarCloudAnalysisJob, {
+          name: 'Sonar - gravitee-apim-portal-webui-next',
+          context: config.jobContext,
+          requires: ['Lint & test APIM Portal Next'],
+          working_directory: config.components.portal.next.project,
+          cache_type: 'frontend',
+        }),
+      );
+      requires.push('Lint & test APIM Portal Next');
+    }
+
+    if (!filterJobs || shouldBuildPortal(environment.changedFiles)) {
+      const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(webuiLintTestJob);
+
+      const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(portalWebuiBuildJob);
+
+      const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(sonarCloudAnalysisJob);
+
+      jobs.push(
         new workflow.WorkflowJob(webuiLintTestJob, {
           name: 'Lint & test APIM Portal',
           context: config.jobContext,
@@ -425,7 +442,7 @@ export class PullRequestsWorkflow {
           context: config.jobContext,
         }),
       );
-      requires.push('Lint & test APIM Portal', 'Lint & test APIM Portal Next', 'Build APIM Portal');
+      requires.push('Lint & test APIM Portal', 'Build APIM Portal');
 
       if (shouldBuildDockerImages) {
         const buildDockerWebUiImageJob = BuildDockerWebUiImageJob.create(dynamicConfig, environment, false);
@@ -450,13 +467,6 @@ export class PullRequestsWorkflow {
           context: config.jobContext,
           requires: ['Lint & test APIM Portal'],
           working_directory: config.components.portal.project,
-          cache_type: 'frontend',
-        }),
-        new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-          name: 'Sonar - gravitee-apim-portal-webui-next',
-          context: config.jobContext,
-          requires: ['Lint & test APIM Portal Next'],
-          working_directory: config.components.portal.next.project,
           cache_type: 'frontend',
         }),
       );
@@ -662,7 +672,19 @@ function shouldBuildWebuiLibs(changedFiles: string[]): boolean {
 }
 
 function shouldBuildConsole(changedFiles: string[]): boolean {
-  return shouldBuildAll(changedFiles) || changedFiles.some((file) => file.includes(config.components.console.project));
+  return (
+    shouldBuildAll(changedFiles) ||
+    changedFiles.some((file) => file.includes(config.components.console.project)) ||
+    changedFiles.some((file) => file.includes('gravitee-apim-webui-libs'))
+  );
+}
+
+function shouldBuildPortalNext(changedFiles: string[]): boolean {
+  return (
+    shouldBuildAll(changedFiles) ||
+    changedFiles.some((file) => file.includes(config.components.portal.next.project)) ||
+    changedFiles.some((file) => file.includes('gravitee-apim-webui-libs'))
+  );
 }
 
 function shouldBuildPortal(changedFiles: string[]): boolean {
