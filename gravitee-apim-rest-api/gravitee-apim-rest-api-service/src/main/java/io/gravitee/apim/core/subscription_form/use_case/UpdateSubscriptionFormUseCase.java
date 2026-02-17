@@ -16,8 +16,8 @@
 package io.gravitee.apim.core.subscription_form.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.subscription_form.crud_service.SubscriptionFormCrudService;
-import io.gravitee.apim.core.subscription_form.domain_service.ValidateSubscriptionFormDomainService;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
@@ -39,10 +39,10 @@ public class UpdateSubscriptionFormUseCase {
 
     private final SubscriptionFormCrudService subscriptionFormCrudService;
     private final SubscriptionFormQueryService subscriptionFormQueryService;
-    private final ValidateSubscriptionFormDomainService validateSubscriptionFormDomainService;
+    private final GraviteeMarkdownValidator graviteeMarkdownValidator;
 
     public Output execute(Input input) {
-        validateSubscriptionFormDomainService.validateContent(input.gmdContent());
+        graviteeMarkdownValidator.validateNotEmpty(input::gmdContent);
 
         var existingForm = subscriptionFormQueryService
             .findByIdAndEnvironmentId(input.environmentId(), input.subscriptionFormId())
