@@ -507,6 +507,20 @@ jobs:
           root: .
           paths:
             - gravitee-apim-repository/gravitee-apim-repository-coverage/target/site/jacoco-aggregate/
+  job-nx-format-check:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: medium
+    steps:
+      - checkout
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check prettier formatting for nx projects
+          command: yarn prettier
+      - cmd-notify-on-failure
   job-webui-libs-lint-test:
     docker:
       - image: cimg/node:22.12.0
@@ -1428,6 +1442,10 @@ workflows:
             - Test repository
           working_directory: gravitee-apim-repository
           cache_type: backend
+      - job-nx-format-check:
+          name: Check prettier formatting for nx projects
+          context:
+            - cicd-orchestrator
       - job-webui-libs-lint-test:
           name: Lint & test APIM Libs
           context:
@@ -1492,6 +1510,14 @@ workflows:
             - cicd-orchestrator
           apim-ui-project: gravitee-apim-portal-webui
           resource_class: large
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-portal-webui
+          context:
+            - cicd-orchestrator
+          requires:
+            - Lint & test APIM Portal
+          working_directory: gravitee-apim-portal-webui
+          cache_type: frontend
       - job-portal-webui-build:
           name: Build APIM Portal
           context:
@@ -1505,14 +1531,6 @@ workflows:
           apim-project: gravitee-apim-portal-webui
           docker-context: .
           docker-image-name: apim-portal-ui
-      - job-sonarcloud-analysis:
-          name: Sonar - gravitee-apim-portal-webui
-          context:
-            - cicd-orchestrator
-          requires:
-            - Lint & test APIM Portal
-          working_directory: gravitee-apim-portal-webui
-          cache_type: frontend
       - job-build-docker-backend-image:
           context:
             - cicd-orchestrator

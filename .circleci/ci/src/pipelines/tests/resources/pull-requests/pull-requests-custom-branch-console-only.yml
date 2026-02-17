@@ -101,6 +101,20 @@ jobs:
       - run:
           name: Run Danger JS
           command: cd .circleci/danger && yarn install && yarn run danger
+  job-nx-format-check:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: medium
+    steps:
+      - checkout
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check prettier formatting for nx projects
+          command: yarn prettier
+      - cmd-notify-on-failure
   job-nx-webui-lint-test:
     parameters:
       apim-ui-project:
@@ -302,6 +316,10 @@ workflows:
           name: Run Danger JS
           context:
             - cicd-orchestrator
+      - job-nx-format-check:
+          name: Check prettier formatting for nx projects
+          context:
+            - cicd-orchestrator
       - job-nx-webui-lint-test:
           name: Lint & test APIM Console
           context:
@@ -335,6 +353,7 @@ workflows:
       - job-validate-workflow-status:
           name: Validate workflow status
           requires:
+            - Check prettier formatting for nx projects
             - Lint & test APIM Console
             - Build APIM Console
 orbs:

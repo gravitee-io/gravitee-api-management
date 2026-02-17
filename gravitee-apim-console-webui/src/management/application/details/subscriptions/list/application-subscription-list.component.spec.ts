@@ -301,7 +301,7 @@ describe('ApplicationSubscriptionListComponent', () => {
 
     expectSubscriptionsGetRequest(subscriptions, params?.status?.split(','), params?.apis?.split(','), params?.apiKey);
     expectApplicationGetRequest(APP);
-    subscriptions.forEach((subscription) => {
+    subscriptions.forEach(subscription => {
       if (subscription.referenceType !== 'API_PRODUCT' && subscription.api) {
         expectApiGetRequest(fakeProxyApiV4({ id: subscription.api, name: 'api', primaryOwner: { displayName: 'PO' } }));
       }
@@ -310,13 +310,13 @@ describe('ApplicationSubscriptionListComponent', () => {
 
   const expectSubscriptionsGetRequest = (subscriptions: SubscriptionPage[] = [], status?: string[], apis?: string[], apiKey?: string) => {
     const metadataKey = (sub: SubscriptionPage) => (sub.referenceType === 'API_PRODUCT' ? sub.referenceId : (sub.api ?? sub.referenceId));
-    const planMetadata = Object.fromEntries(subscriptions?.map((sub) => [sub.plan, { name: 'Plan Name', securityType: 'API_KEY' }]) ?? []);
+    const planMetadata = Object.fromEntries(subscriptions?.map(sub => [sub.plan, { name: 'Plan Name', securityType: 'API_KEY' }]) ?? []);
     const apiMetadataEntries = (subscriptions ?? [])
-      .map((sub) => {
+      .map(sub => {
         const key = metadataKey(sub);
         return key ? [key, { name: 'Api Name', apiVersion: '1', apiPrimaryOwner: 'PO' }] : null;
       })
-      .filter((e) => e != null) as [string, { name: string; apiVersion: string; apiPrimaryOwner: string }][];
+      .filter(e => e != null) as [string, { name: string; apiVersion: string; apiPrimaryOwner: string }][];
     const apiMetadata = Object.fromEntries(apiMetadataEntries);
     httpTestingController
       .expectOne({
