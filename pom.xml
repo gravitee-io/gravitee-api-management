@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>23.5.0</version>
+        <version>24.0.0-alpha.1</version>
     </parent>
 
     <groupId>io.gravitee.apim</groupId>
@@ -399,6 +399,34 @@
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>io.gravitee.maven</groupId>
+                <artifactId>gravitee-archrules-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>global-logging-check</id>
+                        <configuration>
+                            <packagesToExclude>
+<!--                                Exclude Gateway Test SDK from scan, it is not necessary to force a particular logger here-->
+                                <package>io.gravitee.apim.gateway.tests.sdk..</package>
+                            </packagesToExclude>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>execution-context-logging-check</id>
+                        <configuration>
+                            <allowListSuffixes>
+<!--                                Some configuration classes are generated without the compliant Logger, allow them during the migration-->
+                                <suffix>ConfigurationEvaluator</suffix>
+                            </allowListSuffixes>
+                            <ignoreExecutionContextClasses>
+<!--                                Management API declare an ExecutionContext that does not interest us for logging purpose -->
+                                <ignoreExecutionContextClass>io.gravitee.rest.api.service.common.ExecutionContext</ignoreExecutionContextClass>
+                            </ignoreExecutionContextClasses>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>com.hubspot.maven.plugins</groupId>
                 <artifactId>prettier-maven-plugin</artifactId>
