@@ -16,7 +16,6 @@
 @use '@gravitee/gravitee-markdown' as gmd;
 @use './theme' as theme;
 
-
 :root {
   @include gmd.theme-overrides((container-shape: theme.$container-shape,
       primary-color: theme.$primary-main-color,
