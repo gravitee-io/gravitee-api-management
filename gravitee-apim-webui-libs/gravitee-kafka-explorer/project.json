@@ -1,0 +1,60 @@
+{
+  "name": "kafka-explorer",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "gravitee-apim-webui-libs/gravitee-kafka-explorer/src",
+  "prefix": "gio",
+  "targets": {
+    "build": {
+      "executor": "@angular-devkit/build-angular:ng-packagr",
+      "outputs": ["{workspaceRoot}/dist/@gravitee/gravitee-kafka-explorer"],
+      "options": {
+        "project": "gravitee-apim-webui-libs/gravitee-kafka-explorer/ng-package.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "gravitee-apim-webui-libs/gravitee-kafka-explorer/tsconfig.lib.prod.json"
+        },
+        "development": {
+          "tsConfig": "gravitee-apim-webui-libs/gravitee-kafka-explorer/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "options": {
+        "jestConfig": "gravitee-apim-webui-libs/gravitee-kafka-explorer/jest.config.js",
+        "passWithNoTests": true
+      },
+      "outputs": ["{workspaceRoot}/coverage/gravitee-kafka-explorer"]
+    },
+    "lint": {},
+    "lint-eslint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["gravitee-apim-webui-libs/gravitee-kafka-explorer/**/*.ts"]
+      }
+    },
+    "lint-license": {},
+    "storybook": {
+      "executor": "@storybook/angular:start-storybook",
+      "options": {
+        "configDir": "gravitee-apim-webui-libs/gravitee-kafka-explorer/.storybook",
+        "browserTarget": "kafka-explorer:build",
+        "compodoc": false,
+        "port": 6009
+      }
+    },
+    "build-storybook": {
+      "executor": "@storybook/angular:build-storybook",
+      "options": {
+        "configDir": "gravitee-apim-webui-libs/gravitee-kafka-explorer/.storybook",
+        "browserTarget": "kafka-explorer:build",
+        "compodoc": false,
+        "outputDir": "gravitee-apim-webui-libs/gravitee-kafka-explorer/storybook-static"
+      }
+    }
+  },
+  "tags": ["type:lib", "scope:shared"]
+}

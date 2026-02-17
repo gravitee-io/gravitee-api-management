@@ -1,0 +1,38 @@
+{
+  "extends": "../.eslintrc.json",
+  "ignorePatterns": ["!**/*", ".storybook"],
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "parserOptions": {
+        "project": [
+          "gravitee-apim-webui-libs/gravitee-kafka-explorer/tsconfig.lib.json",
+          "gravitee-apim-webui-libs/gravitee-kafka-explorer/tsconfig.spec.json"
+        ],
+        "createDefaultProgram": true
+      },
+      "rules": {
+        "@angular-eslint/directive-selector": [
+          "error",
+          {
+            "type": "attribute",
+            "prefix": "gke",
+            "style": "camelCase"
+          }
+        ],
+        "@angular-eslint/component-selector": [
+          "error",
+          {
+            "type": "element",
+            "prefix": "gke",
+            "style": "kebab-case"
+          }
+        ]
+      }
+    },
+    {
+      "files": ["*.html"],
+      "rules": {}
+    }
+  ]
+}
