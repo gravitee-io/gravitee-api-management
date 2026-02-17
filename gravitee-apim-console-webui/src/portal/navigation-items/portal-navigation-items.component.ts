@@ -66,6 +66,7 @@ import { PortalPageContentService } from '../../services-ngx/portal-page-content
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
+import { PortalNavigationItemIconPipe } from '../icon/portal-navigation-item-icon.pipe';
 
 @Component({
   selector: 'portal-navigation-items',
@@ -88,6 +89,7 @@ import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/cont
     MatCardModule,
     NgTemplateOutlet,
     TitleCasePipe,
+    PortalNavigationItemIconPipe,
   ],
 })
 export class PortalNavigationItemsComponent implements HasUnsavedChanges {
@@ -189,7 +191,6 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   onAddSection(sectionType: PortalNavigationItemType) {
     this.checkUnsavedChangesAndRun(() => {
       if (sectionType === 'API') {
-        this.manageApiSection();
         return;
       }
       this.manageSection(sectionType, 'create', 'TOP_NAVBAR');
