@@ -22,7 +22,7 @@ import io.gravitee.node.api.upgrader.UpgraderRepository;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
-import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.media.api.MediaRepository;

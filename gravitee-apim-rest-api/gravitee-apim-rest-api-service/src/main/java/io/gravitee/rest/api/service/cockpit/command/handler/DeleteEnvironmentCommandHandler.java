@@ -29,6 +29,7 @@ import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.ApiCategoryOrderRepository;
 import io.gravitee.repository.management.api.ApiHeaderRepository;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -126,6 +127,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final ApiCategoryOrderRepository apiCategoryOrderRepository;
     private final ApiHeaderRepository apiHeaderRepository;
     private final ApiKeyRepository apiKeyRepository;
+    private final ApiProductsRepository apiProductsRepository;
     private final ApiQualityRuleRepository apiQualityRuleRepository;
     private final ApiRepository apiRepository;
     private final ApiStateService apiStateService;
@@ -185,6 +187,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy ApiCategoryOrderRepository apiCategoryOrderRepository,
         @Lazy ApiHeaderRepository apiHeaderRepository,
         @Lazy ApiKeyRepository apiKeyRepository,
+        @Lazy ApiProductsRepository apiProductsRepository,
         @Lazy ApiQualityRuleRepository apiQualityRuleRepository,
         @Lazy ApiRepository apiRepository,
         @Lazy ApplicationRepository applicationRepository,
@@ -247,6 +250,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.apiCategoryOrderRepository = apiCategoryOrderRepository;
         this.apiHeaderRepository = apiHeaderRepository;
         this.apiKeyRepository = apiKeyRepository;
+        this.apiProductsRepository = apiProductsRepository;
         this.apiQualityRuleRepository = apiQualityRuleRepository;
         this.apiRepository = apiRepository;
         this.apiStateService = apiStateService;
@@ -362,6 +366,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
 
     private void deleteEnvironment(ExecutionContext executionContext, EnvironmentEntity environment) throws TechnicalException {
         deleteApis(executionContext);
+        deleteApiProducts(executionContext.getEnvironmentId());
         deleteApplications(executionContext);
         deletePages(executionContext, PageReferenceType.ENVIRONMENT, environment.getId());
         subscriptionRepository.deleteByEnvironmentId(environment.getId());
@@ -486,6 +491,18 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
                     ticketRepository.deleteByApiId(apiId);
                     workflowRepository.deleteByReferenceIdAndReferenceType(apiId, Workflow.ReferenceType.API.name());
                     deleteRatings(apiId, RatingReferenceType.API);
+                } catch (TechnicalException e) {
+                    throw new TechnicalManagementException(e);
+                }
+            });
+    }
+
+    private void deleteApiProducts(String environmentId) throws TechnicalException {
+        apiProductsRepository
+            .findByEnvironmentId(environmentId)
+            .forEach(apiProduct -> {
+                try {
+                    apiProductsRepository.delete(apiProduct.getId());
                 } catch (TechnicalException e) {
                     throw new TechnicalManagementException(e);
                 }

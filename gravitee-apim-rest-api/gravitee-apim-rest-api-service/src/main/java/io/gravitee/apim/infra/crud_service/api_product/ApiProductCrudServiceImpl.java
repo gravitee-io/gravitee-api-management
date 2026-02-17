@@ -15,14 +15,13 @@
  */
 package io.gravitee.apim.infra.crud_service.api_product;
 
-import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.ApiProductAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
 import lombok.extern.slf4j.Slf4j;

@@ -20,8 +20,8 @@ import io.gravitee.apim.core.plan.query_service.ApiProductPlanSearchQueryService
 import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
 import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;

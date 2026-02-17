@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,6 +33,7 @@ import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.ApiCategoryOrderRepository;
 import io.gravitee.repository.management.api.ApiHeaderRepository;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -82,6 +84,7 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.CustomUserFieldReferenceType;
 import io.gravitee.repository.management.model.DashboardReferenceType;
@@ -152,6 +155,8 @@ public class DeleteEnvironmentCommandHandlerTest {
     private static final String SUBSCRIPTION_ID_1 = "subscription#1";
     private static final String SUBSCRIPTION_ID_2 = "subscription#2";
     private static final String PAGE_CONTENT_ID = "page-content-id";
+    private static final String API_PRODUCT_ID_1 = "api-product#1";
+    private static final String API_PRODUCT_ID_2 = "api-product#2";
 
     @Mock
     private AccessPointRepository accessPointRepository;
@@ -170,6 +175,9 @@ public class DeleteEnvironmentCommandHandlerTest {
 
     @Mock
     private ApiKeyRepository apiKeyRepository;
+
+    @Mock
+    private ApiProductsRepository apiProductsRepository;
 
     @Mock
     private PlanRepository planRepository;
@@ -366,6 +374,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             )
         ).thenReturn(List.of(api1, api2));
 
+        when(apiProductsRepository.findByEnvironmentId(anyString())).thenReturn(Collections.emptySet());
         when(apiRepository.deleteByEnvironmentId(ENV_ID)).thenReturn(List.of(API_ID_1, API_ID_2));
         when(pageRepository.deleteByReferenceIdAndReferenceType(ENV_ID, PageReferenceType.ENVIRONMENT)).thenReturn(
             Map.of(ENV_ID, Collections.emptyList())
@@ -412,6 +421,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             apiCategoryOrderRepository,
             apiHeaderRepository,
             apiKeyRepository,
+            apiProductsRepository,
             apiQualityRuleRepository,
             apiRepository,
             applicationRepository,
@@ -560,6 +570,35 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(clientRegistrationProviderRepository).deleteByEnvironmentId(ENV_ID);
         verify(qualityRuleRepository).deleteByReferenceIdAndReferenceType(ENV_ID, QualityRule.ReferenceType.ENVIRONMENT);
         verify(clusterRepository).deleteByEnvironmentId(ENV_ID);
+    }
+
+    @Test
+    public void should_delete_all_api_products_in_environment() throws TechnicalException {
+        ApiProduct apiProduct1 = ApiProduct.builder().id(API_PRODUCT_ID_1).environmentId(ENV_ID).name("Product 1").build();
+        ApiProduct apiProduct2 = ApiProduct.builder().id(API_PRODUCT_ID_2).environmentId(ENV_ID).name("Product 2").build();
+        when(apiProductsRepository.findByEnvironmentId(ENV_ID)).thenReturn(Set.of(apiProduct1, apiProduct2));
+
+        DeleteEnvironmentReply reply = cut
+            .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-env", ENV_ID, COCKPIT_USER_ID)))
+            .blockingGet();
+
+        assertEquals(CommandStatus.SUCCEEDED, reply.getCommandStatus());
+        verify(apiProductsRepository).findByEnvironmentId(ENV_ID);
+        verify(apiProductsRepository).delete(API_PRODUCT_ID_1);
+        verify(apiProductsRepository).delete(API_PRODUCT_ID_2);
+    }
+
+    @Test
+    public void should_fail_when_delete_api_product_throws() throws TechnicalException {
+        ApiProduct apiProduct = ApiProduct.builder().id(API_PRODUCT_ID_1).environmentId(ENV_ID).name("Product 1").build();
+        when(apiProductsRepository.findByEnvironmentId(ENV_ID)).thenReturn(Set.of(apiProduct));
+        org.mockito.Mockito.doThrow(new TechnicalException("delete failed")).when(apiProductsRepository).delete(API_PRODUCT_ID_1);
+
+        DeleteEnvironmentReply reply = cut
+            .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-env", ENV_ID, COCKPIT_USER_ID)))
+            .blockingGet();
+
+        assertEquals(CommandStatus.ERROR, reply.getCommandStatus());
     }
 
     @Test

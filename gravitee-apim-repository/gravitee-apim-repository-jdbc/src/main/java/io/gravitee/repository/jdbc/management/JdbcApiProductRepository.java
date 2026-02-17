@@ -17,7 +17,7 @@ package io.gravitee.repository.jdbc.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.model.ApiProduct;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
