@@ -54,7 +54,7 @@
       [class.selected]="isSelected(node)"
     >
       <div *cdkDragPreview class="tree__drag-preview">
-        <mat-icon [svgIcon]="'gio:' + (node.type | lowercase)"></mat-icon>
+        <mat-icon [svgIcon]="node.type | portalNavigationItemIcon"></mat-icon>
         {{ node.label }}
       </div>
       <div *cdkDragPlaceholder class="tree__drag-placeholder"></div>
@@ -78,7 +78,7 @@
       [class.selected]="isSelected(node)"
     >
       <div *cdkDragPreview class="tree__drag-preview">
-        <mat-icon [svgIcon]="'gio:' + (node.type | lowercase)"></mat-icon>
+        <mat-icon [svgIcon]="node.type | portalNavigationItemIcon"></mat-icon>
         {{ node.label }}
       </div>
       <div *cdkDragPlaceholder class="tree__drag-placeholder"></div>
@@ -98,7 +98,7 @@
     <mat-icon
       class="tree__icon tree__icon__type"
       [attr.data-test-type]="node.type"
-      svgIcon="gio:{{ node.type | lowercase }}"
+      [svgIcon]="node.type | portalNavigationItemIcon"
       aria-hidden="true"
     ></mat-icon>
 
@@ -128,19 +128,19 @@
       @if (node.type === 'FOLDER') {
         @if (canCreate) {
           <button mat-menu-item (click)="onCreate(node, 'PAGE')">
-            <mat-icon svgIcon="gio:page"></mat-icon>
+            <mat-icon [svgIcon]="'PAGE' | portalNavigationItemIcon"></mat-icon>
             Add Page
           </button>
           <button mat-menu-item (click)="onCreate(node, 'API')">
-            <mat-icon svgIcon="gio:folder-api"></mat-icon>
+            <mat-icon [svgIcon]="'API' | portalNavigationItemIcon"></mat-icon>
             Add API
           </button>
           <button mat-menu-item (click)="onCreate(node, 'FOLDER')">
-            <mat-icon svgIcon="gio:folder"></mat-icon>
+            <mat-icon [svgIcon]="'FOLDER' | portalNavigationItemIcon"></mat-icon>
             Add Folder
           </button>
           <button mat-menu-item (click)="onCreate(node, 'LINK')">
-            <mat-icon svgIcon="gio:link"></mat-icon>
+            <mat-icon [svgIcon]="'LINK' | portalNavigationItemIcon"></mat-icon>
             Add Link
           </button>
           @if (canUpdate || canDelete) {
@@ -149,24 +149,22 @@
         }
       }
 
-      @if (canUpdate) {
+      @if (canUpdate && node.type !== 'API') {
         <button mat-menu-item (click)="onEdit(node)" data-testid="edit-node-button">
           <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
           Edit
         </button>
 
-        @if (node.type !== 'API') {
-          @if (isUnpublished(node)) {
-            <button mat-menu-item (click)="onPublish(node)" data-testid="publish-node-button">
-              <mat-icon svgIcon="gio:eye-empty"></mat-icon>
-              Publish
-            </button>
-          } @else {
-            <button mat-menu-item (click)="onUnpublish(node)" data-testid="unpublish-node-button">
-              <mat-icon svgIcon="gio:eye-off"></mat-icon>
-              Unpublish
-            </button>
-          }
+        @if (isUnpublished(node)) {
+          <button mat-menu-item (click)="onPublish(node)" data-testid="publish-node-button">
+            <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+            Publish
+          </button>
+        } @else {
+          <button mat-menu-item (click)="onUnpublish(node)" data-testid="unpublish-node-button">
+            <mat-icon svgIcon="gio:eye-off"></mat-icon>
+            Unpublish
+          </button>
         }
       }
 
