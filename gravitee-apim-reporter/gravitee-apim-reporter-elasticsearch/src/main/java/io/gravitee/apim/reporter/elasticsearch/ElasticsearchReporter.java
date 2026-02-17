@@ -37,15 +37,15 @@ import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.Reporter;
 import java.util.HashSet;
 import java.util.Set;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class ElasticsearchReporter extends AbstractService<Reporter> implements Reporter {
 
     private final Node node;

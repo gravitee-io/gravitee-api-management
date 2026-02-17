@@ -33,16 +33,14 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class VertxFileWriter<T extends Reportable> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(VertxFileWriter.class);
 
     /**
      * {@code \u000a} linefeed LF ('\n').
@@ -126,12 +124,12 @@ public class VertxFileWriter<T extends Reportable> {
         rollover = new Timer(VertxFileWriter.class.getName(), true);
 
         flushId = vertx.setPeriodic(configuration.getFlushInterval(), event -> {
-            LOGGER.debug("Flush the content to file");
+            log.debug("Flush the content to file");
 
             if (asyncFile != null) {
                 asyncFile.flush(event1 -> {
                     if (event1.failed()) {
-                        LOGGER.error("An error occurs while flushing the content of the file", event1.cause());
+                        log.error("An error occurs while flushing the content of the file", event1.cause());
                     }
                 });
             }
@@ -160,7 +158,7 @@ public class VertxFileWriter<T extends Reportable> {
                 file = new File(filename);
                 File dir = new File(file.getParent());
                 if (!dir.isDirectory() || !dir.canWrite()) {
-                    LOGGER.error("Cannot write reporter data to directory {}", dir);
+                    log.error("Cannot write reporter data to directory {}", dir);
                     promise.fail(new IOException("Cannot write reporter data to directory " + dir));
                     return promise.future();
                 }
@@ -178,7 +176,7 @@ public class VertxFileWriter<T extends Reportable> {
                         filename.substring(datePattern + YYYY_MM_DD.length());
                 }
 
-                LOGGER.info("Initializing file reporter to write into file: {}", filename);
+                log.info("Initializing file reporter to write into file: {}", filename);
 
                 AsyncFile oldAsyncFile = asyncFile;
 
@@ -198,18 +196,14 @@ public class VertxFileWriter<T extends Reportable> {
                                 // Now we can close previous file safely
                                 stop(oldAsyncFile).onComplete(closeEvent -> {
                                     if (!closeEvent.succeeded()) {
-                                        LOGGER.error(
-                                            "An error occurs while closing file writer for type[{}]",
-                                            this.type,
-                                            closeEvent.cause()
-                                        );
+                                        log.error("An error occurs while closing file writer for type[{}]", this.type, closeEvent.cause());
                                     }
                                 });
                             }
 
                             promise.complete();
                         } else {
-                            LOGGER.error("An error occurs while starting file writer for type[{}]", this.type, event.cause());
+                            log.error("An error occurs while starting file writer for type[{}]", this.type, event.cause());
                             promise.fail(event.cause());
                         }
                     });
@@ -270,10 +264,10 @@ public class VertxFileWriter<T extends Reportable> {
             asyncFile.flush(flushEvent ->
                 asyncFile.close(event -> {
                     if (event.succeeded()) {
-                        LOGGER.info("File writer is now closed for type [{}]", this.type);
+                        log.info("File writer is now closed for type [{}]", this.type);
                         promise.complete();
                     } else {
-                        LOGGER.error("An error occurs while closing file writer for type[{}]", this.type, event.cause());
+                        log.error("An error occurs while closing file writer for type[{}]", this.type, event.cause());
                         promise.fail(event.cause());
                     }
                 })
@@ -318,7 +312,7 @@ public class VertxFileWriter<T extends Reportable> {
                 VertxFileWriter.this.scheduleNextRollover(now);
                 VertxFileWriter.this.removeOldFiles();
             } catch (Throwable t) {
-                LOGGER.error("Unexpected error while moving to a new reporter file", t);
+                log.error("Unexpected error while moving to a new reporter file", t);
             }
         }
     }

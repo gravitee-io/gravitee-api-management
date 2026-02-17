@@ -32,7 +32,7 @@ import io.gravitee.rest.api.service.exceptions.ClientCertificateInvalidException
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -42,7 +42,7 @@ import org.springframework.stereotype.Component;
  *
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @Component
 public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
 

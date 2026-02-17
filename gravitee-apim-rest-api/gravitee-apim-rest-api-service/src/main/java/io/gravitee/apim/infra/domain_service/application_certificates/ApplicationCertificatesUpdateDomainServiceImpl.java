@@ -29,8 +29,8 @@ import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
@@ -38,7 +38,7 @@ import org.springframework.stereotype.Service;
  *
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @RequiredArgsConstructor
 @Service
 public class ApplicationCertificatesUpdateDomainServiceImpl implements ApplicationCertificatesUpdateDomainService {

@@ -20,16 +20,13 @@ import io.gravitee.gateway.reactive.api.context.http.HttpBaseRequest;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 /**
  * @author GraviteeSource Team
  */
+@CustomLog
 public class DebugInitProcessor implements Processor {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DebugInitProcessor.class);
 
     @Override
     public String getId() {
@@ -45,7 +42,7 @@ public class DebugInitProcessor implements Processor {
             String uri = request.uri();
 
             String originalUrl = scheme + "://" + originalHost + uri;
-            LOGGER.debug("Original URL: {}", originalUrl);
+            ctx.withLogger(log).debug("Original URL: {}", originalUrl);
 
             ctx.setAttribute(ContextAttributes.ATTR_REQUEST_ORIGINAL_URL, originalUrl);
         });

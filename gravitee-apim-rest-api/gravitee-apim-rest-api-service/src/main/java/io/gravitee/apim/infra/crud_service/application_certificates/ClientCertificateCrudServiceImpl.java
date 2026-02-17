@@ -47,8 +47,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -58,7 +57,7 @@ import org.springframework.stereotype.Component;
  *
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 @Component
 public class ClientCertificateCrudServiceImpl extends TransactionalService implements ClientCertificateCrudService {
 

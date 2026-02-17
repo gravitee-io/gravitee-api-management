@@ -27,16 +27,16 @@ import io.reactivex.rxjava3.functions.Function;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.CustomLog;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public abstract class AbstractIndexPreparer implements IndexPreparer {
 
     protected final ReporterConfiguration configuration;
