@@ -16,7 +16,7 @@
 package io.gravitee.repository.noop.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.model.ApiProduct;
 import java.util.Collection;
 import java.util.Optional;

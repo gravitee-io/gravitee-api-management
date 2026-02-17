@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.apiproducts;
+package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.CrudRepository;
 import io.gravitee.repository.management.model.ApiProduct;
 import java.util.Collection;
 import java.util.Optional;

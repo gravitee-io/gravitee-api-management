@@ -25,17 +25,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.api.exception.ApiNotFoundException;
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.ApiProductAdapter;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
-import io.gravitee.repository.management.model.ApiLifecycleState;
-import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.ZonedDateTime;
 import java.util.Date;
