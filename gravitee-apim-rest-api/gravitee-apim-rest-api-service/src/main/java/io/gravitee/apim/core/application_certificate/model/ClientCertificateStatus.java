@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.application_certificate.model;
 
+import io.gravitee.apim.core.audit.model.event.ClientCertificateAuditEvent;
 import java.time.Instant;
 import java.util.Date;
 
@@ -44,5 +45,18 @@ public enum ClientCertificateStatus {
             return ACTIVE_WITH_END;
         }
         return ACTIVE;
+    }
+
+    /**
+     * Determines the appropriate audit event for a transition to this status.
+     *
+     * @return the corresponding audit event
+     */
+    public ClientCertificateAuditEvent toAuditEvent() {
+        return switch (this) {
+            case REVOKED -> ClientCertificateAuditEvent.CLIENT_CERTIFICATE_REVOKED;
+            case SCHEDULED -> ClientCertificateAuditEvent.CLIENT_CERTIFICATE_SCHEDULED;
+            case ACTIVE, ACTIVE_WITH_END -> ClientCertificateAuditEvent.CLIENT_CERTIFICATE_ACTIVATED;
+        };
     }
 }

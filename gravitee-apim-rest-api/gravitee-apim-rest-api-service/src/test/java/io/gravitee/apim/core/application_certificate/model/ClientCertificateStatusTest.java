@@ -17,12 +17,14 @@ package io.gravitee.apim.core.application_certificate.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.core.audit.model.event.ClientCertificateAuditEvent;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -47,7 +49,15 @@ class ClientCertificateStatusTest {
             Arguments.of(past, future, now, ClientCertificateStatus.ACTIVE_WITH_END),
             // no endsAt, startsAt not in future → ACTIVE
             Arguments.of(null, null, now, ClientCertificateStatus.ACTIVE),
-            Arguments.of(past, null, now, ClientCertificateStatus.ACTIVE)
+            Arguments.of(past, null, now, ClientCertificateStatus.ACTIVE),
+            // Boundary cases: exactly at 'now'
+            // endsAt == now → ACTIVE_WITH_END (isBefore(now) is false)
+            Arguments.of(null, Date.from(now), now, ClientCertificateStatus.ACTIVE_WITH_END),
+            Arguments.of(past, Date.from(now), now, ClientCertificateStatus.ACTIVE_WITH_END),
+            // startsAt == now → ACTIVE (isAfter(now) is false)
+            Arguments.of(Date.from(now), null, now, ClientCertificateStatus.ACTIVE),
+            // startsAt == now, endsAt in future → ACTIVE_WITH_END
+            Arguments.of(Date.from(now), future, now, ClientCertificateStatus.ACTIVE_WITH_END)
         );
     }
 
@@ -55,5 +65,27 @@ class ClientCertificateStatusTest {
     @MethodSource("computeStatusCases")
     void should_compute_correct_status(Date startsAt, Date endsAt, Instant now, ClientCertificateStatus expected) {
         assertThat(ClientCertificateStatus.computeStatus(startsAt, endsAt, now)).isEqualTo(expected);
+    }
+
+    @Test
+    void should_return_revoked_audit_event_for_revoked_status() {
+        assertThat(ClientCertificateStatus.REVOKED.toAuditEvent()).isEqualTo(ClientCertificateAuditEvent.CLIENT_CERTIFICATE_REVOKED);
+    }
+
+    @Test
+    void should_return_activated_audit_event_for_active_status() {
+        assertThat(ClientCertificateStatus.ACTIVE.toAuditEvent()).isEqualTo(ClientCertificateAuditEvent.CLIENT_CERTIFICATE_ACTIVATED);
+    }
+
+    @Test
+    void should_return_activated_audit_event_for_active_with_end_status() {
+        assertThat(ClientCertificateStatus.ACTIVE_WITH_END.toAuditEvent()).isEqualTo(
+            ClientCertificateAuditEvent.CLIENT_CERTIFICATE_ACTIVATED
+        );
+    }
+
+    @Test
+    void should_return_scheduled_audit_event_for_scheduled_status() {
+        assertThat(ClientCertificateStatus.SCHEDULED.toAuditEvent()).isEqualTo(ClientCertificateAuditEvent.CLIENT_CERTIFICATE_SCHEDULED);
     }
 }
