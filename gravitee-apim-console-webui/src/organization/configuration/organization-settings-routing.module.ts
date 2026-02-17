@@ -34,6 +34,7 @@ import { OrgSettingsRoleComponent } from './roles/role/org-settings-role.compone
 import { OrgSettingsAuditComponent } from './audit/org-settings-audit.component';
 import { OrgNavigationComponent } from './navigation/org-navigation.component';
 import { OrganizationSettingsModule } from './organization-settings.module';
+import { OrganizationEnvironmentGuard } from './organization-environment.guard';
 
 import { HasLicenseGuard } from '../../shared/components/gio-license/has-license.guard';
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
@@ -42,6 +43,7 @@ const organizationRoutes: Routes = [
   {
     path: '',
     component: OrgNavigationComponent,
+    canActivate: [OrganizationEnvironmentGuard],
     canActivateChild: [PermissionGuard.checkRouteDataPermissions, HasLicenseGuard],
     children: [
       {
