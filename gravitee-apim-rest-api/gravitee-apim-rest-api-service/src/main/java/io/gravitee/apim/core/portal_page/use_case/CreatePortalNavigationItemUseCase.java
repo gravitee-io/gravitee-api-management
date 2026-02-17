@@ -34,7 +34,7 @@ public class CreatePortalNavigationItemUseCase {
         final var organizationId = input.organizationId();
         final var environmentId = input.environmentId();
 
-        validatorService.validate(itemToCreate, environmentId);
+        validatorService.validateOne(itemToCreate, environmentId);
 
         return new CreatePortalNavigationItemUseCase.Output(domainService.create(organizationId, environmentId, itemToCreate));
     }

@@ -43,6 +43,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import java.util.ArrayList;
+import java.util.List;
 import org.junit.function.ThrowingRunnable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -83,7 +84,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .build();
 
             // When
-            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+            final ThrowingRunnable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             // Then
             Exception exception = assertThrows(ItemAlreadyExistsException.class, throwing);
@@ -102,7 +103,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
             navigationItemsQueryService.storage().add(PortalNavigationItem.from(createPortalNavigationItem, ORG_ID, ENV_ID));
 
             // When
-            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+            final ThrowingRunnable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             // Then
             Exception exception = assertThrows(HomepageAlreadyExistsException.class, throwing);
@@ -123,7 +124,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .build();
 
             // When
-            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+            final ThrowingRunnable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             // Then
             Exception exception = assertThrows(PageContentNotFoundException.class, throwing);
@@ -142,7 +143,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .build();
 
             // When
-            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+            final ThrowingRunnable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             // Then
             Exception exception = assertThrows(InvalidUrlFormatException.class, throwing);
@@ -162,7 +163,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .build();
 
             // When
-            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+            final ThrowingRunnable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             // Then
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
@@ -182,7 +183,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .build();
 
             // When
-            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+            final ThrowingRunnable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             // Then
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
@@ -201,7 +202,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .build();
 
             // When
-            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+            final ThrowingRunnable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             // Then
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
@@ -221,7 +222,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .build();
 
             // When
-            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+            final ThrowingRunnable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             // Then
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
@@ -241,7 +242,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .build();
 
             // When
-            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+            final ThrowingRunnable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             // Then
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
@@ -261,7 +262,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .build();
 
             // When
-            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+            final ThrowingRunnable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             // Then
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
@@ -281,7 +282,103 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .build();
 
             // Then
-            assertDoesNotThrow(() -> validatorService.validate(createPortalNavigationItem, ENV_ID));
+            assertDoesNotThrow(() -> validatorService.validateOne(createPortalNavigationItem, ENV_ID));
+        }
+
+        @Test
+        void should_validate_all_when_payload_is_valid() {
+            // Given
+            final var firstCreateApiPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.API)
+                .title("API 2")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(PortalNavigationItemId.of(APIS_ID))
+                .apiId("api-2")
+                .build();
+
+            final var createLinkPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.LINK)
+                .title("Documentation")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .url("https://example.org/docs")
+                .build();
+
+            final var secondCreateApiPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.API)
+                .title("API 3")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(2)
+                .parentId(PortalNavigationItemId.of(APIS_ID))
+                .apiId("api-3")
+                .build();
+
+            // Then
+            assertDoesNotThrow(() ->
+                validatorService.validateAll(
+                    List.of(firstCreateApiPortalNavigationItem, createLinkPortalNavigationItem, secondCreateApiPortalNavigationItem),
+                    ENV_ID
+                )
+            );
+        }
+
+        @Test
+        void should_fail_validate_all_when_api_item_has_null_parent_id() {
+            // Given
+            final var validCreateLinkPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.LINK)
+                .title("Documentation")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .url("https://example.org/docs")
+                .build();
+
+            final var invalidCreateApiPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.API)
+                .title("API 2")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .apiId("api-2")
+                .build();
+
+            // When
+            final ThrowingRunnable throwing = () ->
+                validatorService.validateAll(List.of(validCreateLinkPortalNavigationItem, invalidCreateApiPortalNavigationItem), ENV_ID);
+
+            // Then
+            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo("The parentId field is required and cannot be blank.");
+        }
+
+        @Test
+        void should_fail_validate_all_when_api_items_have_duplicate_api_id() {
+            // Given
+            final var firstCreateApiPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.API)
+                .title("API 2")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(PortalNavigationItemId.of(APIS_ID))
+                .apiId("shared-api-id")
+                .build();
+
+            final var secondCreateApiPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.API)
+                .title("API 3")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .parentId(PortalNavigationItemId.of(APIS_ID))
+                .apiId("shared-api-id")
+                .build();
+
+            // When
+            final ThrowingRunnable throwing = () ->
+                validatorService.validateAll(List.of(firstCreateApiPortalNavigationItem, secondCreateApiPortalNavigationItem), ENV_ID);
+
+            // Then
+            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo("The apiId shared-api-id is already used by another API navigation item.");
         }
     }
 
@@ -302,7 +399,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
             createPortalNavigationItem.setParentId(PortalNavigationItemId.of(NON_EXISTENT_ID));
 
             // When
-            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+            final ThrowingRunnable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             // Then
             Exception exception = assertThrows(ParentNotFoundException.class, throwing);
@@ -322,7 +419,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
             createPortalNavigationItem.setParentId(PortalNavigationItemId.of(PAGE11_ID));
 
             // When
-            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+            final ThrowingRunnable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             // Then
             Exception exception = assertThrows(ParentTypeMismatchException.class, throwing);
@@ -342,7 +439,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
             createPortalNavigationItem.setParentId(PortalNavigationItemId.of(APIS_ID));
 
             // When
-            final ThrowingRunnable throwing = () -> validatorService.validate(createPortalNavigationItem, ENV_ID);
+            final ThrowingRunnable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
 
             // Then
             Exception exception = assertThrows(ParentAreaMismatchException.class, throwing);
