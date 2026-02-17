@@ -16,26 +16,21 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContainer;
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
-import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 @DomainService
-public class GraviteePortalPageContentValidatorService implements PortalPageContentValidator {
+@RequiredArgsConstructor
+public class PortalPageContentValidatorService {
 
-    private final GraviteeMarkdownValidator graviteeMarkdownValidator;
+    private final List<PortalPageContentValidator> validators;
 
-    @Override
-    public boolean appliesTo(PortalPageContent existingContent) {
-        return existingContent instanceof GraviteeMarkdownContainer;
-    }
-
-    @Override
-    public void validate(UpdatePortalPageContent updateContent) {
-        graviteeMarkdownValidator.validateNotEmpty(() -> updateContent.getContent());
+    public void validateForUpdate(PortalPageContent existingContent, UpdatePortalPageContent updateContent) {
+        validators
+            .stream()
+            .filter(validator -> validator.appliesTo(existingContent))
+            .forEach(validator -> validator.validate(updateContent));
     }
 }
