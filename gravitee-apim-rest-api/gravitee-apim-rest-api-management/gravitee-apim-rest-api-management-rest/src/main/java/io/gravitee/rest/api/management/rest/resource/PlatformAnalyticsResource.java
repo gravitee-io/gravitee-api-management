@@ -42,6 +42,7 @@ import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -124,23 +125,31 @@ public class PlatformAnalyticsResource extends AbstractResource {
     @NotNull
     private Set<String> findApiIds() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        var ids = new HashSet<>(Set.of(UNKNOWN_ID));
         if (isAdmin()) {
-            return apiAuthorizationService.findIdsByEnvironment(executionContext.getEnvironmentId());
+            ids.addAll(apiAuthorizationService.findIdsByEnvironment(executionContext.getEnvironmentId()));
+        } else {
+            apiAuthorizationService
+                .findIdsByUser(executionContext, getAuthenticatedUser(), true)
+                .stream()
+                .filter(appId -> permissionService.hasPermission(executionContext, API_ANALYTICS, appId, READ))
+                .forEach(ids::add);
         }
-        return apiAuthorizationService
-            .findIdsByUser(executionContext, getAuthenticatedUser(), true)
-            .stream()
-            .filter(appId -> permissionService.hasPermission(executionContext, API_ANALYTICS, appId, READ))
-            .collect(Collectors.toSet());
+        return ids;
     }
 
     @NotNull
     private Set<String> findApplicationIds() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        var ids = new HashSet<>(Set.of(UNKNOWN_ID));
         if (isAdmin()) {
-            return applicationService.findIdsByEnvironment(executionContext);
+            ids.addAll(applicationService.findIdsByEnvironment(executionContext));
+        } else {
+            ids.addAll(
+                applicationService.findIdsByUserAndPermission(executionContext, getAuthenticatedUser(), null, APPLICATION_ANALYTICS, READ)
+            );
         }
-        return applicationService.findIdsByUserAndPermission(executionContext, getAuthenticatedUser(), null, APPLICATION_ANALYTICS, READ);
+        return ids;
     }
 
     private Analytics executeStats(AnalyticsParam analyticsParam, Map<String, Set<String>> terms) {

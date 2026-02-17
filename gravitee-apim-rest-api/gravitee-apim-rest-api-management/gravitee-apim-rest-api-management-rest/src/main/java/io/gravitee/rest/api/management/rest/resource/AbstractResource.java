@@ -63,6 +63,11 @@ public abstract class AbstractResource {
 
     public static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
 
+    /**
+     * Sentinel ID used to include requests not associated with any known API or application in analytics queries.
+     */
+    public static final String UNKNOWN_ID = "1";
+
     @Context
     protected SecurityContext securityContext;
 

@@ -25,8 +25,6 @@ import io.gravitee.rest.api.management.rest.resource.param.Aggregation;
 import io.gravitee.rest.api.management.rest.resource.param.AnalyticsParam;
 import io.gravitee.rest.api.management.rest.resource.param.Range;
 import io.gravitee.rest.api.model.analytics.Analytics;
-import io.gravitee.rest.api.model.analytics.HistogramAnalytics;
-import io.gravitee.rest.api.model.analytics.HitsAnalytics;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.AggregationType;
 import io.gravitee.rest.api.model.analytics.query.CountQuery;
@@ -129,12 +127,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
     }
 
     private Analytics executeStats(ExecutionContext executionContext, AnalyticsParam analyticsParam) {
-        Map<String, Set<String>> terms;
-        try {
-            terms = buildTerms(executionContext, analyticsParam);
-        } catch (FieldFilterEmptyException e) {
-            return new StatsAnalytics();
-        }
+        Map<String, Set<String>> terms = buildTerms(executionContext, analyticsParam);
 
         final StatsQuery query = new StatsQuery();
         query.setFrom(analyticsParam.getFrom());
@@ -162,12 +155,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                     return buildCountStat(applicationService.findIdsByUser(executionContext, getAuthenticatedUser()).size());
                 }
             default:
-                Map<String, Set<String>> terms;
-                try {
-                    terms = buildTerms(executionContext, analyticsParam);
-                } catch (FieldFilterEmptyException e) {
-                    return new HitsAnalytics();
-                }
+                Map<String, Set<String>> terms = buildTerms(executionContext, analyticsParam);
 
                 CountQuery query = new CountQuery();
                 query.setFrom(analyticsParam.getFrom());
@@ -186,12 +174,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
     }
 
     private Analytics executeDateHisto(final ExecutionContext executionContext, AnalyticsParam analyticsParam) {
-        Map<String, Set<String>> terms;
-        try {
-            terms = buildTerms(executionContext, analyticsParam);
-        } catch (FieldFilterEmptyException e) {
-            return new HistogramAnalytics();
-        }
+        Map<String, Set<String>> terms = buildTerms(executionContext, analyticsParam);
 
         DateHistogramQuery query = new DateHistogramQuery();
         query.setFrom(analyticsParam.getFrom());
@@ -224,50 +207,38 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         return analyticsService.execute(executionContext, query);
     }
 
-    /**
-     * @param executionContext
-     * @param analyticsParam
-     * @return
-     * @throws FieldFilterEmptyException: if user is not Admin and filter based on ids field is empty
-     */
-    private Map<String, Set<String>> buildTerms(ExecutionContext executionContext, AnalyticsParam analyticsParam)
-        throws FieldFilterEmptyException {
+    private Map<String, Set<String>> buildTerms(ExecutionContext executionContext, AnalyticsParam analyticsParam) {
         String fieldName;
-        Set<String> ids;
-        // add filter by Apis or Applications
+        var ids = new HashSet<>(Set.of(UNKNOWN_ID));
         if (isAdmin()) {
             if (APPLICATION_FIELD.equalsIgnoreCase(analyticsParam.getField())) {
                 fieldName = APPLICATION_FIELD;
                 ApplicationQuery applicationQuery = new ApplicationQuery();
                 applicationQuery.setStatus(ApplicationStatus.ACTIVE.name());
                 applicationQuery.setExcludeFilters(List.of(ApplicationExcludeFilter.OWNER));
-                ids = applicationService.searchIds(executionContext, applicationQuery, null);
+                ids.addAll(applicationService.searchIds(executionContext, applicationQuery, null));
             } else {
                 fieldName = API_FIELD;
-                ids = apiAuthorizationService.findIdsByEnvironment(executionContext.getEnvironmentId());
+                ids.addAll(apiAuthorizationService.findIdsByEnvironment(executionContext.getEnvironmentId()));
             }
         } else {
             if (APPLICATION_FIELD.equalsIgnoreCase(analyticsParam.getField())) {
                 fieldName = APPLICATION_FIELD;
-                ids = applicationService
+                applicationService
                     .findIdsByUser(executionContext, getAuthenticatedUser())
                     .stream()
                     .filter(appId -> permissionService.hasPermission(executionContext, APPLICATION_ANALYTICS, appId, READ))
-                    .collect(Collectors.toSet());
+                    .forEach(ids::add);
             } else {
                 fieldName = API_FIELD;
-                ids = apiAuthorizationService
+                apiAuthorizationService
                     .findIdsByUser(executionContext, getAuthenticatedUser(), true)
                     .stream()
                     .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
-                    .collect(Collectors.toSet());
+                    .forEach(ids::add);
             }
         }
-        if (ids.isEmpty()) {
-            throw new FieldFilterEmptyException();
-        } else {
-            return Map.of(fieldName, ids);
-        }
+        return Map.of(fieldName, ids);
     }
 
     private Analytics executeGroupBy(final ExecutionContext executionContext, AnalyticsParam analyticsParam) {
@@ -279,12 +250,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                 return getTopHitsAnalytics(executionContext, api -> api.getLifecycleState().name());
             }
             default:
-                Map<String, Set<String>> terms;
-                try {
-                    terms = buildTerms(executionContext, analyticsParam);
-                } catch (FieldFilterEmptyException e) {
-                    return new TopHitsAnalytics();
-                }
+                Map<String, Set<String>> terms = buildTerms(executionContext, analyticsParam);
 
                 GroupByQuery query = new GroupByQuery();
                 query.setFrom(analyticsParam.getFrom());
@@ -322,6 +288,4 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         topHitsAnalytics.setValues(collect);
         return topHitsAnalytics;
     }
-
-    private class FieldFilterEmptyException extends Throwable {}
 }

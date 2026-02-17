@@ -232,6 +232,7 @@ class ReporterProcessorTest extends AbstractProcessorTest {
 
             // Then
             verify(reporterService).report(ctx.metrics());
+            verify(reporterService).report(ctx.metrics().toV2());
             assertNull(ctx.metrics().getLog());
             verify(reporterService, never()).report(ctx.metrics().getLog());
         }

@@ -63,7 +63,7 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
     }
 
     @Test
-    public void should_return_no_content_when_user_not_admin_and_application_analytics() {
+    public void should_return_analytics_when_user_not_admin_and_no_application_found() {
         when(
             applicationService.findIdsByUserAndPermission(
                 GraviteeContext.getExecutionContext(),
@@ -74,6 +74,10 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
             )
         ).thenReturn(Set.of());
 
+        HitsAnalytics analytics = new HitsAnalytics();
+        analytics.setHits(0L);
+        when(analyticsService.execute(any(ExecutionContext.class), any(CountQuery.class))).thenReturn(analytics);
+
         final Response response = envTarget()
             .queryParam("to", 122222L)
             .queryParam("from", 111111L)
@@ -83,7 +87,7 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
             .request()
             .get();
 
-        assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(permissionService, times(1)).hasPermission(
             GraviteeContext.getExecutionContext(),
             RolePermission.ENVIRONMENT_PLATFORM,
@@ -100,8 +104,12 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
     }
 
     @Test
-    public void should_return_no_content_when_user_not_admin_and_api_analytics() {
+    public void should_return_analytics_when_user_not_admin_and_no_api_found() {
         when(apiAuthorizationServiceV4.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true)).thenReturn(Set.of());
+
+        HitsAnalytics analytics = new HitsAnalytics();
+        analytics.setHits(0L);
+        when(analyticsService.execute(any(ExecutionContext.class), any(CountQuery.class))).thenReturn(analytics);
 
         final Response response = envTarget()
             .queryParam("to", 122222L)
@@ -111,7 +119,7 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
             .request()
             .get();
 
-        assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(permissionService, times(1)).hasPermission(
             GraviteeContext.getExecutionContext(),
             RolePermission.ENVIRONMENT_PLATFORM,
