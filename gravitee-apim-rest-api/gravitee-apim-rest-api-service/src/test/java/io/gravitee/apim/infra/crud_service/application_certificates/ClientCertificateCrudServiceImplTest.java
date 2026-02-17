@@ -452,6 +452,39 @@ class ClientCertificateCrudServiceImplTest {
     }
 
     @Test
+    void should_find_by_statuses() throws TechnicalException {
+        var repositoryCertificate1 = buildRepositoryClientCertificate(
+            CERTIFICATE_ID,
+            APPLICATION_ID,
+            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE
+        );
+        var repositoryCertificate2 = buildRepositoryClientCertificate(
+            "cert-id-2",
+            "app-id-2",
+            io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE
+        );
+        when(
+            clientCertificateRepository.findByStatuses(any(io.gravitee.repository.management.model.ClientCertificateStatus[].class))
+        ).thenReturn(Set.of(repositoryCertificate1, repositoryCertificate2));
+
+        var result = clientCertificateCrudService.findByStatuses(ClientCertificateStatus.ACTIVE);
+
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(ClientCertificate::getId).containsExactlyInAnyOrder(CERTIFICATE_ID, "cert-id-2");
+    }
+
+    @Test
+    void should_throw_technical_management_exception_when_find_by_statuses_fails() throws TechnicalException {
+        when(
+            clientCertificateRepository.findByStatuses(any(io.gravitee.repository.management.model.ClientCertificateStatus[].class))
+        ).thenThrow(new TechnicalException("Database error"));
+
+        assertThatThrownBy(() -> clientCertificateCrudService.findByStatuses(ClientCertificateStatus.ACTIVE))
+            .isInstanceOf(TechnicalManagementException.class)
+            .hasMessageContaining("An error occurs while trying to find client certificates by statuses");
+    }
+
+    @Test
     void should_throw_invalid_exception_when_certificate_is_malformed() {
         String invalidCertificate = """
             -----BEGIN CERTIFICATE-----

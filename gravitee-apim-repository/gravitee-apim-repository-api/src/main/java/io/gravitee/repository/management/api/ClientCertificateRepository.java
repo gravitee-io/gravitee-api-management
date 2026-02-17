@@ -63,6 +63,16 @@ public interface ClientCertificateRepository extends CrudRepository<ClientCertif
         throws TechnicalException;
 
     /**
+     * Find all client certificates matching the given statuses, regardless of application.
+     * Returns an empty set if {@code statuses} is null or empty.
+     *
+     * @param statuses one or more {@link ClientCertificateStatus} values to filter by
+     * @return a set of client certificates matching the criteria
+     * @throws TechnicalException if a database-level error occurs
+     */
+    Set<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses) throws TechnicalException;
+
+    /**
      * Check if a client certificate with the given fingerprint exists for an active application,
      * excluding certificates with REVOKED status.
      *
