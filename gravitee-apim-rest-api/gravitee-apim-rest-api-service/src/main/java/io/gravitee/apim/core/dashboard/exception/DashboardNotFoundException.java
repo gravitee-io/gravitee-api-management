@@ -17,6 +17,10 @@ package io.gravitee.apim.core.dashboard.exception;
 
 import io.gravitee.apim.core.exception.NotFoundDomainException;
 
+/**
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 public class DashboardNotFoundException extends NotFoundDomainException {
 
     public DashboardNotFoundException(String id) {

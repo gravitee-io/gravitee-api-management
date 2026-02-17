@@ -21,6 +21,10 @@ import io.gravitee.apim.core.dashboard.exception.DashboardNotFoundException;
 import io.gravitee.apim.core.dashboard.model.Dashboard;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @UseCase
 @RequiredArgsConstructor
 public class GetDashboardUseCase {
@@ -35,6 +39,7 @@ public class GetDashboardUseCase {
         var dashboard = dashboardDomainService
             .findById(input.dashboardId())
             .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
+
         return new Output(dashboard);
     }
 }

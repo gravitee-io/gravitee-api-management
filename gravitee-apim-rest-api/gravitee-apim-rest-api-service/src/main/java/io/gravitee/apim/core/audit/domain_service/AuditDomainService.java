@@ -23,6 +23,7 @@ import io.gravitee.apim.core.audit.model.ApplicationAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.audit.model.DashboardAuditLogEntity;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.json.JsonDiffProcessor;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
@@ -120,6 +121,27 @@ public class AuditDomainService {
                 .properties(adaptAuditLogProperties(audit.properties()))
                 .referenceType(AuditEntity.AuditReferenceType.API_PRODUCT)
                 .referenceId(audit.apiProductId())
+                .event(audit.event().name())
+                .patch(jsonDiffProcessor.diff(audit.oldValue(), audit.newValue()))
+                .build();
+
+            auditCrudService.create(entity);
+        } catch (TechnicalManagementException e) {
+            log.error("Error occurs during the creation of an API Product Audit Log.", e);
+        }
+    }
+
+    public void createDashboardAuditLog(DashboardAuditLogEntity audit) {
+        try {
+            var entity = AuditEntity.builder()
+                .id(UuidString.generateRandom())
+                .organizationId(audit.organizationId())
+                .environmentId(audit.environmentId())
+                .createdAt(audit.createdAt())
+                .user(createActor(audit.actor()))
+                .properties(adaptAuditLogProperties(audit.properties()))
+                .referenceType(AuditEntity.AuditReferenceType.DASHBOARD)
+                .referenceId(audit.dashboardId())
                 .event(audit.event().name())
                 .patch(jsonDiffProcessor.diff(audit.oldValue(), audit.newValue()))
                 .build();

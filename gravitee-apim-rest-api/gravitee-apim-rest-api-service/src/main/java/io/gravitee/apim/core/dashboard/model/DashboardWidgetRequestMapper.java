@@ -29,23 +29,13 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Maps {@link DashboardWidget.Request} to analytics engine request types (MeasuresRequest, FacetsRequest, TimeSeriesRequest)
- * for validation by {@link io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator}.
- *
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
 public final class DashboardWidgetRequestMapper {
 
     private DashboardWidgetRequestMapper() {}
 
-    /**
-     * Map a dashboard widget request to the corresponding analytics engine request for the given type.
-     * The returned object can be passed to AnalyticsQueryValidator.validateXxxRequest(...).
-     *
-     * @param request the dashboard widget request (must not be null)
-     * @return MeasuresRequest, FacetsRequest, or TimeSeriesRequest depending on request.type
-     * @throws InvalidQueryException if request type is unknown or conversion fails (e.g. invalid enum values)
-     */
     public static Object toAnalyticsRequest(DashboardWidget.Request request) {
         if (request == null) {
             throw new InvalidQueryException("Widget request cannot be null");

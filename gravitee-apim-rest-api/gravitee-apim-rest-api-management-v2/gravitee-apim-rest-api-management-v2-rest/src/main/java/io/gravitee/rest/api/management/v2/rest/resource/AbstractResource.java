@@ -312,9 +312,17 @@ public abstract class AbstractResource {
     protected AuditInfo getAuditInfo() {
         var executionContext = GraviteeContext.getExecutionContext();
         var user = getAuthenticatedUserDetails();
+        if (executionContext.hasEnvironmentId()) {
+            return AuditInfo.builder()
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(
+                    AuditActor.builder().userId(user.getUsername()).userSource(user.getSource()).userSourceId(user.getSourceId()).build()
+                )
+                .build();
+        }
         return AuditInfo.builder()
             .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
             .actor(AuditActor.builder().userId(user.getUsername()).userSource(user.getSource()).userSourceId(user.getSourceId()).build())
             .build();
     }

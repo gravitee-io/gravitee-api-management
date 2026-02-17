@@ -18,15 +18,19 @@ package io.gravitee.apim.core.dashboard.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import inmemory.AuditCrudServiceInMemory;
 import inmemory.DashboardCrudServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.exception.InvalidQueryException;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
+import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.dashboard.domain_service.DashboardDomainService;
 import io.gravitee.apim.core.dashboard.model.Dashboard;
 import io.gravitee.apim.core.dashboard.model.DashboardWidget;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
+import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +43,7 @@ import org.junit.jupiter.api.Test;
 class CreateDashboardUseCaseTest {
 
     private DashboardCrudServiceInMemory dashboardCrudServiceInMemory;
+    private AuditCrudServiceInMemory auditCrudServiceInMemory;
     private CreateDashboardUseCase useCase;
 
     private static AuditInfo auditInfo() {
@@ -85,10 +90,16 @@ class CreateDashboardUseCaseTest {
     @BeforeEach
     void setUp() {
         dashboardCrudServiceInMemory = new DashboardCrudServiceInMemory();
-        AnalyticsDefinitionQueryService definitionQueryService = new AnalyticsDefinitionYAMLQueryService();
+        auditCrudServiceInMemory = new inmemory.AuditCrudServiceInMemory();
+        var auditDomainService = new AuditDomainService(
+            auditCrudServiceInMemory,
+            new UserCrudServiceInMemory(),
+            new JacksonJsonDiffProcessor()
+        );
+        var definitionQueryService = new AnalyticsDefinitionYAMLQueryService();
         var analyticsQueryValidator = new AnalyticsQueryValidator(definitionQueryService);
         var dashboardDomainService = new DashboardDomainService(dashboardCrudServiceInMemory, analyticsQueryValidator);
-        useCase = new CreateDashboardUseCase(dashboardDomainService);
+        useCase = new CreateDashboardUseCase(dashboardDomainService, auditDomainService);
     }
 
     @AfterEach
@@ -110,6 +121,7 @@ class CreateDashboardUseCaseTest {
             assertThat(output.dashboard().getId()).isNotBlank();
             assertThat(dashboardCrudServiceInMemory.storage()).hasSize(1);
             assertThat(dashboardCrudServiceInMemory.storage().getFirst().getName()).isEqualTo("My Dashboard");
+            assertThat(auditCrudServiceInMemory.storage()).hasSize(1);
         }
 
         @Test
@@ -120,6 +132,7 @@ class CreateDashboardUseCaseTest {
 
             assertThat(output.dashboard().getName()).isEqualTo("Empty");
             assertThat(dashboardCrudServiceInMemory.storage()).hasSize(1);
+            assertThat(auditCrudServiceInMemory.storage()).hasSize(1);
         }
 
         @Test

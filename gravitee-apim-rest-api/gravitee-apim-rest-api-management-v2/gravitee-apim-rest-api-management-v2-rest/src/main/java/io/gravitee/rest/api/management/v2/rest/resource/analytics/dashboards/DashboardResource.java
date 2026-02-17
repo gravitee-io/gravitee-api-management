@@ -64,6 +64,7 @@ public class DashboardResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_DASHBOARD, acls = { RolePermissionAction.READ }) })
     public Response getDashboard() {
         var output = getDashboardUseCase.execute(new GetDashboardUseCase.Input(dashboardId));
+
         return Response.ok(DashboardMapper.INSTANCE.map(output.dashboard())).build();
     }
 
@@ -72,21 +73,10 @@ public class DashboardResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_DASHBOARD, acls = { RolePermissionAction.UPDATE }) })
     public Response updateDashboard(@Valid @NotNull UpdateDashboard updateDashboard) {
-        var executionContext = GraviteeContext.getExecutionContext();
-        var userDetails = getAuthenticatedUserDetails();
-
-        var auditInfo = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+        var auditInfo = getAuditInfo();
 
         var dashboard = DashboardMapper.INSTANCE.map(updateDashboard);
+
         var output = updateDashboardUseCase.execute(new UpdateDashboardUseCase.Input(dashboardId, dashboard, auditInfo));
 
         return Response.ok(DashboardMapper.INSTANCE.map(output.dashboard())).build();
@@ -95,7 +85,10 @@ public class DashboardResource extends AbstractResource {
     @DELETE
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_DASHBOARD, acls = { RolePermissionAction.DELETE }) })
     public Response deleteDashboard() {
-        deleteDashboardUseCase.execute(new DeleteDashboardUseCase.Input(dashboardId));
+        var auditInfo = getAuditInfo();
+
+        deleteDashboardUseCase.execute(new DeleteDashboardUseCase.Input(dashboardId, auditInfo));
+
         return Response.noContent().build();
     }
 }
