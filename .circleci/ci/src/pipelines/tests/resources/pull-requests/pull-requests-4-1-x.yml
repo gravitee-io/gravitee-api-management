@@ -1421,6 +1421,14 @@ workflows:
           apim-ui-project: gravitee-apim-portal-webui-next
           nx-project: portal-next
           max-workers: "2"
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-portal-webui-next
+          context:
+            - cicd-orchestrator
+          requires:
+            - Lint & test APIM Portal Next
+          working_directory: gravitee-apim-portal-webui-next
+          cache_type: frontend
       - job-webui-lint-test:
           name: Lint & test APIM Portal
           context:
@@ -1447,14 +1455,6 @@ workflows:
           requires:
             - Lint & test APIM Portal
           working_directory: gravitee-apim-portal-webui
-          cache_type: frontend
-      - job-sonarcloud-analysis:
-          name: Sonar - gravitee-apim-portal-webui-next
-          context:
-            - cicd-orchestrator
-          requires:
-            - Lint & test APIM Portal Next
-          working_directory: gravitee-apim-portal-webui-next
           cache_type: frontend
       - job-build-docker-backend-image:
           context:

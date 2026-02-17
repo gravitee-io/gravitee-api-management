@@ -33,37 +33,6 @@ commands:
           command: |-
             corepack enable || sudo corepack enable
                     yarn set version 4.1.1
-  cmd-webui-install:
-    parameters:
-      apim-ui-project:
-        type: string
-        default: ""
-        description: the name of the UI project to build
-    steps:
-      - restore_cache:
-          name: Restore Yarn cache
-          keys:
-            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
-            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}
-      - run:
-          name: Install dependencies
-          command: yarn
-          working_directory: << parameters.apim-ui-project >>
-      - save_cache:
-          name: Save Yarn cache
-          key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
-          paths:
-            - ./<< parameters.apim-ui-project >>/node_modules
-  cmd-notify-on-failure:
-    steps:
-      - keeper/env-export:
-          secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
-          var-name: SLACK_ACCESS_TOKEN
-      - slack/notify:
-          channel: C02JENTV2AX
-          branch_pattern: master,[0-9]+\.[0-9]+\.x
-          event: fail
-          template: basic_fail_1
   cmd-workspace-install:
     steps:
       - restore_cache:
@@ -79,6 +48,16 @@ commands:
           key: gravitee-api-management-v14-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}
           paths:
             - ./node_modules
+  cmd-notify-on-failure:
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+          var-name: SLACK_ACCESS_TOKEN
+      - slack/notify:
+          channel: C02JENTV2AX
+          branch_pattern: master,[0-9]+\.[0-9]+\.x
+          event: fail
+          template: basic_fail_1
   cmd-restore-maven-job-cache:
     parameters:
       jobName:
@@ -108,6 +87,27 @@ commands:
             - ~/.m2
           when: always
     description: Save Maven cache for a dedicated job
+  cmd-webui-install:
+    parameters:
+      apim-ui-project:
+        type: string
+        default: ""
+        description: the name of the UI project to build
+    steps:
+      - restore_cache:
+          name: Restore Yarn cache
+          keys:
+            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
+            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}
+      - run:
+          name: Install dependencies
+          command: yarn
+          working_directory: << parameters.apim-ui-project >>
+      - save_cache:
+          name: Save Yarn cache
+          key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
+          paths:
+            - ./<< parameters.apim-ui-project >>/node_modules
 jobs:
   job-danger-js:
     docker:
@@ -122,6 +122,88 @@ jobs:
       - run:
           name: Run Danger JS
           command: cd .circleci/danger && yarn install && yarn run danger
+  job-nx-webui-lint-test:
+    parameters:
+      apim-ui-project:
+        type: string
+        default: ""
+        description: the directory name of the UI project
+      nx-project:
+        type: string
+        default: ""
+        description: the Nx project name
+      resource_class:
+        type: string
+        default: medium
+        description: Resource class to use for executor
+      max-workers:
+        type: string
+        default: 35%
+        description: Maximum number of workers for Jest tests
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: << parameters.resource_class >>
+    steps:
+      - checkout
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check License
+          command: yarn nx run << parameters.nx-project >>:lint-license
+      - run:
+          name: Run Prettier and ESLint
+          command: yarn nx lint << parameters.nx-project >>
+      - run:
+          name: Run unit tests
+          command: yarn nx test << parameters.nx-project >> --coverage --maxWorkers=<< parameters.max-workers >>
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - << parameters.apim-ui-project >>/coverage/lcov.info
+      - store_artifacts:
+          path: << parameters.apim-ui-project >>/coverage/lcov.info
+      - store_test_results:
+          path: << parameters.apim-ui-project >>/coverage/junit.xml
+  job-sonarcloud-analysis:
+    parameters:
+      working_directory:
+        type: string
+        default: gravitee-apim-rest-api
+        description: Directory where the Sonarcloud analysis will be run
+      cache_type:
+        type: enum
+        default: backend
+        description: Type of cache to use
+        enum:
+          - backend
+          - frontend
+    docker:
+      - image: sonarsource/sonar-scanner-cli:11.2
+    resource_class: large
+    steps:
+      - checkout:
+          method: full
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
+      - keeper/env-export:
+          secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
+          var-name: SONAR_TOKEN
+      - run:
+          name: Run Sonarcloud Analysis
+          command: sonar-scanner -Dsonar.projectVersion=4.2.0
+          working_directory: << parameters.working_directory >>
+      - cmd-notify-on-failure
+      - save_cache:
+          paths:
+            - /opt/sonar-scanner/.sonar/cache
+          key: gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
+          when: always
   job-webui-lint-test:
     parameters:
       apim-ui-project:
@@ -197,43 +279,6 @@ jobs:
           root: .
           paths:
             - gravitee-apim-portal-webui/dist
-  job-sonarcloud-analysis:
-    parameters:
-      working_directory:
-        type: string
-        default: gravitee-apim-rest-api
-        description: Directory where the Sonarcloud analysis will be run
-      cache_type:
-        type: enum
-        default: backend
-        description: Type of cache to use
-        enum:
-          - backend
-          - frontend
-    docker:
-      - image: sonarsource/sonar-scanner-cli:11.2
-    resource_class: large
-    steps:
-      - checkout:
-          method: full
-      - attach_workspace:
-          at: .
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
-      - keeper/env-export:
-          secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
-          var-name: SONAR_TOKEN
-      - run:
-          name: Run Sonarcloud Analysis
-          command: sonar-scanner -Dsonar.projectVersion=4.2.0
-          working_directory: << parameters.working_directory >>
-      - cmd-notify-on-failure
-      - save_cache:
-          paths:
-            - /opt/sonar-scanner/.sonar/cache
-          key: gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
-          when: always
   job-validate-workflow-status:
     docker:
       - image: cimg/base:stable
@@ -262,6 +307,21 @@ workflows:
           name: Run Danger JS
           context:
             - cicd-orchestrator
+      - job-nx-webui-lint-test:
+          name: Lint & test APIM Portal Next
+          context:
+            - cicd-orchestrator
+          apim-ui-project: gravitee-apim-portal-webui-next
+          nx-project: portal-next
+          max-workers: "2"
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-portal-webui-next
+          context:
+            - cicd-orchestrator
+          requires:
+            - Lint & test APIM Portal Next
+          working_directory: gravitee-apim-portal-webui-next
+          cache_type: frontend
       - job-webui-lint-test:
           name: Lint & test APIM Portal
           context:
@@ -283,6 +343,7 @@ workflows:
       - job-validate-workflow-status:
           name: Validate workflow status
           requires:
+            - Lint & test APIM Portal Next
             - Lint & test APIM Portal
             - Build APIM Portal
 orbs:

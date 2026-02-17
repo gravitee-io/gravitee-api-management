@@ -27,6 +27,7 @@ describe('Pull requests workflow tests', () => {
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['helm']}                            | ${'pull-requests-custom-branch-helm-only.yml'}
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-console-webui']}     | ${'pull-requests-custom-branch-console-only.yml'}
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-portal-webui']}      | ${'pull-requests-custom-branch-portal-only.yml'}
+    ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-portal-webui-next']} | ${'pull-requests-custom-branch-portal-next-only.yml'}
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-definition']}        | ${'pull-requests-custom-branch-backend-only.yml'}
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-distribution']}      | ${'pull-requests-custom-branch-backend-distribution-only.yml'}
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-gateway']}           | ${'pull-requests-custom-branch-backend-gateway-only.yml'}
