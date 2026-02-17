@@ -165,6 +165,16 @@ export class WebuiLintTestJob {
         command: 'yarn nx affected -t test --exclude=console,portal-next --coverage --maxWorkers=2',
       }),
       new reusable.ReusedCommand(notifyOnFailureCommand),
+      // Ensure coverage files exist so persist/store steps don't fail when libs are not affected
+      new commands.Run({
+        name: 'Ensure coverage files exist',
+        command: [
+          'mkdir -p gravitee-apim-webui-libs/gravitee-markdown/coverage',
+          'mkdir -p gravitee-apim-webui-libs/gravitee-dashboard/coverage',
+          'touch gravitee-apim-webui-libs/gravitee-markdown/coverage/lcov.info',
+          'touch gravitee-apim-webui-libs/gravitee-dashboard/coverage/lcov.info',
+        ].join('\n'),
+      }),
       // Store artifacts and test results for markdown
       new commands.workspace.Persist({
         root: '.',
