@@ -40,7 +40,6 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
@@ -223,6 +222,20 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
                 "An error occurs while trying to find client certificates by application IDs and statuses",
                 e
             );
+        }
+    }
+
+    @Override
+    public Set<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses) {
+        try {
+            log.debug("Find client certificates by statuses {}", (Object) statuses);
+            return clientCertificateRepository
+                .findByStatuses(ClientCertificateAdapter.INSTANCE.toRepoStatus(statuses))
+                .stream()
+                .map(ClientCertificateAdapter.INSTANCE::toDomain)
+                .collect(Collectors.toSet());
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while trying to find client certificates by statuses", e);
         }
     }
 

@@ -167,6 +167,23 @@ public class MongoClientCertificateRepository implements ClientCertificateReposi
     }
 
     @Override
+    public Set<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses) throws TechnicalException {
+        log.debug("Find client certificates by statuses [{}]", (Object) statuses);
+
+        if (statuses == null || statuses.length == 0) {
+            return Set.of();
+        }
+
+        try {
+            var statusStrings = Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
+            var clientCertificates = internalRepository.findByStatuses(statusStrings);
+            return clientCertificates.stream().map(mapper::map).collect(Collectors.toSet());
+        } catch (Exception e) {
+            throw new TechnicalException("Failed to find client certificates by statuses", e);
+        }
+    }
+
+    @Override
     public boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId) throws TechnicalException {
         log.debug(
             "Check if client certificate with fingerprint [{}] exists for an active application in environment [{}]",

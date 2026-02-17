@@ -90,6 +90,15 @@ public interface ClientCertificateCrudService {
     Set<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses);
 
     /**
+     * Find all client certificates matching the given statuses, regardless of application.
+     * Returns an empty set if {@code statuses} is null or empty.
+     *
+     * @param statuses one or more {@link ClientCertificateStatus} values to filter by
+     * @return a set of client certificates matching the criteria
+     */
+    Set<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses);
+
+    /**
      * Delete all client certificates for a given application.
      *
      * @param applicationId the application ID

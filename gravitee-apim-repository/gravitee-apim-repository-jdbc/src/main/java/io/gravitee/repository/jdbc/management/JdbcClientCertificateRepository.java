@@ -34,8 +34,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -161,6 +159,26 @@ public class JdbcClientCertificateRepository
             return result;
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find client certificates by application ids and statuses", ex);
+        }
+    }
+
+    @Override
+    public Set<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses) throws TechnicalException {
+        log.debug("JdbcClientCertificateRepository.findByStatuses({})", (Object) statuses);
+
+        if (statuses == null || statuses.length == 0) {
+            return Set.of();
+        }
+
+        try {
+            var statusStrings = Arrays.stream(statuses).map(ClientCertificateStatus::name).toList();
+
+            var sql = getOrm().getSelectAllSql() + " WHERE status IN (" + getOrm().buildInClause(statusStrings) + ")";
+
+            var clientCertificates = jdbcTemplate.query(sql, ps -> getOrm().setArguments(ps, statusStrings, 1), getOrm().getRowMapper());
+            return new HashSet<>(clientCertificates);
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find client certificates by statuses", ex);
         }
     }
 

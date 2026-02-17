@@ -154,6 +154,18 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
     }
 
     @Override
+    public Set<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses) {
+        if (statuses == null || statuses.length == 0) {
+            return Set.of();
+        }
+        var statusSet = Set.of(statuses);
+        return storage
+            .stream()
+            .filter(cert -> statusSet.contains(cert.getStatus()))
+            .collect(Collectors.toSet());
+    }
+
+    @Override
     public void deleteByApplicationId(String applicationId) {
         storage.removeIf(cert -> applicationId.equals(cert.getApplicationId()));
     }
