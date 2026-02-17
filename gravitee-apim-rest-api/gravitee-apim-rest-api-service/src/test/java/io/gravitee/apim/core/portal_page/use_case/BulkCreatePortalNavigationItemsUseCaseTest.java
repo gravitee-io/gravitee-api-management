@@ -19,6 +19,12 @@ import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
@@ -28,6 +34,7 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -46,6 +53,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
 
     private BulkCreatePortalNavigationItemUseCase useCase;
     private PortalNavigationItemsQueryServiceInMemory queryService;
+    private PortalNavigationItemValidatorService validatorService;
 
     @BeforeEach
     void setUp() {
@@ -54,7 +62,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         final var crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         final var pageContentQueryService = new PortalPageContentQueryServiceInMemory();
-        final var validatorService = new PortalNavigationItemValidatorService(queryService, pageContentQueryService);
+        validatorService = new PortalNavigationItemValidatorService(queryService, pageContentQueryService);
         final var pageContentCrudService = new PortalPageContentCrudServiceInMemory();
         final var apiCrudService = new ApiCrudServiceInMemory();
 
@@ -116,5 +124,39 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             assertThat(item.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
             assertThat(item.getPublished()).isFalse();
         });
+    }
+
+    @Test
+    void should_fail_when_at_least_one_item_is_invalid_during_bulk_validation() {
+        // Given
+        final var domainService = mock(PortalNavigationItemDomainService.class);
+        final var useCase = new BulkCreatePortalNavigationItemUseCase(domainService, validatorService);
+
+        final var validItem = CreatePortalNavigationItem.builder()
+            .id(PortalNavigationItemId.random())
+            .type(PortalNavigationItemType.FOLDER)
+            .title("Folder 1")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .parentId(PortalNavigationItemId.of(APIS_ID))
+            .build();
+
+        final var invalidApiItem = CreatePortalNavigationItem.builder()
+            .id(PortalNavigationItemId.random())
+            .type(PortalNavigationItemType.API)
+            .title("API without parent")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .apiId("api-2")
+            .build();
+
+        // When
+        final var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(validItem, invalidApiItem)))
+        );
+
+        // Then
+        assertThat(exception.getMessage()).isEqualTo("The parentId field is required and cannot be blank.");
+        verify(domainService, never()).create(anyString(), anyString(), any(CreatePortalNavigationItem.class));
     }
 }

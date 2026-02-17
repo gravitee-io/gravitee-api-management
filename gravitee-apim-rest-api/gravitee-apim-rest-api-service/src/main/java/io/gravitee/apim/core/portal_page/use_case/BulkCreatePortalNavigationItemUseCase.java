@@ -38,8 +38,9 @@ public class BulkCreatePortalNavigationItemUseCase {
 
         List<PortalNavigationItem> result = new LinkedList<>();
 
+        validatorService.validateAll(itemsToCreate, environmentId);
+
         for (CreatePortalNavigationItem itemToCreate : itemsToCreate) {
-            validatorService.validate(itemToCreate, environmentId);
             result.add(domainService.create(organizationId, environmentId, itemToCreate));
         }
 
