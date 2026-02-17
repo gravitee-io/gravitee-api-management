@@ -363,18 +363,22 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       return of(null);
     }
 
-    return of(...apiIds).pipe(
-      exhaustMap(apiId =>
-        this.create({
-          title: '',
-          type: 'API',
-          area: 'TOP_NAVBAR',
-          parentId,
-          visibility: 'PUBLIC',
-          apiId,
-        } as NewPortalNavigationItem).pipe(map(created => created.id)),
-      ),
-      map(id => id ?? null),
+    const items: NewPortalNavigationItem[] = apiIds.map(apiId => ({
+      title: '',
+      type: 'API',
+      area: 'TOP_NAVBAR',
+      parentId,
+      visibility: 'PUBLIC',
+      apiId,
+    }));
+
+    return this.portalNavigationItemsService.createNavigationItemsInBulk(items).pipe(
+      map(response => {
+        if (response.items && response.items.length > 0) {
+          return response.items[response.items.length - 1].id;
+        }
+        return null;
+      }),
       catchError(() => {
         this.snackBarService.error('Failed to create API navigation items');
         return of(null);

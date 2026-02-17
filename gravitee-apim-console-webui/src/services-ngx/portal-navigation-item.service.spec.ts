@@ -24,9 +24,11 @@ import {
   fakePortalNavigationPage,
   fakePortalNavigationFolder,
   fakePortalNavigationLink,
+  fakePortalNavigationApi,
   fakeNewPagePortalNavigationItem,
   fakeNewFolderPortalNavigationItem,
   fakeNewLinkPortalNavigationItem,
+  fakeNewApiPortalNavigationItem,
 } from '../entities/management-api-v2';
 
 describe('PortalNavigationItemService', () => {
@@ -112,6 +114,56 @@ describe('PortalNavigationItemService', () => {
       });
       expect(req.request.body).toEqual(newLinkItem);
       req.flush(fakeCreatedItem);
+    });
+  });
+
+  describe('createNavigationItemsInBulk', () => {
+    it('should create multiple navigation items in bulk', done => {
+      const newApiItem1 = fakeNewApiPortalNavigationItem({ apiId: 'api-1', title: 'API 1' });
+      const newApiItem2 = fakeNewApiPortalNavigationItem({ apiId: 'api-2', title: 'API 2' });
+      const newApiItem3 = fakeNewApiPortalNavigationItem({ apiId: 'api-3', title: 'API 3' });
+      const items = [newApiItem1, newApiItem2, newApiItem3];
+
+      const fakeCreatedItems = [
+        fakePortalNavigationApi({ id: 'nav-api-1', apiId: 'api-1', title: 'API 1' }),
+        fakePortalNavigationApi({ id: 'nav-api-2', apiId: 'api-2', title: 'API 2' }),
+        fakePortalNavigationApi({ id: 'nav-api-3', apiId: 'api-3', title: 'API 3' }),
+      ];
+      const fakeResponse = fakePortalNavigationItemsResponse({ items: fakeCreatedItems });
+
+      service.createNavigationItemsInBulk(items).subscribe(response => {
+        expect(response).toMatchObject(fakeResponse);
+        expect(response.items).toHaveLength(3);
+        expect(response.items[0].type).toBe('API');
+        expect(response.items[1].type).toBe('API');
+        expect(response.items[2].type).toBe('API');
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_bulk`,
+      });
+      expect(req.request.body).toEqual({ items });
+      req.flush(fakeResponse);
+    });
+
+    it('should handle empty array in bulk create', done => {
+      const items = [];
+      const fakeResponse = fakePortalNavigationItemsResponse({ items: [] });
+
+      service.createNavigationItemsInBulk(items).subscribe(response => {
+        expect(response).toMatchObject(fakeResponse);
+        expect(response.items).toHaveLength(0);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_bulk`,
+      });
+      expect(req.request.body).toEqual({ items: [] });
+      req.flush(fakeResponse);
     });
   });
 });
