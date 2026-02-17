@@ -60,6 +60,70 @@ describe('ApiV4MenuService', () => {
     expect(service).toBeTruthy();
   });
 
+  it('should include Failover tab for LLM_PROXY APIs', () => {
+    TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-definition-r'] });
+    service = TestBed.inject(ApiV4MenuService);
+
+    const menu = service.getMenu(
+      fakeApiV4({
+        type: 'LLM_PROXY',
+      }),
+    );
+    const endpointsMenu = menu.subMenuItems.find((item) => item.displayName === 'Endpoints');
+
+    expect(endpointsMenu?.tabs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ displayName: 'Endpoints', routerLink: 'v4/endpoints' }),
+        expect.objectContaining({ displayName: 'Failover', routerLink: 'v4/failover' }),
+      ]),
+    );
+  });
+
+  it('should still include Failover tab for PROXY APIs', () => {
+    TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-definition-r'] });
+    service = TestBed.inject(ApiV4MenuService);
+
+    const menu = service.getMenu(
+      fakeApiV4({
+        type: 'PROXY',
+        listeners: [{ type: 'HTTP', entrypoints: [{ type: 'http-proxy' }] }],
+      }),
+    );
+    const endpointsMenu = menu.subMenuItems.find((item) => item.displayName === 'Endpoints');
+
+    expect(endpointsMenu?.tabs).toEqual(
+      expect.arrayContaining([expect.objectContaining({ displayName: 'Failover', routerLink: 'v4/failover' })]),
+    );
+  });
+
+  it('should not include Failover tab for NATIVE APIs', () => {
+    TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-definition-r'] });
+    service = TestBed.inject(ApiV4MenuService);
+
+    const menu = service.getMenu(
+      fakeApiV4({
+        type: 'NATIVE',
+      }),
+    );
+    const endpointsMenu = menu.subMenuItems.find((item) => item.displayName === 'Endpoints');
+
+    expect(endpointsMenu?.tabs?.find((tab) => tab.displayName === 'Failover')).toBeUndefined();
+  });
+
+  it('should not expose Failover tab without api-definition-r permission', () => {
+    TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-log-r'] });
+    service = TestBed.inject(ApiV4MenuService);
+
+    const menu = service.getMenu(
+      fakeApiV4({
+        type: 'LLM_PROXY',
+      }),
+    );
+    const endpointsMenu = menu.subMenuItems.find((item) => item.displayName === 'Endpoints');
+
+    expect(endpointsMenu?.tabs?.find((tab) => tab.displayName === 'Failover')).toBeUndefined();
+  });
+
   it('should include Webhooks menu when webhook entrypoint is present', () => {
     service = TestBed.inject(ApiV4MenuService);
     const api = fakeApiV4();

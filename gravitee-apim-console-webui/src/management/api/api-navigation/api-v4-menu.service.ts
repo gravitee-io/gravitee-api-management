@@ -226,15 +226,14 @@ export class ApiV4MenuService implements ApiMenuService {
         displayName: 'Endpoints',
         routerLink: 'v4/endpoints',
       });
-    }
 
-    if ((api.type === 'PROXY' && !hasTcpListeners) || api.type === 'MESSAGE')
-      tabs.push({
-        displayName: 'Failover',
-        routerLink: 'v4/failover',
-      });
+      if ((api.type === 'PROXY' && !hasTcpListeners) || api.type === 'MESSAGE' || api.type === 'LLM_PROXY') {
+        tabs.push({
+          displayName: 'Failover',
+          routerLink: 'v4/failover',
+        });
+      }
 
-    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
       if (api.type === 'PROXY' && !hasTcpListeners) {
         tabs.push({
           displayName: 'Health Check Dashboard',

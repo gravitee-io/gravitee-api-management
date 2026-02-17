@@ -245,6 +245,26 @@ describe('ApiNavigationComponent', () => {
       );
     });
 
+    it('should include Failover in menu search items for V4 LLM API', async () => {
+      fixture.detectChanges();
+      expectApiGetRequest(
+        fakeApiV4({
+          id: API_ID,
+          type: 'LLM_PROXY',
+        }),
+      );
+
+      expect(addSearchItemByGroupIds).toHaveBeenCalledTimes(1);
+      expect(addSearchItemByGroupIds).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            name: 'Failover',
+            routerLink: expect.stringContaining(`${ENVIRONMENT_ID}/apis/${API_ID}/v4/failover`),
+          }),
+        ]),
+      );
+    });
+
     it('should compute menu search items for V2 API', async () => {
       fixture.detectChanges();
       expectApiGetRequest(fakeApiV2({ id: API_ID }));
