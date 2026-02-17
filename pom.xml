@@ -297,7 +297,7 @@
         <gravitee-endpoint-agent-to-agent.version>1.0.1</gravitee-endpoint-agent-to-agent.version>
         <gravitee-policy-graphql-rate-limit.version>1.0.2</gravitee-policy-graphql-rate-limit.version>
         <gravitee-resource-schema-registry-confluent.version>4.0.0</gravitee-resource-schema-registry-confluent.version>
-        <gravitee-resource-storage-azure-blob.version>1.0.0</gravitee-resource-storage-azure-blob.version>
+        <gravitee-resource-storage-azure-blob.version>1.1.0</gravitee-resource-storage-azure-blob.version>
         <gravitee-reactor-message.version>9.0.0</gravitee-reactor-message.version>
         <gravitee-reactor-native-kafka.version>5.0.2</gravitee-reactor-native-kafka.version>
         <gravitee-reactor-mcp-proxy.version>1.0.1</gravitee-reactor-mcp-proxy.version>
