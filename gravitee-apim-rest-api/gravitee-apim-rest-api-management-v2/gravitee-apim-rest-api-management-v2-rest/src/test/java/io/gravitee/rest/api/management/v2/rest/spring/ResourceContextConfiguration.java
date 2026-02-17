@@ -131,6 +131,7 @@ import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomain
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
+import io.gravitee.apim.core.portal_page.domain_service.GraviteePortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
@@ -223,6 +224,7 @@ import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import io.vertx.rxjava3.core.Vertx;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -1039,11 +1041,11 @@ public class ResourceContextConfiguration {
         PortalPageContentQueryService portalPageContentQueryService,
         PortalPageContentCrudService portalPageContentCrudService
     ) {
-        return new UpdatePortalPageContentUseCase(
-            portalPageContentQueryService,
-            new PortalPageContentValidatorService(new GraviteeMarkdownValidator()),
-            portalPageContentCrudService
-        );
+        GraviteeMarkdownValidator gmdValidator = new GraviteeMarkdownValidator();
+        GraviteePortalPageContentValidatorService gmdContentValidator = new GraviteePortalPageContentValidatorService(gmdValidator);
+        PortalPageContentValidatorService validatorService = new PortalPageContentValidatorService(List.of(gmdContentValidator));
+
+        return new UpdatePortalPageContentUseCase(portalPageContentQueryService, portalPageContentCrudService, validatorService);
     }
 
     @Bean

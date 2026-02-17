@@ -16,9 +16,7 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContainer;
-import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidator;
 import jakarta.annotation.Nonnull;
-import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -54,14 +52,7 @@ public final class GraviteeMarkdownPageContent extends PortalPageContent impleme
     }
 
     @Override
-    public void update(
-        @Nonnull UpdatePortalPageContent updateGraviteeMarkdownPageContent,
-        List<PortalPageContentValidator> contentValidators
-    ) {
-        contentValidators
-            .stream()
-            .filter(validator -> validator.appliesTo(this))
-            .forEach(validator -> validator.validate(updateGraviteeMarkdownPageContent));
+    public void update(@Nonnull UpdatePortalPageContent updateGraviteeMarkdownPageContent) {
         this.content = updateGraviteeMarkdownPageContent.getContent();
     }
 
