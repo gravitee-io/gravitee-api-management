@@ -150,7 +150,6 @@ gv-row {
 }
 
 @media only screen and (max-device-width: 1280px) {
-  .catalog__section__content__all__promoted,
   .catalog__section__content__all__no-promoted {
     display: grid;
     grid-template-columns: 1fr;
@@ -158,15 +157,31 @@ gv-row {
     grid-template-areas: 'cards';
   }
 
-  .catalog__section__random-aside__no-promoted,
-  .catalog__section__random-aside__promoted {
+  .catalog__section__content__all__promoted {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    grid-template-areas:
+      'promoted'
+      'cards';
+  }
+
+  .catalog__section__random-aside__no-promoted {
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: auto;
     grid-template-areas: 'cards';
   }
 
-  .catalog__section__promoted,
+  .catalog__section__random-aside__promoted {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    grid-template-areas:
+      'promoted'
+      'cards';
+  }
+
   app-gv-page {
     display: none;
   }
