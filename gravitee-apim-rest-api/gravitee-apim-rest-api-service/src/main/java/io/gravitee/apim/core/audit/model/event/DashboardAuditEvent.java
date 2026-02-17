@@ -13,24 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.dashboard.crud_service;
-
-import io.gravitee.apim.core.dashboard.model.Dashboard;
-import java.util.List;
-import java.util.Optional;
+package io.gravitee.apim.core.audit.model.event;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface DashboardCrudService {
-    Dashboard create(Dashboard dashboard);
-
-    Optional<Dashboard> findById(String id);
-
-    List<Dashboard> findByOrganizationId(String organizationId);
-
-    Dashboard update(Dashboard dashboard);
-
-    void delete(String id);
+public enum DashboardAuditEvent implements AuditEvent {
+    DASHBOARD_CREATED,
+    DASHBOARD_UPDATED,
+    DASHBOARD_DELETED,
 }

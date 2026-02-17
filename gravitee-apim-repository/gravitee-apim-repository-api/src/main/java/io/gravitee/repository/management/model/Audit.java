@@ -41,6 +41,7 @@ public class Audit {
         ENVIRONMENT,
         ORGANIZATION,
         API_PRODUCT,
+        DASHBOARD,
     }
 
     public interface AuditEvent {

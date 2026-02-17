@@ -16,19 +16,30 @@
 package io.gravitee.apim.core.dashboard.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.audit.model.DashboardAuditLogEntity;
+import io.gravitee.apim.core.audit.model.event.DashboardAuditEvent;
 import io.gravitee.apim.core.dashboard.domain_service.DashboardDomainService;
 import io.gravitee.apim.core.dashboard.exception.DashboardNotFoundException;
 import io.gravitee.apim.core.dashboard.model.Dashboard;
 import io.gravitee.common.utils.TimeProvider;
 import java.time.ZonedDateTime;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @UseCase
 @RequiredArgsConstructor
 public class UpdateDashboardUseCase {
 
     private final DashboardDomainService dashboardDomainService;
+
+    private final AuditDomainService auditService;
 
     public record Input(String dashboardId, Dashboard dashboard, AuditInfo auditInfo) {}
 
@@ -48,6 +59,24 @@ public class UpdateDashboardUseCase {
             .build();
 
         var saved = dashboardDomainService.update(updated);
+
+        createAuditLog(existing, saved, input.auditInfo());
+
         return new Output(saved);
+    }
+
+    private void createAuditLog(Dashboard oldDashboard, Dashboard newDashboard, AuditInfo auditInfo) {
+        auditService.createDashboardAuditLog(
+            DashboardAuditLogEntity.builder()
+                .organizationId(auditInfo.organizationId())
+                .event(DashboardAuditEvent.DASHBOARD_CREATED)
+                .actor(auditInfo.actor())
+                .dashboardId(newDashboard.getId())
+                .oldValue(oldDashboard)
+                .newValue(newDashboard)
+                .createdAt(newDashboard.getLastModified())
+                .properties(Map.of(AuditProperties.DASHBOARD, newDashboard.getId()))
+                .build()
+        );
     }
 }

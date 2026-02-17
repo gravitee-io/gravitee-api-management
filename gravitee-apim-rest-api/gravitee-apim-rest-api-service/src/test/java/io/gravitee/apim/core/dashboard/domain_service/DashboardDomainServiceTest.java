@@ -121,11 +121,6 @@ class DashboardDomainServiceTest {
     class Delete {
 
         @Test
-        void should_throw_when_not_found() {
-            assertThatThrownBy(() -> domainService.delete(DASHBOARD_ID)).isInstanceOf(DashboardNotFoundException.class);
-        }
-
-        @Test
         void should_delete_when_found() {
             var dashboard = Dashboard.builder().id(DASHBOARD_ID).name("To delete").build();
             dashboardCrudServiceInMemory.initWith(List.of(dashboard));

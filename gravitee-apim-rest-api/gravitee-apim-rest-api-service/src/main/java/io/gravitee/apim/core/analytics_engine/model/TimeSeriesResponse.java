@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics_engine.model;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -26,6 +27,7 @@ public record TimeSeriesResponse(List<TimeSeriesMetricResponse> metrics) {
         return new TimeSeriesResponse(
             responses
                 .stream()
+                .filter(Objects::nonNull)
                 .flatMap(metricResponse -> metricResponse.metrics().stream())
                 .toList()
         );

@@ -22,15 +22,27 @@ import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValid
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
+import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.audit.model.DashboardAuditLogEntity;
+import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
 import io.gravitee.apim.core.dashboard.crud_service.DashboardCrudService;
 import io.gravitee.apim.core.dashboard.exception.DashboardNotFoundException;
 import io.gravitee.apim.core.dashboard.model.Dashboard;
 import io.gravitee.apim.core.dashboard.model.DashboardWidget;
 import io.gravitee.apim.core.dashboard.model.DashboardWidgetRequestMapper;
+import io.gravitee.common.utils.TimeProvider;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @DomainService
 @RequiredArgsConstructor
 public class DashboardDomainService {
@@ -57,14 +69,12 @@ public class DashboardDomainService {
     }
 
     public void delete(String dashboardId) {
-        dashboardCrudService.findById(dashboardId).orElseThrow(() -> new DashboardNotFoundException(dashboardId));
         dashboardCrudService.delete(dashboardId);
     }
 
     private void validateWidgets(List<DashboardWidget> widgets) {
         for (var widget : widgets) {
             if (widget.getRequest() == null) {
-                // TODO should we reject the request instead?
                 continue;
             }
             var mapped = DashboardWidgetRequestMapper.toAnalyticsRequest(widget.getRequest());
