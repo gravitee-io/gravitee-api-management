@@ -61,16 +61,22 @@ public class SharedPolicyGroupPolicy implements HttpPolicy {
     public Completable onRequest(HttpPlainExecutionContext ctx) {
         return getPolicyChain(ctx)
             .map(policyChain -> policyChain.execute(ctx))
-            .orElseGet(warnNotFoundAndComplete(ctx.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)));
+            .orElseGet(warnNotFoundAndComplete(ctx));
     }
 
     @Override
     public Completable onResponse(HttpPlainExecutionContext ctx) {
         return getPolicyChain(ctx)
             .map(policyChain -> policyChain.execute(ctx))
-            .orElseGet(warnNotFoundAndComplete(ctx.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)));
+            .orElseGet(warnNotFoundAndComplete(ctx));
     }
 
+    /**
+     * To be removed when Message Reactor implementation will use {@link this#warnNotFoundAndComplete(HttpPlainExecutionContext)}
+     * @param environmentId
+     * @return
+     */
+    @Deprecated(forRemoval = true)
     protected Supplier<Completable> warnNotFoundAndComplete(String environmentId) {
         return () -> {
             log.warn(
@@ -78,6 +84,19 @@ public class SharedPolicyGroupPolicy implements HttpPolicy {
                 policyConfiguration.getSharedPolicyGroupId(),
                 environmentId
             );
+            return Completable.complete();
+        };
+    }
+
+    protected Supplier<Completable> warnNotFoundAndComplete(HttpPlainExecutionContext ctx) {
+        return () -> {
+            ctx
+                .withLogger(log)
+                .warn(
+                    "No Shared Policy Group found for id {} on environment {}",
+                    policyConfiguration.getSharedPolicyGroupId(),
+                    ctx.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)
+                );
             return Completable.complete();
         };
     }
