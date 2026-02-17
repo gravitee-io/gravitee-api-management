@@ -17,13 +17,12 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
-import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidator;
+import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
-import java.util.List;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -33,7 +32,7 @@ public class UpdatePortalPageContentUseCase {
 
     private final PortalPageContentQueryService portalPageContentQueryService;
     private final PortalPageContentCrudService portalPageContentCrudService;
-    private final List<PortalPageContentValidator> contentValidators;
+    private final PortalPageContentValidatorService validatorService;
 
     public Output execute(Input input) {
         // Check if portal page content is existing
@@ -49,7 +48,9 @@ public class UpdatePortalPageContentUseCase {
             throw new PageContentNotFoundException(input.portalPageContentId());
         }
 
-        existingContent.update(input.updatePortalPageContent(), contentValidators);
+        validatorService.validateForUpdate(existingContent, input.updatePortalPageContent());
+
+        existingContent.update(input.updatePortalPageContent());
 
         return new Output(portalPageContentCrudService.update(existingContent));
     }
