@@ -15,21 +15,21 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import static org.springframework.util.CollectionUtils.isEmpty;
+
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.mongodb.management.internal.apiproducts.ApiProductsMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiProductMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 @Component
 @Slf4j
@@ -135,7 +135,7 @@ public class MongoApiProductRepository implements ApiProductsRepository {
 
     @Override
     public Set<ApiProduct> findByIds(Collection<String> ids) throws TechnicalException {
-        if (CollectionUtils.isEmpty(ids)) {
+        if (isEmpty(ids)) {
             return Set.of();
         }
         log.debug("MongoApiProductRepository.findByIds({})", ids);

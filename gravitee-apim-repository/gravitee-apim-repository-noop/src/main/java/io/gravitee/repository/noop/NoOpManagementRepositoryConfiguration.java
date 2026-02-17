@@ -16,7 +16,7 @@
 package io.gravitee.repository.noop;
 
 import io.gravitee.repository.management.api.*;
-import io.gravitee.repository.management.apiproducts.ApiProductsRepository;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.noop.management.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
