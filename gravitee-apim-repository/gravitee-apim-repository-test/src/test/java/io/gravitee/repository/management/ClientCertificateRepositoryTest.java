@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import lombok.SneakyThrows;
 import org.junit.Test;
 
 /**
@@ -263,6 +264,49 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
             List.of("unknown-app-1", "unknown-app-2"),
             ClientCertificateStatus.ACTIVE
         );
+
+        assertThat(certificates).isNotNull().isEmpty();
+    }
+
+    @Test
+    @SneakyThrows
+    public void should_find_by_statuses() {
+        var certificates = clientCertificateRepository.findByStatuses(ClientCertificateStatus.ACTIVE);
+
+        assertThat(certificates).isNotNull().hasSize(2);
+        assertThat(certificates).extracting(ClientCertificate::getId).containsExactlyInAnyOrder("cert-1", "cert-to-update");
+    }
+
+    @Test
+    @SneakyThrows
+    public void should_find_revoked_certificates_by_status() {
+        var certificates = clientCertificateRepository.findByStatuses(ClientCertificateStatus.REVOKED);
+
+        assertThat(certificates).isNotNull().hasSize(1);
+        assertThat(certificates).extracting(ClientCertificate::getId).containsExactly("cert-to-delete");
+    }
+
+    @Test
+    @SneakyThrows
+    public void should_find_by_multiple_statuses() {
+        var certificates = clientCertificateRepository.findByStatuses(ClientCertificateStatus.ACTIVE, ClientCertificateStatus.SCHEDULED);
+
+        assertThat(certificates).isNotNull().hasSize(3);
+        assertThat(certificates).extracting(ClientCertificate::getId).containsExactlyInAnyOrder("cert-1", "cert-2", "cert-to-update");
+    }
+
+    @Test
+    @SneakyThrows
+    public void should_return_empty_when_statuses_is_empty_for_findByStatuses() {
+        var certificates = clientCertificateRepository.findByStatuses();
+
+        assertThat(certificates).isNotNull().isEmpty();
+    }
+
+    @Test
+    @SneakyThrows
+    public void should_return_empty_when_statuses_is_null_for_findByStatuses() {
+        var certificates = clientCertificateRepository.findByStatuses((ClientCertificateStatus[]) null);
 
         assertThat(certificates).isNotNull().isEmpty();
     }
