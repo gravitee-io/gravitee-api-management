@@ -138,7 +138,7 @@ public class ContentTemplateVariableProvider implements ExecutionContextTemplate
             if (buffer.length() == 0) {
                 return Collections.emptyMap();
             }
-            String sanitizedContent = sanitizeContent(buffer);
+            String sanitizedContent = sanitizeContent(executionContext, buffer);
             if (sanitizedContent.isEmpty()) {
                 return Collections.emptyMap();
             }
@@ -152,16 +152,18 @@ public class ContentTemplateVariableProvider implements ExecutionContextTemplate
 
     /**
      * Remove XML prolog and DocType tags
-     * @param buffer the XML content to sanitized
+     *
+     * @param ctx
+     * @param buffer           the XML content to sanitized
      * @return the sanitized XML
      */
-    private String sanitizeContent(Buffer buffer) throws XMLStreamException {
+    private String sanitizeContent(HttpExecutionContext ctx, Buffer buffer) throws XMLStreamException {
         XMLStreamReader sr = XML_INPUT_FACTORY.createXMLStreamReader(new ByteArrayInputStream(buffer.getBytes()));
         while (!sr.isStartElement() && sr.hasNext()) {
             try {
                 sr.next();
             } catch (Exception e) {
-                log.debug("Ignoring error while parsing XML content to find a start element", e);
+                ctx.withLogger(log).debug("Ignoring error while parsing XML content to find a start element", e);
             }
         }
         if (sr.isStartElement()) {

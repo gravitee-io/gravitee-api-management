@@ -53,6 +53,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.helpers.NOPLogger;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -95,6 +96,7 @@ class ContentTemplateVariableProviderTest {
     void init() {
         lenient().when(ctx.request()).thenReturn(request);
         lenient().when(ctx.response()).thenReturn(response);
+        lenient().when(ctx.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
 
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         lenient().when(templateEngine.getTemplateContext()).thenReturn(templateContext);
