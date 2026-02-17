@@ -39,10 +39,11 @@ public class GraviteeMarkdownValidator {
      * Callers can pass domain entities that implement the interface, or use lambda syntax
      * for functional-style validation: {@code validateNotEmpty(() -> content)}.</p>
      *
-     * @param content GMD content
+     * @param container the container holding GMD content
      * @throws GraviteeMarkdownContentEmptyException if content is null, empty, or whitespace-only
      */
-    public void validateNotEmpty(String content) {
+    public void validateNotEmpty(GraviteeMarkdownContainer container) {
+        String content = container.getGmdContent();
         if (content == null || content.trim().isEmpty()) {
             throw new GraviteeMarkdownContentEmptyException();
         }
