@@ -168,7 +168,7 @@ class CreatePortalNavigationItemUseCaseTest {
         // Given
         doThrow(new RuntimeException("Custom exception from validator"))
             .when(validatorService)
-            .validate(any(CreatePortalNavigationItem.class), anyString());
+            .validateOne(any(CreatePortalNavigationItem.class), anyString());
 
         final var numberOfItems = queryService.storage().size();
 

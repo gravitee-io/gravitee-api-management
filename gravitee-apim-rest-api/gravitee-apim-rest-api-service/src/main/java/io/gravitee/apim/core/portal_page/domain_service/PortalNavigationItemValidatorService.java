@@ -38,9 +38,10 @@ import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -52,12 +53,24 @@ public class PortalNavigationItemValidatorService {
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
     private final PortalPageContentQueryService pageContentQueryService;
 
-    public void validate(CreatePortalNavigationItem item, String environmentId) {
-        validateItem(item, environmentId);
+    public void validateAll(List<CreatePortalNavigationItem> items, String environmentId) {
+        ensureNoDuplicateApiIdsForApiItems(items);
+        List<PortalNavigationItem> navigationItems = hasApiItems(items) ? fetchAllNavigationItems(environmentId) : List.of();
+        for (CreatePortalNavigationItem item : items) {
+            validateItem(item, environmentId, navigationItems);
+            validateParent(item.getParentId(), item.getArea(), environmentId);
+        }
+    }
+
+    public void validateOne(CreatePortalNavigationItem item, String environmentId) {
+        List<PortalNavigationItem> navigationItems = item.getType() == PortalNavigationItemType.API
+            ? fetchAllNavigationItems(environmentId)
+            : List.of();
+        validateItem(item, environmentId, navigationItems);
         validateParent(item.getParentId(), item.getArea(), environmentId);
     }
 
-    private void validateItem(CreatePortalNavigationItem item, String environmentId) {
+    private void validateItem(CreatePortalNavigationItem item, String environmentId, List<PortalNavigationItem> navigationItems) {
         final var itemId = item.getId();
         if (itemId != null) {
             final var existingItem = this.navigationItemsQueryService.findByIdAndEnvironmentId(environmentId, itemId);
@@ -97,7 +110,7 @@ public class PortalNavigationItemValidatorService {
             if (item.getApiId() == null || item.getApiId().isBlank()) {
                 throw InvalidPortalNavigationItemDataException.fieldIsEmpty("apiId");
             }
-            List<PortalNavigationItem> navigationItems = fetchAllNavigationItems(environmentId);
+
             if (isApiIdAlreadyUsed(item.getApiId(), navigationItems)) {
                 throw InvalidPortalNavigationItemDataException.apiIdAlreadyExists(item.getApiId());
             }
@@ -150,6 +163,25 @@ public class PortalNavigationItemValidatorService {
             .filter(PortalNavigationApi.class::isInstance)
             .map(PortalNavigationApi.class::cast)
             .anyMatch(apiItem -> apiId.equals(apiItem.getApiId()));
+    }
+
+    private boolean hasApiItems(List<CreatePortalNavigationItem> navigationItems) {
+        return navigationItems.stream().anyMatch(item -> item.getType() == PortalNavigationItemType.API);
+    }
+
+    private void ensureNoDuplicateApiIdsForApiItems(List<CreatePortalNavigationItem> items) {
+        final Set<String> seenApiIds = new HashSet<>();
+
+        items
+            .stream()
+            .filter(item -> item.getType() == PortalNavigationItemType.API)
+            .map(CreatePortalNavigationItem::getApiId)
+            .filter(apiId -> apiId != null && !apiId.isBlank())
+            .filter(apiId -> !seenApiIds.add(apiId))
+            .findFirst()
+            .ifPresent(apiId -> {
+                throw InvalidPortalNavigationItemDataException.apiIdAlreadyExists(apiId);
+            });
     }
 
     private void ensureNoApiInAncestors(PortalNavigationItemId parentId, List<PortalNavigationItem> navigationItems) {
