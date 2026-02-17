@@ -36,7 +36,7 @@
               },
               {
                 "glob": "default.min.css",
-                "input": "node_modules/@asyncapi/web-component/node_modules/@asyncapi/react-component/styles",
+                "input": "node_modules/@asyncapi/react-component/styles",
                 "output": "assets/asyncapi"
               },
               {
