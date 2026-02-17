@@ -27,37 +27,40 @@
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field class="quick-filters__entrypoints" data-testid="entrypoints-select">
-        <mat-label>Entrypoints</mat-label>
-        <mat-select formControlName="entrypoints" aria-label="Entrypoints selection" [multiple]="true">
-          @for (entrypoint of entrypoints; track entrypoint.id) {
-            <mat-option [value]="entrypoint.id">{{ entrypoint.name }}</mat-option>
+      <mat-form-field class="quick-filters__apis" data-testid="apis-select">
+        <mat-label>API</mat-label>
+        <mat-select formControlName="apis" aria-label="API selection" [multiple]="true">
+          @for (api of apis; track api.id) {
+            <mat-option [value]="api.id">{{ api.name }}</mat-option>
           }
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field class="quick-filters__methods" data-testid="methods-select">
-        <mat-label>HTTP methods</mat-label>
-        <mat-select formControlName="methods" aria-label="Methods selection" [multiple]="true">
-          @for (httpMethod of httpMethods; track httpMethod) {
-            <mat-option [value]="httpMethod">{{ httpMethod }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field class="quick-filters__plans" data-testid="plans-select">
-        <mat-label>Plan</mat-label>
-        <mat-select formControlName="plans" aria-label="Plan selection" [multiple]="true">
-          @for (plan of plans; track plan.id) {
-            <mat-option [value]="plan.id">{{ plan.name }}</mat-option>
+      <mat-form-field class="quick-filters__applications" data-testid="applications-select">
+        <mat-label>Application</mat-label>
+        <mat-select formControlName="applications" aria-label="Application selection" [multiple]="true">
+          @for (app of applications; track app.id) {
+            <mat-option [value]="app.id">{{ app.name }}</mat-option>
           }
         </mat-select>
       </mat-form-field>
 
       <div class="quick-filters__buttons">
         <div class="action">
-          <!-- TODO: Implement advanced filters panel -->
-          <button mat-stroked-button type="button" class="action__button" [disabled]="loading()" data-testid="more-button">
+          <env-logs-more-filters
+            [showMoreFilters]="showMoreFilters()"
+            [formValues]="moreFiltersValues()"
+            (closeMoreFilters)="showMoreFilters.set(false)"
+            (applyMoreFilters)="applyMoreFilters($event)"
+          ></env-logs-more-filters>
+          <button
+            mat-stroked-button
+            type="button"
+            class="action__button"
+            [disabled]="loading()"
+            data-testid="more-button"
+            (click)="showMoreFilters.set(true)"
+          >
             <mat-icon svgIcon="gio:filter"></mat-icon>More
           </button>
         </div>
