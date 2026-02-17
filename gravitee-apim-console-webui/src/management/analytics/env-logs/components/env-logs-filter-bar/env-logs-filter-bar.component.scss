@@ -27,14 +27,13 @@ $typography: map.get(gio.$mat-theme, typography);
     gap: 16px;
   }
 
-  &__period,
-  &__entrypoints,
-  &__plans {
-    width: 132px;
+  &__period {
+    min-width: 8rem;
   }
 
-  &__methods {
-    min-width: 150px;
+  &__apis,
+  &__applications {
+    min-width: 10rem;
   }
 
   &__buttons {
@@ -48,7 +47,7 @@ $typography: map.get(gio.$mat-theme, typography);
       display: flex;
       align-items: center;
       gap: 4px;
-      height: 48px;
+      height: 3.25rem;
     }
   }
 
@@ -73,8 +72,8 @@ $typography: map.get(gio.$mat-theme, typography);
   &__chip {
     background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker10);
     color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, darker10-contrast);
-    min-height: 24px;
-    height: 24px;
+    min-height: 1.5rem;
+    height: fit-content;
     padding: 0;
     align-self: center;
 
@@ -88,7 +87,7 @@ $typography: map.get(gio.$mat-theme, typography);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 150px;
+      max-width: 10rem;
     }
   }
 

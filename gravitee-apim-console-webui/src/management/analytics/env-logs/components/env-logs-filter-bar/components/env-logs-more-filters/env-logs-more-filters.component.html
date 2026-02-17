@@ -1,0 +1,166 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="more-filters" [class.more-filters__hidden]="!showMoreFilters()">
+  <div class="more-filters__header">
+    <span class="more-filters__header__title">Filter your results</span>
+    <button mat-icon-button type="button" aria-label="Close" data-testid="more-filters-close" (click)="close()">
+      <mat-icon svgIcon="gio:cancel"></mat-icon>
+    </button>
+  </div>
+  <div class="more-filters__body">
+    @if (showMoreFilters()) {
+      <form [formGroup]="form">
+        <div class="more-filters__body__block">
+          <span class="more-filters__body__title">Date</span>
+
+          <mat-form-field>
+            <mat-label>From</mat-label>
+            <input matInput [owlDateTime]="fromDateTimePicker" formControlName="from" data-testid="more-filters-from" />
+            <mat-icon [owlDateTimeTrigger]="fromDateTimePicker" matSuffix svgIcon="gio:nav-arrow-down"></mat-icon>
+            <owl-date-time #fromDateTimePicker></owl-date-time>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>To</mat-label>
+            <input matInput [owlDateTime]="toDateTimePicker" [min]="minDate" formControlName="to" data-testid="more-filters-to" />
+            <mat-icon [owlDateTimeTrigger]="toDateTimePicker" matSuffix svgIcon="gio:nav-arrow-down"></mat-icon>
+            <owl-date-time #toDateTimePicker></owl-date-time>
+            @if (form.controls.to.hasError('owlDateTimeMin')) {
+              <mat-error>Date time value must be after {{ minDateDisplay | date: 'medium' }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="more-filters__body__block">
+          <span class="more-filters__body__title">Response</span>
+          <mat-form-field>
+            <mat-label>Status</mat-label>
+            <mat-chip-grid #statusChipList aria-label="Status chips" formControlName="statuses" data-testid="more-filters-statuses">
+              @for (status of statuses; track status) {
+                <mat-chip-row [removable]="true" [value]="status" (removed)="removeStatus(status)">
+                  {{ status }}
+                  <button matChipRemove>
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip-row>
+              }
+              <input
+                type="number"
+                placeholder="HTTP status"
+                [matChipInputAddOnBlur]="true"
+                [matChipInputFor]="statusChipList"
+                (matChipInputTokenEnd)="addStatusFromInput($event)"
+                data-testid="more-filters-status-input"
+              />
+            </mat-chip-grid>
+          </mat-form-field>
+        </div>
+
+        <div class="more-filters__body__block">
+          <span class="more-filters__body__title">Request</span>
+          <mat-form-field data-testid="more-filters-entrypoints">
+            <mat-label>Entrypoints</mat-label>
+            <mat-select formControlName="entrypoints" aria-label="Entrypoints selection" [multiple]="true">
+              @for (entrypoint of entrypoints; track entrypoint.id) {
+                <mat-option [value]="entrypoint.id">{{ entrypoint.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field data-testid="more-filters-methods">
+            <mat-label>HTTP Methods</mat-label>
+            <mat-select formControlName="methods" aria-label="HTTP Methods selection" [multiple]="true">
+              @for (httpMethod of httpMethods; track httpMethod) {
+                <mat-option [value]="httpMethod">{{ httpMethod }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field data-testid="more-filters-plans">
+            <mat-label>Plan</mat-label>
+            <mat-select formControlName="plans" aria-label="Plan selection" [multiple]="true">
+              @for (plan of plans; track plan.id) {
+                <mat-option [value]="plan.id">{{ plan.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="more-filters__body__block">
+          <span class="more-filters__body__title">Additional filters</span>
+          <!-- TODO: Add input validation (e.g. pattern matching) when backend integration is implemented -->
+          <mat-form-field data-testid="more-filters-mcp-method">
+            <mat-label>MCP Method</mat-label>
+            <input matInput formControlName="mcpMethod" placeholder="e.g. tools/list" />
+          </mat-form-field>
+
+          <!-- TODO: Add UUID format validation when backend integration is implemented -->
+          <mat-form-field data-testid="more-filters-transaction-id">
+            <mat-label>Transaction ID</mat-label>
+            <input matInput formControlName="transactionId" />
+          </mat-form-field>
+
+          <!-- TODO: Add UUID format validation when backend integration is implemented -->
+          <mat-form-field data-testid="more-filters-request-id">
+            <mat-label>Request ID</mat-label>
+            <input matInput formControlName="requestId" />
+          </mat-form-field>
+
+          <!-- TODO: Add URI format validation when backend integration is implemented -->
+          <mat-form-field data-testid="more-filters-uri">
+            <mat-label>URI</mat-label>
+            <input matInput formControlName="uri" placeholder="e.g. /api/v1/users" />
+          </mat-form-field>
+
+          <!-- TODO: Add min value validation (>= 0) when backend integration is implemented -->
+          <mat-form-field data-testid="more-filters-response-time">
+            <mat-label>Response time (ms)</mat-label>
+            <input matInput type="number" formControlName="responseTime" placeholder="Greater than (ms)" />
+          </mat-form-field>
+        </div>
+      </form>
+    }
+  </div>
+  <div class="more-filters__footer">
+    <button mat-stroked-button class="large clear__button" type="button" data-testid="more-filters-clear" (click)="resetMoreFilters()">
+      Clear all
+    </button>
+    <button
+      mat-flat-button
+      class="large apply__button"
+      color="primary"
+      type="button"
+      data-testid="more-filters-apply"
+      (click)="apply()"
+      [disabled]="isInvalid()"
+    >
+      Show results
+    </button>
+  </div>
+</div>
+@if (showMoreFilters()) {
+  <div
+    class="main-page"
+    role="button"
+    tabindex="0"
+    data-testid="more-filters-backdrop"
+    (click)="close()"
+    (keydown.enter)="close()"
+    (keydown.space)="close(); $event.preventDefault()"
+  ></div>
+}
