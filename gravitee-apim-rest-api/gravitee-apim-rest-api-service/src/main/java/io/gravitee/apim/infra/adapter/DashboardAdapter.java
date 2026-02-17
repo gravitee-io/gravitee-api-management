@@ -26,6 +26,10 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
+/**
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @Mapper
 public interface DashboardAdapter {
     DashboardAdapter INSTANCE = Mappers.getMapper(DashboardAdapter.class);
