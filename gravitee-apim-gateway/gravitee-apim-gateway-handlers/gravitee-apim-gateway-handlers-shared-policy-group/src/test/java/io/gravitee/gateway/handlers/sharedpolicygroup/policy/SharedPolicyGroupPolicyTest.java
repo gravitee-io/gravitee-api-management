@@ -70,6 +70,7 @@ class SharedPolicyGroupPolicyTest {
     void setUp() {
         // get Logback Logger
         Logger logger = (Logger) LoggerFactory.getLogger(SharedPolicyGroupPolicy.class);
+        lenient().when(executionContext.withLogger(any())).thenReturn(logger);
 
         // create and start a ListAppender
         listAppender = new ListAppender<>();
