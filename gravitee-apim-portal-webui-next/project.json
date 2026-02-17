@@ -1,0 +1,149 @@
+{
+  "name": "portal-next",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "gravitee-apim-portal-webui-next/src",
+  "prefix": "app",
+  "i18n": {
+    "sourceLocale": "en-US",
+    "locales": {}
+  },
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{workspaceRoot}/gravitee-apim-portal-webui/dist/next"],
+      "options": {
+        "outputPath": "gravitee-apim-portal-webui/dist/next",
+        "index": "gravitee-apim-portal-webui-next/src/index.html",
+        "browser": "gravitee-apim-portal-webui-next/src/main.ts",
+        "polyfills": ["zone.js", "@angular/localize/init"],
+        "tsConfig": "gravitee-apim-portal-webui-next/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          "gravitee-apim-portal-webui-next/src/assets",
+          {
+            "glob": "oauth2-redirect.html",
+            "input": "node_modules/swagger-ui/dist",
+            "output": "/"
+          },
+          {
+            "glob": "default.min.css",
+            "input": "node_modules/@asyncapi/react-component/styles",
+            "output": "assets/asyncapi"
+          },
+          {
+            "glob": "build.json",
+            "input": "gravitee-apim-portal-webui-next",
+            "output": "/"
+          },
+          {
+            "glob": "**/*",
+            "input": "gravitee-apim-webui-libs/gravitee-markdown/src/lib/assets/homepage",
+            "output": "assets/homepage"
+          }
+        ],
+        "scripts": [
+          {
+            "input": "node_modules/@asyncapi/web-component/lib/asyncapi-web-component.js",
+            "inject": true,
+            "bundleName": "asyncapi-web-component"
+          }
+        ],
+        "styles": ["gravitee-apim-portal-webui-next/src/styles.scss", "node_modules/swagger-ui/dist/swagger-ui.css"],
+        "stylePreprocessorOptions": {
+          "includePaths": ["node_modules/", "gravitee-apim-webui-libs/", "dist/"]
+        },
+        "i18nMissingTranslation": "warning"
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "2mb",
+              "maximumError": "10mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "6kb",
+              "maximumError": "50kb"
+            }
+          ],
+          "outputHashing": "all",
+          "fileReplacements": [
+            {
+              "replace": "gravitee-apim-portal-webui-next/src/assets/config.json",
+              "with": "gravitee-apim-portal-webui-next/src/assets/config.prod.json"
+            }
+          ]
+        },
+        "development": {
+          "tsConfig": "gravitee-apim-portal-webui-next/tsconfig.json",
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "executor": "@angular/build:dev-server",
+      "options": {
+        "port": 4101,
+        "proxyConfig": "gravitee-apim-portal-webui-next/src/proxy.conf.mjs",
+        "buildTarget": "portal-next:build"
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "portal-next:build:production"
+        },
+        "development": {
+          "buildTarget": "portal-next:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "extract-i18n": {
+      "executor": "@angular/build:extract-i18n",
+      "options": {
+        "buildTarget": "portal-next:build"
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "options": {
+        "jestConfig": "gravitee-apim-portal-webui-next/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {},
+    "lint-eslint": {
+      "executor": "@angular-eslint/builder:lint",
+      "options": {
+        "lintFilePatterns": ["gravitee-apim-portal-webui-next/src/**/*.ts", "gravitee-apim-portal-webui-next/src/**/*.html"]
+      }
+    },
+    "lint-license": {},
+    "storybook": {
+      "executor": "@storybook/angular:start-storybook",
+      "options": {
+        "configDir": "gravitee-apim-portal-webui-next/.storybook",
+        "styles": ["gravitee-apim-portal-webui-next/.storybook/index.scss"],
+        "browserTarget": "portal-next:build",
+        "compodoc": false,
+        "port": 6006
+      }
+    },
+    "build-storybook": {
+      "executor": "@storybook/angular:build-storybook",
+      "options": {
+        "configDir": "gravitee-apim-portal-webui-next/.storybook",
+        "browserTarget": "portal-next:build",
+        "compodoc": false,
+        "outputDir": "gravitee-apim-portal-webui-next/storybook-static"
+      }
+    }
+  },
+  "tags": ["type:app", "scope:portal"],
+  "implicitDependencies": ["markdown", "dashboard"]
+}
