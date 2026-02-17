@@ -94,6 +94,8 @@ public class ReporterProcessor implements Processor {
                 } else {
                     // No api found report only metrics
                     reporterService.report(metrics);
+                    // Report v2 metrics as well so that the request can show up in platform analytics
+                    reporterService.report(metrics.toV2());
                 }
             }
         })

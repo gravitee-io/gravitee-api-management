@@ -57,6 +57,8 @@ import org.jetbrains.annotations.NotNull;
 @Tag(name = "Platform Analytics")
 public class PlatformAnalyticsResource extends AbstractResource {
 
+    public static final String UNKNOWN_ID = "1";
+
     @Inject
     PermissionService permissionService;
 
@@ -125,7 +127,9 @@ public class PlatformAnalyticsResource extends AbstractResource {
     private Set<String> findApiIds() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (isAdmin()) {
-            return apiAuthorizationService.findIdsByEnvironment(executionContext.getEnvironmentId());
+            var ids = apiAuthorizationService.findIdsByEnvironment(executionContext.getEnvironmentId());
+            ids.add(UNKNOWN_ID);
+            return ids;
         }
         return apiAuthorizationService
             .findIdsByUser(executionContext, getAuthenticatedUser(), true)
@@ -138,7 +142,9 @@ public class PlatformAnalyticsResource extends AbstractResource {
     private Set<String> findApplicationIds() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (isAdmin()) {
-            return applicationService.findIdsByEnvironment(executionContext);
+            var ids = applicationService.findIdsByEnvironment(executionContext);
+            ids.add(UNKNOWN_ID);
+            return ids;
         }
         return applicationService.findIdsByUserAndPermission(executionContext, getAuthenticatedUser(), null, APPLICATION_ANALYTICS, READ);
     }

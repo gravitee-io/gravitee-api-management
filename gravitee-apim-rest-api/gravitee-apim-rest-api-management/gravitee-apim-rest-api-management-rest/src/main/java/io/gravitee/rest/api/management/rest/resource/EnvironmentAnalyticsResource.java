@@ -71,6 +71,7 @@ import org.jetbrains.annotations.NotNull;
 public class EnvironmentAnalyticsResource extends AbstractResource {
 
     public static final String API_FIELD = "api";
+    public static final String UNKNOWN_ID = "1";
     public static final String APPLICATION_FIELD = "application";
     public static final String STATE_FIELD = "state";
     public static final String LIFECYCLE_STATE_FIELD = "lifecycle_state";
@@ -242,9 +243,11 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                 applicationQuery.setStatus(ApplicationStatus.ACTIVE.name());
                 applicationQuery.setExcludeFilters(List.of(ApplicationExcludeFilter.OWNER));
                 ids = applicationService.searchIds(executionContext, applicationQuery, null);
+                ids.add(UNKNOWN_ID);
             } else {
                 fieldName = API_FIELD;
                 ids = apiAuthorizationService.findIdsByEnvironment(executionContext.getEnvironmentId());
+                ids.add(UNKNOWN_ID);
             }
         } else {
             if (APPLICATION_FIELD.equalsIgnoreCase(analyticsParam.getField())) {
