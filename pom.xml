@@ -173,7 +173,7 @@
 
         <!-- Versions of the plugins for the full distribution -->
         <!-- Management API & Gateway -->
-        <gravitee-alert-engine-connectors-ws.version>2.1.0</gravitee-alert-engine-connectors-ws.version>
+        <gravitee-alert-engine-connectors-ws.version>2.3.0</gravitee-alert-engine-connectors-ws.version>
         <gravitee-connector-http.version>5.0.8</gravitee-connector-http.version>
         <gravitee-policy-apikey.version>5.2.0</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>3.1.0</gravitee-policy-assign-attributes.version>
