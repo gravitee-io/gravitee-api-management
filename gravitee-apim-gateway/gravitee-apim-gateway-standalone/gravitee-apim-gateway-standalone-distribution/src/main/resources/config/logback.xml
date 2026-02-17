@@ -22,7 +22,7 @@
         <!-- encoders are assigned the type
              ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] [nodeId:%X{nodeId:-not_managed}, apiId:%X{apiId:-unknown}, contextPath:%X{contextPath:-unknown}] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] [nodeId:%X{nodeId:-not_managed}, apiId:%X{apiId:-unknown}] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -37,7 +37,7 @@
         </rollingPolicy>
 
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] [%X{api}] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] [nodeId:%X{nodeId:-not_managed}, apiId:%X{apiId:-unknown}] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
