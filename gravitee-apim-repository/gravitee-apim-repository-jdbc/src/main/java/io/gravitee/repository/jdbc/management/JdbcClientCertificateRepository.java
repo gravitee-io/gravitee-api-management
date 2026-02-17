@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.CustomLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,12 +44,11 @@ import org.springframework.stereotype.Repository;
  *
  * @author GraviteeSource Team
  */
+@CustomLog
 @Repository
 public class JdbcClientCertificateRepository
     extends JdbcAbstractCrudRepository<ClientCertificate, String>
     implements ClientCertificateRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcClientCertificateRepository.class);
 
     JdbcClientCertificateRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "client_certificates");
@@ -82,7 +82,7 @@ public class JdbcClientCertificateRepository
 
     @Override
     public Page<ClientCertificate> findByApplicationId(String applicationId, Pageable pageable) throws TechnicalException {
-        LOGGER.debug("JdbcClientCertificateRepository.findByApplicationId({})", applicationId);
+        log.debug("JdbcClientCertificateRepository.findByApplicationId({})", applicationId);
         try {
             String sql = getOrm().getSelectAllSql() + " WHERE application_id = ?";
             List<ClientCertificate> clientCertificates = jdbcTemplate.query(sql, getOrm().getRowMapper(), applicationId);
@@ -95,7 +95,7 @@ public class JdbcClientCertificateRepository
     @Override
     public Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses)
         throws TechnicalException {
-        LOGGER.debug("JdbcClientCertificateRepository.findByApplicationIdAndStatuses({}, {})", applicationId, statuses);
+        log.debug("JdbcClientCertificateRepository.findByApplicationIdAndStatuses({}, {})", applicationId, statuses);
 
         if (statuses == null || statuses.length == 0) {
             return new HashSet<>();
@@ -122,7 +122,7 @@ public class JdbcClientCertificateRepository
     @Override
     public Set<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses)
         throws TechnicalException {
-        LOGGER.debug("JdbcClientCertificateRepository.findByApplicationIdsAndStatuses({}, {})", applicationIds, statuses);
+        log.debug("JdbcClientCertificateRepository.findByApplicationIdsAndStatuses({}, {})", applicationIds, statuses);
 
         if (applicationIds == null || applicationIds.isEmpty() || statuses == null || statuses.length == 0) {
             return new HashSet<>();
@@ -166,7 +166,7 @@ public class JdbcClientCertificateRepository
 
     @Override
     public boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcClientCertificateRepository.existsByFingerprintAndActiveApplication({}, {})", fingerprint, environmentId);
+        log.debug("JdbcClientCertificateRepository.existsByFingerprintAndActiveApplication({}, {})", fingerprint, environmentId);
 
         try {
             String sql =
@@ -194,7 +194,7 @@ public class JdbcClientCertificateRepository
 
     @Override
     public void deleteByApplicationId(String applicationId) {
-        LOGGER.debug("JdbcClientCertificateRepository.deleteByApplicationId({})", applicationId);
+        log.debug("JdbcClientCertificateRepository.deleteByApplicationId({})", applicationId);
         jdbcTemplate.update("DELETE FROM " + tableName + " WHERE application_id = ?", applicationId);
     }
 }

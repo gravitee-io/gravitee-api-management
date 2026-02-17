@@ -28,12 +28,12 @@ import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @UseCase
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class GetApiProductPlansUseCase {
 
     private final ApiProductPlanSearchQueryService apiProductPlanSearchQueryService;

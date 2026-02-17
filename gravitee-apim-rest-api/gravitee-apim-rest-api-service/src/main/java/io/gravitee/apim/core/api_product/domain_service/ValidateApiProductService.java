@@ -31,12 +31,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @DomainService
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class ValidateApiProductService {
 
     private final ApiQueryService apiQueryService;

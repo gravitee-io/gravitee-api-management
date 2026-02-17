@@ -24,12 +24,12 @@ import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @UseCase
 @RequiredArgsConstructor
-@Slf4j
+@CustomLog
 public class GetApiProductsUseCase {
 
     private final ApiProductQueryService apiProductQueryService;

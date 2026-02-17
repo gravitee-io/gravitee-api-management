@@ -20,12 +20,12 @@ import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.mapping.AbstractIndexPreparer;
 import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.client.Client;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * @author GraviteeSource Team
  */
-@Slf4j
+@CustomLog
 public class ES9IndexPreparer extends AbstractIndexPreparer {
 
     public ES9IndexPreparer(
