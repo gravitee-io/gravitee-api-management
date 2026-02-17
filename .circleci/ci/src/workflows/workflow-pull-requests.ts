@@ -50,6 +50,7 @@ import {
   TestRestApiJob,
   TriggerSaasDockerImagesJob,
   ValidateJob,
+  NxFormatCheckJob,
   WebuiLintTestJob,
 } from '../jobs';
 import { orbs } from '../orbs';
@@ -312,6 +313,25 @@ export class PullRequestsWorkflow {
       }
     }
 
+    // Format check (Prettier) for all frontend projects
+    if (
+      !filterJobs ||
+      shouldBuildWebuiLibs(environment.changedFiles) ||
+      shouldBuildConsole(environment.changedFiles) ||
+      shouldBuildPortalNext(environment.changedFiles) ||
+      shouldBuildPortal(environment.changedFiles)
+    ) {
+      const formatCheckJob = NxFormatCheckJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(formatCheckJob);
+      jobs.push(
+        new workflow.WorkflowJob(formatCheckJob, {
+          name: 'Check prettier formatting for nx projects',
+          context: config.jobContext,
+        }),
+      );
+      requires.push('Check prettier formatting for nx projects');
+    }
+
     // Lint & Test APIM Libs
     if (!filterJobs || shouldBuildWebuiLibs(environment.changedFiles)) {
       const webuiLibsLintTestJob = WebuiLintTestJob.createNxLibs(dynamicConfig, environment);
@@ -424,9 +444,6 @@ export class PullRequestsWorkflow {
       const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(webuiLintTestJob);
 
-      const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
-      dynamicConfig.addJob(portalWebuiBuildJob);
-
       const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(sonarCloudAnalysisJob);
 
@@ -437,12 +454,31 @@ export class PullRequestsWorkflow {
           'apim-ui-project': config.components.portal.project,
           resource_class: 'large',
         }),
+      );
+      requires.push('Lint & test APIM Portal');
+
+      jobs.push(
+        new workflow.WorkflowJob(sonarCloudAnalysisJob, {
+          name: 'Sonar - gravitee-apim-portal-webui',
+          context: config.jobContext,
+          requires: ['Lint & test APIM Portal'],
+          working_directory: config.components.portal.project,
+          cache_type: 'frontend',
+        }),
+      );
+    }
+
+    if (!filterJobs || shouldBuildPortal(environment.changedFiles) || shouldBuildPortalNext(environment.changedFiles)) {
+      const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(portalWebuiBuildJob);
+      jobs.push(
         new workflow.WorkflowJob(portalWebuiBuildJob, {
           name: 'Build APIM Portal',
           context: config.jobContext,
         }),
       );
-      requires.push('Lint & test APIM Portal', 'Build APIM Portal');
+
+      requires.push('Build APIM Portal');
 
       if (shouldBuildDockerImages) {
         const buildDockerWebUiImageJob = BuildDockerWebUiImageJob.create(dynamicConfig, environment, false);
@@ -460,16 +496,6 @@ export class PullRequestsWorkflow {
         );
         requires.push('Build APIM Portal docker image');
       }
-
-      jobs.push(
-        new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-          name: 'Sonar - gravitee-apim-portal-webui',
-          context: config.jobContext,
-          requires: ['Lint & test APIM Portal'],
-          working_directory: config.components.portal.project,
-          cache_type: 'frontend',
-        }),
-      );
     }
 
     // Force validation workflow in case only distribution pom.xml has changed
@@ -688,7 +714,10 @@ function shouldBuildPortalNext(changedFiles: string[]): boolean {
 }
 
 function shouldBuildPortal(changedFiles: string[]): boolean {
-  return shouldBuildAll(changedFiles) || changedFiles.some((file) => file.includes(config.components.portal.project));
+  return (
+    shouldBuildAll(changedFiles) ||
+    changedFiles.some((file) => file.includes(config.components.portal.project) && !file.includes(config.components.portal.next.project))
+  );
 }
 
 function shouldBuildBackend(changedFiles: string[]): boolean {
