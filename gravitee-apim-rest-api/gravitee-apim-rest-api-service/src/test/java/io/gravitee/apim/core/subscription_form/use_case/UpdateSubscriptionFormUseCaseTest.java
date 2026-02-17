@@ -17,16 +17,12 @@ package io.gravitee.apim.core.subscription_form.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 
 import fixtures.core.model.SubscriptionFormFixtures;
 import inmemory.SubscriptionFormCrudServiceInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
-import io.gravitee.apim.core.subscription_form.domain_service.ValidateSubscriptionFormDomainService;
-import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormContentUnsafeException;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
+import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
@@ -38,14 +34,14 @@ class UpdateSubscriptionFormUseCaseTest {
 
     private final SubscriptionFormCrudServiceInMemory crudService = new SubscriptionFormCrudServiceInMemory();
     private final SubscriptionFormQueryServiceInMemory queryService = new SubscriptionFormQueryServiceInMemory();
-    private final ValidateSubscriptionFormDomainService validateService = mock(ValidateSubscriptionFormDomainService.class);
+    private final GraviteeMarkdownValidator gmdValidator = new GraviteeMarkdownValidator();
     private UpdateSubscriptionFormUseCase useCase;
 
     @BeforeEach
     void setUp() {
         crudService.reset();
         queryService.reset();
-        useCase = new UpdateSubscriptionFormUseCase(crudService, queryService, validateService);
+        useCase = new UpdateSubscriptionFormUseCase(crudService, queryService, gmdValidator);
     }
 
     @Test
@@ -54,7 +50,6 @@ class UpdateSubscriptionFormUseCaseTest {
         SubscriptionForm existingForm = SubscriptionFormFixtures.aSubscriptionForm();
         crudService.initWith(List.of(existingForm));
         queryService.initWith(List.of(existingForm));
-        doNothing().when(validateService).validateContent(anyString());
 
         // When
         var result = useCase.execute(
@@ -68,7 +63,6 @@ class UpdateSubscriptionFormUseCaseTest {
 
     @Test
     void should_throw_exception_when_form_not_exists() {
-        doNothing().when(validateService).validateContent(anyString());
         var input = new UpdateSubscriptionFormUseCase.Input(
             "env-1",
             SubscriptionFormId.of("550e8400-e29b-41d4-a716-446655440000"),
@@ -78,15 +72,16 @@ class UpdateSubscriptionFormUseCaseTest {
     }
 
     @Test
-    void should_throw_exception_when_content_is_unsafe() {
+    void should_throw_when_content_is_empty() {
+        // Given
         SubscriptionForm existingForm = SubscriptionFormFixtures.aSubscriptionForm();
         queryService.initWith(List.of(existingForm));
-        doThrow(new SubscriptionFormContentUnsafeException("Script tag not allowed")).when(validateService).validateContent(anyString());
-        var input = new UpdateSubscriptionFormUseCase.Input(
-            existingForm.getEnvironmentId(),
-            existingForm.getId(),
-            "<script>alert('xss')</script>"
-        );
-        assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(SubscriptionFormContentUnsafeException.class);
+
+        var input = new UpdateSubscriptionFormUseCase.Input(existingForm.getEnvironmentId(), existingForm.getId(), "");
+
+        // When & Then
+        assertThatThrownBy(() -> useCase.execute(input))
+            .isInstanceOf(GraviteeMarkdownContentEmptyException.class)
+            .hasMessage("Content must not be null or empty");
     }
 }

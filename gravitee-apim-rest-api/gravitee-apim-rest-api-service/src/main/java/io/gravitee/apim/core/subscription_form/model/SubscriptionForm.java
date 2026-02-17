@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.subscription_form.model;
 
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContainer;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -35,7 +36,7 @@ import lombok.Getter;
  */
 @Getter
 @Builder
-public class SubscriptionForm {
+public class SubscriptionForm implements GraviteeMarkdownContainer {
 
     private final SubscriptionFormId id;
     private final String environmentId;
