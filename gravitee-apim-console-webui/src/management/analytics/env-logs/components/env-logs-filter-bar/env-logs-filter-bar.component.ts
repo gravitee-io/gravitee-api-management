@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -27,9 +27,14 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 
-import { HTTP_METHODS } from '../../../../../entities/management-api-v2';
+import { EnvLogsMoreFiltersComponent } from './components/env-logs-more-filters/env-logs-more-filters.component';
 
-export const ENV_LOGS_DEFAULT_PERIOD = { label: 'None', value: '0' };
+import {
+  createDefaultMoreFilters,
+  DEFAULT_MORE_FILTERS,
+  ENV_LOGS_DEFAULT_PERIOD,
+  EnvLogsMoreFiltersForm,
+} from '../../models/env-logs-more-filters.model';
 
 export const ENV_LOGS_PERIODS = [
   ENV_LOGS_DEFAULT_PERIOD,
@@ -45,34 +50,45 @@ export const ENV_LOGS_PERIODS = [
 ];
 
 // TODO: Replace with data from API when backend integration is implemented
-export const MOCK_ENTRYPOINTS = [
-  { id: 'http-proxy', name: 'HTTP Proxy' },
-  { id: 'http-get', name: 'HTTP GET' },
-  { id: 'http-post', name: 'HTTP POST' },
-  { id: 'sse', name: 'SSE' },
-  { id: 'websocket', name: 'WebSocket' },
-  { id: 'webhook', name: 'Webhook' },
+export const MOCK_APIS = [
+  { id: 'api-1', name: 'Weather API' },
+  { id: 'api-2', name: 'Payment Gateway' },
+  { id: 'api-3', name: 'User Service' },
 ];
 
 // TODO: Replace with data from API when backend integration is implemented
-export const MOCK_PLANS = [
-  { id: 'plan-1', name: 'Free Plan' },
-  { id: 'plan-2', name: 'Gold Plan' },
-  { id: 'plan-3', name: 'Enterprise Plan' },
+export const MOCK_APPLICATIONS = [
+  { id: 'app-1', name: 'Mobile App' },
+  { id: 'app-2', name: 'Web Portal' },
+  { id: 'app-3', name: 'Partner Integration' },
 ];
 
 type EnvLogsQuickFiltersForm = {
   period: FormControl<{ label: string; value: string }>;
-  entrypoints: FormControl<string[] | null>;
-  methods: FormControl<string[] | null>;
-  plans: FormControl<string[] | null>;
+  apis: FormControl<string[] | null>;
+  applications: FormControl<string[] | null>;
 };
 
 type FilterChip = {
   key: string;
-  value: string;
+  value: string | number;
   display: string;
 };
+
+type MoreFilterArrayKey = 'entrypoints' | 'methods' | 'plans';
+const MORE_FILTER_ARRAY_KEYS: readonly MoreFilterArrayKey[] = ['entrypoints', 'methods', 'plans'];
+
+function isMoreFilterArrayKey(key: string): key is MoreFilterArrayKey {
+  return (MORE_FILTER_ARRAY_KEYS as readonly string[]).includes(key);
+}
+
+type MoreFilterStringKey = 'mcpMethod' | 'transactionId' | 'requestId' | 'uri';
+const MORE_FILTER_STRING_KEYS: { key: MoreFilterStringKey; label: string }[] = [
+  { key: 'mcpMethod', label: 'MCP Method' },
+  { key: 'transactionId', label: 'Transaction ID' },
+  { key: 'requestId', label: 'Request ID' },
+  { key: 'uri', label: 'URI' },
+];
 
 @Component({
   selector: 'env-logs-filter-bar',
@@ -88,51 +104,76 @@ type FilterChip = {
     MatChipsModule,
     MatTooltipModule,
     GioIconsModule,
+    EnvLogsMoreFiltersComponent,
   ],
 })
 export class EnvLogsFilterBarComponent {
   loading = input(false);
   refresh = output<void>();
 
-  readonly periods = ENV_LOGS_PERIODS;
-  readonly httpMethods = HTTP_METHODS;
-  readonly entrypoints = MOCK_ENTRYPOINTS;
-  readonly plans = MOCK_PLANS;
+  showMoreFilters = signal(false);
+  moreFiltersValues = signal<EnvLogsMoreFiltersForm>(DEFAULT_MORE_FILTERS);
 
-  private readonly entrypointsMap = new Map(this.entrypoints.map(e => [e.id, e.name]));
-  private readonly plansMap = new Map(this.plans.map(p => [p.id, p.name]));
+  readonly periods = ENV_LOGS_PERIODS;
+  readonly apis = MOCK_APIS;
+  readonly applications = MOCK_APPLICATIONS;
+  readonly comparePeriod = (a: { value: string }, b: { value: string }): boolean => a?.value === b?.value;
+
+  private readonly apisMap = new Map(this.apis.map(a => [a.id, a.name]));
+  private readonly applicationsMap = new Map(this.applications.map(a => [a.id, a.name]));
 
   form = new FormGroup<EnvLogsQuickFiltersForm>({
     period: new FormControl(ENV_LOGS_DEFAULT_PERIOD, { nonNullable: true }),
-    entrypoints: new FormControl<string[] | null>(null),
-    methods: new FormControl<string[] | null>(null),
-    plans: new FormControl<string[] | null>(null),
+    apis: new FormControl<string[] | null>(null),
+    applications: new FormControl<string[] | null>(null),
   });
 
   private currentFilters = toSignal(this.form.valueChanges.pipe(distinctUntilChanged(isEqual)), { initialValue: this.form.value });
 
   filterChips = computed<FilterChip[]>(() => {
     const filters = this.currentFilters();
+    const more = this.moreFiltersValues();
     const chips: FilterChip[] = [];
 
-    if (filters.entrypoints?.length > 0) {
-      filters.entrypoints.forEach((id: string) => {
-        const name = this.entrypointsMap.get(id) ?? id;
-        chips.push({ key: 'entrypoints', value: id, display: name });
+    const quickFilterConfigs: { key: string; values: string[] | undefined | null; nameMap?: Map<string, string> }[] = [
+      { key: 'apis', values: filters.apis, nameMap: this.apisMap },
+      { key: 'applications', values: filters.applications, nameMap: this.applicationsMap },
+    ];
+
+    for (const { key, values, nameMap } of quickFilterConfigs) {
+      if (values && values.length > 0) {
+        values.forEach(v => chips.push({ key, value: v, display: nameMap?.get(v) ?? v }));
+      }
+    }
+
+    for (const key of MORE_FILTER_ARRAY_KEYS) {
+      const values = more[key];
+      if (values && values.length > 0) {
+        values.forEach(v => chips.push({ key, value: v, display: v }));
+      }
+    }
+
+    if (more.from) {
+      chips.push({ key: 'from', value: 'from', display: more.from.format('YYYY-MM-DD HH:mm:ss') });
+    }
+    if (more.to) {
+      chips.push({ key: 'to', value: 'to', display: more.to.format('YYYY-MM-DD HH:mm:ss') });
+    }
+    if (more.statuses.size > 0) {
+      more.statuses.forEach((status: number) => {
+        chips.push({ key: 'statuses', value: status, display: `${status}` });
       });
     }
 
-    if (filters.methods?.length > 0) {
-      filters.methods.forEach((method: string) => {
-        chips.push({ key: 'methods', value: method, display: method });
-      });
+    for (const { key, label } of MORE_FILTER_STRING_KEYS) {
+      const value = more[key];
+      if (value) {
+        chips.push({ key, value, display: `${label}: ${value}` });
+      }
     }
 
-    if (filters.plans?.length > 0) {
-      filters.plans.forEach((id: string) => {
-        const name = this.plansMap.get(id) ?? id;
-        chips.push({ key: 'plans', value: id, display: name });
-      });
+    if (more.responseTime != null) {
+      chips.push({ key: 'responseTime', value: more.responseTime, display: `Response time: >${more.responseTime}ms` });
     }
 
     return chips;
@@ -140,23 +181,52 @@ export class EnvLogsFilterBarComponent {
 
   isFiltering = computed(() => this.filterChips().length > 0);
 
-  comparePeriod = (a: { value: string }, b: { value: string }): boolean => a?.value === b?.value;
-
   removeChip(chip: FilterChip) {
+    // eslint-disable-next-line angular/typecheck-number -- angular.isNumber is an AngularJS 1.x API; typeof provides proper TypeScript type narrowing
+    if (chip.key === 'statuses' && typeof chip.value === 'number') {
+      const current = this.moreFiltersValues();
+      const statuses = new Set(current.statuses);
+      statuses.delete(chip.value);
+      this.moreFiltersValues.set({ ...current, statuses });
+      return;
+    }
+
+    if (isMoreFilterArrayKey(chip.key)) {
+      const current = this.moreFiltersValues();
+      const currentArray = current[chip.key] ?? [];
+      const filtered = currentArray.filter(v => v !== chip.value);
+      this.moreFiltersValues.set({ ...current, [chip.key]: filtered.length > 0 ? filtered : null });
+      return;
+    }
+
+    const isScalarMoreFilter =
+      chip.key === 'from' || chip.key === 'to' || chip.key === 'responseTime' || MORE_FILTER_STRING_KEYS.some(s => s.key === chip.key);
+
+    if (isScalarMoreFilter) {
+      const current = this.moreFiltersValues();
+      this.moreFiltersValues.set({ ...current, [chip.key]: null });
+      return;
+    }
+
     const control = this.form.get(chip.key);
     if (!control) return;
 
-    const currentValue = control.value as string[] | null;
+    const currentValue: string[] | null = control.value;
     const filtered = (currentValue ?? []).filter(v => v !== chip.value);
     control.setValue(filtered.length > 0 ? filtered : null);
+  }
+
+  applyMoreFilters(values: EnvLogsMoreFiltersForm) {
+    this.moreFiltersValues.set(values);
+    this.showMoreFilters.set(false);
   }
 
   resetAllFilters() {
     this.form.reset({
       period: ENV_LOGS_DEFAULT_PERIOD,
-      entrypoints: null,
-      methods: null,
-      plans: null,
+      apis: null,
+      applications: null,
     });
+    this.moreFiltersValues.set(createDefaultMoreFilters());
   }
 }
