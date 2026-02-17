@@ -1,0 +1,12 @@
+{
+  "name": "@gravitee/gravitee-kafka-explorer",
+  "version": "0.0.1",
+  "peerDependencies": {
+    "@angular/common": "20.3.16",
+    "@angular/core": "20.3.16"
+  },
+  "dependencies": {
+    "tslib": "2.3.1"
+  },
+  "sideEffects": false
+}
