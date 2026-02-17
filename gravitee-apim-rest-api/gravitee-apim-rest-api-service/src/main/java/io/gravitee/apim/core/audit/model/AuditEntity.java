@@ -45,5 +45,6 @@ public class AuditEntity {
         ENVIRONMENT,
         ORGANIZATION,
         API_PRODUCT,
+        DASHBOARD,
     }
 }

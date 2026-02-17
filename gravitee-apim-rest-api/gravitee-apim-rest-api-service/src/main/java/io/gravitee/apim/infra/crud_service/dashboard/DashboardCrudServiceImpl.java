@@ -47,11 +47,11 @@ public class DashboardCrudServiceImpl implements DashboardCrudService {
     }
 
     @Override
-    public Optional<Dashboard> findById(String dashboardId) {
+    public Optional<Dashboard> findById(String id) {
         try {
-            return customDashboardRepository.findById(dashboardId).map(DashboardAdapter.INSTANCE::toModel);
+            return customDashboardRepository.findById(id).map(DashboardAdapter.INSTANCE::toModel);
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurred while trying to find dashboard: " + dashboardId, e);
+            throw new TechnicalDomainException("An error occurred while trying to find dashboard: " + id, e);
         }
     }
 
@@ -76,11 +76,11 @@ public class DashboardCrudServiceImpl implements DashboardCrudService {
     }
 
     @Override
-    public void delete(String dashboardId) {
+    public void delete(String id) {
         try {
-            customDashboardRepository.delete(dashboardId);
+            customDashboardRepository.delete(id);
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurred while trying to delete dashboard: " + dashboardId, e);
+            throw new TechnicalDomainException("An error occurred while trying to delete dashboard: " + id, e);
         }
     }
 }

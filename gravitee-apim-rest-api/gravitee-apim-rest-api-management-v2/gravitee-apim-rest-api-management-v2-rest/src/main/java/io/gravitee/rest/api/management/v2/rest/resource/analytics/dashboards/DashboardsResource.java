@@ -66,10 +66,13 @@ public class DashboardsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_DASHBOARD, acls = { RolePermissionAction.READ }) })
     public Response listDashboards(@BeanParam @Valid PaginationParam paginationParam) {
-        var executionContext = GraviteeContext.getExecutionContext();
-        var output = listDashboardsUseCase.execute(new ListDashboardsUseCase.Input(executionContext.getOrganizationId()));
-        List<Dashboard> allData = output.dashboards();
-        List<Dashboard> paginationData = computePaginationData(allData, paginationParam);
+        var auditInfo = getAuditInfo();
+
+        var output = listDashboardsUseCase.execute(new ListDashboardsUseCase.Input(auditInfo.organizationId()));
+
+        var allData = output.dashboards();
+
+        var paginationData = computePaginationData(allData, paginationParam);
 
         var response = new DashboardsResponse()
             .data(DashboardMapper.INSTANCE.mapList(paginationData))
@@ -84,21 +87,10 @@ public class DashboardsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_DASHBOARD, acls = { RolePermissionAction.CREATE }) })
     public Response createDashboard(@Valid @NotNull CreateDashboard createDashboard) {
-        var executionContext = GraviteeContext.getExecutionContext();
-        var userDetails = getAuthenticatedUserDetails();
-
-        var auditInfo = AuditInfo.builder()
-            .organizationId(executionContext.getOrganizationId())
-            .actor(
-                AuditActor.builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+        var auditInfo = getAuditInfo();
 
         var dashboard = DashboardMapper.INSTANCE.map(createDashboard);
+
         var output = createDashboardUseCase.execute(new CreateDashboardUseCase.Input(dashboard, auditInfo));
 
         return Response.created(getLocationHeader(output.dashboard().getId()))

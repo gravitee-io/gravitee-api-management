@@ -13,24 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.dashboard.crud_service;
+package io.gravitee.apim.core.audit.model;
 
-import io.gravitee.apim.core.dashboard.model.Dashboard;
-import java.util.List;
-import java.util.Optional;
+import io.gravitee.apim.core.audit.model.event.AuditEvent;
+import java.time.ZonedDateTime;
+import java.util.Map;
+import lombok.Builder;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface DashboardCrudService {
-    Dashboard create(Dashboard dashboard);
-
-    Optional<Dashboard> findById(String id);
-
-    List<Dashboard> findByOrganizationId(String organizationId);
-
-    Dashboard update(Dashboard dashboard);
-
-    void delete(String id);
-}
+@Builder
+public record DashboardAuditLogEntity(
+    String dashboardId,
+    String organizationId,
+    String environmentId,
+    AuditActor actor,
+    Map<AuditProperties, String> properties,
+    AuditEvent event,
+    ZonedDateTime createdAt,
+    Object oldValue,
+    Object newValue
+) {}

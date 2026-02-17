@@ -21,6 +21,10 @@ import io.gravitee.apim.core.dashboard.model.Dashboard;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @UseCase
 @RequiredArgsConstructor
 public class ListDashboardsUseCase {
