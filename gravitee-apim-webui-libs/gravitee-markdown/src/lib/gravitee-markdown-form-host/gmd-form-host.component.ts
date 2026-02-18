@@ -15,11 +15,10 @@
  */
 import { Component, effect, inject, input, untracked } from '@angular/core';
 
-import { GMD_FORM_STATE_STORE, GmdFormStateStore } from '../services/gmd-form-state.store';
+import { GMD_FORM_STATE_STORE } from '../services/gmd-form-state.store';
 
 /**
- * Host component that provides a scoped form state store and manages its lifecycle.
- * Acts as a DI scope boundary for form state management.
+ * Host component that manages the form state lifecycle.
  *
  * Usage:
  * ```html
@@ -34,12 +33,6 @@ import { GMD_FORM_STATE_STORE, GmdFormStateStore } from '../services/gmd-form-st
   standalone: true,
   template: '<ng-content />',
   styleUrl: './gmd-form-host.component.scss',
-  providers: [
-    {
-      provide: GMD_FORM_STATE_STORE,
-      useFactory: () => new GmdFormStateStore(),
-    },
-  ],
 })
 export class GmdFormHostComponent {
   private readonly store = inject(GMD_FORM_STATE_STORE);

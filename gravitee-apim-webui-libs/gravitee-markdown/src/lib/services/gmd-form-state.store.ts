@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { computed, Injectable, InjectionToken, signal } from '@angular/core';
+import { computed, Injectable, InjectionToken, Provider, signal } from '@angular/core';
 import { isEqual } from 'lodash';
 
 import { GmdConfigError, GmdFieldState } from '../models/formField';
@@ -210,3 +210,11 @@ export class GmdFormStateStore {
  * Injection token for GMD form state store.
  */
 export const GMD_FORM_STATE_STORE = new InjectionToken<GmdFormStateStore>('GMD_FORM_STATE_STORE');
+
+/**
+ * Provide a scoped GMD form state store instance.
+ */
+export const provideGmdFormStore = (): Provider => ({
+  provide: GMD_FORM_STATE_STORE,
+  useFactory: () => new GmdFormStateStore(),
+});
