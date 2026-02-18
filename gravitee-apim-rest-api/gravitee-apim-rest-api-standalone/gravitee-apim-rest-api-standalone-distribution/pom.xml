@@ -224,6 +224,20 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.services</groupId>
+            <artifactId>gravitee-apim-rest-api-services-certificate-revocation</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <!-- Mapstruct -->
         <dependency>
             <groupId>org.mapstruct</groupId>
