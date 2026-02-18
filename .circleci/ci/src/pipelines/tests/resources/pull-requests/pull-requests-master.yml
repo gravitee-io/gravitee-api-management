@@ -333,8 +333,9 @@ jobs:
           paths:
             - gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/
   job-test-rest-api:
-    docker:
-      - image: cimg/openjdk:21.0.5
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
     resource_class: medium
     steps:
       - checkout
