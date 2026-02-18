@@ -22,10 +22,6 @@ export interface ApiProduct {
    */
   id: string;
   /**
-   * The environment's uuid.
-   */
-  environmentId?: string;
-  /**
    * API Product's name.
    */
   name: string;

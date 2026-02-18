@@ -1,19 +1,4 @@
 /*
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-/*
  * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,18 +14,60 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, Subject, of } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSortModule } from '@angular/material/sort';
+import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { GioAvatarModule, GioIconsModule } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { of } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map, switchMap, tap } from 'rxjs/operators';
+import { isObject } from 'angular';
 import { isEqual } from 'lodash';
 
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { toSort, toOrder } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { Constants } from '../../../entities/Constants';
 import { ApiProduct, ApiProductsResponse } from '../../../entities/management-api-v2/api-product';
+
+const FILTERS_DEBOUNCE_MS = 100;
+const DEFAULT_FILTERS: ApiProductListTableWrapperFilters = {
+  pagination: { index: 1, size: 10 },
+  searchTerm: '',
+};
+const EMPTY_API_PRODUCTS_RESPONSE: ApiProductsResponse = {
+  data: [],
+  pagination: { totalCount: 0 },
+};
+
+function queryParamsToFilters(queryParams: Record<string, string>): ApiProductListTableWrapperFilters {
+  const searchTerm = queryParams.q ?? DEFAULT_FILTERS.searchTerm;
+  const index = queryParams.page ? Number(queryParams.page) : DEFAULT_FILTERS.pagination.index;
+  const size = queryParams.size ? Number(queryParams.size) : DEFAULT_FILTERS.pagination.size;
+  const sort = queryParams.order ? toSort(queryParams.order, { active: 'name', direction: 'asc' }) : undefined;
+  return {
+    searchTerm,
+    sort,
+    pagination: { index, size },
+  };
+}
+
+function filtersToQueryParams(filters: ApiProductListTableWrapperFilters): Record<string, string | number | null> {
+  return {
+    q: filters.searchTerm || null,
+    page: filters.pagination?.index ?? 1,
+    size: filters.pagination?.size ?? 10,
+    order: filters.sort ? toOrder(filters.sort) : null,
+  };
+}
 
 export type ApiProductTableDS = {
   id: string;
@@ -51,57 +78,54 @@ export type ApiProductTableDS = {
   picture?: string;
 }[];
 
-interface ApiProductListTableWrapperFilters extends GioTableWrapperFilters {
-  // Add any additional filters here if needed
-}
+type ApiProductListTableWrapperFilters = GioTableWrapperFilters;
 
 @Component({
   selector: 'api-product-list',
   templateUrl: './api-product-list.component.html',
   styleUrls: ['./api-product-list.component.scss'],
-  standalone: false,
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule,
+    MatTableModule,
+    MatSortModule,
+    MatTooltipModule,
+    GioIconsModule,
+    GioAvatarModule,
+    GioTableWrapperModule,
+    RouterModule,
+  ],
 })
-export class ApiProductListComponent implements OnInit, OnDestroy {
+export class ApiProductListComponent implements OnInit {
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly apiProductV2Service = inject(ApiProductV2Service);
+  private readonly snackBarService = inject(SnackBarService);
+  private readonly permissionService = inject(GioPermissionService);
+  private readonly destroyRef = inject(DestroyRef);
+
   displayedColumns = ['picture', 'name', 'apis', 'version', 'owner', 'actions'];
   apiProductsTableDS: ApiProductTableDS = [];
   apiProductsTableDSUnpaginatedLength = 0;
-  filters: ApiProductListTableWrapperFilters = {
-    pagination: { index: 1, size: 10 },
-    searchTerm: '',
-  };
   searchLabel = 'Search';
   isLoadingData = true;
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private filters$ = new BehaviorSubject<ApiProductListTableWrapperFilters>(this.filters);
+  canCreateApiProduct = this.permissionService.hasAnyMatching(['environment-api_product-c']);
 
-  constructor(
-    private readonly activatedRoute: ActivatedRoute,
-    private readonly router: Router,
-    @Inject(Constants) private readonly constants: Constants,
-    private readonly apiProductV2Service: ApiProductV2Service,
-    private readonly snackBarService: SnackBarService,
-  ) {}
+  /** Filters derived from router query params (single source of truth) */
+  readonly filters = toSignal(this.activatedRoute.queryParams.pipe(map(params => queryParamsToFilters(params))), {
+    initialValue: queryParamsToFilters(this.activatedRoute.snapshot.queryParams as Record<string, string>),
+  });
 
   ngOnInit(): void {
-    this.initFilters();
-
-    this.filters$
+    this.activatedRoute.queryParams
       .pipe(
-        debounceTime(100),
+        debounceTime(FILTERS_DEBOUNCE_MS),
+        map(params => queryParamsToFilters(params)),
         distinctUntilChanged(isEqual),
-        tap((filters: ApiProductListTableWrapperFilters) => {
-          // Update URL params
-          this.router.navigate([], {
-            relativeTo: this.activatedRoute,
-            queryParams: {
-              q: filters.searchTerm,
-              page: filters.pagination.index,
-              size: filters.pagination.size,
-              ...(filters.sort ? { order: toOrder(filters.sort) } : {}),
-            },
-            queryParamsHandling: 'merge',
-          });
-        }),
         tap(() => {
           this.isLoadingData = true;
         }),
@@ -109,10 +133,10 @@ export class ApiProductListComponent implements OnInit, OnDestroy {
           const page = filters.pagination?.index || 1;
           const perPage = filters.pagination?.size || 10;
           return this.apiProductV2Service.list(page, perPage).pipe(
-            catchError((error) => {
+            catchError(error => {
               this.isLoadingData = false;
-              this.snackBarService.error(error.error?.message || 'An error occurred while loading API Products');
-              return of({ data: [], pagination: { totalCount: 0 } } as ApiProductsResponse);
+              this.snackBarService.error(this.getErrorMessage(error, 'An error occurred while loading API Products'));
+              return of(EMPTY_API_PRODUCTS_RESPONSE);
             }),
           );
         }),
@@ -121,35 +145,22 @@ export class ApiProductListComponent implements OnInit, OnDestroy {
           this.apiProductsTableDSUnpaginatedLength = response.pagination?.totalCount || 0;
           this.isLoadingData = false;
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
 
-  ngOnDestroy(): void {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.unsubscribe();
-  }
-
-  private initFilters(): void {
-    const initialSearchValue = this.activatedRoute.snapshot.queryParams.q ?? this.filters.searchTerm;
-    const initialPageNumber = this.activatedRoute.snapshot.queryParams.page
-      ? Number(this.activatedRoute.snapshot.queryParams.page)
-      : this.filters.pagination.index;
-    const initialPageSize = this.activatedRoute.snapshot.queryParams.size
-      ? Number(this.activatedRoute.snapshot.queryParams.size)
-      : this.filters.pagination.size;
-    const initialSort = toSort(this.activatedRoute.snapshot.queryParams.order, this.filters.sort);
-
-    this.filters = {
-      searchTerm: initialSearchValue,
-      sort: initialSort,
-      pagination: {
-        index: initialPageNumber,
-        size: initialPageSize,
-      },
-    };
-    this.filters$.next(this.filters);
+  private getErrorMessage(error: unknown, fallback: string): string {
+    if (error && isObject(error) && 'error' in error) {
+      const err = (error as { error?: { message?: string } }).error;
+      if (err && isObject(err) && typeof err.message === 'string') {
+        return err.message;
+      }
+    }
+    if (error instanceof Error && error.message) {
+      return error.message;
+    }
+    return fallback;
   }
 
   private toApiProductsTableDS(data: ApiProduct[]): ApiProductTableDS {
@@ -167,11 +178,22 @@ export class ApiProductListComponent implements OnInit, OnDestroy {
   }
 
   onFiltersChanged(filters: ApiProductListTableWrapperFilters): void {
-    this.filters = { ...this.filters, ...filters };
-    this.filters$.next(this.filters);
+    const mergedFilters: ApiProductListTableWrapperFilters = {
+      ...this.filters(),
+      ...filters,
+    };
+    this.router.navigate([], {
+      relativeTo: this.activatedRoute,
+      queryParams: filtersToQueryParams(mergedFilters),
+      queryParamsHandling: 'merge',
+    });
   }
 
   get hasApiProducts(): boolean {
     return this.apiProductsTableDSUnpaginatedLength > 0;
+  }
+
+  get hasActiveSearch(): boolean {
+    return !!this.filters().searchTerm?.trim();
   }
 }
