@@ -16,18 +16,14 @@
 package io.gravitee.rest.api.kafkaexplorer.mapper;
 
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
-import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaExplorerInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaNode;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterResponse;
-import io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaExplorerInfoResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
 public interface KafkaExplorerMapper {
     KafkaExplorerMapper INSTANCE = Mappers.getMapper(KafkaExplorerMapper.class);
-
-    KafkaExplorerInfoResponse map(KafkaExplorerInfo info);
 
     DescribeClusterResponse map(KafkaClusterInfo clusterInfo);
 

@@ -18,15 +18,12 @@ package io.gravitee.rest.api.kafkaexplorer.resource;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeKafkaClusterUseCase;
-import io.gravitee.rest.api.kafkaexplorer.domain.use_case.GetKafkaExplorerInfoUseCase;
 import io.gravitee.rest.api.kafkaexplorer.mapper.KafkaExplorerMapper;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaExplorerError;
-import io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaExplorerInfoResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -37,18 +34,7 @@ import jakarta.ws.rs.core.Response;
 public class KafkaExplorerResource {
 
     @Inject
-    private GetKafkaExplorerInfoUseCase getKafkaExplorerInfoUseCase;
-
-    @Inject
     private DescribeKafkaClusterUseCase describeKafkaClusterUseCase;
-
-    @GET
-    @Path("/info")
-    @Produces(MediaType.APPLICATION_JSON)
-    public KafkaExplorerInfoResponse getInfo() {
-        var result = getKafkaExplorerInfoUseCase.execute(new GetKafkaExplorerInfoUseCase.Input());
-        return KafkaExplorerMapper.INSTANCE.map(result.info());
-    }
 
     @POST
     @Path("/describe-cluster")
