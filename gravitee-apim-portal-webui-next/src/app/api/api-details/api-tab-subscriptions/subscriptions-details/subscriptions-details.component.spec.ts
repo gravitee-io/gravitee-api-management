@@ -22,6 +22,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { SubscriptionsDetailsComponent } from './subscriptions-details.component';
 import { ApiAccessHarness } from '../../../../../components/api-access/api-access.harness';
+import { SubscriptionInfoHarness } from '../../../../../components/subscription-info/subscription-info.harness';
 import { Api } from '../../../../../entities/api/api';
 import { fakeApi } from '../../../../../entities/api/api.fixtures';
 import { Application } from '../../../../../entities/application/application';
@@ -41,11 +42,14 @@ import {
 import { fakeSubscriptionConsumerConfiguration } from '../../../../../entities/subscription/subscription-consumer-configuration.fixture';
 import { ConfigService } from '../../../../../services/config.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../../testing/app-testing.module';
+import { CloseSubscriptionDialogComponent } from '../../../../dashboard/subscription-details/close-subscription-dialog/close-subscription-dialog.component';
+import { CloseSubscriptionDialogHarness } from '../../../../dashboard/subscription-details/close-subscription-dialog/close-subscription-dialog.harness';
 
 describe('SubscriptionsDetailsComponent', () => {
   let fixture: ComponentFixture<SubscriptionsDetailsComponent>;
   let httpTestingController: HttpTestingController;
   let harnessLoader: HarnessLoader;
+  let rootLoader: HarnessLoader;
 
   const API_ID = 'testApiId';
   const CONFIGURATION_KAFKA_SASL_MECHANISMS = ['PLAIN', 'SCRAM-SHA-256', 'SCRAM-SHA-512'];
@@ -67,7 +71,7 @@ describe('SubscriptionsDetailsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SubscriptionsDetailsComponent, AppTestingModule],
+      imports: [SubscriptionsDetailsComponent, CloseSubscriptionDialogComponent, AppTestingModule],
       providers: [
         {
           provide: ConfigService,
@@ -79,6 +83,7 @@ describe('SubscriptionsDetailsComponent', () => {
     fixture = TestBed.createComponent(SubscriptionsDetailsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     fixture.componentInstance.subscriptionId = 'testSubscriptionId';
     fixture.componentInstance.apiId = 'testApiId';
@@ -305,6 +310,54 @@ describe('SubscriptionsDetailsComponent', () => {
 
       await button?.click();
     });
+  });
+
+  describe('close-subscription-button click', () => {
+    const url = `${TESTING_BASE_URL}/subscriptions/testSubscriptionId/_close`;
+    let subscriptionInfoHarness: SubscriptionInfoHarness;
+
+    beforeEach(async () => {
+      expectSubscriptionWithKeys(fakeSubscription({ status: 'ACCEPTED' }));
+      expectGetApiPermissions();
+      expectPlansList(fakePlansResponse());
+      expectApplicationsList(fakeApplication());
+      expectGetApi(fakeApi({ id: API_ID }));
+      subscriptionInfoHarness = await harnessLoader.getHarness(SubscriptionInfoHarness);
+    });
+
+    it('should close subscription when popup is confirmed', async () => {
+      const button = await subscriptionInfoHarness.getCloseButton();
+      expect(button).not.toBeNull();
+      await button!.click();
+
+      const confirmDialog = await closeConfirmDialog();
+      expect(confirmDialog).not.toBeNull();
+      await confirmDialog!.confirm();
+
+      httpTestingController.expectOne(url).flush(null);
+
+      expectSubscriptionWithKeys(fakeSubscription({ status: 'CLOSED' }));
+      expectGetApiPermissions();
+      expectPlansList(fakePlansResponse());
+      expectApplicationsList(fakeApplication());
+      expectGetApi(fakeApi({ id: API_ID }));
+    });
+
+    it('should not close subscription when popup is denied', async () => {
+      const button = await subscriptionInfoHarness.getCloseButton();
+      expect(button).not.toBeNull();
+      await button?.click();
+
+      const confirmDialog = await closeConfirmDialog();
+      expect(confirmDialog).not.toBeNull();
+      await confirmDialog!.cancel();
+
+      httpTestingController.expectNone(url);
+    });
+
+    async function closeConfirmDialog(): Promise<CloseSubscriptionDialogHarness | null> {
+      return await rootLoader.getHarnessOrNull(CloseSubscriptionDialogHarness);
+    }
   });
 
   describe('consumer status stopped', () => {
