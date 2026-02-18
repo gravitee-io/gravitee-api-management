@@ -43,6 +43,10 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_RESOURCE
+              - MCP_PROXY_PROMPT
           filters:
               - API
               - APPLICATION
@@ -68,6 +72,10 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_RESOURCE
+              - MCP_PROXY_PROMPT
 
         - name: HTTP_ERRORS
           label: Error Rate
@@ -100,6 +108,10 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_RESOURCE
+              - MCP_PROXY_PROMPT
           filters:
               - API
               - APPLICATION
@@ -125,6 +137,10 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_RESOURCE
+              - MCP_PROXY_PROMPT
 
         - name: HTTP_REQUEST_CONTENT_LENGTH
           label: Request content length
@@ -162,6 +178,10 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_RESOURCE
+              - MCP_PROXY_PROMPT
           filters:
               - API
               - APPLICATION
@@ -186,6 +206,10 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_RESOURCE
+              - MCP_PROXY_PROMPT
 
         - name: HTTP_RESPONSE_CONTENT_LENGTH
           label: Response content length
@@ -223,6 +247,10 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_RESOURCE
+              - MCP_PROXY_PROMPT
           filters:
               - API
               - APPLICATION
@@ -247,6 +275,10 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_RESOURCE
+              - MCP_PROXY_PROMPT
 
         - name: HTTP_ENDPOINT_RESPONSE_TIME
           label: Endpoint response time
@@ -284,6 +316,10 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_RESOURCE
+              - MCP_PROXY_PROMPT
           filters:
               - API
               - APPLICATION
@@ -308,6 +344,10 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_RESOURCE
+              - MCP_PROXY_PROMPT
 
         - name: HTTP_GATEWAY_RESPONSE_TIME
           label: Gateway response time
@@ -369,6 +409,10 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_RESOURCE
+              - MCP_PROXY_PROMPT
 
         - name: HTTP_GATEWAY_LATENCY
           label: Latency
@@ -406,6 +450,10 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_RESOURCE
+              - MCP_PROXY_PROMPT
           filters:
               - API
               - APPLICATION
@@ -430,6 +478,10 @@ spec:
               - CONSUMER_IP
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_RESOURCE
+              - MCP_PROXY_PROMPT
 
         - name: LLM_PROMPT_TOKEN_SENT
           label: Sent token count
@@ -1649,6 +1701,34 @@ spec:
           operators:
               - EQ
               - IN
+
+        - name: MCP_PROXY_METHOD
+          label: MCP Method
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: MCP_PROXY_TOOL
+          label: MCP Tool
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: MCP_PROXY_RESOURCE
+          label: MCP Resource
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: MCP_PROXY_PROMPT
+          label: MCP Prompt
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
     facets:
         - name: API
           label: API
@@ -1760,4 +1840,20 @@ spec:
 
         - name: LLM_PROXY_PROVIDER
           label: LLM Provider
+          type: KEYWORD
+
+        - name: MCP_PROXY_METHOD
+          label: MCP Method
+          type: KEYWORD
+
+        - name: MCP_PROXY_TOOL
+          label: MCP Tool
+          type: KEYWORD
+
+        - name: MCP_PROXY_RESOURCE
+          label: MCP Resource
+          type: KEYWORD
+
+        - name: MCP_PROXY_PROMPT
+          label: MCP Prompt
           type: KEYWORD

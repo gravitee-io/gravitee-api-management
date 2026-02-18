@@ -54,7 +54,11 @@ public class FilterAdapter {
         Filter.Name.GEO_IP_COUNTRY,
         Filter.Name.GEO_IP_CONTINENT,
         Filter.Name.LLM_PROXY_MODEL,
-        Filter.Name.LLM_PROXY_PROVIDER
+        Filter.Name.LLM_PROXY_PROVIDER,
+        Filter.Name.MCP_PROXY_METHOD,
+        Filter.Name.MCP_PROXY_TOOL,
+        Filter.Name.MCP_PROXY_RESOURCE,
+        Filter.Name.MCP_PROXY_PROMPT
     );
 
     static final List<Filter.Name> MESSAGE_FILTER_NAMES = List.of(
