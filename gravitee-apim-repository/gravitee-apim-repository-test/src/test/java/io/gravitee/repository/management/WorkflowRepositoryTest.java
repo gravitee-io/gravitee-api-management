@@ -140,6 +140,25 @@ public class WorkflowRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(0, nbAfterDeletion);
     }
 
+    @Test
+    public void shouldFindByReferencesAndType() throws Exception {
+        final List<Workflow> workflows = workflowRepository.findByReferencesAndType("API", Set.of("api-id", "application-id"), "REVIEW");
+        assertNotNull(workflows);
+        // Only "api-id" has referenceType "API" and type "REVIEW" (3 workflows)
+        // "application-id" has referenceType "APPLICATION", so it should not match
+        assertEquals(3, workflows.size());
+        assertTrue(workflows.stream().allMatch(w -> "api-id".equals(w.getReferenceId())));
+        // Verify ordering: most recent first
+        assertEquals("workflow", workflows.get(0).getId());
+    }
+
+    @Test
+    public void shouldFindByReferencesAndTypeWithEmptyIds() throws Exception {
+        final List<Workflow> workflows = workflowRepository.findByReferencesAndType("API", Set.of(), "REVIEW");
+        assertNotNull(workflows);
+        assertEquals(0, workflows.size());
+    }
+
     @Test(expected = IllegalStateException.class)
     public void shouldNotUpdateUnknownWorkflow() throws Exception {
         Workflow unknownWorkflow = new Workflow();
