@@ -24,6 +24,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.rxjava3.circuitbreaker.operator.CircuitBreakerOperator;
 import io.gravitee.definition.model.v4.failover.Failover;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
@@ -33,7 +34,13 @@ import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.reactivex.rxjava3.core.Completable;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class FailoverInvoker implements HttpInvoker, Invoker {
 
@@ -82,11 +89,17 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
     @Override
     public Completable invoke(HttpExecutionContext ctx) {
         final String originalEndpoint = ctx.getAttribute(ATTR_REQUEST_ENDPOINT);
+        var baselineResponseHeaders = HttpHeaders.create(ctx.response().headers());
+        final AtomicBoolean firstAttempt = new AtomicBoolean(true);
         return Completable.defer(() -> {
             // EndpointInvoker overrides the request endpoint. We need to set it back to original state to retry properly
             ctx.setAttribute(ATTR_REQUEST_ENDPOINT, originalEndpoint);
             // Entrypoint connectors skip response handling if there is an error. In the case of a retry, we need to reset the failure.
             ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
+            if (!firstAttempt.compareAndSet(true, false)) {
+                // Restore response headers only when retrying.
+                restoreHeaders(ctx.response().headers(), baselineResponseHeaders);
+            }
             // Consume body and ignore it. Consuming it with .body() method internally enables caching of chunks, which is mandatory to retry the request in case of failure.
             return ctx.request().body().ignoreElement().andThen(delegate.invoke(ctx));
         })
@@ -103,5 +116,16 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
         } else {
             return circuitBreaker;
         }
+    }
+
+    private Map<String, List<String>> snapshotHeaders(HttpHeaders headers) {
+        final Map<String, List<String>> snapshot = new LinkedHashMap<>();
+        headers.names().forEach(name -> snapshot.put(name, new ArrayList<>(headers.getAll(name))));
+        return snapshot;
+    }
+
+    private void restoreHeaders(HttpHeaders targetHeaders, HttpHeaders baselineHeaders) {
+        targetHeaders.clear();
+        baselineHeaders.toListValuesMap().forEach((name, values) -> values.forEach(value -> targetHeaders.add(name, value)));
     }
 }

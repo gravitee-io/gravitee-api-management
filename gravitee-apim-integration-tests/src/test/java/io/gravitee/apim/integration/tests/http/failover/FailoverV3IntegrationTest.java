@@ -47,6 +47,7 @@ import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
 import io.vertx.rxjava3.core.net.NetServer;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -382,6 +383,46 @@ public class FailoverV3IntegrationTest {
                     assertThat(response).hasToString(RESPONSE_FROM_BACKEND + " - 3");
                     return true;
                 });
+            // Then the backend should have been called 1 time per endpoint (thanks to load balancing)
+            wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint-1")));
+            wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint-2")));
+            wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint-3")));
+        }
+
+        @Test
+        @DeployApi("/apis/http/failover/api-three-endpoints.json")
+        void should_return_single_content_length_header_from_final_retry_response(HttpClient client) {
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // and only one group with 3 endpoints (round-robin load balancing)
+            // And Given backend answers in 750ms on first two endpoints and immediately on third endpoint
+            final String responseFromFirstEndpoint = RESPONSE_FROM_BACKEND + " - first";
+            final String responseFromSecondEndpoint = RESPONSE_FROM_BACKEND + " - second-second";
+            final String responseFromThirdEndpoint = RESPONSE_FROM_BACKEND + " - third-final";
+            final String expectedContentLength = String.valueOf(responseFromThirdEndpoint.getBytes(StandardCharsets.UTF_8).length);
+
+            wiremock.stubFor(get("/endpoint-1").willReturn(ok(responseFromFirstEndpoint).withFixedDelay(750)));
+            wiremock.stubFor(get("/endpoint-2").willReturn(ok(responseFromSecondEndpoint).withFixedDelay(750)));
+            wiremock.stubFor(get("/endpoint-3").willReturn(ok(responseFromThirdEndpoint)));
+
+            // When requesting the API
+            client
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    // Then the API response should be 200 with only the final response Content-Length value
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.headers().getAll("Content-Length")).containsExactly(expectedContentLength);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    // Then the API response body should be the one from third endpoint
+                    assertThat(response).hasToString(responseFromThirdEndpoint);
+                    return true;
+                });
+
             // Then the backend should have been called 1 time per endpoint (thanks to load balancing)
             wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint-1")));
             wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint-2")));

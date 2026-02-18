@@ -17,12 +17,15 @@ package io.gravitee.gateway.reactive.core.failover;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
@@ -36,6 +39,7 @@ import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -68,6 +72,8 @@ class FailoverInvokerTest {
     @Mock
     private Metrics metrics;
 
+    private HttpHeaders responseHeaders;
+
     private HttpExecutionContext executionContext;
 
     private FailoverInvoker cut;
@@ -77,6 +83,8 @@ class FailoverInvokerTest {
         executionContext = new DefaultExecutionContext(request, response);
         ((DefaultExecutionContext) executionContext).metrics(metrics);
         lenient().when(request.body()).thenReturn(Maybe.just(Buffer.buffer("body")));
+        responseHeaders = HttpHeaders.create();
+        lenient().when(response.headers()).thenReturn(responseHeaders);
     }
 
     @Test
@@ -202,5 +210,57 @@ class FailoverInvokerTest {
         assertThat(executionContextArgumentCaptor.getAllValues())
             .hasSize(1)
             .allSatisfy(ctx -> assertThat(ctx.<String>getAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT)).isEqualTo("endpoint-name"));
+    }
+
+    @Test
+    void should_not_restore_response_headers_on_first_attempt() {
+        cut = new FailoverInvoker(
+            endpointInvoker,
+            Failover.builder().slowCallDuration(50000).maxRetries(2).perSubscription(false).build(),
+            API_ID
+        );
+        responseHeaders = spy(HttpHeaders.create().add("X-Gravitee-Client-Identifier", "client-id"));
+        when(response.headers()).thenReturn(responseHeaders);
+        when(endpointInvoker.invoke(executionContext)).thenAnswer(invocation -> {
+            responseHeaders.add("X-Upstream-Attempt", "one");
+            return Completable.complete();
+        });
+
+        cut.invoke(executionContext).test().awaitDone(2, TimeUnit.SECONDS).assertComplete();
+
+        verify(responseHeaders, never()).clear();
+        assertThat(responseHeaders.getAll("X-Upstream-Attempt")).containsExactly("one");
+        assertThat(responseHeaders.getAll("X-Gravitee-Client-Identifier")).containsExactly("client-id");
+    }
+
+    @Test
+    void should_restore_response_headers_to_baseline_before_retry() {
+        cut = new FailoverInvoker(
+            endpointInvoker,
+            Failover.builder().slowCallDuration(50000).maxRetries(2).perSubscription(false).build(),
+            API_ID
+        );
+
+        responseHeaders.set("X-Gravitee-Client-Identifier", "client-id");
+
+        final AtomicInteger attempts = new AtomicInteger();
+        when(endpointInvoker.invoke(executionContext)).thenAnswer(invocation -> {
+            if (attempts.incrementAndGet() == 1) {
+                responseHeaders.add("Content-Length", "3");
+                responseHeaders.add("X-Upstream-Attempt", "one");
+                return executionContext.interruptWith(new ExecutionFailure(504));
+            }
+
+            responseHeaders.add("Content-Length", "11");
+            responseHeaders.add("X-Upstream-Attempt", "two");
+            return Completable.complete();
+        });
+
+        cut.invoke(executionContext).test().awaitDone(2, TimeUnit.SECONDS).assertComplete();
+
+        verify(endpointInvoker, times(2)).invoke(executionContext);
+        assertThat(responseHeaders.getAll("Content-Length")).containsExactly("11");
+        assertThat(responseHeaders.getAll("X-Upstream-Attempt")).containsExactly("two");
+        assertThat(responseHeaders.getAll("X-Gravitee-Client-Identifier")).containsExactly("client-id");
     }
 }

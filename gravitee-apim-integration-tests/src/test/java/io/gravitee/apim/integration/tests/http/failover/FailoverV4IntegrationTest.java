@@ -612,6 +612,13 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         @Override
         @Test
+        @DeployApi("/apis/v4/http/failover/api-three-endpoints.json")
+        void should_return_single_content_length_header_from_final_retry_response(HttpClient client) {
+            super.should_return_single_content_length_header_from_final_retry_response(client);
+        }
+
+        @Override
+        @Test
         @DeployApi("/apis/v4/http/failover/api-three-endpoints-query-params.json")
         void should_success_on_second_retry_with_endpoint_having_query_params(HttpClient client) {
             super.should_success_on_second_retry_with_endpoint_having_query_params(client);
