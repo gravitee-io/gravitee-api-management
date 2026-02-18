@@ -28,13 +28,13 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { EMPTY, Observable, of, timer } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
-
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { GioFormFocusInvalidModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 
 import { ApiProductDangerZoneComponent } from './danger-zone/api-product-danger-zone.component';
+
 import { ApiProduct, UpdateApiProduct } from '../../../entities/management-api-v2/api-product';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';

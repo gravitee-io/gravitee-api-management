@@ -17,8 +17,9 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { ApiProductNavigationComponent } from '../navigation/api-product-navigation.component';
 import { ApiProductDetailRoutingModule } from './api-product-detail-routing.module';
+
+import { ApiProductNavigationComponent } from '../navigation/api-product-navigation.component';
 
 @NgModule({
   imports: [CommonModule, ApiProductDetailRoutingModule, ApiProductNavigationComponent],

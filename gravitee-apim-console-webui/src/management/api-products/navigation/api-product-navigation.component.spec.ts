@@ -22,6 +22,7 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { GioMenuService } from '@gravitee/ui-particles-angular';
 
 import { ApiProductNavigationComponent } from './api-product-navigation.component';
+
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ApiProduct } from '../../../entities/management-api-v2/api-product';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
