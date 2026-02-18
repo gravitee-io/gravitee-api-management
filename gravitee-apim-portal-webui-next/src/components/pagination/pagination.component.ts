@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 import { Component, computed, input, output, Signal } from '@angular/core';
-import { MatButton, MatIconButton } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
+import { MatButton } from '@angular/material/button';
+import { MatFormField } from '@angular/material/form-field';
+import { MatOption, MatSelect } from '@angular/material/select';
+
+const MAX_VISIBLE_WITHOUT_ELLIPSIS = 7;
+const WINDOW_SIZE = 5;
+type PaginationItem = number | 'ellipsis';
 
 interface PaginationVM {
   hasPreviousPage: boolean;
@@ -27,7 +32,7 @@ interface PaginationVM {
 @Component({
   selector: 'app-pagination',
   standalone: true,
-  imports: [MatButton, MatIcon, MatIconButton],
+  imports: [MatButton, MatFormField, MatOption, MatSelect],
   templateUrl: './pagination.component.html',
   styleUrl: './pagination.component.scss',
 })
@@ -35,8 +40,10 @@ export class PaginationComponent {
   totalResults = input.required<number>();
   currentPage = input.required<number>();
   pageSize = input<number>(10);
+  pageSizeOptions = input<number[]>([]);
 
   selectPage = output<number>();
+  pageSizeChange = output<number>();
 
   pagination: Signal<PaginationVM> = computed(() => {
     const totalPages = Math.ceil(this.totalResults() / this.pageSize());
@@ -49,21 +56,62 @@ export class PaginationComponent {
     };
   });
 
-  goToPage(page: number) {
-    if (page > 0 && page <= this.pagination().totalPages) {
-      this.selectPage.emit(page);
+  pageNumbers: Signal<PaginationItem[]> = computed(() => {
+    const { currentPage, totalPages } = this.pagination();
+    if (totalPages <= 0) return [];
+    if (totalPages <= MAX_VISIBLE_WITHOUT_ELLIPSIS) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
+    let start = Math.max(1, currentPage - Math.floor(WINDOW_SIZE / 2));
+    const end = Math.min(totalPages, start + WINDOW_SIZE - 1);
+    if (end - start + 1 < WINDOW_SIZE) {
+      start = Math.max(1, end - WINDOW_SIZE + 1);
+    }
+    const result: PaginationItem[] = [];
+    result.push(1);
+    if (start > 2) {
+      result.push('ellipsis');
+    }
+    for (let p = start; p <= end; p++) {
+      if (p !== 1 && p !== totalPages) {
+        result.push(p);
+      }
+    }
+    if (end < totalPages - 1) {
+      result.push('ellipsis');
+    }
+    if (totalPages > 1) {
+      result.push(totalPages);
+    }
+    return result;
+  });
+
+  goToPage(page: number) {
+    const totalPages = this.pagination().totalPages;
+    if (totalPages <= 0) {
+      return;
+    }
+    const boundedPage = Math.max(1, Math.min(page, totalPages));
+    if (boundedPage === this.currentPage()) {
+      return;
+    }
+    this.selectPage.emit(boundedPage);
   }
 
   goToPreviousPage() {
-    if (this.currentPage() > 0) {
+    if (this.currentPage() > 1) {
       this.selectPage.emit(this.currentPage() - 1);
     }
   }
 
   goToNextPage() {
-    if (this.currentPage() < this.pagination().totalPages) {
-      this.selectPage.emit(this.currentPage() + 1);
+    const { currentPage, totalPages } = this.pagination();
+    if (totalPages > 0 && currentPage < totalPages) {
+      this.selectPage.emit(currentPage + 1);
     }
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSizeChange.emit(size);
   }
 }
