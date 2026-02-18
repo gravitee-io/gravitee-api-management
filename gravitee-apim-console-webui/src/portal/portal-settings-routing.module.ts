@@ -129,9 +129,10 @@ const portalRoutes: Routes = [
       {
         path: 'subscription-form',
         component: SubscriptionFormComponent,
+        canDeactivate: [HasUnsavedChangesGuard],
         data: {
           permissions: {
-            anyOf: ['environment-settings-r', 'environment-settings-u'],
+            anyOf: ['environment-metadata-r', 'environment-metadata-u'],
           },
         },
       },
