@@ -195,13 +195,52 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             logger.debug("Find all groups");
             Set<Group> all = groupRepository.findAllByEnvironment(executionContext.getEnvironmentId());
             logger.debug("Find all groups - DONE");
+
+            List<String> allGroupIds = all.stream().map(Group::getId).toList();
+
+            // Batch-fetch GROUP->API and GROUP->APPLICATION memberships (2 queries instead of 3*N)
+            Set<MembershipEntity> apiMemberships = Set.of();
+            Set<MembershipEntity> appMemberships = Set.of();
+            if (!allGroupIds.isEmpty()) {
+                apiMemberships = membershipService.getMembershipsByMembersAndReference(
+                    MembershipMemberType.GROUP,
+                    allGroupIds,
+                    MembershipReferenceType.API
+                );
+                appMemberships = membershipService.getMembershipsByMembersAndReference(
+                    MembershipMemberType.GROUP,
+                    allGroupIds,
+                    MembershipReferenceType.APPLICATION
+                );
+            }
+
+            // Build default role maps (memberships where referenceId is null)
+            Map<String, String> defaultApiRoleByGroup = apiMemberships
+                .stream()
+                .filter(m -> m.getReferenceId() == null)
+                .collect(Collectors.toMap(MembershipEntity::getMemberId, MembershipEntity::getRoleId, (a, b) -> a));
+            Map<String, String> defaultAppRoleByGroup = appMemberships
+                .stream()
+                .filter(m -> m.getReferenceId() == null)
+                .collect(Collectors.toMap(MembershipEntity::getMemberId, MembershipEntity::getRoleId, (a, b) -> a));
+
+            // Determine which groups are API primary owners
+            RoleEntity apiPORole = roleService
+                .findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+                .orElse(null);
+            Set<String> poGroupIds = apiPORole == null
+                ? Set.of()
+                : apiMemberships
+                    .stream()
+                    .filter(m -> apiPORole.getId().equals(m.getRoleId()))
+                    .map(MembershipEntity::getMemberId)
+                    .collect(Collectors.toSet());
+
             final List<GroupEntity> groups = all
                 .stream()
-                .map(this::map)
+                .map(group -> mapWithBatchData(group, defaultApiRoleByGroup, defaultAppRoleByGroup, poGroupIds))
                 .sorted(Comparator.comparing(GroupEntity::getName))
                 .collect(Collectors.toList());
-
-            populateGroupFlags(executionContext, groups);
 
             if (
                 permissionService.hasPermission(
@@ -1092,6 +1131,67 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         entity.setDisableMembershipNotifications(group.isDisableMembershipNotifications());
         entity.setOrigin(group.getOrigin());
         entity.setEnvironmentId(group.getEnvironmentId());
+
+        return entity;
+    }
+
+    /**
+     * Maps a Group to GroupEntity using pre-fetched batch data, avoiding N+1 queries for default roles and primary owner status.
+     */
+    private GroupEntity mapWithBatchData(
+        Group group,
+        Map<String, String> defaultApiRoleIdByGroup,
+        Map<String, String> defaultAppRoleIdByGroup,
+        Set<String> poGroupIds
+    ) {
+        if (group == null) {
+            return null;
+        }
+
+        GroupEntity entity = new GroupEntity();
+        entity.setId(group.getId());
+        entity.setName(group.getName());
+        if (group.getApiPrimaryOwner() != null && !group.getApiPrimaryOwner().isEmpty()) {
+            entity.setApiPrimaryOwner(group.getApiPrimaryOwner());
+            entity.setPrimaryOwner(true);
+        }
+
+        if (group.getEventRules() != null && !group.getEventRules().isEmpty()) {
+            List<GroupEventRuleEntity> groupEventRules = new ArrayList<>();
+            for (GroupEventRule groupEventRule : group.getEventRules()) {
+                GroupEventRuleEntity eventRuleEntity = new GroupEventRuleEntity();
+                eventRuleEntity.setEvent(groupEventRule.getEvent().name());
+                groupEventRules.add(eventRuleEntity);
+            }
+            entity.setEventRules(groupEventRules);
+        }
+
+        Map<RoleScope, String> roles = new HashMap<>();
+        String apiRoleId = defaultApiRoleIdByGroup.get(group.getId());
+        if (apiRoleId != null) {
+            roles.put(RoleScope.API, roleService.findById(apiRoleId).getName());
+        }
+        String appRoleId = defaultAppRoleIdByGroup.get(group.getId());
+        if (appRoleId != null) {
+            roles.put(RoleScope.APPLICATION, roleService.findById(appRoleId).getName());
+        }
+        entity.setRoles(roles);
+
+        entity.setCreatedAt(group.getCreatedAt());
+        entity.setUpdatedAt(group.getUpdatedAt());
+        entity.setMaxInvitation(group.getMaxInvitation());
+        entity.setLockApiRole(group.isLockApiRole());
+        entity.setLockApplicationRole(group.isLockApplicationRole());
+        entity.setSystemInvitation(group.isSystemInvitation());
+        entity.setEmailInvitation(group.isEmailInvitation());
+        entity.setDisableMembershipNotifications(group.isDisableMembershipNotifications());
+        entity.setOrigin(group.getOrigin());
+        entity.setEnvironmentId(group.getEnvironmentId());
+
+        // Set primary owner flag from pre-fetched data (replaces populateGroupFlags)
+        if (!entity.isPrimaryOwner()) {
+            entity.setPrimaryOwner(poGroupIds.contains(group.getId()));
+        }
 
         return entity;
     }
