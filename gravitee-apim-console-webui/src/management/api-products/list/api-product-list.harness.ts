@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
+import { ComponentHarness } from '@angular/cdk/testing';
 
-import { ApiProductListComponent } from './api-product-list.component';
+/**
+ * Harness for the empty state card div (used when no API products exist).
+ */
+export class ApiProductListEmptyStateHarness extends ComponentHarness {
+  static hostSelector = '.empty-state-card';
 
-@NgModule({
-  imports: [ApiProductListComponent],
-  exports: [ApiProductListComponent],
-})
-export class ApiProductListModule {}
+  async getText(): Promise<string> {
+    const host = await this.host();
+    return host.text();
+  }
+}

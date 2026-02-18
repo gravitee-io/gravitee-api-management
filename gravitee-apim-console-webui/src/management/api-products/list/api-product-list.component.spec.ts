@@ -1,19 +1,4 @@
 /*
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-/*
  * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatTableHarness } from '@angular/material/table/testing';
@@ -36,8 +21,10 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ActivatedRoute, Router } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
 
 import { ApiProductListComponent } from './api-product-list.component';
+import { ApiProductListEmptyStateHarness } from './api-product-list.harness';
 import { ApiProductListModule } from './api-product-list.module';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
@@ -52,6 +39,7 @@ describe('ApiProductListComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
   let _router: Router;
+  let queryParams$: BehaviorSubject<Record<string, string>>;
 
   const fakeSnackBarService = {
     error: jest.fn(),
@@ -59,6 +47,8 @@ describe('ApiProductListComponent', () => {
   };
 
   beforeEach(() => {
+    queryParams$ = new BehaviorSubject<Record<string, string>>({});
+
     TestBed.configureTestingModule({
       imports: [ApiProductListModule, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
       providers: [
@@ -69,6 +59,7 @@ describe('ApiProductListComponent', () => {
           provide: ActivatedRoute,
           useValue: {
             snapshot: { queryParams: {} },
+            queryParams: queryParams$.asObservable(),
           },
         },
       ],
@@ -90,16 +81,19 @@ describe('ApiProductListComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should display an empty state when no API products', fakeAsync(async () => {
+  it('should display an empty state when no API products', async () => {
     await initComponent([]);
 
-    expect(fixture.nativeElement.textContent).toContain('No API Product created yet');
-    expect(fixture.nativeElement.textContent).toContain('Create API Products to group together your APIs.');
-  }));
+    const emptyState = await loader.getHarness(ApiProductListEmptyStateHarness);
+    const emptyStateText = await emptyState.getText();
+    expect(emptyStateText).toContain('No API Product created yet');
+    expect(emptyStateText).toContain('Create API Products to group together your APIs.');
+  });
 
-  it('should display a table with one row', fakeAsync(async () => {
+  it('should display a table with one row', async () => {
     const apiProduct: ApiProduct = {
       id: 'product-1',
+      environmentId: 'DEFAULT',
       name: 'Payments API Product',
       version: '1.0',
       apiIds: ['api-1', 'api-2'],
@@ -117,12 +111,13 @@ describe('ApiProductListComponent', () => {
     expect(rowCells[2]).toContain('2');
     expect(rowCells[3]).toContain('1.0');
     expect(rowCells[4]).toContain('Jane Doe');
-  }));
+  });
 
-  it('should display multiple API products', fakeAsync(async () => {
+  it('should display multiple API products', async () => {
     const apiProducts: ApiProduct[] = [
       {
         id: 'product-1',
+        environmentId: 'DEFAULT',
         name: 'Payments API Product',
         version: '1.0',
         apiIds: ['api-1'],
@@ -130,6 +125,7 @@ describe('ApiProductListComponent', () => {
       },
       {
         id: 'product-2',
+        environmentId: 'DEFAULT',
         name: 'Orders API Product',
         version: '2.0',
         apiIds: ['api-2', 'api-3'],
@@ -142,23 +138,24 @@ describe('ApiProductListComponent', () => {
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#apiProductsTable' }));
     const rows = await table.getRows();
     expect(rows.length).toBe(2);
-  }));
+  });
 
-  it('should handle error when loading products', fakeAsync(async () => {
+  it('should handle error when loading products', async () => {
     fixture.detectChanges();
-    tick(200);
+    await fixture.whenStable();
 
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products?page=1&perPage=10`);
     req.flush({ message: 'Error loading products' }, { status: 500, statusText: 'Internal Server Error' });
-    tick();
     fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(fakeSnackBarService.error).toHaveBeenCalled();
-  }));
+  });
 
-  it('should update filters and reload data', fakeAsync(async () => {
+  it('should update filters and reload data when query params change', async () => {
     const apiProduct: ApiProduct = {
       id: 'product-1',
+      environmentId: 'DEFAULT',
       name: 'Test Product',
       version: '1.0',
       apiIds: [],
@@ -166,18 +163,25 @@ describe('ApiProductListComponent', () => {
     };
     await initComponent([apiProduct]);
 
+    const navigateSpy = jest.spyOn(_router, 'navigate');
     const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
     await tableWrapper.setSearchValue('test');
-    tick(500);
+
+    expect(navigateSpy).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: expect.objectContaining({ q: 'test' }) }));
+
+    // Simulate router having updated query params (router is the source of truth)
+    queryParams$.next({ q: 'test' });
+    await fixture.whenStable();
 
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products?page=1&perPage=10`);
     req.flush({ data: [], pagination: { totalCount: 0 } });
-    tick();
-  }));
+    await fixture.whenStable();
+  });
 
-  it('should display owner as N/A when no primary owner', fakeAsync(async () => {
+  it('should display owner as N/A when no primary owner', async () => {
     const apiProduct: ApiProduct = {
       id: 'product-1',
+      environmentId: 'DEFAULT',
       name: 'Test Product',
       version: '1.0',
       apiIds: [],
@@ -189,11 +193,12 @@ describe('ApiProductListComponent', () => {
     const rows = await table.getRows();
     const rowCells = await rows[0].getCellTextByIndex();
     expect(rowCells[4]).toContain('N/A');
-  }));
+  });
 
-  it('should display zero APIs count when apiIds is empty', fakeAsync(async () => {
+  it('should display zero APIs count when apiIds is empty', async () => {
     const apiProduct: ApiProduct = {
       id: 'product-1',
+      environmentId: 'DEFAULT',
       name: 'Test Product',
       version: '1.0',
       apiIds: [],
@@ -206,16 +211,16 @@ describe('ApiProductListComponent', () => {
     const rows = await table.getRows();
     const rowCells = await rows[0].getCellTextByIndex();
     expect(rowCells[2]).toContain('0');
-  }));
+  });
 
   async function initComponent(apiProducts: ApiProduct[]) {
     fixture.detectChanges();
-    tick(200);
+    await fixture.whenStable();
 
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products?page=1&perPage=10`);
     expect(req.request.method).toEqual('GET');
     req.flush({ data: apiProducts, pagination: { totalCount: apiProducts.length } });
-    tick();
     fixture.detectChanges();
+    await fixture.whenStable();
   }
 });
