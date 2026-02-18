@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.api;
 
 import io.gravitee.repository.mongodb.management.internal.model.WorkflowMongo;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -28,6 +29,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface WorkflowMongoRepository extends MongoRepository<WorkflowMongo, String> {
     List<WorkflowMongo> findByReferenceTypeAndReferenceIdAndTypeOrderByCreatedAtDesc(String referenceType, String referenceId, String type);
+
+    @Query(value = "{ 'referenceType': ?0, 'referenceId': {$in: ?1}, 'type': ?2 }", sort = "{ 'createdAt': -1 }")
+    List<WorkflowMongo> findByReferenceTypeAndReferenceIdInAndTypeOrderByCreatedAtDesc(
+        String referenceType,
+        Collection<String> referenceIds,
+        String type
+    );
 
     @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)
     List<WorkflowMongo> deleteByReferenceIdAndReferenceType(String referenceId, String referenceType);
