@@ -66,45 +66,45 @@ export class EnvLogsDetailsComponent {
   private readonly log$ =
     this.logId && this.apiId
       ? this.environmentLogsService.searchLogs({ requestId: this.logId }).pipe(
-        switchMap(searchResponse => {
-          const overviewLog = searchResponse.data[0];
-          if (!overviewLog) {
-            return of(undefined);
-          }
+          switchMap(searchResponse => {
+            const overviewLog = searchResponse.data[0];
+            if (!overviewLog) {
+              return of(undefined);
+            }
 
-          return forkJoin({
-            overview: of(overviewLog),
-            detail: this.apiLogsV2Service.searchConnectionLogDetail(this.apiId!, this.logId!).pipe(catchError(() => of(null))),
-          }).pipe(
-            map(({ overview, detail }) => {
-              const envLog: EnvLog = {
-                id: overview.id,
-                apiId: overview.apiId,
-                timestamp: this.datePipe.transform(overview.timestamp, 'medium') ?? overview.timestamp,
-                api: overview.apiId,
-                application: overview.application?.name ?? overview.application?.id ?? '—',
-                method: overview.method ?? '—',
-                path: overview.uri ?? '—',
-                status: overview.status,
-                responseTime: overview.gatewayResponseTime != null ? `${overview.gatewayResponseTime} ms` : '—',
-                gateway: overview.gateway,
-                plan: overview.plan?.name ? { name: overview.plan.name } : undefined,
-                requestEnded: overview.requestEnded,
-                errorKey: overview.errorKey,
-                transactionId: overview.transactionId,
-                requestId: detail?.requestId,
-                clientIdentifier: detail?.clientIdentifier,
-                warnings: overview.warnings?.map(w => ({ key: w.key ?? '' })),
-                entrypointRequest: detail?.entrypointRequest,
-                endpointRequest: detail?.endpointRequest,
-                entrypointResponse: detail?.entrypointResponse,
-                endpointResponse: detail?.endpointResponse,
-              };
-              return envLog;
-            }),
-          );
-        }),
-      )
+            return forkJoin({
+              overview: of(overviewLog),
+              detail: this.apiLogsV2Service.searchConnectionLogDetail(this.apiId!, this.logId!).pipe(catchError(() => of(null))),
+            }).pipe(
+              map(({ overview, detail }) => {
+                const envLog: EnvLog = {
+                  id: overview.id,
+                  apiId: overview.apiId,
+                  timestamp: this.datePipe.transform(overview.timestamp, 'medium') ?? overview.timestamp,
+                  api: overview.apiId,
+                  application: overview.application?.name ?? overview.application?.id ?? '—',
+                  method: overview.method ?? '—',
+                  path: overview.uri ?? '—',
+                  status: overview.status,
+                  responseTime: overview.gatewayResponseTime != null ? `${overview.gatewayResponseTime} ms` : '—',
+                  gateway: overview.gateway,
+                  plan: overview.plan?.name ? { name: overview.plan.name } : undefined,
+                  requestEnded: overview.requestEnded,
+                  errorKey: overview.errorKey,
+                  transactionId: overview.transactionId,
+                  requestId: detail?.requestId,
+                  clientIdentifier: detail?.clientIdentifier,
+                  warnings: overview.warnings?.map(w => ({ key: w.key ?? '' })),
+                  entrypointRequest: detail?.entrypointRequest,
+                  endpointRequest: detail?.endpointRequest,
+                  entrypointResponse: detail?.entrypointResponse,
+                  endpointResponse: detail?.endpointResponse,
+                };
+                return envLog;
+              }),
+            );
+          }),
+        )
       : of(undefined);
 
   // 3. Computed signals derived from the log signal
