@@ -18,7 +18,30 @@
 <portal-header
   subtitle="Define the subscription form that will be displayed to users when subscribing to APIs"
   [title]="'Subscription Form'"
-  [showActions]="false"
+  [showActions]="true"
 >
+  <div additionalActions class="actions">
+    <mat-slide-toggle
+      aria-label="Visible to API consumers"
+      labelPosition="before"
+      [formControl]="enabledControl"
+      [matTooltip]="enabledControlTooltip()"
+      [matTooltipDisabled]="!enabledControlTooltip()"
+      data-testid="enable-toggle"
+    >
+      Visible to API consumers
+    </mat-slide-toggle>
+    <button
+      mat-flat-button
+      color="primary"
+      aria-label="Update subscription form"
+      (click)="updateSubscriptionForm()"
+      [disabled]="isSaveDisabled()"
+      [matTooltip]="saveButtonTooltip()"
+      [matTooltipDisabled]="!saveButtonTooltip()"
+    >
+      Save
+    </button>
+  </div>
 </portal-header>
 <gmd-form-editor [formControl]="contentControl" />

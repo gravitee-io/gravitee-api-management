@@ -13,6 +13,12 @@
   }
 }
 
+.actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
 gmd-form-editor {
   @include gmd.editor-overrides(
     (
