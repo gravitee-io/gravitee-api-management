@@ -121,7 +121,7 @@ describe('ApplicationLogMessagesComponent', () => {
     const currentPage = await pagination.getCurrentPaginationPage();
     expect(await currentPage.getText()).toEqual('1');
 
-    expect(await pagination.getPageButtonByNumber(2).then(btn => btn.isDisabled())).toEqual(false);
+    expect(await pagination.getNextPageButton().then(btn => btn.isDisabled())).toEqual(false);
     expect(await pagination.getPreviousPageButton().then(btn => btn.isDisabled())).toEqual(true);
     await pagination.getNextPageButton().then(btn => btn.click());
 

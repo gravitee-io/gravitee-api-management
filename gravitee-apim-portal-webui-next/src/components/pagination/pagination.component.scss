@@ -13,20 +13,85 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  --mat-button-filled-container-shape: 50%;
-  --mat-button-filled-horizontal-padding: 18px;
-  --mat-button-text-horizontal-padding: 18px;
+@use '@angular/material' as mat;
+@use '../../scss/theme/index' as app-theme;
 
+:host {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pagination__controls {
   display: flex;
   align-items: center;
+  gap: 8px;
+}
+
+.pagination__nav {
+  min-width: auto;
+  align-items: center;
+  padding: 0 8px;
   gap: 4px;
 }
 
-button[mat-flat-button],
-button[mat-button],
-button[mat-icon-button] {
-  width: 44px;
-  min-width: auto;
-  border-radius: 50%;
+.pagination__nav--next {
+  display: flex;
+  flex-direction: row;
+
+  .pagination__nav-next-text {
+    order: 1;
+  }
+
+  .pagination__nav-next-icon {
+    order: 2;
+  }
+}
+
+.pagination__ellipsis {
+  min-width: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  color: var(--mat-button-outline-label-text-color, inherit);
+}
+
+.pagination__current,
+.pagination__page {
+  min-width: 40px;
+  padding: 0 12px;
+}
+
+.pagination__current {
+  @include mat.button-overrides(
+    (
+      text-container-shape: #{app-theme.$button-text-container-shape},
+    )
+  );
+  font-weight: bold;
+  border: #{app-theme.$button-outlined-border-width} solid #{app-theme.$button-outlined-border-color};
+}
+
+.pagination__page {
+  @include mat.button-overrides(
+    (
+      text-container-shape: #{app-theme.$button-text-container-shape},
+    )
+  );
+}
+
+.pagination__page-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+
+  &-select {
+    width: 80px;
+  }
 }

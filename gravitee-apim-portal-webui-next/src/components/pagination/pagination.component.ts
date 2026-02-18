@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { Component, computed, input, output, Signal } from '@angular/core';
-import { MatButton, MatIconButton } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
+import { MatButton } from '@angular/material/button';
+import { MatFormField } from '@angular/material/form-field';
+import { MatOption, MatSelect } from '@angular/material/select';
 
 interface PaginationVM {
   hasPreviousPage: boolean;
@@ -27,7 +28,7 @@ interface PaginationVM {
 @Component({
   selector: 'app-pagination',
   standalone: true,
-  imports: [MatButton, MatIcon, MatIconButton],
+  imports: [MatButton, MatFormField, MatOption, MatSelect],
   templateUrl: './pagination.component.html',
   styleUrl: './pagination.component.scss',
 })
@@ -35,8 +36,10 @@ export class PaginationComponent {
   totalResults = input.required<number>();
   currentPage = input.required<number>();
   pageSize = input<number>(10);
+  pageSizeOptions = input<number[]>([]);
 
   selectPage = output<number>();
+  pageSizeChange = output<number>();
 
   pagination: Signal<PaginationVM> = computed(() => {
     const totalPages = Math.ceil(this.totalResults() / this.pageSize());
@@ -49,10 +52,16 @@ export class PaginationComponent {
     };
   });
 
+  pageNumbers: Signal<number[]> = computed(() => {
+    const totalPages = this.pagination().totalPages;
+    if (totalPages <= 0) return [];
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  });
+
   goToPage(page: number) {
-    if (page > 0 && page <= this.pagination().totalPages) {
-      this.selectPage.emit(page);
-    }
+    const totalPages = this.pagination().totalPages;
+    const boundedPage = Math.max(1, Math.min(page, totalPages));
+    this.selectPage.emit(boundedPage);
   }
 
   goToPreviousPage() {
@@ -65,5 +74,9 @@ export class PaginationComponent {
     if (this.currentPage() < this.pagination().totalPages) {
       this.selectPage.emit(this.currentPage() + 1);
     }
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSizeChange.emit(size);
   }
 }

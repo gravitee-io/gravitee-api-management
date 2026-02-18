@@ -78,37 +78,21 @@ describe('PaginationComponent', () => {
       expect(nextPageButton).toBeTruthy();
       expect(await nextPageButton.isDisabled()).toEqual(false);
     });
-    it('should show "2" for next page', async () => {
-      const secondPageButton = await componentHarness.getPageButtonByNumber(2);
-      expect(secondPageButton).toBeTruthy();
-      expect(await secondPageButton.isDisabled()).toEqual(false);
-    });
-    it('should show "3" for page option', async () => {
-      const thirdPageButton = await componentHarness.getPageButtonByNumber(3);
-      expect(thirdPageButton).toBeTruthy();
-      expect(await thirdPageButton.isDisabled()).toEqual(false);
-    });
-
-    it('should show "8" for last page', async () => {
-      const lastPageButton = await componentHarness.getPageButtonByNumber(8);
-      expect(lastPageButton).toBeTruthy();
-      expect(await lastPageButton.isDisabled()).toEqual(false);
-    });
-
     it('should highlight current page', async () => {
       const currentPaginationPage = await componentHarness.getCurrentPaginationPage();
       expect(currentPaginationPage).toBeTruthy();
       expect(await currentPaginationPage.getText()).toEqual('1');
     });
-    it('should go to next page via page number button', async () => {
-      const secondPageButton = await componentHarness.getPageButtonByNumber(2);
-      await secondPageButton.click();
+    it('should go to next page via Next button', async () => {
+      const nextPageButton = await componentHarness.getNextPageButton();
+      await nextPageButton.click();
       fixture.detectChanges();
+      expect(selectPageSpy).toHaveBeenCalledWith(2);
     });
-    it('should go to last page', async () => {
-      const lastPageButton = await componentHarness.getPageButtonByNumber(8);
-      await lastPageButton.click();
-      expect(selectPageSpy).toHaveBeenCalledWith(8);
+    it('should go to page 2 when clicking page number 2', async () => {
+      const page2Button = await componentHarness.getPageNumberButton(2);
+      await page2Button.click();
+      expect(selectPageSpy).toHaveBeenCalledWith(2);
     });
   });
 
@@ -127,21 +111,6 @@ describe('PaginationComponent', () => {
       expect(nextPageButton).toBeTruthy();
       expect(await nextPageButton.isDisabled()).toEqual(false);
     });
-    it('should show "1" for first page', async () => {
-      const firstPageButton = await componentHarness.getPageButtonByNumber(1);
-      expect(firstPageButton).toBeTruthy();
-      expect(await firstPageButton.isDisabled()).toEqual(false);
-    });
-    it('should show "2" for previous page', async () => {
-      const secondPageButton = await componentHarness.getPageButtonByNumber(2);
-      expect(secondPageButton).toBeTruthy();
-      expect(await secondPageButton.isDisabled()).toEqual(false);
-    });
-    it('should show "8" for last page', async () => {
-      const lastPageButton = await componentHarness.getPageButtonByNumber(8);
-      expect(lastPageButton).toBeTruthy();
-      expect(await lastPageButton.isDisabled()).toEqual(false);
-    });
     it('should highlight current page', async () => {
       const currentPaginationPage = await componentHarness.getCurrentPaginationPage();
       expect(currentPaginationPage).toBeTruthy();
@@ -152,6 +121,70 @@ describe('PaginationComponent', () => {
       await previousPageButton.click();
 
       expect(selectPageSpy).toHaveBeenCalledWith(2);
+    });
+  });
+
+  describe('Last page of many pages', () => {
+    beforeEach(async () => {
+      await init(8, 79);
+    });
+
+    it('should show page window adjusted to end', async () => {
+      const currentPaginationPage = await componentHarness.getCurrentPaginationPage();
+      expect(await currentPaginationPage.getText()).toEqual('8');
+    });
+
+    it('should not allow next page on last page', async () => {
+      const nextPageButton = await componentHarness.getNextPageButton();
+      expect(await nextPageButton.isDisabled()).toEqual(true);
+    });
+
+    it('should not go to next page when already on last page', async () => {
+      component.goToNextPage();
+      expect(selectPageSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Zero results', () => {
+    beforeEach(async () => {
+      await init(1, 0);
+    });
+
+    it('should return empty page numbers', () => {
+      expect(component.pageNumbers()).toEqual([]);
+    });
+  });
+
+  describe('Page size options', () => {
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [PaginationComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(PaginationComponent);
+      fixture.componentRef.setInput('currentPage', 1);
+      fixture.componentRef.setInput('totalResults', 50);
+      fixture.componentRef.setInput('pageSizeOptions', [5, 10, 25]);
+
+      component = fixture.componentInstance;
+      selectPageSpy = jest.spyOn(component.selectPage, 'emit');
+      fixture.detectChanges();
+    });
+
+    it('should emit pageSizeChange on page size change', () => {
+      const pageSizeChangeSpy = jest.spyOn(component.pageSizeChange, 'emit');
+      component.onPageSizeChange(25);
+      expect(pageSizeChangeSpy).toHaveBeenCalledWith(25);
+    });
+  });
+
+  describe('Harness error case', () => {
+    beforeEach(async () => {
+      await init(1, 5);
+    });
+
+    it('should throw error when page number button not found', async () => {
+      await expect(componentHarness.getPageNumberButton(999)).rejects.toThrow('Page 999 button not found');
     });
   });
 });

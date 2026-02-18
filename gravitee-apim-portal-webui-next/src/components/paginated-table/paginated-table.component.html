@@ -50,17 +50,8 @@
     [totalResults]="totalElements()"
     [currentPage]="currentPage()"
     [pageSize]="pageSize()"
+    [pageSizeOptions]="pageSizeOptions()"
     (selectPage)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
   />
-
-  <div class="paginated-table__page-size">
-    <span class="m3-body-medium" i18n="@@showPerPage">Show per page:</span>
-    <mat-form-field appearance="outline" class="paginated-table__page-size-select" subscriptSizing="dynamic">
-      <mat-select [value]="pageSize()" (selectionChange)="onPageSizeChange($event.value)">
-        @for (size of pageSizeOptions(); track size) {
-          <mat-option [value]="size">{{ size }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-  </div>
 </div>

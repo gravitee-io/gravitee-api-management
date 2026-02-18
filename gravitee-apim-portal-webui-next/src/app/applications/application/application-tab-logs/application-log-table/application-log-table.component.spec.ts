@@ -159,7 +159,7 @@ describe('ApplicationLogTableComponent', () => {
 
         it('should go to next page via page number button', async () => {
           const pagination = await harnessLoader.getHarness(PaginationHarness);
-          const secondPageButton = await pagination.getPageButtonByNumber(2);
+          const secondPageButton = await pagination.getPageNumberButton(2);
           await secondPageButton.click();
           fixture.detectChanges();
 
@@ -180,9 +180,34 @@ describe('ApplicationLogTableComponent', () => {
             2,
           );
         });
+
+        it('should go to next page via Next button', async () => {
+          const pagination = await harnessLoader.getHarness(PaginationHarness);
+          const nextPageButton = await pagination.getNextPageButton();
+          await nextPageButton.click();
+          fixture.detectChanges();
+
+          expectGetApplicationLogs(
+            fakeLogsResponse({
+              data: [
+                fakeLogListItem({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
+                fakeLogListItem({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
+              ],
+              metadata: {
+                'my-api': { name: 'My API', version: '1.0' },
+                'my-api-2': { name: 'My API 2', version: '2.0' },
+                'my-plan': { name: 'My Plan' },
+                data: { total: 79 },
+              },
+            }),
+            {},
+            2,
+          );
+        });
+
         it('should go to last page', async () => {
           const pagination = await harnessLoader.getHarness(PaginationHarness);
-          const lastPageButton = await pagination.getPageButtonByNumber(8);
+          const lastPageButton = await pagination.getPageNumberButton(8);
           await lastPageButton.click();
 
           expectGetApplicationLogs(
@@ -202,6 +227,51 @@ describe('ApplicationLogTableComponent', () => {
             8,
           );
           fixture.detectChanges();
+        });
+      });
+
+      describe('Two pages of results', () => {
+        beforeEach(async () => {
+          expectGetApplicationLogs(
+            fakeLogsResponse({
+              data: [
+                fakeLogListItem({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
+                fakeLogListItem({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
+              ],
+              metadata: {
+                'my-api': { name: 'My API', version: '1.0' },
+                'my-api-2': { name: 'My API 2', version: '2.0' },
+                'my-plan': { name: 'My Plan' },
+                data: { total: 20 },
+              },
+            }),
+          );
+          expectGetSubscriptions(fakeSubscriptionResponse());
+          fixture.detectChanges();
+        });
+
+        it('should go to next page (last page)', async () => {
+          const pagination = await harnessLoader.getHarness(PaginationHarness);
+          const nextPageButton = await pagination.getNextPageButton();
+          await nextPageButton.click();
+          fixture.detectChanges();
+
+          expectGetApplicationLogs(
+            fakeLogsResponse({
+              data: [
+                fakeLogListItem({ api: 'my-api', plan: 'my-plan', status: 201, timestamp: 1466424490000 }),
+                fakeLogListItem({ api: 'my-api-2', plan: 'my-plan', status: 204, timestamp: 1566424490000 }),
+              ],
+              metadata: {
+                'my-api': { name: 'My API', version: '1.0' },
+                'my-api-2': { name: 'My API 2', version: '2.0' },
+                'my-plan': { name: 'My Plan' },
+                data: { total: 20 },
+              },
+            }),
+            {},
+            2,
+          );
         });
       });
     });

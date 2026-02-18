@@ -15,9 +15,7 @@
  */
 import { DatePipe } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
-import { MatFormField } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
-import { MatOption, MatSelect } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 
@@ -32,7 +30,7 @@ export interface TableColumn {
 @Component({
   selector: 'app-paginated-table',
   standalone: true,
-  imports: [DatePipe, MatTableModule, MatIcon, MatFormField, MatSelect, MatOption, RouterLink, PaginationComponent],
+  imports: [DatePipe, MatTableModule, MatIcon, RouterLink, PaginationComponent],
   templateUrl: './paginated-table.component.html',
   styleUrl: './paginated-table.component.scss',
 })
