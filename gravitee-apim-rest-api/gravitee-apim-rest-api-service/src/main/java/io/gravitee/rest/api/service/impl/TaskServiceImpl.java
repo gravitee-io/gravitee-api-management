@@ -61,6 +61,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.rest.api.service.promotion.PromotionTasksService;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -150,32 +151,40 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                 }
             }
 
-            // search for IN_REVIEW apis
-            apiIds = getApisForAPermission(executionContext, userMembershipsAndPermissions, REVIEWS.getName());
-            if (!apiIds.isEmpty()) {
-                apiIds.forEach(apiId -> {
-                    final List<Workflow> workflows = workflowService.findByReferenceAndType(API, apiId, WorkflowType.REVIEW);
-                    if (workflows != null && !workflows.isEmpty()) {
-                        final Workflow currentWorkflow = workflows.get(0);
-                        if (WorkflowState.IN_REVIEW.name().equals(currentWorkflow.getState())) {
-                            tasks.add(convert(currentWorkflow));
-                        }
-                    }
-                });
-            }
+            // search for IN_REVIEW and REQUEST_FOR_CHANGES apis using a single batch query
+            final Set<String> reviewApiIds = getApisForAPermission(executionContext, userMembershipsAndPermissions, REVIEWS.getName());
+            final Set<String> definitionApiIds = getApisForAPermission(
+                executionContext,
+                userMembershipsAndPermissions,
+                DEFINITION.getName()
+            );
 
-            // search for REQUEST_FOR_CHANGES apis
-            apiIds = getApisForAPermission(executionContext, userMembershipsAndPermissions, DEFINITION.getName());
-            if (!apiIds.isEmpty()) {
-                apiIds.forEach(apiId -> {
-                    final List<Workflow> workflows = workflowService.findByReferenceAndType(API, apiId, WorkflowType.REVIEW);
-                    if (workflows != null && !workflows.isEmpty()) {
-                        final Workflow currentWorkflow = workflows.get(0);
-                        if (WorkflowState.REQUEST_FOR_CHANGES.name().equals(currentWorkflow.getState())) {
-                            tasks.add(convert(currentWorkflow));
-                        }
+            Set<String> allWorkflowApiIds = new HashSet<>();
+            allWorkflowApiIds.addAll(reviewApiIds);
+            allWorkflowApiIds.addAll(definitionApiIds);
+
+            if (!allWorkflowApiIds.isEmpty()) {
+                final List<Workflow> allWorkflows = workflowService.findByReferencesAndType(API, allWorkflowApiIds, WorkflowType.REVIEW);
+
+                // Keep only the latest (first) workflow per API since results are ordered by createdAt desc
+                Map<String, Workflow> latestWorkflowByApi = new HashMap<>();
+                for (Workflow wf : allWorkflows) {
+                    latestWorkflowByApi.putIfAbsent(wf.getReferenceId(), wf);
+                }
+
+                for (String apiId : reviewApiIds) {
+                    Workflow wf = latestWorkflowByApi.get(apiId);
+                    if (wf != null && WorkflowState.IN_REVIEW.name().equals(wf.getState())) {
+                        tasks.add(convert(wf));
                     }
-                });
+                }
+
+                for (String apiId : definitionApiIds) {
+                    Workflow wf = latestWorkflowByApi.get(apiId);
+                    if (wf != null && WorkflowState.REQUEST_FOR_CHANGES.name().equals(wf.getState())) {
+                        tasks.add(convert(wf));
+                    }
+                }
             }
 
             // search for TO_BE_VALIDATED promotions

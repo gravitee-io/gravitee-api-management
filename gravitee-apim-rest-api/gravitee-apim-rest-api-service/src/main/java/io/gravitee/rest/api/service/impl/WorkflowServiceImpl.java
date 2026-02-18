@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.WorkflowType;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import lombok.CustomLog;
@@ -81,6 +82,25 @@ public class WorkflowServiceImpl extends TransactionalService implements Workflo
         } catch (TechnicalException ex) {
             final String message =
                 "An error occurs while trying to find workflow by ref " + referenceType + "/" + referenceId + " and type " + type;
+            log.error(message, ex);
+            throw new TechnicalManagementException(message, ex);
+        }
+    }
+
+    @Override
+    public List<Workflow> findByReferencesAndType(
+        final WorkflowReferenceType referenceType,
+        final Collection<String> referenceIds,
+        final WorkflowType type
+    ) {
+        if (referenceIds == null || referenceIds.isEmpty()) {
+            return List.of();
+        }
+        try {
+            return workflowRepository.findByReferencesAndType(referenceType.name(), referenceIds, type.name());
+        } catch (TechnicalException ex) {
+            final String message =
+                "An error occurs while trying to find workflows by refs " + referenceType + "/" + referenceIds + " and type " + type;
             log.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
