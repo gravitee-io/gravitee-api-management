@@ -29,7 +29,7 @@
     <name>Gravitee.io APIM - Reporter - Elasticsearch</name>
 
     <properties>
-        <gravitee-common-elasticsearch.version>6.3.0</gravitee-common-elasticsearch.version>
+        <gravitee-common-elasticsearch.version>6.5.1</gravitee-common-elasticsearch.version>
 
         <maven-remote-resources-plugin.version>3.3.0</maven-remote-resources-plugin.version>
 
