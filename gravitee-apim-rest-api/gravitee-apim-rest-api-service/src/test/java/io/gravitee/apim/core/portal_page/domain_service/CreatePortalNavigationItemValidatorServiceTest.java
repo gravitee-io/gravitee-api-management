@@ -42,6 +42,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.function.ThrowingRunnable;
@@ -444,6 +445,63 @@ class CreatePortalNavigationItemValidatorServiceTest {
             // Then
             Exception exception = assertThrows(ParentAreaMismatchException.class, throwing);
             assertThat(exception.getMessage()).isEqualTo("Parent item with id %s belongs to a different area than the child item", APIS_ID);
+        }
+
+        @Test
+        void should_fail_when_parent_is_unpublished_and_child_is_published() {
+            // Given
+            final var unpublishedParent = PortalNavigationItemFixtures.aFolder(
+                "10000000-0000-0000-0000-000000000001",
+                "Unpublished parent"
+            );
+            unpublishedParent.setPublished(false);
+            navigationItemsQueryService.storage().add(unpublishedParent);
+
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Published child")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(unpublishedParent.getId())
+                .published(true)
+                .build();
+
+            // When
+            final ThrowingRunnable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
+
+            // Then
+            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo(
+                "Parent item with id %s must be PUBLISHED to create a published child item.".formatted(unpublishedParent.getId())
+            );
+        }
+
+        @Test
+        void should_fail_when_parent_is_private_and_child_visibility_is_public() {
+            // Given
+            final var privateParent = PortalNavigationItemFixtures.aFolder("10000000-0000-0000-0000-000000000002", "Private parent");
+            privateParent.setVisibility(PortalVisibility.PRIVATE);
+            navigationItemsQueryService.storage().add(privateParent);
+
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Public child")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(privateParent.getId())
+                .visibility(PortalVisibility.PUBLIC.name())
+                .build();
+
+            // When
+            final ThrowingRunnable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
+
+            // Then
+            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo(
+                "Parent item with id %s must be PUBLIC to create a public child item.".formatted(privateParent.getId())
+            );
         }
     }
 }

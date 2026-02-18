@@ -25,6 +25,7 @@ import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
@@ -119,6 +120,10 @@ public class PortalNavigationItemDomainService {
     public PortalNavigationItem update(UpdatePortalNavigationItem toUpdate, PortalNavigationItem originalItem) {
         final Integer originalOrder = originalItem.getOrder();
         final PortalNavigationItemId originalParentId = originalItem.getParentId();
+        final var changedVisibility = !Objects.equals(originalItem.getVisibility(), toUpdate.getVisibility())
+            ? toUpdate.getVisibility()
+            : null;
+        final var changedPublished = !Objects.equals(originalItem.getPublished(), toUpdate.getPublished()) ? toUpdate.getPublished() : null;
 
         boolean isMoveToNewParent = !Objects.equals(originalParentId, toUpdate.getParentId());
 
@@ -141,6 +146,9 @@ public class PortalNavigationItemDomainService {
         originalItem.update(toUpdate);
 
         var updatedItem = crudService.update(originalItem);
+        if (PortalVisibility.PRIVATE.equals(changedVisibility) || Boolean.FALSE.equals(changedPublished)) {
+            propagateAttributesToDescendants(updatedItem.getId(), updatedItem.getEnvironmentId(), changedVisibility, changedPublished);
+        }
 
         List<PortalNavigationItem> siblingsToUpdate = new ArrayList<>();
         if (!Objects.equals(originalParentId, updatedItem.getParentId())) {
@@ -152,6 +160,32 @@ public class PortalNavigationItemDomainService {
         siblingsToUpdate.forEach(crudService::update);
 
         return updatedItem;
+    }
+
+    private void propagateAttributesToDescendants(
+        PortalNavigationItemId parentId,
+        String environmentId,
+        PortalVisibility changedVisibility,
+        Boolean changedPublished
+    ) {
+        final var children = queryService.findByParentIdAndEnvironmentId(environmentId, parentId);
+        for (PortalNavigationItem child : children) {
+            final boolean shouldUpdateVisibility = changedVisibility != null && !Objects.equals(child.getVisibility(), changedVisibility);
+            final boolean shouldUpdatePublished = changedPublished != null && !Objects.equals(child.getPublished(), changedPublished);
+
+            if (!shouldUpdateVisibility && !shouldUpdatePublished) {
+                continue;
+            }
+
+            if (shouldUpdateVisibility) {
+                child.setVisibility(changedVisibility);
+            }
+            if (shouldUpdatePublished) {
+                child.setPublished(changedPublished);
+            }
+            crudService.update(child);
+            propagateAttributesToDescendants(child.getId(), environmentId, changedVisibility, changedPublished);
+        }
     }
 
     private int sanitizeOrderForReordering(PortalNavigationItemId parentId, String environmentId, PortalArea area, Integer order) {
