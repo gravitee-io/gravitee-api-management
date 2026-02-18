@@ -19,7 +19,14 @@
   height: 100%;
 
   &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding-bottom: 32px;
+
+    h1 {
+      margin: 5px 0 5px;
+    }
   }
 
   &__content-row {
