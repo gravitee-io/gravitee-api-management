@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatButtonHarness } from '@angular/material/button/testing';
@@ -22,7 +22,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmAndValidateDialogComponent } from '@gravitee/ui-particles-angular';
 import { of } from 'rxjs';
 
@@ -92,105 +92,93 @@ describe('ApiProductDangerZoneComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should remove all APIs from API product', fakeAsync(async () => {
-    const dialogRef = {
-      afterClosed: () => of(true),
-    };
-    jest.spyOn(matDialog, 'open').mockReturnValue(dialogRef as any);
+  it('should remove all APIs from API product', async () => {
+    const dialogRef = { afterClosed: () => of(true) } as MatDialogRef<unknown, boolean>;
+    jest.spyOn(matDialog, 'open').mockReturnValue(dialogRef);
 
-    const removeButton = await loader.getHarness(MatButtonHarness.with({ text: /Remove all APIs/i }));
+    const removeButton = await loader.getHarness(MatButtonHarness.with({ text: /Remove APIs/i }));
     await removeButton.click();
-    tick();
+    await fixture.whenStable();
 
     const req = httpTestingController.expectOne(
       `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/apis`,
     );
     expect(req.request.method).toEqual('DELETE');
     req.flush(null);
-    tick();
+    await fixture.whenStable();
 
     expect(fakeSnackBarService.success).toHaveBeenCalledWith('All APIs have been removed from the API Product.');
     expect(fixture.componentInstance.reloadDetails.emit).toHaveBeenCalled();
-  }));
+  });
 
-  it('should not remove APIs if dialog is cancelled', fakeAsync(async () => {
-    const dialogRef = {
-      afterClosed: () => of(false),
-    };
-    jest.spyOn(matDialog, 'open').mockReturnValue(dialogRef as any);
+  it('should not remove APIs if dialog is cancelled', async () => {
+    const dialogRef = { afterClosed: () => of(false) } as MatDialogRef<unknown, boolean>;
+    jest.spyOn(matDialog, 'open').mockReturnValue(dialogRef);
 
-    const removeButton = await loader.getHarness(MatButtonHarness.with({ text: /Remove all APIs/i }));
+    const removeButton = await loader.getHarness(MatButtonHarness.with({ text: /Remove APIs/i }));
     await removeButton.click();
-    tick();
+    await fixture.whenStable();
 
     httpTestingController.expectNone(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/apis`);
-  }));
+  });
 
-  it('should handle error when removing APIs', fakeAsync(async () => {
-    const dialogRef = {
-      afterClosed: () => of(true),
-    };
-    jest.spyOn(matDialog, 'open').mockReturnValue(dialogRef as any);
+  it('should handle error when removing APIs', async () => {
+    const dialogRef = { afterClosed: () => of(true) } as MatDialogRef<unknown, boolean>;
+    jest.spyOn(matDialog, 'open').mockReturnValue(dialogRef);
 
-    const removeButton = await loader.getHarness(MatButtonHarness.with({ text: /Remove all APIs/i }));
+    const removeButton = await loader.getHarness(MatButtonHarness.with({ text: /Remove APIs/i }));
     await removeButton.click();
-    tick();
+    await fixture.whenStable();
 
     const req = httpTestingController.expectOne(
       `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/apis`,
     );
     req.flush({ message: 'Error removing APIs' }, { status: 500, statusText: 'Internal Server Error' });
-    tick();
+    await fixture.whenStable();
 
     expect(fakeSnackBarService.error).toHaveBeenCalled();
-  }));
+  });
 
-  it('should delete API product', fakeAsync(async () => {
-    const dialogRef = {
-      afterClosed: () => of(true),
-    };
-    jest.spyOn(matDialog, 'open').mockReturnValue(dialogRef as any);
+  it('should delete API product', async () => {
+    const dialogRef = { afterClosed: () => of(true) } as MatDialogRef<unknown, boolean>;
+    jest.spyOn(matDialog, 'open').mockReturnValue(dialogRef);
 
     const deleteButton = await loader.getHarness(MatButtonHarness.with({ text: /Delete/i }));
     await deleteButton.click();
-    tick();
+    await fixture.whenStable();
 
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
     expect(req.request.method).toEqual('DELETE');
     req.flush(null);
-    tick();
+    await fixture.whenStable();
 
     expect(fakeSnackBarService.success).toHaveBeenCalledWith('The API Product has been deleted.');
     expect(routerNavigateSpy).toHaveBeenCalledWith(['../../'], expect.anything());
-  }));
+  });
 
-  it('should not delete API product if dialog is cancelled', fakeAsync(async () => {
-    const dialogRef = {
-      afterClosed: () => of(false),
-    };
-    jest.spyOn(matDialog, 'open').mockReturnValue(dialogRef as any);
+  it('should not delete API product if dialog is cancelled', async () => {
+    const dialogRef = { afterClosed: () => of(false) } as MatDialogRef<unknown, boolean>;
+    jest.spyOn(matDialog, 'open').mockReturnValue(dialogRef);
 
     const deleteButton = await loader.getHarness(MatButtonHarness.with({ text: /Delete/i }));
     await deleteButton.click();
-    tick();
+    await fixture.whenStable();
 
     httpTestingController.expectNone(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
-  }));
+  });
 
-  it('should handle error when deleting API product', fakeAsync(async () => {
-    const dialogRef = {
-      afterClosed: () => of(true),
-    };
-    jest.spyOn(matDialog, 'open').mockReturnValue(dialogRef as any);
+  it('should handle error when deleting API product', async () => {
+    const dialogRef = { afterClosed: () => of(true) } as MatDialogRef<unknown, boolean>;
+    jest.spyOn(matDialog, 'open').mockReturnValue(dialogRef);
 
     const deleteButton = await loader.getHarness(MatButtonHarness.with({ text: /Delete/i }));
     await deleteButton.click();
-    tick();
+    await fixture.whenStable();
 
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
     req.flush({ message: 'Error deleting product' }, { status: 500, statusText: 'Internal Server Error' });
-    tick();
+    await fixture.whenStable();
 
     expect(fakeSnackBarService.error).toHaveBeenCalled();
-  }));
+  });
 });

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatInputHarness } from '@angular/material/input/testing';
@@ -84,7 +84,7 @@ describe('ApiProductConfigurationComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should load API product and initialize form', fakeAsync(async () => {
+  it('should load API product and initialize form', async () => {
     const apiProduct: ApiProduct = {
       id: API_PRODUCT_ID,
       name: 'Test Product',
@@ -94,20 +94,20 @@ describe('ApiProductConfigurationComponent', () => {
     };
 
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
 
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
     req.flush(apiProduct);
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     expect(fixture.componentInstance.apiProduct).toEqual(apiProduct);
     expect(fixture.componentInstance.form.get('name')?.value).toBe('Test Product');
     expect(fixture.componentInstance.form.get('version')?.value).toBe('1.0');
     expect(fixture.componentInstance.form.get('description')?.value).toBe('Test description');
-  }));
+  });
 
-  it('should update API product successfully', fakeAsync(async () => {
+  it('should update API product successfully', async () => {
     const apiProduct: ApiProduct = {
       id: API_PRODUCT_ID,
       name: 'Test Product',
@@ -117,21 +117,21 @@ describe('ApiProductConfigurationComponent', () => {
     };
 
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
 
     const getReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
     getReq.flush(apiProduct);
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
     await nameInput.setValue('Updated Product');
     await nameInput.blur();
-    tick(300);
+    await fixture.whenStable();
 
     const verifyReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_verify`);
     verifyReq.flush({ ok: true });
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     fixture.componentInstance.onSubmit();
@@ -150,25 +150,25 @@ describe('ApiProductConfigurationComponent', () => {
       name: 'Updated Product',
     };
     updateReq.flush(updatedProduct);
-    tick();
+    await fixture.whenStable();
 
     expect(fakeSnackBarService.success).toHaveBeenCalledWith('Configuration successfully saved!');
-  }));
+  });
 
-  it('should handle error when loading API product', fakeAsync(() => {
+  it('should handle error when loading API product', async () => {
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
 
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
     req.flush({ message: 'Not found' }, { status: 404, statusText: 'Not Found' });
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     expect(fakeSnackBarService.error).toHaveBeenCalled();
     expect(fixture.componentInstance.form).toBeTruthy();
-  }));
+  });
 
-  it('should handle error when updating API product', fakeAsync(async () => {
+  it('should handle error when updating API product', async () => {
     const apiProduct: ApiProduct = {
       id: API_PRODUCT_ID,
       name: 'Test Product',
@@ -177,11 +177,11 @@ describe('ApiProductConfigurationComponent', () => {
     };
 
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
 
     const getReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
     getReq.flush(apiProduct);
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     fixture.componentInstance.onSubmit();
@@ -189,12 +189,12 @@ describe('ApiProductConfigurationComponent', () => {
 
     const updateReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
     updateReq.flush({ message: 'Update failed' }, { status: 400, statusText: 'Bad Request' });
-    tick();
+    await fixture.whenStable();
 
     expect(fakeSnackBarService.error).toHaveBeenCalled();
-  }));
+  });
 
-  it('should reset form to initial values', fakeAsync(async () => {
+  it('should reset form to initial values', async () => {
     const apiProduct: ApiProduct = {
       id: API_PRODUCT_ID,
       name: 'Test Product',
@@ -204,11 +204,11 @@ describe('ApiProductConfigurationComponent', () => {
     };
 
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
 
     const getReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
     getReq.flush(apiProduct);
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
@@ -220,9 +220,9 @@ describe('ApiProductConfigurationComponent', () => {
 
     expect(fixture.componentInstance.form.get('name')?.value).toBe('Test Product');
     expect(fixture.componentInstance.form.pristine).toBe(true);
-  }));
+  });
 
-  it('should validate name uniqueness excluding current product', fakeAsync(async () => {
+  it('should validate name uniqueness excluding current product', async () => {
     const apiProduct: ApiProduct = {
       id: API_PRODUCT_ID,
       name: 'Test Product',
@@ -231,19 +231,19 @@ describe('ApiProductConfigurationComponent', () => {
     };
 
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
 
     const getReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
     getReq.flush(apiProduct);
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
     await nameInput.setValue('Test Product');
     await nameInput.blur();
-    tick(300);
+    await fixture.whenStable();
 
     // Should not call verify if name hasn't changed
     httpTestingController.expectNone(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_verify`);
-  }));
+  });
 });

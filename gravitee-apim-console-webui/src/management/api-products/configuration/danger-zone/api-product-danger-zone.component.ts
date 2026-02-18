@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import { EMPTY, Subject } from 'rxjs';
-import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
+import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import { ApiProduct } from '../../../../entities/management-api-v2/api-product';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiProductV2Service } from '../../../../services-ngx/api-product-v2.service';
 
@@ -30,32 +32,24 @@ import { ApiProductV2Service } from '../../../../services-ngx/api-product-v2.ser
   styleUrls: ['./api-product-danger-zone.component.scss'],
   standalone: false,
 })
-export class ApiProductDangerZoneComponent implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+export class ApiProductDangerZoneComponent implements OnInit {
+  private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly matDialog = inject(MatDialog);
+  private readonly snackBarService = inject(SnackBarService);
+  private readonly apiProductV2Service = inject(ApiProductV2Service);
+  private readonly destroyRef = inject(DestroyRef);
 
   @Input()
-  public apiProduct: any; // TODO: Replace with proper ApiProduct type
+  public apiProduct!: ApiProduct;
 
   @Output()
   public reloadDetails = new EventEmitter<void>();
 
   public isReadOnly = false;
 
-  constructor(
-    private readonly router: Router,
-    private readonly activatedRoute: ActivatedRoute,
-    private readonly matDialog: MatDialog,
-    private readonly snackBarService: SnackBarService,
-    private readonly apiProductV2Service: ApiProductV2Service,
-  ) {}
-
   ngOnInit(): void {
     // TODO: Check permissions for read-only
-  }
-
-  ngOnDestroy(): void {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.unsubscribe();
   }
 
   removeApis(): void {
@@ -80,7 +74,7 @@ export class ApiProductDangerZoneComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
         map(() => this.snackBarService.success('All APIs have been removed from the API Product.')),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
         this.reloadDetails.emit();
@@ -111,7 +105,7 @@ export class ApiProductDangerZoneComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
         map(() => this.snackBarService.success('The API Product has been deleted.')),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
         this.router.navigate(['../../'], { relativeTo: this.activatedRoute });

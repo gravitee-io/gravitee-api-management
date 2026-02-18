@@ -29,7 +29,7 @@
                 *ngIf="menuItem.icon"
                 class="api-product-navigation__submenu__item__icon"
                 [matTooltip]="menuItem.displayName"
-                [svgIcon]="'gio:' + menuItem.icon"
+                [svgIcon]="menuItem.icon"
               >
               </mat-icon>
               {{ menuItem.displayName }}

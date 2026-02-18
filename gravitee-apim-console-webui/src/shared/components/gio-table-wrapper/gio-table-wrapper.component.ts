@@ -108,26 +108,27 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   constructor(private changeDetectorRef: ChangeDetectorRef) {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Update values on changes
+    // Update values on changes - defer to avoid ExpressionChangedAfterItHasBeenCheckedError
     if (changes.filters && !isEqual(changes.filters.currentValue, changes.filters.previousValue)) {
-      this.initPaginator(this.filters?.pagination);
-
-      this.initSearch(this.filters?.searchTerm);
-
-      this.initSort(this.filters?.sort);
-
-      this.stateChanges.next();
-      this.changeDetectorRef.detectChanges();
+      setTimeout(() => {
+        this.initPaginator(this.filters?.pagination);
+        this.initSearch(this.filters?.searchTerm);
+        this.initSort(this.filters?.sort);
+        this.stateChanges.next();
+        this.changeDetectorRef.detectChanges();
+      });
     }
   }
 
   ngAfterViewInit() {
-    // Init values with filters or default initial values
-    this.initPaginator(this.filters?.pagination ?? INITIAL_FILTERS_VALUE.pagination);
-
-    this.initSearch(this.filters?.searchTerm ?? INITIAL_FILTERS_VALUE.searchTerm);
-    this.initSort(this.filters?.sort ?? INITIAL_FILTERS_VALUE.sort);
-    this.changeDetectorRef.detectChanges();
+    // Defer init to next tick to avoid ExpressionChangedAfterItHasBeenCheckedError
+    // when MatSortHeader's aria-sort updates from programmatic sort initialization
+    setTimeout(() => {
+      this.initPaginator(this.filters?.pagination ?? INITIAL_FILTERS_VALUE.pagination);
+      this.initSearch(this.filters?.searchTerm ?? INITIAL_FILTERS_VALUE.searchTerm);
+      this.initSort(this.filters?.sort ?? INITIAL_FILTERS_VALUE.sort);
+      this.changeDetectorRef.detectChanges();
+    });
 
     // Keep top and bottom paginator in sync.
     this.paginatorTop.page.pipe(takeUntil(this.unsubscribe$)).subscribe(page => {

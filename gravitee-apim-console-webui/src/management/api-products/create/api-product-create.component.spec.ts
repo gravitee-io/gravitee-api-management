@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatButtonHarness } from '@angular/material/button/testing';
@@ -84,24 +84,24 @@ describe('ApiProductCreateComponent', () => {
     expect(fixture.componentInstance.form.get('version')?.hasError('required')).toBe(true);
   });
 
-  it('should validate name uniqueness', fakeAsync(async () => {
+  it('should validate name uniqueness', async () => {
     fixture.detectChanges();
 
     const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
     await nameInput.setValue('Existing Product');
     await nameInput.blur();
-    tick(300);
+    await fixture.whenStable();
 
     const verifyReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_verify`);
     expect(verifyReq.request.body).toEqual({ name: 'Existing Product' });
     verifyReq.flush({ ok: false });
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     expect(fixture.componentInstance.form.get('name')?.hasError('unique')).toBe(true);
-  }));
+  });
 
-  it('should create API product successfully', fakeAsync(async () => {
+  it('should create API product successfully', async () => {
     fixture.detectChanges();
 
     const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
@@ -110,11 +110,11 @@ describe('ApiProductCreateComponent', () => {
 
     await nameInput.setValue('New Product');
     await nameInput.blur();
-    tick(300);
+    await fixture.whenStable();
 
     const verifyReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_verify`);
     verifyReq.flush({ ok: true });
-    tick();
+    await fixture.whenStable();
 
     await versionInput.setValue('1.0');
     await descriptionInput.setValue('Test description');
@@ -140,13 +140,13 @@ describe('ApiProductCreateComponent', () => {
       apiIds: [],
     };
     createReq.flush(createdProduct);
-    tick();
+    await fixture.whenStable();
 
     expect(fakeSnackBarService.success).toHaveBeenCalledWith('API Product product-1 successfully created');
     expect(routerNavigateSpy).toHaveBeenCalledWith(['..', 'product-1', 'configuration'], expect.anything());
-  }));
+  });
 
-  it('should trim whitespace from form values', fakeAsync(async () => {
+  it('should trim whitespace from form values', async () => {
     fixture.detectChanges();
 
     const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
@@ -154,11 +154,11 @@ describe('ApiProductCreateComponent', () => {
 
     await nameInput.setValue('  Trimmed Product  ');
     await nameInput.blur();
-    tick(300);
+    await fixture.whenStable();
 
     const verifyReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_verify`);
     verifyReq.flush({ ok: true });
-    tick();
+    await fixture.whenStable();
 
     await versionInput.setValue('  1.0  ');
     fixture.detectChanges();
@@ -170,9 +170,9 @@ describe('ApiProductCreateComponent', () => {
     const createReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products`);
     expect(createReq.request.body.name).toBe('Trimmed Product');
     expect(createReq.request.body.version).toBe('1.0');
-  }));
+  });
 
-  it('should handle creation error', fakeAsync(async () => {
+  it('should handle creation error', async () => {
     fixture.detectChanges();
 
     const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
@@ -180,11 +180,11 @@ describe('ApiProductCreateComponent', () => {
 
     await nameInput.setValue('New Product');
     await nameInput.blur();
-    tick(300);
+    await fixture.whenStable();
 
     const verifyReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_verify`);
     verifyReq.flush({ ok: true });
-    tick();
+    await fixture.whenStable();
 
     await versionInput.setValue('1.0');
     fixture.detectChanges();
@@ -195,12 +195,12 @@ describe('ApiProductCreateComponent', () => {
 
     const createReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products`);
     createReq.flush({ message: 'Creation failed' }, { status: 400, statusText: 'Bad Request' });
-    tick();
+    await fixture.whenStable();
 
     expect(fakeSnackBarService.error).toHaveBeenCalledWith('Creation failed');
-  }));
+  });
 
-  it('should show exit confirmation dialog when form is dirty', fakeAsync(async () => {
+  it('should show exit confirmation dialog when form is dirty', async () => {
     fixture.detectChanges();
 
     const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
@@ -215,7 +215,7 @@ describe('ApiProductCreateComponent', () => {
     fixture.detectChanges();
 
     expect(dialogOpenSpy).toHaveBeenCalled();
-  }));
+  });
 
   it('should navigate back without dialog when form is not dirty', () => {
     fixture.detectChanges();

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, Subject, forkJoin, of } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap, filter } from 'rxjs/operators';
+import { BehaviorSubject, forkJoin, of } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
@@ -25,7 +26,7 @@ import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wra
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { Api, ApiV2, ApiV4, Listener, ListenerType } from '../../../entities/management-api-v2';
+import { Api, ApiV2, ApiV4, HttpListener, Listener, ListenerType } from '../../../entities/management-api-v2';
 import { Constants } from '../../../entities/Constants';
 
 export type ApiProductApiTableDS = {
@@ -47,7 +48,16 @@ interface ApiProductApisTableWrapperFilters extends GioTableWrapperFilters {
   styleUrls: ['./api-product-apis.component.scss'],
   standalone: false,
 })
-export class ApiProductApisComponent implements OnInit, OnDestroy {
+export class ApiProductApisComponent implements OnInit {
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly constants = inject(Constants);
+  private readonly apiProductV2Service = inject(ApiProductV2Service);
+  private readonly apiV2Service = inject(ApiV2Service);
+  private readonly snackBarService = inject(SnackBarService);
+  private readonly matDialog = inject(MatDialog);
+  private readonly destroyRef = inject(DestroyRef);
+
   displayedColumns = ['picture', 'name', 'contextPath', 'definition', 'version', 'actions'];
   apisTableDS: ApiProductApiTableDS = [];
   apisTableDSUnpaginatedLength = 0;
@@ -57,19 +67,8 @@ export class ApiProductApisComponent implements OnInit, OnDestroy {
   };
   searchLabel = 'Search';
   isLoadingData = true;
-  apiProductId: string;
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  apiProductId = '';
   private filters$ = new BehaviorSubject<ApiProductApisTableWrapperFilters>(this.filters);
-
-  constructor(
-    private readonly activatedRoute: ActivatedRoute,
-    private readonly router: Router,
-    @Inject(Constants) private readonly constants: Constants,
-    private readonly apiProductV2Service: ApiProductV2Service,
-    private readonly apiV2Service: ApiV2Service,
-    private readonly snackBarService: SnackBarService,
-    private readonly matDialog: MatDialog,
-  ) {}
 
   ngOnInit(): void {
     // Get apiProductId from route params (check parent route if not in current route)
@@ -162,14 +161,9 @@ export class ApiProductApisComponent implements OnInit, OnDestroy {
           this.apisTableDSUnpaginatedLength = filteredApis.length;
           this.isLoadingData = false;
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
-  }
-
-  ngOnDestroy(): void {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.complete();
   }
 
   private initFilters(): void {
@@ -207,15 +201,9 @@ export class ApiProductApisComponent implements OnInit, OnDestroy {
       return (api as ApiV2).contextPath;
     } else if (api.definitionVersion === 'V4') {
       const apiV4 = api as ApiV4;
-      // For V4 APIs, get context path from HTTP listeners
-      const httpListener = apiV4.listeners?.find((listener) => listener.type === 'HTTP');
-      if (httpListener && 'paths' in httpListener) {
-        const paths = (httpListener as any).paths;
-        if (paths && paths.length > 0) {
-          return paths[0];
-        }
-      }
-      return undefined;
+      const httpListener = apiV4.listeners?.find((listener) => listener.type === 'HTTP') as HttpListener | undefined;
+      const firstPath = httpListener?.paths?.[0];
+      return firstPath?.path;
     }
     return undefined;
   }
@@ -306,7 +294,7 @@ export class ApiProductApisComponent implements OnInit, OnDestroy {
             }),
           );
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((apis: (Api | null)[]) => {
         // Filter out null values and apply search filter
@@ -366,7 +354,7 @@ export class ApiProductApisComponent implements OnInit, OnDestroy {
                 this.snackBarService.error(error.error?.message || 'An error occurred while removing the API');
                 return of(null);
               }),
-              takeUntil(this.unsubscribe$),
+              takeUntilDestroyed(this.destroyRef),
             )
             .subscribe(() => {
               this.snackBarService.success(`API "${api.name}" has been removed from the API Product`);

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
@@ -76,7 +76,7 @@ describe('ApiProductNavigationComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should load API product on init', fakeAsync(() => {
+  it('should load API product on init', async () => {
     const apiProduct: ApiProduct = {
       id: API_PRODUCT_ID,
       name: 'Test Product',
@@ -85,31 +85,31 @@ describe('ApiProductNavigationComponent', () => {
     };
 
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
 
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
     req.flush(apiProduct);
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     expect(fixture.componentInstance.currentApiProduct).toEqual(apiProduct);
     expect(fixture.componentInstance.isLoading).toBe(false);
-  }));
+  });
 
-  it('should handle error when loading API product', fakeAsync(() => {
+  it('should handle error when loading API product', async () => {
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
 
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
     req.flush({ message: 'Not found' }, { status: 404, statusText: 'Not Found' });
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     expect(fakeSnackBarService.error).toHaveBeenCalled();
     expect(fixture.componentInstance.isLoading).toBe(false);
-  }));
+  });
 
-  it('should reload API product on route params change', fakeAsync(() => {
+  it('should reload API product on route params change', async () => {
     const apiProduct: ApiProduct = {
       id: API_PRODUCT_ID,
       name: 'Test Product',
@@ -118,16 +118,16 @@ describe('ApiProductNavigationComponent', () => {
     };
 
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
 
     const req1 = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
     req1.flush(apiProduct);
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     // Component should have loaded the API product
     expect(fixture.componentInstance.currentApiProduct).toEqual(apiProduct);
-  }));
+  });
 
   it('should check if menu item is active', () => {
     fixture.detectChanges();
