@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api_product.use_case;
 import static java.util.Map.entry;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
@@ -36,6 +37,7 @@ import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -49,6 +51,7 @@ public class UpdateApiProductUseCase {
     private final AuditDomainService auditService;
     private final ApiProductQueryService apiProductQueryService;
     private final ValidateApiProductService validateApiProductService;
+    private final ApiStateDomainService apiStateDomainService;
     private final EventCrudService eventCrudService;
     private final EventLatestCrudService eventLatestCrudService;
     private final LicenseDomainService licenseDomainService;
@@ -71,10 +74,20 @@ public class UpdateApiProductUseCase {
         UpdateApiProduct updateApiProduct = input.updateApiProduct();
         Set<String> apiIds = updateApiProduct.getApiIds();
         if (apiIds != null) {
+            Set<String> newApiIds = apiIds.isEmpty() ? Set.of() : Set.copyOf(apiIds);
             if (!apiIds.isEmpty()) {
                 validateApiProductService.validateApiIdsForProduct(input.auditInfo().environmentId(), apiIds.stream().toList());
             }
-            updateApiProduct.setApiIds(apiIds.isEmpty() ? Set.of() : Set.copyOf(apiIds));
+            updateApiProduct.setApiIds(newApiIds);
+
+            Set<String> beforeIds = beforeUpdate.getApiIds() != null ? beforeUpdate.getApiIds() : Set.of();
+            Set<String> removedApiIds = new HashSet<>(beforeIds);
+            removedApiIds.removeAll(newApiIds);
+            if (!removedApiIds.isEmpty()) {
+                for (var api : validateApiProductService.getApisToUndeployOnRemoval(removedApiIds, input.apiProductId())) {
+                    apiStateDomainService.stop(api, input.auditInfo());
+                }
+            }
         }
 
         existingApiProduct.update(updateApiProduct);

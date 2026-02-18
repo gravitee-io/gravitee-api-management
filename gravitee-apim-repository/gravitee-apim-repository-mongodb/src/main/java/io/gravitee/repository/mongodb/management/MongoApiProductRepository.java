@@ -146,4 +146,18 @@ public class MongoApiProductRepository implements ApiProductsRepository {
             throw new TechnicalException("Failed to find api products by ids", ex);
         }
     }
+
+    @Override
+    public Set<ApiProduct> findApiProductsByApiIds(Collection<String> apiIds) throws TechnicalException {
+        if (isEmpty(apiIds)) {
+            return Set.of();
+        }
+        log.debug("MongoApiProductRepository.findApiProductsByApiIds({})", apiIds);
+        try {
+            Set<ApiProductMongo> apiProductMongos = internalApiProductRepo.findApiProductsByApiIds(apiIds);
+            return apiProductMongos.stream().map(mapper::map).collect(Collectors.toSet());
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find api products by api ids", ex);
+        }
+    }
 }

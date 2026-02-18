@@ -46,6 +46,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.reactive.handlers.api.v4.NativeApi;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.ReactorEvent;
@@ -760,6 +761,116 @@ public class ApiManagerImplTest {
             public io.gravitee.gateway.reactive.handlers.api.v4.Api build() {
                 api.setEnabled(true);
                 return this.api;
+            }
+        }
+    }
+
+    @Nested
+    class V4ApiWithApiProductTest extends V4ApiTest {
+
+        @Mock
+        private ApiProductRegistry apiProductRegistry;
+
+        @Override
+        @BeforeEach
+        public void setUp() {
+            apiManager = spy(new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor, apiProductRegistry));
+            lenient().when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
+            lenient().when(gatewayConfiguration.hasMatchingTags(any())).thenCallRealMethod();
+        }
+
+        @Nested
+        class Register {
+
+            @Test
+            public void should_deploy_api_without_plan_when_included_in_api_product() {
+                var api = buildTestApi();
+                api.setEnvironmentId("env-1");
+                setPlans(api, Collections.emptyList());
+
+                when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(
+                    List.of(
+                        new ApiProductRegistry.ApiProductPlanEntry("product-1", (io.gravitee.definition.model.v4.plan.Plan) buildMockPlan())
+                    )
+                );
+
+                apiManager.register(api);
+
+                verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+                assertThat(apiManager.apis()).hasSize(1);
+            }
+
+            @Test
+            public void should_not_deploy_api_without_plan_when_not_included_in_api_product() {
+                var api = buildTestApi();
+                api.setEnvironmentId("env-1");
+                setPlans(api, Collections.emptyList());
+
+                when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(List.of());
+
+                apiManager.register(api);
+
+                verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
+                assertThat(apiManager.apis()).isEmpty();
+            }
+        }
+
+        @Nested
+        class Update {
+
+            @Test
+            public void should_keep_api_deployed_when_no_plans_but_included_in_api_product() {
+                var api = buildTestApi();
+                api.setRevision("rev1");
+                api.setEnvironmentId("env-1");
+                setPlans(api, singletonList(buildMockPlan()));
+
+                apiManager.register(api);
+                verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+
+                var api2 = buildTestApi();
+                api2.setRevision("rev2");
+                api2.setEnvironmentId("env-1");
+                api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
+                setPlans(api2, Collections.emptyList());
+
+                when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(
+                    List.of(
+                        new ApiProductRegistry.ApiProductPlanEntry("product-1", (io.gravitee.definition.model.v4.plan.Plan) buildMockPlan())
+                    )
+                );
+
+                apiManager.register(api2);
+
+                verify(eventManager).publishEvent(ReactorEvent.UPDATE, api2);
+                verify(eventManager, never()).publishEvent(ReactorEvent.UNDEPLOY, api);
+                assertThat(apiManager.apis()).hasSize(1);
+            }
+        }
+
+        @Nested
+        class Undeploy {
+
+            @Test
+            public void should_undeploy_api_when_no_plans_and_not_included_in_api_product() {
+                var api = buildTestApi();
+                api.setRevision("rev1");
+                api.setEnvironmentId("env-1");
+                setPlans(api, singletonList(buildMockPlan()));
+                apiManager.register(api);
+                verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+
+                var api2 = buildTestApi();
+                api2.setRevision("rev2");
+                api2.setEnvironmentId("env-1");
+                api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
+                setPlans(api2, Collections.emptyList());
+                when(apiProductRegistry.getApiProductPlanEntriesForApi(eq("api-test"), eq("env-1"))).thenReturn(List.of());
+
+                apiManager.register(api2);
+
+                verify(eventManager, never()).publishEvent(ReactorEvent.UPDATE, api2);
+                verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
             }
         }
     }
