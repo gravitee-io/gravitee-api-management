@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-import { ConfigureTestingGmdFormEditor, ConfigureTestingGraviteeMarkdownEditor, GmdFormEditorHarness } from '@gravitee/gravitee-markdown';
+import {
+  ConfigureTestingGmdFormEditor,
+  ConfigureTestingGraviteeMarkdownEditor,
+  GmdFormEditorHarness,
+  provideGmdFormStore,
+} from '@gravitee/gravitee-markdown';
 
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -37,6 +42,7 @@ describe('SubscriptionFormComponent', () => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, SubscriptionFormComponent],
       providers: [
+        provideGmdFormStore(),
         {
           provide: GioPermissionService,
           useValue: {

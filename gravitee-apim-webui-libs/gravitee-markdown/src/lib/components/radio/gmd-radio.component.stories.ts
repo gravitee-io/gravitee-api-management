@@ -21,7 +21,7 @@ import { GmdRadioComponent } from './gmd-radio.component';
 import { GraviteeMarkdownEditorModule } from '../../gravitee-markdown-editor/gravitee-markdown-editor.module';
 import { GmdFormEditorComponent } from '../../gravitee-markdown-form-editor/gmd-form-editor.component';
 import { GraviteeMarkdownViewerModule } from '../../gravitee-markdown-viewer/gravitee-markdown-viewer.module';
-import { GmdFormStateStore, GMD_FORM_STATE_STORE } from '../../services/gmd-form-state.store';
+import { provideGmdFormStore } from '../../services/gmd-form-state.store';
 
 export default {
   title: 'Gravitee Markdown/Components/Radio',
@@ -34,10 +34,7 @@ export default {
       imports: [GmdRadioComponent, GmdFormEditorComponent, GraviteeMarkdownEditorModule, GraviteeMarkdownViewerModule, FormsModule],
     }),
     applicationConfig({
-      providers: [
-        importProvidersFrom(GraviteeMarkdownEditorModule.forRoot({ theme: 'vs', baseUrl: '.' })),
-        { provide: GMD_FORM_STATE_STORE, useClass: GmdFormStateStore },
-      ],
+      providers: [importProvidersFrom(GraviteeMarkdownEditorModule.forRoot({ theme: 'vs', baseUrl: '.' })), provideGmdFormStore()],
     }),
   ],
 } as Meta<GmdRadioComponent>;
