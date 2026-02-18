@@ -24,7 +24,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { RouterLink } from '@angular/router';
-import { BehaviorSubject, catchError, forkJoin, map, Observable, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, filter, forkJoin, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { SubscriptionConsumerConfigurationComponent } from './subscription-consumer-configuration';
@@ -47,6 +47,7 @@ import { ApplicationService } from '../../../../../services/application.service'
 import { PermissionsService } from '../../../../../services/permissions.service';
 import { PlanService } from '../../../../../services/plan.service';
 import { SubscriptionService } from '../../../../../services/subscription.service';
+import { CloseSubscriptionDialogComponent } from '../../../../dashboard/subscription-details/close-subscription-dialog/close-subscription-dialog.component';
 
 interface SubscriptionDetailsVM {
   result?: SubscriptionDetailsData;
@@ -118,6 +119,24 @@ export class SubscriptionsDetailsComponent implements OnInit {
 
   ngOnInit() {
     this.subscriptionDetails$ = this.loadDetails();
+  }
+
+  closeSubscription() {
+    this.dialog
+      .open<CloseSubscriptionDialogComponent, void, boolean>(CloseSubscriptionDialogComponent, {
+        role: 'alertdialog',
+        id: 'confirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter(confirmed => !!confirmed),
+        switchMap(() => this.subscriptionService.close(this.subscriptionId)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: _ => this._subscriptionDetails.next(true),
+        error: err => console.error(err),
+      });
   }
 
   resumeConsumerStatus() {

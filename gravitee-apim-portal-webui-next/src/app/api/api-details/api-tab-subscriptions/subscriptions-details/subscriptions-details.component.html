@@ -36,6 +36,7 @@
         [updatedAt]="detailsVM.result.updatedAt"
         [isLoadingStatus]="isLoadingStatus"
         (resumeConsumerStatus)="resumeConsumerStatus()"
+        (closeSubscription)="closeSubscription()"
       />
       <app-api-access
         [planSecurity]="detailsVM.result.planSecurity"

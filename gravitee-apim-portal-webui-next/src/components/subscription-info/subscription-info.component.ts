@@ -85,6 +85,9 @@ export class SubscriptionInfoComponent implements OnInit {
   @Output()
   resumeConsumerStatus = new EventEmitter<void>();
 
+  @Output()
+  closeSubscription = new EventEmitter<void>();
+
   public authentication: string = '';
 
   protected readonly SubscriptionConsumerStatusEnum = SubscriptionConsumerStatusEnum;

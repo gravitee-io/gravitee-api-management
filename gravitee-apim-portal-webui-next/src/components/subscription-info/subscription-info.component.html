@@ -15,7 +15,14 @@
     limitations under the License.
 
 -->
-<div class="next-gen-h3 subscription-info__header" i18n="@@subscriptionDetailsHeader">Subscription details</div>
+<div class="subscription-info__header">
+  <h1 class="next-gen-h3" i18n="@@subscriptionDetailsHeader">Subscription Details</h1>
+  @if (subscription?.status === 'ACCEPTED' || subscription?.status === 'PAUSED') {
+    <button mat-stroked-button color="warn" (click)="closeSubscription.emit()" data-testid="close-subscription-button">
+      <span class="next-gen-small-bold" i18n="@@subscriptionDetailsCloseSubscription">Close subscription</span>
+    </button>
+  }
+</div>
 <section class="subscription-info__content on-surface-variant">
   @if (isLoadingStatus) {
     <div class="subscription-info__content-row">
@@ -173,7 +180,7 @@
           (click)="resumeConsumerStatus.emit()"
           i18n="@@subscriptionDetailsRetryFailedSubscription"
         >
-          Retry Subscription
+          Retry subscription
         </button>
       </div>
     }
