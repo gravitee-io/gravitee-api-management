@@ -111,53 +111,14 @@ public abstract sealed class PortalNavigationItem
         final var url = item.getUrl();
         final var apiId = item.getApiId();
         final var order = item.getOrder();
-        final var visibility = null != item.getVisibility() ? item.getVisibility() : PortalVisibility.PUBLIC.name();
+        final var visibility = null != item.getVisibility() ? item.getVisibility() : PortalVisibility.PUBLIC;
         final var published = null != item.getPublished() ? item.getPublished() : false;
 
         final var newItem = switch (item.getType()) {
-            case FOLDER -> new PortalNavigationFolder(
-                id,
-                organizationId,
-                environmentId,
-                title,
-                area,
-                order,
-                published,
-                PortalVisibility.valueOf(visibility)
-            );
-            case PAGE -> new PortalNavigationPage(
-                id,
-                organizationId,
-                environmentId,
-                title,
-                area,
-                order,
-                contentId,
-                published,
-                PortalVisibility.valueOf(visibility)
-            );
-            case LINK -> new PortalNavigationLink(
-                id,
-                organizationId,
-                environmentId,
-                title,
-                area,
-                order,
-                url,
-                published,
-                PortalVisibility.valueOf(visibility)
-            );
-            case API -> new PortalNavigationApi(
-                id,
-                organizationId,
-                environmentId,
-                title,
-                area,
-                order,
-                apiId,
-                published,
-                PortalVisibility.valueOf(visibility)
-            );
+            case FOLDER -> new PortalNavigationFolder(id, organizationId, environmentId, title, area, order, published, visibility);
+            case PAGE -> new PortalNavigationPage(id, organizationId, environmentId, title, area, order, contentId, published, visibility);
+            case LINK -> new PortalNavigationLink(id, organizationId, environmentId, title, area, order, url, published, visibility);
+            case API -> new PortalNavigationApi(id, organizationId, environmentId, title, area, order, apiId, published, visibility);
         };
         newItem.setParentId(parentId);
 
