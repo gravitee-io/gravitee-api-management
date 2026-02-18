@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api_product.query_service;
 
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -24,4 +25,6 @@ public interface ApiProductQueryService {
     Set<ApiProduct> findByEnvironmentId(String environmentId);
     Optional<ApiProduct> findById(String apiProductId);
     Set<ApiProduct> findByApiId(String apiId);
+
+    Map<String, Set<ApiProduct>> findProductsByApiIds(Set<String> apiIds);
 }

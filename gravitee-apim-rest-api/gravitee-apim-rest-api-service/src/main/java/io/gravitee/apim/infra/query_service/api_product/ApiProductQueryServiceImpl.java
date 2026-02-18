@@ -22,12 +22,16 @@ import io.gravitee.apim.infra.adapter.ApiProductAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 @Service
 @CustomLog
@@ -94,6 +98,31 @@ public class ApiProductQueryServiceImpl implements ApiProductQueryService {
             return repoApiProducts.stream().map(ApiProductAdapter.INSTANCE::toModel).collect(Collectors.toSet());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("Failed to find API Products by API ID", e);
+        }
+    }
+
+    @Override
+    public Map<String, Set<ApiProduct>> findProductsByApiIds(Set<String> apiIds) {
+        if (CollectionUtils.isEmpty(apiIds)) {
+            return Map.of();
+        }
+        try {
+            log.debug("Finding API Products for API IDs: {}", apiIds);
+            Set<io.gravitee.repository.management.model.ApiProduct> repoProducts = apiProductRepository.findApiProductsByApiIds(apiIds);
+            Map<String, Set<ApiProduct>> productsByApiId = new HashMap<>();
+            for (io.gravitee.repository.management.model.ApiProduct repoProduct : repoProducts) {
+                ApiProduct product = ApiProductAdapter.INSTANCE.toModel(repoProduct);
+                if (repoProduct.getApiIds() != null) {
+                    for (String apiId : repoProduct.getApiIds()) {
+                        if (apiIds.contains(apiId)) {
+                            productsByApiId.computeIfAbsent(apiId, k -> new HashSet<>()).add(product);
+                        }
+                    }
+                }
+            }
+            return productsByApiId;
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("Failed to find API Products by API IDs", e);
         }
     }
 }

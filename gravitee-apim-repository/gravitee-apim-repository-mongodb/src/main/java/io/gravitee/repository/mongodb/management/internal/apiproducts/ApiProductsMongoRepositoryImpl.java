@@ -16,12 +16,14 @@
 package io.gravitee.repository.mongodb.management.internal.apiproducts;
 
 import io.gravitee.repository.mongodb.management.internal.model.ApiProductMongo;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.util.CollectionUtils;
 
 public class ApiProductsMongoRepositoryImpl implements ApiProductsMongoRepositoryCustom {
 
@@ -31,6 +33,15 @@ public class ApiProductsMongoRepositoryImpl implements ApiProductsMongoRepositor
     @Override
     public Set<ApiProductMongo> findByApiId(String apiId) {
         Query query = new Query(Criteria.where("apiIds").is(apiId));
+        return new HashSet<>(mongoTemplate.find(query, ApiProductMongo.class));
+    }
+
+    @Override
+    public Set<ApiProductMongo> findApiProductsByApiIds(Collection<String> apiIds) {
+        if (CollectionUtils.isEmpty(apiIds)) {
+            return Set.of();
+        }
+        Query query = new Query(Criteria.where("apiIds").in(apiIds));
         return new HashSet<>(mongoTemplate.find(query, ApiProductMongo.class));
     }
 }

@@ -30,6 +30,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
@@ -194,6 +195,49 @@ class ApiProductQueryServiceImplTest {
         void should_throw_technical_exception_when_repository_fails() throws TechnicalException {
             when(apiProductRepository.findByApiId(API_ID)).thenThrow(new TechnicalException("Database error"));
             var throwable = catchThrowable(() -> service.findByApiId(API_ID));
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
+        }
+    }
+
+    @Nested
+    class FindProductsByApiIds {
+
+        @Test
+        void should_return_empty_map_when_api_ids_empty() {
+            var result = service.findProductsByApiIds(Set.of());
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_empty_map_when_api_ids_null() {
+            var result = service.findProductsByApiIds(null);
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_products_grouped_by_api_id() throws TechnicalException {
+            var repoProduct1 = buildRepositoryApiProduct();
+            var repoProduct2 = io.gravitee.repository.management.model.ApiProduct.builder()
+                .id("product-2")
+                .environmentId(ENV_ID)
+                .name("Product 2")
+                .apiIds(List.of("api-2", API_ID))
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
+            when(apiProductRepository.findApiProductsByApiIds(Set.of(API_ID, "api-2"))).thenReturn(Set.of(repoProduct1, repoProduct2));
+
+            Map<String, Set<ApiProduct>> result = service.findProductsByApiIds(Set.of(API_ID, "api-2"));
+
+            assertThat(result).hasSize(2);
+            assertThat(result.get(API_ID)).extracting(ApiProduct::getId).containsExactlyInAnyOrder(API_PRODUCT_ID, "product-2");
+            assertThat(result.get("api-2")).extracting(ApiProduct::getId).containsExactlyInAnyOrder("product-2");
+        }
+
+        @Test
+        void should_throw_technical_exception_when_repository_fails() throws TechnicalException {
+            when(apiProductRepository.findApiProductsByApiIds(Set.of(API_ID))).thenThrow(new TechnicalException("Database error"));
+            var throwable = catchThrowable(() -> service.findProductsByApiIds(Set.of(API_ID)));
             assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
         }
     }

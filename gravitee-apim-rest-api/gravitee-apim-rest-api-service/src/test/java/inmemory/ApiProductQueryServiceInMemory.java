@@ -17,7 +17,9 @@ package inmemory;
 
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -54,6 +56,18 @@ public class ApiProductQueryServiceInMemory extends AbstractQueryServiceInMemory
             if (apiProduct.getApiIds() != null && apiProduct.getApiIds().contains(apiId)) {
                 result.add(apiProduct);
             }
+        }
+        return result;
+    }
+
+    @Override
+    public Map<String, Set<ApiProduct>> findProductsByApiIds(Set<String> apiIds) {
+        Map<String, Set<ApiProduct>> result = new HashMap<>();
+        if (apiIds == null || apiIds.isEmpty()) {
+            return result;
+        }
+        for (String apiId : apiIds) {
+            result.put(apiId, findByApiId(apiId));
         }
         return result;
     }

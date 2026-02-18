@@ -22,13 +22,15 @@ import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 @CustomLog
 @Service
@@ -71,6 +73,26 @@ public class PlanQueryServiceImpl implements PlanQueryService {
     }
 
     @Override
+    public List<Plan> findAllByApiIds(Set<String> apiIds, Set<String> environmentIds) {
+        if (CollectionUtils.isEmpty(apiIds) || CollectionUtils.isEmpty(environmentIds)) {
+            return List.of();
+        }
+        try {
+            return planRepository
+                .findByReferenceIdsAndReferenceTypeAndEnvironment(
+                    new ArrayList<>(apiIds),
+                    io.gravitee.repository.management.model.Plan.PlanReferenceType.API,
+                    environmentIds
+                )
+                .stream()
+                .map(PlanAdapter.INSTANCE::fromRepository)
+                .collect(Collectors.toList());
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurred while finding plans for API IDs: " + apiIds, e);
+        }
+    }
+
+    @Override
     public List<Plan> findAllForApiProduct(String referenceId) {
         try {
             return planRepository
@@ -80,6 +102,26 @@ public class PlanQueryServiceImpl implements PlanQueryService {
                 .collect(Collectors.toList());
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurred while trying to find plans by API Product ID: " + referenceId, e);
+        }
+    }
+
+    @Override
+    public List<Plan> findAllForApiProducts(Set<String> apiProductIds, Set<String> environmentIds) {
+        if (CollectionUtils.isEmpty(apiProductIds) || CollectionUtils.isEmpty(environmentIds)) {
+            return List.of();
+        }
+        try {
+            return planRepository
+                .findByReferenceIdsAndReferenceTypeAndEnvironment(
+                    new ArrayList<>(apiProductIds),
+                    io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT,
+                    environmentIds
+                )
+                .stream()
+                .map(PlanAdapter.INSTANCE::fromRepository)
+                .collect(Collectors.toList());
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurred while finding plans for API Product IDs: " + apiProductIds, e);
         }
     }
 }

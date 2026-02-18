@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.ARCHIVED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -54,6 +55,7 @@ import io.gravitee.rest.api.service.v4.validation.PlanValidationService;
 import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.CustomLog;
@@ -78,6 +80,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final PlanValidationService planValidationService;
     private final ApiServicePluginService apiServicePluginService;
     private final FlowValidationDomainService flowValidationDomainService;
+    private final ApiProductQueryService apiProductQueryService;
 
     public ApiValidationServiceImpl(
         final TagsValidationService tagsValidationService,
@@ -90,7 +93,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         final PlanSearchService planSearchService,
         final PlanValidationService planValidationService,
         ApiServicePluginService apiServicePluginService,
-        FlowValidationDomainService flowValidationDomainService
+        FlowValidationDomainService flowValidationDomainService,
+        ApiProductQueryService apiProductQueryService
     ) {
         this.tagsValidationService = tagsValidationService;
         this.groupValidationService = groupValidationService;
@@ -103,6 +107,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.planValidationService = planValidationService;
         this.apiServicePluginService = apiServicePluginService;
         this.flowValidationDomainService = flowValidationDomainService;
+        this.apiProductQueryService = apiProductQueryService;
     }
 
     @Override
@@ -273,8 +278,27 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
 
     @Override
     public boolean canDeploy(ExecutionContext executionContext, String apiId) {
-        return planSearchService
+        boolean hasPublishedOrDeprecatedPlan = planSearchService
             .findByApi(executionContext, apiId, false)
+            .stream()
+            .anyMatch(
+                planEntity ->
+                    PlanStatus.PUBLISHED.equals(planEntity.getPlanStatus()) || PlanStatus.DEPRECATED.equals(planEntity.getPlanStatus())
+            );
+        if (hasPublishedOrDeprecatedPlan) {
+            return true;
+        }
+        String environmentId = executionContext.getEnvironmentId();
+        return apiProductQueryService
+            .findByApiId(apiId)
+            .stream()
+            .filter(product -> Objects.equals(product.getEnvironmentId(), environmentId))
+            .anyMatch(product -> hasPublishedOrDeprecatedPlanForApiProduct(executionContext, product.getId()));
+    }
+
+    private boolean hasPublishedOrDeprecatedPlanForApiProduct(ExecutionContext executionContext, String apiProductId) {
+        return planSearchService
+            .findByApiProduct(executionContext, apiProductId)
             .stream()
             .anyMatch(
                 planEntity ->
