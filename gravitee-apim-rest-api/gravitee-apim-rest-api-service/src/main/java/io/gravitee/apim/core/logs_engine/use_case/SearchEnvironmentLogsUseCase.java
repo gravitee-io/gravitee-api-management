@@ -221,7 +221,8 @@ public class SearchEnvironmentLogsUseCase {
             case TRANSACTION_ID -> filterContext.limitByTransactionIds(ids);
             case REQUEST_ID -> filterContext.limitByRequestIds(ids);
             case URI -> {
-                // For URI, only EQ filters are supported, so we take the first (and presumably only) value
+                // For URI, only EQ filters are supported, so we take the first (and presumably
+                // only) value
                 if (!ids.isEmpty()) {
                     filterContext.limitByUri(ids.iterator().next());
                 }
@@ -273,6 +274,7 @@ public class SearchEnvironmentLogsUseCase {
             item.getStatus(),
             item.isRequestEnded(),
             safeToInteger(item.getGatewayResponseTime()),
+            item.getGateway(),
             item.getUri(),
             item.getEndpoint(),
             item.getMessage(),
