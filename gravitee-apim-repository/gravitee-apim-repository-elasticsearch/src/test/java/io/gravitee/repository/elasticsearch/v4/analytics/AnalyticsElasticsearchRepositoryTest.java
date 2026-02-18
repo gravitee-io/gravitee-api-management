@@ -34,6 +34,7 @@ import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.NumberRange;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
+import io.gravitee.repository.analytics.engine.api.result.FacetBucketResult;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.elasticsearch.TimeProvider;
@@ -1416,7 +1417,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
 
         @Nested
-        class LLMMeasures {
+        class LLM {
 
             private static final String LLM_API_ID = "llm-api-001";
 
@@ -1531,6 +1532,122 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 assertThat(costMeasure.measures()).containsKeys(Measure.COUNT, Measure.AVG);
                 assertThat(costMeasure.measures().get(Measure.COUNT).doubleValue()).isCloseTo(0.0095, offset(0.0001));
                 assertThat(costMeasure.measures().get(Measure.AVG).doubleValue()).isCloseTo(0.00317, offset(0.00001));
+            }
+        }
+
+        @Nested
+        class MCP {
+
+            private static final String MCP_API_ID = "mcp-api-001";
+
+            @Test
+            void should_return_http_request_count_for_mcp_api() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(MCP_API_ID));
+
+                var query = new MeasuresQuery(timeRange, List.of(filter), metrics);
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.measures()).hasSize(1);
+
+                var measure = result.measures().getFirst();
+                assertThat(measure.metric()).isEqualTo(Metric.HTTP_REQUESTS);
+                assertThat(measure.measures()).containsKey(Measure.COUNT);
+                assertThat(measure.measures().get(Measure.COUNT).doubleValue()).isEqualTo(5.0);
+            }
+
+            @Test
+            void should_return_http_gateway_response_time_avg_for_mcp_api() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_GATEWAY_RESPONSE_TIME, Set.of(Measure.AVG)));
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(MCP_API_ID));
+
+                var query = new MeasuresQuery(timeRange, List.of(filter), metrics);
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.measures()).hasSize(1);
+
+                var measure = result.measures().getFirst();
+                assertThat(measure.metric()).isEqualTo(Metric.HTTP_GATEWAY_RESPONSE_TIME);
+                assertThat(measure.measures()).containsKey(Measure.AVG);
+                assertThat(measure.measures().get(Measure.AVG).doubleValue()).isCloseTo(88.0, offset(0.01));
+            }
+
+            @Test
+            void should_return_facets_by_mcp_proxy_method() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(MCP_API_ID));
+                var query = new FacetsQuery(timeRange, List.of(filter), metrics, List.of(Facet.MCP_PROXY_METHOD));
+
+                var result = cut.searchHTTPFacets(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.metrics()).hasSize(1);
+
+                var metric = result.metrics().getFirst();
+                assertThat(metric.metric()).isEqualTo(Metric.HTTP_REQUESTS);
+                assertThat(metric.buckets()).isNotEmpty();
+
+                var methodBuckets = metric.buckets();
+                assertThat(methodBuckets.stream().map(FacetBucketResult::key).toList()).containsExactlyInAnyOrder(
+                    "initialize",
+                    "tools/call",
+                    "resources/read",
+                    "prompts/get"
+                );
+
+                var toolsCallBucket = methodBuckets
+                    .stream()
+                    .filter(b -> "tools/call".equals(b.key()))
+                    .findFirst()
+                    .orElseThrow();
+                assertThat(toolsCallBucket.measures()).containsKey(Measure.COUNT);
+                assertThat(toolsCallBucket.measures().get(Measure.COUNT).doubleValue()).isEqualTo(2.0);
+            }
+
+            @Test
+            void should_return_facets_by_mcp_proxy_tool() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(MCP_API_ID));
+                var query = new FacetsQuery(timeRange, List.of(filter), metrics, List.of(Facet.MCP_PROXY_TOOL));
+
+                var result = cut.searchHTTPFacets(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.metrics()).hasSize(1);
+
+                var metric = result.metrics().getFirst();
+                assertThat(metric.metric()).isEqualTo(Metric.HTTP_REQUESTS);
+                assertThat(metric.buckets()).isNotEmpty();
+
+                var toolBuckets = metric.buckets();
+                assertThat(toolBuckets.stream().map(FacetBucketResult::key).toList()).containsExactlyInAnyOrder("search", "fetch");
+            }
+
+            @Test
+            void should_filter_by_mcp_proxy_method() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+                var filters = List.of(
+                    new Filter(Filter.Name.API, Filter.Operator.IN, List.of(MCP_API_ID)),
+                    new Filter(Filter.Name.MCP_PROXY_METHOD, Filter.Operator.EQ, "tools/call")
+                );
+
+                var query = new MeasuresQuery(timeRange, filters, metrics);
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.measures()).hasSize(1);
+
+                var measure = result.measures().getFirst();
+                assertThat(measure.metric()).isEqualTo(Metric.HTTP_REQUESTS);
+                assertThat(measure.measures()).containsKey(Measure.COUNT);
+                assertThat(measure.measures().get(Measure.COUNT).doubleValue()).isEqualTo(2.0);
             }
         }
     }

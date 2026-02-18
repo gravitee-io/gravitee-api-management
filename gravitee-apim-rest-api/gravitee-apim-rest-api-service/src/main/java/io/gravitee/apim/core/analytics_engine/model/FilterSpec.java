@@ -55,6 +55,10 @@ public record FilterSpec(Name name, String label, Type type, List<String> enumVa
         HTTP_RESPONSE_CONTENT_LENGTH,
         LLM_PROXY_MODEL,
         LLM_PROXY_PROVIDER,
+        MCP_PROXY_METHOD,
+        MCP_PROXY_TOOL,
+        MCP_PROXY_RESOURCE,
+        MCP_PROXY_PROMPT,
     }
 
     public enum Type {
