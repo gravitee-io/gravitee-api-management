@@ -16,19 +16,25 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-export class DeleteConfirmDialogHarness extends ComponentHarness {
-  public static hostSelector = 'app-delete-confirm-dialog';
+export class ConfirmDialogHarness extends ComponentHarness {
+  public static readonly hostSelector = 'app-confirm-dialog';
 
-  private getConfirmBtn = this.locatorFor(MatButtonHarness.with({ selector: '.delete-confirm-dialog__confirm-button' }));
-  private getCancelBtn = this.locatorFor(MatButtonHarness.with({ selector: '.delete-confirm-dialog__cancel-button' }));
+  private readonly getConfirmButtonHarness = this.locatorFor(MatButtonHarness.with({ selector: '.confirm-dialog__confirm-button' }));
+  private readonly getCancelButtonHarness = this.locatorFor(MatButtonHarness.with({ selector: '.confirm-dialog__cancel-button' }));
 
   public async confirm(): Promise<void> {
-    const button = await this.getConfirmBtn();
-    await button.click();
+    await this.getConfirmButtonHarness().then(button => button.click());
+  }
+
+  public async getConfirmText(): Promise<string> {
+    return await this.getConfirmButtonHarness().then(button => button.getText());
   }
 
   public async cancel(): Promise<void> {
-    const button = await this.getCancelBtn();
-    await button.click();
+    await this.getCancelButtonHarness().then(button => button.click());
+  }
+
+  public async getCancelText(): Promise<string> {
+    return await this.getCancelButtonHarness().then(button => button.getText());
   }
 }

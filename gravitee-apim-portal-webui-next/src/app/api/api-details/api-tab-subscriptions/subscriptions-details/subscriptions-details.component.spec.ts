@@ -23,6 +23,8 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { SubscriptionsDetailsComponent } from './subscriptions-details.component';
 import { ApiAccessHarness } from '../../../../../components/api-access/api-access.harness';
 import { SubscriptionInfoHarness } from '../../../../../components/subscription-info/subscription-info.harness';
+import { ConfirmDialogComponent } from '../../../../../components/confirm-dialog/confirm-dialog.component';
+import { ConfirmDialogHarness } from '../../../../../components/confirm-dialog/confirm-dialog.harness';
 import { Api } from '../../../../../entities/api/api';
 import { fakeApi } from '../../../../../entities/api/api.fixtures';
 import { Application } from '../../../../../entities/application/application';
@@ -42,8 +44,6 @@ import {
 import { fakeSubscriptionConsumerConfiguration } from '../../../../../entities/subscription/subscription-consumer-configuration.fixture';
 import { ConfigService } from '../../../../../services/config.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../../testing/app-testing.module';
-import { CloseSubscriptionDialogComponent } from '../../../../dashboard/subscription-details/close-subscription-dialog/close-subscription-dialog.component';
-import { CloseSubscriptionDialogHarness } from '../../../../dashboard/subscription-details/close-subscription-dialog/close-subscription-dialog.harness';
 
 describe('SubscriptionsDetailsComponent', () => {
   let fixture: ComponentFixture<SubscriptionsDetailsComponent>;
@@ -71,7 +71,7 @@ describe('SubscriptionsDetailsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SubscriptionsDetailsComponent, CloseSubscriptionDialogComponent, AppTestingModule],
+      imports: [SubscriptionsDetailsComponent, ConfirmDialogComponent, AppTestingModule],
       providers: [
         {
           provide: ConfigService,
@@ -355,8 +355,8 @@ describe('SubscriptionsDetailsComponent', () => {
       httpTestingController.expectNone(url);
     });
 
-    async function closeConfirmDialog(): Promise<CloseSubscriptionDialogHarness | null> {
-      return await rootLoader.getHarnessOrNull(CloseSubscriptionDialogHarness);
+    async function closeConfirmDialog(): Promise<ConfirmDialogHarness | null> {
+      return await rootLoader.getHarnessOrNull(ConfirmDialogHarness);
     }
   });
 

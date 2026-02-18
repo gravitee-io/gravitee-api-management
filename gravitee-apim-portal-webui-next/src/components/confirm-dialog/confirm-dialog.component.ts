@@ -13,13 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+
+export interface ConfirmDialogData {
+  title: string;
+  content: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+}
 
 @Component({
-  selector: 'app-delete-confirm-dialog',
-  templateUrl: './delete-confirm-dialog.component.html',
+  selector: 'app-confirm-dialog',
+  templateUrl: './confirm-dialog.component.html',
   imports: [MatDialogModule, MatButtonModule],
+  standalone: true,
 })
-export class DeleteConfirmDialogComponent {}
+export class ConfirmDialogComponent {
+  public readonly defaultConfirmLabel = $localize`:@@confirmDialogConfirmAction:OK`;
+  public readonly defaultCancelLabel = $localize`:@@confirmDialogCancelAction:Cancel`;
+
+  constructor(@Inject(MAT_DIALOG_DATA) public data: ConfirmDialogData) {}
+}
