@@ -22,8 +22,10 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.WorkflowRepository;
 import io.gravitee.repository.management.model.Workflow;
 import java.sql.Types;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -78,6 +80,33 @@ public class JdbcWorkflowRepository extends JdbcAbstractCrudRepository<Workflow,
             );
         } catch (final Exception ex) {
             final String message = "Failed to find workflows by reference";
+            LOGGER.error(message, ex);
+            throw new TechnicalException(message, ex);
+        }
+    }
+
+    @Override
+    public List<Workflow> findByReferencesAndType(final String referenceType, final Collection<String> referenceIds, final String type)
+        throws TechnicalException {
+        LOGGER.debug("JdbcWorkflowRepository.findByReferencesAndType({}, {}, {})", referenceType, referenceIds, type);
+        if (referenceIds == null || referenceIds.isEmpty()) {
+            return List.of();
+        }
+        try {
+            String inClause = getOrm().buildInClause(referenceIds);
+            String sql =
+                getOrm().getSelectAllSql() +
+                " where reference_type = ? and reference_id in (" +
+                inClause +
+                ") and " +
+                escapeReservedWord("type") +
+                " = ? order by created_at desc";
+            Object[] params = Stream.of(Stream.of(referenceType), referenceIds.stream(), Stream.of(type))
+                .flatMap(s -> s)
+                .toArray();
+            return jdbcTemplate.query(sql, getOrm().getRowMapper(), params);
+        } catch (final Exception ex) {
+            final String message = "Failed to find workflows by references";
             LOGGER.error(message, ex);
             throw new TechnicalException(message, ex);
         }

@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.repository.mongodb.management.internal.api.WorkflowMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.WorkflowMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -127,6 +128,21 @@ public class MongoWorkflowRepository implements WorkflowRepository {
         );
 
         LOGGER.debug("Find workflow by reference and type '{}' / '{}' / '{}' done", referenceType, referenceId, type);
+        return workflows.stream().map(this::map).collect(toList());
+    }
+
+    @Override
+    public List<Workflow> findByReferencesAndType(String referenceType, Collection<String> referenceIds, String type) {
+        LOGGER.debug("Find workflows by references and type '{}' / '{}' / '{}'", referenceType, referenceIds, type);
+        if (referenceIds == null || referenceIds.isEmpty()) {
+            return List.of();
+        }
+        final List<WorkflowMongo> workflows = internalWorkflowRepo.findByReferenceTypeAndReferenceIdInAndTypeOrderByCreatedAtDesc(
+            referenceType,
+            referenceIds,
+            type
+        );
+        LOGGER.debug("Find workflows by references and type '{}' / '{}' / '{}' done", referenceType, referenceIds, type);
         return workflows.stream().map(this::map).collect(toList());
     }
 
