@@ -135,6 +135,9 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
 
     @Override
     public Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses) {
+        if (statuses == null || statuses.length == 0) {
+            return Set.of();
+        }
         Set<ClientCertificateStatus> statusSet = Set.of(statuses);
         return storage
             .stream()
@@ -145,6 +148,9 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
 
     @Override
     public Set<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses) {
+        if (statuses == null || statuses.length == 0) {
+            return Set.of();
+        }
         Set<ClientCertificateStatus> statusSet = Set.of(statuses);
         return storage
             .stream()
