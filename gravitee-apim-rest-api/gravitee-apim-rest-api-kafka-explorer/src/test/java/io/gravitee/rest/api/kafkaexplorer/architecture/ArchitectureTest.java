@@ -33,7 +33,9 @@ class ArchitectureTest {
 
     private static final String BASE_PACKAGE = "io.gravitee.rest.api.kafkaexplorer";
     private static final String DOMAIN_PACKAGE = BASE_PACKAGE + ".domain..";
+    private static final String DOMAIN_SERVICE_PACKAGE = BASE_PACKAGE + ".domain.domain_service..";
     private static final String RESOURCE_PACKAGE = BASE_PACKAGE + ".resource..";
+    private static final String INFRASTRUCTURE_PACKAGE = BASE_PACKAGE + ".infrastructure..";
     private static final String MAPPER_PACKAGE = BASE_PACKAGE + ".mapper..";
     private static final String GENERATED_MODEL_PACKAGE = BASE_PACKAGE + ".rest.model..";
 
@@ -164,6 +166,34 @@ class ArchitectureTest {
     }
 
     @Nested
+    class InfrastructureLayer {
+
+        @Test
+        void infrastructure_should_not_depend_on_resource() {
+            noClasses()
+                .that()
+                .resideInAPackage(INFRASTRUCTURE_PACKAGE)
+                .should()
+                .dependOnClassesThat()
+                .resideInAPackage(RESOURCE_PACKAGE)
+                .because("Infrastructure layer must not depend on the resource (REST) layer")
+                .check(classes);
+        }
+
+        @Test
+        void infrastructure_should_not_depend_on_use_cases() {
+            noClasses()
+                .that()
+                .resideInAPackage(INFRASTRUCTURE_PACKAGE)
+                .should()
+                .dependOnClassesThat()
+                .resideInAPackage(BASE_PACKAGE + ".domain.use_case..")
+                .because("Infrastructure layer must not depend on use cases")
+                .check(classes);
+        }
+    }
+
+    @Nested
     class DomainIndependence {
 
         @Test
@@ -172,7 +202,17 @@ class ArchitectureTest {
                 .that()
                 .resideInAPackage(DOMAIN_PACKAGE)
                 .should()
-                .onlyDependOnClassesThat(resideInAnyPackage(DOMAIN_PACKAGE, "java..", "lombok..", "org.slf4j.."))
+                .onlyDependOnClassesThat(
+                    resideInAnyPackage(
+                        DOMAIN_PACKAGE,
+                        DOMAIN_SERVICE_PACKAGE,
+                        "java..",
+                        "lombok..",
+                        "org.slf4j..",
+                        "io.gravitee.apim.core..",
+                        "com.fasterxml.jackson.."
+                    )
+                )
                 .because("Domain should be free from framework dependencies")
                 .check(classes);
         }
