@@ -211,7 +211,7 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
     @Override
     public Set<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses) {
         try {
-            log.debug("Find client certificates by application IDs {} and statuses {}", applicationIds.size(), statuses);
+            log.debug("Find client certificates by application IDs {} and statuses {}", applicationIds, statuses);
             return clientCertificateRepository
                 .findByApplicationIdsAndStatuses(applicationIds, ClientCertificateAdapter.INSTANCE.toRepoStatus(statuses))
                 .stream()
