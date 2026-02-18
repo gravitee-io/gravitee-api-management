@@ -23,18 +23,21 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioConfirmAndValidateDialogHarness, GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 
 import SpyInstance = jest.SpyInstance;
 
 import { findFirstAvailablePage, PortalNavigationItemsComponent } from './portal-navigation-items.component';
 import { PortalNavigationItemsHarness } from './portal-navigation-items.harness';
 import { SectionEditorDialogHarness } from './section-editor-dialog/section-editor-dialog.harness';
+import { ApiSectionEditorDialogHarness } from './api-section-editor-dialog/api-section-editor-dialog.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 import { GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
 import {
   fakeNewLinkPortalNavigationItem,
   fakeNewPagePortalNavigationItem,
+  fakePortalNavigationApi,
   fakePortalNavigationFolder,
   fakePortalNavigationItemsResponse,
   fakePortalNavigationLink,
@@ -1503,6 +1506,138 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
+  describe('creating API navigation items in bulk', () => {
+    const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'API Folder' });
+
+    beforeEach(async () => {
+      await expectGetNavigationItems(
+        fakePortalNavigationItemsResponse({
+          items: [folder],
+        }),
+      );
+    });
+
+    it('should create multiple API navigation items using bulk endpoint', async () => {
+      const apiIds = ['api-1', 'api-2', 'api-3'];
+      const createdApis = [
+        fakePortalNavigationApi({ id: 'nav-api-1', apiId: 'api-1', title: '', parentId: folder.id }),
+        fakePortalNavigationApi({ id: 'nav-api-2', apiId: 'api-2', title: '', parentId: folder.id }),
+        fakePortalNavigationApi({ id: 'nav-api-3', apiId: 'api-3', title: '', parentId: folder.id }),
+      ];
+
+      await harness.selectNavigationItemByTitle(folder.title);
+
+      const component = fixture.componentInstance;
+      const folderNode = { id: folder.id, label: folder.title, type: folder.type, data: folder } as any;
+      component.onNodeMenuAction({ action: 'create', itemType: 'API', node: folderNode });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      await expectApiSearchResponse(apiIds);
+
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' }));
+      await checkboxes[0].check();
+      await checkboxes[1].check();
+      await checkboxes[2].check();
+
+      const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
+      await dialog.clickSubmitButton();
+
+      expectCreateNavigationItemsInBulk(
+        apiIds.map(apiId => ({
+          title: '',
+          type: 'API',
+          area: 'TOP_NAVBAR',
+          parentId: folder.id,
+          visibility: 'PUBLIC',
+          apiId,
+        })),
+        fakePortalNavigationItemsResponse({ items: createdApis }),
+      );
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, ...createdApis] }));
+    });
+
+    it('should not call bulk endpoint when no folder is selected', async () => {
+      const component = fixture.componentInstance as any;
+
+      const obs = component.createApisInOrder(undefined, ['api-1']);
+      let result: any;
+      obs.subscribe(r => (result = r));
+
+      expect(result).toBeNull();
+
+      httpTestingController.expectNone({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_bulk`,
+      });
+    });
+
+    it('should not call bulk endpoint when apiIds array is empty', async () => {
+      await harness.selectNavigationItemByTitle(folder.title);
+
+      const component = fixture.componentInstance;
+      const folderNode = { id: folder.id, label: folder.title, type: folder.type, data: folder } as any;
+      component.onNodeMenuAction({ action: 'create', itemType: 'API', node: folderNode });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      await expectApiSearchResponse([]);
+
+      const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
+      expect(await dialog.isSubmitButtonDisabled()).toBeTruthy();
+
+      httpTestingController.expectNone({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_bulk`,
+      });
+    });
+
+    it('should show error when bulk create fails', async () => {
+      const apiIds = ['api-1', 'api-2'];
+
+      await harness.selectNavigationItemByTitle(folder.title);
+
+      const component = fixture.componentInstance;
+      const folderNode = { id: folder.id, label: folder.title, type: folder.type, data: folder } as any;
+      component.onNodeMenuAction({ action: 'create', itemType: 'API', node: folderNode });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      await expectApiSearchResponse(apiIds);
+
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' }));
+      await checkboxes[0].check();
+      await checkboxes[1].check();
+
+      const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
+      await dialog.clickSubmitButton();
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_bulk`,
+      });
+      expect(req.request.body).toEqual({
+        items: apiIds.map(apiId => ({
+          title: '',
+          type: 'API',
+          area: 'TOP_NAVBAR',
+          parentId: folder.id,
+          visibility: 'PUBLIC',
+          apiId,
+        })),
+      });
+      req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
+
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(document.body.textContent).toContain('Failed to create API navigation items');
+    });
+  });
+
   function fakeSectionNode(sectionNode: Partial<SectionNode>): SectionNode {
     return {
       id: 'node-1',
@@ -1541,6 +1676,15 @@ describe('PortalNavigationItemsComponent', () => {
     req.flush(result);
   }
 
+  function expectCreateNavigationItemsInBulk(requestItems: NewPortalNavigationItem[], result: PortalNavigationItemsResponse) {
+    const req = httpTestingController.expectOne({
+      method: 'POST',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_bulk`,
+    });
+    expect(req.request.body).toEqual({ items: requestItems });
+    req.flush(result);
+  }
+
   function expectPutPortalNavigationItem(id: string, expectedBody: any, response: PortalNavigationItem) {
     const req = httpTestingController.expectOne({
       method: 'PUT',
@@ -1548,6 +1692,27 @@ describe('PortalNavigationItemsComponent', () => {
     });
     expect(req.request.body).toEqual(expectedBody);
     req.flush(response);
+  }
+
+  function expectApiSearchResponse(apiIds: string[]) {
+    const req = httpTestingController.expectOne(request => {
+      return (
+        request.method === 'POST' &&
+        request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search` &&
+        (request.params.get('page') ?? '1') === '1' &&
+        (request.params.get('perPage') ?? '10') === '10' &&
+        (request.params.get('manageOnly') ?? 'false') === 'false'
+      );
+    });
+
+    expect(req.request.body).toEqual({ query: '' });
+
+    req.flush({
+      data: apiIds.map(id => ({ id, name: id })),
+      pagination: { totalCount: apiIds.length },
+    });
+
+    fixture.detectChanges();
   }
 
   it('should have unsaved changes when content is modified', async () => {

@@ -43,6 +43,10 @@ export class PortalNavigationItemService {
     return this.http.post<PortalNavigationItem>(`${this.constants.env.v2BaseURL}/portal-navigation-items`, newPortalNavigationItem);
   }
 
+  public createNavigationItemsInBulk(items: NewPortalNavigationItem[]): Observable<PortalNavigationItemsResponse> {
+    return this.http.post<PortalNavigationItemsResponse>(`${this.constants.env.v2BaseURL}/portal-navigation-items/_bulk`, { items });
+  }
+
   public updateNavigationItem(
     portalNavigationItemId: string,
     updatePortalNavigationItem: UpdatePortalNavigationItem,
