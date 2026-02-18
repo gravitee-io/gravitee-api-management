@@ -20,7 +20,7 @@ import { GMD_FORM_STATE_STORE } from '../services/gmd-form-state.store';
 
 /**
  * Validation panel component that displays form diagnostics and validation status.
- * Injects the form state store from parent scope (gmd-form-host).
+ * Injects the form state store from the parent scope.
  *
  * Displays:
  * - Configuration errors (critical)
