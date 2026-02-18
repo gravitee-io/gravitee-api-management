@@ -36,12 +36,6 @@ public class AlertTriggerEntity extends Trigger {
     @JsonProperty("reference_id")
     private String referenceId;
 
-    @JsonProperty("created_at")
-    private Date createdAt;
-
-    @JsonProperty("updated_at")
-    private Date updatedAt;
-
     private String type;
 
     @JsonProperty("last_alert_at")
@@ -90,22 +84,6 @@ public class AlertTriggerEntity extends Trigger {
 
     public void setReferenceId(String referenceId) {
         this.referenceId = referenceId;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
     }
 
     public String getType() {
@@ -185,9 +163,9 @@ public class AlertTriggerEntity extends Trigger {
             referenceId +
             '\'' +
             ", createdAt=" +
-            createdAt +
+            getCreatedAt() +
             ", updatedAt=" +
-            updatedAt +
+            getUpdatedAt() +
             ", environmentId=" +
             environmentId +
             '}'
