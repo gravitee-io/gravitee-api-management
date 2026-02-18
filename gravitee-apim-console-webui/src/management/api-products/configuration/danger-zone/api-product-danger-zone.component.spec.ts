@@ -20,14 +20,11 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { Router } from '@angular/router';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { GioConfirmDialogComponent, GioConfirmAndValidateDialogComponent } from '@gravitee/ui-particles-angular';
 import { of } from 'rxjs';
 
 import { ApiProductDangerZoneComponent } from './api-product-danger-zone.component';
-import { ApiProductConfigurationModule } from '../api-product-configuration.module';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiProduct } from '../../../../entities/management-api-v2/api-product';
@@ -36,7 +33,6 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 describe('ApiProductDangerZoneComponent', () => {
   let fixture: ComponentFixture<ApiProductDangerZoneComponent>;
   let loader: HarnessLoader;
-  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
   let routerNavigateSpy: jest.SpyInstance;
   let matDialog: MatDialog;
@@ -56,7 +52,7 @@ describe('ApiProductDangerZoneComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ApiProductConfigurationModule, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
+      imports: [ApiProductDangerZoneComponent, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
       providers: [
         { provide: SnackBarService, useValue: fakeSnackBarService },
         {
@@ -73,7 +69,6 @@ describe('ApiProductDangerZoneComponent', () => {
 
     fixture = TestBed.createComponent(ApiProductDangerZoneComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
-    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);
     routerNavigateSpy = jest.spyOn(router, 'navigate');
@@ -100,9 +95,7 @@ describe('ApiProductDangerZoneComponent', () => {
     await removeButton.click();
     await fixture.whenStable();
 
-    const req = httpTestingController.expectOne(
-      `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/apis`,
-    );
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/apis`);
     expect(req.request.method).toEqual('DELETE');
     req.flush(null);
     await fixture.whenStable();
@@ -130,9 +123,7 @@ describe('ApiProductDangerZoneComponent', () => {
     await removeButton.click();
     await fixture.whenStable();
 
-    const req = httpTestingController.expectOne(
-      `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/apis`,
-    );
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/apis`);
     req.flush({ message: 'Error removing APIs' }, { status: 500, statusText: 'Internal Server Error' });
     await fixture.whenStable();
 

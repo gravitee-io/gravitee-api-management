@@ -54,23 +54,12 @@ export class ApiProductCreateComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.form = this.formBuilder.group({
-      name: this.formBuilder.control(
-        '',
-        {
-          validators: [
-            Validators.required,
-            Validators.maxLength(this.nameMaxLength),
-            Validators.minLength(1),
-          ],
-          asyncValidators: [this.nameUniquenessValidator()],
-          updateOn: 'blur', // Only validate on blur, not on every keystroke
-        },
-      ),
-      version: this.formBuilder.control('', [
-        Validators.required,
-        Validators.maxLength(this.versionMaxLength),
-        Validators.minLength(1),
-      ]),
+      name: this.formBuilder.control('', {
+        validators: [Validators.required, Validators.maxLength(this.nameMaxLength), Validators.minLength(1)],
+        asyncValidators: [this.nameUniquenessValidator()],
+        updateOn: 'blur', // Only validate on blur, not on every keystroke
+      }),
+      version: this.formBuilder.control('', [Validators.required, Validators.maxLength(this.versionMaxLength), Validators.minLength(1)]),
       description: this.formBuilder.control('', [Validators.maxLength(this.descriptionMaxLength)]),
     });
   }
@@ -84,7 +73,7 @@ export class ApiProductCreateComponent implements OnInit, OnDestroy {
       // Debounce API call to avoid too many requests
       return timer(250).pipe(
         switchMap(() => this.apiProductV2Service.verify(trimmedName)),
-        map((res) => (res.ok ? null : { unique: true })),
+        map(res => (res.ok ? null : { unique: true })),
       );
     };
   }
@@ -107,7 +96,7 @@ export class ApiProductCreateComponent implements OnInit, OnDestroy {
         })
         .afterClosed()
         .pipe(takeUntil(this.unsubscribe$))
-        .subscribe((confirmed) => {
+        .subscribe(confirmed => {
           if (confirmed) {
             this.router.navigate(['..'], { relativeTo: this.activatedRoute });
           }
@@ -150,17 +139,15 @@ export class ApiProductCreateComponent implements OnInit, OnDestroy {
         .create(createApiProduct)
         .pipe(takeUntil(this.unsubscribe$))
         .subscribe({
-          next: (apiProduct) => {
+          next: apiProduct => {
             this.isCreating = false;
             this.snackBarService.success(`API Product ${apiProduct.id} successfully created`);
             this.router.navigate(['..', apiProduct.id, 'configuration'], { relativeTo: this.activatedRoute });
           },
-          error: (error) => {
+          error: error => {
             this.isCreating = false;
             const errorMessage =
-              error.error?.message ||
-              error.error?.errors?.[0]?.message ||
-              'An error occurred while creating the API Product';
+              error.error?.message || error.error?.errors?.[0]?.message || 'An error occurred while creating the API Product';
             this.snackBarService.error(errorMessage);
           },
         });
@@ -174,4 +161,3 @@ export class ApiProductCreateComponent implements OnInit, OnDestroy {
     return description ? description.length : 0;
   }
 }
-

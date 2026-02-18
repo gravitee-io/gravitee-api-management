@@ -23,7 +23,6 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { ActivatedRoute } from '@angular/router';
 
 import { ApiProductConfigurationComponent } from './api-product-configuration.component';
-import { ApiProductConfigurationModule } from './api-product-configuration.module';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ApiProduct } from '../../../entities/management-api-v2/api-product';
@@ -41,19 +40,9 @@ describe('ApiProductConfigurationComponent', () => {
     success: jest.fn(),
   };
 
-  const getApiProductId = (route: ActivatedRoute): string | null => {
-    if (route.snapshot.params['apiProductId']) {
-      return route.snapshot.params['apiProductId'];
-    }
-    if (route.parent) {
-      return getApiProductId(route.parent);
-    }
-    return null;
-  };
-
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ApiProductConfigurationModule, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
+      imports: [ApiProductConfigurationComponent, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
       providers: [
         { provide: Constants, useValue: CONSTANTS_TESTING },
         { provide: SnackBarService, useValue: fakeSnackBarService },

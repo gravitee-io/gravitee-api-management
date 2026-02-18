@@ -31,8 +31,7 @@ const routes: Routes = [
       },
       {
         path: 'configuration',
-        loadChildren: () =>
-          import('../configuration/api-product-configuration.module').then((m) => m.ApiProductConfigurationModule),
+        loadComponent: () => import('../configuration/api-product-configuration.component').then(m => m.ApiProductConfigurationComponent),
       },
     ],
   },
@@ -43,4 +42,3 @@ const routes: Routes = [
   exports: [RouterModule],
 })
 export class ApiProductDetailRoutingModule {}
-

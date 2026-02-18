@@ -32,7 +32,7 @@ const routes: Routes = [
   },
   {
     path: 'new',
-    loadChildren: () => import('./create/api-product-create.module').then((m) => m.ApiProductCreateModule),
+    loadChildren: () => import('./create/api-product-create.module').then(m => m.ApiProductCreateModule),
     data: {
       permissions: {
         anyOf: ['environment-api-c'],
@@ -41,7 +41,7 @@ const routes: Routes = [
   },
   {
     path: ':apiProductId',
-    loadChildren: () => import('./detail/api-product-detail.module').then((m) => m.ApiProductDetailModule),
+    loadChildren: () => import('./detail/api-product-detail.module').then(m => m.ApiProductDetailModule),
   },
 ];
 

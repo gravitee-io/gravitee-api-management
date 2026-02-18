@@ -16,9 +16,12 @@
 
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { GioMenuService } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { GioBreadcrumbModule, GioIconsModule, GioMenuModule, GioMenuService, GioSubmenuModule } from '@gravitee/ui-particles-angular';
 import { catchError, filter, of, switchMap, tap } from 'rxjs';
+
 import { ApiProduct } from '../../../entities/management-api-v2/api-product';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -33,7 +36,8 @@ export interface MenuItem {
   selector: 'api-product-navigation',
   templateUrl: './api-product-navigation.component.html',
   styleUrls: ['./api-product-navigation.component.scss'],
-  standalone: false,
+  standalone: true,
+  imports: [RouterModule, GioSubmenuModule, GioIconsModule, GioBreadcrumbModule, GioMenuModule, MatIconModule, MatTooltipModule],
 })
 export class ApiProductNavigationComponent implements OnInit {
   private readonly router = inject(Router);
@@ -46,9 +50,7 @@ export class ApiProductNavigationComponent implements OnInit {
   currentApiProduct: ApiProduct | null = null;
   apiProductId = '';
   isLoading = false;
-  readonly subMenuItems: MenuItem[] = [
-    { displayName: 'Configuration', routerLink: 'configuration', icon: 'gio:settings' },
-  ];
+  readonly subMenuItems: MenuItem[] = [{ displayName: 'Configuration', routerLink: 'configuration', icon: 'gio:settings' }];
   hasBreadcrumb = toSignal(this.gioMenuService.reduced$, { initialValue: false });
 
   ngOnInit(): void {
@@ -77,7 +79,7 @@ export class ApiProductNavigationComponent implements OnInit {
           const apiProductId = getApiProductId(this.activatedRoute);
           if (apiProductId) {
             return this.apiProductV2Service.get(apiProductId).pipe(
-              catchError((error) => {
+              catchError(error => {
                 this.snackBarService.error(error.error?.message || 'An error occurred while loading the API Product');
                 return of(null);
               }),
@@ -85,7 +87,7 @@ export class ApiProductNavigationComponent implements OnInit {
           }
           return of(null);
         }),
-        tap((apiProduct) => {
+        tap(apiProduct => {
           this.currentApiProduct = apiProduct;
           this.isLoading = false;
         }),
@@ -108,4 +110,3 @@ export class ApiProductNavigationComponent implements OnInit {
     });
   }
 }
-

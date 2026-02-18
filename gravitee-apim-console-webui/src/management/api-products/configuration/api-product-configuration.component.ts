@@ -16,13 +16,26 @@
 
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AsyncValidatorFn, FormControl, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
+import {
+  AsyncValidatorFn,
+  FormControl,
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { EMPTY, Observable, of, timer } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { GioFormFocusInvalidModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+
+import { ApiProductDangerZoneComponent } from './danger-zone/api-product-danger-zone.component';
 import { ApiProduct, UpdateApiProduct } from '../../../entities/management-api-v2/api-product';
-import { Constants } from '../../../entities/Constants';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
@@ -30,7 +43,16 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
   selector: 'api-product-configuration',
   templateUrl: './api-product-configuration.component.html',
   styleUrls: ['./api-product-configuration.component.scss'],
-  standalone: false,
+  standalone: true,
+  imports: [
+    ReactiveFormsModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    GioFormFocusInvalidModule,
+    GioSaveBarModule,
+    ApiProductDangerZoneComponent,
+  ],
 })
 export class ApiProductConfigurationComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
@@ -59,18 +81,18 @@ export class ApiProductConfigurationComponent implements OnInit {
     };
 
     this.apiProductId = getApiProductId(this.activatedRoute) || '';
-    
+
     if (this.apiProductId) {
       this.isLoading = true;
       this.apiProductV2Service
         .get(this.apiProductId)
         .pipe(
-          tap((apiProduct) => {
+          tap(apiProduct => {
             this.apiProduct = apiProduct;
             this.isLoading = false;
             this.initializeForm();
           }),
-          catchError((error) => {
+          catchError(error => {
             this.isLoading = false;
             this.snackBarService.error(error.error?.message || 'An error occurred while loading the API Product');
             // Initialize form with empty values on error
@@ -92,12 +114,12 @@ export class ApiProductConfigurationComponent implements OnInit {
       this.apiProductV2Service
         .get(this.apiProductId)
         .pipe(
-          tap((apiProduct) => {
+          tap(apiProduct => {
             this.apiProduct = apiProduct;
             this.isLoading = false;
             this.initializeForm();
           }),
-          catchError((error) => {
+          catchError(error => {
             this.isLoading = false;
             this.snackBarService.error(error.error?.message || 'An error occurred while loading the API Product');
             return of(null);
@@ -122,14 +144,14 @@ export class ApiProductConfigurationComponent implements OnInit {
       this.apiProductV2Service
         .update(this.apiProductId, updateApiProduct)
         .pipe(
-          tap((updatedApiProduct) => {
+          tap(updatedApiProduct => {
             this.apiProduct = updatedApiProduct;
             this.initialFormValue = this.form!.getRawValue();
             this.form!.markAsPristine();
             this.form!.markAsUntouched();
             this.snackBarService.success('Configuration successfully saved!');
           }),
-          catchError((error) => {
+          catchError(error => {
             this.snackBarService.error(error.error?.message || error.message || 'An error occurred while updating the API Product');
             return EMPTY;
           }),
@@ -151,18 +173,13 @@ export class ApiProductConfigurationComponent implements OnInit {
 
   private initializeForm(): void {
     this.form = this.formBuilder.group({
-      name: this.formBuilder.control(
-        this.apiProduct?.name || '',
-        {
-          validators: [Validators.required],
-          asyncValidators: [this.nameUniquenessValidator()],
-          updateOn: 'blur', // Only validate on blur, not on every keystroke
-        },
-      ),
+      name: this.formBuilder.control(this.apiProduct?.name || '', {
+        validators: [Validators.required],
+        asyncValidators: [this.nameUniquenessValidator()],
+        updateOn: 'blur', // Only validate on blur, not on every keystroke
+      }),
       version: this.formBuilder.control(this.apiProduct?.version || '', [Validators.required]),
-      description: this.formBuilder.control(this.apiProduct?.description || '', [
-        Validators.maxLength(this.descriptionMaxLength),
-      ]),
+      description: this.formBuilder.control(this.apiProduct?.description || '', [Validators.maxLength(this.descriptionMaxLength)]),
     }) as UntypedFormGroup;
     this.initialFormValue = this.form.getRawValue();
   }
@@ -180,9 +197,8 @@ export class ApiProductConfigurationComponent implements OnInit {
       // Debounce API call to avoid too many requests
       return timer(250).pipe(
         switchMap(() => this.apiProductV2Service.verify(trimmedName)),
-        map((res) => (res.ok ? null : { unique: true })),
+        map(res => (res.ok ? null : { unique: true })),
       );
     };
   }
 }
-

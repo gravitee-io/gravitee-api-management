@@ -17,12 +17,10 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+import { ApiProductNavigationComponent } from '../navigation/api-product-navigation.component';
 import { ApiProductDetailRoutingModule } from './api-product-detail-routing.module';
-import { ApiProductNavigationModule } from '../navigation/api-product-navigation.module';
 
 @NgModule({
-  imports: [CommonModule, ApiProductDetailRoutingModule, ApiProductNavigationModule],
+  imports: [CommonModule, ApiProductDetailRoutingModule, ApiProductNavigationComponent],
 })
 export class ApiProductDetailModule {}
-
-

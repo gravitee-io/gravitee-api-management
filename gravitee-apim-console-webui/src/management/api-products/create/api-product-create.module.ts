@@ -23,10 +23,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule } from '@angular/material/dialog';
+import { GioConfirmDialogModule } from '@gravitee/ui-particles-angular';
 
 import { ApiProductCreateComponent } from './api-product-create.component';
 import { ApiProductCreateRoutingModule } from './api-product-create-routing.module';
-import { GioConfirmDialogModule } from '@gravitee/ui-particles-angular';
 
 @NgModule({
   declarations: [ApiProductCreateComponent],
@@ -45,4 +45,3 @@ import { GioConfirmDialogModule } from '@gravitee/ui-particles-angular';
   ],
 })
 export class ApiProductCreateModule {}
-

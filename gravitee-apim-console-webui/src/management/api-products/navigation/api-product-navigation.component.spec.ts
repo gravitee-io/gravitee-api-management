@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HarnessLoader } from '@angular/cdk/testing';
-import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, Subject } from 'rxjs';
+import { GioMenuService } from '@gravitee/ui-particles-angular';
 
 import { ApiProductNavigationComponent } from './api-product-navigation.component';
-import { ApiProductNavigationModule } from './api-product-navigation.module';
-
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ApiProduct } from '../../../entities/management-api-v2/api-product';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { GioMenuService } from '@gravitee/ui-particles-angular';
 
 describe('ApiProductNavigationComponent', () => {
   let fixture: ComponentFixture<ApiProductNavigationComponent>;
-  let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
   let router: Router;
   const API_PRODUCT_ID = 'api-product-id';
@@ -47,7 +42,7 @@ describe('ApiProductNavigationComponent', () => {
   beforeEach(() => {
     reducedSubject$.next(false);
     TestBed.configureTestingModule({
-      imports: [ApiProductNavigationModule, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
+      imports: [ApiProductNavigationComponent, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
       providers: [
         { provide: SnackBarService, useValue: fakeSnackBarService },
         { provide: GioMenuService, useValue: { reduced$: reducedSubject$ } },
@@ -65,7 +60,6 @@ describe('ApiProductNavigationComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiProductNavigationComponent);
-    loader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
   });

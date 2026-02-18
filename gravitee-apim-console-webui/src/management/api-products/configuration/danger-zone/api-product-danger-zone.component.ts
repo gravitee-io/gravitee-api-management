@@ -26,6 +26,8 @@ import {
 } from '@gravitee/ui-particles-angular';
 import { EMPTY } from 'rxjs';
 import { catchError, filter, map, switchMap } from 'rxjs/operators';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 
 import { ApiProduct } from '../../../../entities/management-api-v2/api-product';
 import { ApiProductV2Service } from '../../../../services-ngx/api-product-v2.service';
@@ -35,7 +37,8 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
   selector: 'api-product-danger-zone',
   templateUrl: './api-product-danger-zone.component.html',
   styleUrls: ['./api-product-danger-zone.component.scss'],
-  standalone: false,
+  standalone: true,
+  imports: [MatCardModule, MatButtonModule],
 })
 export class ApiProductDangerZoneComponent {
   private readonly router = inject(Router);
@@ -49,7 +52,7 @@ export class ApiProductDangerZoneComponent {
   reloadDetails = output<void>();
 
   isReadOnly = false;
-  hasApis = computed(() => !!(this.apiProduct()?.apiIds?.length));
+  hasApis = computed(() => !!this.apiProduct()?.apiIds?.length);
 
   removeApis(): void {
     this.matDialog
@@ -59,14 +62,14 @@ export class ApiProductDangerZoneComponent {
           title: 'Remove all APIs',
           content: 'Are you sure you want to remove all the APIs from this API Product?',
           confirmButton: 'Yes, remove them',
-         // warning: 'This operation is irreversible.',
+          // warning: 'This operation is irreversible.',
         },
         role: 'alertdialog',
         id: 'removeApisDialog',
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.apiProductV2Service.deleteAllApisFromApiProduct(this.apiProduct().id)),
         catchError(({ error }) => {
           this.snackBarService.error(error?.message || 'An error occurred while removing APIs.');
@@ -97,7 +100,7 @@ export class ApiProductDangerZoneComponent {
       })
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
+        filter(confirm => confirm === true),
         switchMap(() => this.apiProductV2Service.delete(this.apiProduct().id)),
         catchError(({ error }) => {
           this.snackBarService.error(error?.message || 'An error occurred while deleting the API Product.');
@@ -111,5 +114,3 @@ export class ApiProductDangerZoneComponent {
       });
   }
 }
-
-

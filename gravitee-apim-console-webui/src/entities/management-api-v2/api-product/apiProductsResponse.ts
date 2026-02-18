@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { ApiProduct } from './apiProduct';
 import { Links } from '../links';
 import { Pagination } from '../pagination';
+
+import { ApiProduct } from './apiProduct';
 
 export interface ApiProductsResponse {
   /**
