@@ -86,7 +86,7 @@
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef mat-sort-header id="name">Name</th>
           <td mat-cell *matCellDef="let element" title="{{ element.name }}">
-            {{ element.name }}
+            <a [routerLink]="'./' + element.id">{{ element.name }}</a>
           </td>
         </ng-container>
 
@@ -119,7 +119,15 @@
           <th mat-header-cell *matHeaderCellDef id="actions"></th>
           <td mat-cell *matCellDef="let element">
             <div class="actions__edit">
-              <!-- Edit button will be added in a future PR -->
+              <button
+                [routerLink]="'./' + element.id"
+                mat-icon-button
+                aria-label="Button to edit an API Product"
+                matTooltip="Edit API Product"
+                data-testid="api_product_list_edit_button"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
             </div>
           </td>
         </ng-container>
