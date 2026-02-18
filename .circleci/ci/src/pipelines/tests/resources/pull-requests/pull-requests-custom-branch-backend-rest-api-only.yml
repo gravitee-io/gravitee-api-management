@@ -149,8 +149,9 @@ jobs:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution
             - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
   job-test-rest-api:
-    docker:
-      - image: cimg/openjdk:21.0.5
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
     resource_class: medium
     steps:
       - checkout

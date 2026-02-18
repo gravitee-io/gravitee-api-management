@@ -29,30 +29,34 @@ public class ApiFixtures {
 
     private ApiFixtures() {}
 
-    private static final Api.ApiBuilder BASE = Api.builder()
-        .id("api-id")
-        .name("api-name")
-        .description("api-description")
-        .version("api-version")
-        .definitionVersion(DefinitionVersion.V4)
-        .createdAt(java.sql.Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-        .updatedAt(java.sql.Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-        .deployedAt(java.sql.Date.from(Instant.parse("2020-02-03T20:22:02.00Z")));
+    private static Api.ApiBuilder baseBuilder() {
+        return Api.builder()
+            .id("api-id")
+            .name("api-name")
+            .description("api-description")
+            .version("api-version")
+            .definitionVersion(DefinitionVersion.V4)
+            .createdAt(java.sql.Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+            .updatedAt(java.sql.Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+            .deployedAt(java.sql.Date.from(Instant.parse("2020-02-03T20:22:02.00Z")));
+    }
 
     public static Api anApi() {
-        return BASE.build();
+        return baseBuilder().build();
     }
 
     @SneakyThrows
     public static Api aV2Api() {
-        return BASE.definitionVersion(DefinitionVersion.V2)
+        return baseBuilder()
+            .definitionVersion(DefinitionVersion.V2)
             .definition(GRAVITEE_MAPPER.writeValueAsString(ApiDefinitionFixtures.anApiV2()))
             .build();
     }
 
     @SneakyThrows
     public static Api aV4Api() {
-        return BASE.definitionVersion(DefinitionVersion.V4)
+        return baseBuilder()
+            .definitionVersion(DefinitionVersion.V4)
             .type(ApiType.PROXY)
             .definition(GRAVITEE_MAPPER.writeValueAsString(ApiDefinitionFixtures.anApiV4()))
             .build();
@@ -60,6 +64,6 @@ public class ApiFixtures {
 
     @SneakyThrows
     public static Api aFederatedApi() {
-        return BASE.definitionVersion(DefinitionVersion.FEDERATED).build();
+        return baseBuilder().definitionVersion(DefinitionVersion.FEDERATED).build();
     }
 }
