@@ -13,170 +13,239 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GmdFormEditorComponent } from '@gravitee/gravitee-markdown';
+import { GMD_FORM_STATE_STORE, GmdFormEditorComponent, provideGmdFormStore } from '@gravitee/gravitee-markdown';
 
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, HostListener, inject, signal, untracked, WritableSignal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { catchError, filter, startWith, switchMap, tap } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatDialog } from '@angular/material/dialog';
+import {
+  GIO_DIALOG_WIDTH,
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+  GioFormSlideToggleModule,
+} from '@gravitee/ui-particles-angular';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
+import { SnackBarService } from '../../services-ngx/snack-bar.service';
+import { SubscriptionForm } from '../../entities/management-api-v2';
+import { SubscriptionFormService } from '../../services-ngx/subscription-form.service';
+import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
+import { normalizeContent } from '../../shared/utils/content.util';
+import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 
 @Component({
   selector: 'subscription-form',
-  imports: [PortalHeaderComponent, ReactiveFormsModule, GmdFormEditorComponent],
+  imports: [
+    PortalHeaderComponent,
+    ReactiveFormsModule,
+    GmdFormEditorComponent,
+    MatButtonModule,
+    MatTooltipModule,
+    MatSlideToggleModule,
+    GioFormSlideToggleModule,
+    GioPermissionModule,
+  ],
   templateUrl: './subscription-form.component.html',
   styleUrl: './subscription-form.component.scss',
+  providers: [provideGmdFormStore()],
 })
-export class SubscriptionFormComponent {
-  contentControl = new FormControl({
-    value: '',
-    disabled: true,
+export class SubscriptionFormComponent implements HasUnsavedChanges {
+  private readonly snackbarService = inject(SnackBarService);
+  private readonly subscriptionFormService = inject(SubscriptionFormService);
+  private readonly gioPermissionService = inject(GioPermissionService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly matDialog = inject(MatDialog);
+  private readonly store = inject(GMD_FORM_STATE_STORE);
+
+  private readonly subscriptionForm: WritableSignal<SubscriptionForm | null> = signal(null);
+  private readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-metadata-u']));
+  contentControl = new FormControl<string>('', { nonNullable: true });
+  enabledControl = new FormControl<boolean>(false, { nonNullable: true });
+
+  private readonly contentValue = toSignal(this.contentControl.valueChanges.pipe(startWith(this.contentControl.value)));
+  private readonly subscriptionFormResult = toSignal(
+    this.subscriptionFormService.getSubscriptionForm().pipe(
+      catchError(({ error }) => {
+        this.snackbarService.error(error?.message ?? 'An error occurred while loading the subscription form');
+        return EMPTY;
+      }),
+    ),
+    { initialValue: null },
+  );
+  private readonly enabledControlChanges = toSignal(this.enabledControl.valueChanges.pipe(filter(() => this.canUpdate())), {
+    initialValue: undefined,
   });
 
-  private readonly gioPermissionService = inject(GioPermissionService);
-  private readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-settings-u']));
+  protected readonly hasConfigErrors = computed(() => this.store.allConfigErrors().length > 0);
+  readonly configErrorsTooltip = 'Fix configuration errors before continuing.';
+  readonly subscriptionFormEnabled = computed(() => this.subscriptionForm()?.enabled ?? false);
 
-  constructor() {
-    effect(() => {
-      this.contentControl.reset(this.getDefaultBoilerplate());
-    });
+  readonly enabledControlTooltip = computed(() => {
+    if (!this.canUpdate()) return 'You do not have permission to change this.';
+    if (this.hasConfigErrors()) return this.configErrorsTooltip;
+    return '';
+  });
 
-    effect(() => {
-      this.canUpdate() ? this.contentControl.enable() : this.contentControl.disable();
-    });
+  readonly saveButtonTooltip = computed(() => {
+    if (this.hasConfigErrors()) return this.configErrorsTooltip;
+    return '';
+  });
+
+  isSaveDisabled = computed(() => {
+    const currentContent = this.contentValue() ?? '';
+    const normalized = normalizeContent(currentContent);
+    const isEmpty = normalized.length === 0;
+    const hasConfigErrors = this.hasConfigErrors();
+    const isUnchanged = !this.hasUnsavedChanges();
+    return isEmpty || hasConfigErrors || isUnchanged;
+  });
+
+  private readonly controlsDisabledStateEffect = effect(() => {
+    const canUpdate = this.canUpdate();
+    const hasConfigErrors = this.hasConfigErrors();
+    const options = { emitEvent: false };
+    canUpdate ? this.contentControl.enable(options) : this.contentControl.disable(options);
+    const enableToggle = canUpdate && !hasConfigErrors;
+    enableToggle ? this.enabledControl.enable(options) : this.enabledControl.disable(options);
+  });
+
+  private readonly subscriptionFormLoadEffect = effect(() => {
+    const result = this.subscriptionFormResult();
+    if (!result) return;
+    this.subscriptionForm.set(result);
+    this.contentControl.reset(result.gmdContent || '', { emitEvent: true });
+    this.enabledControl.setValue(result.enabled, { emitEvent: false });
+  });
+
+  private readonly enabledControlEffect = effect(() => {
+    const enabled = this.enabledControlChanges();
+    if (enabled === undefined) return;
+    untracked(() => this.handleToggleChange(enabled));
+  });
+
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnloadHandler(event: BeforeUnloadEvent) {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault();
+      event.returnValue = '';
+      return '';
+    }
   }
 
-  private getDefaultBoilerplate(): string {
-    return `<gmd-grid columns="1" class="hero-grid">
-  <gmd-card class="boilerplate-hero">
-    <gmd-card-title>🎨 Subscription Form Builder</gmd-card-title>
-    <gmd-md>
-      Welcome to your subscription form workspace! This is where you can design and customize the form that API consumers will see when subscribing to your APIs.
-
-      **How to use this space:**
-
-      - **✏️ Edit freely** - Modify the examples below or start from scratch
-      - **👀 Live preview** - See your changes instantly on the right side
-      - **🧪 Test validation** - Try filling out the form to test required fields and validation rules
-      - **💾 Save & publish** - When ready, save your form and publish it to make it available in the portal
-
-      ---
-
-      **💡 Pro tip:** Start by editing the example form below, then delete what you don't need and build your own!
-    </gmd-md>
-  </gmd-card>
-</gmd-grid>
-
-<style>
-  .hero-grid {
-    margin-bottom: 2rem;
+  hasUnsavedChanges(): boolean {
+    const current = normalizeContent(this.contentValue() ?? '');
+    const initial = normalizeContent(this.subscriptionForm()?.gmdContent ?? '');
+    return current !== initial;
   }
 
-  .boilerplate-hero {
-    --gmd-card-container-color: #dbeafe;
-    --gmd-card-text-color: #1e3a8a;
-    --gmd-card-outline-color: #60a5fa;
-    --gmd-card-outline-width: 2px;
-    --gmd-card-container-shape: 12px;
-  }
-</style>
+  updateSubscriptionForm(): void {
+    const form = this.subscriptionForm();
+    if (!form) return;
 
----
-
-## 📋 Example: Complete Subscription Request Form
-
-Below is a full example showing all available form components. Feel free to customize it or use it as inspiration!
-
-<gmd-grid columns="2" class="subscription-form-grid form-demo">
-  <gmd-card>
-    <gmd-card-title>👤 Applicant Information</gmd-card-title>
-    <gmd-md>Tell us about yourself and your organization.</gmd-md>
-
-    <gmd-input name="fullName" label="Full name" fieldKey="full_name" required="true"></gmd-input>
-    <gmd-input name="email" label="Email address" fieldKey="email" type="email" required="true" placeholder="you@company.com"></gmd-input>
-    <gmd-input name="company" label="Company" fieldKey="company" required="true" minLength="2" maxLength="100"></gmd-input>
-    <gmd-input name="website" label="Company website" fieldKey="company_website" type="url" placeholder="https://example.com"></gmd-input>
-    <gmd-select name="country" label="Country" fieldKey="country" required="true" options="United States,Canada,United Kingdom,Germany,France,Poland,Spain,Italy,Netherlands,Other"></gmd-select>
-  </gmd-card>
-
-  <gmd-card>
-    <gmd-card-title>🎯 Usage Details</gmd-card-title>
-    <gmd-md>Help us understand your API usage needs.</gmd-md>
-
-    <gmd-select name="plan" label="Requested plan" fieldKey="requested_plan" required="true" options="Free Tier,Starter,Professional,Enterprise"></gmd-select>
-    <gmd-radio name="env" label="Target environment" fieldKey="target_environment" required="true" options="Production,Staging,Development,Testing"></gmd-radio>
-    <gmd-input name="monthlyCalls" label="Expected monthly API calls" fieldKey="expected_monthly_calls" type="number" placeholder="e.g. 100000"></gmd-input>
-    <gmd-textarea
-      name="useCase"
-      label="Use case description"
-      fieldKey="use_case"
-      required="true"
-      minLength="20"
-      maxLength="500"
-      placeholder="Please describe how you plan to use this API and what problem it will solve for your business..."></gmd-textarea>
-
-    <gmd-checkbox name="terms" label="I confirm that all information provided is accurate" fieldKey="confirm_accuracy" required="true"></gmd-checkbox>
-    <gmd-checkbox name="newsletter" label="Subscribe to API updates and newsletters" fieldKey="subscribe_newsletter"></gmd-checkbox>
-  </gmd-card>
-</gmd-grid>
-
----
-
-## 🚀 Example: Simplified Quick Access Form
-
-Here's a minimal form variant for faster onboarding:
-
-<gmd-grid columns="1" class="compact-form-grid">
-  <gmd-card class="form-demo form-demo--compact">
-    <gmd-card-title>⚡ Quick Access Request</gmd-card-title>
-    <gmd-md>Get started quickly with just the essentials.</gmd-md>
-
-    <gmd-input name="appName" label="Application name" fieldKey="app_name" required="true" placeholder="My API Integration"></gmd-input>
-    <gmd-select name="team" label="Team or department" fieldKey="team" options="Engineering,Product,Data & Analytics,DevOps,Security,Partner Integration,Other"></gmd-select>
-    <gmd-radio name="priority" label="Request priority" fieldKey="priority" options="Low,Normal,High,Urgent"></gmd-radio>
-    <gmd-textarea name="notes" label="Additional notes" fieldKey="notes" maxLength="300" placeholder="Any additional context or special requirements..."></gmd-textarea>
-    <gmd-checkbox name="terms" label="I accept the terms and conditions" fieldKey="accept_terms" required="true"></gmd-checkbox>
-  </gmd-card>
-</gmd-grid>
-
-<style>
-  .subscription-form-grid {
-    align-items: stretch;
-    gap: 1.5rem;
+    this.subscriptionFormService
+      .updateSubscriptionForm(form.id, {
+        gmdContent: this.contentControl.value,
+      })
+      .pipe(
+        tap(updatedForm => {
+          this.snackbarService.success(`The subscription form has been updated successfully`);
+          this.subscriptionForm.set(updatedForm);
+        }),
+        catchError(({ error }) => {
+          this.snackbarService.error(error?.message ?? 'An error occurred while updating the subscription form');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
-  .form-demo {
-    --gmd-card-container-color: #f8fafc;
-    --gmd-card-outline-color: #e2e8f0;
-    --gmd-card-outline-width: 1px;
-    --gmd-card-container-shape: 10px;
-    --gmd-card-text-color: #0f172a;
-
-    --gmd-input-outlined-label-text-color: #0f172a;
-    --gmd-input-outlined-input-text-color: #0f172a;
-    --gmd-input-outlined-outline-color: #94a3b8;
-    --gmd-input-outlined-container-shape: 8px;
-
-    --gmd-textarea-outlined-label-text-color: #0f172a;
-    --gmd-textarea-outlined-input-text-color: #0f172a;
-    --gmd-textarea-outlined-outline-color: #94a3b8;
-    --gmd-textarea-outlined-container-shape: 8px;
-
-    --gmd-select-outlined-label-text-color: #0f172a;
-    --gmd-select-outlined-input-text-color: #0f172a;
-    --gmd-select-outlined-outline-color: #94a3b8;
-    --gmd-select-outlined-container-shape: 8px;
-
-    --gmd-checkbox-outlined-label-text-color: #0f172a;
-
-    --gmd-radio-outlined-label-text-color: #0f172a;
+  private resetEnabledToInitial(): void {
+    this.enabledControl.setValue(this.subscriptionFormEnabled(), { emitEvent: false });
   }
 
-  .form-demo--compact {
-    max-width: 600px;
-    margin: 0 auto;
+  private handleToggleChange(enabled: boolean): void {
+    if (this.hasConfigErrors()) {
+      this.resetEnabledToInitial();
+      return;
+    }
+    const saveBeforeToggle = this.hasUnsavedChanges();
+    const action = enabled ? 'Enable' : 'Disable';
+    const data: GioConfirmDialogData = saveBeforeToggle
+      ? {
+          title: `${action} subscription form?`,
+          content: `You have unsaved changes. Save the form before changing visibility.`,
+          confirmButton: `Save and ${action.toLowerCase()}`,
+          cancelButton: 'Cancel',
+        }
+      : {
+          title: `${action} subscription form?`,
+          content: enabled
+            ? `This action will enable the subscription form. It will be visible to API consumers in the Developer Portal.`
+            : `This action will disable the subscription form. It will no longer be visible in the Developer Portal, but you can enable it again at any time.`,
+          confirmButton: action,
+        };
+
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        width: GIO_DIALOG_WIDTH.SMALL,
+        data,
+        role: 'alertdialog',
+        id: 'confirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter(confirmed => {
+          if (!confirmed) this.resetEnabledToInitial();
+          return confirmed;
+        }),
+        switchMap(() => this.toggleEnabled(enabled, saveBeforeToggle)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
-</style>
-`;
+
+  private toggleEnabled(enabled: boolean, saveBeforeToggle: boolean) {
+    const form = this.subscriptionForm();
+    if (!form) {
+      this.resetEnabledToInitial();
+      return EMPTY;
+    }
+
+    const action = enabled ? 'enable' : 'disable';
+    const toggle$ = enabled
+      ? this.subscriptionFormService.enableSubscriptionForm(form.id)
+      : this.subscriptionFormService.disableSubscriptionForm(form.id);
+
+    const request$ = saveBeforeToggle
+      ? this.subscriptionFormService
+          .updateSubscriptionForm(form.id, {
+            gmdContent: this.contentControl.value,
+          })
+          .pipe(
+            tap(updatedForm => this.subscriptionForm.set(updatedForm)),
+            switchMap(() => toggle$),
+          )
+      : toggle$;
+
+    return request$.pipe(
+      tap(updatedForm => {
+        this.subscriptionForm.set(updatedForm);
+        this.enabledControl.setValue(updatedForm.enabled, { emitEvent: false });
+        this.snackbarService.success(`Subscription form has been ${updatedForm.enabled ? 'enabled' : 'disabled'} successfully.`);
+      }),
+      catchError(({ error }) => {
+        this.resetEnabledToInitial();
+        this.snackbarService.error(error?.message ?? `Failed to ${action} subscription form.`);
+        return EMPTY;
+      }),
+    );
   }
 }
