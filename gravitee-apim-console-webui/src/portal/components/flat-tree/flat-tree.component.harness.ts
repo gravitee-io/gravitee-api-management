@@ -152,6 +152,15 @@ export class FlatTreeComponentHarness extends ComponentHarness {
     await unpublishButton.click();
   }
 
+  async selectAddPageById(id: string): Promise<void> {
+    const moreActionsButton = await this.getMoreActionsButtonById(id)();
+    await moreActionsButton.click();
+    const addPageButton = await this._documentRootLocator.locatorFor(
+      MatMenuItemHarness.with({ selector: `[data-testid="add-page-button"]` }),
+    )();
+    await addPageButton.click();
+  }
+
   async getMenuItemByText(text: string): Promise<MatMenuItemHarness | null> {
     return this._documentRootLocator.locatorForOptional(MatMenuItemHarness.with({ text }))();
   }
