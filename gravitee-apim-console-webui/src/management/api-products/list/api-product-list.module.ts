@@ -14,36 +14,11 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
-import { MatSortModule } from '@angular/material/sort';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { GioAvatarModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { ApiProductListComponent } from './api-product-list.component';
-import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
-import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
-  declarations: [ApiProductListComponent],
+  imports: [ApiProductListComponent],
   exports: [ApiProductListComponent],
-  imports: [
-    CommonModule,
-    RouterModule,
-    MatButtonModule,
-    MatCardModule,
-    MatIconModule,
-    MatTableModule,
-    MatSortModule,
-    MatTooltipModule,
-    GioAvatarModule,
-    GioIconsModule,
-    GioTableWrapperModule,
-    GioPermissionModule,
-  ],
 })
 export class ApiProductListModule {}
