@@ -22,7 +22,7 @@ import { Constants } from '../entities/Constants';
 /**
  * Matches the backend EnvironmentApiLog schema from openapi-logs.yaml.
  */
-export interface EnvironmentApiLog {
+export type EnvironmentApiLog = {
   apiId: string;
   timestamp: string;
   id: string;
@@ -44,9 +44,9 @@ export interface EnvironmentApiLog {
   errorComponentType?: string;
   warnings?: Array<{ componentType?: string; componentName?: string; key?: string; message?: string }>;
   additionalMetrics?: Record<string, unknown>;
-}
+};
 
-export interface SearchLogsResponse {
+export type SearchLogsResponse = {
   data: EnvironmentApiLog[];
   pagination: {
     page: number;
@@ -55,18 +55,20 @@ export interface SearchLogsResponse {
     pageItemsCount: number;
     totalCount: number;
   };
-}
+};
 
-export interface TimeRange {
+export type TimeRange = {
   from: string;
   to: string;
-}
+};
 
-export interface SearchLogsParam {
+export type SearchLogsParam = {
   page?: number;
   perPage?: number;
   timeRange?: TimeRange;
-}
+  /** Filter by a specific request ID (maps to backend FilterName.REQUEST_ID) */
+  requestId?: string;
+};
 
 @Injectable({
   providedIn: 'root',
@@ -83,14 +85,24 @@ export class EnvironmentLogsService {
     params = params.append('perPage', param?.perPage ?? 10);
 
     const now = new Date();
+    // Default to last 24 hours. Note: when filtering by requestId, callers should pass
+    // an explicit timeRange if the log may be older than 24 hours.
     const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-    const body = {
+    const filters = [];
+    if (param?.requestId) {
+      filters.push({ name: 'REQUEST_ID', operator: 'EQ', value: param.requestId });
+    }
+
+    const body: Record<string, unknown> = {
       timeRange: param?.timeRange ?? {
         from: oneDayAgo.toISOString(),
         to: now.toISOString(),
       },
     };
+    if (filters.length > 0) {
+      body['filters'] = filters;
+    }
 
     return this.http.post<SearchLogsResponse>(`${this.constants.env.v2BaseURL}/logs/search`, body, { params });
   }

@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { Component, computed, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -22,16 +24,20 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { editor } from 'monaco-editor';
 import { GioBannerModule, GioClipboardModule, GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
+import { forkJoin, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 
-import { fakeEnvLogs } from '../../models/env-log.fixture';
 import { EnvLog } from '../../models/env-log.model';
 import { EnvLogsDetailsRowComponent } from '../env-logs-details-row/env-logs-details-row.component';
+import { EnvironmentLogsService } from '../../../../../services-ngx/environment-logs.service';
+import { ApiLogsV2Service } from '../../../../../services-ngx/api-logs-v2.service';
 
 @Component({
   selector: 'env-logs-details',
   templateUrl: './env-logs-details.component.html',
   styleUrl: './env-logs-details.component.scss',
   imports: [
+    DatePipe,
     FormsModule,
     RouterModule,
     MatCardModule,
@@ -43,12 +49,66 @@ import { EnvLogsDetailsRowComponent } from '../env-logs-details-row/env-logs-det
     GioMonacoEditorModule,
     EnvLogsDetailsRowComponent,
   ],
+  providers: [DatePipe],
   standalone: true,
 })
 export class EnvLogsDetailsComponent {
+  // 1. Injections
   private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly environmentLogsService = inject(EnvironmentLogsService);
+  private readonly apiLogsV2Service = inject(ApiLogsV2Service);
+  private readonly datePipe = inject(DatePipe);
 
-  log = signal<EnvLog | undefined>(undefined);
+  // 2. State — derived from route params via toSignal
+  private readonly logId = this.activatedRoute.snapshot.params['logId'] as string | undefined;
+  private readonly apiId = this.activatedRoute.snapshot.queryParams['apiId'] as string | undefined;
+
+  private readonly log$ =
+    this.logId && this.apiId
+      ? this.environmentLogsService.searchLogs({ requestId: this.logId }).pipe(
+        switchMap(searchResponse => {
+          const overviewLog = searchResponse.data[0];
+          if (!overviewLog) {
+            return of(undefined);
+          }
+
+          return forkJoin({
+            overview: of(overviewLog),
+            detail: this.apiLogsV2Service.searchConnectionLogDetail(this.apiId!, this.logId!).pipe(catchError(() => of(null))),
+          }).pipe(
+            map(({ overview, detail }) => {
+              const envLog: EnvLog = {
+                id: overview.id,
+                apiId: overview.apiId,
+                timestamp: this.datePipe.transform(overview.timestamp, 'medium') ?? overview.timestamp,
+                api: overview.apiId,
+                application: overview.application?.name ?? overview.application?.id ?? '—',
+                method: overview.method ?? '—',
+                path: overview.uri ?? '—',
+                status: overview.status,
+                responseTime: overview.gatewayResponseTime != null ? `${overview.gatewayResponseTime} ms` : '—',
+                gateway: overview.gateway,
+                plan: overview.plan?.name ? { name: overview.plan.name } : undefined,
+                requestEnded: overview.requestEnded,
+                errorKey: overview.errorKey,
+                transactionId: overview.transactionId,
+                requestId: detail?.requestId,
+                clientIdentifier: detail?.clientIdentifier,
+                warnings: overview.warnings?.map(w => ({ key: w.key ?? '' })),
+                entrypointRequest: detail?.entrypointRequest,
+                endpointRequest: detail?.endpointRequest,
+                entrypointResponse: detail?.entrypointResponse,
+                endpointResponse: detail?.endpointResponse,
+              };
+              return envLog;
+            }),
+          );
+        }),
+      )
+      : of(undefined);
+
+  // 3. Computed signals derived from the log signal
+  log = toSignal(this.log$, { initialValue: undefined });
 
   requestHeaders = computed(() => this.formatHeaders(this.log()?.entrypointRequest?.headers));
   requestBody = computed(() => this.log()?.entrypointRequest?.body ?? '');
@@ -73,19 +133,7 @@ export class EnvLogsDetailsComponent {
     },
   };
 
-  constructor() {
-    const logId = this.activatedRoute.snapshot.params.logId;
-    if (!logId) {
-      return;
-    }
-
-    // TODO: Replace with a real API call to fetch the log by ID from the backend.
-    const foundLog = fakeEnvLogs().find(l => l.id === logId);
-    if (foundLog) {
-      this.log.set(foundLog);
-    }
-  }
-
+  // 4. Private methods
   private formatHeaders(headers?: Record<string, string[]>): { key: string; value: string }[] {
     if (!headers) {
       return [];
