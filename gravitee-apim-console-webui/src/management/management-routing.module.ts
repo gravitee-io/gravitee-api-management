@@ -50,7 +50,12 @@ const managementRoutes: Routes = [
       },
       {
         path: 'api-products',
-        loadChildren: () => import('./api-products/api-products.module').then((m) => m.ApiProductsModule),
+        loadComponent: () => import('./api-products/list/api-product-list.component').then(m => m.ApiProductListComponent),
+        data: {
+          docs: {
+            page: 'management-api-products',
+          },
+        },
       },
       {
         path: 'integrations',

@@ -4,6 +4,8 @@
 @use '@gravitee/ui-particles-angular' as gio;
 @use '../../../scss/gio-layout' as gio-layout;
 
+$typography: map.get(gio.$mat-theme, typography);
+
 :host {
   @include gio-layout.gio-responsive-content-container;
   display: flex;
@@ -19,42 +21,40 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 32px;
+    margin-bottom: 2rem;
 
     h1 {
+      @include mat.m2-typography-level($typography, headline-5);
       margin: 0;
-      font-size: 32px;
-      font-weight: 600;
     }
 
     .subtitle {
-      margin-top: 8px;
+      @include mat.m2-typography-level($typography, body-2);
+      margin-top: 0.5rem;
       margin-bottom: 0;
       color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-      font-size: 14px;
     }
   }
 
   &__content-card {
     flex: 1;
-    min-height: 400px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-height: 25rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
   }
 
   &__card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 24px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
 
     h2 {
+      @include mat.m2-typography-level($typography, headline-6);
       margin: 0;
-      font-size: 20px;
-      font-weight: 600;
-      color: #424242;
+      color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'darker80');
     }
   }
 }
@@ -63,8 +63,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 300px;
-  padding: 48px 24px;
+  min-height: 18.75rem;
+  padding: 3rem 1.5rem;
 }
 
 .empty-state-card {
@@ -73,57 +73,60 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  max-width: 500px;
+  max-width: min(31.25rem, 90vw);
 
   h3 {
-    margin: 24px 0 8px 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: #424242;
+    @include mat.m2-typography-level($typography, headline-6);
+    margin: 1.5rem 0 0.5rem 0;
+    color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'darker80');
   }
 
   p {
+    @include mat.m2-typography-level($typography, body-2);
     margin: 0;
     color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-    font-size: 14px;
   }
 }
 
 .empty-state-icon {
-  width: 80px;
-  height: 80px;
+  width: 5rem;
+  height: 5rem;
+  min-width: 5rem;
+  min-height: 5rem;
   border-radius: 50%;
-  background-color: #fff3e0;
+  background-color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'lighter');
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
-  border: 1px solid #ffb74d;
+  margin-bottom: 1rem;
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'default');
 
   &__svg {
-    width: 40px;
-    height: 40px;
-    color: #e64a19;
+    width: 2.5rem;
+    height: 2.5rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'darker40');
   }
 }
 
 // Table styles
 .mat-column-picture {
-  padding: 0 8px;
-  width: 48px;
-  min-width: 48px;
+  padding: 0 0.5rem;
+  width: 3rem;
+  min-width: 3rem;
 }
 
 .mat-column-apis,
 .mat-column-version,
 .mat-column-owner,
 .mat-column-actions {
-  padding: 0 8px;
+  padding: 0 0.5rem;
 }
 
 .mat-column-name {
   cursor: pointer;
-  padding: 0 8px;
+  padding: 0 0.5rem;
   width: auto;
 }
 
@@ -145,6 +148,6 @@
 }
 
 .api-products__avatar {
-  height: 32px;
-  width: 32px;
+  height: 2rem;
+  width: 2rem;
 }
