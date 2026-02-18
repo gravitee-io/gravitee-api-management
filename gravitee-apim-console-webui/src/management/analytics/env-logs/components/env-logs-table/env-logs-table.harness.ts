@@ -47,4 +47,24 @@ export class EnvLogsTableHarness extends ComponentHarness {
     const selector = `tbody tr:nth-of-type(${rowIndex + 1}) a.log-timestamp-link`;
     return this.locatorForOptional(selector)();
   }
+
+  public async getEndpointReachedIcon(rowIndex: number) {
+    const selector = `tbody tr:nth-of-type(${rowIndex + 1}) .gio-badge-neutral`;
+    return this.locatorForOptional(selector)();
+  }
+
+  public async getPreviewButton(rowIndex: number) {
+    const selector = `tbody tr:nth-of-type(${rowIndex + 1}) [data-testid="env_logs_preview_button"]`;
+    return this.locatorForOptional(selector)();
+  }
+
+  public async getErrorIcon(rowIndex: number) {
+    const selector = `tbody tr:nth-of-type(${rowIndex + 1}) .diagnostics-container .gio-badge-error`;
+    return this.locatorForOptional(selector)();
+  }
+
+  public async getWarningIcon(rowIndex: number) {
+    const selector = `tbody tr:nth-of-type(${rowIndex + 1}) .diagnostics-container .gio-badge-warning`;
+    return this.locatorForOptional(selector)();
+  }
 }
