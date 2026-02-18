@@ -15,7 +15,8 @@
  *    limitations under the License.
  *
 -->
-<form *ngIf="form" [formGroup]="form" autocomplete="off" gioFormFocusInvalid>
+@if (form) {
+<form [formGroup]="form" autocomplete="off" gioFormFocusInvalid>
   <div class="configuration-section">
     <h1 class="configuration-section__title">Configuration</h1>
     <p class="configuration-section__subtitle">Manage general settings and user permissions.</p>
@@ -26,14 +27,20 @@
           <mat-form-field class="configuration-card__fields__name">
             <mat-label>Name</mat-label>
             <input matInput formControlName="name" required />
-            <mat-error *ngIf="form.controls.name.hasError('required')">Name is required.</mat-error>
-            <mat-error *ngIf="form.controls.name.hasError('unique')">API Product name must be unique</mat-error>
+            @if (form.controls.name.hasError('required')) {
+              <mat-error>Name is required.</mat-error>
+            }
+            @if (form.controls.name.hasError('unique')) {
+              <mat-error>API Product name must be unique</mat-error>
+            }
           </mat-form-field>
 
           <mat-form-field class="configuration-card__fields__version">
             <mat-label>Version</mat-label>
             <input matInput formControlName="version" required />
-            <mat-error *ngIf="form.controls.version.hasError('required')">Version is required.</mat-error>
+            @if (form.controls.version.hasError('required')) {
+              <mat-error>Version is required.</mat-error>
+            }
           </mat-form-field>
 
           <mat-form-field class="configuration-card__fields__description">
@@ -46,8 +53,11 @@
       </mat-card-content>
     </mat-card>
 
-    <api-product-danger-zone [apiProduct]="apiProduct" (reloadDetails)="ngOnInit()"></api-product-danger-zone>
+    @if (apiProduct) {
+      <api-product-danger-zone [apiProduct]="apiProduct" (reloadDetails)="onReloadDetails()"></api-product-danger-zone>
+    }
 
+    @if (form.dirty && form.valid) {
     <gio-save-bar
       [form]="form"
       data-testid="api_product_configuration_savebar"
@@ -55,7 +65,9 @@
       (resetClicked)="onReset()"
       (submitted)="onSubmit()"
     />
+    }
   </div>
 </form>
+}
 
 

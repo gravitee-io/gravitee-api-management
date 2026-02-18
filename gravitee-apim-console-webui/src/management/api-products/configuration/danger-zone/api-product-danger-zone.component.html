@@ -21,7 +21,7 @@
     <div class="danger-card__actions">
       <div class="danger-card__actions__action">
         <span>Remove all the APIs of this API Product.</span>
-        <button mat-button color="warn" [disabled]="isReadOnly" (click)="removeApis()">Remove APIs</button>
+        <button mat-button color="warn" [disabled]="isReadOnly || !hasApis()" (click)="removeApis()">Remove APIs</button>
       </div>
 
       <div class="danger-card__actions__action">

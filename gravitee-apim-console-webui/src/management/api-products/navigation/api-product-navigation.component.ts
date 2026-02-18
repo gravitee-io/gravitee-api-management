@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { Subject } from 'rxjs';
-import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { of } from 'rxjs';
 import { GioMenuService } from '@gravitee/ui-particles-angular';
-import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
+import { catchError, filter, of, switchMap, tap } from 'rxjs';
 import { ApiProduct } from '../../../entities/management-api-v2/api-product';
+import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
-interface MenuItem {
+export interface MenuItem {
   displayName: string;
   routerLink: string;
   icon?: string;
@@ -36,44 +35,23 @@ interface MenuItem {
   styleUrls: ['./api-product-navigation.component.scss'],
   standalone: false,
 })
-export class ApiProductNavigationComponent implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<void> = new Subject<void>();
+export class ApiProductNavigationComponent implements OnInit {
+  private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly gioMenuService = inject(GioMenuService);
+  private readonly apiProductV2Service = inject(ApiProductV2Service);
+  private readonly snackBarService = inject(SnackBarService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  public currentApiProduct: ApiProduct | null = null;
-  public apiProductId: string;
-  public isLoading = false;
-  public subMenuItems: MenuItem[] = [
-    {
-      displayName: 'Configuration',
-      routerLink: 'configuration',
-      icon: 'gio:settings',
-    },
-    {
-      displayName: 'APIs',
-      routerLink: 'apis',
-      icon: 'gio:cloud',
-    },
-    {
-      displayName: 'Consumers',
-      routerLink: 'consumers',
-      icon: 'gio:users',
-    },
+  currentApiProduct: ApiProduct | null = null;
+  apiProductId = '';
+  isLoading = false;
+  readonly subMenuItems: MenuItem[] = [
+    { displayName: 'Configuration', routerLink: 'configuration', icon: 'gio:settings' },
   ];
-  public hasBreadcrumb = false;
-
-  constructor(
-    private readonly router: Router,
-    private readonly activatedRoute: ActivatedRoute,
-    private readonly gioMenuService: GioMenuService,
-    private readonly apiProductV2Service: ApiProductV2Service,
-    private readonly snackBarService: SnackBarService,
-  ) {}
+  hasBreadcrumb = toSignal(this.gioMenuService.reduced$, { initialValue: false });
 
   ngOnInit(): void {
-    this.gioMenuService.reduced$.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
-      this.hasBreadcrumb = reduced;
-    });
-
     // Get apiProductId from route params (check parent route if not in current route)
     const getApiProductId = (route: ActivatedRoute): string | null => {
       if (route.snapshot.params['apiProductId']) {
@@ -112,15 +90,10 @@ export class ApiProductNavigationComponent implements OnInit, OnDestroy {
           this.isLoading = false;
         }),
         switchMap(() => this.router.events),
-        filter((event) => event instanceof NavigationEnd),
-        takeUntil(this.unsubscribe$),
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
-  }
-
-  ngOnDestroy(): void {
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
   }
 
   isActive(item: MenuItem): boolean {

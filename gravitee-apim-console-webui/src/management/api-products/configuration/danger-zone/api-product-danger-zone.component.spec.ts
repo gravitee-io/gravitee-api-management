@@ -78,7 +78,7 @@ describe('ApiProductDangerZoneComponent', () => {
     const router = TestBed.inject(Router);
     routerNavigateSpy = jest.spyOn(router, 'navigate');
     matDialog = TestBed.inject(MatDialog);
-    fixture.componentInstance.apiProduct = apiProduct;
+    fixture.componentRef.setInput('apiProduct', apiProduct);
     jest.spyOn(fixture.componentInstance.reloadDetails, 'emit');
     fixture.detectChanges();
   });

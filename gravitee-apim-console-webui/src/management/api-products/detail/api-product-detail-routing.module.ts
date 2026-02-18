@@ -34,11 +34,6 @@ const routes: Routes = [
         loadChildren: () =>
           import('../configuration/api-product-configuration.module').then((m) => m.ApiProductConfigurationModule),
       },
-      {
-        path: 'apis',
-        loadChildren: () => import('../apis/api-product-apis.module').then((m) => m.ApiProductApisModule),
-      },
-      // TODO: Add route for 'consumers' when component is created
     ],
   },
 ];

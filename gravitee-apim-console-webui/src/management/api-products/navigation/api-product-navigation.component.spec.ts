@@ -20,7 +20,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 
 import { ApiProductNavigationComponent } from './api-product-navigation.component';
 import { ApiProductNavigationModule } from './api-product-navigation.module';
@@ -42,11 +42,15 @@ describe('ApiProductNavigationComponent', () => {
     success: jest.fn(),
   };
 
+  const reducedSubject$ = new BehaviorSubject(false);
+
   beforeEach(() => {
+    reducedSubject$.next(false);
     TestBed.configureTestingModule({
       imports: [ApiProductNavigationModule, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
       providers: [
         { provide: SnackBarService, useValue: fakeSnackBarService },
+        { provide: GioMenuService, useValue: { reduced$: reducedSubject$ } },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -152,26 +156,16 @@ describe('ApiProductNavigationComponent', () => {
         routerLink: 'configuration',
         icon: 'gio:settings',
       },
-      {
-        displayName: 'APIs',
-        routerLink: 'apis',
-        icon: 'gio:cloud',
-      },
-      {
-        displayName: 'Consumers',
-        routerLink: 'consumers',
-        icon: 'gio:users',
-      },
     ]);
   });
 
   it('should update breadcrumb visibility based on menu service', () => {
-    const gioMenuService = TestBed.inject(GioMenuService);
+    reducedSubject$.next(false);
     fixture.detectChanges();
+    expect(fixture.componentInstance.hasBreadcrumb()).toBe(false);
 
-    gioMenuService.reduced$.next(true);
+    reducedSubject$.next(true);
     fixture.detectChanges();
-
-    expect(fixture.componentInstance.hasBreadcrumb).toBe(true);
+    expect(fixture.componentInstance.hasBreadcrumb()).toBe(true);
   });
 });

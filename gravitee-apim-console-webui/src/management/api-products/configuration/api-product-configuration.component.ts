@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsyncValidatorFn, FormControl, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { EMPTY, Observable, of, Subject, timer } from 'rxjs';
-import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
+import { EMPTY, Observable, of, timer } from 'rxjs';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
 
+import { ApiProduct, UpdateApiProduct } from '../../../entities/management-api-v2/api-product';
 import { Constants } from '../../../entities/Constants';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { ApiProduct, UpdateApiProduct } from '../../../entities/management-api-v2/api-product';
 
 @Component({
   selector: 'api-product-configuration',
@@ -31,24 +32,19 @@ import { ApiProduct, UpdateApiProduct } from '../../../entities/management-api-v
   styleUrls: ['./api-product-configuration.component.scss'],
   standalone: false,
 })
-export class ApiProductConfigurationComponent implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<void> = new Subject<void>();
+export class ApiProductConfigurationComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly formBuilder = inject(UntypedFormBuilder);
+  private readonly apiProductV2Service = inject(ApiProductV2Service);
+  private readonly snackBarService = inject(SnackBarService);
 
-  public form: UntypedFormGroup;
-  public initialFormValue: unknown;
-  public descriptionMaxLength = 250;
-  public apiProductId: string;
-  public apiProduct: ApiProduct | null = null;
-  public isLoading = false;
-
-  constructor(
-    @Inject(Constants) private readonly constants: Constants,
-    private readonly router: Router,
-    private readonly activatedRoute: ActivatedRoute,
-    private readonly formBuilder: UntypedFormBuilder,
-    private readonly apiProductV2Service: ApiProductV2Service,
-    private readonly snackBarService: SnackBarService,
-  ) {}
+  form: UntypedFormGroup | null = null;
+  initialFormValue: Record<string, unknown> | null = null;
+  readonly descriptionMaxLength = 250;
+  apiProductId = '';
+  apiProduct: ApiProduct | null = null;
+  isLoading = false;
 
   ngOnInit(): void {
     // Get apiProductId from route params (check parent route if not in current route)
@@ -81,7 +77,7 @@ export class ApiProductConfigurationComponent implements OnInit, OnDestroy {
             this.initializeForm();
             return of(null);
           }),
-          takeUntil(this.unsubscribe$),
+          takeUntilDestroyed(this.destroyRef),
         )
         .subscribe();
     } else {
@@ -90,14 +86,31 @@ export class ApiProductConfigurationComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy(): void {
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
+  onReloadDetails(): void {
+    if (this.apiProductId) {
+      this.isLoading = true;
+      this.apiProductV2Service
+        .get(this.apiProductId)
+        .pipe(
+          tap((apiProduct) => {
+            this.apiProduct = apiProduct;
+            this.isLoading = false;
+            this.initializeForm();
+          }),
+          catchError((error) => {
+            this.isLoading = false;
+            this.snackBarService.error(error.error?.message || 'An error occurred while loading the API Product');
+            return of(null);
+          }),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe();
+    }
   }
 
   onSubmit(): void {
-    if (this.form.valid && this.apiProductId) {
-      const formValue = this.form.getRawValue();
+    if (this.form?.valid && this.apiProductId) {
+      const formValue = this.form!.getRawValue();
       const updateApiProduct: UpdateApiProduct = {
         name: formValue.name,
         version: formValue.version,
@@ -111,29 +124,29 @@ export class ApiProductConfigurationComponent implements OnInit, OnDestroy {
         .pipe(
           tap((updatedApiProduct) => {
             this.apiProduct = updatedApiProduct;
-            this.initialFormValue = this.form.getRawValue();
+            this.initialFormValue = this.form!.getRawValue();
+            this.form!.markAsPristine();
+            this.form!.markAsUntouched();
             this.snackBarService.success('Configuration successfully saved!');
           }),
           catchError((error) => {
             this.snackBarService.error(error.error?.message || error.message || 'An error occurred while updating the API Product');
             return EMPTY;
           }),
-          takeUntil(this.unsubscribe$),
+          takeUntilDestroyed(this.destroyRef),
         )
         .subscribe();
     } else {
-      this.form.markAllAsTouched();
+      this.form?.markAllAsTouched();
     }
   }
 
   onReset(): void {
-    this.form.reset(this.initialFormValue);
-    this.form.markAsPristine();
-    this.form.markAsUntouched();
-  }
-
-  getDescriptionLength(): number {
-    return this.form.get('description')?.value?.length || 0;
+    if (this.form && this.initialFormValue) {
+      this.form.reset(this.initialFormValue);
+      this.form.markAsPristine();
+      this.form.markAsUntouched();
+    }
   }
 
   private initializeForm(): void {
@@ -150,7 +163,7 @@ export class ApiProductConfigurationComponent implements OnInit, OnDestroy {
       description: this.formBuilder.control(this.apiProduct?.description || '', [
         Validators.maxLength(this.descriptionMaxLength),
       ]),
-    });
+    }) as UntypedFormGroup;
     this.initialFormValue = this.form.getRawValue();
   }
 

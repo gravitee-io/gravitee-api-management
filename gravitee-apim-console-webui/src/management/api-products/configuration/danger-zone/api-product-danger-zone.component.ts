@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
+import { Component, computed, DestroyRef, inject, input, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
-import { GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import { EMPTY } from 'rxjs';
-import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
+import {
+  GioConfirmAndValidateDialogComponent,
+  GioConfirmAndValidateDialogData,
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+} from '@gravitee/ui-particles-angular';
+import { EMPTY } from 'rxjs';
+import { catchError, filter, map, switchMap } from 'rxjs/operators';
 
 import { ApiProduct } from '../../../../entities/management-api-v2/api-product';
-import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiProductV2Service } from '../../../../services-ngx/api-product-v2.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'api-product-danger-zone',
@@ -32,7 +37,7 @@ import { ApiProductV2Service } from '../../../../services-ngx/api-product-v2.ser
   styleUrls: ['./api-product-danger-zone.component.scss'],
   standalone: false,
 })
-export class ApiProductDangerZoneComponent implements OnInit {
+export class ApiProductDangerZoneComponent {
   private readonly router = inject(Router);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly matDialog = inject(MatDialog);
@@ -40,17 +45,11 @@ export class ApiProductDangerZoneComponent implements OnInit {
   private readonly apiProductV2Service = inject(ApiProductV2Service);
   private readonly destroyRef = inject(DestroyRef);
 
-  @Input()
-  public apiProduct!: ApiProduct;
+  apiProduct = input.required<ApiProduct>();
+  reloadDetails = output<void>();
 
-  @Output()
-  public reloadDetails = new EventEmitter<void>();
-
-  public isReadOnly = false;
-
-  ngOnInit(): void {
-    // TODO: Check permissions for read-only
-  }
+  isReadOnly = false;
+  hasApis = computed(() => !!(this.apiProduct()?.apiIds?.length));
 
   removeApis(): void {
     this.matDialog
@@ -68,7 +67,7 @@ export class ApiProductDangerZoneComponent implements OnInit {
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
-        switchMap(() => this.apiProductV2Service.deleteAllApisFromApiProduct(this.apiProduct.id)),
+        switchMap(() => this.apiProductV2Service.deleteAllApisFromApiProduct(this.apiProduct().id)),
         catchError(({ error }) => {
           this.snackBarService.error(error?.message || 'An error occurred while removing APIs.');
           return EMPTY;
@@ -89,8 +88,8 @@ export class ApiProductDangerZoneComponent implements OnInit {
           title: 'Delete API Product',
           content: 'Are you sure you want to delete this API Product?',
           confirmButton: 'Yes, delete it',
-          validationMessage: `Please, type in the name of the API Product <code>${this.apiProduct.name}</code> to confirm.`,
-          validationValue: this.apiProduct.name,
+          validationMessage: `Please, type in the name of the API Product <code>${this.apiProduct().name}</code> to confirm.`,
+          validationValue: this.apiProduct().name,
           warning: 'This operation is irreversible.',
         },
         role: 'alertdialog',
@@ -99,7 +98,7 @@ export class ApiProductDangerZoneComponent implements OnInit {
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
-        switchMap(() => this.apiProductV2Service.delete(this.apiProduct.id)),
+        switchMap(() => this.apiProductV2Service.delete(this.apiProduct().id)),
         catchError(({ error }) => {
           this.snackBarService.error(error?.message || 'An error occurred while deleting the API Product.');
           return EMPTY;
