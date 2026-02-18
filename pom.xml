@@ -256,7 +256,7 @@
         <gravitee-notifier-slack.version>1.3.0</gravitee-notifier-slack.version>
         <gravitee-notifier-webhook.version>1.1.3</gravitee-notifier-webhook.version>
         <!-- Gateway Only -->
-        <gravitee-reporter-elasticsearch.version>7.4.2</gravitee-reporter-elasticsearch.version>
+        <gravitee-reporter-elasticsearch.version>7.4.3</gravitee-reporter-elasticsearch.version>
         <gravitee-reporter-file.version>4.0.1</gravitee-reporter-file.version>
         <gravitee-reporter-tcp.version>3.1.3</gravitee-reporter-tcp.version>
         <gravitee-reporter-cloud.version>2.0.1</gravitee-reporter-cloud.version>
