@@ -103,7 +103,7 @@ export class ApiSectionEditorDialogComponent implements OnInit {
   };
 
   total = 0;
-  isLoading = false;
+  isLoading = true;
 
   private readonly filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
   private readonly refresh$ = new Subject<void>();
