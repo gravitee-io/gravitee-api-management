@@ -365,7 +365,7 @@ class ClientCertificateCrudServiceImplTest {
         io.gravitee.rest.api.model.common.Pageable pageable = new io.gravitee.rest.api.model.common.Pageable() {
             @Override
             public int getPageNumber() {
-                return 0;
+                return 1;
             }
 
             @Override
