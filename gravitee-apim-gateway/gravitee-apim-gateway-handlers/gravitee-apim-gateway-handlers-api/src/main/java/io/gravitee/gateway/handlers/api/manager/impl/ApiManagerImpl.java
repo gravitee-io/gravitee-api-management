@@ -28,6 +28,7 @@ import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.Deployer;
 import io.gravitee.gateway.handlers.api.manager.deployer.ApiDeployer;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.license.ForbiddenFeatureException;
@@ -49,7 +50,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.MDC;
 
 /**
@@ -57,7 +57,6 @@ import org.slf4j.MDC;
  * @author GraviteeSource Team
  */
 @CustomLog
-@RequiredArgsConstructor
 public class ApiManagerImpl implements ApiManager {
 
     private static final int PARALLELISM = Runtime.getRuntime().availableProcessors() * 2;
@@ -67,6 +66,7 @@ public class ApiManagerImpl implements ApiManager {
     private final LicenseManager licenseManager;
     private final Map<String, ReactableApi<?>> apis = new ConcurrentHashMap<>();
     private final Map<Class<? extends ReactableApi<?>>, ? extends Deployer<?>> deployers;
+    private final ApiProductRegistry apiProductRegistry;
 
     public ApiManagerImpl(
         final EventManager eventManager,
@@ -74,9 +74,20 @@ public class ApiManagerImpl implements ApiManager {
         LicenseManager licenseManager,
         final DataEncryptor dataEncryptor
     ) {
+        this(eventManager, gatewayConfiguration, licenseManager, dataEncryptor, null);
+    }
+
+    public ApiManagerImpl(
+        final EventManager eventManager,
+        final GatewayConfiguration gatewayConfiguration,
+        LicenseManager licenseManager,
+        final DataEncryptor dataEncryptor,
+        final ApiProductRegistry apiProductRegistry
+    ) {
         this.eventManager = eventManager;
         this.gatewayConfiguration = gatewayConfiguration;
         this.licenseManager = licenseManager;
+        this.apiProductRegistry = apiProductRegistry;
         deployers = Map.of(
             Api.class,
             new ApiDeployer(gatewayConfiguration, dataEncryptor),
@@ -257,13 +268,11 @@ public class ApiManagerImpl implements ApiManager {
         if (api.enabled()) {
             Deployer deployer = deployers.get(api.getClass());
             List<String> plans = deployer.getPlans(api);
+            boolean includedInApiProduct = isIncludedInApiProductWithPlans(api);
 
-            // Deploy the API only if there is at least one plan
-            if (!plans.isEmpty()) {
-                log.debug("Deploying {} plan(s) for {}:", plans.size(), api);
-                for (String plan : plans) {
-                    log.debug("\t- {}", plan);
-                }
+            // Deploy the API if it has at least one plan or is exposed via an API Product (no plans required)
+            if (!plans.isEmpty() || includedInApiProduct) {
+                log.debug("Deploying {} (has plans or included in API Product)", api);
                 eventManager.publishEvent(
                     SecretDiscoveryEventType.DISCOVER,
                     new SecretDiscoveryEvent(api.getEnvironmentId(), api.getDefinition(), new DefinitionMetadata(api.getRevision()))
@@ -301,12 +310,10 @@ public class ApiManagerImpl implements ApiManager {
 
         Deployer deployer = deployers.get(api.getClass());
         List<String> plans = deployer.getPlans(api);
+        boolean includedInApiProduct = isIncludedInApiProductWithPlans(api);
 
-        if (api.enabled() && !plans.isEmpty()) {
-            log.debug("Deploying {} plan(s) for {}:", plans.size(), api);
-            for (String plan : plans) {
-                log.debug("\t- {}", plan);
-            }
+        if (api.enabled() && (!plans.isEmpty() || includedInApiProduct)) {
+            log.debug("Updating {} (has plans or included in API Product)", api);
             eventManager.publishEvent(
                 SecretDiscoveryEventType.DISCOVER,
                 new SecretDiscoveryEvent(api.getEnvironmentId(), api.getDefinition(), new DefinitionMetadata(api.getRevision()))
@@ -329,7 +336,7 @@ public class ApiManagerImpl implements ApiManager {
                 );
             }
             log.info("{} has been updated", api);
-        } else if (plans.isEmpty()) {
+        } else if (plans.isEmpty() && !includedInApiProduct) {
             log.warn("There is no published plan associated to this API, undeploy it...");
             undeploy(api.getId());
         } else {
@@ -338,6 +345,17 @@ public class ApiManagerImpl implements ApiManager {
         }
 
         MDC.remove("api");
+    }
+
+    private boolean isIncludedInApiProductWithPlans(ReactableApi<?> api) {
+        if (apiProductRegistry == null || api.getEnvironmentId() == null) {
+            return false;
+        }
+        List<ApiProductRegistry.ApiProductPlanEntry> apiProductPlanEntries = apiProductRegistry.getApiProductPlanEntriesForApi(
+            api.getId(),
+            api.getEnvironmentId()
+        );
+        return apiProductPlanEntries != null && !apiProductPlanEntries.isEmpty();
     }
 
     private void undeploy(String apiId) {

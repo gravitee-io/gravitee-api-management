@@ -26,4 +26,5 @@ public interface ApiProductsRepository extends CrudRepository<ApiProduct, String
     Set<ApiProduct> findByEnvironmentId(String environmentId) throws TechnicalException;
     Set<ApiProduct> findByApiId(String apiId) throws TechnicalException;
     Set<ApiProduct> findByIds(Collection<String> ids) throws TechnicalException;
+    Set<ApiProduct> findApiProductsByApiIds(Collection<String> apiIds) throws TechnicalException;
 }

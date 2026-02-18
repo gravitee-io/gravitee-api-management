@@ -18,8 +18,11 @@ package io.gravitee.apim.core.api_product.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,6 +34,8 @@ import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
+import inmemory.PlanQueryServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
@@ -44,6 +49,7 @@ import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
@@ -56,22 +62,30 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
+    private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private final EventCrudService eventCrudService = mock(EventCrudService.class);
     private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
     private final LicenseManager licenseManager = mock(LicenseManager.class);
+    private final ApiStateDomainService apiStateDomainService = mock(ApiStateDomainService.class);
 
     private UpdateApiProductUseCase updateApiProductUseCase;
 
     @BeforeEach
     void setUp() {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
-        var validateApiProductService = new ValidateApiProductService(apiQueryService);
+        var validateApiProductService = new ValidateApiProductService(
+            apiQueryService,
+            apiCrudService,
+            planQueryService,
+            apiProductQueryService
+        );
         when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
         updateApiProductUseCase = new UpdateApiProductUseCase(
             apiProductCrudService,
             auditService,
             apiProductQueryService,
             validateApiProductService,
+            apiStateDomainService,
             eventCrudService,
             eventLatestCrudService,
             new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager)
@@ -229,6 +243,82 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
 
         // Empty apiIds should clear the entire list (replace, not merge)
         assertThat(output.apiProduct().getApiIds()).isEmpty();
+    }
+
+    @Test
+    void should_auto_undeploy_removed_deployed_api_without_plans_then_update_product() {
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .apiIds(Set.of("api-deployed-no-plans", "api-2"))
+            .environmentId(ENV_ID)
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        Api deployedApiNoPlans = createV4ProxyApi("api-deployed-no-plans", true);
+        deployedApiNoPlans = deployedApiNoPlans.toBuilder().deployedAt(ZonedDateTime.now()).build();
+        Api api2 = createV4ProxyApi("api-2", true);
+        apiCrudService.initWith(List.of(deployedApiNoPlans, api2));
+
+        var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-2")).build();
+        var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
+
+        var output = updateApiProductUseCase.execute(input);
+
+        assertThat(output.apiProduct().getApiIds()).containsExactly("api-2");
+        verify(apiStateDomainService).stop(argThat(api -> "api-deployed-no-plans".equals(api.getId())), eq(AUDIT_INFO));
+    }
+
+    @Test
+    void should_not_call_stop_when_no_apis_removed() {
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .apiIds(Set.of("api-1"))
+            .environmentId(ENV_ID)
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+        Api api1 = createV4ProxyApi("api-1", true);
+        apiCrudService.initWith(List.of(api1));
+
+        var toUpdate = UpdateApiProduct.builder().name("New Name").apiIds(Set.of("api-1")).build();
+        var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
+
+        updateApiProductUseCase.execute(input);
+
+        verify(apiStateDomainService, never()).stop(any(), any());
+    }
+
+    @Test
+    void should_stop_each_removed_deployed_api_without_plan_when_multiple_removed() {
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .apiIds(Set.of("api-1", "api-2", "api-3"))
+            .environmentId(ENV_ID)
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        Api api1 = createV4ProxyApi("api-1", true).toBuilder().deployedAt(ZonedDateTime.now()).build();
+        Api api2 = createV4ProxyApi("api-2", true).toBuilder().deployedAt(ZonedDateTime.now()).build();
+        Api api3 = createV4ProxyApi("api-3", true).toBuilder().deployedAt(ZonedDateTime.now()).build();
+        apiCrudService.initWith(List.of(api1, api2, api3));
+
+        var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-3")).build();
+        var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
+
+        var output = updateApiProductUseCase.execute(input);
+
+        assertThat(output.apiProduct().getApiIds()).containsExactly("api-3");
+        verify(apiStateDomainService, times(2)).stop(any(), eq(AUDIT_INFO));
+        verify(apiStateDomainService).stop(argThat(api -> "api-1".equals(api.getId())), eq(AUDIT_INFO));
+        verify(apiStateDomainService).stop(argThat(api -> "api-2".equals(api.getId())), eq(AUDIT_INFO));
     }
 
     @Test

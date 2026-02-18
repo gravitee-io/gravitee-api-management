@@ -69,4 +69,9 @@ public class NoOpApiProductsRepository implements ApiProductsRepository {
     public Set<ApiProduct> findByIds(Collection<String> ids) throws TechnicalException {
         return Set.of();
     }
+
+    @Override
+    public Set<ApiProduct> findApiProductsByApiIds(Collection<String> apiIds) throws TechnicalException {
+        return Set.of();
+    }
 }

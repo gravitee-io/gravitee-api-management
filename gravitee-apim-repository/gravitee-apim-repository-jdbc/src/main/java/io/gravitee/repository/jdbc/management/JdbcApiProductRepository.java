@@ -213,6 +213,38 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
     }
 
     @Override
+    public Set<ApiProduct> findApiProductsByApiIds(Collection<String> apiIds) throws TechnicalException {
+        if (CollectionUtils.isEmpty(apiIds)) {
+            return Set.of();
+        }
+        log.debug("JdbcApiProductRepository.findApiProductsByApiIds({})", apiIds);
+        try {
+            List<String> idList = new ArrayList<>(apiIds);
+            String sql =
+                getOrm().getSelectAllSql() +
+                " ap " +
+                "LEFT JOIN " +
+                API_PRODUCT_APIS +
+                " apa ON ap.id = apa.api_product_id " +
+                "WHERE apa.api_id IN (" +
+                getOrm().buildInClause(idList) +
+                ") ORDER BY ap.id";
+            List<ApiProduct> apiProducts = jdbcTemplate.query(
+                sql,
+                (ResultSet rs, int rowNum) -> {
+                    ApiProduct apiProduct = getOrm().getRowMapper().mapRow(rs, rowNum);
+                    addApiId(apiProduct, rs);
+                    return apiProduct;
+                },
+                idList.toArray()
+            );
+            return new HashSet<>(aggregateApiProducts(apiProducts));
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to find api products by api ids", ex);
+        }
+    }
+
+    @Override
     public Set<ApiProduct> findByIds(Collection<String> ids) throws TechnicalException {
         if (CollectionUtils.isEmpty(ids)) {
             return Set.of();

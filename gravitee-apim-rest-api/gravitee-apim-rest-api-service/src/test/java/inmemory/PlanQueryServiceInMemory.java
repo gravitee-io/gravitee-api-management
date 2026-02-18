@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 public class PlanQueryServiceInMemory implements PlanQueryService, InMemoryAlternative<Plan> {
 
@@ -60,6 +61,23 @@ public class PlanQueryServiceInMemory implements PlanQueryService, InMemoryAlter
     }
 
     @Override
+    public List<Plan> findAllByApiIds(Set<String> apiIds, Set<String> environmentIds) {
+        if (apiIds == null || apiIds.isEmpty() || environmentIds == null || environmentIds.isEmpty()) {
+            return List.of();
+        }
+        return storage
+            .stream()
+            .filter(
+                plan ->
+                    apiIds.contains(plan.getReferenceId()) &&
+                    (plan.getReferenceType() == null || GenericPlanEntity.ReferenceType.API.equals(plan.getReferenceType())) &&
+                    (plan.getEnvironmentId() == null || environmentIds.contains(plan.getEnvironmentId()))
+            )
+            .map(plan -> (Plan) plan)
+            .toList();
+    }
+
+    @Override
     public List<Plan> findAllForApiProduct(String referenceId) {
         return storage
             .stream()
@@ -67,6 +85,23 @@ public class PlanQueryServiceInMemory implements PlanQueryService, InMemoryAlter
                 plan ->
                     Objects.equals(referenceId, plan.getReferenceId()) &&
                     Objects.equals(GenericPlanEntity.ReferenceType.API_PRODUCT, plan.getReferenceType())
+            )
+            .map(p -> (Plan) p)
+            .toList();
+    }
+
+    @Override
+    public List<Plan> findAllForApiProducts(Set<String> apiProductIds, Set<String> environmentIds) {
+        if (apiProductIds == null || apiProductIds.isEmpty() || environmentIds == null || environmentIds.isEmpty()) {
+            return List.of();
+        }
+        return storage
+            .stream()
+            .filter(
+                plan ->
+                    apiProductIds.contains(plan.getReferenceId()) &&
+                    Objects.equals(GenericPlanEntity.ReferenceType.API_PRODUCT, plan.getReferenceType()) &&
+                    (plan.getEnvironmentId() == null || environmentIds.contains(plan.getEnvironmentId()))
             )
             .map(p -> (Plan) p)
             .toList();

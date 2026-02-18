@@ -16,8 +16,10 @@
 package io.gravitee.repository.mongodb.management.internal.apiproducts;
 
 import io.gravitee.repository.mongodb.management.internal.model.ApiProductMongo;
+import java.util.Collection;
 import java.util.Set;
 
 public interface ApiProductsMongoRepositoryCustom {
     Set<ApiProductMongo> findByApiId(String apiId);
+    Set<ApiProductMongo> findApiProductsByApiIds(Collection<String> apiIds);
 }

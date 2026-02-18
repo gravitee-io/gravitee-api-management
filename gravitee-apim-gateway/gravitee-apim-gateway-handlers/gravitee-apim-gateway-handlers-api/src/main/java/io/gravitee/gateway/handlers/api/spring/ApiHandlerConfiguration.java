@@ -33,6 +33,7 @@ import io.gravitee.gateway.handlers.api.manager.endpoint.ApiManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApisManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.NodeApisEndpointInitializer;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.handlers.api.services.ApiKeyCacheService;
 import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
@@ -96,9 +97,10 @@ public class ApiHandlerConfiguration {
         EventManager eventManager,
         GatewayConfiguration gatewayConfiguration,
         LicenseManager licenseManager,
-        DataEncryptor dataEncryptor
+        DataEncryptor dataEncryptor,
+        @Autowired(required = false) ApiProductRegistry apiProductRegistry
     ) {
-        return new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor);
+        return new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor, apiProductRegistry);
     }
 
     @Bean
