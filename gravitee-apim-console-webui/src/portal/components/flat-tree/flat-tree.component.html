@@ -125,16 +125,18 @@
     }
 
     <mat-menu #moreMenu="matMenu">
-      @if (node.type === 'FOLDER') {
+      @if (node.type === 'FOLDER' || node.type === 'API') {
         @if (canCreate) {
-          <button mat-menu-item (click)="onCreate(node, 'PAGE')">
+          <button mat-menu-item (click)="onCreate(node, 'PAGE')" data-testid="add-page-button">
             <mat-icon [svgIcon]="'PAGE' | portalNavigationItemIcon"></mat-icon>
             Add Page
           </button>
-          <button mat-menu-item (click)="onCreate(node, 'API')">
-            <mat-icon [svgIcon]="'API' | portalNavigationItemIcon"></mat-icon>
-            Add API
-          </button>
+          @if (node.type === 'FOLDER') {
+            <button mat-menu-item (click)="onCreate(node, 'API')">
+              <mat-icon [svgIcon]="'API' | portalNavigationItemIcon"></mat-icon>
+              Add API
+            </button>
+          }
           <button mat-menu-item (click)="onCreate(node, 'FOLDER')">
             <mat-icon [svgIcon]="'FOLDER' | portalNavigationItemIcon"></mat-icon>
             Add Folder

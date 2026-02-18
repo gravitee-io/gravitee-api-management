@@ -701,6 +701,63 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
+  describe('creating a page under an API from tree node "More actions" menu', () => {
+    it('opens create dialog and does not call backend when cancelled', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationApi({ id: 'api-1', title: 'API 1' }),
+        ],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+
+      await harness.addPageToNavigationItemById('api-1');
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      expect(dialog).toBeTruthy();
+
+      // cancel should not send any POST request
+      await dialog.clickCancelButton();
+    });
+
+    it('calls backend create with apiId when dialog is submitted', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationApi({ id: 'api-1', title: 'API 1' }),
+        ],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+
+      await harness.addPageToNavigationItemById('api-1');
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      expect(dialog).toBeTruthy();
+
+      const title = 'New API Page';
+      await dialog.setTitleInputValue(title);
+      await dialog.clickSubmitButton();
+
+      const createdItem = fakePortalNavigationPage({
+        id: 'api-page-1',
+        title,
+        area: 'TOP_NAVBAR',
+        type: 'PAGE',
+        portalPageContentId: 'content-id',
+      });
+
+      expectCreateNavigationItem(
+        fakeNewPagePortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'PAGE', parentId: 'api-1' }),
+        createdItem,
+      );
+      await expectGetNavigationItems(fakeResponse);
+
+      expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdItem.id } }));
+    })
+  })
+
   describe('selecting a navigation item', () => {
     beforeEach(async () => {
       const fakeResponse = fakePortalNavigationItemsResponse({

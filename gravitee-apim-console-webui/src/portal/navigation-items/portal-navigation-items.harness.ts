@@ -117,6 +117,11 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
     return tree.selectItemByTitle(title);
   }
 
+  async addPageToNavigationItemById(id: string): Promise<void> {
+    const tree = await this.getTree();
+    return tree.selectAddPageById(id);
+  }
+
   async getNavigationItemTitles(): Promise<string[]> {
     const tree = await this.getTree();
     return tree.getAllItemTitles();
