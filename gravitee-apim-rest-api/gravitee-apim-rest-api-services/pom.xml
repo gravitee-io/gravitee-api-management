@@ -45,6 +45,7 @@
         <module>gravitee-apim-rest-api-services-subscriptions</module>
         <module>gravitee-apim-rest-api-services-subscription-pre-expiration-notif</module>
         <module>gravitee-apim-rest-api-services-v3-upgrader</module>
+        <module>gravitee-apim-rest-api-services-certificate-revocation</module>
     </modules>
 
     <dependencies>
