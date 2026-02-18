@@ -22,7 +22,9 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import java.util.List;
 import java.util.Map;
@@ -289,6 +291,53 @@ public class PortalNavigationItemDomainServiceTest {
             )
                 .containsOnlyKeys(expectedParent2.keySet())
                 .containsAllEntriesOf(expectedParent2);
+        }
+
+        @Test
+        void should_update_subtree_when_folder_visibility_changes_from_public_to_private() {
+            // Given
+            PortalNavigationFolder parentFolder = PortalNavigationItemFixtures.aFolder("10000000-0000-4000-8000-000000000001", "Parent");
+            PortalNavigationFolder childFolder = PortalNavigationItemFixtures.aFolder(
+                "10000000-0000-4000-8000-000000000002",
+                "Child",
+                parentFolder.getId()
+            );
+            PortalNavigationPage grandChildPage = PortalNavigationItemFixtures.aPage(
+                "10000000-0000-4000-8000-000000000003",
+                "Grand Child",
+                childFolder.getId()
+            );
+            portalNavigationItemsCrudService.initWith(List.of(parentFolder, childFolder, grandChildPage));
+            portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .order(parentFolder.getOrder())
+                .title(parentFolder.getTitle())
+                .visibility(PortalVisibility.PRIVATE)
+                .type(parentFolder.getType())
+                .parentId(parentFolder.getParentId())
+                .published(parentFolder.getPublished())
+                .build();
+
+            // When
+            var result = domainService.update(toUpdate, parentFolder);
+
+            // Then
+            assertThat(result.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+            assertThat(
+                portalNavigationItemsCrudService
+                    .storage()
+                    .stream()
+                    .collect(
+                        Collectors.toMap(
+                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
+                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getVisibility
+                        )
+                    )
+            )
+                .containsEntry(parentFolder.getId(), PortalVisibility.PRIVATE)
+                .containsEntry(childFolder.getId(), PortalVisibility.PRIVATE)
+                .containsEntry(grandChildPage.getId(), PortalVisibility.PRIVATE);
         }
     }
 }
