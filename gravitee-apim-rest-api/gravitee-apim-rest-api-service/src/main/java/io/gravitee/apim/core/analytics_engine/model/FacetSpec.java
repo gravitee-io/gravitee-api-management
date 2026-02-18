@@ -47,6 +47,10 @@ public record FacetSpec(Name name, String label, String type, List<Object> enumV
         API_VISIBILITY,
         LLM_PROXY_MODEL,
         LLM_PROXY_PROVIDER,
+        MCP_PROXY_METHOD,
+        MCP_PROXY_TOOL,
+        MCP_PROXY_RESOURCE,
+        MCP_PROXY_PROMPT,
     }
 
     public enum Type {

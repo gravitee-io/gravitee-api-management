@@ -1178,6 +1178,10 @@ components:
                 - API_VISIBILITY
                 - LLM_PROXY_MODEL
                 - LLM_PROXY_PROVIDER
+                - MCP_PROXY_METHOD
+                - MCP_PROXY_TOOL
+                - MCP_PROXY_RESOURCE
+                - MCP_PROXY_PROMPT
             description: Available facet names for grouping analytics data
 
         FilterName:
@@ -1219,6 +1223,10 @@ components:
                 - HTTP_RESPONSE_CONTENT_LENGTH
                 - LLM_PROXY_MODEL
                 - LLM_PROXY_PROVIDER
+                - MCP_PROXY_METHOD
+                - MCP_PROXY_TOOL
+                - MCP_PROXY_RESOURCE
+                - MCP_PROXY_PROMPT
             description: Available filter names for filtering analytics data
 
         Operator:

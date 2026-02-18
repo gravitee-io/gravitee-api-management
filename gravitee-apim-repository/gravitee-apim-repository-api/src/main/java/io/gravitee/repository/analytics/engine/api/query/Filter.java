@@ -57,6 +57,10 @@ public record Filter(Filter.Name name, Operator operator, Object value) {
         HTTP_RESPONSE_CONTENT_LENGTH,
         LLM_PROXY_MODEL,
         LLM_PROXY_PROVIDER,
+        MCP_PROXY_METHOD,
+        MCP_PROXY_TOOL,
+        MCP_PROXY_RESOURCE,
+        MCP_PROXY_PROMPT,
     }
 
     public enum Operator {

@@ -65,6 +65,10 @@ public class HTTPFieldResolver implements FieldResolver {
             case Filter.Name.HTTP_USER_AGENT_DEVICE -> "user_agent.device.name";
             case Filter.Name.LLM_PROXY_MODEL -> "additional-metrics.keyword_llm-proxy_model";
             case Filter.Name.LLM_PROXY_PROVIDER -> "additional-metrics.keyword_llm-proxy_provider";
+            case Filter.Name.MCP_PROXY_METHOD -> "additional-metrics.keyword_mcp-proxy_method";
+            case Filter.Name.MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
+            case Filter.Name.MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";
+            case Filter.Name.MCP_PROXY_PROMPT -> "additional-metrics.keyword_mcp-proxy_prompts/get";
             default -> throw new UnsupportedOperationException("not an HTTP filter");
         };
     }
@@ -92,6 +96,10 @@ public class HTTPFieldResolver implements FieldResolver {
             case HTTP_USER_AGENT_DEVICE -> "user_agent.device.name";
             case LLM_PROXY_MODEL -> "additional-metrics.keyword_llm-proxy_model";
             case LLM_PROXY_PROVIDER -> "additional-metrics.keyword_llm-proxy_provider";
+            case MCP_PROXY_METHOD -> "additional-metrics.keyword_mcp-proxy_method";
+            case MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
+            case MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";
+            case MCP_PROXY_PROMPT -> "additional-metrics.keyword_mcp-proxy_prompts/get";
             default -> throw new UnsupportedOperationException("not an HTTP facet");
         };
     }
