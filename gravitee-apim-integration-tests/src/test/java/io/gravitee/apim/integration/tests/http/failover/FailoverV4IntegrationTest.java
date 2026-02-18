@@ -15,10 +15,12 @@
  */
 package io.gravitee.apim.integration.tests.http.failover;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.PLAN_APIKEY_ID;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.createSubscription;
@@ -74,6 +76,7 @@ import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
 import io.vertx.rxjava3.core.http.HttpServer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -652,6 +655,45 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
         @DeployApi("/apis/v4/http/failover/api-three-endpoints-query-params.json")
         void should_success_on_second_retry_with_endpoint_having_query_params(HttpClient client) {
             super.should_success_on_second_retry_with_endpoint_having_query_params(client);
+        }
+
+
+        @Test
+        @DeployApi("/apis/v4/http/failover/api-three-endpoints-custom-condition.json")
+        void should_success_on_third_retry_based_on_condition(HttpClient client) {
+            // Given an API with failover configured to trigger when the backend replies with a 429 status
+            final String responseFromFirstEndpoint = RESPONSE_FROM_BACKEND + " - first";
+            final String responseFromSecondEndpoint = RESPONSE_FROM_BACKEND + " - second-second";
+            final String responseFromThirdEndpoint = RESPONSE_FROM_BACKEND + " - third-final";
+            final String expectedContentLength = String.valueOf(responseFromThirdEndpoint.getBytes(StandardCharsets.UTF_8).length);
+
+            wiremock.stubFor(get("/endpoint-1").willReturn(aResponse().withStatus(429).withBody(responseFromFirstEndpoint).withHeader("Content-Length", String.valueOf(responseFromFirstEndpoint.length()))));
+            wiremock.stubFor(get("/endpoint-2").willReturn(aResponse().withStatus(429).withBody(responseFromSecondEndpoint).withHeader("Content-Length", String.valueOf(responseFromSecondEndpoint.length()))));
+            wiremock.stubFor(get("/endpoint-3").willReturn(ok(responseFromThirdEndpoint).withHeader("Content-Length", expectedContentLength)));
+
+            // When requesting the API
+            client
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    // Then the API response should be 200 with only the final response Content-Length value
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.headers().getAll("Content-Length")).containsExactly(expectedContentLength);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    // Then the API response body should be the one from third endpoint
+                    assertThat(response).hasToString(responseFromThirdEndpoint);
+                    return true;
+                });
+
+            // Then the backend should have been called 1 time per endpoint (thanks to load balancing)
+            wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint-1")));
+            wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint-2")));
+            wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint-3")));
         }
     }
 
