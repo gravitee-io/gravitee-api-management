@@ -16,7 +16,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { GmdFormHostComponent } from './gmd-form-host.component';
-import { GMD_FORM_STATE_STORE } from '../services/gmd-form-state.store';
+import { GMD_FORM_STATE_STORE, provideGmdFormStore } from '../services/gmd-form-state.store';
 
 describe('GmdFormHostComponent', () => {
   let component: GmdFormHostComponent;
@@ -25,6 +25,7 @@ describe('GmdFormHostComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [GmdFormHostComponent],
+      providers: [...provideGmdFormStore()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(GmdFormHostComponent);
@@ -35,7 +36,7 @@ describe('GmdFormHostComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should provide GMD_FORM_STATE_STORE to children', () => {
+  it('should use the provided GMD_FORM_STATE_STORE', () => {
     const store = fixture.debugElement.injector.get(GMD_FORM_STATE_STORE);
     expect(store).toBeTruthy();
   });

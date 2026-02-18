@@ -18,6 +18,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { GmdFormEditorComponent } from './gmd-form-editor.component';
 import { GraviteeMarkdownViewerModule } from '../gravitee-markdown-viewer/gravitee-markdown-viewer.module';
+import { provideGmdFormStore } from '../services/gmd-form-state.store';
 
 @Component({
   selector: 'gmd-monaco-editor',
@@ -45,6 +46,7 @@ describe('GmdFormEditorComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [GmdFormEditorComponent, MockMonacoEditorComponent, MockGmdViewerComponent],
+      providers: [...provideGmdFormStore()],
     })
       .overrideComponent(GmdFormEditorComponent, {
         remove: { imports: [GraviteeMarkdownViewerModule] },
