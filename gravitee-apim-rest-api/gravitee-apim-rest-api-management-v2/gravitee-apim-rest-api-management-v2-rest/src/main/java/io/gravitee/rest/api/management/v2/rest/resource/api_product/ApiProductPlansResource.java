@@ -18,8 +18,8 @@ package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.apim.core.plan.use_case.api_product.CreateApiProductPlanUseCase;
-import io.gravitee.apim.core.plan.use_case.api_product.GetApiProductPlansUseCase;
+import io.gravitee.apim.core.plan.use_case.CreateApiProductPlanUseCase;
+import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiProductPlanMapper;
@@ -65,10 +65,10 @@ public class ApiProductPlansResource extends AbstractResource {
     private final ApiProductPlanMapper planMapper = ApiProductPlanMapper.INSTANCE;
 
     @Inject
-    private CreateApiProductPlanUseCase createProductPlanUseCase;
+    private CreateApiProductPlanUseCase createApiProductPlanUseCase;
 
     @Inject
-    private GetApiProductPlansUseCase getApiProductPlansUseCase;
+    private GetPlansUseCase getPlansUseCase;
 
     @PathParam("apiProductId")
     private String apiProductId;
@@ -115,17 +115,24 @@ public class ApiProductPlansResource extends AbstractResource {
             )
             .mode(planMode);
 
-        var output = getApiProductPlansUseCase.execute(
-            GetApiProductPlansUseCase.Input.of(apiProductId, getAuthenticatedUser(), isAdmin(), planQuery.build(), subscribableBy)
+        var output = getPlansUseCase.execute(
+            GetPlansUseCase.Input.forList(
+                apiProductId,
+                GenericPlanEntity.ReferenceType.API_PRODUCT.name(),
+                getAuthenticatedUser(),
+                isAdmin(),
+                planQuery.build(),
+                subscribableBy
+            )
         );
 
-        log.debug("Found {} Plans for API Product {} (before pagination)", output.apiProductPlans().size(), apiProductId);
-        List<Plan> paginationData = computePaginationData(output.apiProductPlans(), paginationParam);
+        log.debug("Found {} Plans for API Product {} (before pagination)", output.plans().size(), apiProductId);
+        List<Plan> paginationData = computePaginationData(output.plans(), paginationParam);
         log.debug("Returning {} Plans for API Product {} (after pagination)", paginationData.size(), apiProductId);
         return new ApiProductPlansResponse()
             .data(planMapper.convert(paginationData))
-            .pagination(PaginationInfo.computePaginationInfo(output.apiProductPlans().size(), paginationData.size(), paginationParam))
-            .links(computePaginationLinks(output.apiProductPlans().size(), paginationParam));
+            .pagination(PaginationInfo.computePaginationInfo(output.plans().size(), paginationData.size(), paginationParam))
+            .links(computePaginationLinks(output.plans().size(), paginationParam));
     }
 
     @POST
@@ -139,10 +146,10 @@ public class ApiProductPlansResource extends AbstractResource {
         if (PlanSecurityType.KEY_LESS.equals(createPlan.getSecurity().getType())) {
             return Response.status(Response.Status.BAD_REQUEST).entity(planSecurityInvalid()).build();
         }
-        var output = createProductPlanUseCase.execute(
+        var output = createApiProductPlanUseCase.execute(
             new CreateApiProductPlanUseCase.Input(
                 apiProductId,
-                api -> planMapper.map(createPlan),
+                apiProduct -> planMapper.map(createPlan),
                 AuditInfo.builder()
                     .organizationId(executionContext.getOrganizationId())
                     .environmentId(executionContext.getEnvironmentId())
@@ -156,7 +163,6 @@ public class ApiProductPlansResource extends AbstractResource {
                     .build()
             )
         );
-
         log.debug("Plan {} created for API Product {}", output.id(), apiProductId);
         return Response.created(this.getLocationHeader(output.id())).entity(planMapper.map(output.plan())).build();
     }

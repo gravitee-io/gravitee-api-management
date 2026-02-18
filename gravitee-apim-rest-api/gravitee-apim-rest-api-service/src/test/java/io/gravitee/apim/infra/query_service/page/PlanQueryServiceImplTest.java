@@ -77,7 +77,9 @@ class PlanQueryServiceImplTest {
                 .status(Plan.Status.PUBLISHED)
                 .build();
 
-            when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of(plan_published, plan_closed, plan_staging, plan_different_page));
+            when(planRepository.findByReferenceIdAndReferenceType(eq(API_ID), eq(Plan.PlanReferenceType.API))).thenReturn(
+                Set.of(plan_published, plan_closed, plan_staging, plan_different_page)
+            );
 
             var res = service.findAllByApiIdAndGeneralConditionsAndIsActive(API_ID, DefinitionVersion.V4, PAGE_ID);
             assertThat(res).hasSize(1);
@@ -89,7 +91,7 @@ class PlanQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_return_empty_list_if_no_results() {
-            when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of());
+            when(planRepository.findByReferenceIdAndReferenceType(eq(API_ID), eq(Plan.PlanReferenceType.API))).thenReturn(Set.of());
 
             var res = service.findAllByApiIdAndGeneralConditionsAndIsActive(API_ID, DefinitionVersion.V4, PAGE_ID);
             assertThat(res).isEmpty();
@@ -97,13 +99,14 @@ class PlanQueryServiceImplTest {
     }
 
     @Nested
-    class FindAllByApiId {
+    class FindAllByReferenceIdAndReferenceType {
 
         String API_ID = "api-id";
+        String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
 
         @Test
         @SneakyThrows
-        void should_return_all_plans_of_an_api() {
+        void should_return_all_plans_for_api_reference() {
             Plan plan1 = Plan.builder()
                 .id("plan1")
                 .referenceId(API_ID)
@@ -123,30 +126,26 @@ class PlanQueryServiceImplTest {
                 .status(Plan.Status.STAGING)
                 .build();
 
-            when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of(plan1, plan2, plan3));
+            when(planRepository.findByReferenceIdAndReferenceType(eq(API_ID), eq(Plan.PlanReferenceType.API))).thenReturn(
+                Set.of(plan1, plan2, plan3)
+            );
 
-            var res = service.findAllByApiId(API_ID);
+            var res = service.findAllByReferenceIdAndReferenceType(API_ID, Plan.PlanReferenceType.API.name());
             assertThat(res).hasSize(3).extracting(io.gravitee.apim.core.plan.model.Plan::getId).containsOnly("plan1", "plan2", "plan3");
         }
 
         @Test
         @SneakyThrows
-        void should_return_empty_list_if_no_results() {
-            when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of());
+        void should_return_empty_list_for_api_when_no_results() {
+            when(planRepository.findByReferenceIdAndReferenceType(eq(API_ID), eq(Plan.PlanReferenceType.API))).thenReturn(Set.of());
 
-            var res = service.findAllByApiId(API_ID);
+            var res = service.findAllByReferenceIdAndReferenceType(API_ID, Plan.PlanReferenceType.API.name());
             assertThat(res).isEmpty();
         }
-    }
-
-    @Nested
-    class FindAllForApiProduct {
-
-        String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
 
         @Test
         @SneakyThrows
-        void should_return_all_plans_of_an_api() {
+        void should_return_all_plans_for_api_product_reference() {
             Plan plan1 = Plan.builder()
                 .id("plan1")
                 .referenceId(API_PRODUCT_ID)
@@ -173,18 +172,18 @@ class PlanQueryServiceImplTest {
                 Set.of(plan1, plan2, plan3)
             );
 
-            var res = service.findAllForApiProduct(API_PRODUCT_ID);
+            var res = service.findAllByReferenceIdAndReferenceType(API_PRODUCT_ID, Plan.PlanReferenceType.API_PRODUCT.name());
             assertThat(res).hasSize(3).extracting(io.gravitee.apim.core.plan.model.Plan::getId).containsOnly("plan1", "plan2", "plan3");
         }
 
         @Test
         @SneakyThrows
-        void should_return_empty_list_if_no_results() {
+        void should_return_empty_list_for_api_product_when_no_results() {
             when(planRepository.findByReferenceIdAndReferenceType(eq(API_PRODUCT_ID), eq(Plan.PlanReferenceType.API_PRODUCT))).thenReturn(
                 Set.of()
             );
 
-            var res = service.findAllForApiProduct(API_PRODUCT_ID);
+            var res = service.findAllByReferenceIdAndReferenceType(API_PRODUCT_ID, Plan.PlanReferenceType.API_PRODUCT.name());
             assertThat(res).isEmpty();
         }
     }

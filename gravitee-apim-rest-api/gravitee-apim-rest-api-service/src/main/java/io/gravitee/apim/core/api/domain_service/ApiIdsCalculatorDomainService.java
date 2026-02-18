@@ -27,6 +27,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.rest.api.model.context.OriginContext;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.HashMap;
 import java.util.List;
@@ -106,7 +107,7 @@ public class ApiIdsCalculatorDomainService {
         Map<String, String> newPageIdsByOldPageIds
     ) {
         Map<String, Plan> plansByCrossId = planQueryService
-            .findAllByApiId(api.getId())
+            .findAllByReferenceIdAndReferenceType(api.getId(), GenericPlanEntity.ReferenceType.API.name())
             .stream()
             .filter(plan -> plan.getCrossId() != null)
             .collect(toMap(Plan::getCrossId, Function.identity()));

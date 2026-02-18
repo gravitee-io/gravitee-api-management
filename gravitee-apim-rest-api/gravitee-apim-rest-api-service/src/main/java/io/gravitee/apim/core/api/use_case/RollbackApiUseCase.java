@@ -41,6 +41,7 @@ import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Collections;
@@ -152,7 +153,7 @@ public class RollbackApiUseCase {
         Set<io.gravitee.apim.core.plan.model.Plan> plansToUpdate = new HashSet<>();
 
         Map<String, io.gravitee.apim.core.plan.model.Plan> existingPlans = planQueryService
-            .findAllByApiId(api.getId())
+            .findAllByReferenceIdAndReferenceType(api.getId(), GenericPlanEntity.ReferenceType.API.name())
             .stream()
             .collect(toMap(io.gravitee.apim.core.plan.model.Plan::getId, Function.identity()));
 
@@ -232,7 +233,7 @@ public class RollbackApiUseCase {
         );
 
         var existingPlansMustBeRollbackOrClose = planQueryService
-            .findAllByApiId(api.getId())
+            .findAllByReferenceIdAndReferenceType(api.getId(), GenericPlanEntity.ReferenceType.API.name())
             .stream()
             .collect(
                 Collectors.groupingBy(currentPlan -> {
