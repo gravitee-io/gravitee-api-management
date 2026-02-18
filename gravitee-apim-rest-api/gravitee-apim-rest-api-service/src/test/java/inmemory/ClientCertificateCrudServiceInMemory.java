@@ -44,6 +44,7 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
             .stream()
             .filter(cert -> clientCertificateId.equals(cert.getId()))
             .findFirst()
+            .map(cert -> cert.toBuilder().build())
             .orElseThrow(() -> new ClientCertificateNotFoundException(clientCertificateId));
     }
 
@@ -71,7 +72,7 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
             .build();
 
         storage.add(certificate);
-        return certificate;
+        return certificate.toBuilder().build();
     }
 
     @Override
@@ -103,7 +104,7 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
             .build();
 
         storage.set(index.getAsInt(), updated);
-        return updated;
+        return updated.toBuilder().build();
     }
 
     @Override
@@ -128,7 +129,13 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
         int fromIndex = Math.max(0, (pageNumber - 1) * pageSize);
         int toIndex = Math.min(fromIndex + pageSize, filtered.size());
 
-        List<ClientCertificate> pageContent = fromIndex < filtered.size() ? filtered.subList(fromIndex, toIndex) : Collections.emptyList();
+        List<ClientCertificate> pageContent = fromIndex < filtered.size()
+            ? filtered
+                .subList(fromIndex, toIndex)
+                .stream()
+                .map(cert -> cert.toBuilder().build())
+                .toList()
+            : Collections.emptyList();
 
         return new Page<>(pageContent, pageNumber, pageSize, filtered.size());
     }
@@ -143,6 +150,7 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
             .stream()
             .filter(cert -> applicationId.equals(cert.getApplicationId()))
             .filter(cert -> statusSet.contains(cert.getStatus()))
+            .map(cert -> cert.toBuilder().build())
             .collect(Collectors.toSet());
     }
 
@@ -156,6 +164,7 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
             .stream()
             .filter(cert -> applicationIds.contains(cert.getApplicationId()))
             .filter(cert -> statusSet.contains(cert.getStatus()))
+            .map(cert -> cert.toBuilder().build())
             .collect(Collectors.toSet());
     }
 
@@ -168,6 +177,7 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
         return storage
             .stream()
             .filter(cert -> statusSet.contains(cert.getStatus()))
+            .map(cert -> cert.toBuilder().build())
             .collect(Collectors.toSet());
     }
 
@@ -184,13 +194,17 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
             .filter(
                 cert -> cert.getStatus() == ClientCertificateStatus.ACTIVE || cert.getStatus() == ClientCertificateStatus.ACTIVE_WITH_END
             )
-            .max(Comparator.comparing(ClientCertificate::getCreatedAt));
+            .max(Comparator.comparing(ClientCertificate::getCreatedAt))
+            .map(cert -> cert.toBuilder().build());
     }
 
     @Override
     public void initWith(List<ClientCertificate> items) {
         storage.clear();
-        storage.addAll(items);
+        items
+            .stream()
+            .map(cert -> cert.toBuilder().build())
+            .forEach(storage::add);
     }
 
     @Override
