@@ -24,6 +24,7 @@ mat-chip {
 
 mat-dialog-container {
   --mat-dialog-container-color: #{theme.$card-background-color};
+  --mat-dialog-container-shape: #{theme.$container-shape};
 }
 
 mat-form-field {
@@ -62,6 +63,11 @@ mat-datepicker-content.mat-datepicker-content.mat-primary {
       text-label-text-color: #{theme.$button-text-text-color},
     )
   );
+}
+
+.mat-warn.mat-mdc-button-base.mat-mdc-outlined-button {
+  --mat-button-outlined-label-text-color: #{theme.$error-main-color};
+  --mat-button-outlined-outline-color: #{theme.$error-main-color};
 }
 
 table.mat-mdc-table {
