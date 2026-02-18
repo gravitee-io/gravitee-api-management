@@ -15,22 +15,6 @@ tags:
       description: Kafka Explorer module information
 
 paths:
-    /kafka-explorer/info:
-        get:
-            tags:
-                - Kafka Explorer
-            summary: Get Kafka Explorer module information
-            description: |
-                Returns information about the Kafka Explorer module including version, status, and available features.
-            operationId: getKafkaExplorerInfo
-            responses:
-                "200":
-                    description: Module information
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/KafkaExplorerInfoResponse"
-
     /kafka-explorer/describe-cluster:
         post:
             tags:
@@ -67,24 +51,6 @@ paths:
 
 components:
     schemas:
-        KafkaExplorerInfoResponse:
-            type: object
-            properties:
-                version:
-                    type: string
-                    description: Module version
-                status:
-                    type: string
-                    description: Current module status
-                features:
-                    type: array
-                    description: List of available features
-                    items:
-                        type: string
-                message:
-                    type: string
-                    description: Human-readable status message
-
         DescribeClusterRequest:
             type: object
             required:
