@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 import { DatePipe } from '@angular/common';
-import { Component, DestroyRef, effect, inject, input, output } from '@angular/core';
-import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { Component, DestroyRef, computed, effect, inject, input, output } from '@angular/core';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Moment } from 'moment';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -32,9 +33,13 @@ import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { DEFAULT_MORE_FILTERS, EnvLogsMoreFiltersForm } from '../../../../models/env-logs-more-filters.model';
 import { DATE_TIME_FORMATS } from '../../../../../../../shared/utils/timeFrameRanges';
 import { HTTP_METHODS } from '../../../../../../../entities/management-api-v2';
+import { ApiPlanV2Service } from '../../../../../../../services-ngx/api-plan-v2.service';
 
-// TODO: Replace with data from API when backend integration is implemented
-export const MOCK_ENTRYPOINTS = [
+/**
+ * Known V4 entrypoint connector types.
+ * These are a fixed set defined by the Gravitee platform — not API-specific.
+ */
+export const ENTRYPOINT_TYPES = [
   { id: 'http-proxy', name: 'HTTP Proxy' },
   { id: 'http-get', name: 'HTTP GET' },
   { id: 'http-post', name: 'HTTP POST' },
@@ -43,12 +48,8 @@ export const MOCK_ENTRYPOINTS = [
   { id: 'webhook', name: 'Webhook' },
 ];
 
-// TODO: Replace with data from API when backend integration is implemented
-export const MOCK_PLANS = [
-  { id: 'plan-1', name: 'Free Plan' },
-  { id: 'plan-2', name: 'Gold Plan' },
-  { id: 'plan-3', name: 'Enterprise Plan' },
-];
+/** UUID v4 pattern (lowercase hex with dashes). */
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type MoreFiltersFormGroup = {
   from: FormControl<Moment | null>;
@@ -87,16 +88,49 @@ type MoreFiltersFormGroup = {
 export class EnvLogsMoreFiltersComponent {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly planService = inject(ApiPlanV2Service);
 
   showMoreFilters = input(false);
   formValues = input<EnvLogsMoreFiltersForm>(DEFAULT_MORE_FILTERS);
+
+  /**
+   * IDs of the APIs currently selected in the quick filter bar.
+   * When exactly one API is selected, Plans are fetched dynamically.
+   * When 0 or 2+ APIs are selected, the Plans dropdown is hidden.
+   */
+  selectedApiIds = input<string[]>([]);
 
   closeMoreFilters = output<void>();
   applyMoreFilters = output<EnvLogsMoreFiltersForm>();
 
   readonly httpMethods = HTTP_METHODS;
-  readonly entrypoints = MOCK_ENTRYPOINTS;
-  readonly plans = MOCK_PLANS;
+  readonly entrypoints = ENTRYPOINT_TYPES;
+
+  // 4. State
+  minDate: Moment | null = null;
+  statuses: Set<number> = new Set();
+
+  /**
+   * Whether to show the Plans dropdown.
+   * Plans are API-scoped (no env-level endpoint), so we can only show them
+   * when exactly ONE API is selected.
+   */
+  showPlans = computed(() => this.selectedApiIds().length === 1);
+
+  /**
+   * Dynamically loaded plans for the selected API.
+   * Uses `toObservable` + `switchMap` to reactively fetch plans whenever `selectedApiIds` changes.
+   */
+  private readonly plans$ = toObservable(this.selectedApiIds).pipe(
+    switchMap(apiIds => {
+      if (apiIds.length !== 1) return of([]);
+      return this.planService
+        .list(apiIds[0], undefined, undefined, undefined, undefined, 1, 100)
+        .pipe(map(response => response.data.map(plan => ({ id: plan.id, name: plan.name }))));
+    }),
+  );
+
+  readonly plans = toSignal(this.plans$, { initialValue: [] as { id: string; name: string }[] });
 
   form = this.fb.group<MoreFiltersFormGroup>({
     from: this.fb.control<Moment | null>(null),
@@ -105,16 +139,13 @@ export class EnvLogsMoreFiltersComponent {
     entrypoints: this.fb.control<string[] | null>(null),
     methods: this.fb.control<string[] | null>(null),
     plans: this.fb.control<string[] | null>(null),
-    // TODO: Add Validators (e.g. pattern, minLength, min) to these controls when backend integration is implemented
     mcpMethod: this.fb.control<string | null>(null),
-    transactionId: this.fb.control<string | null>(null),
-    requestId: this.fb.control<string | null>(null),
-    uri: this.fb.control<string | null>(null),
-    responseTime: this.fb.control<number | null>(null),
+    transactionId: this.fb.control<string | null>(null, [Validators.maxLength(36), Validators.pattern(UUID_PATTERN)]),
+    requestId: this.fb.control<string | null>(null, [Validators.maxLength(36), Validators.pattern(UUID_PATTERN)]),
+    uri: this.fb.control<string | null>(null, [Validators.maxLength(2048)]),
+    responseTime: this.fb.control<number | null>(null, [Validators.min(0)]),
   });
   isInvalid = toSignal(this.form.statusChanges.pipe(map(() => this.form.invalid)), { initialValue: false });
-  minDate: Moment | null = null;
-  statuses: Set<number> = new Set();
 
   get minDateDisplay(): Date | null {
     return this.minDate ? this.minDate.toDate() : null;
@@ -127,8 +158,11 @@ export class EnvLogsMoreFiltersComponent {
   addStatusFromInput(event: MatChipInputEvent): void {
     const value = event.value?.trim();
     if (value && !isNaN(+value)) {
-      this.statuses.add(+value);
-      this.form.controls.statuses.setValue(new Set(this.statuses));
+      const code = +value;
+      if (code >= 100 && code <= 599 && Number.isInteger(code)) {
+        this.statuses.add(code);
+        this.form.controls.statuses.setValue(new Set(this.statuses));
+      }
       event.chipInput?.clear();
     }
   }
@@ -170,7 +204,6 @@ export class EnvLogsMoreFiltersComponent {
       entrypoints: raw.entrypoints ?? null,
       methods: raw.methods ?? null,
       plans: raw.plans ?? null,
-      // TODO: Add input sanitization/validation when backend integration is implemented
       mcpMethod: raw.mcpMethod?.trim() || null,
       transactionId: raw.transactionId?.trim() || null,
       requestId: raw.requestId?.trim() || null,
@@ -207,6 +240,13 @@ export class EnvLogsMoreFiltersComponent {
   private initSideEffects(): void {
     effect(() => {
       this.updateFormFromInput(this.formValues());
+    });
+
+    // When the Plans dropdown is hidden (0 or 2+ APIs selected), clear any plan selections
+    effect(() => {
+      if (!this.showPlans()) {
+        this.form.controls.plans.setValue(null, { emitEvent: false });
+      }
     });
 
     this.form.controls.from.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(from => {

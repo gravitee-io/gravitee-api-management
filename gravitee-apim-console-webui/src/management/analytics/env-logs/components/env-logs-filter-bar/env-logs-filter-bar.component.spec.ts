@@ -53,9 +53,16 @@ describe('EnvLogsFilterBarComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should display all filter dropdowns', async () => {
+  it('should display the period dropdown and the two gio-select-search components', async () => {
+    // Period is still a mat-select
     const selects = await loader.getAllHarnesses(MatSelectHarness);
-    expect(selects.length).toBe(3); // Period, API, Application
+    expect(selects.length).toBe(1); // Only Period
+
+    // APIs and Applications are gio-select-search (rendered as custom elements, not mat-select)
+    const apisSearch = fixture.nativeElement.querySelector('[data-testid="apis-select"]');
+    const appsSearch = fixture.nativeElement.querySelector('[data-testid="applications-select"]');
+    expect(apisSearch).toBeTruthy();
+    expect(appsSearch).toBeTruthy();
   });
 
   it('should display refresh button', async () => {
@@ -69,22 +76,24 @@ describe('EnvLogsFilterBarComponent', () => {
   });
 
   describe('filter selection', () => {
-    it('should display a chip when an API is selected', async () => {
-      const apisSelect = await loader.getHarness(MatSelectHarness.with({ ancestor: '[data-testid="apis-select"]' }));
-      await apisSelect.open();
-      const [apiOption] = await apisSelect.getOptions({ text: 'Weather API' });
-      await apiOption.click();
+    it('should display a chip when an API is selected via form control', async () => {
+      // Simulate selecting an API via the reactive form
+      component.form.patchValue({ apis: ['api-1'] });
+      // Cache the label for chip display
+      component.onApiOptionsLoaded([{ value: 'api-1', label: 'Weather API' }]);
+      fixture.detectChanges();
+      await fixture.whenStable();
 
       const chipSet = await loader.getHarness(MatChipSetHarness);
       const chips = await chipSet.getChips();
       expect(chips.length).toBe(1);
     });
 
-    it('should display a chip when an Application is selected', async () => {
-      const appsSelect = await loader.getHarness(MatSelectHarness.with({ ancestor: '[data-testid="applications-select"]' }));
-      await appsSelect.open();
-      const [appOption] = await appsSelect.getOptions({ text: 'Mobile App' });
-      await appOption.click();
+    it('should display a chip when an Application is selected via form control', async () => {
+      component.form.patchValue({ applications: ['app-1'] });
+      component.onAppOptionsLoaded([{ value: 'app-1', label: 'Mobile App' }]);
+      fixture.detectChanges();
+      await fixture.whenStable();
 
       const chipSet = await loader.getHarness(MatChipSetHarness);
       const chips = await chipSet.getChips();
@@ -99,11 +108,11 @@ describe('EnvLogsFilterBarComponent', () => {
 
   describe('chip removal', () => {
     it('should remove a chip when the remove icon is clicked', async () => {
-      // Select an API first
-      const apisSelect = await loader.getHarness(MatSelectHarness.with({ ancestor: '[data-testid="apis-select"]' }));
-      await apisSelect.open();
-      const [apiOption] = await apisSelect.getOptions({ text: 'Weather API' });
-      await apiOption.click();
+      // Select an API via form control
+      component.form.patchValue({ apis: ['api-1'] });
+      component.onApiOptionsLoaded([{ value: 'api-1', label: 'Weather API' }]);
+      fixture.detectChanges();
+      await fixture.whenStable();
 
       // Verify chip exists
       const chipSet = await loader.getHarness(MatChipSetHarness);
@@ -122,11 +131,11 @@ describe('EnvLogsFilterBarComponent', () => {
 
   describe('resetAllFilters', () => {
     it('should clear all filters when reset is clicked', async () => {
-      // Select an API first
-      const apisSelect = await loader.getHarness(MatSelectHarness.with({ ancestor: '[data-testid="apis-select"]' }));
-      await apisSelect.open();
-      const [apiOption] = await apisSelect.getOptions({ text: 'Weather API' });
-      await apiOption.click();
+      // Select an API via form control
+      component.form.patchValue({ apis: ['api-1'] });
+      component.onApiOptionsLoaded([{ value: 'api-1', label: 'Weather API' }]);
+      fixture.detectChanges();
+      await fixture.whenStable();
 
       // Click reset
       const resetButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="reset-filters-button"]' }));
@@ -298,6 +307,21 @@ describe('EnvLogsFilterBarComponent', () => {
       expect(component.moreFiltersValues().statuses.size).toBe(0);
       expect(component.moreFiltersValues().mcpMethod).toBeNull();
       expect(component.moreFiltersValues().entrypoints).toBeNull();
+    });
+  });
+
+  describe('filtersChanged output', () => {
+    it('should emit filter values when form changes', async () => {
+      const spy = jest.fn();
+      component.filtersChanged.subscribe(spy);
+
+      component.form.patchValue({ apis: ['api-1'] });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(spy).toHaveBeenCalled();
+      const lastCall = spy.mock.calls[spy.mock.calls.length - 1][0];
+      expect(lastCall.apiIds).toEqual(['api-1']);
     });
   });
 });

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -35,6 +35,9 @@ import {
   ENV_LOGS_DEFAULT_PERIOD,
   EnvLogsMoreFiltersForm,
 } from '../../models/env-logs-more-filters.model';
+import { ApiFilterService } from '../../../dashboards/ui/dashboard-viewer/filters/api-filter.service';
+import { ApplicationFilterService } from '../../../dashboards/ui/dashboard-viewer/filters/application-filter.service';
+import { GioSelectSearchComponent, SelectOption } from '../../../../../shared/components/gio-select-search/gio-select-search.component';
 
 export const ENV_LOGS_PERIODS = [
   ENV_LOGS_DEFAULT_PERIOD,
@@ -49,19 +52,13 @@ export const ENV_LOGS_PERIODS = [
   { label: 'Last 7 Days', value: '-7d' },
 ];
 
-// TODO: Replace with data from API when backend integration is implemented
-export const MOCK_APIS = [
-  { id: 'api-1', name: 'Weather API' },
-  { id: 'api-2', name: 'Payment Gateway' },
-  { id: 'api-3', name: 'User Service' },
-];
-
-// TODO: Replace with data from API when backend integration is implemented
-export const MOCK_APPLICATIONS = [
-  { id: 'app-1', name: 'Mobile App' },
-  { id: 'app-2', name: 'Web Portal' },
-  { id: 'app-3', name: 'Partner Integration' },
-];
+/** Emitted to the parent whenever any filter value changes. */
+export type EnvLogsFilterValues = {
+  period: string;
+  apiIds: string[];
+  applicationIds: string[];
+  more: EnvLogsMoreFiltersForm;
+};
 
 type EnvLogsQuickFiltersForm = {
   period: FormControl<{ label: string; value: string }>;
@@ -104,23 +101,34 @@ const MORE_FILTER_STRING_KEYS: { key: MoreFilterStringKey; label: string }[] = [
     MatChipsModule,
     MatTooltipModule,
     GioIconsModule,
+    GioSelectSearchComponent,
     EnvLogsMoreFiltersComponent,
   ],
 })
 export class EnvLogsFilterBarComponent {
+  // 1. Injections
+  private readonly apiFilterService = inject(ApiFilterService);
+  private readonly applicationFilterService = inject(ApplicationFilterService);
+
+  // 2. Inputs / Outputs
   loading = input(false);
   refresh = output<void>();
+  filtersChanged = output<EnvLogsFilterValues>();
 
+  // 3. Public state
   showMoreFilters = signal(false);
   moreFiltersValues = signal<EnvLogsMoreFiltersForm>(DEFAULT_MORE_FILTERS);
 
   readonly periods = ENV_LOGS_PERIODS;
-  readonly apis = MOCK_APIS;
-  readonly applications = MOCK_APPLICATIONS;
   readonly comparePeriod = (a: { value: string }, b: { value: string }): boolean => a?.value === b?.value;
 
-  private readonly apisMap = new Map(this.apis.map(a => [a.id, a.name]));
-  private readonly applicationsMap = new Map(this.applications.map(a => [a.id, a.name]));
+  /** Async results loaders for gio-select-search dropdowns */
+  readonly apiResultsLoader = this.apiFilterService.resultsLoader;
+  readonly applicationResultsLoader = this.applicationFilterService.resultsLoader;
+
+  /** Cache of selected option labels for chip display */
+  private selectedApiLabels = new Map<string, string>();
+  private selectedAppLabels = new Map<string, string>();
 
   form = new FormGroup<EnvLogsQuickFiltersForm>({
     period: new FormControl(ENV_LOGS_DEFAULT_PERIOD, { nonNullable: true }),
@@ -130,14 +138,23 @@ export class EnvLogsFilterBarComponent {
 
   private currentFilters = toSignal(this.form.valueChanges.pipe(distinctUntilChanged(isEqual)), { initialValue: this.form.value });
 
+  /** The IDs of the currently selected APIs — used by More Filters to load plans dynamically. */
+  selectedApiIds = computed<string[]>(() => this.currentFilters().apis ?? []);
+
   filterChips = computed<FilterChip[]>(() => {
     const filters = this.currentFilters();
     const more = this.moreFiltersValues();
     const chips: FilterChip[] = [];
 
+    // Period chip (only when not default)
+    const period = filters.period;
+    if (period && period.value !== '0') {
+      chips.push({ key: 'period', value: period.value, display: period.label });
+    }
+
     const quickFilterConfigs: { key: string; values: string[] | undefined | null; nameMap?: Map<string, string> }[] = [
-      { key: 'apis', values: filters.apis, nameMap: this.apisMap },
-      { key: 'applications', values: filters.applications, nameMap: this.applicationsMap },
+      { key: 'apis', values: filters.apis, nameMap: this.selectedApiLabels },
+      { key: 'applications', values: filters.applications, nameMap: this.selectedAppLabels },
     ];
 
     for (const { key, values, nameMap } of quickFilterConfigs) {
@@ -181,7 +198,37 @@ export class EnvLogsFilterBarComponent {
 
   isFiltering = computed(() => this.filterChips().length > 0);
 
+  constructor() {
+    // Emit filtersChanged whenever quick filters or more filters change
+    effect(() => {
+      const filters = this.currentFilters();
+      const more = this.moreFiltersValues();
+      this.filtersChanged.emit({
+        period: filters.period?.value ?? '0',
+        apiIds: filters.apis ?? [],
+        applicationIds: filters.applications ?? [],
+        more,
+      });
+    });
+  }
+
+  /** Called by gio-select-search when API options are loaded — caches labels for chip display. */
+  onApiOptionsLoaded(options: SelectOption[]) {
+    options.forEach(o => this.selectedApiLabels.set(o.value, o.label));
+  }
+
+  /** Called by gio-select-search when Application options are loaded — caches labels for chip display. */
+  onAppOptionsLoaded(options: SelectOption[]) {
+    options.forEach(o => this.selectedAppLabels.set(o.value, o.label));
+  }
+
   removeChip(chip: FilterChip) {
+    // Period chip — reset to default
+    if (chip.key === 'period') {
+      this.form.controls.period.setValue(ENV_LOGS_DEFAULT_PERIOD);
+      return;
+    }
+
     // eslint-disable-next-line angular/typecheck-number -- angular.isNumber is an AngularJS 1.x API; typeof provides proper TypeScript type narrowing
     if (chip.key === 'statuses' && typeof chip.value === 'number') {
       const current = this.moreFiltersValues();

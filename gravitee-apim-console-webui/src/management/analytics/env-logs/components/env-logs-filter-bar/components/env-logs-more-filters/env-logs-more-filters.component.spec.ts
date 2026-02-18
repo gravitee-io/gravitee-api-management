@@ -16,33 +16,38 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController } from '@angular/common/http/testing';
 import moment from 'moment';
 
 import { EnvLogsMoreFiltersComponent } from './env-logs-more-filters.component';
 import { EnvLogsMoreFiltersHarness } from './env-logs-more-filters.harness';
 
 import { DEFAULT_MORE_FILTERS } from '../../../../models/env-logs-more-filters.model';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../../shared/testing';
 
 describe('EnvLogsMoreFiltersComponent', () => {
   let fixture: ComponentFixture<EnvLogsMoreFiltersComponent>;
   let harness: EnvLogsMoreFiltersHarness;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EnvLogsMoreFiltersComponent],
-      providers: [provideNoopAnimations(), provideHttpClient()],
+      imports: [EnvLogsMoreFiltersComponent, GioTestingModule],
+      providers: [provideNoopAnimations()],
     }).compileComponents();
 
+    httpTestingController = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(EnvLogsMoreFiltersComponent);
     fixture.componentRef.setInput('showMoreFilters', true);
     fixture.componentRef.setInput('formValues', DEFAULT_MORE_FILTERS);
+    fixture.componentRef.setInput('selectedApiIds', []);
     fixture.detectChanges();
 
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, EnvLogsMoreFiltersHarness);
   });
 
   afterEach(() => {
+    httpTestingController.verify();
     fixture.destroy();
   });
 
@@ -99,11 +104,6 @@ describe('EnvLogsMoreFiltersComponent', () => {
     expect(methodsSelect).toBeTruthy();
   });
 
-  it('should display plans select when panel is open', async () => {
-    const plansSelect = await harness.getPlans();
-    expect(plansSelect).toBeTruthy();
-  });
-
   it('should include selected entrypoints in apply emission', async () => {
     const applySpy = jest.fn();
     fixture.componentInstance.applyMoreFilters.subscribe(applySpy);
@@ -132,18 +132,65 @@ describe('EnvLogsMoreFiltersComponent', () => {
     expect(applySpy).toHaveBeenCalledWith(expect.objectContaining({ methods: ['GET'] }));
   });
 
-  it('should include selected plans in apply emission', async () => {
-    const applySpy = jest.fn();
-    fixture.componentInstance.applyMoreFilters.subscribe(applySpy);
+  describe('plans dropdown', () => {
+    it('should hide plans when no API is selected', async () => {
+      const plansSelect = await harness.getPlans();
+      expect(plansSelect).toBeNull();
+    });
 
-    const plansSelect = (await harness.getPlans())!;
-    await plansSelect.open();
-    const [option] = await plansSelect.getOptions({ text: 'Gold Plan' });
-    await option.click();
+    it('should hide plans when multiple APIs are selected', async () => {
+      fixture.componentRef.setInput('selectedApiIds', ['api-1', 'api-2']);
+      fixture.detectChanges();
 
-    await harness.clickApply();
+      const plansSelect = await harness.getPlans();
+      expect(plansSelect).toBeNull();
+    });
 
-    expect(applySpy).toHaveBeenCalledWith(expect.objectContaining({ plans: ['plan-2'] }));
+    it('should show plans when exactly one API is selected', async () => {
+      fixture.componentRef.setInput('selectedApiIds', ['api-1']);
+      fixture.detectChanges();
+
+      // Flush the plans HTTP request
+      const req = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/api-1/plans?page=1&perPage=100`,
+      });
+      req.flush({ data: [{ id: 'plan-1', name: 'Gold Plan' }], pagination: { page: 1, perPage: 9999, totalCount: 1 } });
+      fixture.detectChanges();
+
+      const plansSelect = await harness.getPlans();
+      expect(plansSelect).toBeTruthy();
+
+      await plansSelect!.open();
+      const options = await plansSelect!.getOptions();
+      expect(options.length).toBe(1);
+      expect(await options[0].getText()).toBe('Gold Plan');
+    });
+
+    it('should include selected plans in apply emission', async () => {
+      fixture.componentRef.setInput('selectedApiIds', ['api-1']);
+      fixture.detectChanges();
+
+      // Flush plans request
+      const req = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/api-1/plans?page=1&perPage=100`,
+      });
+      req.flush({ data: [{ id: 'plan-1', name: 'Gold Plan' }], pagination: { page: 1, perPage: 9999, totalCount: 1 } });
+      fixture.detectChanges();
+
+      const applySpy = jest.fn();
+      fixture.componentInstance.applyMoreFilters.subscribe(applySpy);
+
+      const plansSelect = (await harness.getPlans())!;
+      await plansSelect.open();
+      const [option] = await plansSelect.getOptions({ text: 'Gold Plan' });
+      await option.click();
+
+      await harness.clickApply();
+
+      expect(applySpy).toHaveBeenCalledWith(expect.objectContaining({ plans: ['plan-1'] }));
+    });
   });
 
   it('should include MCP method in apply emission', async () => {
@@ -159,30 +206,30 @@ describe('EnvLogsMoreFiltersComponent', () => {
     expect(applySpy).toHaveBeenCalledWith(expect.objectContaining({ mcpMethod: 'tools/list' }));
   });
 
-  it('should include Transaction ID in apply emission', async () => {
+  it('should include Transaction ID in apply emission (valid UUID)', async () => {
     const applySpy = jest.fn();
     fixture.componentInstance.applyMoreFilters.subscribe(applySpy);
 
     const txInput = (await harness.getTransactionId())!;
     expect(txInput).toBeTruthy();
-    await txInput.setValue('tx-abc-123');
+    await txInput.setValue('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
 
     await harness.clickApply();
 
-    expect(applySpy).toHaveBeenCalledWith(expect.objectContaining({ transactionId: 'tx-abc-123' }));
+    expect(applySpy).toHaveBeenCalledWith(expect.objectContaining({ transactionId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' }));
   });
 
-  it('should include Request ID in apply emission', async () => {
+  it('should include Request ID in apply emission (valid UUID)', async () => {
     const applySpy = jest.fn();
     fixture.componentInstance.applyMoreFilters.subscribe(applySpy);
 
     const reqInput = (await harness.getRequestId())!;
     expect(reqInput).toBeTruthy();
-    await reqInput.setValue('req-xyz-456');
+    await reqInput.setValue('f0e1d2c3-b4a5-6789-0123-456789abcdef');
 
     await harness.clickApply();
 
-    expect(applySpy).toHaveBeenCalledWith(expect.objectContaining({ requestId: 'req-xyz-456' }));
+    expect(applySpy).toHaveBeenCalledWith(expect.objectContaining({ requestId: 'f0e1d2c3-b4a5-6789-0123-456789abcdef' }));
   });
 
   it('should include URI in apply emission', async () => {
@@ -211,13 +258,58 @@ describe('EnvLogsMoreFiltersComponent', () => {
     expect(applySpy).toHaveBeenCalledWith(expect.objectContaining({ responseTime: 500 }));
   });
 
+  describe('input validation', () => {
+    it('should disable apply when transaction ID is not a valid UUID', async () => {
+      const txInput = (await harness.getTransactionId())!;
+      await txInput.setValue('not-a-uuid');
+
+      expect(await harness.isApplyDisabled()).toBe(true);
+    });
+
+    it('should disable apply when request ID is not a valid UUID', async () => {
+      const reqInput = (await harness.getRequestId())!;
+      await reqInput.setValue('not-a-uuid');
+
+      expect(await harness.isApplyDisabled()).toBe(true);
+    });
+
+    it('should disable apply when response time is negative', async () => {
+      const rtInput = (await harness.getResponseTime())!;
+      await rtInput.setValue('-1');
+
+      expect(await harness.isApplyDisabled()).toBe(true);
+    });
+
+    it('should allow apply when all fields are valid', async () => {
+      expect(await harness.isApplyDisabled()).toBe(false);
+    });
+  });
+
   describe('addStatusFromInput', () => {
-    it('should add a valid numeric status', () => {
+    it('should add a valid numeric status (100-599)', () => {
       const event = { value: '200', chipInput: { clear: jest.fn() } } as any;
 
       fixture.componentInstance.addStatusFromInput(event);
 
       expect(fixture.componentInstance.statuses.has(200)).toBe(true);
+      expect(event.chipInput.clear).toHaveBeenCalled();
+    });
+
+    it('should reject status codes below 100', () => {
+      const event = { value: '99', chipInput: { clear: jest.fn() } } as any;
+
+      fixture.componentInstance.addStatusFromInput(event);
+
+      expect(fixture.componentInstance.statuses.size).toBe(0);
+      expect(event.chipInput.clear).toHaveBeenCalled();
+    });
+
+    it('should reject status codes above 599', () => {
+      const event = { value: '600', chipInput: { clear: jest.fn() } } as any;
+
+      fixture.componentInstance.addStatusFromInput(event);
+
+      expect(fixture.componentInstance.statuses.size).toBe(0);
       expect(event.chipInput.clear).toHaveBeenCalled();
     });
 
@@ -268,7 +360,6 @@ describe('EnvLogsMoreFiltersComponent', () => {
     it('should sync form when formValues input changes', () => {
       const newValues = {
         ...DEFAULT_MORE_FILTERS,
-        mcpMethod: 'tools/call',
         entrypoints: ['http-proxy'],
         from: moment('2026-01-15T10:00:00'),
       };
@@ -276,7 +367,6 @@ describe('EnvLogsMoreFiltersComponent', () => {
       fixture.componentRef.setInput('formValues', newValues);
       fixture.detectChanges();
 
-      expect(fixture.componentInstance.form.value.mcpMethod).toBe('tools/call');
       expect(fixture.componentInstance.form.value.entrypoints).toEqual(['http-proxy']);
       expect(fixture.componentInstance.minDate).toBeTruthy();
     });

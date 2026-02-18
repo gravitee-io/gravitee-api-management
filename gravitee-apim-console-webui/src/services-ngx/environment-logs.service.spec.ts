@@ -17,7 +17,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 
-import { EnvironmentLogsService, SearchLogsResponse } from './environment-logs.service';
+import { EnvironmentLogsService, SearchLogsResponse, periodToMs } from './environment-logs.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing/gio-testing.module';
 
@@ -116,5 +116,42 @@ describe('EnvironmentLogsService', () => {
       );
       req.flush(mockResponse);
     });
+  });
+});
+
+describe('periodToMs', () => {
+  it('should parse minutes correctly', () => {
+    expect(periodToMs('-5m')).toBe(5 * 60_000);
+    expect(periodToMs('-30m')).toBe(30 * 60_000);
+  });
+
+  it('should parse hours correctly', () => {
+    expect(periodToMs('-1h')).toBe(3_600_000);
+    expect(periodToMs('-12h')).toBe(12 * 3_600_000);
+  });
+
+  it('should parse days correctly', () => {
+    expect(periodToMs('-1d')).toBe(86_400_000);
+    expect(periodToMs('-7d')).toBe(7 * 86_400_000);
+  });
+
+  it('should return null for "0" (no period)', () => {
+    expect(periodToMs('0')).toBeNull();
+  });
+
+  it('should return null for empty string', () => {
+    expect(periodToMs('')).toBeNull();
+  });
+
+  it('should return null and warn for unrecognized formats', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+    expect(periodToMs('-2w')).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Unrecognized period format'));
+
+    expect(periodToMs('invalid')).toBeNull();
+    expect(periodToMs('5m')).toBeNull(); // missing leading dash
+
+    warnSpy.mockRestore();
   });
 });

@@ -24,7 +24,6 @@ export class EnvLogsMoreFiltersHarness extends ComponentHarness {
   private getClearAllButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="more-filters-clear"]' }));
   private getApplyButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="more-filters-apply"]' }));
   private getCloseButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="more-filters-close"]' }));
-  private getPeriodSelect = this.locatorForOptional(MatSelectHarness.with({ ancestor: '[data-testid="more-filters-period"]' }));
   private getStatusInput = this.locatorForOptional('[data-testid="more-filters-status-input"]');
   private getEntrypointsSelect = this.locatorForOptional(MatSelectHarness.with({ ancestor: '[data-testid="more-filters-entrypoints"]' }));
   private getMethodsSelect = this.locatorForOptional(MatSelectHarness.with({ ancestor: '[data-testid="more-filters-methods"]' }));
@@ -51,10 +50,6 @@ export class EnvLogsMoreFiltersHarness extends ComponentHarness {
 
   async isApplyDisabled(): Promise<boolean> {
     return (await this.getApplyButton()).isDisabled();
-  }
-
-  async getPeriod(): Promise<MatSelectHarness | null> {
-    return this.getPeriodSelect();
   }
 
   async hasStatusInput(): Promise<boolean> {
