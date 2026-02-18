@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Workflow;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -25,6 +26,7 @@ import java.util.List;
  */
 public interface WorkflowRepository extends CrudRepository<Workflow, String> {
     List<Workflow> findByReferenceAndType(String referenceType, String referenceId, String type) throws TechnicalException;
+    List<Workflow> findByReferencesAndType(String referenceType, Collection<String> referenceIds, String type) throws TechnicalException;
 
     /**
      * Delete workflows by reference

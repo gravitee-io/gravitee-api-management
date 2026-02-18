@@ -99,6 +99,9 @@ public class TaskServiceTest {
     @Mock
     private EnvironmentService environmentService;
 
+    @Mock
+    private WorkflowService workflowService;
+
     @Before
     public void setUp() {
         MembershipEntity m1 = new MembershipEntity();
