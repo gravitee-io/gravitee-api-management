@@ -294,10 +294,8 @@ public class DebugReactorEventListener extends ReactorEventListener {
 
     private Completable updateEvent(io.gravitee.repository.management.model.Event debugEvent, ApiDebugStatus apiDebugStatus) {
         return Completable.fromAction(() -> {
-            debugEvent
-                .getProperties()
-                .put(io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue(), apiDebugStatus.name());
-            eventRepository.update(debugEvent);
+            eventRepository.update(debugEvent
+                    .updateProperties(io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue(), apiDebugStatus.name()));
         });
     }
 
