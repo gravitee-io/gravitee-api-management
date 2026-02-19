@@ -28,7 +28,7 @@ export const API_PRODUCTS_ROUTES: Routes = [
     },
   },
   {
-    path: 'new',
+    path: 'create',
     loadComponent: () => import('./create/api-product-create.component').then(m => m.ApiProductCreateComponent),
     data: {
       permissions: {

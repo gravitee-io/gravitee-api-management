@@ -20,21 +20,20 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpTestingController } from '@angular/common/http/testing';
-import { ActivatedRoute, Router } from '@angular/router';
-import { MatDialogHarness } from '@angular/material/dialog/testing';
-import { GioConfirmAndValidateDialogHarness } from '@gravitee/ui-particles-angular';
 
 import { ApiProductDangerZoneComponent } from './api-product-danger-zone.component';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
+import { GioTestingModule } from '../../../../shared/testing';
 import { ApiProduct } from '../../../../entities/management-api-v2/api-product';
-import { Constants } from '../../../../entities/Constants';
-import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 @Component({
   standalone: true,
-  template: `<api-product-danger-zone [apiProduct]="apiProduct()" (reloadDetails)="onReload()"></api-product-danger-zone>`,
+  template: `<api-product-danger-zone
+    [apiProduct]="apiProduct()"
+    [isReadOnly]="isReadOnly()"
+    (removeApisClick)="onRemoveApis()"
+    (deleteApiProductClick)="onDeleteApiProduct()"
+  ></api-product-danger-zone>`,
   imports: [ApiProductDangerZoneComponent],
 })
 class TestHostComponent {
@@ -44,87 +43,51 @@ class TestHostComponent {
     version: '1.0',
     apiIds: ['api-1', 'api-2'],
   });
-  reloadEmitted = false;
-  onReload(): void {
-    this.reloadEmitted = true;
+  isReadOnly = signal(false);
+  removeApisEmitted = false;
+  deleteApiProductEmitted = false;
+
+  onRemoveApis(): void {
+    this.removeApisEmitted = true;
+  }
+
+  onDeleteApiProduct(): void {
+    this.deleteApiProductEmitted = true;
   }
 }
 
 describe('ApiProductDangerZoneComponent', () => {
-  const API_PRODUCT_ID = 'product-1';
   let fixture: ComponentFixture<TestHostComponent>;
   let loader: HarnessLoader;
-  let rootLoader: HarnessLoader;
-  let httpTestingController: HttpTestingController;
-  let routerNavigateSpy: jest.SpyInstance;
   let hostComponent: TestHostComponent;
-  const fakeSnackBarService = { error: jest.fn(), success: jest.fn() };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [TestHostComponent, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
-      providers: [
-        { provide: Constants, useValue: CONSTANTS_TESTING },
-        { provide: SnackBarService, useValue: fakeSnackBarService },
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: { params: {} },
-            parent: { snapshot: { params: { apiProductId: API_PRODUCT_ID } } },
-          },
-        },
-      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHostComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
-    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-    httpTestingController = TestBed.inject(HttpTestingController);
-    routerNavigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate');
     hostComponent = fixture.componentInstance;
     fixture.detectChanges();
-  });
-
-  afterEach(() => {
-    httpTestingController.verify();
-    jest.clearAllMocks();
   });
 
   it('should create', () => {
     expect(hostComponent).toBeTruthy();
   });
 
-  it('should remove all APIs when confirmed', async () => {
+  it('should emit removeApisClick when Remove APIs button is clicked', async () => {
     const removeButton = await loader.getHarness(MatButtonHarness.with({ text: /Remove APIs/i }));
     await removeButton.click();
 
-    const dialog = await rootLoader.getHarness(MatDialogHarness);
-    const confirmButton = await dialog.getHarness(MatButtonHarness.with({ text: /Yes, remove them/i }));
-    await confirmButton.click();
-
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/apis`);
-    expect(req.request.method).toBe('DELETE');
-    req.flush({});
-    await fixture.whenStable();
-
-    expect(fakeSnackBarService.success).toHaveBeenCalledWith('All APIs have been removed from the API Product.');
-    expect(hostComponent.reloadEmitted).toBe(true);
+    expect(hostComponent.removeApisEmitted).toBe(true);
   });
 
-  it('should delete API product when confirmed', async () => {
+  it('should emit deleteApiProductClick when Delete API Product button is clicked', async () => {
     const deleteButton = await loader.getHarness(MatButtonHarness.with({ text: /Delete API Product/i }));
     await deleteButton.click();
 
-    const dialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
-    await dialog.confirm();
-
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
-    expect(req.request.method).toBe('DELETE');
-    req.flush({});
-    await fixture.whenStable();
-
-    expect(fakeSnackBarService.success).toHaveBeenCalledWith('The API Product has been deleted.');
-    expect(routerNavigateSpy).toHaveBeenCalledWith(['../../'], expect.anything());
+    expect(hostComponent.deleteApiProductEmitted).toBe(true);
   });
 
   it('should always show Remove APIs button', async () => {

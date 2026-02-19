@@ -22,19 +22,20 @@
     <div class="danger-card__actions">
       <div class="danger-card__actions__action">
         <span>Remove all the APIs of this API Product.</span>
-        <button
-          mat-button
-          color="warn"
-          [disabled]="isReadOnly() || !apiProduct().apiIds?.length"
-          (click)="removeApis()"
-        >
+        <button mat-button color="warn" [disabled]="isReadOnly() || !apiProduct().apiIds?.length" (click)="onRemoveApis()">
           Remove APIs
         </button>
       </div>
 
       <div class="danger-card__actions__action">
         <span>Delete this API Product. This won't delete APIs associated to it.</span>
-        <button mat-button color="warn" [disabled]="isReadOnly()" data-testid="api_product_dangerzone_delete" (click)="deleteApiProduct()">
+        <button
+          mat-button
+          color="warn"
+          [disabled]="isReadOnly()"
+          data-testid="api_product_dangerzone_delete"
+          (click)="onDeleteApiProduct()"
+        >
           Delete API Product
         </button>
       </div>
