@@ -1174,7 +1174,7 @@ describe('SubscribeToApiComponent', () => {
       .expectOne(req => {
         return (
           req.url === `${TESTING_BASE_URL}/subscriptions` &&
-          req.params.get('apiId') === apiId &&
+          req.params.get('apiIds') === apiId &&
           req.params.getAll('statuses')?.includes('PENDING') === true &&
           req.params.getAll('statuses')?.includes('ACCEPTED') === true &&
           req.params.get('size') === '-1'
@@ -1191,7 +1191,7 @@ describe('SubscribeToApiComponent', () => {
       .expectOne(req => {
         return (
           req.url === `${TESTING_BASE_URL}/subscriptions` &&
-          req.params.get('applicationId') === applicationId &&
+          req.params.get('applicationIds') === applicationId &&
           req.params.getAll('statuses')?.includes('PENDING') === true &&
           req.params.getAll('statuses')?.includes('ACCEPTED') === true &&
           req.params.getAll('statuses')?.includes('PAUSED') === true &&
