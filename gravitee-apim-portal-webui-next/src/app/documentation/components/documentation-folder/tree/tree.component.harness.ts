@@ -56,6 +56,26 @@ export class TreeComponentHarness extends ComponentHarness {
     throw new Error(`No item found with title: ${title}`);
   }
 
+  async getApiByTitle(title: string): Promise<{
+    label: string;
+    expanded: boolean;
+  } | null> {
+    const buttons = await this.locatorForAll(TreeRowHarness.with({ selector: '.tree__row.api' }))();
+
+    for (const button of buttons) {
+      const text = await button.getText();
+
+      if (text?.trim() === title.trim()) {
+        return {
+          label: text,
+          expanded: await button.isExpanded(),
+        };
+      }
+    }
+
+    throw new Error(`No item found with title: ${title}`);
+  }
+
   async clickItemByTitle(title: string): Promise<void> {
     const buttons = await this.getTreeLabelButtons();
 
