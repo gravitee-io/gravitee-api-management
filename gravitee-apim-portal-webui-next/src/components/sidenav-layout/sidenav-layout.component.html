@@ -30,6 +30,9 @@
   <div class="sidenav-layout__container__breadcrumbs">
     <app-sidenav-toggle-button-component [collapsed]="sidenavCollapsed()" (toggleState)="onToggleSidenav()" />
     <app-breadcrumbs-component [breadcrumbs]="breadcrumbs()" />
+    <div class="sidenav-layout__container__breadcrumbs__actions">
+      <ng-content select="[breadcrumbActions]" />
+    </div>
   </div>
   <div class="sidenav-layout__container__content">
     <ng-content select="[mainContent]" />

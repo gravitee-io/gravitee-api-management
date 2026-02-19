@@ -40,7 +40,8 @@ $indent-step: 26px;
     background: none;
     cursor: pointer;
 
-    &.folder, &.api {
+    &.folder,
+    &.api {
       padding-left: calc(#{$indent-base} + (var(--level) * #{$indent-step}));
 
       &.child {
