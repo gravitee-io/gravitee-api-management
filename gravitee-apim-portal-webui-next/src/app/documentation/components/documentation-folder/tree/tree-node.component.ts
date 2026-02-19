@@ -68,6 +68,7 @@ export class TreeNodeComponent {
   onClick(): void {
     switch (this.node().type) {
       case 'FOLDER':
+      case 'API':
         this.toggleNode();
         break;
       case 'PAGE':

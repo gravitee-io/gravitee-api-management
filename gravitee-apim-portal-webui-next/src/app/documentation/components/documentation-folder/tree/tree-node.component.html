@@ -34,22 +34,25 @@
     <span class="material-icons tree__link__icon" aria-hidden="true">open_in_new</span>
   </a>
 } @else {
+  @let isContainer = node().type === 'FOLDER' || node().type === 'API';
+
   <button
     class="tree__row nav-button"
     role="treeitem"
     mat-stroked-button
     [class.m3-selected-nav-item]="isSelected()"
     [class.folder]="node().type === 'FOLDER'"
+    [class.api]="node().type === 'API'"
     [class.child]="level() > 0"
     [style.--level]="level()"
     [attr.aria-level]="level() + 1"
     [attr.aria-selected]="isSelected()"
-    [attr.aria-expanded]="node().type === 'FOLDER' ? isExpanded() : null"
+    [attr.aria-expanded]="isContainer ? isExpanded() : null"
     (click)="onClick()"
-    (keydown.arrowright)="node().type === 'FOLDER' && isExpanded.set(true)"
-    (keydown.arrowleft)="node().type === 'FOLDER' && isExpanded.set(false)"
+    (keydown.arrowright)="isContainer && isExpanded.set(true)"
+    (keydown.arrowleft)="isContainer && isExpanded.set(false)"
   >
-    @if (node().type === 'FOLDER') {
+    @if (isContainer) {
       <span class="material-icons tree__icon" [class.expanded]="isExpanded()" [attr.data-test-icon]="'toggle'" aria-hidden="true">{{
         'keyboard_arrow_down'
       }}</span>

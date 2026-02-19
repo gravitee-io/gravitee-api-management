@@ -49,6 +49,8 @@ describe('TreeComponent', () => {
      *      - Page 2
      *      - Folder 3
      *      - External Link 2
+     *  - API 1
+     *      - Page 3
      */
     documentationTreeService.init(parentItem, [
       makeItem('p1', 'PAGE', 'Page 1', 0),
@@ -58,6 +60,8 @@ describe('TreeComponent', () => {
       makeItem('p2', 'PAGE', 'Page 2', 0, 'f2'),
       makeItem('f3', 'FOLDER', 'Folder 3', 1, 'f2'),
       makeItem('l2', 'LINK', 'External Link 2', 2, 'f2'),
+      makeItem('a1', 'API', 'API 1', 4),
+      makeItem('p3', 'PAGE', 'Page 3', 5, 'a1'),
     ]);
     itemsTree = documentationTreeService.getTree();
     fixture = TestBed.createComponent(TreeComponent);
@@ -69,10 +73,10 @@ describe('TreeComponent', () => {
 
   it('should build tree', async () => {
     const topLevelItems = await harness.getTopLevelNodes();
-    expect(topLevelItems.length).toBe(4);
+    expect(topLevelItems.length).toBe(5);
 
     const topLevelLabels = await Promise.all(topLevelItems?.map(node => node.getText()) || []);
-    expect(topLevelLabels).toEqual(['Page 1', 'Folder 1', 'open_in_new External Link 1', 'Folder 2']);
+    expect(topLevelLabels).toEqual(['Page 1', 'Folder 1', 'open_in_new External Link 1', 'Folder 2', 'API 1']);
 
     expect(await topLevelItems[0].getChildren()).toHaveLength(0);
     expect(await topLevelItems[1].getChildren()).toHaveLength(0);
@@ -120,6 +124,20 @@ describe('TreeComponent', () => {
 
       folder = await harness.getFolderByTitle('Folder 1');
       expect(folder?.expanded).toEqual(false);
+    });
+
+    it('should collapse api on click', async () => {
+      const selectSpy = jest.fn();
+      component.selectNode.subscribe(selectSpy);
+
+      let api = await harness.getApiByTitle('API 1');
+      expect(api?.expanded).toEqual(true);
+
+      await harness.clickItemByTitle('API 1');
+      expect(selectSpy).not.toHaveBeenCalledWith('a1');
+
+      api = await harness.getApiByTitle('API 1');
+      expect(api?.expanded).toEqual(false);
     });
   });
 });
