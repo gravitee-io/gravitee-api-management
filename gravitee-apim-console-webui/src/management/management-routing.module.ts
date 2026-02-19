@@ -52,6 +52,13 @@ const managementRoutes: Routes = [
         path: 'api-products',
         loadComponent: () => import('./api-products/list/api-product-list.component').then(m => m.ApiProductListComponent),
         data: {
+          requireLicense: {
+            license: { feature: ApimFeature.APIM_API_PRODUCTS },
+            redirect: '/',
+          },
+          permissions: {
+            anyOf: ['environment-api_product-r'],
+          },
           docs: {
             page: 'management-api-products',
           },
