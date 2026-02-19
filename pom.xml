@@ -279,7 +279,7 @@
         <gravitee-inference-service.version>1.3.4</gravitee-inference-service.version>
         <gravitee-secretprovider-kubernetes.version>2.0.0</gravitee-secretprovider-kubernetes.version>
         <gravitee-policy-ai-prompt-token-tracking.version>2.0.0</gravitee-policy-ai-prompt-token-tracking.version>
-        <gravitee-policy-ai-prompt-guard-rails.version>3.0.0</gravitee-policy-ai-prompt-guard-rails.version>
+        <gravitee-policy-ai-prompt-guard-rails.version>3.1.1</gravitee-policy-ai-prompt-guard-rails.version>
 
         <!-- Enterprise plugins -->
         <gravitee-entrypoint-http-get.version>2.1.0</gravitee-entrypoint-http-get.version>
