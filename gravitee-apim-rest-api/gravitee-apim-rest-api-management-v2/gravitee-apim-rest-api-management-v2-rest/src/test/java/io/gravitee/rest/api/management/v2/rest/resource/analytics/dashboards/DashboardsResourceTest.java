@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.v2.rest.resource.analytics.dashboards;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
-import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import assertions.MAPIAssertions;
 import fixtures.DashboardFixtures;
 import inmemory.DashboardCrudServiceInMemory;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CreateDashboard;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CustomInterval;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.DashboardsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
@@ -44,12 +42,15 @@ import jakarta.inject.Inject;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DashboardsResourceTest extends AbstractResourceTest {
@@ -148,12 +149,6 @@ class DashboardsResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_400_if_missing_body() {
-            var response = rootTarget().request().post(json(null));
-            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
-        }
-
-        @Test
         void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.ORGANIZATION_DASHBOARD, ORGANIZATION, RolePermissionAction.CREATE, () ->
                 rootTarget().request().post(json(new CreateDashboard()))
@@ -234,6 +229,34 @@ class DashboardsResourceTest extends AbstractResourceTest {
                 .asError()
                 .hasHttpStatus(BAD_REQUEST_400)
                 .hasMessageContaining("measure");
+        }
+
+        @Test
+        void should_return_400_if_missing_body() {
+            var response = rootTarget().request().post(json(null));
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @ParameterizedTest
+        @MethodSource("provideInvalidName")
+        void should_return_400_if_name_is_invalid(String name) {
+            var createDashboard = DashboardFixtures.aCreateDashboard();
+            createDashboard.setName(name);
+            var response = rootTarget().request().post(json(createDashboard));
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @ParameterizedTest
+        @MethodSource("provideInvalidName")
+        void should_return_400_if_widget_title_is_invalid(String title) {
+            var createDashboard = DashboardFixtures.createDashboardWithOneWidget(DashboardFixtures.validMeasuresRequest());
+            createDashboard.getWidgets().getFirst().setTitle(title);
+            var response = rootTarget().request().post(json(createDashboard));
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        private static Stream<String> provideInvalidName() {
+            return Stream.of("ab", "a".repeat(257));
         }
     }
 

@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.analytics.dashboards;
 
-import io.gravitee.apim.core.audit.model.AuditActor;
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.dashboard.use_case.DeleteDashboardUseCase;
 import io.gravitee.apim.core.dashboard.use_case.GetDashboardUseCase;
 import io.gravitee.apim.core.dashboard.use_case.UpdateDashboardUseCase;
@@ -28,7 +26,6 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
