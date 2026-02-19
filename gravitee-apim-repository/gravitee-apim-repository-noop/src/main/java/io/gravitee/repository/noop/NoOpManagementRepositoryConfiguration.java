@@ -92,4 +92,9 @@ public class NoOpManagementRepositoryConfiguration {
     public SharedPolicyGroupRepository sharedPolicyGroupRepository() {
         return new NoOpSharedPolicyGroupRepository();
     }
+
+    @Bean
+    public SubscriptionFormRepository subscriptionFormRepository() {
+        return new NoOpSubscriptionFormRepository();
+    }
 }
