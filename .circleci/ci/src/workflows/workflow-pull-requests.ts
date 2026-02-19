@@ -342,6 +342,7 @@ export class PullRequestsWorkflow {
           context: config.jobContext,
         }),
       );
+      requires.push('Lint & test APIM Libs');
     }
 
     if (!filterJobs || shouldBuildConsole(environment.changedFiles)) {
@@ -689,17 +690,23 @@ function shouldBuildAll(changedFiles: string[]): boolean {
   return changedFiles.some((file) => baseDepsIdentifiers.some((identifier) => file.includes(identifier)));
 }
 
+function shouldBuildAllFront(changedFiles: string[]): boolean {
+  const frontDepsIdentifiers = ['package.json', 'nx.json', 'yarn.lock'];
+  return shouldBuildAll(changedFiles) || changedFiles.some((file) => frontDepsIdentifiers.some((identifier) => file.includes(identifier)));
+}
+
 function shouldBuildHelm(changedFiles: string[]): boolean {
-  return shouldBuildAll(changedFiles) || changedFiles.some((file) => file.includes('helm'));
+  const helmDepsIdentifiers = ['helm'];
+  return shouldBuildAll(changedFiles) || changedFiles.some((file) => helmDepsIdentifiers.some((identifier) => file.includes(identifier)));
 }
 
 function shouldBuildWebuiLibs(changedFiles: string[]): boolean {
-  return shouldBuildAll(changedFiles) || changedFiles.some((file) => file.includes('gravitee-apim-webui-libs'));
+  return shouldBuildAllFront(changedFiles) || changedFiles.some((file) => file.includes('gravitee-apim-webui-libs'));
 }
 
 function shouldBuildConsole(changedFiles: string[]): boolean {
   return (
-    shouldBuildAll(changedFiles) ||
+    shouldBuildAllFront(changedFiles) ||
     changedFiles.some((file) => file.includes(config.components.console.project)) ||
     changedFiles.some((file) => file.includes('gravitee-apim-webui-libs'))
   );
@@ -707,7 +714,7 @@ function shouldBuildConsole(changedFiles: string[]): boolean {
 
 function shouldBuildPortalNext(changedFiles: string[]): boolean {
   return (
-    shouldBuildAll(changedFiles) ||
+    shouldBuildAllFront(changedFiles) ||
     changedFiles.some((file) => file.includes(config.components.portal.next.project)) ||
     changedFiles.some((file) => file.includes('gravitee-apim-webui-libs'))
   );
@@ -715,13 +722,14 @@ function shouldBuildPortalNext(changedFiles: string[]): boolean {
 
 function shouldBuildPortal(changedFiles: string[]): boolean {
   return (
-    shouldBuildAll(changedFiles) ||
+    shouldBuildAllFront(changedFiles) ||
     changedFiles.some((file) => file.includes(config.components.portal.project) && !file.includes(config.components.portal.next.project))
   );
 }
 
 function shouldBuildBackend(changedFiles: string[]): boolean {
   const mavenProjectsIdentifiers = [
+    'pom.xml',
     'gravitee-apim-bom',
     'gravitee-apim-common',
     'gravitee-apim-definition',
@@ -741,6 +749,7 @@ function shouldBuildBackend(changedFiles: string[]): boolean {
 
 function shouldTestAllBackend(changedFiles: string[]): boolean {
   const mavenProjectsIdentifiers = [
+    'pom.xml',
     'gravitee-apim-bom',
     'gravitee-apim-common',
     'gravitee-apim-definition',
