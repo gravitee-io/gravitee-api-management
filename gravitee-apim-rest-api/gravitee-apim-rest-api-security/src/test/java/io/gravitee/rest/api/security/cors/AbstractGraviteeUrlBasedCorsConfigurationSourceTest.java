@@ -16,34 +16,45 @@
 package io.gravitee.rest.api.security.cors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
+import io.gravitee.apim.core.access_point.model.AccessPointEvent;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
+import io.reactivex.rxjava3.annotations.NonNull;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import org.awaitility.Awaitility;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.mock.web.MockHttpServletRequest;
 
+@ExtendWith(MockitoExtension.class)
 class AbstractGraviteeUrlBasedCorsConfigurationSourceTest {
 
-    MockEnvironment fakeEnvironment = new MockEnvironment();
+    @Mock
+    private EventManager eventManager;
 
-    AbstractGraviteeUrlBasedCorsConfigurationSource cut = new AbstractGraviteeUrlBasedCorsConfigurationSource(
-        fakeEnvironment,
-        mock(ParameterService.class),
-        mock(InstallationAccessQueryService.class),
-        mock(EventManager.class),
-        ParameterReferenceType.ENVIRONMENT
-    ) {
-        @Override
-        protected String getReferenceId() {
-            return "env-id";
-        }
-    };
+    private MockEnvironment fakeEnvironment;
+    private AbstractGraviteeUrlBasedCorsConfigurationSource cut;
+
+    @BeforeEach
+    void setUp() {
+        fakeEnvironment = new MockEnvironment();
+        cut = buildCut();
+    }
 
     @Test
     void should_cache_cors_configuration_using_referer_header_if_defined() {
@@ -72,6 +83,35 @@ class AbstractGraviteeUrlBasedCorsConfigurationSourceTest {
         assertThat(cut.getCorsConfiguration(buildRequest("other.gravitee.dev", null, null))).isNotSameAs(corsConfiguration);
     }
 
+    @Test
+    void should_evict_from_cache_and_unregister_from_event_manager_when_entry_expires() {
+        // Expires after 50ms.
+        fakeEnvironment.setProperty("cors.cache.ttl", "50");
+
+        cut = buildCut();
+
+        var request = buildRequest("mapi.gravitee.dev", null, null);
+
+        var corsConfiguration = cut.getCorsConfiguration(request);
+        assertThat(cut.getCorsConfiguration(request)).isSameAs(corsConfiguration);
+        assertThat(cut.getCorsConfiguration(buildRequest("other.gravitee.dev", null, null))).isNotSameAs(corsConfiguration);
+
+        Awaitility.waitAtMost(2000, TimeUnit.MILLISECONDS)
+            .pollDelay(50, TimeUnit.MILLISECONDS)
+            .untilAsserted(() -> {
+                // Eviction only occurs on next access after TTL, so we need to call getCorsConfiguration again to trigger eviction of the expired entry.
+                cut.getCorsConfiguration(request);
+                verify(eventManager, atLeastOnce()).unsubscribeForEvents(
+                    any(GraviteeCorsConfiguration.ParameterKeyEventListener.class),
+                    eq(Key.class)
+                );
+                verify(eventManager, atLeastOnce()).unsubscribeForEvents(
+                    any(GraviteeCorsConfiguration.AccessPointEventListener.class),
+                    eq(AccessPointEvent.class)
+                );
+            });
+    }
+
     MockHttpServletRequest buildRequest(String serverName, String referer, String origin) {
         var request = new MockHttpServletRequest("GET", "/");
         request.setServerName(serverName);
@@ -80,5 +120,20 @@ class AbstractGraviteeUrlBasedCorsConfigurationSourceTest {
         Optional.ofNullable(origin).ifPresent(o -> request.addHeader(HttpHeaderNames.ORIGIN, o));
 
         return request;
+    }
+
+    private @NonNull AbstractGraviteeUrlBasedCorsConfigurationSource buildCut() {
+        return new AbstractGraviteeUrlBasedCorsConfigurationSource(
+            fakeEnvironment,
+            mock(ParameterService.class),
+            mock(InstallationAccessQueryService.class),
+            eventManager,
+            ParameterReferenceType.ENVIRONMENT
+        ) {
+            @Override
+            protected String getReferenceId() {
+                return "env-id";
+            }
+        };
     }
 }
