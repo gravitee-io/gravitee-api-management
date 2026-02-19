@@ -30,6 +30,7 @@ export enum ApimFeature {
   APIM_EN_MESSAGE_REACTOR = 'apim-en-message-reactor',
   APIM_LLM_PROXY_REACTOR = 'apim-llm-proxy-reactor',
   APIM_CLUSTER = 'apim-cluster',
+  APIM_API_PRODUCTS = 'apim-api-products',
   ALERT_ENGINE = 'alert-engine',
   FEDERATION = 'federation',
 }
@@ -170,6 +171,13 @@ export const getFeatureInfoData = (ctaConfig: CTAConfiguration): Record<ApimFeat
       title,
       image: 'assets/gio-ee-unlock-dialog/clusters.svg',
       description: `Cluster is part of ${ee}. Accelerate and standardize event-driven development by allowing you to configure, manage permissions for, and reuse your event-broker clusters as centrally-governed assets.`,
+      trialButtonLabel,
+      hideDays,
+    },
+    [ApimFeature.APIM_API_PRODUCTS]: {
+      title,
+      image: 'assets/gio-ee-unlock-dialog/api-products.svg',
+      description: `API Products is part of ${ee}. An API Product provides unified access to multiple APIs through one subscription.`,
       trialButtonLabel,
       hideDays,
     },

@@ -132,6 +132,12 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     };
     const clusterIconRight$ = this.getMenuItemIconRight$(clusterLicenseOptions);
 
+    const apiProductsLicenseOptions: LicenseOptions = {
+      feature: ApimFeature.APIM_API_PRODUCTS,
+      context: UTMTags.CONTEXT_ENVIRONMENT,
+    };
+    const apiProductsIconRight$ = this.getMenuItemIconRight$(apiProductsLicenseOptions);
+
     const mainMenuItems: MenuItem[] = [
       { icon: 'gio:home', routerLink: './home', displayName: 'Dashboard', category: 'home' },
       {
@@ -145,6 +151,8 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         routerLink: './api-products',
         displayName: 'API Products',
         category: 'API Products',
+        licenseOptions: apiProductsLicenseOptions,
+        iconRight$: apiProductsIconRight$,
       },
       {
         icon: 'gio:box',
