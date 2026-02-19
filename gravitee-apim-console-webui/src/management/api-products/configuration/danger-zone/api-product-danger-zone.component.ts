@@ -14,24 +14,11 @@
  * limitations under the License.
  */
 
-import { Component, DestroyRef, inject, input, output } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatDialog } from '@angular/material/dialog';
-import { ActivatedRoute, Router } from '@angular/router';
-import {
-  GioConfirmAndValidateDialogComponent,
-  GioConfirmAndValidateDialogData,
-  GioConfirmDialogComponent,
-  GioConfirmDialogData,
-} from '@gravitee/ui-particles-angular';
-import { EMPTY } from 'rxjs';
-import { catchError, filter, map, switchMap } from 'rxjs/operators';
+import { Component, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 
 import { ApiProduct } from '../../../../entities/management-api-v2/api-product';
-import { ApiProductV2Service } from '../../../../services-ngx/api-product-v2.service';
-import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'api-product-danger-zone',
@@ -41,73 +28,17 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
   imports: [MatCardModule, MatButtonModule],
 })
 export class ApiProductDangerZoneComponent {
-  private readonly router = inject(Router);
-  private readonly activatedRoute = inject(ActivatedRoute);
-  private readonly matDialog = inject(MatDialog);
-  private readonly snackBarService = inject(SnackBarService);
-  private readonly apiProductV2Service = inject(ApiProductV2Service);
-  private readonly destroyRef = inject(DestroyRef);
-
   apiProduct = input.required<ApiProduct>();
-  reloadDetails = output<void>();
   isReadOnly = input<boolean>(false);
 
-  removeApis(): void {
-    this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
-        width: '31.25rem',
-        data: {
-          title: 'Remove all APIs',
-          content: 'Are you sure you want to remove all the APIs from this API Product?',
-          confirmButton: 'Yes, remove them',
-        },
-        role: 'alertdialog',
-        id: 'removeApisDialog',
-      })
-      .afterClosed()
-      .pipe(
-        filter((confirm): confirm is true => confirm === true),
-        switchMap(() => this.apiProductV2Service.deleteAllApisFromApiProduct(this.apiProduct().id)),
-        catchError(({ error }) => {
-          this.snackBarService.error(error?.message || 'An error occurred while removing APIs.');
-          return EMPTY;
-        }),
-        map(() => this.snackBarService.success('All APIs have been removed from the API Product.')),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe(() => {
-        this.reloadDetails.emit();
-      });
+  removeApisClick = output<void>();
+  deleteApiProductClick = output<void>();
+
+  onRemoveApis(): void {
+    this.removeApisClick.emit();
   }
 
-  deleteApiProduct(): void {
-    this.matDialog
-      .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData, boolean>(GioConfirmAndValidateDialogComponent, {
-        width: '31.25rem',
-        data: {
-          title: 'Delete API Product',
-          content: 'Are you sure you want to delete this API Product?',
-          confirmButton: 'Yes, delete it',
-          validationMessage: `Please, type in the name of the API Product ${this.apiProduct().name} to confirm.`,
-          validationValue: this.apiProduct().name,
-          warning: 'This operation is irreversible.',
-        },
-        role: 'alertdialog',
-        id: 'deleteApiProductDialog',
-      })
-      .afterClosed()
-      .pipe(
-        filter((confirm): confirm is true => confirm === true),
-        switchMap(() => this.apiProductV2Service.delete(this.apiProduct().id)),
-        catchError(({ error }) => {
-          this.snackBarService.error(error?.message || 'An error occurred while deleting the API Product.');
-          return EMPTY;
-        }),
-        map(() => this.snackBarService.success('The API Product has been deleted.')),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe(() => {
-        this.router.navigate(['../../'], { relativeTo: this.activatedRoute });
-      });
+  onDeleteApiProduct(): void {
+    this.deleteApiProductClick.emit();
   }
 }

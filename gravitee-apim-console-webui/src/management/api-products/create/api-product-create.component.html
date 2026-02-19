@@ -18,7 +18,7 @@
 
 <div class="api-product-create">
   <div class="api-product-create__header">
-    <button type="button" class="back-link" (click)="onExit()">
+    <button type="button" mat-button class="back-link" (click)="onExit()">
       <mat-icon>arrow_back</mat-icon>
       <span>Go back to API Products</span>
     </button>
@@ -77,8 +77,8 @@
     </mat-card-content>
     <mat-card-footer>
       <div class="api-product-create__footer">
-        <button mat-stroked-button class="cancel-button" (click)="onBack()" [disabled]="isCreating()">Cancel</button>
-        <button mat-raised-button class="create-button" color="primary" (click)="onCreate()" [disabled]="form.invalid || isCreating()">
+        <button mat-stroked-button (click)="onBack()" [disabled]="isCreating()">Cancel</button>
+        <button mat-raised-button color="primary" (click)="onCreate()" [disabled]="form.invalid || isCreating()">
           @if (!isCreating()) {
             <span>Create API Product</span>
           } @else {

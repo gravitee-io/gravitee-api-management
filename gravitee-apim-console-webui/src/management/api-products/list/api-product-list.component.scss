@@ -21,7 +21,7 @@ $typography: map.get(gio.$mat-theme, typography);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 2rem;
+    margin-bottom: 32px;
 
     h1 {
       @include mat.m2-typography-level($typography, headline-5);
@@ -30,7 +30,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
     .subtitle {
       @include mat.m2-typography-level($typography, body-2);
-      margin-top: 0.5rem;
+      margin-top: 8px;
       margin-bottom: 0;
       color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
     }
@@ -39,16 +39,16 @@ $typography: map.get(gio.$mat-theme, typography);
   &__content-card {
     flex: 1;
     min-height: 25rem;
-    border-radius: 0.5rem;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   &__card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
     border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
 
     h2 {
@@ -64,7 +64,7 @@ $typography: map.get(gio.$mat-theme, typography);
   justify-content: center;
   align-items: center;
   min-height: 18.75rem;
-  padding: 3rem 1.5rem;
+  padding: 48px 24px;
 }
 
 .empty-state-card {
@@ -77,7 +77,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
   h3 {
     @include mat.m2-typography-level($typography, headline-6);
-    margin: 1.5rem 0 0.5rem 0;
+    margin: 24px 0 8px 0;
     color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'darker80');
   }
 
@@ -98,7 +98,7 @@ $typography: map.get(gio.$mat-theme, typography);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
   border: 1px solid mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'default');
 
   &__svg {
@@ -112,7 +112,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
 // Table styles
 .mat-column-picture {
-  padding: 0 0.5rem;
+  padding: 0 8px;
   width: 3rem;
   min-width: 3rem;
 }
@@ -121,12 +121,12 @@ $typography: map.get(gio.$mat-theme, typography);
 .mat-column-version,
 .mat-column-owner,
 .mat-column-actions {
-  padding: 0 0.5rem;
+  padding: 0 8px;
 }
 
 .mat-column-name {
   cursor: pointer;
-  padding: 0 0.5rem;
+  padding: 0 8px;
   width: auto;
 }
 

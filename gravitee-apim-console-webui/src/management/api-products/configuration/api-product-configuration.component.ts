@@ -15,10 +15,10 @@
  */
 
 import { Component, computed, DestroyRef, effect, inject, signal } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { AsyncValidatorFn, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
-import { EMPTY, merge, Observable, of, Subject, timer } from 'rxjs';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { EMPTY, merge, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -27,6 +27,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import {
+  GIO_DIALOG_WIDTH,
+  GioConfirmAndValidateDialogComponent,
+  GioConfirmAndValidateDialogData,
   GioConfirmDialogComponent,
   GioConfirmDialogData,
   GioFormFocusInvalidModule,
@@ -39,6 +42,7 @@ import { ApiProduct, UpdateApiProduct } from '../../../entities/management-api-v
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { apiProductNameUniqueAsyncValidator } from '../validators/api-product-name-unique-async.validator';
 
 interface ConfigForm {
   name: FormControl<string>;
@@ -66,6 +70,7 @@ interface ConfigForm {
 export class ApiProductConfigurationComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly apiProductV2Service = inject(ApiProductV2Service);
   private readonly permissionService = inject(GioPermissionService);
   private readonly snackBarService = inject(SnackBarService);
@@ -73,45 +78,48 @@ export class ApiProductConfigurationComponent {
 
   protected readonly isReadOnly = !this.permissionService.hasAnyMatching(['environment-api_product-u']);
 
-  readonly form = signal<FormGroup<ConfigForm> | null>(null);
+  readonly form = this.buildForm();
   readonly initialFormValue = signal<Record<string, unknown> | null>(null);
   readonly nameMaxLength = 512;
   readonly versionMaxLength = 64;
   private readonly reload$ = new Subject<void>();
-  private readonly updatedProduct$ = new Subject<ApiProduct>();
+  private currentApiProduct: ApiProduct | null = null;
 
-  readonly apiProduct = toSignal(
-    merge(
-      merge(
-        (this.activatedRoute.parent?.params ?? of({})).pipe(map(p => p['apiProductId'] ?? null)),
-        this.reload$.pipe(map(() => this.activatedRoute.parent?.snapshot?.params['apiProductId'] ?? null)),
-      ).pipe(
-        switchMap(apiProductId => {
-          if (apiProductId) {
-            return this.apiProductV2Service.get(apiProductId).pipe(
-              catchError(error => {
-                this.snackBarService.error(error.error?.message || 'An error occurred while loading the API Product');
-                return of(null);
-              }),
-            );
-          }
-          return of(null);
-        }),
-      ),
-      this.updatedProduct$,
-    ),
-    { initialValue: null as ApiProduct | null },
+  private readonly apiProductId = toSignal(this.activatedRoute.params.pipe(map(p => p['apiProductId'] ?? null)), {
+    initialValue: null as string | null,
+  });
+
+  private readonly fetchedProduct$ = merge(toObservable(this.apiProductId), this.reload$).pipe(
+    switchMap(() => {
+      const id = this.apiProductId();
+      return id
+        ? this.apiProductV2Service.get(id).pipe(
+            catchError(error => {
+              this.snackBarService.error(error.error?.message || 'An error occurred while loading the API Product');
+              return of(null);
+            }),
+          )
+        : of(null);
+    }),
   );
+
+  readonly apiProduct = toSignal(this.fetchedProduct$, {
+    initialValue: null as ApiProduct | null,
+  });
 
   readonly apiIds = computed(() => this.apiProduct()?.apiIds ?? []);
 
   private readonly _formSync = effect(() => {
     const p = this.apiProduct();
-    if (p) {
-      const f = this.createForm(p);
-      this.form.set(f);
-      this.initialFormValue.set(f.getRawValue());
-    }
+    if (!p) return;
+
+    this.currentApiProduct = p;
+    this.form.reset({
+      name: p.name ?? '',
+      version: p.version ?? '',
+      description: p.description ?? '',
+    });
+    this.initialFormValue.set(this.form.getRawValue());
   });
 
   onReloadDetails(): void {
@@ -119,48 +127,105 @@ export class ApiProductConfigurationComponent {
   }
 
   onSubmit(): void {
-    const f = this.form();
-    const product = this.apiProduct();
-    const apiProductId = product?.id;
-    if (f?.valid && apiProductId) {
-      const formValue = f.getRawValue();
-      const updateApiProduct: UpdateApiProduct = {
-        name: formValue.name?.trim() || '',
-        version: formValue.version?.trim() || '',
-        description: formValue.description?.trim() || undefined,
-        apiIds: product?.apiIds,
-      };
+    const product = this.apiProduct()!;
+    const { name, version, description } = this.form.getRawValue();
+    const updateApiProduct: UpdateApiProduct = {
+      name: name?.trim() || '',
+      version: version?.trim() || '',
+      description: description?.trim() || undefined,
+      apiIds: product?.apiIds,
+    };
 
-      this.apiProductV2Service
-        .update(apiProductId, updateApiProduct)
-        .pipe(
-          tap(updatedApiProduct => {
-            this.updatedProduct$.next(updatedApiProduct);
-            this.initialFormValue.set(f.getRawValue());
-            f.markAsPristine();
-            f.markAsUntouched();
-            this.snackBarService.success('Configuration successfully saved!');
-          }),
-          catchError(error => {
-            this.snackBarService.error(error.error?.message || error.message || 'An error occurred while updating the API Product');
-            return EMPTY;
-          }),
-          takeUntilDestroyed(this.destroyRef),
-        )
-        .subscribe();
-    } else {
-      f?.markAllAsTouched();
-    }
+    this.apiProductV2Service
+      .update(product.id, updateApiProduct)
+      .pipe(
+        tap(() => {
+          this.initialFormValue.set(this.form.getRawValue());
+          this.snackBarService.success('Configuration successfully saved!');
+          this.onReloadDetails();
+        }),
+        catchError(error => {
+          this.snackBarService.error(error.error?.message || error.message || 'An error occurred while updating the API Product');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   onReset(): void {
-    const f = this.form();
     const initial = this.initialFormValue();
-    if (f && initial) {
-      f.reset(initial);
-      f.markAsPristine();
-      f.markAsUntouched();
-    }
+    if (!initial) return;
+
+    this.form.reset(initial);
+  }
+
+  onRemoveApis(): void {
+    const apiProductId = this.apiProduct()?.id;
+    if (!apiProductId) return;
+
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        width: GIO_DIALOG_WIDTH.SMALL,
+        data: {
+          title: 'Remove all APIs',
+          content: 'Are you sure you want to remove all the APIs from this API Product?',
+          confirmButton: 'Yes, remove them',
+        },
+        role: 'alertdialog',
+        id: 'removeApisDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirm): confirm is true => confirm === true),
+        switchMap(() => this.apiProductV2Service.deleteAllApisFromApiProduct(apiProductId)),
+        tap(() => {
+          this.snackBarService.success('All APIs have been removed from the API Product.');
+          this.onReloadDetails();
+        }),
+        catchError(error => {
+          this.snackBarService.error(error?.error?.message || error?.message || 'An error occurred while removing APIs.');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  onDeleteApiProduct(): void {
+    const product = this.apiProduct();
+    const apiProductId = product?.id;
+    if (!apiProductId) return;
+
+    this.matDialog
+      .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData, boolean>(GioConfirmAndValidateDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        data: {
+          title: 'Delete API Product',
+          content: 'Are you sure you want to delete this API Product?',
+          confirmButton: 'Yes, delete it',
+          validationMessage: `Please, type in the name of the API Product ${product.name} to confirm.`,
+          validationValue: product.name,
+          warning: 'This operation is irreversible.',
+        },
+        role: 'alertdialog',
+        id: 'deleteApiProductDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirm): confirm is true => confirm === true),
+        switchMap(() => this.apiProductV2Service.delete(apiProductId)),
+        tap(() => {
+          this.snackBarService.success('The API Product has been deleted.');
+          this.router.navigate(['../../'], { relativeTo: this.activatedRoute });
+        }),
+        catchError(error => {
+          this.snackBarService.error(error?.error?.message || error?.message || 'An error occurred while deleting the API Product.');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   onDeleteApi(apiId: string): void {
@@ -169,7 +234,7 @@ export class ApiProductConfigurationComponent {
 
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
-        width: '31.25rem',
+        width: GIO_DIALOG_WIDTH.SMALL,
         data: {
           title: 'Remove API',
           content: 'Are you sure you want to remove this API from the API Product?',
@@ -194,36 +259,19 @@ export class ApiProductConfigurationComponent {
       .subscribe();
   }
 
-  private createForm(apiProduct: ApiProduct | null): FormGroup<ConfigForm> {
-    const product = apiProduct ?? undefined;
+  private buildForm(): FormGroup<ConfigForm> {
     return new FormGroup<ConfigForm>({
-      name: new FormControl(product?.name ?? '', {
+      name: new FormControl('', {
         nonNullable: true,
         validators: [Validators.required, Validators.maxLength(this.nameMaxLength), Validators.minLength(1)],
-        asyncValidators: [this.nameUniquenessValidator(product)],
+        asyncValidators: [apiProductNameUniqueAsyncValidator(this.apiProductV2Service, () => this.currentApiProduct?.name)],
         updateOn: 'blur',
       }),
-      version: new FormControl(product?.version ?? '', {
+      version: new FormControl('', {
         nonNullable: true,
         validators: [Validators.required, Validators.maxLength(this.versionMaxLength), Validators.minLength(1)],
       }),
-      description: new FormControl(product?.description ?? '', { nonNullable: true }),
+      description: new FormControl('', { nonNullable: true }),
     });
-  }
-
-  private nameUniquenessValidator(currentProduct: ApiProduct | undefined): AsyncValidatorFn {
-    return (formControl: FormControl<string>): Observable<ValidationErrors | null> => {
-      if (!formControl || !formControl.value || formControl.value.trim() === '') {
-        return of(null);
-      }
-      const trimmedName = formControl.value.trim();
-      if (currentProduct && trimmedName === currentProduct.name) {
-        return of(null);
-      }
-      return timer(250).pipe(
-        switchMap(() => this.apiProductV2Service.verify(trimmedName)),
-        map(res => (res.ok ? null : { unique: true })),
-      );
-    };
   }
 }
