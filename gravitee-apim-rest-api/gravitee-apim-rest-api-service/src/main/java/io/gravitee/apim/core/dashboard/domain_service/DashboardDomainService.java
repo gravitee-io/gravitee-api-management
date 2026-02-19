@@ -33,6 +33,8 @@ import io.gravitee.apim.core.dashboard.exception.DashboardNotFoundException;
 import io.gravitee.apim.core.dashboard.model.Dashboard;
 import io.gravitee.apim.core.dashboard.model.DashboardWidget;
 import io.gravitee.apim.core.dashboard.model.DashboardWidgetRequestMapper;
+import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.common.utils.TimeProvider;
 import java.util.List;
 import java.util.Map;
@@ -59,12 +61,12 @@ public class DashboardDomainService {
     }
 
     public Dashboard create(Dashboard dashboard) {
-        ofNullable(dashboard.getWidgets()).ifPresent(this::validateWidgets);
+        validate(dashboard);
         return dashboardCrudService.create(dashboard);
     }
 
     public Dashboard update(Dashboard dashboard) {
-        ofNullable(dashboard.getWidgets()).ifPresent(this::validateWidgets);
+        validate(dashboard);
         return dashboardCrudService.update(dashboard);
     }
 
@@ -72,18 +74,47 @@ public class DashboardDomainService {
         dashboardCrudService.delete(dashboardId);
     }
 
+    private void validate(Dashboard dashboard) {
+        if (dashboard.getName().isBlank()) {
+            throw new ValidationDomainException("Dashboard name cannot be blank");
+        }
+        ofNullable(dashboard.getWidgets()).ifPresent(this::validateWidgets);
+        ofNullable(dashboard.getLabels()).ifPresent(this::validateLabels);
+    }
+
     private void validateWidgets(List<DashboardWidget> widgets) {
         for (var widget : widgets) {
             if (widget.getRequest() == null) {
                 continue;
+            }
+            if (widget.getTitle().isBlank()) {
+                throw new ValidationDomainException("Widget title cannot be blank");
             }
             var mapped = DashboardWidgetRequestMapper.toAnalyticsRequest(widget.getRequest());
             switch (mapped) {
                 case MeasuresRequest r -> analyticsQueryValidator.validateMeasuresRequest(r);
                 case FacetsRequest r -> analyticsQueryValidator.validateFacetsRequest(r);
                 case TimeSeriesRequest r -> analyticsQueryValidator.validateTimeSeriesRequest(r);
-                default -> throw new IllegalStateException("Unexpected request type: " + mapped.getClass());
+                default -> throw new ValidationDomainException("Unexpected request type: " + mapped.getClass());
             }
+        }
+    }
+
+    private void validateLabels(Map<String, String> labels) {
+        for (var entry : labels.entrySet()) {
+            validateLabelEntry(entry);
+        }
+    }
+
+    private void validateLabelEntry(Map.Entry<String, String> label) {
+        if (StringUtils.isEmpty(label.getKey()) || label.getKey().isBlank()) {
+            throw new ValidationDomainException("label key must not be empty");
+        }
+        if (StringUtils.isEmpty(label.getValue()) || label.getValue().isBlank()) {
+            throw new ValidationDomainException("label key value must not be empty");
+        }
+        if (label.getKey().contains(".")) {
+            throw new ValidationDomainException("label keys cannot contain dots");
         }
     }
 }
