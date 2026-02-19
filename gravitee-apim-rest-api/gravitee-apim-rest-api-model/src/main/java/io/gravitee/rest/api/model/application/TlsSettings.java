@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model.application;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,6 +29,10 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 public class TlsSettings {
 
+    @Deprecated
     @JsonProperty("client_certificate")
     private String clientCertificate;
+
+    @JsonProperty("client_certificates")
+    private List<CreateClientCertificate> clientCertificates;
 }
