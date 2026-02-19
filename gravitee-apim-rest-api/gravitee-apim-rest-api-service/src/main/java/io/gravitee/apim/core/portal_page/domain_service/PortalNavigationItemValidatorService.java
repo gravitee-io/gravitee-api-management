@@ -16,226 +16,133 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
-import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
-import io.gravitee.apim.core.portal_page.exception.InvalidUrlFormatException;
-import io.gravitee.apim.core.portal_page.exception.ItemAlreadyExistsException;
-import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
-import io.gravitee.apim.core.portal_page.exception.ParentAreaMismatchException;
-import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
-import io.gravitee.apim.core.portal_page.exception.ParentTypeMismatchException;
+import io.gravitee.apim.core.portal_page.domain_service.validation.ApiItemCreateRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.ApiItemUpdateRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.BulkCreatePortalNavigationItemValidationRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.CreatePortalNavigationItemValidationRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.CreateValidationContext;
+import io.gravitee.apim.core.portal_page.domain_service.validation.DuplicateApiIdsInPayloadRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.HomepageUniquenessRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.LinkUrlRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.PageContentExistsRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.ParentRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.TitleRequiredRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.TypeConsistencyRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.UniqueItemIdRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.UpdatePortalNavigationItemValidationRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.UpdateValidationContext;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 
 @DomainService
-@RequiredArgsConstructor
 public class PortalNavigationItemValidatorService {
 
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
-    private final PortalPageContentQueryService pageContentQueryService;
+    private final List<BulkCreatePortalNavigationItemValidationRule> bulkCreateRules;
+    private final List<CreatePortalNavigationItemValidationRule> createRules;
+    private final List<UpdatePortalNavigationItemValidationRule> updateRules;
+
+    public PortalNavigationItemValidatorService(
+        PortalNavigationItemsQueryService navigationItemsQueryService,
+        PortalPageContentQueryService pageContentQueryService
+    ) {
+        this.navigationItemsQueryService = navigationItemsQueryService;
+        this.bulkCreateRules = List.of(new DuplicateApiIdsInPayloadRule());
+
+        // Rules applied on both update and create
+        var titleRequiredRule = new TitleRequiredRule();
+        var parentRule = new ParentRule(navigationItemsQueryService);
+        var linkUrlRule = new LinkUrlRule();
+
+        this.createRules = List.of(
+            new UniqueItemIdRule(navigationItemsQueryService),
+            new HomepageUniquenessRule(navigationItemsQueryService),
+            new PageContentExistsRule(pageContentQueryService),
+            titleRequiredRule,
+            new ApiItemCreateRule(),
+            linkUrlRule,
+            parentRule
+        );
+        this.updateRules = List.of(new TypeConsistencyRule(), titleRequiredRule, new ApiItemUpdateRule(), parentRule, linkUrlRule);
+    }
 
     public void validateAll(List<CreatePortalNavigationItem> items, String environmentId) {
-        ensureNoDuplicateApiIdsForApiItems(items);
+        Set<String> seenApiIdsInPayload = new HashSet<>();
+        CreateValidationContext ctx = new CreateValidationContext(List.of(), Map.of(), seenApiIdsInPayload);
+        for (BulkCreatePortalNavigationItemValidationRule rule : bulkCreateRules) {
+            rule.validate(items, environmentId, ctx);
+        }
+
         List<PortalNavigationItem> navigationItems = hasApiItems(items) ? fetchAllNavigationItems(environmentId) : List.of();
+        Map<PortalNavigationItemId, PortalNavigationItem> itemsById = navigationItems
+            .stream()
+            .collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
+        ctx = new CreateValidationContext(navigationItems, itemsById, seenApiIdsInPayload);
+
         for (CreatePortalNavigationItem item : items) {
-            validateItem(item, environmentId, navigationItems);
-            validateParent(item.getParentId(), item.getArea(), environmentId);
+            for (CreatePortalNavigationItemValidationRule rule : createRules) {
+                if (rule.appliesTo(item)) {
+                    rule.validate(item, environmentId, ctx);
+                }
+            }
         }
     }
 
     public void validateOne(CreatePortalNavigationItem item, String environmentId) {
+        Set<String> seenApiIdsInPayload = new HashSet<>();
         List<PortalNavigationItem> navigationItems = item.getType() == PortalNavigationItemType.API
             ? fetchAllNavigationItems(environmentId)
             : List.of();
-        validateItem(item, environmentId, navigationItems);
-        validateParent(item.getParentId(), item.getArea(), environmentId);
-    }
+        Map<PortalNavigationItemId, PortalNavigationItem> itemsById = navigationItems
+            .stream()
+            .collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
+        CreateValidationContext ctx = new CreateValidationContext(navigationItems, itemsById, seenApiIdsInPayload);
 
-    private void validateItem(CreatePortalNavigationItem item, String environmentId, List<PortalNavigationItem> navigationItems) {
-        final var itemId = item.getId();
-        if (itemId != null) {
-            final var existingItem = this.navigationItemsQueryService.findByIdAndEnvironmentId(environmentId, itemId);
-            if (existingItem != null) {
-                throw new ItemAlreadyExistsException(itemId.toString());
-            }
-        }
-
-        if (item.getArea().equals(PortalArea.HOMEPAGE)) {
-            final var existingHomepage = this.navigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(
-                environmentId,
-                item.getArea()
-            );
-            if (!existingHomepage.isEmpty()) {
-                throw new HomepageAlreadyExistsException();
-            }
-        }
-
-        if (item.getType() == PortalNavigationItemType.PAGE) {
-            final var contentId = item.getPortalPageContentId();
-            if (contentId != null) {
-                final var existingPageContent = this.pageContentQueryService.findById(contentId);
-                if (existingPageContent.isEmpty()) {
-                    throw new PageContentNotFoundException(contentId.toString());
-                }
-            }
-        }
-
-        if (item.getType() == PortalNavigationItemType.API) {
-            if (item.getParentId() == null) {
-                throw InvalidPortalNavigationItemDataException.fieldIsEmpty("parentId");
-            }
-
-            if (item.getArea() != PortalArea.TOP_NAVBAR) {
-                throw InvalidPortalNavigationItemDataException.apiMustBeInTopNavbar();
-            }
-            if (item.getApiId() == null || item.getApiId().isBlank()) {
-                throw InvalidPortalNavigationItemDataException.fieldIsEmpty("apiId");
-            }
-
-            if (isApiIdAlreadyUsed(item.getApiId(), navigationItems)) {
-                throw InvalidPortalNavigationItemDataException.apiIdAlreadyExists(item.getApiId());
-            }
-            ensureNoApiInAncestors(item.getParentId(), navigationItems);
-        }
-
-        if (item.getType() == PortalNavigationItemType.LINK) {
-            if (!isValidUrl(item.getUrl())) {
-                throw new InvalidUrlFormatException();
+        for (CreatePortalNavigationItemValidationRule rule : createRules) {
+            if (rule.appliesTo(item)) {
+                rule.validate(item, environmentId, ctx);
             }
         }
     }
 
-    private void validateParent(PortalNavigationItemId parentId, PortalArea itemArea, String environmentId) {
-        if (parentId == null) {
-            return;
+    public void validateToUpdate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem) {
+        List<PortalNavigationItem> navigationItems;
+        Map<PortalNavigationItemId, PortalNavigationItem> itemsById;
+        if (existingItem instanceof PortalNavigationApi) {
+            navigationItems = fetchAllNavigationItems(existingItem.getEnvironmentId());
+            itemsById = navigationItems.stream().collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
+        } else {
+            navigationItems = List.of();
+            itemsById = Map.of();
         }
-        final var parentItem = this.navigationItemsQueryService.findByIdAndEnvironmentId(environmentId, parentId);
-        if (parentItem == null) {
-            throw new ParentNotFoundException(parentId.toString());
-        }
-        if (!(parentItem instanceof PortalNavigationFolder)) {
-            throw new ParentTypeMismatchException(parentId.toString());
-        }
-        if (!parentItem.getArea().equals(itemArea)) {
-            throw new ParentAreaMismatchException(parentId.toString());
-        }
-    }
+        UpdateValidationContext ctx = new UpdateValidationContext(navigationItems, itemsById);
 
-    private boolean isValidUrl(String url) {
-        try {
-            new URL(url);
-            return true;
-        } catch (Exception e) {
-            return false;
+        for (UpdatePortalNavigationItemValidationRule rule : updateRules) {
+            if (rule.appliesTo(toUpdate, existingItem)) {
+                rule.validate(toUpdate, existingItem, ctx);
+            }
         }
     }
 
     private List<PortalNavigationItem> fetchAllNavigationItems(String environmentId) {
         var criteria = PortalNavigationItemQueryCriteria.builder().environmentId(environmentId).root(false).build();
-        return this.navigationItemsQueryService.search(criteria);
+        return navigationItemsQueryService.search(criteria);
     }
 
-    private boolean isApiIdAlreadyUsed(String apiId, List<PortalNavigationItem> navigationItems) {
-        if (apiId == null) {
-            return false;
-        }
-        return navigationItems
-            .stream()
-            .filter(PortalNavigationApi.class::isInstance)
-            .map(PortalNavigationApi.class::cast)
-            .anyMatch(apiItem -> apiId.equals(apiItem.getApiId()));
-    }
-
-    private boolean hasApiItems(List<CreatePortalNavigationItem> navigationItems) {
-        return navigationItems.stream().anyMatch(item -> item.getType() == PortalNavigationItemType.API);
-    }
-
-    private void ensureNoDuplicateApiIdsForApiItems(List<CreatePortalNavigationItem> items) {
-        final Set<String> seenApiIds = new HashSet<>();
-
-        items
-            .stream()
-            .filter(item -> item.getType() == PortalNavigationItemType.API)
-            .map(CreatePortalNavigationItem::getApiId)
-            .filter(apiId -> apiId != null && !apiId.isBlank())
-            .filter(apiId -> !seenApiIds.add(apiId))
-            .findFirst()
-            .ifPresent(apiId -> {
-                throw InvalidPortalNavigationItemDataException.apiIdAlreadyExists(apiId);
-            });
-    }
-
-    private void ensureNoApiInAncestors(PortalNavigationItemId parentId, List<PortalNavigationItem> navigationItems) {
-        if (parentId == null) {
-            return;
-        }
-        Map<PortalNavigationItemId, PortalNavigationItem> itemsById = navigationItems
-            .stream()
-            .collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
-        var currentId = parentId;
-        while (currentId != null) {
-            var currentItem = itemsById.get(currentId);
-            if (currentItem == null) {
-                return;
-            }
-            if (currentItem.getType() == PortalNavigationItemType.API) {
-                throw InvalidPortalNavigationItemDataException.parentHierarchyContainsApi();
-            }
-            currentId = currentItem.getParentId();
-        }
-    }
-
-    public void validateToUpdate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem) {
-        enforceTypeConsistency(existingItem, toUpdate.getType());
-        var payloadParentId = toUpdate.getParentId();
-
-        validateParent(payloadParentId, existingItem.getArea(), existingItem.getEnvironmentId());
-        if (toUpdate.getTitle().isBlank()) {
-            throw InvalidPortalNavigationItemDataException.fieldIsEmpty("title");
-        }
-
-        if (toUpdate.getType() == PortalNavigationItemType.LINK) {
-            if (!isValidUrl(toUpdate.getUrl())) {
-                throw new InvalidUrlFormatException();
-            }
-        }
-
-        if (toUpdate.getType() == PortalNavigationItemType.API) {
-            if (payloadParentId == null) {
-                throw InvalidPortalNavigationItemDataException.fieldIsEmpty("parentId");
-            }
-        }
-    }
-
-    private void enforceTypeConsistency(PortalNavigationItem existing, PortalNavigationItemType requestedType) {
-        PortalNavigationItemType existingType = switch (existing) {
-            case PortalNavigationFolder ignored -> PortalNavigationItemType.FOLDER;
-            case PortalNavigationPage ignored -> PortalNavigationItemType.PAGE;
-            case PortalNavigationLink ignored -> PortalNavigationItemType.LINK;
-            case PortalNavigationApi ignored -> PortalNavigationItemType.API;
-        };
-
-        if (existingType != requestedType) {
-            throw InvalidPortalNavigationItemDataException.typeMismatch(requestedType.toString(), existingType.toString());
-        }
+    private boolean hasApiItems(List<CreatePortalNavigationItem> items) {
+        return items.stream().anyMatch(item -> item.getType() == PortalNavigationItemType.API);
     }
 }
