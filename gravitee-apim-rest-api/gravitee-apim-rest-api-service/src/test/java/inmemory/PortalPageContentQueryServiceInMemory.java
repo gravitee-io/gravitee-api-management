@@ -26,6 +26,14 @@ public class PortalPageContentQueryServiceInMemory implements InMemoryAlternativ
 
     ArrayList<PortalPageContent> storage = new ArrayList<>();
 
+    public PortalPageContentQueryServiceInMemory() {
+        initWith(List.of());
+    }
+
+    public PortalPageContentQueryServiceInMemory(List<PortalPageContent> items) {
+        initWith(items);
+    }
+
     @Override
     public Optional<PortalPageContent> findById(PortalPageContentId id) {
         return storage
