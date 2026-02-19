@@ -1712,6 +1712,8 @@ components:
                     example: "1"
                 title:
                     type: string
+                    minLength: 3
+                    maxLength: 256
                     description: Display title of the widget
                     example: "Requests"
                 description:
@@ -1750,6 +1752,8 @@ components:
             properties:
                 name:
                     type: string
+                    minLength: 3
+                    maxLength: 256
                     description: The name of the dashboard
                     example: "llm-proxy"
                 labels:
@@ -1795,6 +1799,8 @@ components:
             properties:
                 name:
                     type: string
+                    minLength: 3
+                    maxLength: 256
                     description: Updated name for the dashboard
                     example: "llm-proxy-updated"
                 labels:

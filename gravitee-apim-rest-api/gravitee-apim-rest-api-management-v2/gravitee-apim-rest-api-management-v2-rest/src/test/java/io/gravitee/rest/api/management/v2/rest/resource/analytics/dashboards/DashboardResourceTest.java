@@ -39,12 +39,15 @@ import jakarta.ws.rs.client.WebTarget;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DashboardResourceTest extends AbstractResourceTest {
@@ -219,6 +222,28 @@ class DashboardResourceTest extends AbstractResourceTest {
         void should_return_400_if_missing_body() {
             var response = target.request().put(json(""));
             assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @ParameterizedTest
+        @MethodSource("provideInvalidName")
+        void should_return_400_if_name_is_invalid(String name) {
+            var updateDashboard = DashboardFixtures.anUpdateDashboardMinimal();
+            updateDashboard.setName(name);
+            var response = target.request().put(json(updateDashboard));
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @ParameterizedTest
+        @MethodSource("provideInvalidName")
+        void should_return_400_if_widget_title_is_invalid(String name) {
+            var updateDashboard = DashboardFixtures.anUpdateDashboard();
+            updateDashboard.getWidgets().getFirst().setTitle(name);
+            var response = target.request().put(json(updateDashboard));
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        private static Stream<String> provideInvalidName() {
+            return Stream.of("ab", "a".repeat(257));
         }
 
         @Test
