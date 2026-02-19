@@ -158,7 +158,7 @@ class PortalNavigationItemsMapperTest {
 
             var result = mapper.map(items);
 
-            assertThat(result).hasSize(11);
+            assertThat(result).hasSize(13);
             // Check that all items are mapped correctly
             assertThat(
                 result
@@ -176,7 +176,9 @@ class PortalNavigationItemsMapperTest {
                 UUID.fromString("00000000-0000-0000-0000-000000000008"),
                 UUID.fromString("00000000-0000-0000-0000-000000000009"),
                 UUID.fromString("00000000-0000-0000-0000-000000000010"),
-                UUID.fromString("00000000-0000-0000-0000-000000000011")
+                UUID.fromString("00000000-0000-0000-0000-000000000011"),
+                UUID.fromString("00000000-0000-0000-0000-000000000012"),
+                UUID.fromString("00000000-0000-0000-0000-000000000013")
             );
         }
     }
