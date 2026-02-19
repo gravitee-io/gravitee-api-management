@@ -256,6 +256,10 @@ components:
           type: integer
           description: The response time in ms
           example: 12
+        gateway:
+          type: string
+          description: The gateway instance that processed the request.
+          example: "API Gateway 1"
         uri:
           type: string
           description: URI of the request.
