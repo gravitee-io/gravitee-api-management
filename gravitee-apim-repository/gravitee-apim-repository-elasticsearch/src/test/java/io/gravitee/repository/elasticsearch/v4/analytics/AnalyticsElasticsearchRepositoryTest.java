@@ -1417,6 +1417,31 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
 
         @Nested
+        class HTTPMeasuresWithMissingEntrypointId {
+
+            private static final String API_WITHOUT_ENTRYPOINT = "b7e3f1a2-8c4d-4f9e-a3f1-a28c4d4f9e7b";
+
+            @Test
+            void should_include_documents_with_missing_entrypoint_id_in_http_measures() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_WITHOUT_ENTRYPOINT));
+
+                var query = new MeasuresQuery(timeRange, List.of(filter), metrics);
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.measures()).hasSize(1);
+
+                var measure = result.measures().getFirst();
+                assertThat(measure.metric()).isEqualTo(Metric.HTTP_REQUESTS);
+                assertThat(measure.measures()).containsKey(Measure.COUNT);
+                assertThat(measure.measures().get(Measure.COUNT).longValue()).isEqualTo(1L);
+            }
+        }
+
+        @Nested
         class LLM {
 
             private static final String LLM_API_ID = "llm-api-001";
