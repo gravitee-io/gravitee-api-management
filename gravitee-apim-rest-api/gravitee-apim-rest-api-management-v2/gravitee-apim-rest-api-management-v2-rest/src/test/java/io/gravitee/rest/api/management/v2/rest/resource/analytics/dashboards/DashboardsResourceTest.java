@@ -151,7 +151,7 @@ class DashboardsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.ORGANIZATION_DASHBOARD, ORGANIZATION, RolePermissionAction.CREATE, () ->
-                rootTarget().request().post(json(new CreateDashboard()))
+                rootTarget().request().post(json(DashboardFixtures.aCreateDashboard()))
             );
         }
     }
@@ -292,6 +292,12 @@ class DashboardsResourceTest extends AbstractResourceTest {
             var body = response.readEntity(DashboardsResponse.class);
             assertThat(body.getData()).isEmpty();
             assertThat(body.getPagination()).isNotNull();
+        }
+
+        @Test
+        void should_return_400_when_page_is_not_a_number() {
+            var response = rootTarget().queryParam("page", "a").request().get();
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
         }
 
         @Test
