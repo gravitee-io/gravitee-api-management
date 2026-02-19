@@ -197,7 +197,7 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
         try {
             log.debug("Find client certificates by application ID {} and statuses {}", applicationId, Arrays.toString(statuses));
             return clientCertificateRepository
-                .findByApplicationIdAndStatuses(applicationId, ClientCertificateAdapter.INSTANCE.toRepoStatus(statuses))
+                .findByApplicationIdAndStatuses(applicationId, ClientCertificateAdapter.INSTANCE.toRepoStatuses(statuses))
                 .stream()
                 .map(ClientCertificateAdapter.INSTANCE::toDomain)
                 .collect(Collectors.toSet());
@@ -214,7 +214,7 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
         try {
             log.debug("Find client certificates by application IDs {} and statuses {}", applicationIds, Arrays.toString(statuses));
             return clientCertificateRepository
-                .findByApplicationIdsAndStatuses(applicationIds, ClientCertificateAdapter.INSTANCE.toRepoStatus(statuses))
+                .findByApplicationIdsAndStatuses(applicationIds, ClientCertificateAdapter.INSTANCE.toRepoStatuses(statuses))
                 .stream()
                 .map(ClientCertificateAdapter.INSTANCE::toDomain)
                 .collect(Collectors.toSet());
@@ -231,7 +231,7 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
         try {
             log.debug("Find client certificates by statuses {}", Arrays.toString(statuses));
             return clientCertificateRepository
-                .findByStatuses(ClientCertificateAdapter.INSTANCE.toRepoStatus(statuses))
+                .findByStatuses(ClientCertificateAdapter.INSTANCE.toRepoStatuses(statuses))
                 .stream()
                 .map(ClientCertificateAdapter.INSTANCE::toDomain)
                 .collect(Collectors.toSet());
