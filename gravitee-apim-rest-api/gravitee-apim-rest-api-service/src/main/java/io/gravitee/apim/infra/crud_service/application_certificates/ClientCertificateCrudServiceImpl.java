@@ -264,21 +264,8 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
     }
 
     private io.gravitee.repository.management.model.ClientCertificateStatus computeStatus(Date startsAt, Date endsAt) {
-        Date now = new Date();
-
-        if (endsAt != null && now.after(endsAt)) {
-            return io.gravitee.repository.management.model.ClientCertificateStatus.REVOKED;
-        }
-
-        if (startsAt != null && now.before(startsAt)) {
-            return io.gravitee.repository.management.model.ClientCertificateStatus.SCHEDULED;
-        }
-
-        if (endsAt != null) {
-            return io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE_WITH_END;
-        }
-
-        return io.gravitee.repository.management.model.ClientCertificateStatus.ACTIVE;
+        var status = ClientCertificateStatus.computeStatus(startsAt, endsAt);
+        return ClientCertificateAdapter.INSTANCE.toRepoStatus(status);
     }
 
     @Override
