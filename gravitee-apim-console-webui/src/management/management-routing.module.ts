@@ -50,12 +50,61 @@ const managementRoutes: Routes = [
       },
       {
         path: 'api-products',
-        loadComponent: () => import('./api-products/list/api-product-list.component').then(m => m.ApiProductListComponent),
-        data: {
-          docs: {
-            page: 'management-api-products',
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            loadComponent: () =>
+              import('./api-products/list/api-product-list.component').then(m => m.ApiProductListComponent),
+            data: {
+              docs: {
+                page: 'management-api-products',
+              },
+            },
           },
-        },
+          {
+            path: ':apiProductId',
+            loadComponent: () =>
+              import('./api-products/consumers/api-product-consumers.component').then(
+                m => m.ApiProductConsumersComponent,
+              ),
+            children: [
+              {
+                path: '',
+                pathMatch: 'full',
+                redirectTo: 'plans',
+              },
+              {
+                path: 'plans',
+                loadComponent: () =>
+                  import('./api-products/consumers/plans/list/api-product-plan-list.component').then(
+                    m => m.ApiProductPlanListComponent,
+                  ),
+              },
+              {
+                path: 'plans/new',
+                loadComponent: () =>
+                  import('./api-products/consumers/plans/edit/api-product-plan-edit.component').then(
+                    m => m.ApiProductPlanEditComponent,
+                  ),
+              },
+              {
+                path: 'plans/:planId',
+                loadComponent: () =>
+                  import('./api-products/consumers/plans/edit/api-product-plan-edit.component').then(
+                    m => m.ApiProductPlanEditComponent,
+                  ),
+              },
+              {
+                path: 'subscriptions',
+                loadComponent: () =>
+                  import('./api-products/consumers/subscriptions/api-product-subscriptions-placeholder.component').then(
+                    m => m.ApiProductSubscriptionsPlaceholderComponent,
+                  ),
+              },
+            ],
+          },
+        ],
       },
       {
         path: 'integrations',

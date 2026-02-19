@@ -85,7 +85,7 @@
         <!-- Name Column -->
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef mat-sort-header id="name">Name</th>
-          <td mat-cell *matCellDef="let element" title="{{ element.name }}">
+          <td mat-cell *matCellDef="let element" title="{{ element.name }}"  [routerLink]="['.', element.id, 'plans']">
             {{ element.name }}
           </td>
         </ng-container>

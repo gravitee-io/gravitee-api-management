@@ -38,9 +38,9 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__content-card {
     flex: 1;
-    min-height: 25rem;
+    min-height: min(25rem, 50vh);
     border-radius: 0.5rem;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0.125rem 0.25rem mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'darker20');
   }
 
   &__card-header {
@@ -63,7 +63,7 @@ $typography: map.get(gio.$mat-theme, typography);
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 18.75rem;
+  min-height: min(18.75rem, 40vh);
   padding: 3rem 1.5rem;
 }
 
@@ -89,10 +89,8 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .empty-state-icon {
-  width: 5rem;
-  height: 5rem;
-  min-width: 5rem;
-  min-height: 5rem;
+  flex: 0 0 5rem;
+  aspect-ratio: 1;
   border-radius: 50%;
   background-color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'lighter');
   display: flex;
@@ -102,19 +100,17 @@ $typography: map.get(gio.$mat-theme, typography);
   border: 1px solid mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'default');
 
   &__svg {
-    width: 2.5rem;
-    height: 2.5rem;
-    min-width: 2.5rem;
-    min-height: 2.5rem;
+    flex: 0 0 2.5rem;
+    aspect-ratio: 1;
     color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'darker40');
   }
 }
 
-// Table styles
+// Table styles: use flex and rem for responsive layout
 .mat-column-picture {
   padding: 0 0.5rem;
-  width: 3rem;
-  min-width: 3rem;
+  flex: 0 0 3rem;
+  min-width: 0;
 }
 
 .mat-column-apis,
@@ -127,7 +123,8 @@ $typography: map.get(gio.$mat-theme, typography);
 .mat-column-name {
   cursor: pointer;
   padding: 0 0.5rem;
-  width: auto;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .mat-column-apis {
@@ -148,6 +145,6 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .api-products__avatar {
-  height: 2rem;
-  width: 2rem;
+  block-size: 2rem;
+  inline-size: 2rem;
 }

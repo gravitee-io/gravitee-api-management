@@ -146,6 +146,9 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
 
   @Input({ required: true }) isTcpApi!: boolean;
 
+  @Input()
+  hideAccessControl = false;
+
   public isInit = false;
 
   public planForm = new UntypedFormGroup({});
