@@ -83,7 +83,8 @@ class SharedPolicyGroupPolicyTest {
         when(executionContext.getComponent(SharedPolicyGroupRegistry.class)).thenReturn(sharedPolicyGroupRegistry);
         lenient().when(policyChain.execute(executionContext)).thenReturn(Completable.complete());
         when(executionContext.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)).thenReturn(ENVIRONMENT_ID);
-        final SharedPolicyGroupPolicyConfiguration policyConfiguration = new SharedPolicyGroupPolicyConfiguration();
+        final io.gravitee.definition.model.sharedpolicygroup.SharedPolicyGroupPolicyConfiguration policyConfiguration =
+            new io.gravitee.definition.model.sharedpolicygroup.SharedPolicyGroupPolicyConfiguration();
         policyConfiguration.setSharedPolicyGroupId(SHARED_POLICY_GROUP_ID);
         cut = new SharedPolicyGroupPolicy("id", policyConfiguration);
     }
