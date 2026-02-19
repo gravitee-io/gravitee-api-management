@@ -22,7 +22,7 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @SuperBuilder
-public final class PortalNavigationApi extends PortalNavigationItem {
+public final class PortalNavigationApi extends PortalNavigationItem implements PortalNavigationItemContainer {
 
     private static final PortalNavigationItemType TYPE = PortalNavigationItemType.API;
 
