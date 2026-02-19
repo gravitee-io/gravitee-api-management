@@ -17,16 +17,13 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.API1_FOLDER_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.API1_ID;
-import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.API2_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.LINK1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
@@ -58,7 +55,6 @@ class UpdatePortalNavigationItemUseCaseTest {
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private PortalNavigationItemValidatorService validatorService;
     private PortalNavigationItemDomainService domainService;
-    private PortalPageContentCrudServiceInMemory pageContentCrudService;
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
 
     @BeforeEach
@@ -66,8 +62,13 @@ class UpdatePortalNavigationItemUseCaseTest {
         final var storage = new ArrayList<PortalNavigationItem>();
         crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
-        pageContentCrudService = new PortalPageContentCrudServiceInMemory();
-        validatorService = mock(PortalNavigationItemValidatorService.class);
+
+        PortalPageContentCrudServiceInMemory pageContentCrudService = new PortalPageContentCrudServiceInMemory();
+        PortalPageContentQueryServiceInMemory pageContentQueryService = new PortalPageContentQueryServiceInMemory(
+            pageContentCrudService.storage()
+        );
+
+        validatorService = new PortalNavigationItemValidatorService(queryService, pageContentQueryService);
         domainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService, apiCrudService);
         useCase = new UpdatePortalNavigationItemUseCase(queryService, validatorService, domainService);
 
@@ -98,9 +99,6 @@ class UpdatePortalNavigationItemUseCaseTest {
 
         // When
         var output = useCase.execute(input);
-
-        // Then: validator called with provided payload and existing entity
-        verify(validatorService).validateToUpdate(any(UpdatePortalNavigationItem.class), any(PortalNavigationItem.class));
 
         // And storage updated with trimmed title
         var updated = queryService.findByIdAndEnvironmentId(ENV_ID, originalId);
@@ -139,12 +137,7 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(existing).isNotNull();
         var originalTitle = existing.getTitle();
 
-        // Make validator throw
-        doThrow(new IllegalArgumentException("Invalid data"))
-            .when(validatorService)
-            .validateToUpdate(any(UpdatePortalNavigationItem.class), any(PortalNavigationItem.class));
-
-        var toUpdate = UpdatePortalNavigationItem.builder().type(PortalNavigationItemType.PAGE).title("New Title").build();
+        var toUpdate = UpdatePortalNavigationItem.builder().type(PortalNavigationItemType.LINK).title("New Title").order(-1).build();
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
             .organizationId(ORG_ID)
@@ -154,7 +147,7 @@ class UpdatePortalNavigationItemUseCaseTest {
             .build();
 
         // When / Then
-        assertThrows(IllegalArgumentException.class, () -> useCase.execute(input));
+        assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
 
         // And ensure storage unchanged
         var after = queryService.findByIdAndEnvironmentId(ENV_ID, existing.getId());
@@ -177,9 +170,6 @@ class UpdatePortalNavigationItemUseCaseTest {
             .build();
 
         // Make validator throw ParentNotFoundException
-        doThrow(new ParentNotFoundException(nonExistingParentId.toString()))
-            .when(validatorService)
-            .validateToUpdate(any(UpdatePortalNavigationItem.class), any(PortalNavigationItem.class));
 
         var input = UpdatePortalNavigationItemUseCase.Input.builder()
             .organizationId(ORG_ID)
@@ -222,7 +212,6 @@ class UpdatePortalNavigationItemUseCaseTest {
         var output = useCase.execute(input);
 
         // Then: validator called with provided payload and existing entity
-        verify(validatorService).validateToUpdate(any(UpdatePortalNavigationItem.class), any(PortalNavigationItem.class));
 
         // And storage updated with trimmed title
         var updated = queryService.findByIdAndEnvironmentId(ENV_ID, originalId);
@@ -262,7 +251,6 @@ class UpdatePortalNavigationItemUseCaseTest {
         var output = useCase.execute(input);
 
         // Then: validator called with provided payload and existing entity
-        verify(validatorService).validateToUpdate(any(UpdatePortalNavigationItem.class), any(PortalNavigationItem.class));
 
         // And storage updated with trimmed title
         var updated = queryService.findByIdAndEnvironmentId(ENV_ID, originalId);
@@ -301,9 +289,6 @@ class UpdatePortalNavigationItemUseCaseTest {
         // When
         var output = useCase.execute(input);
 
-        // Then: validator called with provided payload and existing entity
-        verify(validatorService).validateToUpdate(any(UpdatePortalNavigationItem.class), any(PortalNavigationItem.class));
-
         // And storage updated with new order
         var updated = queryService.findByIdAndEnvironmentId(ENV_ID, originalId);
         assertThat(updated).isNotNull();
@@ -335,15 +320,122 @@ class UpdatePortalNavigationItemUseCaseTest {
             .updatePortalNavigationItem(toUpdate)
             .build();
 
-        useCase = buildUseCaseWithRealValidator();
-
         var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
         assertThat(exception.getMessage()).isEqualTo("The parentId field is required and cannot be blank.");
     }
 
-    private UpdatePortalNavigationItemUseCase buildUseCaseWithRealValidator() {
-        var pageContentQueryService = new PortalPageContentQueryServiceInMemory();
-        var realValidator = new PortalNavigationItemValidatorService(queryService, pageContentQueryService);
-        return new UpdatePortalNavigationItemUseCase(queryService, realValidator, domainService);
+    @Test
+    void should_add_parent_api_to_page_item() {
+        var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(PAGE11_ID));
+        assertThat(existing).isNotNull();
+
+        var toUpdate = UpdatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.PAGE)
+            .title("Title")
+            .parentId(PortalNavigationItemId.of(API1_ID))
+            .published(existing.getPublished())
+            .visibility(existing.getVisibility())
+            .build();
+
+        var input = UpdatePortalNavigationItemUseCase.Input.builder()
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .navigationItemId(existing.getId().toString())
+            .updatePortalNavigationItem(toUpdate)
+            .build();
+
+        var result = useCase.execute(input);
+        assertThat(result).isNotNull();
+        assertThat(result.updatedItem()).isNotNull();
+        assertThat(result.updatedItem().getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+
+        var updated = queryService.findByIdAndEnvironmentId(ENV_ID, existing.getId());
+        assertThat(updated).isNotNull();
+        assertThat(updated.getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+    }
+
+    @Test
+    void should_add_parent_api_to_folder_item() {
+        var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_FOLDER_ID));
+        assertThat(existing).isNotNull();
+
+        var toUpdate = UpdatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.FOLDER)
+            .title("Title")
+            .parentId(PortalNavigationItemId.of(API1_ID))
+            .published(existing.getPublished())
+            .visibility(existing.getVisibility())
+            .build();
+
+        var input = UpdatePortalNavigationItemUseCase.Input.builder()
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .navigationItemId(existing.getId().toString())
+            .updatePortalNavigationItem(toUpdate)
+            .build();
+
+        var result = useCase.execute(input);
+        assertThat(result).isNotNull();
+        assertThat(result.updatedItem()).isNotNull();
+        assertThat(result.updatedItem().getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+
+        var updated = queryService.findByIdAndEnvironmentId(ENV_ID, existing.getId());
+        assertThat(updated).isNotNull();
+        assertThat(updated.getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+    }
+
+    @Test
+    void should_add_parent_api_to_link_item() {
+        var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(LINK1_ID));
+        assertThat(existing).isNotNull();
+
+        var toUpdate = UpdatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.LINK)
+            .title("Title")
+            .parentId(PortalNavigationItemId.of(API1_ID))
+            .published(existing.getPublished())
+            .visibility(existing.getVisibility())
+            .url("https://gravitee.io")
+            .build();
+
+        var input = UpdatePortalNavigationItemUseCase.Input.builder()
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .navigationItemId(existing.getId().toString())
+            .updatePortalNavigationItem(toUpdate)
+            .build();
+
+        var result = useCase.execute(input);
+        assertThat(result).isNotNull();
+        assertThat(result.updatedItem()).isNotNull();
+        assertThat(result.updatedItem().getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+
+        var updated = queryService.findByIdAndEnvironmentId(ENV_ID, existing.getId());
+        assertThat(updated).isNotNull();
+        assertThat(updated.getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+    }
+
+    @Test
+    void should_not_add_api_parent_to_api_item() {
+        var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID));
+        assertThat(existing).isNotNull();
+
+        var toUpdate = UpdatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.API)
+            .title("Title")
+            .parentId(PortalNavigationItemId.of(API2_ID)) // parent cannot be API
+            .published(existing.getPublished())
+            .visibility(existing.getVisibility())
+            .build();
+
+        var input = UpdatePortalNavigationItemUseCase.Input.builder()
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .navigationItemId(existing.getId().toString())
+            .updatePortalNavigationItem(toUpdate)
+            .build();
+
+        var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
+        assertThat(exception.getMessage()).isEqualTo("Parent hierarchy cannot include API items.");
     }
 }
