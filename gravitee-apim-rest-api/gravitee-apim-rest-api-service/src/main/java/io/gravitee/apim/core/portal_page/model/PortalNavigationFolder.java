@@ -19,7 +19,7 @@ import jakarta.annotation.Nonnull;
 import lombok.experimental.SuperBuilder;
 
 @SuperBuilder
-public final class PortalNavigationFolder extends PortalNavigationItem {
+public final class PortalNavigationFolder extends PortalNavigationItem implements PortalNavigationItemContainer {
 
     private static final PortalNavigationItemType TYPE = PortalNavigationItemType.FOLDER;
 
