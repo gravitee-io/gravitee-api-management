@@ -4,6 +4,8 @@
 @use '@gravitee/ui-particles-angular' as gio;
 @use '../../../scss/gio-layout' as gio-layout;
 
+$typography: map.get(gio.$mat-theme, typography);
+
 :host {
   @include gio-layout.gio-responsive-content-container;
   display: flex;
@@ -16,48 +18,47 @@
   min-height: 100%;
 
   &__header {
-    margin-bottom: 1.5rem;
+    margin-bottom: 24px;
   }
 
   &__title {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.5rem;
-    font-weight: 600;
+    @include mat.m2-typography-level($typography, headline-6);
+    margin: 0 0 8px 0;
     color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'darker80');
   }
 
   &__instructions {
-    margin: 0 0 1.5rem 0;
+    @include mat.m2-typography-level($typography, body-2);
+    margin: 0 0 24px 0;
     color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-    font-size: 0.875rem;
   }
 
   &__form-card {
     flex: 1;
-    margin-bottom: 1.5rem;
-    padding: 1.5rem;
+    margin-bottom: 24px;
+    padding: 24px;
   }
 
   &__footer {
     display: flex;
     justify-content: space-between;
-    padding: 1rem 0;
-    gap: 1rem;
+    padding: 16px 0;
+    gap: 16px;
   }
 }
 
 .back-link {
+  @include mat.m2-typography-level($typography, body-2);
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
   padding: 0;
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
   border: none;
   background: none;
   color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
   text-decoration: none;
   cursor: pointer;
-  font-size: 0.875rem;
   font-family: inherit;
 
   mat-icon {
@@ -75,15 +76,14 @@
 
 .form-section {
   &__title {
-    margin: 0 0 1.5rem 0;
-    font-size: 1.125rem;
-    font-weight: 600;
+    @include mat.m2-typography-level($typography, subtitle-1);
+    margin: 0 0 24px 0;
     color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'darker80');
   }
 }
 
 .form-row {
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
 
   mat-form-field {
     width: 100%;
@@ -91,7 +91,7 @@
 
   &--inline {
     display: flex;
-    gap: 1rem;
+    gap: 16px;
     align-items: flex-start;
 
     .form-field--name {
@@ -101,31 +101,5 @@
     .form-field--version {
       flex: 0 0 12.5rem;
     }
-  }
-}
-
-.cancel-button {
-  color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'darker80');
-  border-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
-  background-color: white;
-
-  &:hover {
-    background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'lighter40');
-  }
-}
-
-.create-button {
-  background-color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default');
-  color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default-contrast');
-  font-weight: 500;
-  min-width: 11.25rem;
-
-  &:hover:not(:disabled) {
-    background-color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'darker');
-  }
-
-  &:disabled {
-    background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
-    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
   }
 }

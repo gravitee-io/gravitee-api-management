@@ -16,10 +16,8 @@
 
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AsyncValidatorFn, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, of, timer } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { CommonModule } from '@angular/common';
@@ -32,6 +30,7 @@ import { MatInputModule } from '@angular/material/input';
 import { CreateApiProduct } from '../../../entities/management-api-v2/api-product';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { apiProductNameUniqueAsyncValidator } from '../validators/api-product-name-unique-async.validator';
 
 interface CreateApiProductForm {
   name: FormControl<string>;
@@ -67,7 +66,7 @@ export class ApiProductCreateComponent {
     name: new FormControl('', {
       nonNullable: true,
       validators: [Validators.required, Validators.maxLength(512), Validators.minLength(1)],
-      asyncValidators: [this.nameUniquenessValidator()],
+      asyncValidators: [apiProductNameUniqueAsyncValidator(this.apiProductV2Service)],
       updateOn: 'blur',
     }),
     version: new FormControl('', {
@@ -79,20 +78,6 @@ export class ApiProductCreateComponent {
   readonly nameMaxLength = 512;
   readonly versionMaxLength = 64;
   readonly isCreating = signal(false);
-
-  private nameUniquenessValidator(): AsyncValidatorFn {
-    return (formControl: FormControl<string>): Observable<ValidationErrors | null> => {
-      if (!formControl || !formControl.value || formControl.value.trim() === '') {
-        return of(null);
-      }
-      const trimmedName = formControl.value.trim();
-      // Debounce API call to avoid too many requests
-      return timer(250).pipe(
-        switchMap(() => this.apiProductV2Service.verify(trimmedName)),
-        map(res => (res.ok ? null : { unique: true })),
-      );
-    };
-  }
 
   onExit(): void {
     if (this.form.dirty) {
@@ -109,16 +94,20 @@ export class ApiProductCreateComponent {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(confirmed => {
           if (confirmed) {
-            this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+            this.onBack();
           }
         });
       return;
     }
-    this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+    this.onBack();
   }
 
   onBack(): void {
     this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+  }
+
+  goToConfiguration(productId: string): void {
+    this.router.navigate(['..', productId, 'configuration'], { relativeTo: this.activatedRoute });
   }
 
   onCreate(): void {
@@ -153,7 +142,7 @@ export class ApiProductCreateComponent {
           next: apiProduct => {
             this.isCreating.set(false);
             this.snackBarService.success(`${apiProduct.name} - Successfully created`);
-            this.router.navigate(['..', apiProduct.id, 'configuration'], { relativeTo: this.activatedRoute });
+            this.goToConfiguration(apiProduct.id);
           },
           error: err => {
             this.isCreating.set(false);

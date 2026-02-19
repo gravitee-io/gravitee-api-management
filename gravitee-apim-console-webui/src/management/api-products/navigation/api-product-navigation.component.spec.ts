@@ -71,7 +71,10 @@ describe('ApiProductNavigationComponent', () => {
     jest.clearAllMocks();
   });
 
-  it('should create', () => {
+  it('should create', async () => {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
+    req.flush(fakeApiProduct);
+    await fixture.whenStable();
     expect(fixture.componentInstance).toBeTruthy();
   });
 
