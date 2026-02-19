@@ -532,12 +532,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             for (var cert : clientCertificates) {
                 clientCertificateCrudService.create(
                     application.getId(),
-                    ClientCertificate.builder()
-                        .name(cert.name() != null ? cert.name() : application.getName())
-                        .certificate(cert.certificate())
-                        .startsAt(cert.startsAt())
-                        .endsAt(cert.endsAt())
-                        .build()
+                    new ClientCertificate(
+                        cert.name() != null ? cert.name() : application.getName(),
+                        cert.certificate(),
+                        cert.startsAt(),
+                        cert.endsAt()
+                    )
                 );
             }
 
@@ -665,7 +665,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             var existingActiveCerts = clientCertificateCrudService
                 .findByApplicationIdAndStatuses(applicationId, ClientCertificateStatus.ACTIVE, ClientCertificateStatus.ACTIVE_WITH_END)
                 .stream()
-                .sorted(Comparator.comparing(ClientCertificate::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .sorted(Comparator.comparing(ClientCertificate::createdAt, Comparator.nullsLast(Comparator.reverseOrder())))
                 .toList();
 
             // Determine which new certs need to be created (not already present)
@@ -673,7 +673,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             for (var newCert : newCertificates) {
                 boolean alreadyExists = existingActiveCerts
                     .stream()
-                    .anyMatch(existing -> newCert.certificate().equals(existing.getCertificate()));
+                    .anyMatch(existing -> newCert.certificate().equals(existing.certificate()));
                 if (!alreadyExists) {
                     certsToCreate.add(newCert);
                 }
@@ -682,15 +682,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Expire existing certs that are not in the new list
             var newCertContents = newCertificates.stream().map(CreateClientCertificate::certificate).collect(Collectors.toSet());
             for (var existingCert : existingActiveCerts) {
-                if (!newCertContents.contains(existingCert.getCertificate())) {
+                if (!newCertContents.contains(existingCert.certificate())) {
                     clientCertificateCrudService.update(
-                        existingCert.getId(),
+                        existingCert.id(),
                         // Updates certificate end date to now => it will be revoked
-                        ClientCertificate.builder()
-                            .name(existingCert.getName())
-                            .startsAt(existingCert.getStartsAt())
-                            .endsAt(new Date())
-                            .build()
+                        new ClientCertificate(existingCert.name(), existingCert.startsAt(), new Date())
                     );
                 }
             }
@@ -719,12 +715,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             for (var cert : certsToCreate) {
                 clientCertificateCrudService.create(
                     applicationId,
-                    ClientCertificate.builder()
-                        .name(cert.name() != null ? cert.name() : updateApplicationEntity.getName())
-                        .certificate(cert.certificate())
-                        .startsAt(cert.startsAt())
-                        .endsAt(cert.endsAt())
-                        .build()
+                    new ClientCertificate(
+                        cert.name() != null ? cert.name() : updateApplicationEntity.getName(),
+                        cert.certificate(),
+                        cert.startsAt(),
+                        cert.endsAt()
+                    )
                 );
             }
 
@@ -1341,8 +1337,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             .stream()
             .collect(
                 Collectors.groupingBy(
-                    ClientCertificate::getApplicationId,
-                    Collectors.collectingAndThen(Collectors.maxBy(Comparator.comparing(ClientCertificate::getCreatedAt)), opt ->
+                    ClientCertificate::applicationId,
+                    Collectors.collectingAndThen(Collectors.maxBy(Comparator.comparing(ClientCertificate::createdAt)), opt ->
                         opt.orElse(null)
                     )
                 )
@@ -1352,7 +1348,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         apps.forEach(app -> {
             ClientCertificate mostRecent = mostRecentCertificates.get(app.getId());
             if (mostRecent != null) {
-                app.getSettings().setTls(TlsSettings.builder().clientCertificate(mostRecent.getCertificate()).build());
+                app.getSettings().setTls(TlsSettings.builder().clientCertificate(mostRecent.certificate()).build());
             }
         });
 
@@ -1408,7 +1404,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Fetch the most recent active certificate from ClientCertificateCrudService
             clientCertificateCrudService
                 .findMostRecentActiveByApplicationId(application.getId())
-                .ifPresent(cert -> settings.setTls(TlsSettings.builder().clientCertificate(cert.getCertificate()).build()));
+                .ifPresent(cert -> settings.setTls(TlsSettings.builder().clientCertificate(cert.certificate()).build()));
         }
 
         return settings;

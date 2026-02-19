@@ -133,9 +133,9 @@ class ClientCertificateCrudServiceImplTest {
         ClientCertificate result = clientCertificateCrudService.findById(CERTIFICATE_ID);
 
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(CERTIFICATE_ID);
-        assertThat(result.getName()).isEqualTo("Test Certificate");
-        assertThat(result.getApplicationId()).isEqualTo(APPLICATION_ID);
+        assertThat(result.id()).isEqualTo(CERTIFICATE_ID);
+        assertThat(result.name()).isEqualTo("Test Certificate");
+        assertThat(result.applicationId()).isEqualTo(APPLICATION_ID);
     }
 
     @Test
@@ -163,15 +163,15 @@ class ClientCertificateCrudServiceImplTest {
 
         ClientCertificate created = clientCertificateCrudService.create(
             APPLICATION_ID,
-            ClientCertificate.builder().name("New Certificate").certificate(PEM_CERTIFICATE).build()
+            new ClientCertificate("New Certificate", PEM_CERTIFICATE, null, null)
         );
 
-        assertThat(created.getId()).isNotNull();
-        assertThat(created.getCrossId()).isNotNull();
-        assertThat(created.getApplicationId()).isEqualTo(APPLICATION_ID);
-        assertThat(created.getName()).isEqualTo("New Certificate");
-        assertThat(created.getCreatedAt()).isNotNull();
-        assertThat(created.getStatus()).isEqualTo(ClientCertificateStatus.ACTIVE);
+        assertThat(created.id()).isNotNull();
+        assertThat(created.crossId()).isNotNull();
+        assertThat(created.applicationId()).isEqualTo(APPLICATION_ID);
+        assertThat(created.name()).isEqualTo("New Certificate");
+        assertThat(created.createdAt()).isNotNull();
+        assertThat(created.status()).isEqualTo(ClientCertificateStatus.ACTIVE);
 
         ArgumentCaptor<io.gravitee.repository.management.model.ClientCertificate> captor = ArgumentCaptor.forClass(
             io.gravitee.repository.management.model.ClientCertificate.class
@@ -187,14 +187,10 @@ class ClientCertificateCrudServiceImplTest {
 
         ClientCertificate created = clientCertificateCrudService.create(
             APPLICATION_ID,
-            ClientCertificate.builder()
-                .name("Scheduled Certificate")
-                .startsAt(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)))
-                .certificate(PEM_CERTIFICATE)
-                .build()
+            new ClientCertificate("Scheduled Certificate", PEM_CERTIFICATE, Date.from(Instant.now().plus(1, ChronoUnit.DAYS)), null)
         );
 
-        assertThat(created.getStatus()).isEqualTo(ClientCertificateStatus.SCHEDULED);
+        assertThat(created.status()).isEqualTo(ClientCertificateStatus.SCHEDULED);
     }
 
     @Test
@@ -204,14 +200,10 @@ class ClientCertificateCrudServiceImplTest {
 
         ClientCertificate created = clientCertificateCrudService.create(
             APPLICATION_ID,
-            ClientCertificate.builder()
-                .name("Certificate with end date")
-                .endsAt(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)))
-                .certificate(PEM_CERTIFICATE)
-                .build()
+            new ClientCertificate("Certificate with end date", PEM_CERTIFICATE, null, Date.from(Instant.now().plus(1, ChronoUnit.DAYS)))
         );
 
-        assertThat(created.getStatus()).isEqualTo(ClientCertificateStatus.ACTIVE_WITH_END);
+        assertThat(created.status()).isEqualTo(ClientCertificateStatus.ACTIVE_WITH_END);
     }
 
     @Test
@@ -221,20 +213,16 @@ class ClientCertificateCrudServiceImplTest {
 
         ClientCertificate created = clientCertificateCrudService.create(
             APPLICATION_ID,
-            ClientCertificate.builder()
-                .name("Revoked Certificate")
-                .endsAt(Date.from(Instant.now().minus(1, ChronoUnit.DAYS)))
-                .certificate(PEM_CERTIFICATE)
-                .build()
+            new ClientCertificate("Revoked Certificate", PEM_CERTIFICATE, null, Date.from(Instant.now().minus(1, ChronoUnit.DAYS)))
         );
 
-        assertThat(created.getStatus()).isEqualTo(ClientCertificateStatus.REVOKED);
+        assertThat(created.status()).isEqualTo(ClientCertificateStatus.REVOKED);
     }
 
     @Test
     void should_raise_error_when_certificate_already_exists() throws TechnicalException {
         when(clientCertificateRepository.existsByFingerprintAndActiveApplication(any(), eq(ENVIRONMENT_ID))).thenReturn(true);
-        ClientCertificate toCreate = ClientCertificate.builder().name("Certificate").certificate(PEM_CERTIFICATE).build();
+        ClientCertificate toCreate = new ClientCertificate("Certificate", PEM_CERTIFICATE, null, null);
         assertThatCode(() -> clientCertificateCrudService.create(APPLICATION_ID, toCreate)).isInstanceOf(
             ClientCertificateAlreadyUsedException.class
         );
@@ -250,14 +238,11 @@ class ClientCertificateCrudServiceImplTest {
         when(clientCertificateRepository.findById(CERTIFICATE_ID)).thenReturn(Optional.of(existingCert));
         when(clientCertificateRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ClientCertificate updated = clientCertificateCrudService.update(
-            CERTIFICATE_ID,
-            ClientCertificate.builder().name("Updated Name").build()
-        );
+        ClientCertificate updated = clientCertificateCrudService.update(CERTIFICATE_ID, new ClientCertificate("Updated Name", null, null));
 
-        assertThat(updated.getName()).isEqualTo("Updated Name");
-        assertThat(updated.getUpdatedAt()).isNotNull();
-        assertThat(updated.getStatus()).isEqualTo(ClientCertificateStatus.ACTIVE);
+        assertThat(updated.name()).isEqualTo("Updated Name");
+        assertThat(updated.updatedAt()).isNotNull();
+        assertThat(updated.status()).isEqualTo(ClientCertificateStatus.ACTIVE);
     }
 
     @Test
@@ -272,10 +257,10 @@ class ClientCertificateCrudServiceImplTest {
 
         ClientCertificate updated = clientCertificateCrudService.update(
             CERTIFICATE_ID,
-            ClientCertificate.builder().name("Updated Name").startsAt(Date.from(Instant.now().plus(1, ChronoUnit.DAYS))).build()
+            new ClientCertificate("Updated Name", Date.from(Instant.now().plus(1, ChronoUnit.DAYS)), null)
         );
 
-        assertThat(updated.getStatus()).isEqualTo(ClientCertificateStatus.SCHEDULED);
+        assertThat(updated.status()).isEqualTo(ClientCertificateStatus.SCHEDULED);
     }
 
     @Test
@@ -290,10 +275,10 @@ class ClientCertificateCrudServiceImplTest {
 
         ClientCertificate updated = clientCertificateCrudService.update(
             CERTIFICATE_ID,
-            ClientCertificate.builder().name("Updated Name").endsAt(Date.from(Instant.now().plus(1, ChronoUnit.DAYS))).build()
+            new ClientCertificate("Updated Name", null, Date.from(Instant.now().plus(1, ChronoUnit.DAYS)))
         );
 
-        assertThat(updated.getStatus()).isEqualTo(ClientCertificateStatus.ACTIVE_WITH_END);
+        assertThat(updated.status()).isEqualTo(ClientCertificateStatus.ACTIVE_WITH_END);
     }
 
     @Test
@@ -308,17 +293,17 @@ class ClientCertificateCrudServiceImplTest {
 
         ClientCertificate updated = clientCertificateCrudService.update(
             CERTIFICATE_ID,
-            ClientCertificate.builder().name("Updated Name").endsAt(Date.from(Instant.now().minus(1, ChronoUnit.DAYS))).build()
+            new ClientCertificate("Updated Name", null, Date.from(Instant.now().minus(1, ChronoUnit.DAYS)))
         );
 
-        assertThat(updated.getStatus()).isEqualTo(ClientCertificateStatus.REVOKED);
+        assertThat(updated.status()).isEqualTo(ClientCertificateStatus.REVOKED);
     }
 
     @Test
     void should_throw_not_found_when_updating_non_existing_certificate() throws TechnicalException {
         when(clientCertificateRepository.findById(CERTIFICATE_ID)).thenReturn(Optional.empty());
 
-        ClientCertificate udpatedName = ClientCertificate.builder().name("Udpated Name").build();
+        ClientCertificate udpatedName = new ClientCertificate("Udpated Name", null, null);
         assertThatThrownBy(() -> clientCertificateCrudService.update(CERTIFICATE_ID, udpatedName)).isInstanceOf(
             ClientCertificateNotFoundException.class
         );
@@ -400,7 +385,7 @@ class ClientCertificateCrudServiceImplTest {
         );
 
         assertThat(result).hasSize(1);
-        assertThat(result.iterator().next().getId()).isEqualTo(CERTIFICATE_ID);
+        assertThat(result.iterator().next().id()).isEqualTo(CERTIFICATE_ID);
     }
 
     @Test
@@ -431,7 +416,7 @@ class ClientCertificateCrudServiceImplTest {
         );
 
         assertThat(result).hasSize(2);
-        assertThat(result).extracting(ClientCertificate::getId).containsExactlyInAnyOrder(CERTIFICATE_ID, certificateId2);
+        assertThat(result).extracting(ClientCertificate::id).containsExactlyInAnyOrder(CERTIFICATE_ID, certificateId2);
     }
 
     @Test
@@ -492,7 +477,7 @@ class ClientCertificateCrudServiceImplTest {
             -----END CERTIFICATE-----
             """;
 
-        ClientCertificate toCreate = ClientCertificate.builder().name("Invalid Certificate").certificate(invalidCertificate).build();
+        ClientCertificate toCreate = new ClientCertificate("Invalid Certificate", invalidCertificate, null, null);
         assertThatThrownBy(() -> {
             clientCertificateCrudService.create(APPLICATION_ID, toCreate);
         }).isInstanceOf(ClientCertificateInvalidException.class);
@@ -503,7 +488,7 @@ class ClientCertificateCrudServiceImplTest {
         String noCertificate = """
             no certificate header, so not parsed as an exception by the library.
             """;
-        ClientCertificate toCreate = ClientCertificate.builder().name("Empty Certificate").certificate(noCertificate).build();
+        ClientCertificate toCreate = new ClientCertificate("Empty Certificate", noCertificate, null, null);
         assertThatThrownBy(() -> clientCertificateCrudService.create(APPLICATION_ID, toCreate)).isInstanceOf(
             ClientCertificateEmptyException.class
         );
@@ -547,7 +532,7 @@ class ClientCertificateCrudServiceImplTest {
             P5EfACFOUJGjCiuDC02wG2mO44Y98bT3oIMdjH9haMd5eoEAxmFy+M4UVTa2YK6u
             Q6teMha+jg==
             -----END CERTIFICATE-----""";
-        ClientCertificate createDto = ClientCertificate.builder().name("CA Certificate").certificate(caCertificate).build();
+        ClientCertificate createDto = new ClientCertificate("CA Certificate", caCertificate, null, null);
 
         assertThatThrownBy(() -> clientCertificateCrudService.create(APPLICATION_ID, createDto)).isInstanceOf(
             ClientCertificateAuthorityException.class
@@ -556,18 +541,18 @@ class ClientCertificateCrudServiceImplTest {
 
     @Test
     void should_create_certificate_with_scheduled_status_when_starts_at_and_ends_at_in_future() throws TechnicalException {
-        ClientCertificate domainCertificate = ClientCertificate.builder()
-            .name("Scheduled Certificate")
-            .startsAt(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)))
-            .endsAt(Date.from(Instant.now().plus(2, ChronoUnit.DAYS)))
-            .certificate(PEM_CERTIFICATE)
-            .build();
+        ClientCertificate domainCertificate = new ClientCertificate(
+            "Scheduled Certificate",
+            PEM_CERTIFICATE,
+            Date.from(Instant.now().plus(1, ChronoUnit.DAYS)),
+            Date.from(Instant.now().plus(2, ChronoUnit.DAYS))
+        );
         when(clientCertificateRepository.existsByFingerprintAndActiveApplication(any(), eq(ENVIRONMENT_ID))).thenReturn(false);
         when(clientCertificateRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ClientCertificate created = clientCertificateCrudService.create(APPLICATION_ID, domainCertificate);
 
-        assertThat(created.getStatus()).isEqualTo(ClientCertificateStatus.SCHEDULED);
+        assertThat(created.status()).isEqualTo(ClientCertificateStatus.SCHEDULED);
 
         ArgumentCaptor<io.gravitee.repository.management.model.ClientCertificate> captor = ArgumentCaptor.forClass(
             io.gravitee.repository.management.model.ClientCertificate.class
@@ -605,7 +590,7 @@ class ClientCertificateCrudServiceImplTest {
         Optional<ClientCertificate> result = clientCertificateCrudService.findMostRecentActiveByApplicationId(APPLICATION_ID);
 
         assertThat(result).isPresent();
-        assertThat(result.get().getId()).isEqualTo(recentCertificateId);
+        assertThat(result.get().id()).isEqualTo(recentCertificateId);
     }
 
     @Test
@@ -643,12 +628,7 @@ class ClientCertificateCrudServiceImplTest {
         when(clientCertificateRepository.findById(any())).thenReturn(
             Optional.of(io.gravitee.repository.management.model.ClientCertificate.builder().build())
         );
-        ClientCertificate clientCertificate = ClientCertificate.builder()
-            .name("With dates")
-            .startsAt(startDate)
-            .endsAt(endDate)
-            .certificate(PEM_CERTIFICATE)
-            .build();
+        ClientCertificate clientCertificate = new ClientCertificate("With dates", PEM_CERTIFICATE, startDate, endDate);
         if (valid) {
             assertThatCode(() -> clientCertificateCrudService.create(APPLICATION_ID, clientCertificate)).doesNotThrowAnyException();
             assertThatCode(() -> clientCertificateCrudService.update(APPLICATION_ID, clientCertificate)).doesNotThrowAnyException();

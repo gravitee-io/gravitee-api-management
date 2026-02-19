@@ -31,7 +31,7 @@ public class DeleteClientCertificateUseCase {
     public void execute(Input input) {
         ClientCertificate certificate = clientCertificateCrudService.findById(input.clientCertificateId());
         clientCertificateCrudService.delete(input.clientCertificateId());
-        applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(certificate.getApplicationId());
+        applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(certificate.applicationId());
     }
 
     public record Input(String clientCertificateId) {}

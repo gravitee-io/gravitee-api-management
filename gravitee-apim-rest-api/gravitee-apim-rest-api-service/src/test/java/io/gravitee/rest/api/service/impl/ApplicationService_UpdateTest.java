@@ -190,15 +190,23 @@ public class ApplicationService_UpdateTest {
 
         // Mock the certificate service to return the certificate
         io.gravitee.apim.core.application_certificate.model.ClientCertificate mockCert =
-            io.gravitee.apim.core.application_certificate.model.ClientCertificate.builder()
-                .id("cert-id")
-                .applicationId(APPLICATION_ID)
-                .name("cert-name")
-                .createdAt(new java.util.Date())
-                .updatedAt(new java.util.Date())
-                .certificate(VALID_PEM_1)
-                .status(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE)
-                .build();
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "cert-id",
+                null,
+                APPLICATION_ID,
+                "cert-name",
+                null,
+                null,
+                new java.util.Date(),
+                new java.util.Date(),
+                VALID_PEM_1,
+                null,
+                null,
+                null,
+                null,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
         when(
             clientCertificateCrudService.findByApplicationIdAndStatuses(
                 any(),
@@ -766,15 +774,23 @@ public class ApplicationService_UpdateTest {
 
         // Existing certificate with different content
         io.gravitee.apim.core.application_certificate.model.ClientCertificate existingCert =
-            io.gravitee.apim.core.application_certificate.model.ClientCertificate.builder()
-                .id("old-cert-id")
-                .applicationId(APPLICATION_ID)
-                .name("old-cert-name")
-                .createdAt(new java.util.Date())
-                .updatedAt(new java.util.Date())
-                .certificate("old certificate content")
-                .status(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE)
-                .build();
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "old-cert-id",
+                null,
+                APPLICATION_ID,
+                "old-cert-name",
+                null,
+                null,
+                new java.util.Date(),
+                new java.util.Date(),
+                "old certificate content",
+                null,
+                null,
+                null,
+                null,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
         when(
             clientCertificateCrudService.findByApplicationIdAndStatuses(
                 any(),
@@ -874,14 +890,23 @@ public class ApplicationService_UpdateTest {
 
         // One existing cert that matches one of the new ones
         io.gravitee.apim.core.application_certificate.model.ClientCertificate existingCert =
-            io.gravitee.apim.core.application_certificate.model.ClientCertificate.builder()
-                .id("existing-cert-id")
-                .applicationId(APPLICATION_ID)
-                .name("existing")
-                .createdAt(new java.util.Date())
-                .certificate("existing-pem")
-                .status(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE)
-                .build();
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "existing-cert-id",
+                null,
+                APPLICATION_ID,
+                "existing",
+                null,
+                null,
+                new java.util.Date(),
+                null,
+                "existing-pem",
+                null,
+                null,
+                null,
+                null,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
         when(
             clientCertificateCrudService.findByApplicationIdAndStatuses(
                 any(),
@@ -941,23 +966,41 @@ public class ApplicationService_UpdateTest {
 
         // Two existing certs - one will be kept, one removed
         io.gravitee.apim.core.application_certificate.model.ClientCertificate keptCert =
-            io.gravitee.apim.core.application_certificate.model.ClientCertificate.builder()
-                .id("kept-cert-id")
-                .applicationId(APPLICATION_ID)
-                .name("kept")
-                .createdAt(new java.util.Date())
-                .certificate("kept-pem")
-                .status(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE)
-                .build();
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "kept-cert-id",
+                null,
+                APPLICATION_ID,
+                "kept",
+                null,
+                null,
+                new java.util.Date(),
+                null,
+                "kept-pem",
+                null,
+                null,
+                null,
+                null,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
         io.gravitee.apim.core.application_certificate.model.ClientCertificate removedCert =
-            io.gravitee.apim.core.application_certificate.model.ClientCertificate.builder()
-                .id("removed-cert-id")
-                .applicationId(APPLICATION_ID)
-                .name("removed")
-                .createdAt(new java.util.Date())
-                .certificate("removed-pem")
-                .status(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE)
-                .build();
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "removed-cert-id",
+                null,
+                APPLICATION_ID,
+                "removed",
+                null,
+                null,
+                new java.util.Date(),
+                null,
+                "removed-pem",
+                null,
+                null,
+                null,
+                null,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
         when(
             clientCertificateCrudService.findByApplicationIdAndStatuses(
                 any(),
@@ -974,7 +1017,7 @@ public class ApplicationService_UpdateTest {
         );
         verify(clientCertificateCrudService).update(eq("removed-cert-id"), certCaptor.capture());
         io.gravitee.apim.core.application_certificate.model.ClientCertificate revokedCert = certCaptor.getValue();
-        Assertions.assertThat(revokedCert.getEndsAt()).isBeforeOrEqualTo(new Date());
+        Assertions.assertThat(revokedCert.endsAt()).isBeforeOrEqualTo(new Date());
 
         // Kept cert should NOT be touched
         verify(clientCertificateCrudService, never()).update(eq("kept-cert-id"), any());
@@ -1014,23 +1057,41 @@ public class ApplicationService_UpdateTest {
 
         // Two existing certs - one will be kept, one removed
         io.gravitee.apim.core.application_certificate.model.ClientCertificate keptCert =
-            io.gravitee.apim.core.application_certificate.model.ClientCertificate.builder()
-                .id("kept-cert-id")
-                .applicationId(APPLICATION_ID)
-                .name("kept")
-                .createdAt(new java.util.Date())
-                .certificate("kept-pem")
-                .status(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE)
-                .build();
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "kept-cert-id",
+                null,
+                APPLICATION_ID,
+                "kept",
+                null,
+                null,
+                new java.util.Date(),
+                null,
+                "kept-pem",
+                null,
+                null,
+                null,
+                null,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
         io.gravitee.apim.core.application_certificate.model.ClientCertificate removedCert =
-            io.gravitee.apim.core.application_certificate.model.ClientCertificate.builder()
-                .id("removed-cert-id")
-                .applicationId(APPLICATION_ID)
-                .name("removed")
-                .createdAt(new java.util.Date())
-                .certificate("removed-pem")
-                .status(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE)
-                .build();
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "removed-cert-id",
+                null,
+                APPLICATION_ID,
+                "removed",
+                null,
+                null,
+                new java.util.Date(),
+                null,
+                "removed-pem",
+                null,
+                null,
+                null,
+                null,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
         when(
             clientCertificateCrudService.findByApplicationIdAndStatuses(
                 any(),

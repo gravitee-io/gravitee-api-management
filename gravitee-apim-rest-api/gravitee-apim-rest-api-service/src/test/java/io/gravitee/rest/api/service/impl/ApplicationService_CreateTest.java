@@ -241,11 +241,11 @@ public class ApplicationService_CreateTest {
         verify(clientCertificateCrudService, times(2)).create(any(), any());
         verify(clientCertificateCrudService).create(
             any(),
-            argThat(cert -> "cert-1".equals(cert.getName()) && VALID_PEM.equals(cert.getCertificate()))
+            argThat(cert -> "cert-1".equals(cert.name()) && VALID_PEM.equals(cert.certificate()))
         );
         verify(clientCertificateCrudService).create(
             any(),
-            argThat(cert -> "cert-2".equals(cert.getName()) && "another-pem".equals(cert.getCertificate()))
+            argThat(cert -> "cert-2".equals(cert.name()) && "another-pem".equals(cert.certificate()))
         );
     }
 

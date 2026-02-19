@@ -54,19 +54,14 @@ class CreateClientCertificateUseCaseTest {
         var result = createClientCertificateUseCase.execute(
             new CreateClientCertificateUseCase.Input(
                 appId,
-                ClientCertificate.builder()
-                    .name("Test Certificate")
-                    .startsAt(new Date())
-                    .endsAt(new Date())
-                    .certificate("PEM_CONTENT")
-                    .build()
+                new ClientCertificate("Test Certificate", "PEM_CONTENT", new Date(), new Date())
             )
         );
 
         assertThat(result.clientCertificate()).isNotNull();
-        assertThat(result.clientCertificate().getId()).isNotNull();
-        assertThat(result.clientCertificate().getApplicationId()).isEqualTo(appId);
-        assertThat(result.clientCertificate().getName()).isEqualTo("Test Certificate");
+        assertThat(result.clientCertificate().id()).isNotNull();
+        assertThat(result.clientCertificate().applicationId()).isEqualTo(appId);
+        assertThat(result.clientCertificate().name()).isEqualTo("Test Certificate");
         assertThat(clientCertificateCrudService.storage()).hasSize(1);
         verify(applicationCertificatesUpdateDomainService).updateActiveMTLSSubscriptions(appId);
     }
