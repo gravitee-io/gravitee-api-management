@@ -26,8 +26,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
 import { isEqual } from 'lodash';
-import { Observable, Subject, of, BehaviorSubject } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { Observable, Subject, of, BehaviorSubject, combineLatest } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map, startWith, switchMap, tap, finalize } from 'rxjs/operators';
 import { MatSelectModule } from '@angular/material/select';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
@@ -178,23 +178,12 @@ export class ApiSectionEditorDialogComponent implements OnInit {
 
     const disabledSet = new Set<string>([]);
 
-    this.rows$ = this.filters$.pipe(
-      debounceTime(100),
-      distinctUntilChanged(isEqual),
-      switchMap(filters =>
-        this.refresh$.pipe(
-          startWith(undefined),
-          tap(() => (this.isLoading = true)),
-          switchMap(() =>
-            this.apiService.search({ query: filters.searchTerm }, undefined, filters.pagination.index, filters.pagination.size, false),
-          ),
-          catchError((): Observable<ApisResponse> => {
-            this.total = 0;
-            return of({ data: [], pagination: undefined, links: undefined });
-          }),
-          tap(() => (this.isLoading = false)),
-        ),
-      ),
+    this.rows$ = combineLatest([
+      this.filters$.pipe(debounceTime(100), distinctUntilChanged(isEqual)),
+      this.refresh$.pipe(startWith(undefined)),
+    ]).pipe(
+      tap(() => (this.isLoading = true)),
+      switchMap(([filters]) => this.searchApis(filters)),
       tap(resp => {
         this.total = resp.pagination?.totalCount ?? 0;
       }),
@@ -212,6 +201,7 @@ export class ApiSectionEditorDialogComponent implements OnInit {
           };
         }),
       ),
+      startWith([]),
     );
 
     this.initialFormValues = this.form.getRawValue();
@@ -288,5 +278,26 @@ export class ApiSectionEditorDialogComponent implements OnInit {
 
   private isApiV2OrV4(api: Api): api is ApiV2 | ApiV4 {
     return api.definitionVersion === 'V2' || api.definitionVersion === 'V4';
+  }
+
+  private searchApis(filters: GioTableWrapperFilters): Observable<ApisResponse> {
+    return new Observable<ApisResponse>(subscriber => {
+      const sub = this.apiService
+        .search({ query: filters.searchTerm }, undefined, filters.pagination.index, filters.pagination.size, false)
+        .subscribe({
+          next: resp => subscriber.next(resp),
+          error: () => {
+            this.total = 0;
+            subscriber.next({ data: [], pagination: undefined, links: undefined });
+            subscriber.complete();
+          },
+          complete: () => subscriber.complete(),
+        });
+
+      return () => {
+        sub.unsubscribe();
+        this.isLoading = false;
+      };
+    }).pipe(finalize(() => (this.isLoading = false)));
   }
 }
