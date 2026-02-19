@@ -47,6 +47,7 @@ import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionDiagnosticModel;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -221,7 +222,8 @@ public class SearchEnvironmentLogsUseCase {
             case TRANSACTION_ID -> filterContext.limitByTransactionIds(ids);
             case REQUEST_ID -> filterContext.limitByRequestIds(ids);
             case URI -> {
-                // For URI, only EQ filters are supported, so we take the first (and presumably only) value
+                // For URI, only EQ filters are supported, so we take the first (and presumably
+                // only) value
                 if (!ids.isEmpty()) {
                     filterContext.limitByUri(ids.iterator().next());
                 }
@@ -234,6 +236,7 @@ public class SearchEnvironmentLogsUseCase {
         try {
             return io.gravitee.apim.core.logs_engine.model.HttpMethod.valueOf(method);
         } catch (IllegalArgumentException iae) {
+            // Unknown HTTP method — mapped to OTHER
             return io.gravitee.apim.core.logs_engine.model.HttpMethod.OTHER;
         }
     }
@@ -273,6 +276,7 @@ public class SearchEnvironmentLogsUseCase {
             item.getStatus(),
             item.isRequestEnded(),
             safeToInteger(item.getGatewayResponseTime()),
+            item.getGateway(),
             item.getUri(),
             item.getEndpoint(),
             item.getMessage(),
@@ -285,7 +289,15 @@ public class SearchEnvironmentLogsUseCase {
     }
 
     private OffsetDateTime toOffsetDateTime(String timestamp) {
-        return timestamp == null ? null : OffsetDateTime.parse(timestamp);
+        if (timestamp == null) {
+            return null;
+        }
+        try {
+            return OffsetDateTime.parse(timestamp);
+        } catch (DateTimeParseException e) {
+            // Malformed timestamp — treat as null
+            return null;
+        }
     }
 
     private HttpMethod mapHttpMethod(io.gravitee.common.http.HttpMethod method) {

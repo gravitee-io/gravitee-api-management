@@ -118,7 +118,8 @@ export const fakeEnvLog = (attributes?: Partial<EnvLog>): EnvLog => {
   const defaultLog: EnvLog = {
     id: `${Math.floor(Math.random() * 100000)}`, // NOSONAR: safe for test data
     timestamp: 'Nov 27, 2025, 3:32:24 PM',
-    api: '/poke',
+    api: 'Pokémon API',
+    apiId: 'api-pokemon',
     type: 'HTTP Proxy',
     application: 'My mobile app',
     method: 'GET',
@@ -174,7 +175,8 @@ export const fakeEnvLogs = (): EnvLog[] => {
     fakeEnvLog({
       id: 'log-1',
       timestamp: '15/06/2025 12:00:00',
-      api: 'API Name',
+      api: 'Pokémon API',
+      apiId: 'api-pokemon',
       path: '/api/v1/event-types',
       method: 'PATCH',
       status: 200,
@@ -186,7 +188,8 @@ export const fakeEnvLogs = (): EnvLog[] => {
     fakeEnvLog({
       id: 'log-2',
       timestamp: '16/06/2025 13:15:00',
-      api: 'API Name',
+      api: 'Pokémon API',
+      apiId: 'api-pokemon',
       path: '/api/v1/event-types/{id}',
       method: 'DELETE',
       status: 400,
@@ -201,7 +204,8 @@ export const fakeEnvLogs = (): EnvLog[] => {
     fakeEnvLog({
       id: 'log-3',
       timestamp: '17/06/2025 14:30:00',
-      api: 'API Name',
+      api: 'Pokémon API',
+      apiId: 'api-pokemon',
       path: '/api/v1/event-types',
       method: 'POST',
       status: 201,
@@ -214,7 +218,8 @@ export const fakeEnvLogs = (): EnvLog[] => {
     fakeEnvLog({
       id: 'log-4',
       timestamp: '18/06/2025 15:45:00',
-      api: 'API Name',
+      api: 'Pokémon API',
+      apiId: 'api-pokemon',
       path: '/api/v1/event-types/{id}',
       method: 'PUT',
       status: 301,
@@ -226,7 +231,8 @@ export const fakeEnvLogs = (): EnvLog[] => {
     fakeEnvLog({
       id: 'log-5',
       timestamp: '19/06/2025 17:00:00',
-      api: 'API Name',
+      api: 'Pokémon API',
+      apiId: 'api-pokemon',
       path: '/api/v1/event-types/{id}',
       method: 'GET',
       status: 500,
