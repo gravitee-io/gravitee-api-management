@@ -23,8 +23,8 @@ import inmemory.InMemoryAlternative;
 import inmemory.SubscriptionFormCrudServiceInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.management.v2.rest.model.CreateOrUpdateSubscriptionForm;
 import io.gravitee.rest.api.management.v2.rest.model.SubscriptionForm;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateSubscriptionForm;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -88,9 +88,7 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
             subscriptionFormQueryService.initWith(List.of(existingForm));
             subscriptionFormCrudService.initWith(List.of(existingForm));
 
-            CreateOrUpdateSubscriptionForm request = new CreateOrUpdateSubscriptionForm().gmdContent(
-                "<gmd-card>Updated Content</gmd-card>"
-            );
+            UpdateSubscriptionForm request = new UpdateSubscriptionForm().gmdContent("<gmd-card>Updated Content</gmd-card>");
 
             // When
             var response = rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request));
@@ -107,7 +105,7 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         @Test
         void should_return_404_when_form_not_exists() {
             // Given
-            CreateOrUpdateSubscriptionForm request = new CreateOrUpdateSubscriptionForm().gmdContent("<gmd-card>Content</gmd-card>");
+            UpdateSubscriptionForm request = new UpdateSubscriptionForm().gmdContent("<gmd-card>Content</gmd-card>");
 
             // When
             var response = rootTarget.path("550e8400-e29b-41d4-a716-446655440000").request().put(Entity.json(request));
@@ -121,7 +119,7 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
             // Given
             var existingForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENVIRONMENT).build();
             subscriptionFormQueryService.initWith(List.of(existingForm));
-            CreateOrUpdateSubscriptionForm request = new CreateOrUpdateSubscriptionForm();
+            UpdateSubscriptionForm request = new UpdateSubscriptionForm();
 
             // When
             var response = rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request));

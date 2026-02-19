@@ -34,9 +34,9 @@ export interface SubscriptionForm {
 }
 
 /**
- * Payload for creating or updating a subscription form
+ * Payload for updating a subscription form
  */
-export interface CreateOrUpdateSubscriptionForm {
+export interface UpdateSubscriptionForm {
   /**
    * Gravitee Markdown (GMD) content defining the form.
    * Content is validated for security - malicious HTML/scripts will be rejected.
