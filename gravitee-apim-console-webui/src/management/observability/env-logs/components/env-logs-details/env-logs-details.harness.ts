@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
 
 export class EnvLogsDetailsHarness extends ComponentHarness {
   static hostSelector = 'env-logs-details';
 
   private readonly backButton = this.locatorFor('.back-button');
+  private readonly moreDetailsPanel = this.locatorFor(MatExpansionPanelHarness);
 
   async clickBack(): Promise<void> {
     const button = await this.backButton();
@@ -33,5 +35,35 @@ export class EnvLogsDetailsHarness extends ComponentHarness {
   async getOverviewUri(): Promise<string> {
     const uriDd = await this.locatorFor('[data-testid="overview-uri"]')();
     return uriDd.text();
+  }
+
+  async getNotFoundBannerText(): Promise<string | null> {
+    const banner = await this.locatorForOptional('gio-banner-info')();
+    return banner ? banner.text() : null;
+  }
+
+  async getErrorBannerText(): Promise<string | null> {
+    const banner = await this.locatorForOptional('[data-testid="error-banner"]')();
+    return banner ? (await banner.text()).trim() : null;
+  }
+
+  async getStatusBadgeText(): Promise<string | null> {
+    const badge = await this.locatorForOptional('.gio-badge-success, .gio-badge-warning, .gio-badge-error')();
+    return badge ? (await badge.text()).trim() : null;
+  }
+
+  async expandMoreDetails(): Promise<void> {
+    const panel = await this.moreDetailsPanel();
+    await panel.expand();
+  }
+
+  async getMoreDetailsText(): Promise<string> {
+    const panel = await this.moreDetailsPanel();
+    return panel.getTextContent();
+  }
+
+  async isLoading(): Promise<boolean> {
+    const loadingEl = await this.locatorForOptional('.logs-details__loading')();
+    return loadingEl !== null;
   }
 }
