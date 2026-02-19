@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.v2.rest.resource.analytics.dashboards;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
-import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import assertions.MAPIAssertions;
 import fixtures.DashboardFixtures;
 import inmemory.DashboardCrudServiceInMemory;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CreateDashboard;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CustomInterval;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.DashboardsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
@@ -269,6 +267,12 @@ class DashboardsResourceTest extends AbstractResourceTest {
             var body = response.readEntity(DashboardsResponse.class);
             assertThat(body.getData()).isEmpty();
             assertThat(body.getPagination()).isNotNull();
+        }
+
+        @Test
+        void should_return_400_when_page_is_not_a_number() {
+            var response = rootTarget().queryParam("page", "a").request().get();
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
         }
 
         @Test
