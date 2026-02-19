@@ -27,29 +27,28 @@
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field class="quick-filters__apis" data-testid="apis-select">
-        <mat-label>API</mat-label>
-        <mat-select formControlName="apis" aria-label="API selection" [multiple]="true">
-          @for (api of apis; track api.id) {
-            <mat-option [value]="api.id">{{ api.name }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+      <gio-select-search
+        class="quick-filters__apis"
+        label="API"
+        formControlName="apis"
+        [resultsLoader]="apiResultsLoader"
+        data-testid="apis-select"
+      ></gio-select-search>
 
-      <mat-form-field class="quick-filters__applications" data-testid="applications-select">
-        <mat-label>Application</mat-label>
-        <mat-select formControlName="applications" aria-label="Application selection" [multiple]="true">
-          @for (app of applications; track app.id) {
-            <mat-option [value]="app.id">{{ app.name }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+      <gio-select-search
+        class="quick-filters__applications"
+        label="Application"
+        formControlName="applications"
+        [resultsLoader]="applicationResultsLoader"
+        data-testid="applications-select"
+      ></gio-select-search>
 
       <div class="quick-filters__buttons">
         <div class="action">
           <env-logs-more-filters
             [showMoreFilters]="showMoreFilters()"
             [formValues]="moreFiltersValues()"
+            [selectedApiIds]="selectedApiIds()"
             (closeMoreFilters)="showMoreFilters.set(false)"
             (applyMoreFilters)="applyMoreFilters($event)"
           ></env-logs-more-filters>

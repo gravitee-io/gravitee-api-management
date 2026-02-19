@@ -66,9 +66,77 @@ export type SearchLogsParam = {
   page?: number;
   perPage?: number;
   timeRange?: TimeRange;
+  /** Period shorthand, e.g. '-1h', '-1d'. Converted to timeRange if timeRange is not set. */
+  period?: string;
   /** Filter by a specific request ID (maps to backend FilterName.REQUEST_ID) */
   requestId?: string;
+  apiIds?: string[];
+  applicationIds?: string[];
+  planIds?: string[];
+  methods?: string[];
+  statuses?: number[];
+  entrypoints?: string[];
+  transactionId?: string;
+  uri?: string;
+  /** Only return logs with response time >= this value in ms */
+  responseTime?: number;
 };
+
+/** Parses a period string like '-1h', '-30m', '-3d' into milliseconds. Returns null for '0' (none). */
+export function periodToMs(period: string): number | null {
+  if (!period || period === '0') return null;
+  const match = period.match(/^-(\d+)([mhd])$/);
+  if (!match) {
+    // eslint-disable-next-line angular/log -- standalone utility; AngularJS $log N/A
+    console.warn(`[EnvironmentLogsService] Unrecognized period format: "${period}". Falling back to default time range.`);
+    return null;
+  }
+  const amount = parseInt(match[1], 10);
+  const unit = match[2];
+  const multipliers: Record<string, number> = { m: 60_000, h: 3_600_000, d: 86_400_000 };
+  return amount * (multipliers[unit] ?? 0);
+}
+
+type LogFilter = { name: string; operator: string; value: string | string[] | number };
+
+/** Builds the filters array for the backend search request body. */
+function buildFilters(param?: SearchLogsParam): LogFilter[] {
+  if (!param) return [];
+  const filters: LogFilter[] = [];
+
+  if (param.apiIds?.length) {
+    filters.push({ name: 'API', operator: 'IN', value: param.apiIds });
+  }
+  if (param.applicationIds?.length) {
+    filters.push({ name: 'APPLICATION', operator: 'IN', value: param.applicationIds });
+  }
+  if (param.planIds?.length) {
+    filters.push({ name: 'PLAN', operator: 'IN', value: param.planIds });
+  }
+  if (param.methods?.length) {
+    filters.push({ name: 'HTTP_METHOD', operator: 'IN', value: param.methods });
+  }
+  if (param.statuses?.length) {
+    filters.push({ name: 'HTTP_STATUS', operator: 'IN', value: param.statuses.map(String) });
+  }
+  if (param.entrypoints?.length) {
+    filters.push({ name: 'ENTRYPOINT', operator: 'IN', value: param.entrypoints });
+  }
+  if (param.requestId) {
+    filters.push({ name: 'REQUEST_ID', operator: 'IN', value: [param.requestId] });
+  }
+  if (param.transactionId) {
+    filters.push({ name: 'TRANSACTION_ID', operator: 'EQ', value: param.transactionId });
+  }
+  if (param.uri) {
+    filters.push({ name: 'URI', operator: 'EQ', value: param.uri });
+  }
+  if (param.responseTime != null) {
+    filters.push({ name: 'RESPONSE_TIME', operator: 'GTE', value: param.responseTime });
+  }
+
+  return filters;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -77,7 +145,7 @@ export class EnvironmentLogsService {
   constructor(
     private readonly http: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
-  ) {}
+  ) { }
 
   searchLogs(param?: SearchLogsParam): Observable<SearchLogsResponse> {
     let params = new HttpParams();
@@ -85,21 +153,29 @@ export class EnvironmentLogsService {
     params = params.append('perPage', param?.perPage ?? 10);
 
     const now = new Date();
-    // Default to last 24 hours. Note: when filtering by requestId, callers should pass
-    // an explicit timeRange if the log may be older than 24 hours.
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    let timeRange = param?.timeRange;
 
-    const filters = [];
-    if (param?.requestId) {
-      filters.push({ name: 'REQUEST_ID', operator: 'EQ', value: param.requestId });
+    if (!timeRange && param?.period) {
+      const ms = periodToMs(param.period);
+      if (ms) {
+        timeRange = {
+          from: new Date(now.getTime() - ms).toISOString(),
+          to: now.toISOString(),
+        };
+      }
     }
 
-    const body: Record<string, unknown> = {
-      timeRange: param?.timeRange ?? {
+    // Default to last 24 hours when no period or timeRange specified
+    if (!timeRange) {
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      timeRange = {
         from: oneDayAgo.toISOString(),
         to: now.toISOString(),
-      },
-    };
+      };
+    }
+
+    const filters = buildFilters(param);
+    const body: Record<string, unknown> = { timeRange };
     if (filters.length > 0) {
       body['filters'] = filters;
     }

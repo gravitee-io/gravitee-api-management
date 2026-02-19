@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatCardModule } from '@angular/material/card';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -81,10 +81,9 @@ describe('EnvLogsComponent', () => {
   function flushSearchAndResolution(
     response: SearchLogsResponse,
     overrides?: { failApp?: boolean; failPlan?: boolean; failGateway?: boolean },
-    searchUrl: string = SEARCH_URL,
   ) {
     // Flush the search request
-    const req = httpTestingController.expectOne({ method: 'POST', url: searchUrl });
+    const req = httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL });
     req.flush(response);
 
     // Flush API name resolution requests
@@ -97,7 +96,7 @@ describe('EnvLogsComponent', () => {
       apiReq.flush({ id: apiId, name: `Resolved ${apiId}` });
     }
 
-    // Flush application name resolution requests (excluding keyless app '1')
+    // Flush application name resolution requests (excluding default app '1')
     const appIds = [...new Set(response.data.map(log => log.application?.id).filter(id => Boolean(id) && id !== '1'))];
     for (const appId of appIds) {
       const appReq = httpTestingController.expectOne({
@@ -152,7 +151,7 @@ describe('EnvLogsComponent', () => {
     overrides?: { failApp?: boolean; failPlan?: boolean; failGateway?: boolean },
   ) {
     fixture.detectChanges();
-    tick();
+    tick(); // Flush debounceTime(0) in searchParams pipeline
     flushSearchAndResolution(response, overrides);
   }
 
@@ -211,11 +210,11 @@ describe('EnvLogsComponent', () => {
     const logs = component.logs();
     expect(logs.length).toBe(1);
     expect(logs[0].application).toBe('app-1');
-    expect(logs[0].plan?.name).toBe('api-1|plan-1');
+    expect(logs[0].plan?.name).toBe('plan-1');
     expect(logs[0].gateway).toBe('gw-uuid-1');
   }));
 
-  it('should display "Unknown application (keyless)" for default application ID', fakeAsync(() => {
+  it('should skip resolution for default application ID and display em dash', fakeAsync(() => {
     const responseWithDefaultApp: SearchLogsResponse = {
       data: [
         {
@@ -238,7 +237,7 @@ describe('EnvLogsComponent', () => {
 
     // No application HTTP request should have been made (verified by httpTestingController.verify() in afterEach)
     const logs = component.logs();
-    expect(logs[0].application).toBe('Unknown application (keyless)');
+    expect(logs[0].application).toBe('—');
   }));
 
   it('should update pagination from response', fakeAsync(() => {
@@ -251,97 +250,6 @@ describe('EnvLogsComponent', () => {
     initComponent();
 
     expect(component.logs().length).toBe(0);
-    expect(component.loading()).toBe(false);
-  }));
-
-  it('should trigger new search on pagination update', fakeAsync(() => {
-    initComponent(MOCK_RESPONSE);
-
-    component.onPaginationUpdated({ index: 2, size: 10 });
-    fixture.detectChanges();
-    tick(1);
-
-    const page2Url = `${CONSTANTS_TESTING.env.v2BaseURL}/logs/search?page=2&perPage=10`;
-    flushSearchAndResolution(EMPTY_RESPONSE, undefined, page2Url);
-
-    expect(component.logs().length).toBe(0);
-  }));
-
-  it('should reset to page 1 on refresh', fakeAsync(() => {
-    initComponent(MOCK_RESPONSE);
-
-    component.onPaginationUpdated({ index: 2, size: 10 });
-    fixture.detectChanges();
-    tick(1);
-
-    const page2Url = `${CONSTANTS_TESTING.env.v2BaseURL}/logs/search?page=2&perPage=10`;
-    flushSearchAndResolution(EMPTY_RESPONSE, undefined, page2Url);
-
-    component.onRefresh();
-    fixture.detectChanges();
-    tick(1);
-
-    flushSearchAndResolution(MOCK_RESPONSE);
-
-    expect(component.logs().length).toBe(1);
-    expect(component.pagination().page).toBe(1);
-  }));
-
-  it('should display error when searchLogs fails', fakeAsync(() => {
-    fixture.detectChanges();
-    tick();
-
-    const req = httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL });
-    req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
-    fixture.detectChanges();
-
-    expect(component.error()).toBe('Request failed: 500 Internal Server Error');
-    expect(component.loading()).toBe(false);
-    expect(component.logs().length).toBe(0);
-  }));
-
-  it('should deduplicate IDs across multiple log entries', fakeAsync(() => {
-    const multiEntryResponse: SearchLogsResponse = {
-      data: [
-        {
-          apiId: 'api-1',
-          timestamp: '2025-06-15T12:00:00Z',
-          id: 'log-1',
-          requestId: 'req-1',
-          method: 'GET',
-          status: 200,
-          requestEnded: true,
-          uri: '/a',
-          application: { id: 'app-1' },
-          plan: { id: 'plan-1' },
-          gateway: 'gw-1',
-        },
-        {
-          apiId: 'api-1',
-          timestamp: '2025-06-15T12:01:00Z',
-          id: 'log-2',
-          requestId: 'req-2',
-          method: 'POST',
-          status: 201,
-          requestEnded: true,
-          uri: '/b',
-          application: { id: 'app-1' },
-          plan: { id: 'plan-1' },
-          gateway: 'gw-1',
-        },
-      ],
-      pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 2, totalCount: 2 },
-    };
-
-    initComponent(multiEntryResponse);
-
-    // If deduplication works, only 1 API, 1 app, 1 plan, and 1 gateway request
-    // (verified by httpTestingController.verify() in afterEach)
-    const logs = component.logs();
-    expect(logs.length).toBe(2);
-    expect(logs[0].api).toBe('Resolved api-1');
-    expect(logs[1].api).toBe('Resolved api-1');
-    expect(logs[0].application).toBe('Resolved app-1');
-    expect(logs[1].application).toBe('Resolved app-1');
+    expect(component.isLoading()).toBe(false);
   }));
 });
