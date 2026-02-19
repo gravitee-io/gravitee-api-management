@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.installation;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.kafkaexplorer.resource.KafkaExplorerResource;
 import io.gravitee.rest.api.management.v2.rest.mapper.EnvironmentMapper;
 import io.gravitee.rest.api.management.v2.rest.model.Environment;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -152,5 +153,10 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/subscription-forms")
     public SubscriptionFormsResource getSubscriptionFormsResource() {
         return resourceContext.getResource(SubscriptionFormsResource.class);
+    }
+
+    @Path("/kafka-explorer")
+    public KafkaExplorerResource getKafkaExplorerResource() {
+        return resourceContext.getResource(KafkaExplorerResource.class);
     }
 }
