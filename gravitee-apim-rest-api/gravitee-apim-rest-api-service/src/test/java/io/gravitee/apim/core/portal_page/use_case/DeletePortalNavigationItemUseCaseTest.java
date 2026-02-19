@@ -177,7 +177,7 @@ public class DeletePortalNavigationItemUseCaseTest {
     }
 
     @Test
-    void should_throw_when_parent() {
+    void should_throw_when_folder_has_children() {
         // Given
         var parent = PortalNavigationItemFixtures.aFolder("Parent");
         var child1 = PortalNavigationItemFixtures.aPage("Child 1", parent.getId());
@@ -193,6 +193,29 @@ public class DeletePortalNavigationItemUseCaseTest {
                     PortalNavigationItemFixtures.ORG_ID,
                     PortalNavigationItemFixtures.ENV_ID,
                     parent.getId()
+                )
+            )
+        );
+
+        // Then
+        Assertions.assertThat(throwable).isInstanceOf(PortalNavigationItemHasChildrenException.class).hasMessageContaining("has children");
+    }
+
+    @Test
+    void should_throw_when_api_has_children() {
+        // Given
+        var apiParent = PortalNavigationItemFixtures.anApi(PortalNavigationItemFixtures.API1_ID, "API Parent", null, "api-1");
+        var child = PortalNavigationItemFixtures.aFolder("Child Folder", apiParent.getId());
+        portalNavigationItemsCrudService.initWith(List.of(apiParent, child));
+        portalNavigationItemsQueryService.initWith(List.of(apiParent, child));
+
+        // When
+        var throwable = Assertions.catchThrowable(() ->
+            deletePortalNavigationItemUseCase.execute(
+                new DeletePortalNavigationItemUseCase.Input(
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    apiParent.getId()
                 )
             )
         );
