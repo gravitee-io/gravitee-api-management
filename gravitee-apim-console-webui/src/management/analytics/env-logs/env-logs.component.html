@@ -25,12 +25,16 @@
     </div>
   </gio-banner-info>
 
+  @if (error()) {
+    <gio-banner-error>{{ error() }}</gio-banner-error>
+  }
+
   <mat-card class="logs-section">
-    <env-logs-filter-bar [loading]="isLoading()" (refresh)="refresh()"></env-logs-filter-bar>
+    <env-logs-filter-bar [loading]="loading()" (refresh)="onRefresh()"></env-logs-filter-bar>
     <env-logs-table
       class="env-runtime-logs__table"
       [logs]="logs()"
-      [pagination]="pagination()"
+      [pagination]="paginationWithTotal()"
       (paginationUpdated)="onPaginationUpdated($event)"
     ></env-logs-table>
   </mat-card>

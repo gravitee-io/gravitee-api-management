@@ -25,7 +25,7 @@
 >
   <ng-template #timestampTemplate let-log>
     @if (log.timestamp) {
-      <a [routerLink]="['.', log.id]" class="log-timestamp-link">
+      <a [routerLink]="['.', log.id]" [queryParams]="{ apiId: log.apiId }" class="log-timestamp-link">
         {{ log.timestamp }}
       </a>
     } @else {
@@ -93,7 +93,7 @@
   </ng-template>
 
   <ng-template #previewTemplate let-log>
-    <a mat-icon-button [routerLink]="['.', log.id]" data-testid="env_logs_preview_button">
+    <a mat-icon-button [routerLink]="['.', log.id]" [queryParams]="{ apiId: log.apiId }" data-testid="env_logs_preview_button">
       <mat-icon svgIcon="gio:eye-empty"></mat-icon>
     </a>
   </ng-template>
