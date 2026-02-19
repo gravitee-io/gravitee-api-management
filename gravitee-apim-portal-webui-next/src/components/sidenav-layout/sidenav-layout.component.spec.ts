@@ -30,6 +30,7 @@ import { Breadcrumb } from '../breadcrumbs/breadcrumbs.component';
   template: `
     <app-sidenav-layout [breadcrumbs]="breadcrumbs">
       <div sidenavContent>Sidenav Content</div>
+      <div breadcrumbActions>Breadcrumb Actions</div>
       <div mainContent>Main Content</div>
     </app-sidenav-layout>
   `,
@@ -68,5 +69,10 @@ describe('SidenavLayoutComponent', () => {
   it('should display breadcrumbs', async () => {
     const breadcrumbs = await harness.getBreadcrumbs();
     expect(await breadcrumbs?.getText()).toContain('Parent/Child/Grandchild');
+  });
+
+  it('should display breadcrumb actions', async () => {
+    const breadcrumbActions = await harness.getBreadcrumbActions();
+    expect(await breadcrumbActions?.getText()).toBe('Breadcrumb Actions');
   });
 });
