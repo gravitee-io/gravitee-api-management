@@ -105,6 +105,36 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
         UuidString.reset();
     }
 
+    private ClientCertificate cert(
+        String id,
+        String appId,
+        String envId,
+        String name,
+        Date startsAt,
+        Date endsAt,
+        Date createdAt,
+        Date updatedAt,
+        ClientCertificateStatus status
+    ) {
+        return new ClientCertificate(
+            id,
+            null,
+            appId,
+            name,
+            startsAt,
+            endsAt,
+            createdAt,
+            updatedAt,
+            null,
+            null,
+            null,
+            null,
+            null,
+            envId,
+            status
+        );
+    }
+
     @Test
     void should_revoke_expired_active_with_end_certificates() {
         var pastDate = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));
@@ -112,27 +142,27 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
 
         clientCertificateCrudService.initWith(
             List.of(
-                ClientCertificate.builder()
-                    .id("cert1")
-                    .applicationId("app1")
-                    .environmentId("env1")
-                    .name("Expired cert")
-                    .startsAt(pastStartDate)
-                    .endsAt(pastDate)
-                    .createdAt(pastStartDate)
-                    .updatedAt(pastStartDate)
-                    .status(ClientCertificateStatus.ACTIVE_WITH_END)
-                    .build()
+                cert(
+                    "cert1",
+                    "app1",
+                    "env1",
+                    "Expired cert",
+                    pastStartDate,
+                    pastDate,
+                    pastStartDate,
+                    pastStartDate,
+                    ClientCertificateStatus.ACTIVE_WITH_END
+                )
             )
         );
 
         var result = useCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(AUDIT_ACTOR));
 
         assertThat(result.transitionedCertificates()).hasSize(1);
-        assertThat(result.transitionedCertificates().get(0).getStatus()).isEqualTo(ClientCertificateStatus.REVOKED);
+        assertThat(result.transitionedCertificates().get(0).status()).isEqualTo(ClientCertificateStatus.REVOKED);
         assertThat(clientCertificateCrudService.storage())
-            .filteredOn(c -> "cert1".equals(c.getId()))
-            .extracting(ClientCertificate::getStatus)
+            .filteredOn(c -> "cert1".equals(c.id()))
+            .extracting(ClientCertificate::status)
             .containsExactly(ClientCertificateStatus.REVOKED);
     }
 
@@ -143,27 +173,27 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
 
         clientCertificateCrudService.initWith(
             List.of(
-                ClientCertificate.builder()
-                    .id("cert2")
-                    .applicationId("app1")
-                    .environmentId("env1")
-                    .name("Scheduled cert with end date")
-                    .startsAt(pastDate)
-                    .endsAt(futureDate)
-                    .createdAt(pastDate)
-                    .updatedAt(pastDate)
-                    .status(ClientCertificateStatus.SCHEDULED)
-                    .build()
+                cert(
+                    "cert2",
+                    "app1",
+                    "env1",
+                    "Scheduled cert with end date",
+                    pastDate,
+                    futureDate,
+                    pastDate,
+                    pastDate,
+                    ClientCertificateStatus.SCHEDULED
+                )
             )
         );
 
         var result = useCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(AUDIT_ACTOR));
 
         assertThat(result.transitionedCertificates()).hasSize(1);
-        assertThat(result.transitionedCertificates().get(0).getStatus()).isEqualTo(ClientCertificateStatus.ACTIVE_WITH_END);
+        assertThat(result.transitionedCertificates().get(0).status()).isEqualTo(ClientCertificateStatus.ACTIVE_WITH_END);
         assertThat(clientCertificateCrudService.storage())
-            .filteredOn(c -> "cert2".equals(c.getId()))
-            .extracting(ClientCertificate::getStatus)
+            .filteredOn(c -> "cert2".equals(c.id()))
+            .extracting(ClientCertificate::status)
             .containsExactly(ClientCertificateStatus.ACTIVE_WITH_END);
     }
 
@@ -173,27 +203,27 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
 
         clientCertificateCrudService.initWith(
             List.of(
-                ClientCertificate.builder()
-                    .id("cert3")
-                    .applicationId("app1")
-                    .environmentId("env1")
-                    .name("Scheduled cert no end")
-                    .startsAt(pastDate)
-                    .endsAt(null)
-                    .createdAt(pastDate)
-                    .updatedAt(pastDate)
-                    .status(ClientCertificateStatus.SCHEDULED)
-                    .build()
+                cert(
+                    "cert3",
+                    "app1",
+                    "env1",
+                    "Scheduled cert no end",
+                    pastDate,
+                    null,
+                    pastDate,
+                    pastDate,
+                    ClientCertificateStatus.SCHEDULED
+                )
             )
         );
 
         var result = useCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(AUDIT_ACTOR));
 
         assertThat(result.transitionedCertificates()).hasSize(1);
-        assertThat(result.transitionedCertificates().get(0).getStatus()).isEqualTo(ClientCertificateStatus.ACTIVE);
+        assertThat(result.transitionedCertificates().get(0).status()).isEqualTo(ClientCertificateStatus.ACTIVE);
         assertThat(clientCertificateCrudService.storage())
-            .filteredOn(c -> "cert3".equals(c.getId()))
-            .extracting(ClientCertificate::getStatus)
+            .filteredOn(c -> "cert3".equals(c.id()))
+            .extracting(ClientCertificate::status)
             .containsExactly(ClientCertificateStatus.ACTIVE);
     }
 
@@ -202,31 +232,32 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
         var futureStart = Date.from(Instant.now().plus(10, ChronoUnit.DAYS));
         var futureEnd = Date.from(Instant.now().plus(30, ChronoUnit.DAYS));
         var pastStart = Date.from(Instant.now().minus(10, ChronoUnit.DAYS));
+        var now = new Date();
 
         clientCertificateCrudService.initWith(
             List.of(
-                ClientCertificate.builder()
-                    .id("cert-scheduled-future")
-                    .applicationId("app1")
-                    .environmentId("env1")
-                    .name("Future scheduled cert")
-                    .startsAt(futureStart)
-                    .endsAt(null)
-                    .createdAt(new Date())
-                    .updatedAt(new Date())
-                    .status(ClientCertificateStatus.SCHEDULED)
-                    .build(),
-                ClientCertificate.builder()
-                    .id("cert-active-with-end-future")
-                    .applicationId("app1")
-                    .environmentId("env1")
-                    .name("Active with future end")
-                    .startsAt(pastStart)
-                    .endsAt(futureEnd)
-                    .createdAt(new Date())
-                    .updatedAt(new Date())
-                    .status(ClientCertificateStatus.ACTIVE_WITH_END)
-                    .build()
+                cert(
+                    "cert-scheduled-future",
+                    "app1",
+                    "env1",
+                    "Future scheduled cert",
+                    futureStart,
+                    null,
+                    now,
+                    now,
+                    ClientCertificateStatus.SCHEDULED
+                ),
+                cert(
+                    "cert-active-with-end-future",
+                    "app1",
+                    "env1",
+                    "Active with future end",
+                    pastStart,
+                    futureEnd,
+                    now,
+                    now,
+                    ClientCertificateStatus.ACTIVE_WITH_END
+                )
             )
         );
 
@@ -244,28 +275,28 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
 
         clientCertificateCrudService.initWith(
             List.of(
-                ClientCertificate.builder()
-                    .id("cert-revoked")
-                    .applicationId("app1")
-                    .environmentId("env1")
-                    .name("To be revoked")
-                    .startsAt(pastStartDate)
-                    .endsAt(pastDate)
-                    .createdAt(pastStartDate)
-                    .updatedAt(pastStartDate)
-                    .status(ClientCertificateStatus.ACTIVE_WITH_END)
-                    .build(),
-                ClientCertificate.builder()
-                    .id("cert-activated")
-                    .applicationId("app2")
-                    .environmentId("env2")
-                    .name("To be activated")
-                    .startsAt(pastDate)
-                    .endsAt(futureDate)
-                    .createdAt(pastDate)
-                    .updatedAt(pastDate)
-                    .status(ClientCertificateStatus.SCHEDULED)
-                    .build()
+                cert(
+                    "cert-revoked",
+                    "app1",
+                    "env1",
+                    "To be revoked",
+                    pastStartDate,
+                    pastDate,
+                    pastStartDate,
+                    pastStartDate,
+                    ClientCertificateStatus.ACTIVE_WITH_END
+                ),
+                cert(
+                    "cert-activated",
+                    "app2",
+                    "env2",
+                    "To be activated",
+                    pastDate,
+                    futureDate,
+                    pastDate,
+                    pastDate,
+                    ClientCertificateStatus.SCHEDULED
+                )
             )
         );
 
@@ -311,39 +342,19 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
 
         clientCertificateCrudService.initWith(
             List.of(
-                ClientCertificate.builder()
-                    .id("cert1")
-                    .applicationId("app1")
-                    .environmentId("env1")
-                    .name("Cert 1 for app1")
-                    .startsAt(pastStartDate)
-                    .endsAt(pastDate)
-                    .createdAt(pastStartDate)
-                    .updatedAt(pastStartDate)
-                    .status(ClientCertificateStatus.ACTIVE_WITH_END)
-                    .build(),
-                ClientCertificate.builder()
-                    .id("cert2")
-                    .applicationId("app1")
-                    .environmentId("env1")
-                    .name("Cert 2 for app1")
-                    .startsAt(pastDate)
-                    .endsAt(null)
-                    .createdAt(pastDate)
-                    .updatedAt(pastDate)
-                    .status(ClientCertificateStatus.SCHEDULED)
-                    .build(),
-                ClientCertificate.builder()
-                    .id("cert3")
-                    .applicationId("app2")
-                    .environmentId("env2")
-                    .name("Cert for app2")
-                    .startsAt(pastDate)
-                    .endsAt(null)
-                    .createdAt(pastDate)
-                    .updatedAt(pastDate)
-                    .status(ClientCertificateStatus.SCHEDULED)
-                    .build()
+                cert(
+                    "cert1",
+                    "app1",
+                    "env1",
+                    "Cert 1 for app1",
+                    pastStartDate,
+                    pastDate,
+                    pastStartDate,
+                    pastStartDate,
+                    ClientCertificateStatus.ACTIVE_WITH_END
+                ),
+                cert("cert2", "app1", "env1", "Cert 2 for app1", pastDate, null, pastDate, pastDate, ClientCertificateStatus.SCHEDULED),
+                cert("cert3", "app2", "env2", "Cert for app2", pastDate, null, pastDate, pastDate, ClientCertificateStatus.SCHEDULED)
             )
         );
 
@@ -370,17 +381,17 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
 
         clientCertificateCrudService.initWith(
             List.of(
-                ClientCertificate.builder()
-                    .id("cert-to-revoke")
-                    .applicationId("app1")
-                    .environmentId("env1")
-                    .name("Expiring cert")
-                    .startsAt(pastStartDate)
-                    .endsAt(pastDate)
-                    .createdAt(pastStartDate)
-                    .updatedAt(pastStartDate)
-                    .status(ClientCertificateStatus.ACTIVE_WITH_END)
-                    .build()
+                cert(
+                    "cert-to-revoke",
+                    "app1",
+                    "env1",
+                    "Expiring cert",
+                    pastStartDate,
+                    pastDate,
+                    pastStartDate,
+                    pastStartDate,
+                    ClientCertificateStatus.ACTIVE_WITH_END
+                )
             )
         );
 
@@ -406,24 +417,24 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
         // "env-missing" does not exist in environmentCrudService, causing audit to throw
         clientCertificateCrudService.initWith(
             List.of(
-                ClientCertificate.builder()
-                    .id("cert-audit-fails")
-                    .applicationId("app1")
-                    .environmentId("env-missing")
-                    .name("Cert with bad env")
-                    .startsAt(pastStartDate)
-                    .endsAt(pastDate)
-                    .createdAt(pastStartDate)
-                    .updatedAt(pastStartDate)
-                    .status(ClientCertificateStatus.ACTIVE_WITH_END)
-                    .build()
+                cert(
+                    "cert-audit-fails",
+                    "app1",
+                    "env-missing",
+                    "Cert with bad env",
+                    pastStartDate,
+                    pastDate,
+                    pastStartDate,
+                    pastStartDate,
+                    ClientCertificateStatus.ACTIVE_WITH_END
+                )
             )
         );
 
         var result = useCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(AUDIT_ACTOR));
 
         assertThat(result.transitionedCertificates()).hasSize(1);
-        assertThat(result.transitionedCertificates().get(0).getStatus()).isEqualTo(ClientCertificateStatus.REVOKED);
+        assertThat(result.transitionedCertificates().get(0).status()).isEqualTo(ClientCertificateStatus.REVOKED);
         assertThat(auditCrudService.storage()).isEmpty();
     }
 
@@ -433,28 +444,8 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
 
         clientCertificateCrudService.initWith(
             List.of(
-                ClientCertificate.builder()
-                    .id("cert-app1")
-                    .applicationId("app1")
-                    .environmentId("env1")
-                    .name("Cert for app1")
-                    .startsAt(pastDate)
-                    .endsAt(null)
-                    .createdAt(pastDate)
-                    .updatedAt(pastDate)
-                    .status(ClientCertificateStatus.SCHEDULED)
-                    .build(),
-                ClientCertificate.builder()
-                    .id("cert-app2")
-                    .applicationId("app2")
-                    .environmentId("env2")
-                    .name("Cert for app2")
-                    .startsAt(pastDate)
-                    .endsAt(null)
-                    .createdAt(pastDate)
-                    .updatedAt(pastDate)
-                    .status(ClientCertificateStatus.SCHEDULED)
-                    .build()
+                cert("cert-app1", "app1", "env1", "Cert for app1", pastDate, null, pastDate, pastDate, ClientCertificateStatus.SCHEDULED),
+                cert("cert-app2", "app2", "env2", "Cert for app2", pastDate, null, pastDate, pastDate, ClientCertificateStatus.SCHEDULED)
             )
         );
 
@@ -484,28 +475,28 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
 
         spiedService.initWith(
             List.of(
-                ClientCertificate.builder()
-                    .id("cert-fail")
-                    .applicationId("app1")
-                    .environmentId("env1")
-                    .name("Cert whose update fails")
-                    .startsAt(pastStartDate)
-                    .endsAt(pastDate)
-                    .createdAt(pastStartDate)
-                    .updatedAt(pastStartDate)
-                    .status(ClientCertificateStatus.ACTIVE_WITH_END)
-                    .build(),
-                ClientCertificate.builder()
-                    .id("cert-succeed")
-                    .applicationId("app2")
-                    .environmentId("env2")
-                    .name("Cert whose update succeeds")
-                    .startsAt(pastDate)
-                    .endsAt(null)
-                    .createdAt(pastDate)
-                    .updatedAt(pastDate)
-                    .status(ClientCertificateStatus.SCHEDULED)
-                    .build()
+                cert(
+                    "cert-fail",
+                    "app1",
+                    "env1",
+                    "Cert whose update fails",
+                    pastStartDate,
+                    pastDate,
+                    pastStartDate,
+                    pastStartDate,
+                    ClientCertificateStatus.ACTIVE_WITH_END
+                ),
+                cert(
+                    "cert-succeed",
+                    "app2",
+                    "env2",
+                    "Cert whose update succeeds",
+                    pastDate,
+                    null,
+                    pastDate,
+                    pastDate,
+                    ClientCertificateStatus.SCHEDULED
+                )
             )
         );
 
@@ -540,28 +531,28 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
 
         spiedService.initWith(
             List.of(
-                ClientCertificate.builder()
-                    .id("cert-fail")
-                    .applicationId("app1")
-                    .environmentId("env1")
-                    .name("Cert that will fail update")
-                    .startsAt(pastStartDate)
-                    .endsAt(pastDate)
-                    .createdAt(pastStartDate)
-                    .updatedAt(pastStartDate)
-                    .status(ClientCertificateStatus.ACTIVE_WITH_END)
-                    .build(),
-                ClientCertificate.builder()
-                    .id("cert-succeed")
-                    .applicationId("app2")
-                    .environmentId("env2")
-                    .name("Cert that will succeed")
-                    .startsAt(pastDate)
-                    .endsAt(null)
-                    .createdAt(pastDate)
-                    .updatedAt(pastDate)
-                    .status(ClientCertificateStatus.SCHEDULED)
-                    .build()
+                cert(
+                    "cert-fail",
+                    "app1",
+                    "env1",
+                    "Cert that will fail update",
+                    pastStartDate,
+                    pastDate,
+                    pastStartDate,
+                    pastStartDate,
+                    ClientCertificateStatus.ACTIVE_WITH_END
+                ),
+                cert(
+                    "cert-succeed",
+                    "app2",
+                    "env2",
+                    "Cert that will succeed",
+                    pastDate,
+                    null,
+                    pastDate,
+                    pastDate,
+                    ClientCertificateStatus.SCHEDULED
+                )
             )
         );
 
@@ -578,12 +569,12 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
         var result = spiedUseCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(AUDIT_ACTOR));
 
         assertThat(result.transitionedCertificates()).hasSize(1);
-        assertThat(result.transitionedCertificates().get(0).getId()).isEqualTo("cert-succeed");
+        assertThat(result.transitionedCertificates().get(0).id()).isEqualTo("cert-succeed");
 
         // The failed certificate should remain unchanged in storage
         assertThat(clientCertificateCrudService.storage())
-            .filteredOn(c -> "cert-fail".equals(c.getId()))
-            .extracting(ClientCertificate::getStatus)
+            .filteredOn(c -> "cert-fail".equals(c.id()))
+            .extracting(ClientCertificate::status)
             .containsExactly(ClientCertificateStatus.ACTIVE_WITH_END);
     }
 }

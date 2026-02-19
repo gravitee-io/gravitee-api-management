@@ -16,49 +16,59 @@
 package io.gravitee.apim.core.application_certificate.model;
 
 import java.util.Date;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * Domain model for client certificate.
  *
  * @author GraviteeSource Team
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder(toBuilder = true)
-public class ClientCertificate {
+public record ClientCertificate(
+    String id,
+    String crossId,
+    String applicationId,
+    String name,
+    Date startsAt,
+    Date endsAt,
+    Date createdAt,
+    Date updatedAt,
+    String certificate,
+    Date certificateExpiration,
+    String subject,
+    String issuer,
+    String fingerprint,
+    String environmentId,
+    ClientCertificateStatus status
+) {
+    /** For create: only the fields the caller controls */
+    public ClientCertificate(String name, String certificate, Date startsAt, Date endsAt) {
+        this(null, null, null, name, startsAt, endsAt, null, null, certificate, null, null, null, null, null, null);
+    }
 
-    private String id;
+    /** For update: only name and date bounds */
+    public ClientCertificate(String name, Date startsAt, Date endsAt) {
+        this(null, null, null, name, startsAt, endsAt, null, null, null, null, null, null, null, null, null);
+    }
 
-    private String crossId;
-
-    private String applicationId;
-
-    private String name;
-
-    private Date startsAt;
-
-    private Date endsAt;
-
-    private Date createdAt;
-
-    private Date updatedAt;
-
-    private String certificate;
-
-    private Date certificateExpiration;
-
-    private String subject;
-
-    private String issuer;
-
-    private String fingerprint;
-
-    private String environmentId;
-
-    private ClientCertificateStatus status;
+    /**
+     * Copy constructor
+     */
+    public ClientCertificate(ClientCertificate other) {
+        this(
+            other.id,
+            other.crossId,
+            other.applicationId,
+            other.name,
+            other.startsAt,
+            other.endsAt,
+            other.createdAt,
+            other.updatedAt,
+            other.certificate,
+            other.certificateExpiration,
+            other.subject,
+            other.issuer,
+            other.fingerprint,
+            other.environmentId,
+            other.status
+        );
+    }
 }
