@@ -19,6 +19,7 @@ import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupR
 import io.gravitee.gateway.handlers.sharedpolicygroup.registry.SharedPolicyGroupRegistry;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
@@ -72,7 +73,7 @@ public class SharedPolicyGroupPolicy implements HttpPolicy {
     }
 
     /**
-     * To be removed when Message Reactor implementation will use {@link this#warnNotFoundAndComplete(HttpPlainExecutionContext)}
+     * To be removed when Message Reactor implementation will use {@link this#warnNotFoundAndComplete(HttpBaseExecutionContext)}
      * @param environmentId
      * @return
      */
@@ -88,7 +89,7 @@ public class SharedPolicyGroupPolicy implements HttpPolicy {
         };
     }
 
-    protected Supplier<Completable> warnNotFoundAndComplete(HttpPlainExecutionContext ctx) {
+    protected Supplier<Completable> warnNotFoundAndComplete(HttpBaseExecutionContext ctx) {
         return () -> {
             ctx
                 .withLogger(log)
