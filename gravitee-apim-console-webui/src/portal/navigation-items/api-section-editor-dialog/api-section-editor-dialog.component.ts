@@ -25,10 +25,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { isEqual } from 'lodash';
 import { Observable, Subject, of, BehaviorSubject, combineLatest } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, startWith, switchMap, tap, finalize } from 'rxjs/operators';
-import { MatSelectModule } from '@angular/material/select';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api, ApiV2, ApiV4, PortalVisibility, ApisResponse, PortalNavigationApi } from '../../../entities/management-api-v2';
@@ -62,12 +62,12 @@ type SelectedApi = {
 
 interface ApiSectionFormControls {
   apiIds: FormControl<string[]>;
-  visibility: FormControl<PortalVisibility>;
+  isPrivate: FormControl<boolean>;
 }
 
 interface ApiSectionFormValues {
   apiIds: string[];
-  visibility: PortalVisibility;
+  isPrivate: boolean;
 }
 
 type ApiSectionForm = FormGroup<ApiSectionFormControls>;
@@ -85,7 +85,7 @@ type ApiSectionForm = FormGroup<ApiSectionFormControls>;
     MatTableModule,
     MatChipsModule,
     MatExpansionModule,
-    MatSelectModule,
+    MatSlideToggleModule,
     AsyncPipe,
     GioTableWrapperModule,
   ],
@@ -149,10 +149,7 @@ export class ApiSectionEditorDialogComponent implements OnInit {
         validators: isEditMode ? [] : [Validators.required],
         nonNullable: true,
       }),
-      visibility: new FormControl<PortalVisibility>(this.data?.existingItem?.visibility ?? 'PUBLIC', {
-        validators: [Validators.required],
-        nonNullable: true,
-      }),
+      isPrivate: new FormControl<boolean>(this.data?.existingItem?.visibility === 'PRIVATE'),
     });
 
     if (isEditMode) {
@@ -261,7 +258,7 @@ export class ApiSectionEditorDialogComponent implements OnInit {
       const apiIds = formValues.apiIds ?? [];
 
       this.dialogRef.close({
-        visibility: formValues.visibility,
+        visibility: formValues.isPrivate ? 'PRIVATE' : 'PUBLIC',
         apiIds,
         apiId: apiIds[0],
       });

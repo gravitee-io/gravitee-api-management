@@ -20,7 +20,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
-import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 
 import {
@@ -172,14 +172,11 @@ describe('ApiSectionEditorDialogComponent', () => {
     rootLoader.getHarness(ApiSectionEditorDialogHarness).then(h => (dialog = h));
     tick();
 
-    let visibilitySelect: MatSelectHarness;
-    rootLoader.getHarness(MatSelectHarness).then(h => (visibilitySelect = h));
+    let authToggle: MatSlideToggleHarness;
+    rootLoader.getHarness(MatSlideToggleHarness).then(h => (authToggle = h));
     tick();
 
-    visibilitySelect.open();
-    tick();
-
-    visibilitySelect.clickOptions({ text: 'Private' });
+    authToggle.toggle();
     tick();
 
     dialog.clickSubmitButton();

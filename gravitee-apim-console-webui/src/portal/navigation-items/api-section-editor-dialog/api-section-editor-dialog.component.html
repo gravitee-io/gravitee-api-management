@@ -17,16 +17,13 @@
 -->
 <div mat-dialog-title class="title">{{ title }}</div>
 
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
+<form [formGroup]="form" (ngSubmit)="onSubmit()" [class.api-section-editor-dialog__form--edit]="isEditMode()">
   <mat-dialog-content class="mat-elevation-z0">
     @if (isEditMode()) {
-      <mat-form-field appearance="outline" class="filters__search">
-        <mat-label>Visibility</mat-label>
-        <mat-select formControlName="visibility">
-          <mat-option value="PUBLIC">Public</mat-option>
-          <mat-option value="PRIVATE">Private</mat-option>
-        </mat-select>
-      </mat-form-field>
+      <div class="form-field-title">Authentication</div>
+      <mat-slide-toggle formControlName="isPrivate" aria-label="Require authentication to view this API"
+        >Authentication is required to view this API.</mat-slide-toggle
+      >
     } @else {
       <div class="api-search-description-box">
         <div class="selected-panel__title">APIs</div>

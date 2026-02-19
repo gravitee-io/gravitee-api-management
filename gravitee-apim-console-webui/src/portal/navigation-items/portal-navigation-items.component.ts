@@ -231,7 +231,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
     this.matDialog
       .open<ApiSectionEditorDialogComponent, ApiSectionEditorDialogData>(ApiSectionEditorDialogComponent, {
-        width: GIO_DIALOG_WIDTH.LARGE,
+        width: mode === 'create' ? GIO_DIALOG_WIDTH.LARGE : GIO_DIALOG_WIDTH.SMALL,
         data,
       })
       .afterClosed()
@@ -247,14 +247,11 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
             return EMPTY;
           }
 
+          const { id: _id, area: _area, environmentId: _environmentId, organizationId: _organizationId, ...updatePayload } = apiItem;
+
           return this.update(apiItem.id, {
-            title: apiItem.title,
-            type: apiItem.type,
-            parentId: apiItem.parentId,
-            order: apiItem.order,
-            published: apiItem.published,
+            ...updatePayload,
             visibility: result.visibility,
-            apiId: apiItem.apiId,
           }).pipe(map(() => apiItem.id));
         }),
         map(id => id ?? existingItem?.id ?? null),

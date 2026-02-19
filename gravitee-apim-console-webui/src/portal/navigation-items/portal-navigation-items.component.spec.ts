@@ -22,9 +22,9 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatSelectHarness } from '@angular/material/select/testing';
 import { GioConfirmAndValidateDialogHarness, GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import SpyInstance = jest.SpyInstance;
 
@@ -48,6 +48,9 @@ import {
   NewPortalNavigationItem,
   PortalNavigationItem,
   PortalNavigationItemsResponse,
+  UpdateFolderPortalNavigationItem,
+  UpdateLinkPortalNavigationItem,
+  UpdatePortalNavigationItem,
 } from '../../entities/management-api-v2';
 import { SectionNode } from '../components/flat-tree/flat-tree.component';
 
@@ -336,7 +339,7 @@ describe('PortalNavigationItemsComponent', () => {
           url: 'https://new.com',
           published: linkData.published,
           visibility: linkData.visibility,
-        },
+        } as UpdateLinkPortalNavigationItem,
         fakePortalNavigationLink({
           id: linkData.id,
           title: 'Updated Link',
@@ -599,7 +602,7 @@ describe('PortalNavigationItemsComponent', () => {
           order: folderData.order,
           published: folderData.published,
           visibility: folderData.visibility,
-        },
+        } as UpdateFolderPortalNavigationItem,
         fakePortalNavigationFolder({
           id: folderData.id,
           title: 'Updated Folder',
@@ -1036,9 +1039,9 @@ describe('PortalNavigationItemsComponent', () => {
       const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
       expect(await dialog.getDialogTitle()).toContain('Edit API');
 
-      const visibilitySelect = await rootLoader.getHarness(MatSelectHarness);
-      await visibilitySelect.open();
-      await visibilitySelect.clickOptions({ text: 'Private' });
+      const authToggle = await rootLoader.getHarness(MatSlideToggleHarness);
+      expect(await authToggle.isChecked()).toBe(false);
+      await authToggle.toggle();
 
       await dialog.clickSubmitButton();
 
@@ -1733,7 +1736,7 @@ describe('PortalNavigationItemsComponent', () => {
     req.flush(result);
   }
 
-  function expectPutPortalNavigationItem(id: string, expectedBody: any, response: PortalNavigationItem) {
+  function expectPutPortalNavigationItem(id: string, expectedBody: UpdatePortalNavigationItem, response: PortalNavigationItem) {
     const req = httpTestingController.expectOne({
       method: 'PUT',
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${id}`,
