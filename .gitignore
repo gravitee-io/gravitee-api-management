@@ -78,6 +78,7 @@ gravitee-apim-e2e/ui-test/screenshots/
 !.yarn/sdks
 !.yarn/versions
 
+
 # project's maven repo
 /.m2/repository
 /.mvn/jvm.config
