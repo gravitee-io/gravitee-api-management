@@ -41,6 +41,9 @@ public class GraviteeCorsConfiguration extends CorsConfiguration {
     private final InstallationAccessQueryService installationAccessQueryService;
     private final String referenceId;
     private final ParameterReferenceType parameterReferenceType;
+    private final ParameterKeyEventListener parameterKeyEventListener;
+    private final AccessPointEventListener accessPointEventListener;
+    private final EventManager eventManager;
 
     public GraviteeCorsConfiguration(
         final Environment environment,
@@ -56,9 +59,14 @@ public class GraviteeCorsConfiguration extends CorsConfiguration {
         this.referenceId = referenceId;
         this.parameterReferenceType = parameterReferenceType;
         if (!this.referenceId.equals(UNDEFINED_REFERENCE_ID)) {
-            eventManager.subscribeForEvents(new ParameterKeyEventListener(this), Key.class);
+            parameterKeyEventListener = new ParameterKeyEventListener(this);
+            eventManager.subscribeForEvents(parameterKeyEventListener, Key.class);
+        } else {
+            parameterKeyEventListener = null;
         }
-        eventManager.subscribeForEvents(new AccessPointEventListener(this), AccessPointEvent.class);
+        accessPointEventListener = new AccessPointEventListener(this);
+        eventManager.subscribeForEvents(accessPointEventListener, AccessPointEvent.class);
+        this.eventManager = eventManager;
         this.setAllowCredentials(true);
         this.setAllowedOriginPatterns(buildAllowedOriginPatterns(getPropertiesAsList(allowOriginKey())));
         this.setAllowedHeaders(getPropertiesAsList(allowHeadersKey()));
@@ -185,7 +193,16 @@ public class GraviteeCorsConfiguration extends CorsConfiguration {
         }
     }
 
-    private record ParameterKeyEventListener(GraviteeCorsConfiguration graviteeCorsConfiguration) implements EventListener<Key, Parameter> {
+    public void release() {
+        if (parameterKeyEventListener != null) {
+            eventManager.unsubscribeForEvents(parameterKeyEventListener, Key.class);
+        }
+        if (accessPointEventListener != null) {
+            eventManager.unsubscribeForEvents(accessPointEventListener, AccessPointEvent.class);
+        }
+    }
+
+    record ParameterKeyEventListener(GraviteeCorsConfiguration graviteeCorsConfiguration) implements EventListener<Key, Parameter> {
         @Override
         public void onEvent(final Event<Key, Parameter> event) {
             if (graviteeCorsConfiguration.referenceId.equals(event.content().getReferenceId())) {
@@ -206,7 +223,7 @@ public class GraviteeCorsConfiguration extends CorsConfiguration {
         }
     }
 
-    private record AccessPointEventListener(GraviteeCorsConfiguration graviteeCorsConfiguration) implements
+    record AccessPointEventListener(GraviteeCorsConfiguration graviteeCorsConfiguration) implements
         EventListener<AccessPointEvent, AccessPoint> {
         @Override
         public void onEvent(final Event<AccessPointEvent, AccessPoint> event) {
