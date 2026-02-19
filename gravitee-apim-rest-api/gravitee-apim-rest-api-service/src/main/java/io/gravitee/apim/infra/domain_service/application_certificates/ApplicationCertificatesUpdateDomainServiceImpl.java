@@ -64,7 +64,7 @@ public class ApplicationCertificatesUpdateDomainServiceImpl implements Applicati
         List<ClientCertificate> activeCertificates = clientCertificateCrudService
             .findByApplicationIdAndStatuses(applicationId, ClientCertificateStatus.ACTIVE, ClientCertificateStatus.ACTIVE_WITH_END)
             .stream()
-            .sorted(Comparator.comparing(ClientCertificate::getCreatedAt))
+            .sorted(Comparator.comparing(ClientCertificate::createdAt))
             .toList();
 
         if (activeCertificates.isEmpty()) {
@@ -79,10 +79,10 @@ public class ApplicationCertificatesUpdateDomainServiceImpl implements Applicati
 
     private String createEncodedCertificate(List<ClientCertificate> certificates) {
         if (certificates.size() == 1) {
-            String pem = certificates.getFirst().getCertificate();
+            String pem = certificates.getFirst().certificate();
             return Base64.getEncoder().encodeToString(pem.getBytes(StandardCharsets.UTF_8));
         } else {
-            byte[] pkcs7Bundle = PKCS7Utils.createBundle(certificates.stream().map(ClientCertificate::getCertificate).toList());
+            byte[] pkcs7Bundle = PKCS7Utils.createBundle(certificates.stream().map(ClientCertificate::certificate).toList());
             return Base64.getEncoder().encodeToString(pkcs7Bundle);
         }
     }

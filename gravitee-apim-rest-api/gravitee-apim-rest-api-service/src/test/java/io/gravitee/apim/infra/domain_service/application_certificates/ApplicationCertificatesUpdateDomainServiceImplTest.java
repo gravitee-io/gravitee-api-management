@@ -393,22 +393,22 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
         String pemCertificate,
         Date createdAt
     ) {
-        return ClientCertificate.builder()
-            .id(id)
-            .crossId("cross-id-" + id)
-            .applicationId(applicationId)
-            .name("Test Certificate " + id)
-            .startsAt(null)
-            .endsAt(null)
-            .createdAt(createdAt)
-            .updatedAt(new Date())
-            .certificate(pemCertificate)
-            .certificateExpiration(Date.from(Instant.now().plus(365, ChronoUnit.DAYS)))
-            .subject("CN=localhost")
-            .issuer("CN=localhost")
-            .fingerprint("fingerprint-" + id)
-            .environmentId(ENVIRONMENT_ID)
-            .status(status)
-            .build();
+        return new ClientCertificate(
+            id,
+            "cross-id-" + id,
+            applicationId,
+            "Test Certificate " + id,
+            null,
+            null,
+            createdAt,
+            new Date(),
+            pemCertificate,
+            Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
+            "CN=localhost",
+            "CN=localhost",
+            "fingerprint-" + id,
+            ENVIRONMENT_ID,
+            status
+        );
     }
 }
