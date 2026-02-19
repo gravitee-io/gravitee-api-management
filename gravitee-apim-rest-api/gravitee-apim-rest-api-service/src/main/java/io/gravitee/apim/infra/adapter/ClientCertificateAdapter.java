@@ -30,4 +30,5 @@ public interface ClientCertificateAdapter {
     ClientCertificate toDomain(io.gravitee.repository.management.model.ClientCertificate clientCertificate);
     io.gravitee.repository.management.model.ClientCertificate toRepo(ClientCertificate clientCertificate);
     io.gravitee.repository.management.model.ClientCertificateStatus[] toRepoStatuses(ClientCertificateStatus[] statuses);
+    io.gravitee.repository.management.model.ClientCertificateStatus toRepoStatus(ClientCertificateStatus status);
 }

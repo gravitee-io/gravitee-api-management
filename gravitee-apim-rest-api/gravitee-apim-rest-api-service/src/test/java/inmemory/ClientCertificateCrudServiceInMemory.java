@@ -21,7 +21,6 @@ import io.gravitee.apim.core.application_certificate.model.ClientCertificateStat
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateNotFoundException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,7 +50,10 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
     @Override
     public ClientCertificate create(String applicationId, ClientCertificate clientCertificate) {
         Date now = new Date();
-        ClientCertificateStatus status = computeStatus(clientCertificate.getStartsAt(), clientCertificate.getEndsAt());
+        ClientCertificateStatus status = ClientCertificateStatus.computeStatus(
+            clientCertificate.getStartsAt(),
+            clientCertificate.getEndsAt()
+        );
 
         ClientCertificate certificate = ClientCertificate.builder()
             .id(UUID.randomUUID().toString())
@@ -83,7 +85,10 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
         }
 
         ClientCertificate existing = storage.get(index.getAsInt());
-        ClientCertificateStatus status = computeStatus(clientCertificateToUpdate.getStartsAt(), clientCertificateToUpdate.getEndsAt());
+        ClientCertificateStatus status = ClientCertificateStatus.computeStatus(
+            clientCertificateToUpdate.getStartsAt(),
+            clientCertificateToUpdate.getEndsAt()
+        );
 
         ClientCertificate updated = ClientCertificate.builder()
             .id(existing.getId())
@@ -215,20 +220,5 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
     @Override
     public List<ClientCertificate> storage() {
         return Collections.unmodifiableList(storage);
-    }
-
-    private ClientCertificateStatus computeStatus(Date startsAt, Date endsAt) {
-        Instant now = Instant.now();
-
-        if (endsAt != null && endsAt.toInstant().isBefore(now)) {
-            return ClientCertificateStatus.REVOKED;
-        }
-        if (startsAt != null && startsAt.toInstant().isAfter(now)) {
-            return ClientCertificateStatus.SCHEDULED;
-        }
-        if (endsAt != null) {
-            return ClientCertificateStatus.ACTIVE_WITH_END;
-        }
-        return ClientCertificateStatus.ACTIVE;
     }
 }
