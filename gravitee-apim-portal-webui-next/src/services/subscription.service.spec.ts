@@ -45,7 +45,7 @@ describe('SubscriptionService', () => {
       done();
     });
 
-    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/subscriptions?apiId=testId&statuses=PENDING`);
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/subscriptions?apiIds=testId&statuses=PENDING`);
     expect(req.request.method).toEqual('GET');
 
     req.flush(subscriptionResponse);

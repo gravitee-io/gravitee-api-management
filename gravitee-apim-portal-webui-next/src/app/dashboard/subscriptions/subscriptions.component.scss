@@ -23,6 +23,7 @@
 
 .subscriptions {
   padding: 24px;
+  max-width: app-theme.$inner-content-width;
 
   &__filters {
     display: flex;

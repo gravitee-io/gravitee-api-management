@@ -1095,7 +1095,7 @@ describe('ApplicationLogTableComponent', () => {
 
   function expectGetSubscriptions(subscriptionsResponse: SubscriptionsResponse) {
     const req = httpTestingController.match(
-      r => (r.urlWithParams ?? r.url).includes('/subscriptions') && (r.urlWithParams ?? r.url).includes('applicationId=' + APP_ID),
+      r => (r.urlWithParams ?? r.url).includes('/subscriptions') && (r.urlWithParams ?? r.url).includes('applicationIds=' + APP_ID),
     )[0];
     expect(req).toBeDefined();
     req.flush(subscriptionsResponse);
