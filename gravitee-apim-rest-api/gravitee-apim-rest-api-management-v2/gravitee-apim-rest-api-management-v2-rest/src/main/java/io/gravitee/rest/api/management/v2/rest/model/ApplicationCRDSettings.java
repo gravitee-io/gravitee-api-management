@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.model;
 
+import java.util.Date;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -38,7 +39,21 @@ public class ApplicationCRDSettings {
     @NoArgsConstructor
     public static class TLSSettings {
 
+        @Deprecated
         private String clientCertificate;
+
+        private List<ClientCertificateCRD> clientCertificates;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ClientCertificateCRD {
+
+        private String name;
+        private String content;
+        private Date startsAt;
+        private Date endsAt;
     }
 
     @Data
