@@ -1263,6 +1263,7 @@ workflows:
             - Test reporters
             - Test repository
             - Check prettier formatting for nx projects
+            - Lint & test APIM Libs
             - Lint & test APIM Console
             - Build APIM Console
             - Build APIM Console docker image
