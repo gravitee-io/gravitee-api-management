@@ -38,17 +38,22 @@ public class SharedPolicyGroupPolicy implements HttpPolicy {
     public static final String POLICY_ID = "shared-policy-group-policy";
 
     private final String id;
-    public final SharedPolicyGroupPolicyConfiguration policyConfiguration;
+    public final io.gravitee.definition.model.sharedpolicygroup.SharedPolicyGroupPolicyConfiguration policyConfiguration;
 
     public SharedPolicyGroupPolicy() {
         this(POLICY_ID, null);
     }
 
-    public SharedPolicyGroupPolicy(SharedPolicyGroupPolicyConfiguration policyConfiguration) {
+    public SharedPolicyGroupPolicy(
+        io.gravitee.definition.model.sharedpolicygroup.SharedPolicyGroupPolicyConfiguration policyConfiguration
+    ) {
         this(POLICY_ID, policyConfiguration);
     }
 
-    public SharedPolicyGroupPolicy(String id, SharedPolicyGroupPolicyConfiguration policyConfiguration) {
+    public SharedPolicyGroupPolicy(
+        String id,
+        io.gravitee.definition.model.sharedpolicygroup.SharedPolicyGroupPolicyConfiguration policyConfiguration
+    ) {
         this.id = id;
         this.policyConfiguration = policyConfiguration;
     }

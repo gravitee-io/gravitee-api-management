@@ -50,7 +50,7 @@ public class SharedPolicyGroupPolicyFactory extends HttpPolicyFactory {
     ) {
         HttpPolicy policy = new SharedPolicyGroupPolicy(
             policyMetadata.getName(),
-            (SharedPolicyGroupPolicyConfiguration) policyConfiguration
+            (io.gravitee.definition.model.sharedpolicygroup.SharedPolicyGroupPolicyConfiguration) policyConfiguration
         );
         policy = decoratePolicy(policyMetadata, policy);
         return policy;
