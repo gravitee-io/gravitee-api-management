@@ -1,9 +1,6 @@
-@use 'sass:map';
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 @use '../../../../scss/gio-layout' as gio-layout;
-
-$foreground: map.get(gio.$mat-theme, foreground);
 
 :host {
   @include gio-layout.gio-responsive-content-container;
@@ -17,53 +14,6 @@ $foreground: map.get(gio.$mat-theme, foreground);
   }
 
   &__filters {
-    margin-bottom: 8px;
+    margin-bottom: 0.5rem;
   }
-
-  &__table {
-    width: 100%;
-    @include mat.elevation(3); // default elevation
-
-    &__drag-icon {
-      margin-right: 24px;
-    }
-
-    &__name {
-      cursor: pointer;
-    }
-
-    &__actions {
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-end;
-    }
-
-    .mat-column-actions {
-      width: 0;
-    }
-
-    .mat-column-drag-icon {
-      width: 0;
-      cursor: move;
-    }
-
-    .mat-column-name {
-      width: 30%;
-    }
-  }
-}
-
-.cdk-drag-preview {
-  box-sizing: border-box;
-  border-radius: 4px;
-  box-shadow:
-    0 5px 5px -3px rgba(0, 0, 0, 0.2),
-    0 8px 10px 1px rgba(0, 0, 0, 0.14),
-    0 3px 14px 2px rgba(0, 0, 0, 0.12);
-  display: table;
-  vertical-align: middle;
-}
-
-.cdk-drag-placeholder {
-  opacity: 0;
 }

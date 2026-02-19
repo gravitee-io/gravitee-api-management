@@ -156,6 +156,15 @@ describe('ApiPlanListComponent', () => {
         expect(rowCells).toEqual([['', 'Default plan', 'API Key', 'PUBLISHED', '🙅, 🔑', '']]);
       }));
 
+      it('should display empty Type column when plan has no security type', fakeAsync(async () => {
+        const plan = fakePlanV2({ security: { type: undefined, configuration: {} } });
+        await initComponent([plan]);
+
+        const { rowCells } = await computePlansTableCells();
+        expect(rowCells).toHaveLength(1);
+        expect(rowCells[0][2]).toBe('');
+      }));
+
       it('should not display PUSH plan option for V2 APIs', fakeAsync(async () => {
         await initComponent([]);
         await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).then(btn => btn.click());

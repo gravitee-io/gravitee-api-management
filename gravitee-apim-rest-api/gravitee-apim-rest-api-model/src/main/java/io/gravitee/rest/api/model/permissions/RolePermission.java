@@ -89,6 +89,7 @@ public enum RolePermission {
     ENVIRONMENT_SHARED_POLICY_GROUP(RoleScope.ENVIRONMENT, EnvironmentPermission.SHARED_POLICY_GROUP),
     ENVIRONMENT_CLUSTER(RoleScope.ENVIRONMENT, EnvironmentPermission.CLUSTER),
     ENVIRONMENT_API_PRODUCT(RoleScope.ENVIRONMENT, EnvironmentPermission.API_PRODUCT),
+    ENVIRONMENT_API_PRODUCT_PLAN(RoleScope.ENVIRONMENT, EnvironmentPermission.API_PRODUCT_PLAN),
 
     ORGANIZATION_USERS(RoleScope.ORGANIZATION, OrganizationPermission.USER),
     ORGANIZATION_USERS_TOKEN(RoleScope.ORGANIZATION, OrganizationPermission.USER_TOKEN),

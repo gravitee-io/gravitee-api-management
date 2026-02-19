@@ -1,0 +1,77 @@
+<!--
+
+    Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="api-product-plans__header">
+  @if (!isReadOnly() && !isLoadingData()) {
+    <div
+      [matTooltip]="'No compatible plan type available.'"
+      [matTooltipDisabled]="planMenuItems?.length > 0"
+    >
+      <button
+        mat-raised-button
+        type="button"
+        color="primary"
+        aria-label="Add new plan"
+        data-testid="api_product_plans_add_plan_button"
+        [matMenuTriggerFor]="planMenu"
+        [disabled]="planMenuItems?.length === 0"
+      >
+        <mat-icon svgIcon="gio:plus"></mat-icon>Add new plan
+      </button>
+      <mat-menu #planMenu="matMenu">
+        @for (planMenuItem of planMenuItems; track planMenuItem.planFormType) {
+          <button
+            mat-menu-item
+            [routerLink]="'./new'"
+            [queryParams]="{ selectedPlanMenuItem: planMenuItem.planFormType }"
+          >
+            {{ planMenuItem.name }}
+          </button>
+        }
+      </mat-menu>
+    </div>
+  }
+</div>
+
+<mat-button-toggle-group class="api-product-plans__filters" aria-label="Plan status filters" [value]="status()">
+  @for (planStatus of apiPlanStatus(); track planStatus.name) {
+    <mat-button-toggle
+      [attr.aria-label]="'Filter on ' + planStatus.name + ' plans'"
+      [matTooltip]="'Filter on ' + planStatus.name + ' plans'"
+      [value]="planStatus.name"
+      (click)="searchPlansByStatus(planStatus.name)"
+    >
+      {{ planStatus.name }}{{ planStatus.number != null ? ' (' + planStatus.number + ')' : '' }}
+    </mat-button-toggle>
+  }
+</mat-button-toggle-group>
+
+<plan-list
+  tableId="apiProductPlansTable"
+  testIdPrefix="api_product_plans_"
+  ariaLabel="API Product Plans table"
+  [dataSource]="plansTableDS()"
+  [displayedColumns]="displayedColumns()"
+  [isLoading]="isLoadingData()"
+  [isReadOnly]="isReadOnly()"
+  [dragEnabled]="!isReadOnly()"
+  planDetailLink="./"
+  (dropRow)="dropRow($event)"
+  (publishPlan)="publishPlan($event)"
+  (deprecatePlan)="deprecatePlan($event)"
+  (closePlan)="closePlan($event)"
+></plan-list>

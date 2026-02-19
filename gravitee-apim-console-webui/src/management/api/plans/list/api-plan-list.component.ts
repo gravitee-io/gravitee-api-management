@@ -34,8 +34,7 @@ import { ConstantsService, PlanMenuItemVM } from '../../../../services-ngx/const
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { Api, Plan, PLAN_STATUS, PlanStatus } from '../../../../entities/management-api-v2';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
-
-type PlanDS = Plan & { securityTypeLabel: string };
+import { PlanListTableRow } from '../../../../shared/components/plan-list/plan-list.component';
 
 @Component({
   selector: 'api-plan-list',
@@ -47,7 +46,7 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public api: Api;
   public displayedColumns = ['name', 'type', 'status', 'deploy-on', 'actions'];
-  public plansTableDS: PlanDS[] = [];
+  public plansTableDS: PlanListTableRow[] = [];
   public isLoadingData = true;
   public apiPlanStatus: { name: PlanStatus; number: number | null }[] = PLAN_STATUS.map(status => ({ name: status, number: null }));
   public status: PlanStatus;
@@ -107,19 +106,19 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
     this.initPlansTableDS(this.status);
   }
 
-  public dropRow(event: CdkDragDrop<string[]>) {
+  public dropRow(event: CdkDragDrop<PlanListTableRow[]>) {
     const currentData = [...this.plansTableDS];
     const elm = currentData[event.previousIndex];
     currentData.splice(event.previousIndex, 1);
     currentData.splice(event.currentIndex, 0, elm);
     this.plansTableDS = [...currentData];
 
-    const movedPlan = this.plansTableDS[event.currentIndex];
-    movedPlan.order = event.currentIndex + 1;
-    delete movedPlan.securityTypeLabel;
+    const movedRow = this.plansTableDS[event.currentIndex];
+    const { securityTypeLabel: _, ...planForUpdate } = movedRow;
+    planForUpdate.order = event.currentIndex + 1;
 
     this.plansService
-      .update(this.api.id, movedPlan.id, movedPlan)
+      .update(this.api.id, planForUpdate.id, planForUpdate)
       .pipe(
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -350,7 +349,7 @@ ${ifSubscriptionContent}`;
       OAUTH2: 'OAuth2',
       JWT: 'JWT',
     };
-    return labels[type] || type;
+    return labels[type] ?? type ?? '';
   }
 
   private initPlansTableDS(selectedStatus: PlanStatus, fullReload = false): void {

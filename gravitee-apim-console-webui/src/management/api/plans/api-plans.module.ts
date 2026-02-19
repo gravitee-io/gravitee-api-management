@@ -33,6 +33,7 @@ import { ApiPlanListComponent } from './list/api-plan-list.component';
 import { ApiPlanEditComponent } from './edit/api-plan-edit.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { PlanListComponent } from '../../../shared/components/plan-list/plan-list.component';
 import { ApiPlanFormModule } from '../component/plan/api-plan-form.module';
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
@@ -55,6 +56,7 @@ import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-bu
 
     GioIconsModule,
     GioPermissionModule,
+    PlanListComponent,
     GioSaveBarModule,
     GioGoBackButtonModule,
     GioFormFocusInvalidModule,
