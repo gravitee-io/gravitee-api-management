@@ -24,6 +24,7 @@ import { EnvLogsDetailsHarness } from './env-logs-details.harness';
 
 import { GioTestingModule, CONSTANTS_TESTING } from '../../../../../shared/testing/gio-testing.module';
 import { fakeConnectionLogDetail } from '../../../../../entities/management-api-v2/log/connectionLog.fixture';
+import { fakeApiMetricResponse } from '../../../../../entities/management-api-v2/analytics/apiMetricsDetailResponse.fixture';
 import { SearchLogsResponse } from '../../../../../services-ngx/environment-logs.service';
 
 describe('EnvLogsDetailsComponent', () => {
@@ -32,6 +33,7 @@ describe('EnvLogsDetailsComponent', () => {
 
   const SEARCH_URL = `${CONSTANTS_TESTING.env.v2BaseURL}/logs/search?page=1&perPage=10`;
   const DETAIL_URL = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/logs/${logId}`;
+  const METRICS_URL = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics/${logId}`;
 
   const MOCK_SEARCH_RESPONSE: SearchLogsResponse = {
     data: [
@@ -55,6 +57,7 @@ describe('EnvLogsDetailsComponent', () => {
   };
 
   const MOCK_DETAIL = fakeConnectionLogDetail({ apiId, requestId: logId });
+  const MOCK_METRICS = fakeApiMetricResponse({ apiId, requestId: logId });
 
   let httpTestingController: HttpTestingController;
   let fixture: ComponentFixture<EnvLogsDetailsComponent>;
@@ -83,12 +86,15 @@ describe('EnvLogsDetailsComponent', () => {
     return { fixture, harness };
   }
 
-  function flushRequests(searchResponse = MOCK_SEARCH_RESPONSE, detail = MOCK_DETAIL) {
+  function flushRequests(searchResponse = MOCK_SEARCH_RESPONSE, detail = MOCK_DETAIL, metrics = MOCK_METRICS) {
     const searchReq = httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL });
     searchReq.flush(searchResponse);
 
     const detailReq = httpTestingController.expectOne({ method: 'GET', url: DETAIL_URL });
     detailReq.flush(detail);
+
+    const metricsReq = httpTestingController.expectOne({ method: 'GET', url: METRICS_URL });
+    metricsReq.flush(metrics);
   }
 
   afterEach(() => {
@@ -128,6 +134,7 @@ describe('EnvLogsDetailsComponent', () => {
 
     httpTestingController.expectNone(SEARCH_URL);
     httpTestingController.expectNone(DETAIL_URL);
+    httpTestingController.expectNone(METRICS_URL);
 
     expect(await harness.getNotFoundBannerText()).toContain('Log not found');
   });
@@ -137,6 +144,7 @@ describe('EnvLogsDetailsComponent', () => {
 
     httpTestingController.expectNone(SEARCH_URL);
     httpTestingController.expectNone(DETAIL_URL);
+    httpTestingController.expectNone(METRICS_URL);
 
     expect(await harness.getNotFoundBannerText()).toContain('Log not found');
   });
@@ -186,5 +194,19 @@ describe('EnvLogsDetailsComponent', () => {
 
     expect(await harness.getStatusBadgeText()).toBe('200');
     expect(f.nativeElement.querySelector('.gio-badge-success')).toBeTruthy();
+  });
+
+  it('should display metrics-sourced fields (host, latency, response times)', async () => {
+    const { fixture: f } = await createComponent();
+    flushRequests();
+    f.detectChanges();
+
+    const text = f.nativeElement.textContent;
+    expect(text).toContain('localhost:8082'); // host
+    expect(text).toContain('0:0:0:0:0:0:0:1'); // remoteAddress
+    expect(text).toContain('276 ms'); // gatewayResponseTime
+    expect(text).toContain('150 ms'); // endpointResponseTime
+    expect(text).toContain('3 ms'); // gatewayLatency
+    expect(text).toContain('276'); // responseContentLength
   });
 });

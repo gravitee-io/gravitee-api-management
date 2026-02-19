@@ -31,6 +31,7 @@ import { EnvLog } from '../../models/env-log.model';
 import { EnvLogsDetailsRowComponent } from '../env-logs-details-row/env-logs-details-row.component';
 import { EnvironmentLogsService } from '../../../../../services-ngx/environment-logs.service';
 import { ApiLogsV2Service } from '../../../../../services-ngx/api-logs-v2.service';
+import { ApiAnalyticsV2Service } from '../../../../../services-ngx/api-analytics-v2.service';
 
 @Component({
   selector: 'env-logs-details',
@@ -57,6 +58,7 @@ export class EnvLogsDetailsComponent {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly environmentLogsService = inject(EnvironmentLogsService);
   private readonly apiLogsV2Service = inject(ApiLogsV2Service);
+  private readonly apiAnalyticsV2Service = inject(ApiAnalyticsV2Service);
   private readonly datePipe = inject(DatePipe);
 
   // 2. State — derived from route params via toSignal
@@ -74,9 +76,10 @@ export class EnvLogsDetailsComponent {
 
             return forkJoin({
               overview: of(overviewLog),
-              detail: this.apiLogsV2Service.searchConnectionLogDetail(this.apiId!, this.logId!).pipe(catchError(() => of(null))),
+              detail: this.apiLogsV2Service.searchConnectionLogDetail(overviewLog.apiId, overviewLog.id).pipe(catchError(() => of(null))),
+              metrics: this.apiAnalyticsV2Service.getApiMetricsDetail(overviewLog.apiId, overviewLog.id).pipe(catchError(() => of(null))),
             }).pipe(
-              map(({ overview, detail }) => {
+              map(({ overview, detail, metrics }) => {
                 const envLog: EnvLog = {
                   id: overview.id,
                   apiId: overview.apiId,
@@ -99,6 +102,13 @@ export class EnvLogsDetailsComponent {
                   endpointRequest: detail?.endpointRequest,
                   entrypointResponse: detail?.entrypointResponse,
                   endpointResponse: detail?.endpointResponse,
+                  host: metrics?.host,
+                  remoteAddress: metrics?.remoteAddress,
+                  gatewayResponseTime: metrics?.gatewayResponseTime != null ? `${metrics.gatewayResponseTime} ms` : undefined,
+                  endpointResponseTime: metrics?.endpointResponseTime != null ? `${metrics.endpointResponseTime} ms` : undefined,
+                  gatewayLatency: metrics?.gatewayLatency != null ? `${metrics.gatewayLatency} ms` : undefined,
+                  responseContentLength: metrics?.responseContentLength != null ? `${metrics.responseContentLength}` : undefined,
+                  endpoint: metrics?.endpoint ?? overview.endpoint,
                 };
                 return envLog;
               }),
