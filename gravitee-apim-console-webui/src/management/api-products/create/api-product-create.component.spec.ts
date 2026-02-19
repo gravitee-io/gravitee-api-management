@@ -103,7 +103,7 @@ describe('ApiProductCreateComponent', () => {
     const versionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="version"]' }));
     const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="description"]' }));
 
-    await nameInput.setValue('New Product');
+    await nameInput.setValue('New API Product');
     await nameInput.blur();
     await fixture.whenStable();
 
@@ -121,7 +121,7 @@ describe('ApiProductCreateComponent', () => {
 
     const createReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products`);
     expect(createReq.request.body).toEqual({
-      name: 'New Product',
+      name: 'New API Product',
       version: '1.0',
       description: 'Test description',
       apiIds: [],
@@ -129,7 +129,7 @@ describe('ApiProductCreateComponent', () => {
 
     const createdProduct: ApiProduct = {
       id: 'product-1',
-      name: 'New Product',
+      name: 'New API Product',
       version: '1.0',
       description: 'Test description',
       apiIds: [],
@@ -137,7 +137,7 @@ describe('ApiProductCreateComponent', () => {
     createReq.flush(createdProduct);
     await fixture.whenStable();
 
-    expect(fakeSnackBarService.success).toHaveBeenCalledWith('New Product - Successfully created');
+    expect(fakeSnackBarService.success).toHaveBeenCalledWith('New API Product - Successfully created');
     expect(routerNavigateSpy).toHaveBeenCalledWith(['..'], expect.anything());
   });
 
@@ -173,7 +173,7 @@ describe('ApiProductCreateComponent', () => {
     const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
     const versionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="version"]' }));
 
-    await nameInput.setValue('New Product');
+    await nameInput.setValue('New API Product');
     await nameInput.blur();
     await fixture.whenStable();
 
