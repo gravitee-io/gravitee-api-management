@@ -19,13 +19,18 @@ import io.gravitee.common.http.HttpStatusCode;
 import java.util.Map;
 
 /**
+ * Exception thrown when a client certificate is already used by another active application.
+ *
  * @author GraviteeSource Team
  */
-public class ApplicationInvalidCertificateException extends AbstractManagementException {
+public class ClientCertificateLastRemovalException extends AbstractManagementException {
 
-    @Override
-    public String getMessage() {
-        return "An error has occurred while parsing client certificate";
+    public ClientCertificateLastRemovalException(String applicationId) {
+        super(
+            "Client certificate cannot be revoked for application '" +
+                applicationId +
+                "': active subscriptions exist, and this is the last certificate."
+        );
     }
 
     @Override
@@ -35,11 +40,11 @@ public class ApplicationInvalidCertificateException extends AbstractManagementEx
 
     @Override
     public String getTechnicalCode() {
-        return "application.certificate.invalid";
+        return "application.certificate.remove.last";
     }
 
     @Override
     public Map<String, String> getParameters() {
-        return null;
+        return Map.of();
     }
 }
