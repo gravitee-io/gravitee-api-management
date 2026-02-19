@@ -20,6 +20,7 @@ import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ConstraintValidat
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.JsonMappingExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ManagementExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.NotFoundExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ParamExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.PreconditionFailedExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ThrowableMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.UnrecognizedPropertyExceptionMapper;
@@ -105,6 +106,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(PreconditionFailedExceptionMapper.class);
         register(ValidationExceptionMapper.class);
         register(JsonMappingExceptionMapper.class);
+        register(ParamExceptionMapper.class);
 
         register(ValidationDomainExceptionMapper.class);
         register(TechnicalDomainExceptionMapper.class);
