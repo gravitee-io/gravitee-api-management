@@ -15,7 +15,7 @@
  */
 import { isFunction } from 'lodash';
 
-import { PortalNavigationPage, PortalNavigationFolder, PortalNavigationLink } from './portal-navigation-item';
+import { PortalNavigationPage, PortalNavigationFolder, PortalNavigationLink, PortalNavigationApi } from './portal-navigation-item';
 
 export function fakePortalNavigationPage(overrides?: Partial<PortalNavigationPage>): PortalNavigationPage {
   const base: PortalNavigationPage = {
@@ -72,6 +72,29 @@ export function fakePortalNavigationLink(overrides?: Partial<PortalNavigationLin
     order: 1,
     area: 'HOMEPAGE',
     url: 'https://example.com',
+    published: true,
+  };
+
+  if (isFunction(overrides)) {
+    return overrides(base);
+  }
+
+  return {
+    ...base,
+    ...overrides,
+  };
+}
+
+export function fakePortalNavigationApi(overrides?: Partial<PortalNavigationApi>): PortalNavigationApi {
+  const base: PortalNavigationApi = {
+    id: 'nav-api-1',
+    organizationId: 'org-1',
+    environmentId: 'env-1',
+    title: 'API 1',
+    type: 'API',
+    order: 1,
+    area: 'HOMEPAGE',
+    apiId: 'api-1',
     published: true,
   };
 
