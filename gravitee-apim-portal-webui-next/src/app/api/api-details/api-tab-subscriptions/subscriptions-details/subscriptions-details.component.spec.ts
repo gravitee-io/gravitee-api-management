@@ -59,6 +59,7 @@ describe('SubscriptionsDetailsComponent', () => {
     get baseURL(): string {
       return TESTING_BASE_URL;
     }
+
     get configuration(): Configuration {
       return {
         portal: {
@@ -159,7 +160,10 @@ describe('SubscriptionsDetailsComponent', () => {
 
     beforeEach(() => {
       const subscription = fakeSubscription({ status: 'ACCEPTED', api: API_ID, plan: PLAN_ID });
-      const subscriptionWithKeys = { ...subscription, keys: [{ key: API_KEY, id: '1', application: { id: APP_ID, name: APP_NAME } }] };
+      const subscriptionWithKeys = {
+        ...subscription,
+        keys: [{ key: API_KEY, id: '1', application: { id: APP_ID, name: APP_NAME } }],
+      };
       expectSubscriptionWithKeys(subscriptionWithKeys);
       expectGetApiPermissions();
       expectApplicationsList(fakeApplication({ id: APP_ID, name: APP_NAME }));
@@ -255,7 +259,10 @@ describe('SubscriptionsDetailsComponent', () => {
       const API_KEY = 'my-api-key';
 
       const subscription = fakeSubscription({ status: 'ACCEPTED', api: API_ID, plan: PLAN_ID });
-      const subscriptionWithKeys = { ...subscription, keys: [{ key: API_KEY, id: '1', application: { id: APP_ID, name: APP_NAME } }] };
+      const subscriptionWithKeys = {
+        ...subscription,
+        keys: [{ key: API_KEY, id: '1', application: { id: APP_ID, name: APP_NAME } }],
+      };
       expectSubscriptionWithKeys(subscriptionWithKeys);
       expectGetApiPermissions(fakeUserApiPermissions({ PLAN: [] }));
       expectSubscriptionList(fakeSubscriptionResponse({ metadata: { [PLAN_ID]: { securityType: 'API_KEY' } } }), API_ID);
@@ -382,7 +389,7 @@ describe('SubscriptionsDetailsComponent', () => {
   }
 
   function expectSubscriptionList(subscriptionResponse: SubscriptionsResponse = fakeSubscriptionResponse(), apiId: string) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/subscriptions?apiId=${apiId}`).flush(subscriptionResponse);
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/subscriptions?apiIds=${apiId}`).flush(subscriptionResponse);
   }
 
   function expectPlansList(plansResponse: PlansResponse = fakePlansResponse()) {
@@ -392,6 +399,7 @@ describe('SubscriptionsDetailsComponent', () => {
   function expectApplicationsList(applicationsResponse: Application = fakeApplication()) {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/99c6cbe6-eead-414d-86cb-e6eeadc14db3`).flush(applicationsResponse);
   }
+
   function expectGetApi(api: Api = fakeApi()) {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${api.id}`).flush(api);
   }
