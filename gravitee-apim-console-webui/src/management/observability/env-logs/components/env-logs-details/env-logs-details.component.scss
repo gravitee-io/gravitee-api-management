@@ -29,6 +29,16 @@
 }
 
 .logs-details {
+  &__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 48px 0;
+    color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker');
+    font-style: italic;
+  }
+
   &__container {
     display: flex;
     flex-direction: column;
