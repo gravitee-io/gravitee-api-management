@@ -77,3 +77,7 @@ gravitee-apim-e2e/ui-test/screenshots/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+CLAUDE.md
+prompts/
+plans/
