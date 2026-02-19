@@ -14,52 +14,88 @@
  * limitations under the License.
  */
 
-export interface ApiLogRequestContent {
+export type ApiLogRequestContent = {
   method: string;
   uri: string;
   headers: Record<string, string[]>;
   body: string;
-}
+};
 
-export interface ApiLogResponseContent {
+export type ApiLogResponseContent = {
   status: number;
   headers: Record<string, string[]>;
   body: string;
-}
+};
 
-export interface EnvLogWarning {
+export type EnvLogWarning = {
   key: string;
-}
+};
 
-export interface EnvLog {
+/**
+ * Display model for environment logs.
+ *
+ * Required fields are used by the table, optional detail fields
+ * are populated when viewing a single log's detail page.
+ */
+export type EnvLog = {
+  /** Internal log UUID */
   id: string;
+  /** Formatted timestamp string for display */
   timestamp: string;
+  /** Resolved API name (enriched post-fetch) */
   api: string;
-  type: string;
+  /** API ID from backend (used for detail navigation) */
+  apiId: string;
+  /** Application name */
   application: string;
+  /** HTTP method (GET, POST, etc.) */
   method: string;
+  /** Request URI path */
   path: string;
+  /** HTTP status code */
   status: number;
+  /** Formatted response time (e.g. "42 ms") */
   responseTime: string;
-  gateway: string;
-  // Issues
-  errorKey?: string;
-  warnings?: EnvLogWarning[];
-  // Details
-  host: string;
-  requestId: string;
-  transactionId: string;
-  remoteAddress: string;
-  gatewayResponseTime: string;
-  endpointResponseTime: string;
-  gatewayLatency: string;
-  responseContentLength: string;
+  /** Gateway instance name */
+  gateway?: string;
+  /** Plan name */
   plan?: { name: string };
-  endpoint?: string;
-  clientIdentifier: string;
+  /** Whether the request completed */
   requestEnded: boolean;
-  entrypointRequest: ApiLogRequestContent;
-  endpointRequest: ApiLogRequestContent;
-  entrypointResponse: ApiLogResponseContent;
-  endpointResponse: ApiLogResponseContent;
-}
+  /** Error key for diagnostics */
+  errorKey?: string;
+  /** Warning diagnostics */
+  warnings?: EnvLogWarning[];
+
+  // --- Detail fields (populated for the log detail page) ---
+  /** API type label (e.g. "HTTP Proxy") */
+  type?: string;
+  /** Request host */
+  host?: string;
+  /** Request ID */
+  requestId?: string;
+  /** Transaction ID */
+  transactionId?: string;
+  /** Client remote address */
+  remoteAddress?: string;
+  /** Full gateway response time string */
+  gatewayResponseTime?: string;
+  /** Full endpoint response time string */
+  endpointResponseTime?: string;
+  /** Gateway latency string */
+  gatewayLatency?: string;
+  /** Response content length */
+  responseContentLength?: string;
+  /** Backend endpoint URL */
+  endpoint?: string;
+  /** Client identifier hash */
+  clientIdentifier?: string;
+  /** Consumer (entrypoint) request */
+  entrypointRequest?: ApiLogRequestContent;
+  /** Gateway (endpoint) request */
+  endpointRequest?: ApiLogRequestContent;
+  /** Consumer (entrypoint) response */
+  entrypointResponse?: ApiLogResponseContent;
+  /** Gateway (endpoint) response */
+  endpointResponse?: ApiLogResponseContent;
+};

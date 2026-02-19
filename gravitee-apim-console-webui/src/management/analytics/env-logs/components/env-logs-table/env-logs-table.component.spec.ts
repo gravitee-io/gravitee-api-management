@@ -62,7 +62,7 @@ describe('EnvLogsTableComponent', () => {
     expect(firstRow['timestamp']).toEqual('15/06/2025 12:00:00');
     expect(firstRow['method']).toEqual('PATCH');
     expect(firstRow['status']).toEqual('200');
-    expect(firstRow['api']).toContain('API Name');
+    expect(firstRow['api']).toContain('Pokémon API');
     expect(firstRow['plan']).toContain('Keyless');
   });
 

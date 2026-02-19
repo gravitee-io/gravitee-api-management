@@ -32,6 +32,7 @@ public record ApiLog(
     Integer status,
     Boolean requestEnded,
     Integer gatewayResponseTime,
+    String gateway,
     String uri,
     String endpoint,
     String message,
