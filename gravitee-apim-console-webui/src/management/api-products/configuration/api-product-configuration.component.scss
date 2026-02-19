@@ -14,30 +14,32 @@
  * limitations under the License.
  */
 
+@use 'sass:map';
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
+$typography: map.get(gio.$mat-theme, typography);
+
 .configuration-section {
   &__title {
-    font-size: 1.5rem;
-    font-weight: 500;
-    margin: 0 0 0.5rem 0;
+    @include mat.m2-typography-level($typography, headline-6);
+    margin: 0 0 8px 0;
   }
 
   &__subtitle {
-    font-size: 0.875rem;
+    @include mat.m2-typography-level($typography, body-2);
     color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-    margin: 0 0 1.5rem 0;
+    margin: 0 0 24px 0;
   }
 }
 
 .configuration-card {
-  margin-bottom: 1.5rem;
+  margin-bottom: 24px;
 
   &__fields {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 16px;
 
     &__name,
     &__version {
@@ -57,19 +59,19 @@
 .apis-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 8px;
 
   &__item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.5rem 0.75rem;
+    padding: 8px 12px;
     background: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'lighter40');
-    border-radius: 0.25rem;
+    border-radius: 4px;
 
     &-id {
+      @include mat.m2-typography-level($typography, body-2);
       font-family: monospace;
-      font-size: 0.875rem;
     }
   }
 }

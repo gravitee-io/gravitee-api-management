@@ -26,10 +26,12 @@
         @for (menuItem of menuItemsWithActive(); track menuItem.routerLink) {
           <a [routerLink]="menuItem.routerLink">
             <gio-submenu-item tabIndex="1" [active]="menuItem.active">
-              @if (menuItem.icon) {
-                <mat-icon class="api-product-navigation__submenu__item__icon" [svgIcon]="menuItem.icon"></mat-icon>
-              }
-              {{ menuItem.displayName }}
+              <div class="api-product-navigation__submenu__item">
+                @if (menuItem.icon) {
+                  <mat-icon class="api-product-navigation__submenu__item__icon" [svgIcon]="menuItem.icon"></mat-icon>
+                }
+                {{ menuItem.displayName }}
+              </div>
             </gio-submenu-item>
           </a>
         }

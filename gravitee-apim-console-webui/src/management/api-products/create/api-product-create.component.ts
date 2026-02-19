@@ -109,16 +109,20 @@ export class ApiProductCreateComponent {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(confirmed => {
           if (confirmed) {
-            this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+            this.onBack();
           }
         });
       return;
     }
-    this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+    this.onBack();
   }
 
   onBack(): void {
     this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+  }
+
+  goToConfiguration(productId: string): void {
+    this.router.navigate(['..', productId, 'configuration'], { relativeTo: this.activatedRoute });
   }
 
   onCreate(): void {
@@ -153,7 +157,7 @@ export class ApiProductCreateComponent {
           next: apiProduct => {
             this.isCreating.set(false);
             this.snackBarService.success(`${apiProduct.name} - Successfully created`);
-            this.router.navigate(['..', apiProduct.id, 'configuration'], { relativeTo: this.activatedRoute });
+            this.goToConfiguration(apiProduct.id);
           },
           error: err => {
             this.isCreating.set(false);

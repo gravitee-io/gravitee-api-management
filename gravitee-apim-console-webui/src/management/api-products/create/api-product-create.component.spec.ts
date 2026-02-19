@@ -17,12 +17,13 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
 import { ApiProductCreateComponent } from './api-product-create.component';
 
@@ -72,11 +73,12 @@ describe('ApiProductCreateComponent', () => {
   it('should validate required fields', async () => {
     fixture.detectChanges();
 
-    const createButton = await loader.getHarness(MatButtonHarness.with({ text: /Create/i }));
-    await createButton.click();
+    fixture.componentInstance.form.markAllAsTouched();
     fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(fixture.componentInstance.form.controls.name.hasError('required')).toBe(true);
+    expect(fixture.componentInstance.form.controls.version.hasError('required')).toBe(true);
   });
 
   it('should validate name uniqueness', async () => {
@@ -93,7 +95,8 @@ describe('ApiProductCreateComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.form.controls.name.hasError('unique')).toBe(true);
+    const nameFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: /Name/ }));
+    expect(await nameFormField.getTextErrors()).toContain('API Product name must be unique');
   });
 
   it('should create API product successfully', async () => {
@@ -138,7 +141,7 @@ describe('ApiProductCreateComponent', () => {
     await fixture.whenStable();
 
     expect(fakeSnackBarService.success).toHaveBeenCalledWith('New API Product - Successfully created');
-    expect(routerNavigateSpy).toHaveBeenCalledWith(['..'], expect.anything());
+    expect(routerNavigateSpy).toHaveBeenCalledWith(['..', 'product-1', 'configuration'], expect.anything());
   });
 
   it('should trim whitespace from form values', async () => {
@@ -195,23 +198,27 @@ describe('ApiProductCreateComponent', () => {
     expect(fakeSnackBarService.error).toHaveBeenCalledWith('Creation failed');
   });
 
-  it('should show exit confirmation dialog when form is dirty', () => {
+  it('should show exit confirmation dialog when form is dirty', async () => {
     fixture.detectChanges();
 
-    const dialogOpenSpy = jest.spyOn(MatDialog.prototype, 'open').mockReturnValue({
-      afterClosed: () => ({ pipe: () => ({ subscribe: jest.fn() }) }),
-    } as any);
-
-    // Simulate dirty form (harness setValue doesn't reliably mark form dirty with updateOn configs)
-    Object.defineProperty(fixture.componentInstance.form, 'dirty', {
-      get: () => true,
-      configurable: true,
-    });
-
-    fixture.componentInstance.onExit();
+    const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
+    const versionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="version"]' }));
+    await nameInput.setValue('My Product');
+    await nameInput.blur();
+    await fixture.whenStable();
+    const verifyReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_verify`);
+    verifyReq.flush({ ok: true });
+    await versionInput.setValue('1.0');
+    await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(dialogOpenSpy).toHaveBeenCalled();
+    const backButton = await loader.getHarness(MatButtonHarness.with({ text: /Go back to API Products/i }));
+    await backButton.click();
+    await fixture.whenStable();
+
+    const dialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+    expect(dialog).toBeTruthy();
+    await dialog.cancel();
   });
 
   it('should navigate back without dialog when form is not dirty', () => {
@@ -229,7 +236,8 @@ describe('ApiProductCreateComponent', () => {
     await nameInput.blur();
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.form.controls.name.hasError('maxlength')).toBe(true);
+    const nameFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: /Name/ }));
+    expect(await nameFormField.getTextErrors()).toContain('Name must be at most 512 characters');
   });
 
   it('should validate max length for version', async () => {
@@ -240,6 +248,7 @@ describe('ApiProductCreateComponent', () => {
     await versionInput.blur();
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.form.controls.version.hasError('maxlength')).toBe(true);
+    const versionFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: /Version/ }));
+    expect(await versionFormField.getTextErrors()).toContain('Version must be at most 64 characters');
   });
 });

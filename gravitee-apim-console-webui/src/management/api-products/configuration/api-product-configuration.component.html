@@ -16,24 +16,24 @@
 
 -->
 
-@if (form(); as formRef) {
+@if (apiProduct(); as product) {
   <div class="configuration-section">
     <h2 class="configuration-section__title">Configuration</h2>
     <p class="configuration-section__subtitle">Manage general settings and product details.</p>
   </div>
 
-  <form [formGroup]="formRef" gioFormFocusInvalid>
+  <form [formGroup]="form" gioFormFocusInvalid>
     <mat-card class="configuration-card">
       <mat-card-content>
         <div class="configuration-card__fields">
           <mat-form-field appearance="outline" class="configuration-card__fields__name">
             <mat-label>Name</mat-label>
             <input matInput formControlName="name" [maxlength]="nameMaxLength" />
-            @if (formRef.controls.name.hasError('required')) {
+            @if (form.controls.name.hasError('required')) {
               <mat-error>Name is required.</mat-error>
-            } @else if (formRef.controls.name.hasError('unique')) {
+            } @else if (form.controls.name.hasError('unique')) {
               <mat-error>API Product name must be unique</mat-error>
-            } @else if (formRef.controls.name.hasError('maxlength')) {
+            } @else if (form.controls.name.hasError('maxlength')) {
               <mat-error>Name must be at most {{ nameMaxLength }} characters</mat-error>
             }
           </mat-form-field>
@@ -41,9 +41,9 @@
           <mat-form-field appearance="outline" class="configuration-card__fields__version">
             <mat-label>Version</mat-label>
             <input matInput formControlName="version" [maxlength]="versionMaxLength" />
-            @if (formRef.controls.version.hasError('required')) {
+            @if (form.controls.version.hasError('required')) {
               <mat-error>Version is required.</mat-error>
-            } @else if (formRef.controls.version.hasError('maxlength')) {
+            } @else if (form.controls.version.hasError('maxlength')) {
               <mat-error>Version must be at most {{ versionMaxLength }} characters</mat-error>
             }
           </mat-form-field>
@@ -77,17 +77,18 @@
       </mat-card>
     }
 
-    @if (apiProduct(); as product) {
+    @if (product) {
       <api-product-danger-zone
         [apiProduct]="product"
         [isReadOnly]="isReadOnly"
-        (reloadDetails)="onReloadDetails()"
+        (removeApisClick)="onRemoveApis()"
+        (deleteApiProductClick)="onDeleteApiProduct()"
       ></api-product-danger-zone>
     }
 
-    @if (formRef.dirty && formRef.valid) {
+    @if (form.dirty && form.valid) {
       <gio-save-bar
-        [form]="formRef"
+        [form]="form"
         [formInitialValues]="initialFormValue()"
         (resetClicked)="onReset()"
         (submitted)="onSubmit()"

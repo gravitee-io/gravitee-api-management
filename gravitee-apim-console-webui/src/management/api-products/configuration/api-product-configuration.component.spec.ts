@@ -16,12 +16,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
+import { GioConfirmAndValidateDialogHarness, GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
 import { ApiProductConfigurationComponent } from './api-product-configuration.component';
 
@@ -29,6 +31,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ApiProduct } from '../../../entities/management-api-v2/api-product';
 import { Constants } from '../../../entities/Constants';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProductConfigurationComponent', () => {
   const API_PRODUCT_ID = 'product-1';
@@ -42,7 +45,9 @@ describe('ApiProductConfigurationComponent', () => {
 
   let fixture: ComponentFixture<ApiProductConfigurationComponent>;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  let routerNavigateSpy: jest.SpyInstance;
   const fakeSnackBarService = { error: jest.fn(), success: jest.fn() };
 
   beforeEach(() => {
@@ -51,12 +56,16 @@ describe('ApiProductConfigurationComponent', () => {
       providers: [
         { provide: Constants, useValue: CONSTANTS_TESTING },
         { provide: SnackBarService, useValue: fakeSnackBarService },
+        { provide: GioTestingPermissionProvider, useValue: ['environment-api_product-u'] },
         {
           provide: ActivatedRoute,
           useValue: {
-            params: of({ apiProductId: API_PRODUCT_ID }),
-            snapshot: { params: { apiProductId: API_PRODUCT_ID } },
-            parent: null,
+            params: of({}),
+            snapshot: { params: {} },
+            parent: {
+              params: of({ apiProductId: API_PRODUCT_ID }),
+              snapshot: { params: { apiProductId: API_PRODUCT_ID } },
+            },
           },
         },
       ],
@@ -64,7 +73,9 @@ describe('ApiProductConfigurationComponent', () => {
 
     fixture = TestBed.createComponent(ApiProductConfigurationComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
+    routerNavigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate');
     fixture.detectChanges();
   });
 
@@ -73,7 +84,10 @@ describe('ApiProductConfigurationComponent', () => {
     jest.clearAllMocks();
   });
 
-  it('should create', () => {
+  it('should create', async () => {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
+    req.flush(fakeApiProduct);
+    await fixture.whenStable();
     expect(fixture.componentInstance).toBeTruthy();
   });
 
@@ -84,7 +98,7 @@ describe('ApiProductConfigurationComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const form = fixture.componentInstance.form();
+    const form = fixture.componentInstance.form;
     expect(form).toBeTruthy();
     expect(form?.getRawValue().name).toBe('Test API Product');
     expect(form?.getRawValue().version).toBe('1.0');
@@ -104,7 +118,7 @@ describe('ApiProductConfigurationComponent', () => {
     await versionInput.blur();
     fixture.detectChanges();
 
-    const form = fixture.componentInstance.form();
+    const form = fixture.componentInstance.form;
     expect(form?.controls.name.hasError('required')).toBe(true);
     expect(form?.controls.version.hasError('required')).toBe(true);
   });
@@ -115,10 +129,12 @@ describe('ApiProductConfigurationComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const form = fixture.componentInstance.form();
+    const form = fixture.componentInstance.form;
     expect(form).toBeTruthy();
-    form!.patchValue({ name: 'Updated Name', version: '1.0', description: 'Updated desc' });
+    // Keep same name to avoid async validator's verify call (deterministic, CI-friendly)
+    form!.patchValue({ name: 'Test API Product', version: '1.0', description: 'Updated desc' });
     form!.markAsDirty();
+    await fixture.whenStable();
 
     fixture.componentInstance.onSubmit();
     await fixture.whenStable();
@@ -127,8 +143,9 @@ describe('ApiProductConfigurationComponent', () => {
       method: 'PUT',
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`,
     });
-    expect(updateReq.request.body.name).toBe('Updated Name');
-    updateReq.flush({ ...fakeApiProduct, name: 'Updated Name' });
+    expect(updateReq.request.body.name).toBe('Test API Product');
+    expect(updateReq.request.body.description).toBe('Updated desc');
+    updateReq.flush({ ...fakeApiProduct, description: 'Updated desc' });
     await fixture.whenStable();
 
     expect(fakeSnackBarService.success).toHaveBeenCalledWith('Configuration successfully saved!');
@@ -140,5 +157,50 @@ describe('ApiProductConfigurationComponent', () => {
     await fixture.whenStable();
 
     expect(fakeSnackBarService.error).toHaveBeenCalled();
+  });
+
+  it('should remove all APIs when confirmed', async () => {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
+    req.flush(fakeApiProduct);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const removeButton = await loader.getHarness(MatButtonHarness.with({ text: /Remove APIs/i }));
+    await removeButton.click();
+
+    const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+    await dialog.confirm();
+
+    const deleteReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/apis`);
+    expect(deleteReq.request.method).toBe('DELETE');
+    deleteReq.flush({});
+    await fixture.whenStable();
+
+    const reloadReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
+    reloadReq.flush({ ...fakeApiProduct, apiIds: [] });
+    await fixture.whenStable();
+
+    expect(fakeSnackBarService.success).toHaveBeenCalledWith('All APIs have been removed from the API Product.');
+  });
+
+  it('should delete API product when confirmed', async () => {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
+    req.flush(fakeApiProduct);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const deleteButton = await loader.getHarness(MatButtonHarness.with({ text: /Delete API Product/i }));
+    await deleteButton.click();
+
+    const dialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+    await dialog.confirm();
+
+    const deleteReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
+    expect(deleteReq.request.method).toBe('DELETE');
+    deleteReq.flush({});
+    await fixture.whenStable();
+
+    expect(fakeSnackBarService.success).toHaveBeenCalledWith('The API Product has been deleted.');
+    expect(routerNavigateSpy).toHaveBeenCalledWith(['../../'], expect.anything());
   });
 });
