@@ -21,6 +21,10 @@ describe('GIO license features', () => {
     expect(stringFeature({ title: 'EE' }, 'apim-custom-roles')).toEqual(ApimFeature.APIM_CUSTOM_ROLES);
   });
 
+  it('should convert apim-api-products string to APIM_API_PRODUCTS Feature', () => {
+    expect(stringFeature({ title: 'EE' }, 'apim-api-products')).toEqual(ApimFeature.APIM_API_PRODUCTS);
+  });
+
   it('should throw error with unknown Feature string', () => {
     expect(() => stringFeature({ title: 'EE' }, 'unknown feature')).toThrow();
   });
