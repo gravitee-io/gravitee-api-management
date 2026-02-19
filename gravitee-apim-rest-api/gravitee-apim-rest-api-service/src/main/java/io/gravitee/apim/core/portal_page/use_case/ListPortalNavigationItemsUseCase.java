@@ -17,9 +17,9 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemComparator;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
@@ -37,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 public class ListPortalNavigationItemsUseCase {
 
     private final PortalNavigationItemsQueryService queryService;
-    private static final Predicate<PortalNavigationItem> IS_FOLDER_PREDICATE = i -> i instanceof PortalNavigationFolder;
+    private static final Predicate<PortalNavigationItem> IS_CONTAINER_PREDICATE = i -> i instanceof PortalNavigationItemContainer;
 
     public Output execute(Input input) {
         PortalNavigationItem parentItem;
@@ -82,7 +82,7 @@ public class ListPortalNavigationItemsUseCase {
         List<PortalNavigationItem> childrenAccumulator = new ArrayList<>();
         LinkedList<PortalNavigationItem> queue = new LinkedList<>();
 
-        initialItems.stream().filter(IS_FOLDER_PREDICATE).forEach(queue::add);
+        initialItems.stream().filter(IS_CONTAINER_PREDICATE).forEach(queue::add);
 
         while (!queue.isEmpty()) {
             var currentFolder = queue.removeFirst();
@@ -92,7 +92,7 @@ public class ListPortalNavigationItemsUseCase {
             if (!foundChildren.isEmpty()) {
                 childrenAccumulator.addAll(foundChildren);
 
-                foundChildren.stream().filter(IS_FOLDER_PREDICATE).forEach(queue::add);
+                foundChildren.stream().filter(IS_CONTAINER_PREDICATE).forEach(queue::add);
             }
         }
         return childrenAccumulator;

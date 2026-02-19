@@ -104,7 +104,7 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         assertThat(response)
             .hasStatus(OK_200)
             .asEntity(PortalNavigationItemsResponse.class)
-            .satisfies(entity -> assertThat(entity.getItems()).hasSize(10));
+            .satisfies(entity -> assertThat(entity.getItems()).hasSize(13));
     }
 
     @Test
@@ -199,7 +199,7 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
         assertThat(response)
             .hasStatus(OK_200)
             .asEntity(PortalNavigationItemsResponse.class)
-            .satisfies(entity -> assertThat(entity.getItems()).hasSize(6));
+            .satisfies(entity -> assertThat(entity.getItems()).hasSize(9));
     }
 
     @Test

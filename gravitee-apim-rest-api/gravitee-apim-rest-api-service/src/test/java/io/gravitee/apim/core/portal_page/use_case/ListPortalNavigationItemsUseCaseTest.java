@@ -66,7 +66,7 @@ class ListPortalNavigationItemsUseCaseTest {
 
         // Then
         assertThat(result.items())
-            .hasSize(10)
+            .hasSize(13)
             .extracting(PortalNavigationItem::getTitle)
             .containsExactly(
                 "APIs",
@@ -78,7 +78,10 @@ class ListPortalNavigationItemsUseCaseTest {
                 "Category1",
                 "API 1",
                 "page11",
-                "page12"
+                "API 2 Folder",
+                "page12",
+                "API 1 Folder",
+                "API 2"
             );
     }
 
@@ -123,9 +126,19 @@ class ListPortalNavigationItemsUseCaseTest {
 
         // Then
         assertThat(result.items())
-            .hasSize(6)
+            .hasSize(9)
             .extracting(PortalNavigationItem::getTitle)
-            .containsExactly("Overview", "Getting Started", "Category1", "API 1", "page11", "page12");
+            .containsExactly(
+                "Overview",
+                "Getting Started",
+                "Category1",
+                "API 1",
+                "page11",
+                "API 2 Folder",
+                "page12",
+                "API 1 Folder",
+                "API 2"
+            );
     }
 
     @Test
@@ -146,9 +159,22 @@ class ListPortalNavigationItemsUseCaseTest {
 
         // Then
         assertThat(result.items())
-            .hasSize(9)
+            .hasSize(12)
             .extracting(PortalNavigationItem::getTitle)
-            .containsExactly("APIs", "Example Link", "Guides", "Support", "Overview", "Getting Started", "Category1", "API 1", "page12");
+            .containsExactly(
+                "APIs",
+                "Example Link",
+                "Guides",
+                "Support",
+                "Overview",
+                "Getting Started",
+                "Category1",
+                "API 1",
+                "API 2 Folder",
+                "page12",
+                "API 1 Folder",
+                "API 2"
+            );
     }
 
     @Test
