@@ -50,23 +50,51 @@
     {{ log.api || '—' }}
   </ng-template>
 
-  <ng-template #typeTemplate let-log>
-    {{ log.type || '—' }}
+  <ng-template #pathTemplate let-log>
+    {{ log.path || '—' }}
   </ng-template>
 
   <ng-template #applicationTemplate let-log>
     {{ log.application || '—' }}
   </ng-template>
 
-  <ng-template #pathTemplate let-log>
-    {{ log.path || '—' }}
+  <ng-template #planTemplate let-log>
+    {{ log.plan?.name || '—' }}
+  </ng-template>
+
+  <ng-template #gatewayTemplate let-log>
+    {{ log.gateway || '—' }}
   </ng-template>
 
   <ng-template #responseTimeTemplate let-log>
     {{ log.responseTime || '—' }}
   </ng-template>
 
-  <ng-template #gatewayTemplate let-log>
-    {{ log.gateway || '—' }}
+  <ng-template #endpointTemplate let-log>
+    @if (log.requestEnded) {
+      <span class="gio-badge-neutral"><mat-icon svgIcon="gio:check"></mat-icon></span>
+    }
+  </ng-template>
+
+  <ng-template #issuesTemplate let-log>
+    <div class="diagnostics-container">
+      @if (log.errorKey) {
+        <span class="gio-badge-error" [matTooltip]="log.errorKey"><mat-icon svgIcon="gio:alert-circle"></mat-icon></span>
+      }
+      @if (log.warnings?.length > 0) {
+        <span
+          class="gio-badge-warning"
+          [matTooltip]="log.warnings.length === 1 ? log.warnings[0].key : log.warnings.length + ' warning(s)'"
+        >
+          <mat-icon svgIcon="gio:alert-circle"></mat-icon>
+        </span>
+      }
+    </div>
+  </ng-template>
+
+  <ng-template #previewTemplate let-log>
+    <a mat-icon-button [routerLink]="['.', log.id]" data-testid="env_logs_preview_button">
+      <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+    </a>
   </ng-template>
 </logs-list-base>

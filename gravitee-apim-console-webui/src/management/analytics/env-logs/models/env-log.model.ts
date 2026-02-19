@@ -27,6 +27,10 @@ export interface ApiLogResponseContent {
   body: string;
 }
 
+export interface EnvLogWarning {
+  key: string;
+}
+
 export interface EnvLog {
   id: string;
   timestamp: string;
@@ -38,6 +42,9 @@ export interface EnvLog {
   status: number;
   responseTime: string;
   gateway: string;
+  // Issues
+  errorKey?: string;
+  warnings?: EnvLogWarning[];
   // Details
   host: string;
   requestId: string;
@@ -47,8 +54,8 @@ export interface EnvLog {
   endpointResponseTime: string;
   gatewayLatency: string;
   responseContentLength: string;
-  plan: { name: string };
-  endpoint: string;
+  plan?: { name: string };
+  endpoint?: string;
   clientIdentifier: string;
   requestEnded: boolean;
   entrypointRequest: ApiLogRequestContent;

@@ -16,6 +16,9 @@
 
 import { Component, computed, input, output, TemplateRef, viewChild } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { MatIcon } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import {
   LogsListBaseComponent,
@@ -30,7 +33,7 @@ import { EnvLog } from '../../models/env-log.model';
   templateUrl: './env-logs-table.component.html',
   styleUrl: './env-logs-table.component.scss',
   standalone: true,
-  imports: [LogsListBaseComponent, RouterModule],
+  imports: [LogsListBaseComponent, RouterModule, MatIcon, MatButtonModule, MatTooltipModule],
 })
 export class EnvLogsTableComponent {
   logs = input.required<EnvLog[]>();
@@ -42,21 +45,27 @@ export class EnvLogsTableComponent {
   readonly methodTemplate = viewChild.required<TemplateRef<EnvLog>>('methodTemplate');
   readonly statusTemplate = viewChild.required<TemplateRef<EnvLog>>('statusTemplate');
   readonly apiTemplate = viewChild.required<TemplateRef<EnvLog>>('apiTemplate');
-  readonly typeTemplate = viewChild.required<TemplateRef<EnvLog>>('typeTemplate');
-  readonly applicationTemplate = viewChild.required<TemplateRef<EnvLog>>('applicationTemplate');
   readonly pathTemplate = viewChild.required<TemplateRef<EnvLog>>('pathTemplate');
-  readonly responseTimeTemplate = viewChild.required<TemplateRef<EnvLog>>('responseTimeTemplate');
+  readonly applicationTemplate = viewChild.required<TemplateRef<EnvLog>>('applicationTemplate');
+  readonly planTemplate = viewChild.required<TemplateRef<EnvLog>>('planTemplate');
   readonly gatewayTemplate = viewChild.required<TemplateRef<EnvLog>>('gatewayTemplate');
+  readonly responseTimeTemplate = viewChild.required<TemplateRef<EnvLog>>('responseTimeTemplate');
+  readonly endpointTemplate = viewChild.required<TemplateRef<EnvLog>>('endpointTemplate');
+  readonly issuesTemplate = viewChild.required<TemplateRef<EnvLog>>('issuesTemplate');
+  readonly previewTemplate = viewChild.required<TemplateRef<EnvLog>>('previewTemplate');
 
   readonly columns = computed<LogsListColumnDef[]>(() => [
     { id: 'timestamp', label: 'Timestamp', template: this.timestampTemplate() },
-    { id: 'api', label: 'API', template: this.apiTemplate() },
-    { id: 'type', label: 'Type', template: this.typeTemplate() },
-    { id: 'application', label: 'Application', template: this.applicationTemplate() },
     { id: 'method', label: 'Method', template: this.methodTemplate() },
-    { id: 'path', label: 'Path', template: this.pathTemplate() },
     { id: 'status', label: 'Status', template: this.statusTemplate() },
-    { id: 'responseTime', label: 'Response Time', template: this.responseTimeTemplate() },
+    { id: 'api', label: 'API', template: this.apiTemplate() },
+    { id: 'path', label: 'Path', template: this.pathTemplate() },
+    { id: 'application', label: 'Application', template: this.applicationTemplate() },
+    { id: 'plan', label: 'Plan', template: this.planTemplate() },
     { id: 'gateway', label: 'Gateway', template: this.gatewayTemplate() },
+    { id: 'responseTime', label: 'Response Time', template: this.responseTimeTemplate() },
+    { id: 'endpoint', label: 'Endpoint reached', template: this.endpointTemplate() },
+    { id: 'issues', label: 'Issues', template: this.issuesTemplate() },
+    { id: 'preview', label: '', template: this.previewTemplate() },
   ]);
 }
