@@ -107,11 +107,11 @@ public class IntegrationsResource extends AbstractResource {
 
     @Path("{integrationId}")
     public IntegrationResource getIntegrationResource(
-        @PathParam("orgId") String orgId,
         @PathParam("envId") String environmentId,
         @PathParam("integrationId") String integrationId
     ) {
         // check if integration exists
+        String orgId = GraviteeContext.getCurrentOrganization();
         getIntegrationUsecase.execute(new GetIntegrationUseCase.Input(integrationId, orgId, environmentId));
         return resourceContext.getResource(IntegrationResource.class);
     }
