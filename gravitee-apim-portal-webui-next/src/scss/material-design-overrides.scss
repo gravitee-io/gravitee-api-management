@@ -25,6 +25,10 @@ mat-chip {
 mat-dialog-container {
   --mat-dialog-container-color: #{theme.$card-background-color};
   --mat-dialog-container-shape: #{theme.$container-shape};
+  --mat-dialog-subhead-font: #{theme.$font-family};
+  --mat-dialog-subhead-size: #{theme.$next-gen-h3-font-size};
+  --mat-dialog-subhead-weight: #{theme.$next-gen-h3-font-weight};
+  --mat-dialog-subhead-line-height: #{theme.$next-gen-h3-line-height};
 }
 
 mat-form-field {

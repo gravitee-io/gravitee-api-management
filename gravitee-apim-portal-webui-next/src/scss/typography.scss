@@ -16,7 +16,10 @@
 
 @use './theme';
 
-// Next gen typography
+// Next gen typography (variables for reuse in theme overrides)
+$next-gen-h3-font-size: 24px;
+$next-gen-h3-font-weight: bold;
+$next-gen-h3-line-height: 30px;
 
 .next-gen-h1 {
   font-size: 48px;
@@ -31,9 +34,9 @@
 }
 
 .next-gen-h3 {
-  font-size: 24px;
-  font-weight: bold;
-  line-height: 30px;
+  font-size: $next-gen-h3-font-size;
+  font-weight: $next-gen-h3-font-weight;
+  line-height: $next-gen-h3-line-height;
 }
 
 .next-gen-h4 {
