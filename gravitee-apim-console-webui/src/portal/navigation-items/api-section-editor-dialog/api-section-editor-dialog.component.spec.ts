@@ -20,7 +20,6 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
-import { MatSelectHarness } from '@angular/material/select/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 
 import {
@@ -31,14 +30,7 @@ import {
 import { ApiSectionEditorDialogHarness } from './api-section-editor-dialog.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import {
-  fakeApiFederated,
-  fakeApiFederatedAgent,
-  fakeApiV1,
-  fakeApiV2,
-  fakeApiV4,
-  fakePortalNavigationApi,
-} from '../../../entities/management-api-v2';
+import { fakeApiFederated, fakeApiFederatedAgent, fakeApiV1, fakeApiV2, fakeApiV4 } from '../../../entities/management-api-v2';
 
 @Component({
   selector: 'test-host-component',
@@ -48,13 +40,12 @@ class TestHostComponent {
   dialogValue: ApiSectionEditorDialogResult;
   private matDialog = inject(MatDialog);
 
-  public data: ApiSectionEditorDialogData = { mode: 'create' };
-
   public clicked(): void {
+    const data: ApiSectionEditorDialogData = { mode: 'create' };
     this.matDialog
       .open<ApiSectionEditorDialogComponent, ApiSectionEditorDialogData>(ApiSectionEditorDialogComponent, {
         width: '500px',
-        data: this.data,
+        data,
       })
       .afterClosed()
       .subscribe({
@@ -127,7 +118,6 @@ describe('ApiSectionEditorDialogComponent', () => {
   }));
 
   it('should save selected api ids', fakeAsync(() => {
-    component.data = { mode: 'create' };
     component.clicked();
     fixture.detectChanges();
 
@@ -155,40 +145,5 @@ describe('ApiSectionEditorDialogComponent', () => {
     expect(Array.isArray(component.dialogValue?.apiIds)).toEqual(true);
     expect(component.dialogValue?.apiIds?.length).toBeGreaterThan(1);
     expect(component.dialogValue?.apiId).toEqual(component.dialogValue?.apiIds?.[0]);
-  }));
-
-  it('should update visibility in edit mode', fakeAsync(() => {
-    component.data = {
-      mode: 'edit',
-      existingItem: fakePortalNavigationApi({ visibility: 'PUBLIC', apiId: 'api-v2' }),
-    };
-
-    component.clicked();
-    fixture.detectChanges();
-
-    tick();
-
-    let dialog: ApiSectionEditorDialogHarness;
-    rootLoader.getHarness(ApiSectionEditorDialogHarness).then(h => (dialog = h));
-    tick();
-
-    let visibilitySelect: MatSelectHarness;
-    rootLoader.getHarness(MatSelectHarness).then(h => (visibilitySelect = h));
-    tick();
-
-    visibilitySelect.open();
-    tick();
-
-    visibilitySelect.clickOptions({ text: 'Private' });
-    tick();
-
-    dialog.clickSubmitButton();
-    tick();
-
-    httpTestingController.expectNone(
-      request => request.method === 'POST' && request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search`,
-    );
-
-    expect(component.dialogValue?.visibility).toEqual('PRIVATE');
   }));
 });

@@ -39,6 +39,7 @@ import { MatCardModule } from '@angular/material/card';
 import {
   SectionEditorDialogComponent,
   SectionEditorDialogData,
+  SectionEditorDialogItemType,
   SectionEditorDialogMode,
 } from './section-editor-dialog/section-editor-dialog.component';
 import {
@@ -210,8 +211,8 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           }
           break;
         default:
-          if (event.itemType === 'API') {
-            this.manageApiSection(event.action, event.node.data);
+          if (event.itemType === 'API' && event.action !== 'edit') {
+            this.createApiSection(event.node.data);
             return;
           }
           this.manageSection(event.itemType, event.action, 'TOP_NAVBAR', event.node.data);
@@ -220,52 +221,25 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     });
   }
 
-  private manageApiSection(mode: SectionEditorDialogMode, existingItem?: PortalNavigationItem): void {
-    const data: ApiSectionEditorDialogData =
-      mode === 'edit'
-        ? {
-            mode: 'edit',
-            existingItem: existingItem?.type === 'API' ? (existingItem as PortalNavigationApi) : undefined,
-          }
-        : { mode: 'create' };
-
+  private createApiSection(existingItem?: PortalNavigationItem): void {
     this.matDialog
       .open<ApiSectionEditorDialogComponent, ApiSectionEditorDialogData>(ApiSectionEditorDialogComponent, {
         width: GIO_DIALOG_WIDTH.LARGE,
-        data,
+        data: { mode: 'create' },
       })
       .afterClosed()
       .pipe(
         filter(result => !!result),
-        switchMap(result => {
-          if (mode === 'create') {
-            return this.createApisInOrder(existingItem?.id, result.apiIds ?? []);
-          }
-
-          const apiItem = existingItem?.type === 'API' ? (existingItem as PortalNavigationApi) : undefined;
-          if (!apiItem) {
-            return EMPTY;
-          }
-
-          return this.update(apiItem.id, {
-            title: apiItem.title,
-            type: apiItem.type,
-            parentId: apiItem.parentId,
-            order: apiItem.order,
-            published: apiItem.published,
-            visibility: result.visibility,
-            apiId: apiItem.apiId,
-          }).pipe(map(() => apiItem.id));
-        }),
+        switchMap(result => this.createApisInOrder(existingItem?.id, result.apiIds ?? [])),
         map(id => id ?? existingItem?.id ?? null),
         tap(id => {
           this.refreshMenuList.next(1);
-          if (mode === 'create' && typeof id === 'string' && id.length > 0) {
+          if (typeof id === 'string' && id.length > 0) {
             this.navigateToItemByNavId(id);
           }
         }),
         catchError(() => {
-          this.snackBarService.error(mode === 'create' ? 'Failed to create API navigation items' : 'Failed to update navigation item');
+          this.snackBarService.error('Failed to create API navigation items');
           return EMPTY;
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -410,12 +384,15 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   }
 
   private manageSection(
-    type: Exclude<PortalNavigationItemType, 'API'>,
+    type: PortalNavigationItemType,
     mode: SectionEditorDialogMode,
     area: PortalArea,
     existingItem?: PortalNavigationItem,
   ): void {
-    const data: SectionEditorDialogData = { mode, type, existingItem };
+    const data: SectionEditorDialogData =
+      mode === 'create'
+        ? { mode: 'create', type: type as SectionEditorDialogItemType }
+        : { mode: 'edit', type, existingItem: existingItem! };
     this.matDialog
       .open<SectionEditorDialogComponent, SectionEditorDialogData>(SectionEditorDialogComponent, {
         width: GIO_DIALOG_WIDTH.SMALL,
@@ -428,7 +405,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           if (mode === 'create') {
             return this.create({
               title: result.title,
-              type,
+              type: type as SectionEditorDialogItemType,
               area,
               url: result.url,
               parentId: existingItem?.id,
@@ -439,18 +416,24 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
               return EMPTY;
             }
             return this.update(existingItem.id, {
-              title: existingItem.title,
+              title: result.title,
               type: existingItem.type,
               parentId: existingItem.parentId,
               order: existingItem.order,
               published: existingItem.published,
-              ...result,
+              apiId: (existingItem as PortalNavigationApi).apiId,
+              url: result.url,
+              visibility: result.visibility,
             });
           }
         }),
         tap(({ id }) => {
           this.refreshMenuList.next(1);
           this.navigateToItemByNavId(id);
+        }),
+        catchError(() => {
+          this.snackBarService.error('Failed to update navigation item');
+          return EMPTY;
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -509,10 +492,6 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         return;
       }
       const navItem = selectedItem.data;
-      if (navItem.type === 'API') {
-        this.manageApiSection('edit', navItem);
-        return;
-      }
       this.manageSection(navItem.type, 'edit', navItem.area, navItem);
     });
   }
@@ -656,9 +635,9 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       published: navItem.published,
       visibility: navItem.visibility,
       url: (navItem as PortalNavigationLink).url,
+      apiId: (navItem as PortalNavigationApi).apiId,
       parentId: newParentId ?? undefined,
       order: newOrder,
-      apiId: (navItem as PortalNavigationApi).apiId,
     };
     return this.update(navItem.id, updateItem).pipe(
       tap(() => {
