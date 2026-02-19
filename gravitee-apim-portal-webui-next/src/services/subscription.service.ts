@@ -43,8 +43,8 @@ export class SubscriptionService {
     page?: number;
   }): Observable<SubscriptionsResponse> {
     const params = {
-      ...(queryParams.apiIds?.length ? { apiId: queryParams.apiIds } : {}),
-      ...(queryParams.applicationIds?.length ? { applicationId: queryParams.applicationIds } : {}),
+      ...(queryParams.apiIds?.length ? { apiIds: queryParams.apiIds } : {}),
+      ...(queryParams.applicationIds?.length ? { applicationIds: queryParams.applicationIds } : {}),
       ...(queryParams.statuses?.length ? { statuses: queryParams.statuses } : {}),
       ...(queryParams.size != null ? { size: queryParams.size } : {}),
       ...(queryParams.page != null ? { page: queryParams.page } : {}),

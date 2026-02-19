@@ -30,7 +30,6 @@
   }
 
   &__container {
-    border: 1px solid app-theme.$table-border-color;
     border-radius: app-theme.$table-border-radius;
     overflow-x: auto;
   }
@@ -44,7 +43,6 @@
   }
 
   &__column-expand {
-    width: 48px;
     text-align: center;
 
     mat-icon {
@@ -65,9 +63,5 @@
     display: flex;
     align-items: center;
     gap: 8px;
-
-    &-select {
-      width: 80px;
-    }
   }
 }
