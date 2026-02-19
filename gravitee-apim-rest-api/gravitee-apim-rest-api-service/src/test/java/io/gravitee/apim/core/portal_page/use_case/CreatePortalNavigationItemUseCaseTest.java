@@ -15,25 +15,24 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.API1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
@@ -61,7 +60,6 @@ class CreatePortalNavigationItemUseCaseTest {
     private PortalNavigationItemDomainService domainService;
     private PortalNavigationItemsCrudServiceInMemory crudService;
     private PortalNavigationItemsQueryServiceInMemory queryService;
-    private PortalNavigationItemValidatorService validatorService;
     private PortalPageContentCrudServiceInMemory pageContentCrudService;
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
 
@@ -71,8 +69,14 @@ class CreatePortalNavigationItemUseCaseTest {
 
         crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
-        validatorService = mock(PortalNavigationItemValidatorService.class);
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
+        PortalPageContentQueryServiceInMemory pageContentQueryService = new PortalPageContentQueryServiceInMemory(
+            pageContentCrudService.storage()
+        );
+        PortalNavigationItemValidatorService validatorService = new PortalNavigationItemValidatorService(
+            queryService,
+            pageContentQueryService
+        );
         domainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService, apiCrudService);
         useCase = new CreatePortalNavigationItemUseCase(domainService, validatorService);
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
@@ -166,16 +170,13 @@ class CreatePortalNavigationItemUseCaseTest {
     @Test
     void should_not_create_item_if_validation_fails() {
         // Given
-        doThrow(new RuntimeException("Custom exception from validator"))
-            .when(validatorService)
-            .validateOne(any(CreatePortalNavigationItem.class), anyString());
-
         final var numberOfItems = queryService.storage().size();
 
         final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
             .id(PortalNavigationItemId.random())
-            .type(PortalNavigationItemType.FOLDER)
+            .type(PortalNavigationItemType.LINK)
             .title("title")
+            .url("invalid url")
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
             .build();
@@ -187,7 +188,7 @@ class CreatePortalNavigationItemUseCaseTest {
 
         // Then
         Exception exception = assertThrows(RuntimeException.class, throwing);
-        assertThat(exception.getMessage()).isEqualTo("Custom exception from validator");
+        assertThat(exception.getMessage()).isEqualTo("Provided url is invalid");
         assertThat(queryService.storage()).hasSize(numberOfItems);
     }
 
@@ -206,7 +207,7 @@ class CreatePortalNavigationItemUseCaseTest {
         // When
         final var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
 
-        // When
+        // Then
         final var contentId = ((PortalNavigationPage) output.item()).getPortalPageContentId();
         final var contents = pageContentCrudService.storage();
         assertThat(contents)
@@ -236,6 +237,89 @@ class CreatePortalNavigationItemUseCaseTest {
 
         // Then
         assertThat(output.item().getPublished()).isFalse();
+    }
+
+    @Nested
+    class CreateItemWithApiAsParent {
+
+        @Test
+        void should_create_page_with_parent_id_set_to_portal_navigation_item_type_api() {
+            // Given
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.PAGE)
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .parentId(PortalNavigationItemId.of(API1_ID))
+                .order(0)
+                .build();
+
+            // When
+            final var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
+
+            // Then
+            assertThat(output.item().getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+        }
+
+        @Test
+        void should_create_link_with_parent_id_set_to_portal_navigation_item_type_api() {
+            // Given
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.LINK)
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .parentId(PortalNavigationItemId.of(API1_ID))
+                .url("https://gravitee.io")
+                .order(0)
+                .build();
+
+            // When
+            final var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
+
+            // Then
+            assertThat(output.item().getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+        }
+
+        @Test
+        void should_create_folder_with_parent_id_set_to_portal_navigation_item_type_api() {
+            // Given
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.FOLDER)
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .parentId(PortalNavigationItemId.of(API1_ID))
+                .order(0)
+                .build();
+
+            // When
+            final var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
+
+            // Then
+            assertThat(output.item().getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+        }
+
+        @Test
+        void should_not_create_api_item_with_parent_id_set_to_portal_navigation_item_type_api() {
+            // Given
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.API)
+                .area(PortalArea.TOP_NAVBAR)
+                .apiId("apiId")
+                .parentId(PortalNavigationItemId.of(API1_ID))
+                .order(0)
+                .build();
+
+            // When
+            final ThrowingRunnable throwing = () ->
+                useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
+
+            // Then
+            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo("Parent hierarchy cannot include API items.");
+        }
     }
 
     @Nested
