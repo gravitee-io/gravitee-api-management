@@ -63,7 +63,7 @@ public class SubscriptionFormResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.UPDATE }) })
     public Response updateSubscriptionForm(@Valid @NotNull final UpdateSubscriptionForm request) {
         var environmentId = GraviteeContext.getCurrentEnvironment();
 
@@ -77,7 +77,7 @@ public class SubscriptionFormResource extends AbstractResource {
     @POST
     @Path("/_enable")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.UPDATE }) })
     public Response enableSubscriptionForm() {
         var environmentId = GraviteeContext.getCurrentEnvironment();
 
@@ -91,7 +91,7 @@ public class SubscriptionFormResource extends AbstractResource {
     @POST
     @Path("/_disable")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.UPDATE }) })
     public Response disableSubscriptionForm() {
         var environmentId = GraviteeContext.getCurrentEnvironment();
 

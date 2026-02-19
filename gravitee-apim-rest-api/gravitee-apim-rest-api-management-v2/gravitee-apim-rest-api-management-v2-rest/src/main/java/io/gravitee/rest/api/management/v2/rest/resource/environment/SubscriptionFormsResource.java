@@ -49,7 +49,7 @@ public class SubscriptionFormsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { RolePermissionAction.READ }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.READ }) })
     public Response getSubscriptionForm() {
         var environmentId = GraviteeContext.getCurrentEnvironment();
 
