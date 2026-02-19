@@ -134,7 +134,6 @@ import jakarta.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -750,13 +749,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 updatedApplication
             );
 
-            // Only call legacy subscription update for single-certificate case
-            if (newCertificates.size() <= 1 && certsToCreate.size() == 1) {
-                updateActiveSubscriptions(executionContext, applicationId, application, Optional.of(certsToCreate.get(0).certificate()));
-            } else if (newCertificates.isEmpty()) {
-                // No certs: still update subscriptions for clientId/appName changes
-                updateActiveSubscriptions(executionContext, applicationId, application, Optional.empty());
-            }
+            updateActiveSubscriptions(executionContext, applicationId, application);
             return convertApplication(executionContext, Collections.singleton(updatedApplication)).iterator().next();
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
@@ -787,25 +780,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         );
     }
 
-    private void updateActiveSubscriptions(
-        ExecutionContext executionContext,
-        String applicationId,
-        Application application,
-        Optional<String> clientCertificate
-    ) {
-        // Set correct client_id for all active subscriptions
+    private void updateActiveSubscriptions(ExecutionContext executionContext, String applicationId, Application application) {
         SubscriptionQuery subQuery = new SubscriptionQuery();
         subQuery.setApplication(applicationId);
         subQuery.setStatuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING));
 
         String clientId = application.getMetadata().get(METADATA_CLIENT_ID);
 
-        final String subscriptionClientCertificate = clientCertificate
-            .map(cert -> Base64.getEncoder().encodeToString(cert.getBytes()))
-            .orElse(null);
-
         Consumer<Subscription> clientIdSubscriptionModifier = s -> s.setClientId(clientId);
-        Consumer<Subscription> clientCertificateSubscriptionModifier = s -> s.setClientCertificate(subscriptionClientCertificate);
         Consumer<Subscription> applicationNameSubscriptionModifier = s -> s.setApplicationName(application.getName());
 
         subscriptionService
@@ -814,11 +796,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 Consumer<Subscription> subscriptionModifier = null;
                 if (areNotEmptyAndDifferent(clientId, subscriptionEntity.getClientId())) {
                     subscriptionModifier = clientIdSubscriptionModifier;
-                }
-                if (areNotEmptyAndDifferent(subscriptionClientCertificate, subscriptionEntity.getClientCertificate())) {
-                    subscriptionModifier = subscriptionModifier == null
-                        ? clientCertificateSubscriptionModifier
-                        : subscriptionModifier.andThen(clientCertificateSubscriptionModifier);
                 }
                 if (areNotEmptyAndDifferent(application.getName(), subscriptionEntity.getApplicationName())) {
                     subscriptionModifier = subscriptionModifier == null
