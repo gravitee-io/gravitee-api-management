@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.core.application_certificate.model;
 
+import java.time.Instant;
+import java.util.Date;
+
 /**
  * Status of a client certificate.
  *
@@ -24,5 +27,22 @@ public enum ClientCertificateStatus {
     ACTIVE,
     ACTIVE_WITH_END,
     SCHEDULED,
-    REVOKED,
+    REVOKED;
+
+    public static ClientCertificateStatus computeStatus(Date startsAt, Date endsAt) {
+        return computeStatus(startsAt, endsAt, Instant.now());
+    }
+
+    public static ClientCertificateStatus computeStatus(Date startsAt, Date endsAt, Instant now) {
+        if (endsAt != null && endsAt.toInstant().isBefore(now)) {
+            return REVOKED;
+        }
+        if (startsAt != null && startsAt.toInstant().isAfter(now)) {
+            return SCHEDULED;
+        }
+        if (endsAt != null) {
+            return ACTIVE_WITH_END;
+        }
+        return ACTIVE;
+    }
 }
