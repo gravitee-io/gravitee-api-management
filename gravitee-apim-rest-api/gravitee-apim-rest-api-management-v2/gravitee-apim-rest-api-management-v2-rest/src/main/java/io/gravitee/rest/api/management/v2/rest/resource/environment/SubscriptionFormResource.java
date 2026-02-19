@@ -21,7 +21,7 @@ import io.gravitee.apim.core.subscription_form.use_case.EnableSubscriptionFormUs
 import io.gravitee.apim.core.subscription_form.use_case.UpdateSubscriptionFormUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.SubscriptionFormMapper;
-import io.gravitee.rest.api.management.v2.rest.model.CreateOrUpdateSubscriptionForm;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateSubscriptionForm;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -64,7 +64,7 @@ public class SubscriptionFormResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { RolePermissionAction.UPDATE }) })
-    public Response updateSubscriptionForm(@Valid @NotNull final CreateOrUpdateSubscriptionForm request) {
+    public Response updateSubscriptionForm(@Valid @NotNull final UpdateSubscriptionForm request) {
         var environmentId = GraviteeContext.getCurrentEnvironment();
 
         var output = updateSubscriptionFormUseCase.execute(

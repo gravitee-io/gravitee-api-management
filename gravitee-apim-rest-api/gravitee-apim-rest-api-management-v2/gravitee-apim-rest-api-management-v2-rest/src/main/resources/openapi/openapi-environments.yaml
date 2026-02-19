@@ -1045,7 +1045,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateOrUpdateSubscriptionForm"
+              $ref: "#/components/schemas/UpdateSubscriptionForm"
       responses:
         "200":
           description: Subscription form saved successfully
@@ -2318,9 +2318,9 @@ components:
         - id
         - gmdContent
         - enabled
-    CreateOrUpdateSubscriptionForm:
+    UpdateSubscriptionForm:
       type: object
-      description: Payload for creating or updating a subscription form
+      description: Payload for updating a subscription form
       properties:
         gmdContent:
           type: string

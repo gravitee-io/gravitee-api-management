@@ -18,7 +18,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { CreateOrUpdateSubscriptionForm, SubscriptionForm } from '../entities/management-api-v2';
+import { SubscriptionForm, UpdateSubscriptionForm } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -33,7 +33,7 @@ export class SubscriptionFormService {
     return this.http.get<SubscriptionForm>(`${this.constants.env.v2BaseURL}/subscription-forms`);
   }
 
-  public updateSubscriptionForm(id: string, content: CreateOrUpdateSubscriptionForm): Observable<SubscriptionForm> {
+  public updateSubscriptionForm(id: string, content: UpdateSubscriptionForm): Observable<SubscriptionForm> {
     return this.http.put<SubscriptionForm>(`${this.constants.env.v2BaseURL}/subscription-forms/${id}`, content);
   }
 
