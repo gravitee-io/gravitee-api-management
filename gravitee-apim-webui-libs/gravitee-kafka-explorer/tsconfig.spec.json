@@ -4,8 +4,10 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "../../out-tsc/spec",
+    "module": "CommonJs",
     "types": ["jest"],
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "target": "ES2016"
   },
   "include": ["**/*.spec.ts", "**/*.d.ts", "src/test-setup.ts"]
 }

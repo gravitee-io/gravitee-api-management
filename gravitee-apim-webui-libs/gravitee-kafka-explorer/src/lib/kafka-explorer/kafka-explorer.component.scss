@@ -1,0 +1,60 @@
+/*
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.kafka-explorer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &__topbar {
+    mat-card-content {
+      padding: 16px;
+    }
+  }
+
+  &__topbar-items {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  &__topbar-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+.kafka-explorer__loader {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.kafka-explorer__error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 4px;
+  background-color: var(--mat-sys-error-container, #fdecea);
+  color: var(--mat-sys-on-error-container, #b71c1c);
+
+  mat-icon {
+    flex-shrink: 0;
+    color: var(--mat-form-field-error-text-color, #f44336);
+  }
+}

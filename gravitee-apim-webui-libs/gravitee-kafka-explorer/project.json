@@ -38,6 +38,7 @@
       "options": {
         "configDir": "gravitee-apim-webui-libs/gravitee-kafka-explorer/.storybook",
         "browserTarget": "kafka-explorer:build",
+        "styles": ["gravitee-apim-webui-libs/gravitee-kafka-explorer/.storybook/index.scss"],
         "compodoc": false,
         "port": 6009
       }
@@ -47,6 +48,7 @@
       "options": {
         "configDir": "gravitee-apim-webui-libs/gravitee-kafka-explorer/.storybook",
         "browserTarget": "kafka-explorer:build",
+        "styles": ["gravitee-apim-webui-libs/gravitee-kafka-explorer/.storybook/index.scss"],
         "compodoc": false,
         "outputDir": "gravitee-apim-webui-libs/gravitee-kafka-explorer/storybook-static"
       }

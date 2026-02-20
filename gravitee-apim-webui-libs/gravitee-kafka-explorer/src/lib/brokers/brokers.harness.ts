@@ -13,14 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-kafka-explorer
- */
+import { ComponentHarness, parallel } from '@angular/cdk/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 
-export * from './lib/models/kafka-cluster.model';
-export * from './lib/models/kafka-cluster.fixture';
-export * from './lib/kafka-explorer/kafka-explorer.component';
-export * from './lib/kafka-explorer/kafka-explorer.harness';
-export * from './lib/services/kafka-explorer.service';
-export * from './lib/brokers/brokers.component';
-export * from './lib/brokers/brokers.harness';
+export class BrokersHarness extends ComponentHarness {
+  static hostSelector = 'gke-brokers';
+
+  private readonly getTable = this.locatorFor(MatTableHarness);
+
+  async getRows() {
+    const table = await this.getTable();
+    return table.getRows();
+  }
+
+  async getRowsData() {
+    const rows = await this.getRows();
+    return parallel(() => rows.map(row => row.getCellTextByColumnName()));
+  }
+
+  async getRowCount() {
+    const rows = await this.getRows();
+    return rows.length;
+  }
+}
