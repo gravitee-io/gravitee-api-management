@@ -47,6 +47,8 @@ import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanSecurityEntity;
 import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.model.PlansConfigurationEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.UpdatePlanEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -430,9 +432,16 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             Plan plan = planRepository.findById(planId).orElseThrow(() -> new PlanNotFoundException(planId));
 
-            if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
-                int subscriptions = subscriptionService.findByPlan(executionContext, planId).size();
-                if ((plan.getStatus() == Plan.Status.PUBLISHED || plan.getStatus() == Plan.Status.DEPRECATED) && subscriptions > 0) {
+            if (
+                plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS &&
+                (plan.getStatus() == Plan.Status.PUBLISHED || plan.getStatus() == Plan.Status.DEPRECATED)
+            ) {
+                boolean hasActiveSubscription = subscriptionService
+                    .findByPlan(executionContext, planId)
+                    .stream()
+                    .anyMatch(s -> !s.getStatus().isInactive());
+
+                if (hasActiveSubscription) {
                     throw new PlanWithSubscriptionsException(planId);
                 }
             }
