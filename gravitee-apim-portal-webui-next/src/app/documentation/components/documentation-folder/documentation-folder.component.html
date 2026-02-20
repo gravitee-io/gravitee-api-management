@@ -16,6 +16,11 @@
 
 -->
 <app-sidenav-layout [breadcrumbs]="breadcrumbs()">
+  @if (subscribeApiId()) {
+    <div breadcrumbActions>
+      <button mat-stroked-button>Subscribe</button>
+    </div>
+  }
   <div sidenavContent class="documentation-folder__sidenav__content">
     @if (tree() && tree()!.length > 0) {
       <app-tree-component

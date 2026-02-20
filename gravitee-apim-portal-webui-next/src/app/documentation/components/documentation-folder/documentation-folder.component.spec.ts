@@ -126,6 +126,13 @@ describe('DocumentationFolderComponent', () => {
         expect(await breadcrumbs?.getText()).toEqual('Test item/Folder 1/Page 2');
       });
 
+      it('should not show subscribe button when selected page has no API ancestor', async () => {
+        await init({ items: MOCK_CHILDREN, queryParams: { pageId: 'p2' }, content: MOCK_CONTENT });
+
+        const subscribeButton = await harness.getSubscribeButton();
+        expect(subscribeButton).toBeNull();
+      });
+
       it('should not select if no pages exist', async () => {
         const items = [
           makeItem('f1', 'FOLDER', 'Folder 1', 0),
@@ -204,6 +211,16 @@ describe('DocumentationFolderComponent', () => {
 
       const breadcrumbs = await harness.getBreadcrumbs();
       expect(await breadcrumbs?.getText()).toEqual('Test item/Folder 1/Page 2');
+    });
+  });
+
+  describe('api', () => {
+    it('should show subscribe button when api documentation is clicked', async () => {
+      const apiItem = makeItem('api1', 'API', 'API 1', 0, undefined);
+      const apiPage = makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1');
+      await init({ items: [apiItem, apiPage], queryParams: { pageId: 'p-api1' }, content: MOCK_CONTENT });
+
+      expect(await harness.getSubscribeButton()).not.toBeNull();
     });
   });
 });
