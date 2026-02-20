@@ -82,9 +82,9 @@ public interface DashboardMapper {
             return null;
         }
         return DashboardWidget.Request.builder()
-            .type(request.getType() != null ? request.getType().getValue() : null)
+            .type(request.getType().getValue())
             .timeRange(mapToDomainTimeRange(request.getTimeRange()))
-            .metrics(request.getMetrics() != null ? request.getMetrics().stream().map(this::mapToDomainMetricRequest).toList() : null)
+            .metrics(request.getMetrics().stream().map(this::mapToDomainMetricRequest).toList())
             .interval(request.getInterval() != null ? request.getInterval().toMillis() : null)
             .by(request.getBy() != null ? request.getBy().stream().map(FacetName::getValue).toList() : null)
             .limit(request.getLimit())
@@ -96,7 +96,7 @@ public interface DashboardMapper {
             return null;
         }
         return DashboardWidget.MetricRequest.builder()
-            .name(metricRequest.getName() != null ? metricRequest.getName().getValue() : null)
+            .name(metricRequest.getName().getValue())
             .measures(metricRequest.getMeasures() != null ? metricRequest.getMeasures().stream().map(MeasureName::getValue).toList() : null)
             .build();
     }
@@ -142,8 +142,8 @@ public interface DashboardMapper {
             return null;
         }
         return DashboardWidget.TimeRange.builder()
-            .from(timeRange.getFrom() != null ? timeRange.getFrom().toString() : null)
-            .to(timeRange.getTo() != null ? timeRange.getTo().toString() : null)
+            .from(timeRange.getFrom().toInstant().toString())
+            .to(timeRange.getTo().toInstant().toString())
             .build();
     }
 
@@ -151,8 +151,6 @@ public interface DashboardMapper {
         if (timeRange == null) {
             return null;
         }
-        return new TimeRange()
-            .from(timeRange.getFrom() != null ? OffsetDateTime.parse(timeRange.getFrom()) : null)
-            .to(timeRange.getTo() != null ? OffsetDateTime.parse(timeRange.getTo()) : null);
+        return new TimeRange().from(OffsetDateTime.parse(timeRange.getFrom())).to(OffsetDateTime.parse(timeRange.getTo()));
     }
 }

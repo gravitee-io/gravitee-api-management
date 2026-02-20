@@ -126,6 +126,15 @@ public class AnalyticsQueryValidator {
     }
 
     private void validateTimeRange(TimeRange timeRange) {
+        if (timeRange == null) {
+            throw new InvalidQueryException("Time range cannot be null");
+        }
+        if (timeRange.from() == null) {
+            throw new InvalidQueryException("Time range lower bound cannot be null");
+        }
+        if (timeRange.to() == null) {
+            throw new InvalidQueryException("Time range upper bound cannot be null");
+        }
         if (timeRange.from().isAfter(timeRange.to())) {
             throw InvalidQueryException.forInvalidTimeRangeBounds();
         }
