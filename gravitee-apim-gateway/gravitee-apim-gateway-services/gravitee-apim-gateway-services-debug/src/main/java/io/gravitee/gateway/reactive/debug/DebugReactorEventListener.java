@@ -91,7 +91,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
     @Override
     public void onEvent(final Event<ReactorEvent, Reactable> reactorEvent) {
         if (reactorEvent.type() == ReactorEvent.DEBUG) {
-            logger.info("Deploying api for debug");
+            logger.debug("Deploying api for debug");
             ReactableEvent<io.gravitee.repository.management.model.Event> reactableEvent = (ReactableEvent<
                 io.gravitee.repository.management.model.Event
             >) reactorEvent.content();
@@ -99,7 +99,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
             ReactableDebugApi<?> debugApi = toDebugApi(reactableEvent);
             if (debugApi != null) {
                 if (reactorHandlerRegistry.contains(debugApi)) {
-                    logger.info("Api for debug already deployed. No need to do it again.");
+                    logger.debug("Api for debug already deployed. No need to do it again.");
                     return;
                 }
 
@@ -117,7 +117,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
                 updateEvent(debugEvent, ApiDebugStatus.DEBUGGING)
                     .andThen(
                         Completable.defer(() -> {
-                            logger.info("Sending request to debug");
+                            logger.debug("Sending request to debug");
                             HttpClient httpClient = vertx.createHttpClient(buildClientOptions());
                             return httpClient
                                 .rxRequest(
@@ -145,7 +145,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
                     .subscribeOn(Schedulers.io())
                     .subscribe(
                         () -> {
-                            logger.info("Debugging successful, removing the handler.");
+                            logger.debug("Debugging successful, removing the handler.");
                             eventManager.publishEvent(SecretDiscoveryEventType.REVOKE, secretDiscoveryEvent);
                             reactorHandlerRegistry.remove(debugApi);
                         },
@@ -294,8 +294,12 @@ public class DebugReactorEventListener extends ReactorEventListener {
 
     private Completable updateEvent(io.gravitee.repository.management.model.Event debugEvent, ApiDebugStatus apiDebugStatus) {
         return Completable.fromAction(() -> {
-            eventRepository.update(debugEvent
-                    .updateProperties(io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue(), apiDebugStatus.name()));
+            eventRepository.update(
+                debugEvent.updateProperties(
+                    io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue(),
+                    apiDebugStatus.name()
+                )
+            );
         });
     }
 
