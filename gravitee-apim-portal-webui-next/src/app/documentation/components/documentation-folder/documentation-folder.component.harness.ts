@@ -36,7 +36,7 @@ export class DocumentationFolderComponentHarness extends ComponentHarness {
   );
   private readonly getNavigationItemContentViewerHarness = this.locatorForOptional(NavigationItemContentViewerHarness);
   private readonly getGraviteeMarkdownViewer = this.locatorForOptional(GraviteeMarkdownViewerHarness);
-  private readonly getSubscribeMatButton = this.locatorForOptional(MatButtonHarness.with({ text: 'Subscribe' }));
+  private readonly getSubscribeMatButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="subscribe-button"]' }));
 
   async getSidenavToggleButton(): Promise<SidenavToggleButtonComponentHarness | null> {
     const sidenav = await this.getSidenavLayoutHarness();

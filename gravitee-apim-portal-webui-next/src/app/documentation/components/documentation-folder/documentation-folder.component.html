@@ -18,7 +18,13 @@
 <app-sidenav-layout [breadcrumbs]="breadcrumbs()">
   @if (subscribeApiId()) {
     <div breadcrumbActions>
-      <button mat-stroked-button>Subscribe</button>
+      <button mat-stroked-button (click)="onSubscribe()" [disabled]="!currentUser()" data-testid="subscribe-button">
+        @if (currentUser()) {
+          <span i18n="@@subscribeToApiButton">Subscribe</span>
+        } @else {
+          <span i18n="@@signInToSubscribeButton">Sign in to subscribe</span>
+        }
+      </button>
     </div>
   }
   <div sidenavContent class="documentation-folder__sidenav__content">

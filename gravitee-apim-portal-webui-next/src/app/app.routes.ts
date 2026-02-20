@@ -27,6 +27,12 @@ import { ApiTabSubscriptionsComponent } from './api/api-details/api-tab-subscrip
 import { SubscriptionsDetailsComponent } from './api/api-details/api-tab-subscriptions/subscriptions-details/subscriptions-details.component';
 import { SubscriptionsTableComponent } from './api/api-details/api-tab-subscriptions/subscriptions-table/subscriptions-table.component';
 import { ApiComponent } from './api/api.component';
+import { ConfigureConsumerComponent } from '../components/subscription/webhook/configure-consumer/configure-consumer.component';
+import { anonymousGuard } from '../guards/anonymous.guard';
+import { authGuard } from '../guards/auth.guard';
+import { catalogCategoriesViewGuard } from '../guards/catalog-categories-view.guard';
+import { pagesResolver } from '../resolvers/pages.resolver';
+import { ApiTabToolsComponent } from './api/api-details/api-tab-tools/api-tab-tools.component';
 import { SubscribeToApiComponent } from './api/subscribe-to-api/subscribe-to-api.component';
 import { ApplicationLogComponent } from './applications/application/application-tab-logs/application-log/application-log.component';
 import { ApplicationLogTableComponent } from './applications/application/application-tab-logs/application-log-table/application-log-table.component';
@@ -34,10 +40,21 @@ import { ApplicationTabLogsComponent } from './applications/application/applicat
 import { ApplicationTabSettingsComponent } from './applications/application/application-tab-settings/application-tab-settings.component';
 import { ApplicationComponent } from './applications/application/application.component';
 import { ApplicationsComponent } from './applications/applications.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
+import { RegistrationConfirmationComponent } from './registration/registration-confirmation/registration-confirmation.component';
+import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
+import { NavigationPageFullWidthComponent } from '../components/navigation-page-full-width/navigation-page-full-width.component';
+import { catalogTabsViewGuard } from '../guards/catalog-tabs-view.guard';
+import { redirectGuard } from '../guards/redirect.guard';
+import { apiResolver } from '../resolvers/api.resolver';
+import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
+import { categoriesResolver } from '../resolvers/categories.resolver';
+import { homepageContentResolver } from '../resolvers/homepage-content.resolver';
 import { CreateApplicationComponent } from './applications/create-application/create-application.component';
 import { CategoriesViewComponent } from './catalog/categories-view/categories-view.component';
 import { CategoryApisComponent } from './catalog/categories-view/category-apis/category-apis.component';
 import { TabsViewComponent } from './catalog/tabs-view/tabs-view.component';
+import { DocumentationSubscribeComponent } from './documentation/components/documentation-subscribe/documentation-subscribe.component';
 import { DocumentationComponent } from './documentation/components/documentation.component';
 import { documentationResolver } from './documentation/resolvers/documentation.resolver';
 import { LogInComponent } from './log-in/log-in.component';
@@ -45,22 +62,6 @@ import { ResetPasswordConfirmationComponent } from './log-in/reset-password/rese
 import { ResetPasswordComponent } from './log-in/reset-password/reset-password.component';
 import { LogOutComponent } from './log-out/log-out.component';
 import { NotFoundComponent } from './not-found/not-found.component';
-import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
-import { NavigationPageFullWidthComponent } from '../components/navigation-page-full-width/navigation-page-full-width.component';
-import { ConfigureConsumerComponent } from '../components/subscription/webhook/configure-consumer/configure-consumer.component';
-import { anonymousGuard } from '../guards/anonymous.guard';
-import { authGuard } from '../guards/auth.guard';
-import { catalogCategoriesViewGuard } from '../guards/catalog-categories-view.guard';
-import { catalogTabsViewGuard } from '../guards/catalog-tabs-view.guard';
-import { redirectGuard } from '../guards/redirect.guard';
-import { apiResolver } from '../resolvers/api.resolver';
-import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
-import { categoriesResolver } from '../resolvers/categories.resolver';
-import { homepageContentResolver } from '../resolvers/homepage-content.resolver';
-import { pagesResolver } from '../resolvers/pages.resolver';
-import { ApiTabToolsComponent } from './api/api-details/api-tab-tools/api-tab-tools.component';
-import { DashboardComponent } from './dashboard/dashboard.component';
-import { RegistrationConfirmationComponent } from './registration/registration-confirmation/registration-confirmation.component';
 import { RegistrationComponent } from './registration/registration.component';
 
 const apiRoutes: Routes = [
@@ -263,7 +264,17 @@ export const routes: Routes = [
       {
         path: ':navId',
         resolve: { navItem: documentationResolver },
-        component: DocumentationComponent,
+        children: [
+          {
+            path: '',
+            component: DocumentationComponent,
+          },
+          {
+            path: 'api/:apiId/subscribe',
+            resolve: { api: apiResolver },
+            component: DocumentationSubscribeComponent,
+          },
+        ],
       },
     ],
   },
