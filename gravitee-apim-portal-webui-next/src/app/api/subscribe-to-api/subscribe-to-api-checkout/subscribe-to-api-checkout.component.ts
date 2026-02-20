@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input, Input, InputSignal, OnInit, WritableSignal } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, input, Input, InputSignal, OnInit, WritableSignal } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
+
+import { GmdFormHostComponent, GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
 
 import { ApiAccessComponent } from '../../../../components/api-access/api-access.component';
 import { RadioCardComponent } from '../../../../components/radio-card/radio-card.component';
@@ -24,14 +24,24 @@ import { SubscriptionInfoComponent } from '../../../../components/subscription-i
 import { Api } from '../../../../entities/api/api';
 import { Application } from '../../../../entities/application/application';
 import { Plan } from '../../../../entities/plan/plan';
+import { SubscriptionForm } from '../../../../entities/portal/subscription-form';
 import { Subscription } from '../../../../entities/subscription/subscription';
 
 @Component({
   selector: 'app-subscribe-to-api-checkout',
-  imports: [SubscriptionInfoComponent, ApiAccessComponent, MatCard, MatCardContent, MatFormField, MatInput, MatLabel, RadioCardComponent],
+  imports: [
+    SubscriptionInfoComponent,
+    ApiAccessComponent,
+    MatCard,
+    MatCardContent,
+    RadioCardComponent,
+    GraviteeMarkdownViewerModule,
+    GmdFormHostComponent,
+  ],
   templateUrl: './subscribe-to-api-checkout.component.html',
   styleUrl: './subscribe-to-api-checkout.component.scss',
   providers: [],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class SubscribeToApiCheckoutComponent implements OnInit {
   @Input()
@@ -42,6 +52,9 @@ export class SubscribeToApiCheckoutComponent implements OnInit {
 
   @Input()
   message!: WritableSignal<string>;
+
+  @Input()
+  subscriptionForm: SubscriptionForm | null = null;
 
   @Input()
   applicationApiKeySubscriptions: Subscription[] = [];

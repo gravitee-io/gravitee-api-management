@@ -46,12 +46,6 @@
     flex-flow: column;
     gap: 15px;
 
-    &__subsections {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px 100px;
-    }
-
     &__grid {
       display: grid;
       grid-auto-rows: 22px;
