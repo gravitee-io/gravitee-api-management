@@ -28,5 +28,9 @@ public enum SubscriptionStatus {
     ACCEPTED,
     CLOSED,
     PAUSED,
-    RESUMED,
+    RESUMED;
+
+    public boolean isInactive() {
+        return this == CLOSED || this == REJECTED;
+    }
 }
