@@ -1402,9 +1402,28 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         if (fetchCertificate) {
             // Fetch the most recent active certificate from ClientCertificateCrudService
-            clientCertificateCrudService
-                .findMostRecentActiveByApplicationId(application.getId())
-                .ifPresent(cert -> settings.setTls(TlsSettings.builder().clientCertificate(cert.certificate()).build()));
+            List<ClientCertificate> list = clientCertificateCrudService
+                .findByApplicationIdAndStatuses(
+                    application.getId(),
+                    ClientCertificateStatus.ACTIVE,
+                    ClientCertificateStatus.ACTIVE_WITH_END
+                )
+                .stream()
+                .sorted(Comparator.comparing(ClientCertificate::createdAt))
+                .toList();
+            if (!list.isEmpty()) {
+                settings.setTls(
+                    TlsSettings.builder()
+                        .clientCertificate(list.getFirst().certificate())
+                        .clientCertificates(
+                            list
+                                .stream()
+                                .map(c -> new CreateClientCertificate(c.name(), c.startsAt(), c.endsAt(), c.certificate()))
+                                .toList()
+                        )
+                        .build()
+                );
+            }
         }
 
         return settings;
