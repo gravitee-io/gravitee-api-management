@@ -28,10 +28,10 @@ import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 
 /**
@@ -75,13 +75,12 @@ public class ProcessPendingCertificateTransitionsUseCase {
         log.info("Found {} candidate certificates to evaluate", candidates.size());
 
         List<ClientCertificate> transitioned = new ArrayList<>();
-        Set<String> affectedApplicationIds = new HashSet<>();
         int failedCount = 0;
 
         for (var certificate : candidates) {
             try {
                 if (shouldTransition(certificate)) {
-                    applyTransition(certificate, input.auditActor, transitioned, affectedApplicationIds);
+                    applyTransition(certificate, input.auditActor, transitioned);
                 }
             } catch (Exception e) {
                 failedCount++;
@@ -94,6 +93,8 @@ public class ProcessPendingCertificateTransitionsUseCase {
                 );
             }
         }
+
+        var affectedApplicationIds = transitioned.stream().map(ClientCertificate::getApplicationId).collect(Collectors.toSet());
 
         int failedMtlsUpdateCount = 0;
         for (var applicationId : affectedApplicationIds) {
@@ -138,12 +139,7 @@ public class ProcessPendingCertificateTransitionsUseCase {
         return computedStatus != certificate.getStatus();
     }
 
-    private void applyTransition(
-        ClientCertificate certificate,
-        AuditActor auditActor,
-        List<ClientCertificate> transitioned,
-        Set<String> affectedApplicationIds
-    ) {
+    private void applyTransition(ClientCertificate certificate, AuditActor auditActor, List<ClientCertificate> transitioned) {
         var oldCertificate = certificate.toBuilder().build();
         var updated = clientCertificateCrudService.update(certificate.getId(), certificate);
         // Audit log failure must not block executing the application update.
@@ -161,7 +157,6 @@ public class ProcessPendingCertificateTransitionsUseCase {
             );
         }
         transitioned.add(updated);
-        affectedApplicationIds.add(certificate.getApplicationId());
     }
 
     private void createAuditLog(ClientCertificate oldCertificate, ClientCertificate newCertificate, AuditActor actor) {
