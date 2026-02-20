@@ -30,7 +30,7 @@ import {
 } from './section-editor-dialog.component';
 
 import { GioTestingModule } from '../../../shared/testing';
-import { fakePortalNavigationLink, fakePortalNavigationPage } from '../../../entities/management-api-v2';
+import { fakePortalNavigationFolder, fakePortalNavigationLink, fakePortalNavigationPage } from '../../../entities/management-api-v2';
 
 @Component({
   selector: 'test-host-component',
@@ -40,6 +40,7 @@ class TestHostComponent {
   mode = input<SectionEditorDialogMode>('create');
   type = input<SectionEditorDialogItemType>('PAGE');
   existingItem = input<any>();
+  parentItem = input<any>(fakePortalNavigationFolder({ visibility: 'PUBLIC' }));
 
   dialogValue: SectionEditorDialogResult;
   private matDialog = inject(MatDialog);
@@ -47,8 +48,8 @@ class TestHostComponent {
   public clicked(): void {
     const data: SectionEditorDialogData =
       this.mode() === 'create'
-        ? { mode: 'create', type: this.type() }
-        : { mode: 'edit', type: this.type(), existingItem: this.existingItem() };
+        ? { mode: 'create', type: this.type(), parentItem: this.parentItem() }
+        : { mode: 'edit', type: this.type(), existingItem: this.existingItem(), parentItem: this.parentItem() };
     this.matDialog
       .open<SectionEditorDialogComponent, SectionEditorDialogData>(SectionEditorDialogComponent, {
         width: '500px',
@@ -153,6 +154,23 @@ describe('SectionEditorDialogComponent', () => {
         fixture.detectChanges();
 
         expect(component.dialogValue).toBeUndefined();
+      });
+    });
+    describe('when adding a page with PRIVATE parent', () => {
+      beforeEach(() => {
+        fixture.componentRef.setInput('type', 'PAGE');
+        fixture.componentRef.setInput('parentItem', fakePortalNavigationFolder({ visibility: 'PRIVATE' }));
+        fixture.detectChanges();
+        component.clicked();
+        fixture.detectChanges();
+      });
+
+      it('should disable authentication toggle', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const authToggle = await dialog.getAuthenticationToggle();
+
+        expect(await authToggle.isChecked()).toEqual(true);
+        expect(await authToggle.isDisabled()).toEqual(true);
       });
     });
     describe('when adding a link', () => {

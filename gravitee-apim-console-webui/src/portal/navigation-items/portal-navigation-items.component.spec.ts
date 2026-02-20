@@ -1082,6 +1082,41 @@ describe('PortalNavigationItemsComponent', () => {
         expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
       });
     });
+
+    describe('unpublished navigation item with unpublished parent', () => {
+      const unpublishedParent = fakePortalNavigationFolder({
+        id: 'parent-folder-1',
+        title: 'Parent Folder',
+        published: false,
+        order: 0,
+      });
+      const unpublishedChild = fakePortalNavigationPage({
+        id: 'child-page-1',
+        title: 'Child Page',
+        parentId: unpublishedParent.id,
+        portalPageContentId: 'child-page-1-content',
+        published: false,
+        order: 0,
+      });
+
+      beforeEach(async () => {
+        await expectGetNavigationItems(
+          fakePortalNavigationItemsResponse({
+            items: [unpublishedParent, unpublishedChild],
+          }),
+        );
+        expectGetPageContent('child-page-1-content', 'This is the content of Child Page');
+      });
+
+      it('should disable publish action when parent is unpublished', async () => {
+        expect(component.publishDisabled()).toBe(true);
+        expect(component.publishActionDisabled()).toBe(true);
+        expect(await harness.isPublishButtonVisible()).toBe(true);
+
+        const publishButton = await rootLoader.getHarness(MatButtonHarness.with({ text: /^Publish$/ }));
+        expect(await publishButton.isDisabled()).toBe(true);
+      });
+    });
   });
 
   describe('changing navigation item visibility', () => {
