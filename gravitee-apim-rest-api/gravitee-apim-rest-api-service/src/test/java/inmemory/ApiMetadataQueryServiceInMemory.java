@@ -75,6 +75,34 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
     }
 
     @Override
+    public Map<String, Map<String, ApiMetadata>> findApisMetadata(String environmentId, Set<String> apiIds) {
+        Map<String, ApiMetadata> envMetadata = storage
+            .stream()
+            .filter(m -> Objects.equals(m.getReferenceId(), environmentId) && m.getReferenceType() == Metadata.ReferenceType.ENVIRONMENT)
+            .map(m -> ApiMetadata.builder().key(m.getKey()).name(m.getName()).defaultValue(m.getValue()).format(m.getFormat()).build())
+            .collect(toMap(ApiMetadata::getKey, Function.identity()));
+
+        return apiIds
+            .stream()
+            .collect(
+                toMap(Function.identity(), apiId -> {
+                    Map<String, ApiMetadata> apiMetadata = new HashMap<>(envMetadata);
+                    storage
+                        .stream()
+                        .filter(m -> Objects.equals(m.getReferenceId(), apiId) && m.getReferenceType() == Metadata.ReferenceType.API)
+                        .forEach(m ->
+                            apiMetadata.compute(m.getKey(), (k, existing) ->
+                                existing != null
+                                    ? existing.toBuilder().apiId(apiId).name(m.getName()).value(m.getValue()).build()
+                                    : toApiMetadata(m)
+                            )
+                        );
+                    return apiMetadata;
+                })
+            );
+    }
+
+    @Override
     public void initWith(List<Metadata> items) {
         storage.clear();
         storage.addAll(items);
