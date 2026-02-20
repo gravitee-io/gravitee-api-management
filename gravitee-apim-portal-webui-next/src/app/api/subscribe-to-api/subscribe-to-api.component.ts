@@ -225,7 +225,7 @@ export class SubscribeToApiComponent implements OnInit {
       )
       .subscribe({
         next: ({ id }) => {
-          this.router.navigate(['../', 'subscriptions', id], { relativeTo: this.activatedRoute });
+          this.router.navigate(['/dashboard', 'subscriptions', id], { relativeTo: this.activatedRoute });
         },
         error: err => {
           this.hasSubscriptionError = true;
