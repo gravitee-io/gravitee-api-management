@@ -33,7 +33,7 @@
           mat-button
           color="warn"
           [disabled]="isReadOnly()"
-          data-testid="api_product_dangerzone_delete"
+          [attr.data-testid]="'api_product_dangerzone_delete'"
           (click)="onDeleteApiProduct()"
         >
           Delete API Product

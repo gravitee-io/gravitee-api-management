@@ -16,7 +16,8 @@
 <form autocomplete="off" (ngSubmit)="submit()">
   <mat-dialog-content class="dialog-content">
     <gio-banner-info>
-      Can't see all your APIs? APIs must have API products enabled before they appear in the list.
+      Can't see all your APIs?
+      <span gioBannerBody>APIs must have API products enabled before they appear in the list.</span>
     </gio-banner-info>
 
     @if (selectedApis.length > 0) {
@@ -29,15 +30,8 @@
               [removable]="true"
               (removed)="removeApi(api)"
               [attr.aria-label]="'Remove ' + api.name"
-              data-testid="selected-api-chip"
+              [attr.data-testid]="'selected-api-chip'"
             >
-              <gio-avatar
-                class="selected-apis-section__chip-avatar"
-                [src]="api._links?.pictureUrl"
-                [name]="api.name + ' ' + api.apiVersion"
-                [size]="24"
-                [roundedBorder]="true"
-              ></gio-avatar>
               <span class="selected-apis-section__chip-name">{{ api.name }}</span>
               @if (api | apiContextPath; as contextPath) {
                 <span class="selected-apis-section__chip-path">{{ contextPath }}</span>
@@ -59,7 +53,7 @@
         type="search"
         [matAutocomplete]="auto"
         [formControl]="searchApiControl"
-        data-testid="api-select-input"
+        [attr.data-testid]="'api-select-input'"
       />
       @if (searchApiControl.value) {
         <button matSuffix mat-icon-button aria-label="Clear input" (click)="resetSearchTerm()">
@@ -69,12 +63,12 @@
       <mat-autocomplete
         #auto="matAutocomplete"
         (optionSelected)="selectAPI()"
-        [displayWith]="displayFn.bind(this)"
+        [displayWith]="displayFn"
       >
         @if (filteredOptions$ | async; as filteredOptions) {
           @if (filteredOptions.length > 0) {
             @for (option of filteredOptions; track option.id) {
-              <mat-option [value]="option" data-testid="api-select-option">
+              <mat-option [value]="option" [attr.data-testid]="'api-select-option'">
                 <span class="autocompleteRow">
                   <gio-avatar
                     class="autocompleteRow__avatar"
@@ -101,7 +95,7 @@
   </mat-dialog-content>
 
   <mat-dialog-actions class="actions">
-    <button type="button" mat-button (click)="onCancelClick()" [disabled]="isSubmitting" data-testid="cancel-button">
+    <button type="button" mat-button (click)="onCancelClick()" [disabled]="isSubmitting" [attr.data-testid]="'cancel-button'">
       Cancel
     </button>
     <button
@@ -109,7 +103,7 @@
       [disabled]="selectedApis.length === 0 || isSubmitting"
       mat-raised-button
       color="primary"
-      data-testid="submit-button"
+      [attr.data-testid]="'submit-button'"
     >
       @if (isSubmitting) {
         Adding...

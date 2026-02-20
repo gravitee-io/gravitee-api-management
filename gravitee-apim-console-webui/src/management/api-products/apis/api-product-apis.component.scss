@@ -3,6 +3,8 @@
 @use '@gravitee/ui-particles-angular' as gio;
 @use '../../../scss/gio-layout' as gio-layout;
 
+$typography: map.get(gio.$mat-theme, typography);
+
 :host {
   @include gio-layout.gio-responsive-content-container;
   display: flex;
@@ -21,18 +23,15 @@
     margin-bottom: 32px;
 
     h1 {
+      @include mat.m2-typography-level($typography, headline-6);
       margin: 0;
-      font-size: 2rem;
-      font-weight: 600;
-      line-height: 1.25;
     }
 
     .subtitle {
+      @include mat.m2-typography-level($typography, body-2);
       margin-top: 8px;
       margin-bottom: 0;
       color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-      font-size: 0.875rem;
-      line-height: 1.5;
     }
   }
 

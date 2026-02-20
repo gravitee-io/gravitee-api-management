@@ -20,9 +20,8 @@ $typography: map.get(gio.$mat-theme, typography);
   margin-bottom: 24px;
 
   &__header {
+    @include mat.m2-typography-level($typography, subtitle-2);
     margin: 0 0 12px 0;
-    font-size: 0.875rem;
-    font-weight: 600;
     color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker20');
   }
 
@@ -52,7 +51,6 @@ $typography: map.get(gio.$mat-theme, typography);
 
     &-name {
       @include mat.m2-typography-level($typography, body-2);
-      font-weight: 500;
     }
 
     &-path {
@@ -61,6 +59,11 @@ $typography: map.get(gio.$mat-theme, typography);
       opacity: 0.9;
       font-style: italic;
       white-space: nowrap;
+    }
+
+    .gio-badge-error {
+      padding: 2px 8px;
+      line-height: 1.25;
     }
   }
 }

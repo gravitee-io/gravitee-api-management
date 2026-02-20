@@ -48,7 +48,7 @@ export class ApiProductNavigationComponent {
 
   readonly subMenuItems: MenuItem[] = [
     { displayName: 'Configuration', routerLink: 'configuration', icon: 'gio:settings' },
-    { displayName: 'APIs', routerLink: 'apis', icon: 'gio:api' },
+    { displayName: 'APIs', routerLink: 'apis', icon: 'gio:cloud-settings' },
   ];
   readonly hasBreadcrumb = toSignal(this.gioMenuService.reduced$, { initialValue: false });
 

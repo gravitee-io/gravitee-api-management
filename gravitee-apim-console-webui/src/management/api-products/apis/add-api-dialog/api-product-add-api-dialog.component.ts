@@ -118,12 +118,8 @@ export class ApiProductAddApiDialogComponent implements OnInit {
     );
   }
 
-  displayFn(option: Api): string {
-    if (option && option.name && option.apiVersion) {
-      return option.name + ' - ' + option.apiVersion;
-    }
-    return '';
-  }
+  readonly displayFn = (option: Api): string =>
+    option?.name && option?.apiVersion ? `${option.name} - ${option.apiVersion}` : '';
 
   resetSearchTerm(): void {
     this.searchApiControl.setValue('');
@@ -146,37 +142,14 @@ export class ApiProductAddApiDialogComponent implements OnInit {
   }
 
   submit(): void {
-    if (this.selectedApis.length === 0) {
-      return;
-    }
+    if (this.selectedApis.length === 0) return;
 
     this.isSubmitting = true;
 
     this.apiProductV2Service
       .get(this.data.apiProductId)
       .pipe(
-        switchMap((apiProduct) => {
-          const currentApiIds = apiProduct.apiIds || [];
-          const newApiIds: string[] = [];
-          const errors: string[] = [];
-
-          this.selectedApis.forEach((api) => {
-            if (currentApiIds.includes(api.id)) {
-              errors.push(`API "${api.name}" is already in this API Product`);
-            } else {
-              newApiIds.push(api.id);
-            }
-          });
-
-          if (errors.length > 0) {
-            this.snackBarService.error(errors.join(', '));
-            this.isSubmitting = false;
-            return of(null);
-          }
-
-          const updatedApiIds = [...currentApiIds, ...newApiIds];
-          return this.apiProductV2Service.updateApiProductApis(this.data.apiProductId, updatedApiIds);
-        }),
+        switchMap((apiProduct) => this.buildUpdateRequest(apiProduct)),
         catchError((error) => {
           this.snackBarService.error(error.error?.message || 'An error occurred while adding the APIs');
           this.isSubmitting = false;
@@ -185,18 +158,42 @@ export class ApiProductAddApiDialogComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((result) => {
-        if (result) {
-          const apiNames = this.selectedApis.map((api) => api.name).join(', ');
-          this.snackBarService.success(
-            this.selectedApis.length === 1
-              ? `API "${apiNames}" has been added to the API Product`
-              : `${this.selectedApis.length} APIs have been added to the API Product`,
-          );
-          this.dialogRef.close(true);
-        } else {
+        if (!result) {
           this.isSubmitting = false;
+          return;
         }
+        const apiNames = this.selectedApis.map((api) => api.name).join(', ');
+        this.snackBarService.success(
+          this.selectedApis.length === 1
+            ? `API "${apiNames}" has been added to the API Product`
+            : `${this.selectedApis.length} APIs have been added to the API Product`,
+        );
+        this.dialogRef.close(true);
       });
+  }
+
+  private buildUpdateRequest(apiProduct: { apiIds?: string[] }) {
+    const currentApiIds = apiProduct.apiIds || [];
+    const { newApiIds, errors } = this.selectedApis.reduce(
+      (acc, api) => {
+        if (currentApiIds.includes(api.id)) {
+          acc.errors.push(`API "${api.name}" is already in this API Product`);
+        } else {
+          acc.newApiIds.push(api.id);
+        }
+        return acc;
+      },
+      { newApiIds: [] as string[], errors: [] as string[] },
+    );
+
+    if (errors.length > 0) {
+      this.snackBarService.error(errors.join(', '));
+      this.isSubmitting = false;
+      return of(null);
+    }
+
+    const updatedApiIds = [...currentApiIds, ...newApiIds];
+    return this.apiProductV2Service.updateApiProductApis(this.data.apiProductId, updatedApiIds);
   }
 
   removeApi(apiToRemove: Api): void {
