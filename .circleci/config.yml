@@ -66,6 +66,7 @@ jobs:
                       not:
                           or:
                               - equal: ["master", << pipeline.git.branch >>]
+                              - equal: ["alpha-vertx5", << pipeline.git.branch >>]
                               - matches:
                                     pattern: "^[0-9]+\\.[0-9]+\\.x$"
                                     value: << pipeline.git.branch >>
