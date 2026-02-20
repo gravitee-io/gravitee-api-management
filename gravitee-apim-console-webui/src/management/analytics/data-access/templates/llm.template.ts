@@ -34,7 +34,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         title: 'Requests',
         description: '-----',
         type: 'stats',
-        layout: { cols: 2, rows: 1, y: 0, x: 0 },
+        layout: { cols: 2, rows: 1, x: 0, y: 0 },
         request: {
           type: 'measures',
           metrics: [{ name: 'HTTP_REQUESTS', measures: ['COUNT'] }],
@@ -45,7 +45,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         title: 'Cost',
         description: '-----',
         type: 'stats',
-        layout: { cols: 1, rows: 1, y: 0, x: 2 },
+        layout: { cols: 1, rows: 1, x: 2, y: 0 },
         request: {
           type: 'measures',
           metrics: [{ name: 'HTTP_ERRORS', measures: ['PERCENTAGE'] }],
@@ -56,7 +56,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         title: 'Tokens',
         description: '----',
         type: 'stats',
-        layout: { cols: 1, rows: 1, y: 0, x: 3 },
+        layout: { cols: 1, rows: 1, x: 3, y: 0 },
         request: {
           type: 'measures',
           metrics: [{ name: 'HTTP_GATEWAY_LATENCY', measures: ['AVG'] }],
@@ -67,7 +67,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         title: 'Cost per Prompt',
         description: 'Average cost per request',
         type: 'stats',
-        layout: { cols: 1, rows: 1, y: 0, x: 4 },
+        layout: { cols: 1, rows: 1, x: 4, y: 0 },
         request: {
           type: 'measures',
           metrics: [{ name: 'HTTP_GATEWAY_LATENCY', measures: ['AVG'] }],
@@ -78,7 +78,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         title: 'Cost per Completion',
         description: 'Average cost per request',
         type: 'stats',
-        layout: { cols: 1, rows: 1, y: 0, x: 5 },
+        layout: { cols: 1, rows: 1, x: 5, y: 0 },
         request: {
           type: 'measures',
           metrics: [{ name: 'HTTP_GATEWAY_LATENCY', measures: ['AVG'] }],
@@ -89,7 +89,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         title: 'Tokens per prompt',
         description: 'Average tokens per request',
         type: 'stats',
-        layout: { cols: 1, rows: 1, y: 0, x: 6 },
+        layout: { cols: 1, rows: 1, x: 6, y: 0 },
         request: {
           type: 'measures',
           metrics: [{ name: 'HTTP_GATEWAY_LATENCY', measures: ['AVG'] }],
@@ -100,7 +100,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         title: 'Tokens per completion',
         description: 'Average tokens per request',
         type: 'stats',
-        layout: { cols: 1, rows: 1, y: 0, x: 7 },
+        layout: { cols: 1, rows: 1, x: 7, y: 0 },
         request: {
           type: 'measures',
           metrics: [{ name: 'HTTP_GATEWAY_RESPONSE_TIME', measures: ['AVG'] }],
@@ -113,7 +113,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         title: 'Calls per model',
         description: 'Number of calls per model',
         type: 'bar',
-        layout: { cols: 2, rows: 2, y: 1, x: 0 },
+        layout: { cols: 2, rows: 2, x: 0, y: 1 },
         request: {
           type: 'time-series',
           by: ['HTTP_STATUS_CODE_GROUP'],
@@ -125,7 +125,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         title: 'Tokens consumption',
         description: 'Tokens consumed over the time',
         type: 'line',
-        layout: { cols: 3, rows: 2, y: 1, x: 2 },
+        layout: { cols: 3, rows: 2, x: 2, y: 1 },
         request: {
           type: 'time-series',
           by: [],
@@ -140,7 +140,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         title: 'Cost over time',
         description: 'Cost over time',
         type: 'line',
-        layout: { cols: 3, rows: 2, y: 1, x: 5 },
+        layout: { cols: 3, rows: 2, x: 5, y: 1 },
         request: {
           type: 'time-series',
           by: [],
@@ -157,7 +157,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         title: 'Response time',
         description: 'Average response time for the gateway and the API',
         type: 'line',
-        layout: { cols: 3, rows: 2, y: 3, x: 0 },
+        layout: { cols: 3, rows: 2, x: 0, y: 3 },
         request: {
           type: 'time-series',
           by: [],
@@ -172,7 +172,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         title: 'Response status',
         description: 'Hits repartition by HTTP Status',
         type: 'doughnut',
-        layout: { cols: 2, rows: 2, y: 3, x: 3 },
+        layout: { cols: 2, rows: 2, x: 3, y: 3 },
         request: {
           type: 'facets',
           by: ['HTTP_STATUS_CODE_GROUP'],
