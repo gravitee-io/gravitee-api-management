@@ -321,7 +321,7 @@
         <gravitee-policy-token-ratelimit.version>1.0.0</gravitee-policy-token-ratelimit.version>
         <gravitee-policy-mcp-acl.version>1.0.2</gravitee-policy-mcp-acl.version>
         <gravitee-policy-pii-filtering.version>1.0.0-alpha.4</gravitee-policy-pii-filtering.version>
-        <gravitee-resource-ai-model-token-classification.version>1.0.0-alpha.1</gravitee-resource-ai-model-token-classification.version>
+        <gravitee-resource-ai-model-token-classification.version>1.0.0-alpha.2</gravitee-resource-ai-model-token-classification.version>
     </properties>
 
     <scm>
