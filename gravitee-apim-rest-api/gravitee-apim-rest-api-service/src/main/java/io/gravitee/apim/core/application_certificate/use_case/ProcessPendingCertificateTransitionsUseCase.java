@@ -105,18 +105,29 @@ public class ProcessPendingCertificateTransitionsUseCase {
             }
         }
 
-        if (failedCount > 0) {
-            log.error("Certificate transition processing completed with {} failures out of {} candidates", failedCount, candidates.size());
-        }
-
         if (!candidates.isEmpty()) {
             int successfulMtlsUpdates = affectedApplicationIds.size() - failedMtlsUpdateCount;
-            log.info(
-                "Completed pending certificate transitions: {} transitioned, {} failed, {} applications updated",
-                transitioned.size(),
-                failedCount,
-                successfulMtlsUpdates
-            );
+            var message =
+                "Completed certificate transitions: {} transitioned, {} failed | mTLS updates: {} updated, {} failed over {} applications";
+            if (failedCount > 0 || failedMtlsUpdateCount > 0) {
+                log.warn(
+                    message,
+                    transitioned.size(),
+                    failedCount,
+                    successfulMtlsUpdates,
+                    failedMtlsUpdateCount,
+                    affectedApplicationIds.size()
+                );
+            } else {
+                log.info(
+                    message,
+                    transitioned.size(),
+                    failedCount,
+                    successfulMtlsUpdates,
+                    failedMtlsUpdateCount,
+                    affectedApplicationIds.size()
+                );
+            }
         }
 
         return new Output(transitioned);
