@@ -32,6 +32,7 @@ import { catchError, exhaustMap, filter, map, shareReplay, switchMap, tap } from
 import { MatMenuItem, MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
 import { AsyncPipe, NgTemplateOutlet, TitleCasePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -87,6 +88,7 @@ import { PortalNavigationItemIconPipe } from '../icon/portal-navigation-item-ico
     MatMenuItem,
     AsyncPipe,
     MatCardModule,
+    MatTooltipModule,
     NgTemplateOutlet,
     TitleCasePipe,
     PortalNavigationItemIconPipe,
@@ -139,6 +141,27 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     const menuLinks = this.menuLinks();
     return this.mapSelectedNavItemToNode(navId, menuLinks);
   });
+  readonly selectedNavigationItemParent: Signal<SectionNode | null> = computed(() => {
+    const selectedNavigationItem = this.selectedNavigationItem();
+    const parentId = selectedNavigationItem?.data?.parentId;
+
+    if (!parentId) {
+      return null;
+    }
+
+    return this.mapSelectedNavItemToNode(parentId, this.menuLinks());
+  });
+  readonly publishDisabled: Signal<boolean> = computed(() => {
+    const selectedNavigationItem = this.selectedNavigationItem();
+    const selectedNavigationItemParent = this.selectedNavigationItemParent();
+
+    if (!selectedNavigationItem?.data?.parentId) {
+      return false;
+    }
+
+    return !selectedNavigationItemParent?.data?.published;
+  });
+  readonly publishActionDisabled: Signal<boolean> = computed(() => this.actionsDisabled() || this.publishDisabled());
   readonly selectedNavigationItemIsPublished: Signal<boolean> = computed(() => {
     return this.selectedNavigationItem()?.data?.published ?? false;
   });
@@ -336,7 +359,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     );
   }
 
-  private mapSelectedNavItemToNode(navId: string, menuLinks: PortalNavigationItem[]): SectionNode | null {
+  private mapSelectedNavItemToNode(navId: string | null | undefined, menuLinks: PortalNavigationItem[]): SectionNode | null {
     if (!navId) {
       return null;
     }
