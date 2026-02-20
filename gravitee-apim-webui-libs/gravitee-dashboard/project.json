@@ -30,12 +30,7 @@
       "outputs": ["{workspaceRoot}/coverage/gravitee-dashboard"]
     },
     "lint": {},
-    "lint-eslint": {
-      "executor": "@nx/eslint:lint",
-      "options": {
-        "lintFilePatterns": ["gravitee-apim-webui-libs/gravitee-dashboard/**/*.ts"]
-      }
-    },
+    "lint-eslint": {},
     "lint-license": {},
     "storybook": {
       "executor": "@storybook/angular:start-storybook",

@@ -30,12 +30,7 @@
       "outputs": ["{workspaceRoot}/coverage/gravitee-markdown"]
     },
     "lint": {},
-    "lint-eslint": {
-      "executor": "@nx/eslint:lint",
-      "options": {
-        "lintFilePatterns": ["gravitee-apim-webui-libs/gravitee-markdown/**/*.ts"]
-      }
-    },
+    "lint-eslint": {},
     "lint-license": {},
     "storybook": {
       "executor": "@storybook/angular:start-storybook",

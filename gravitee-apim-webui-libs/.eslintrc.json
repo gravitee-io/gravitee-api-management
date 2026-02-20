@@ -20,8 +20,7 @@
           "gravitee-dashboard/tsconfig.spec.json",
           "gravitee-markdown/tsconfig.lib.json",
           "gravitee-markdown/tsconfig.spec.json"
-        ],
-        "createDefaultProgram": true
+        ]
       },
       "extends": [
         "eslint:recommended",

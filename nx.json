@@ -15,7 +15,7 @@
             "!{projectRoot}/.storybook/**/*",
             "!{projectRoot}/tsconfig.storybook.json"
         ],
-        "sharedGlobals": []
+        "sharedGlobals": ["{workspaceRoot}/.prettierrc", "{workspaceRoot}/tsconfig.base.json"]
     },
     "targetDefaults": {
         "build": {
@@ -28,7 +28,11 @@
             "cache": true
         },
         "lint-eslint": {
-            "inputs": ["default", "{workspaceRoot}/.eslintrc.js"],
+            "executor": "@nx/eslint:lint",
+            "options": {
+                "lintFilePatterns": ["{projectRoot}/**/*.ts"]
+            },
+            "inputs": ["default"],
             "cache": true
         },
         "lint-license": {
@@ -59,14 +63,6 @@
         },
         "@nx/angular:component": {
             "style": "scss"
-        }
-    },
-    "tasksRunnerOptions": {
-        "default": {
-            "runner": "nx/tasks-runners/default",
-            "options": {
-                "cacheableOperations": ["build", "lint", "lint-eslint", "lint-license", "test"]
-            }
         }
     }
 }

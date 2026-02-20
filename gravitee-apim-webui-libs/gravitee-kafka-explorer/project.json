@@ -30,12 +30,7 @@
       "outputs": ["{workspaceRoot}/coverage/gravitee-kafka-explorer"]
     },
     "lint": {},
-    "lint-eslint": {
-      "executor": "@nx/eslint:lint",
-      "options": {
-        "lintFilePatterns": ["gravitee-apim-webui-libs/gravitee-kafka-explorer/**/*.ts"]
-      }
-    },
+    "lint-eslint": {},
     "lint-license": {},
     "storybook": {
       "executor": "@storybook/angular:start-storybook",
