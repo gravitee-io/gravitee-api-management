@@ -14,6 +14,15 @@
  * limitations under the License.
  */
 
+import { Api, ApiV4, HttpListener } from '../../entities/management-api-v2';
+
+/** Extracts the context path from V4 HTTP Proxy APIs (HTTP listener's first path). */
+export function getApiContextPath(api: Api | null | undefined): string | null {
+  if (!api || api.definitionVersion !== 'V4') return null;
+  const httpListener = (api as ApiV4).listeners?.find(l => l.type === 'HTTP') as HttpListener | undefined;
+  return httpListener?.paths?.[0]?.path ?? null;
+}
+
 export const mapDefinitionVersionToLabel = (definitionVersion: string): string => {
   switch (definitionVersion) {
     case 'V1':

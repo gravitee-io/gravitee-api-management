@@ -15,7 +15,7 @@
  */
 
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -107,6 +107,7 @@ export class ApiProductListComponent implements OnInit {
   private readonly snackBarService = inject(SnackBarService);
   private readonly permissionService = inject(GioPermissionService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   displayedColumns = ['picture', 'name', 'apis', 'version', 'owner', 'actions'];
   apiProductsTableDS: ApiProductTableDS = [];
@@ -135,6 +136,7 @@ export class ApiProductListComponent implements OnInit {
           return this.apiProductV2Service.list(page, perPage).pipe(
             catchError(error => {
               this.isLoadingData = false;
+              this.cdr.markForCheck();
               this.snackBarService.error(this.getErrorMessage(error, 'An error occurred while loading API Products'));
               return of(EMPTY_API_PRODUCTS_RESPONSE);
             }),
@@ -144,6 +146,7 @@ export class ApiProductListComponent implements OnInit {
           this.apiProductsTableDS = this.toApiProductsTableDS(response.data || []);
           this.apiProductsTableDSUnpaginatedLength = response.pagination?.totalCount || 0;
           this.isLoadingData = false;
+          this.cdr.markForCheck();
         }),
         takeUntilDestroyed(this.destroyRef),
       )

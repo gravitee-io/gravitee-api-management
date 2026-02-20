@@ -32,4 +32,8 @@ export interface ApiSearchQuery {
   categories?: string[];
   published?: string[];
   visibilities?: string[];
+  /**
+   * When true, only returns APIs that are allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.
+   */
+  allowedInApiProducts?: boolean;
 }

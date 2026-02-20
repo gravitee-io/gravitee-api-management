@@ -1,0 +1,100 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../scss/gio-layout' as gio-layout;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+  display: flex;
+  flex-direction: column;
+}
+
+.api-product-apis {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+
+    h1 {
+      @include mat.m2-typography-level($typography, headline-6);
+      margin: 0;
+    }
+
+    .subtitle {
+      @include mat.m2-typography-level($typography, body-2);
+      margin-top: 8px;
+      margin-bottom: 0;
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    }
+  }
+
+  .add-api-button {
+    flex-shrink: 0;
+  }
+
+  &__content-card {
+    flex: 1;
+    min-height: 400px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  &__avatar {
+    height: 32px;
+    width: 32px;
+  }
+}
+
+.api-product-apis-empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  padding: 48px 24px;
+}
+
+.mat-column-picture,
+.mat-column-name,
+.mat-column-contextPath,
+.mat-column-definition,
+.mat-column-version {
+  text-align: left;
+}
+
+.mat-column-picture {
+  padding: 0 8px;
+  width: 3rem;
+  min-width: 3rem;
+}
+
+.mat-column-version,
+.mat-column-actions {
+  padding: 0 8px;
+}
+
+.mat-column-name,
+.mat-column-contextPath,
+.mat-column-definition {
+  padding: 0 8px;
+  width: auto;
+}
+
+.mat-column-version {
+  .version__badge {
+    cursor: default;
+    margin-right: 8px;
+  }
+}
+
+.mat-column-actions {
+  text-align: right;
+  width: 1%;
+  white-space: nowrap;
+}

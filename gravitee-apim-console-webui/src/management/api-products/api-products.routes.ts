@@ -49,6 +49,10 @@ export const API_PRODUCTS_ROUTES: Routes = [
         path: 'configuration',
         loadComponent: () => import('./configuration/api-product-configuration.component').then(m => m.ApiProductConfigurationComponent),
       },
+      {
+        path: 'apis',
+        loadComponent: () => import('./apis/api-product-apis.component').then(m => m.ApiProductApisComponent),
+      },
     ],
   },
 ];
