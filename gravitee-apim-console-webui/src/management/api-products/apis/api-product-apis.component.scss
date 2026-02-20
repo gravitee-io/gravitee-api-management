@@ -123,9 +123,6 @@
     margin-right: 8px;
   }
 
-  .deprecated__badge {
-    cursor: default;
-  }
 }
 
 .actions__delete {
@@ -133,8 +130,3 @@
   justify-content: center;
 }
 
-.deprecated-badge {
-  background-color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'lighter');
-  color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'darker40');
-  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'default');
-}

@@ -62,14 +62,6 @@ $typography: map.get(gio.$mat-theme, typography);
       font-style: italic;
       white-space: nowrap;
     }
-
-    &-badge {
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 0.6875rem;
-      font-weight: 500;
-      white-space: nowrap;
-    }
   }
 }
 
@@ -84,6 +76,11 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__avatar {
     flex-shrink: 0;
+  }
+
+  &__text {
+    flex: 1;
+    min-width: 0;
   }
 }
 
@@ -214,8 +211,3 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 }
 
-.deprecated-badge {
-  background-color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'lighter');
-  color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'darker40');
-  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'default');
-}

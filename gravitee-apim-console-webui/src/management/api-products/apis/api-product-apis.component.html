@@ -74,7 +74,7 @@
             <td mat-cell *matCellDef="let element">
               <span class="version__badge">v{{ element.version }}</span>
               @if (element.lifecycleState === 'DEPRECATED') {
-                <span class="deprecated__badge deprecated-badge">Deprecated</span>
+                <span class="gio-badge-error">Deprecated</span>
               }
             </td>
           </ng-container>

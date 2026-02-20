@@ -50,7 +50,7 @@
                 <span class="selected-apis-section__chip-path">{{ contextPath }}</span>
               }
               @if (api.lifecycleState === 'DEPRECATED') {
-                <span class="selected-apis-section__chip-badge deprecated-badge">Deprecated</span>
+                <span class="gio-badge-error">Deprecated</span>
               }
               <mat-icon matChipRemove>cancel</mat-icon>
             </mat-chip>
@@ -86,7 +86,10 @@
                     [size]="28"
                     [roundedBorder]="true"
                   ></gio-avatar>
-                  <span>{{ option.name }} - {{ option.apiVersion }}</span>
+                  <span class="autocompleteRow__text">{{ option.name }} - {{ option.apiVersion }}</span>
+                  @if (option.lifecycleState === 'DEPRECATED') {
+                    <span class="gio-badge-error">Deprecated</span>
+                  }
                 </span>
               </mat-option>
             }
