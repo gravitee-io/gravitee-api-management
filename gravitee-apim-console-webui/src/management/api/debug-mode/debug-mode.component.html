@@ -27,7 +27,11 @@
 
     <div class="debug-mode__response">
       <div class="debug-mode__response__container">
-        <debug-mode-response [debugResponse]="debugResponse" [listPolicies]="listPolicies"></debug-mode-response>
+        <debug-mode-response
+          [debugResponse]="debugResponse"
+          [listPolicies]="listPolicies"
+          [showLongRequestWarning]="showLongRequestWarning"
+        ></debug-mode-response>
       </div>
     </div>
   </div>
