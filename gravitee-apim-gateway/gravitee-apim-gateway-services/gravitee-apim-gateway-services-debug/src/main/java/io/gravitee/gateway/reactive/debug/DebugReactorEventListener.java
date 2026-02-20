@@ -91,7 +91,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
     @Override
     public void onEvent(final Event<ReactorEvent, Reactable> reactorEvent) {
         if (reactorEvent.type() == ReactorEvent.DEBUG) {
-            logger.info("Deploying api for debug");
+            logger.debug("Deploying api for debug");
             ReactableEvent<io.gravitee.repository.management.model.Event> reactableEvent = (ReactableEvent<
                 io.gravitee.repository.management.model.Event
             >) reactorEvent.content();
@@ -99,7 +99,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
             ReactableDebugApi<?> debugApi = toDebugApi(reactableEvent);
             if (debugApi != null) {
                 if (reactorHandlerRegistry.contains(debugApi)) {
-                    logger.info("Api for debug already deployed. No need to do it again.");
+                    logger.debug("Api [{}] for debug already deployed. No need to do it again.", debugApi.getId());
                     return;
                 }
 
@@ -117,7 +117,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
                 updateEvent(debugEvent, ApiDebugStatus.DEBUGGING)
                     .andThen(
                         Completable.defer(() -> {
-                            logger.info("Sending request to debug");
+                            logger.debug("Sending request to debug to API [{}]", debugApi.getId());
                             HttpClient httpClient = vertx.createHttpClient(buildClientOptions());
                             return httpClient
                                 .rxRequest(
@@ -136,7 +136,9 @@ public class DebugReactorEventListener extends ReactorEventListener {
                                         ? httpClientRequest.rxSend()
                                         : httpClientRequest.rxSend(debugApiRequest.getBody())
                                 )
-                                .doOnSuccess(httpClientResponse -> logger.debug("Response status: {}", httpClientResponse.statusCode()))
+                                .doOnSuccess(httpClientResponse ->
+                                    logger.debug("Response status: {} for API [{}]", httpClientResponse.statusCode(), debugApi.getId())
+                                )
                                 .flatMap(io.vertx.rxjava3.core.http.HttpClientResponse::rxBody)
                                 .doFinally(httpClient::close)
                                 .ignoreElement();
@@ -145,12 +147,12 @@ public class DebugReactorEventListener extends ReactorEventListener {
                     .subscribeOn(Schedulers.io())
                     .subscribe(
                         () -> {
-                            logger.info("Debugging successful, removing the handler.");
+                            logger.debug("Debugging successful for API [{}], removing the handler.", debugApi.getId());
                             eventManager.publishEvent(SecretDiscoveryEventType.REVOKE, secretDiscoveryEvent);
                             reactorHandlerRegistry.remove(debugApi);
                         },
                         throwable -> {
-                            logger.error("Debugging API has failed, removing the handler.", throwable);
+                            logger.error("Debugging API has failed for API [{}], removing the handler.", debugApi.getId(), throwable);
                             eventManager.publishEvent(SecretDiscoveryEventType.REVOKE, secretDiscoveryEvent);
                             reactorHandlerRegistry.remove(debugApi);
                             failEvent(debugEvent);
@@ -173,7 +175,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
             );
 
             if (null != eventDebugApi.getProperties()) {
-                decryptProperties(eventDebugApi.getProperties());
+                decryptProperties(eventDebugApi.getId(), eventDebugApi.getProperties());
             }
 
             eventDebugApi.setPlans(
@@ -207,7 +209,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
             DebugApiV4 eventDebugApi = objectMapper.readValue(event.getPayload(), DebugApiV4.class);
 
             if (null != eventDebugApi.getApiDefinition().getProperties()) {
-                decryptProperties(eventDebugApi.getApiDefinition().getProperties());
+                decryptProperties(eventDebugApi.getApiDefinition().getId(), eventDebugApi.getApiDefinition().getProperties());
             }
 
             eventDebugApi
@@ -294,12 +296,16 @@ public class DebugReactorEventListener extends ReactorEventListener {
 
     private Completable updateEvent(io.gravitee.repository.management.model.Event debugEvent, ApiDebugStatus apiDebugStatus) {
         return Completable.fromAction(() -> {
-            eventRepository.update(debugEvent
-                    .updateProperties(io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue(), apiDebugStatus.name()));
+            eventRepository.update(
+                debugEvent.updateProperties(
+                    io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue(),
+                    apiDebugStatus.name()
+                )
+            );
         });
     }
 
-    private void decryptProperties(final Properties properties) {
+    private void decryptProperties(String apiId, final Properties properties) {
         for (Property property : properties.getProperties()) {
             if (property.isEncrypted()) {
                 try {
@@ -307,20 +313,20 @@ public class DebugReactorEventListener extends ReactorEventListener {
                     property.setEncrypted(false);
                     properties.getValues().put(property.getKey(), property.getValue());
                 } catch (GeneralSecurityException e) {
-                    logger.error("Error decrypting API property value for key {}", property.getKey(), e);
+                    logger.error("Error decrypting API [{}] property value for key {}", apiId, property.getKey(), e);
                 }
             }
         }
     }
 
-    private void decryptProperties(List<io.gravitee.definition.model.v4.property.Property> properties) {
+    private void decryptProperties(String apiId, List<io.gravitee.definition.model.v4.property.Property> properties) {
         properties.forEach(property -> {
             if (property.isEncrypted()) {
                 try {
                     property.setValue(dataEncryptor.decrypt(property.getValue()));
                     property.setEncrypted(false);
                 } catch (GeneralSecurityException e) {
-                    logger.error("Error decrypting API property value for key {}", property.getKey(), e);
+                    logger.error("Error decrypting API [{}] property value for key {}", apiId, property.getKey(), e);
                 }
             }
         });
