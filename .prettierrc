@@ -19,3 +19,12 @@ overrides:
   - files: "gravitee-apim-portal-webui-next/**/*"
     options:
       tabWidth: 2
+  - files: "gravitee-apim-portal-webui-next/**/*.html"
+    options:
+      parser: angular
+  - files: "gravitee-apim-portal-webui/**/*.html"
+    options:
+      parser: angular
+  - files: "gravitee-apim-webui-libs/**/*.html"
+    options:
+      parser: angular
