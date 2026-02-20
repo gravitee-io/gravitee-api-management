@@ -38,6 +38,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PortalNavigationItemDomainService {
 
+    private static final int MAX_PROPAGATION_NESTING_LEVEL = 500;
+
     private final PortalNavigationItemCrudService crudService;
     private final PortalNavigationItemsQueryService queryService;
     private final PortalPageContentCrudService pageContentCrudService;
@@ -147,7 +149,12 @@ public class PortalNavigationItemDomainService {
 
         var updatedItem = crudService.update(originalItem);
         if (PortalVisibility.PRIVATE.equals(changedVisibility) || Boolean.FALSE.equals(changedPublished)) {
-            propagateAttributesToDescendants(updatedItem.getId(), updatedItem.getEnvironmentId(), changedVisibility, changedPublished);
+            propagateAttributesToDescendants(
+                updatedItem.getId(),
+                updatedItem.getEnvironmentId(),
+                PortalVisibility.PRIVATE.equals(changedVisibility) ? PortalVisibility.PRIVATE : null,
+                Boolean.FALSE.equals(changedPublished) ? Boolean.FALSE : null
+            );
         }
 
         List<PortalNavigationItem> siblingsToUpdate = new ArrayList<>();
@@ -168,6 +175,24 @@ public class PortalNavigationItemDomainService {
         PortalVisibility changedVisibility,
         Boolean changedPublished
     ) {
+        propagateAttributesToDescendants(parentId, environmentId, changedVisibility, changedPublished, 0);
+    }
+
+    private void propagateAttributesToDescendants(
+        PortalNavigationItemId parentId,
+        String environmentId,
+        PortalVisibility changedVisibility,
+        Boolean changedPublished,
+        int currentNestingLevel
+    ) {
+        if (currentNestingLevel > MAX_PROPAGATION_NESTING_LEVEL) {
+            throw new IllegalStateException(
+                "Maximum portal navigation nesting level of %d exceeded while propagating attributes".formatted(
+                    MAX_PROPAGATION_NESTING_LEVEL
+                )
+            );
+        }
+
         final var children = queryService.findByParentIdAndEnvironmentId(environmentId, parentId);
         for (PortalNavigationItem child : children) {
             final boolean shouldUpdateVisibility = changedVisibility != null && !Objects.equals(child.getVisibility(), changedVisibility);
@@ -184,7 +209,7 @@ public class PortalNavigationItemDomainService {
                 child.setPublished(changedPublished);
             }
             crudService.update(child);
-            propagateAttributesToDescendants(child.getId(), environmentId, changedVisibility, changedPublished);
+            propagateAttributesToDescendants(child.getId(), environmentId, changedVisibility, changedPublished, currentNestingLevel + 1);
         }
     }
 
