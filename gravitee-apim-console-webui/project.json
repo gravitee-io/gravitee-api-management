@@ -174,12 +174,7 @@
       "outputs": ["{workspaceRoot}/coverage/gravitee-apim-console-webui"]
     },
     "lint": {},
-    "lint-eslint": {
-      "executor": "@nx/eslint:lint",
-      "options": {
-        "lintFilePatterns": ["gravitee-apim-console-webui/**/*.ts", "gravitee-apim-console-webui/**/*.json"]
-      }
-    },
+    "lint-eslint": {},
     "lint-license": {},
     "storybook": {
       "executor": "@storybook/angular:start-storybook",
