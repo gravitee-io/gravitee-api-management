@@ -30,7 +30,7 @@
         "lint-eslint": {
             "executor": "@nx/eslint:lint",
             "options": {
-                "lintFilePatterns": ["{projectRoot}/**/*.ts"]
+                "lintFilePatterns": ["{projectRoot}/**/*.ts", "{projectRoot}/**/*.html"]
             },
             "inputs": ["default"],
             "cache": true
@@ -40,12 +40,24 @@
             "options": {
                 "fix": false,
                 "cwd": "{projectRoot}",
-                "command": "sh -c 'if [ \"$1\" = \"--fix\" ]; then license-check-and-add add -r $(date +%Y) -f license-check-config.json; else license-check-and-add check -f license-check-config.json; fi' _"
+                "command": "sh -c 'case \"$*\" in *--fix*) license-check-and-add add -r $(date +%Y) -f license-check-config.json ;; *) license-check-and-add check -f license-check-config.json ;; esac' _"
             },
             "cache": true
         },
+        "lint-prettier": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "sh -c 'case \"$*\" in *--fix*) prettier --write \"{projectRoot}/**/*.{ts,js,html,scss,css,json}\" ;; *) prettier --check \"{projectRoot}/**/*.{ts,js,html,scss,css,json}\" ;; esac' _"
+            },
+            "inputs": ["default"],
+            "cache": true
+        },
         "lint": {
-            "dependsOn": ["lint-eslint", "lint-license"],
+            "dependsOn": [
+                { "target": "lint-eslint", "params": "forward" },
+                { "target": "lint-license", "params": "forward" },
+                { "target": "lint-prettier", "params": "forward" }
+            ],
             "cache": true
         },
         "serve": {}
