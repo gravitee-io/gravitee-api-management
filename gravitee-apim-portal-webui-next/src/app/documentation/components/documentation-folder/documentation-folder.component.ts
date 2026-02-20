@@ -16,6 +16,7 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, input, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, debounceTime, map, merge, Observable, switchMap, tap, withLatestFrom } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
@@ -43,7 +44,14 @@ enum NavParamsChange {
 
 @Component({
   selector: 'app-documentation-folder',
-  imports: [SidenavLayoutComponent, TreeComponent, GraviteeMarkdownViewerModule, NavigationItemContentViewerComponent, AsyncPipe],
+  imports: [
+    SidenavLayoutComponent,
+    TreeComponent,
+    GraviteeMarkdownViewerModule,
+    NavigationItemContentViewerComponent,
+    AsyncPipe,
+    MatButtonModule,
+  ],
   standalone: true,
   templateUrl: './documentation-folder.component.html',
   styleUrl: './documentation-folder.component.scss',
@@ -56,6 +64,7 @@ export class DocumentationFolderComponent {
   folderData = toSignal<FolderData | undefined>(this.loadFolderData());
   tree = signal<TreeNode[]>([]);
   breadcrumbs = signal<Breadcrumb[]>([]);
+  subscribeApiId = signal<string | null>(null);
 
   constructor(
     private readonly router: Router,
@@ -98,6 +107,7 @@ export class DocumentationFolderComponent {
     if (!pageId) {
       return of({ children, selectedPageContent: null }).pipe(
         tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByDefault())),
+        tap(() => this.subscribeApiId.set(null)),
         tap(() => this.navigateToFirstPage()),
       );
     }
@@ -108,6 +118,7 @@ export class DocumentationFolderComponent {
 
     return this.itemsService.getNavigationItemContent(pageId).pipe(
       tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByNodeId(pageId))),
+      tap(() => this.subscribeApiId.set(this.treeService.getAncestorApiId(pageId))),
       map(selectedPageContent => ({ children, selectedPageContent })),
     );
   }

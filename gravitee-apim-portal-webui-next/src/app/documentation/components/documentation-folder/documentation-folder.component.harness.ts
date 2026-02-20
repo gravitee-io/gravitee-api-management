@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { GraviteeMarkdownViewerHarness } from '@gravitee/gravitee-markdown';
 
@@ -35,6 +36,7 @@ export class DocumentationFolderComponentHarness extends ComponentHarness {
   );
   private readonly getNavigationItemContentViewerHarness = this.locatorForOptional(NavigationItemContentViewerHarness);
   private readonly getGraviteeMarkdownViewer = this.locatorForOptional(GraviteeMarkdownViewerHarness);
+  private readonly getSubscribeMatButton = this.locatorForOptional(MatButtonHarness.with({ text: 'Subscribe' }));
 
   async getSidenavToggleButton(): Promise<SidenavToggleButtonComponentHarness | null> {
     const sidenav = await this.getSidenavLayoutHarness();
@@ -60,5 +62,9 @@ export class DocumentationFolderComponentHarness extends ComponentHarness {
 
   async getGmdViewer(): Promise<GraviteeMarkdownViewerHarness | null> {
     return this.getGraviteeMarkdownViewer();
+  }
+
+  async getSubscribeButton(): Promise<MatButtonHarness | null> {
+    return this.getSubscribeMatButton();
   }
 }
