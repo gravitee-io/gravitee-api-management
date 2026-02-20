@@ -128,13 +128,13 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
     @Test
     void should_not_update_ActiveMTLSSubscriptions_when_no_mtls_subscriptions() {
         // Given: an API key plan (not mTLS)
-        Plan apiKeyPlan = buildPlan(PLAN_ID, PlanSecurityType.API_KEY.getLabel());
+        Plan apiKeyPlan = buildPlan(PlanSecurityType.API_KEY.getLabel());
         planCrudService.initWith(List.of(apiKeyPlan));
 
         SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, null);
         subscriptionCrudService.initWith(List.of(subscription));
 
-        ClientCertificate certificate = buildClientCertificate("cert-1", APPLICATION_ID, ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate certificate = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
         clientCertificateCrudService.initWith(List.of(certificate));
 
         // When
@@ -143,18 +143,19 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
         // Then: subscription should not be updated
         SubscriptionEntity result = subscriptionCrudService.get(SUBSCRIPTION_ID);
         assertThat(result.getClientCertificate()).isNull();
+        assertThat(result.getCreatedAt()).isSameAs(result.getUpdatedAt());
     }
 
     @Test
     void should_update_ActiveMTLSSubscriptions_subscription_with_single_certificate_as_base64_pem() {
         // Given: an mTLS plan
-        Plan mtlsPlan = buildPlan(PLAN_ID, PlanSecurityType.MTLS.getLabel());
+        Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
         planCrudService.initWith(List.of(mtlsPlan));
 
         SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, null);
         subscriptionCrudService.initWith(List.of(subscription));
 
-        ClientCertificate certificate = buildClientCertificate("cert-1", APPLICATION_ID, ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate certificate = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
         clientCertificateCrudService.initWith(List.of(certificate));
 
         // When
@@ -163,6 +164,7 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
         // Then: subscription should be updated with base64 encoded PEM
         SubscriptionEntity result = subscriptionCrudService.get(SUBSCRIPTION_ID);
         assertThat(result.getClientCertificate()).isNotNull();
+        assertThat(result.getCreatedAt()).isNotEqualTo(result.getUpdatedAt());
 
         String decodedCertificate = new String(Base64.getDecoder().decode(result.getClientCertificate()), StandardCharsets.UTF_8);
         assertThat(decodedCertificate).isEqualTo(PEM_CERTIFICATE_1);
@@ -171,24 +173,14 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
     @Test
     void should_update_ActiveMTLSSubscriptions_subscription_with_pkcs7_bundle_when_multiple_certificates() {
         // Given: an mTLS plan
-        Plan mtlsPlan = buildPlan(PLAN_ID, PlanSecurityType.MTLS.getLabel());
+        Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
         planCrudService.initWith(List.of(mtlsPlan));
 
         SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, null);
         subscriptionCrudService.initWith(List.of(subscription));
 
-        ClientCertificate certificate1 = buildClientCertificate(
-            "cert-1",
-            APPLICATION_ID,
-            ClientCertificateStatus.ACTIVE,
-            PEM_CERTIFICATE_1
-        );
-        ClientCertificate certificate2 = buildClientCertificate(
-            "cert-2",
-            APPLICATION_ID,
-            ClientCertificateStatus.ACTIVE_WITH_END,
-            PEM_CERTIFICATE_2
-        );
+        ClientCertificate certificate1 = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate certificate2 = buildClientCertificate("cert-2", ClientCertificateStatus.ACTIVE_WITH_END, PEM_CERTIFICATE_2);
         clientCertificateCrudService.initWith(List.of(certificate1, certificate2));
 
         // When
@@ -197,6 +189,7 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
         // Then: subscription should be updated with base64 encoded PKCS7 bundle
         SubscriptionEntity result = subscriptionCrudService.get(SUBSCRIPTION_ID);
         assertThat(result.getClientCertificate()).isNotNull();
+        assertThat(result.getCreatedAt()).isNotEqualTo(result.getUpdatedAt());
 
         // Verify it's a valid base64 string and starts with PKCS7 signature
         byte[] decoded = Base64.getDecoder().decode(result.getClientCertificate());
@@ -208,14 +201,14 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
     @Test
     void should_not_update_ActiveMTLSSubscriptions_subscription_when_certificate_unchanged() {
         // Given: an mTLS plan
-        Plan mtlsPlan = buildPlan(PLAN_ID, PlanSecurityType.MTLS.getLabel());
+        Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
         planCrudService.initWith(List.of(mtlsPlan));
 
         String existingEncodedCert = Base64.getEncoder().encodeToString(PEM_CERTIFICATE_1.getBytes(StandardCharsets.UTF_8));
         SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, existingEncodedCert);
         subscriptionCrudService.initWith(List.of(subscription));
 
-        ClientCertificate certificate = buildClientCertificate("cert-1", APPLICATION_ID, ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate certificate = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
         clientCertificateCrudService.initWith(List.of(certificate));
 
         // When
@@ -224,12 +217,13 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
         // Then: subscription should remain unchanged (same reference)
         SubscriptionEntity result = subscriptionCrudService.get(SUBSCRIPTION_ID);
         assertThat(result.getClientCertificate()).isEqualTo(existingEncodedCert);
+        assertThat(result.getCreatedAt()).isSameAs(result.getUpdatedAt());
     }
 
     @Test
     void should_clear_certificate_when_no_active_certificates() {
         // Given: an mTLS plan
-        Plan mtlsPlan = buildPlan(PLAN_ID, PlanSecurityType.MTLS.getLabel());
+        Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
         planCrudService.initWith(List.of(mtlsPlan));
 
         String existingEncodedCert = Base64.getEncoder().encodeToString(PEM_CERTIFICATE_1.getBytes(StandardCharsets.UTF_8));
@@ -237,12 +231,7 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
         subscriptionCrudService.initWith(List.of(subscription));
 
         // No active certificates (only revoked)
-        ClientCertificate revokedCertificate = buildClientCertificate(
-            "cert-1",
-            APPLICATION_ID,
-            ClientCertificateStatus.REVOKED,
-            PEM_CERTIFICATE_1
-        );
+        ClientCertificate revokedCertificate = buildClientCertificate("cert-1", ClientCertificateStatus.REVOKED, PEM_CERTIFICATE_1);
         clientCertificateCrudService.initWith(List.of(revokedCertificate));
 
         // When
@@ -250,20 +239,21 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
 
         // Then: subscription should have null certificate
         SubscriptionEntity result = subscriptionCrudService.get(SUBSCRIPTION_ID);
+        assertThat(result.getCreatedAt()).isNotEqualTo(result.getUpdatedAt());
         assertThat(result.getClientCertificate()).isNull();
     }
 
     @Test
     void should_update_ActiveMTLSSubscriptions_multiple_subscriptions() {
         // Given: an mTLS plan
-        Plan mtlsPlan = buildPlan(PLAN_ID, PlanSecurityType.MTLS.getLabel());
+        Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
         planCrudService.initWith(List.of(mtlsPlan));
 
         SubscriptionEntity subscription1 = buildSubscription("sub-1", APPLICATION_ID, PLAN_ID, null);
         SubscriptionEntity subscription2 = buildSubscription("sub-2", APPLICATION_ID, PLAN_ID, null);
         subscriptionCrudService.initWith(List.of(subscription1, subscription2));
 
-        ClientCertificate certificate = buildClientCertificate("cert-1", APPLICATION_ID, ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate certificate = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
         clientCertificateCrudService.initWith(List.of(certificate));
 
         // When
@@ -271,14 +261,18 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
 
         // Then: both subscriptions should be updated
         String expectedEncodedCert = Base64.getEncoder().encodeToString(PEM_CERTIFICATE_1.getBytes(StandardCharsets.UTF_8));
-        assertThat(subscriptionCrudService.get("sub-1").getClientCertificate()).isEqualTo(expectedEncodedCert);
-        assertThat(subscriptionCrudService.get("sub-2").getClientCertificate()).isEqualTo(expectedEncodedCert);
+        SubscriptionEntity sub1 = subscriptionCrudService.get("sub-1");
+        assertThat(sub1.getClientCertificate()).isEqualTo(expectedEncodedCert);
+        assertThat(sub1.getCreatedAt()).isNotEqualTo(sub1.getUpdatedAt());
+        SubscriptionEntity sub2 = subscriptionCrudService.get("sub-2");
+        assertThat(sub2.getClientCertificate()).isEqualTo(expectedEncodedCert);
+        assertThat(sub2.getCreatedAt()).isNotEqualTo(sub2.getUpdatedAt());
     }
 
     @Test
     void should_order_certificates_by_created_at_when_creating_pkcs7_bundle() throws Exception {
         // Given: an mTLS plan
-        Plan mtlsPlan = buildPlan(PLAN_ID, PlanSecurityType.MTLS.getLabel());
+        Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
         planCrudService.initWith(List.of(mtlsPlan));
 
         SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, null);
@@ -288,20 +282,8 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
         Date olderDate = Date.from(Instant.now().minus(10, ChronoUnit.DAYS));
         Date newerDate = Date.from(Instant.now());
 
-        ClientCertificate certificate1 = buildClientCertificate(
-            "cert-1",
-            APPLICATION_ID,
-            ClientCertificateStatus.ACTIVE,
-            PEM_CERTIFICATE_1,
-            olderDate
-        );
-        ClientCertificate certificate2 = buildClientCertificate(
-            "cert-2",
-            APPLICATION_ID,
-            ClientCertificateStatus.ACTIVE,
-            PEM_CERTIFICATE_2,
-            newerDate
-        );
+        ClientCertificate certificate1 = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1, olderDate);
+        ClientCertificate certificate2 = buildClientCertificate("cert-2", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_2, newerDate);
         // Add in reverse order to ensure sorting is happening
         clientCertificateCrudService.initWith(List.of(certificate1, certificate2));
 
@@ -323,26 +305,16 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
     @Test
     void should_only_consider_active_and_active_with_end_certificates() {
         // Given: an mTLS plan
-        Plan mtlsPlan = buildPlan(PLAN_ID, PlanSecurityType.MTLS.getLabel());
+        Plan mtlsPlan = buildPlan(PlanSecurityType.MTLS.name());
         planCrudService.initWith(List.of(mtlsPlan));
 
         SubscriptionEntity subscription = buildSubscription(SUBSCRIPTION_ID, APPLICATION_ID, PLAN_ID, null);
         subscriptionCrudService.initWith(List.of(subscription));
 
         // Mix of certificate statuses
-        ClientCertificate activeCert = buildClientCertificate("cert-1", APPLICATION_ID, ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
-        ClientCertificate scheduledCert = buildClientCertificate(
-            "cert-2",
-            APPLICATION_ID,
-            ClientCertificateStatus.SCHEDULED,
-            PEM_CERTIFICATE_2
-        );
-        ClientCertificate revokedCert = buildClientCertificate(
-            "cert-3",
-            APPLICATION_ID,
-            ClientCertificateStatus.REVOKED,
-            PEM_CERTIFICATE_2
-        );
+        ClientCertificate activeCert = buildClientCertificate("cert-1", ClientCertificateStatus.ACTIVE, PEM_CERTIFICATE_1);
+        ClientCertificate scheduledCert = buildClientCertificate("cert-2", ClientCertificateStatus.SCHEDULED, PEM_CERTIFICATE_2);
+        ClientCertificate revokedCert = buildClientCertificate("cert-3", ClientCertificateStatus.REVOKED, PEM_CERTIFICATE_2);
         clientCertificateCrudService.initWith(List.of(activeCert, scheduledCert, revokedCert));
 
         // When
@@ -354,16 +326,22 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
         assertThat(decodedCertificate).isEqualTo(PEM_CERTIFICATE_1);
     }
 
-    private Plan buildPlan(String planId, String securityType) {
+    private Plan buildPlan(String securityType) {
         io.gravitee.definition.model.v4.plan.Plan planDefinition = io.gravitee.definition.model.v4.plan.Plan.builder()
-            .id(planId)
+            .id(PLAN_ID)
             .security(PlanSecurity.builder().type(securityType).build())
             .build();
 
-        return Plan.builder().id(planId).apiId(API_ID).definitionVersion(DefinitionVersion.V4).planDefinitionHttpV4(planDefinition).build();
+        return Plan.builder()
+            .id(PLAN_ID)
+            .apiId(API_ID)
+            .definitionVersion(DefinitionVersion.V4)
+            .planDefinitionHttpV4(planDefinition)
+            .build();
     }
 
     private SubscriptionEntity buildSubscription(String subscriptionId, String applicationId, String planId, String clientCertificate) {
+        ZonedDateTime now = ZonedDateTime.now();
         return SubscriptionEntity.builder()
             .id(subscriptionId)
             .applicationId(applicationId)
@@ -372,31 +350,20 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
             .environmentId(ENVIRONMENT_ID)
             .status(SubscriptionEntity.Status.ACCEPTED)
             .clientCertificate(clientCertificate)
-            .createdAt(ZonedDateTime.now())
-            .updatedAt(ZonedDateTime.now())
+            .createdAt(now)
+            .updatedAt(now)
             .build();
     }
 
-    private ClientCertificate buildClientCertificate(
-        String id,
-        String applicationId,
-        ClientCertificateStatus status,
-        String pemCertificate
-    ) {
-        return buildClientCertificate(id, applicationId, status, pemCertificate, new Date());
+    private ClientCertificate buildClientCertificate(String id, ClientCertificateStatus status, String pemCertificate) {
+        return buildClientCertificate(id, status, pemCertificate, new Date());
     }
 
-    private ClientCertificate buildClientCertificate(
-        String id,
-        String applicationId,
-        ClientCertificateStatus status,
-        String pemCertificate,
-        Date createdAt
-    ) {
+    private ClientCertificate buildClientCertificate(String id, ClientCertificateStatus status, String pemCertificate, Date createdAt) {
         return new ClientCertificate(
             id,
             "cross-id-" + id,
-            applicationId,
+            APPLICATION_ID,
             "Test Certificate " + id,
             null,
             null,
