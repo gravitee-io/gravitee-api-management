@@ -30,7 +30,7 @@ public class UpdateClientCertificateUseCase {
 
     public Output execute(Input input) {
         ClientCertificate certificate = clientCertificateCrudService.update(input.clientCertificateId(), input.toUpdate());
-        applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(certificate.getApplicationId());
+        applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(certificate.applicationId());
         return new Output(certificate);
     }
 
