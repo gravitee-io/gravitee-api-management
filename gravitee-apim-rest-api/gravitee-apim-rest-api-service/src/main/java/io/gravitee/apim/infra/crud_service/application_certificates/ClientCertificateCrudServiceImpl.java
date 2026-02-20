@@ -40,6 +40,7 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
@@ -194,7 +195,7 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
     @Override
     public Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses) {
         try {
-            log.debug("Find client certificates by application ID {} and statuses {}", applicationId, statuses);
+            log.debug("Find client certificates by application ID {} and statuses {}", applicationId, Arrays.toString(statuses));
             return clientCertificateRepository
                 .findByApplicationIdAndStatuses(applicationId, ClientCertificateAdapter.INSTANCE.toRepoStatus(statuses))
                 .stream()
@@ -211,7 +212,7 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
     @Override
     public Set<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses) {
         try {
-            log.debug("Find client certificates by application IDs {} and statuses {}", applicationIds, statuses);
+            log.debug("Find client certificates by application IDs {} and statuses {}", applicationIds, Arrays.toString(statuses));
             return clientCertificateRepository
                 .findByApplicationIdsAndStatuses(applicationIds, ClientCertificateAdapter.INSTANCE.toRepoStatus(statuses))
                 .stream()
@@ -228,7 +229,7 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
     @Override
     public Set<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses) {
         try {
-            log.debug("Find client certificates by statuses {}", (Object) statuses);
+            log.debug("Find client certificates by statuses {}", Arrays.toString(statuses));
             return clientCertificateRepository
                 .findByStatuses(ClientCertificateAdapter.INSTANCE.toRepoStatus(statuses))
                 .stream()

@@ -93,7 +93,7 @@ public class JdbcClientCertificateRepository
     @Override
     public Set<ClientCertificate> findByApplicationIdAndStatuses(String applicationId, ClientCertificateStatus... statuses)
         throws TechnicalException {
-        log.debug("JdbcClientCertificateRepository.findByApplicationIdAndStatuses({}, {})", applicationId, statuses);
+        log.debug("JdbcClientCertificateRepository.findByApplicationIdAndStatuses({}, {})", applicationId, Arrays.toString(statuses));
 
         if (statuses == null || statuses.length == 0) {
             return new HashSet<>();
@@ -120,7 +120,7 @@ public class JdbcClientCertificateRepository
     @Override
     public Set<ClientCertificate> findByApplicationIdsAndStatuses(Collection<String> applicationIds, ClientCertificateStatus... statuses)
         throws TechnicalException {
-        log.debug("JdbcClientCertificateRepository.findByApplicationIdsAndStatuses({}, {})", applicationIds, statuses);
+        log.debug("JdbcClientCertificateRepository.findByApplicationIdsAndStatuses({}, {})", applicationIds, Arrays.toString(statuses));
 
         if (applicationIds == null || applicationIds.isEmpty() || statuses == null || statuses.length == 0) {
             return new HashSet<>();
@@ -164,7 +164,7 @@ public class JdbcClientCertificateRepository
 
     @Override
     public Set<ClientCertificate> findByStatuses(ClientCertificateStatus... statuses) throws TechnicalException {
-        log.debug("JdbcClientCertificateRepository.findByStatuses({})", (Object) statuses);
+        log.debug("JdbcClientCertificateRepository.findByStatuses({})", Arrays.toString(statuses));
 
         if (statuses == null || statuses.length == 0) {
             return Set.of();
