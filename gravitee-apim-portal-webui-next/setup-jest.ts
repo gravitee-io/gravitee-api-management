@@ -40,6 +40,7 @@ beforeAll(() => {
       return;
     }
     // jsdom structured error
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (typeof firstArg === 'object' && firstArg !== null && 'type' in firstArg && (firstArg as any).type === 'css parsing') {
       return;
     }
