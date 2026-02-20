@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -24,6 +25,7 @@ import { DocumentationFolderComponent } from './documentation-folder.component';
 import { DocumentationFolderComponentHarness } from './documentation-folder.component.harness';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { makeItem, MOCK_ITEMS } from '../../../../mocks/portal-navigation-item.mocks';
+import { CurrentUserService } from '../../../../services/current-user.service';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
 import { AppTestingModule } from '../../../../testing/app-testing.module';
 
@@ -41,10 +43,11 @@ describe('DocumentationFolderComponent', () => {
   const gmdViewerContent = (content: string) => `<p>${content}</p>\n`;
 
   const init = async (
-    params: Partial<{ queryParams: { pageId?: string }; items: PortalNavigationItem[]; content: string }> = {
+    params: Partial<{ queryParams: { pageId?: string }; items: PortalNavigationItem[]; content: string; isAuthenticated: boolean }> = {
       queryParams: { pageId: 'p1' },
       items: MOCK_CHILDREN,
       content: MOCK_CONTENT,
+      isAuthenticated: true,
     },
   ) => {
     queryParamsSubject = new BehaviorSubject(params.queryParams ?? {});
@@ -66,6 +69,7 @@ describe('DocumentationFolderComponent', () => {
         { provide: ActivatedRoute, useValue: { queryParams: queryParamsSubject.asObservable() } },
         { provide: Router, useValue: routerSpy },
         { provide: PortalNavigationItemsService, useValue: navigationServiceSpy },
+        { provide: CurrentUserService, useValue: { isUserAuthenticated: signal(params?.isAuthenticated ?? true) } },
       ],
     }).compileComponents();
 
@@ -221,6 +225,31 @@ describe('DocumentationFolderComponent', () => {
       await init({ items: [apiItem, apiPage], queryParams: { pageId: 'p-api1' }, content: MOCK_CONTENT });
 
       expect(await harness.getSubscribeButton()).not.toBeNull();
+    });
+
+    it('should navigate to subscribe page when subscribe button is clicked and user is authenticated', async () => {
+      const apiItem = makeItem('api1', 'API', 'API 1', 0, undefined);
+      const apiPage = makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1');
+      await init({ items: [apiItem, apiPage], queryParams: { pageId: 'p-api1' }, content: MOCK_CONTENT });
+
+      const subscribeButton = await harness.getSubscribeButton();
+      expect(subscribeButton).not.toBeNull();
+      await subscribeButton!.click();
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['api', 'api-api1', 'subscribe'], {
+        relativeTo: expect.anything(),
+        queryParamsHandling: 'preserve',
+      });
+    });
+
+    it('should show disabled button when user is not authenticated', async () => {
+      const apiItem = makeItem('api1', 'API', 'API 1', 0, undefined);
+      const apiPage = makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1');
+      await init({ items: [apiItem, apiPage], queryParams: { pageId: 'p-api1' }, content: MOCK_CONTENT, isAuthenticated: false });
+
+      const subscribeButton = await harness.getSubscribeButton();
+      expect(subscribeButton).not.toBeNull();
+      expect(await subscribeButton!.isDisabled()).toBe(true);
     });
   });
 });
