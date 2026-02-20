@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-@use 'sass:map';
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
-
-$typography: map.get(gio.$mat-theme, typography);
 
 :host {
   display: block;
@@ -34,20 +31,13 @@ $typography: map.get(gio.$mat-theme, typography);
   &__actions {
     display: flex;
     flex-direction: column;
-    gap: 16px;
 
     &__action {
       display: flex;
       align-items: center;
       flex-direction: row;
       justify-content: space-between;
-      min-height: 3rem;
-
-      span {
-        @include mat.m2-typography-level($typography, caption);
-        display: block;
-        color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-      }
+      height: 48px;
     }
   }
 }

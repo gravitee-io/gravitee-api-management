@@ -56,27 +56,6 @@
       </mat-card-content>
     </mat-card>
 
-    @if (apiIds().length) {
-      <mat-card class="configuration-card">
-        <mat-card-header>
-          <mat-card-title>APIs in this Product</mat-card-title>
-          <mat-card-subtitle>Remove individual APIs from the product</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="apis-list">
-            @for (apiId of apiIds(); track apiId) {
-              <div class="apis-list__item">
-                <span class="apis-list__item-id">{{ apiId }}</span>
-                <button mat-icon-button color="warn" (click)="onDeleteApi(apiId)" aria-label="Remove API">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </div>
-            }
-          </div>
-        </mat-card-content>
-      </mat-card>
-    }
-
     @if (product) {
       <api-product-danger-zone
         [apiProduct]="product"

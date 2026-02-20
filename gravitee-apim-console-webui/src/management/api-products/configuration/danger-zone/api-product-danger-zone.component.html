@@ -21,19 +21,31 @@
     <h3 class="danger-card__title">Danger Zone</h3>
     <div class="danger-card__actions">
       <div class="danger-card__actions__action">
-        <span>Remove all the APIs of this API Product.</span>
+        <span>
+          Remove all the APIs of this API Product.
+          @if (!apiProduct().apiIds?.length) {
+            <span>No APIs in this product.</span>
+          }
+        </span>
         <button mat-button color="warn" [disabled]="isReadOnly() || !apiProduct().apiIds?.length" (click)="onRemoveApis()">
           Remove APIs
         </button>
       </div>
 
       <div class="danger-card__actions__action">
-        <span>Delete this API Product. This won't delete APIs associated to it.</span>
+        <span class="gv-form-danger-text">
+          Delete this API Product.
+          @if (isReadOnly()) {
+            <span>This API Product cannot be deleted</span>
+          } @else {
+            <span>This won't delete APIs associated to it.</span>
+          }
+        </span>
         <button
           mat-button
           color="warn"
           [disabled]="isReadOnly()"
-          data-testid="api_product_dangerzone_delete"
+          [attr.data-testid]="'api_product_dangerzone_delete'"
           (click)="onDeleteApiProduct()"
         >
           Delete API Product

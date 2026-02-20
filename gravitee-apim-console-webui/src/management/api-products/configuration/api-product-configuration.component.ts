@@ -178,7 +178,7 @@ export class ApiProductConfigurationComponent {
       .afterClosed()
       .pipe(
         filter((confirm): confirm is true => confirm === true),
-        switchMap(() => this.apiProductV2Service.deleteAllApisFromApiProduct(apiProductId)),
+        switchMap(() => this.apiProductV2Service.updateApiProductApis(apiProductId, [])),
         tap(() => {
           this.snackBarService.success('All APIs have been removed from the API Product.');
           this.onReloadDetails();

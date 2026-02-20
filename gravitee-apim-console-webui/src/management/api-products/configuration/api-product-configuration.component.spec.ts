@@ -172,12 +172,12 @@ describe('ApiProductConfigurationComponent', () => {
     const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
     await dialog.confirm();
 
-    const deleteReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/apis`);
-    expect(deleteReq.request.method).toBe('DELETE');
-    deleteReq.flush({});
+    const putReq = httpTestingController.expectOne(req => req.url.includes(`/api-products/${API_PRODUCT_ID}`) && req.method === 'PUT');
+    expect(putReq.request.body).toEqual({ apiIds: [] });
+    putReq.flush({ ...fakeApiProduct, apiIds: [] });
     await fixture.whenStable();
 
-    const reloadReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
+    const reloadReq = httpTestingController.expectOne(req => req.url.includes(`/api-products/${API_PRODUCT_ID}`) && req.method === 'GET');
     reloadReq.flush({ ...fakeApiProduct, apiIds: [] });
     await fixture.whenStable();
 
@@ -190,7 +190,7 @@ describe('ApiProductConfigurationComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const deleteButton = await loader.getHarness(MatButtonHarness.with({ text: /Delete API Product/i }));
+    const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="api_product_dangerzone_delete"]' }));
     await deleteButton.click();
 
     const dialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
