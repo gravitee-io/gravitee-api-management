@@ -15,9 +15,7 @@
  */
 package io.gravitee.gateway.debug.vertx;
 
-import io.vertx.core.http.HttpServerOptions;
 import lombok.Builder;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author Guillaume Cusnieux (guillaume.cusnieux at graviteesource.com)
@@ -27,7 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 public class VertxDebugHttpClientConfiguration {
 
     public static final int MAX_CONNECTION_TIMEOUT = 5000;
-    public static final int MAX_REQUEST_TIMEOUT = 10000;
+    public static final int MAX_REQUEST_TIMEOUT = 30000;
 
     private boolean compressionSupported;
 

@@ -16,7 +16,7 @@
 export interface DebugEvent {
   id: string;
   payload: DebugEventPayload;
-  status: 'SUCCESS' | 'FAILED';
+  status: 'TO_DEBUG' | 'DEBUGGING' | 'SUCCESS' | 'ERROR';
 }
 
 interface DebugEventPayload {

@@ -22,6 +22,9 @@ import { DebugRequest } from './models/DebugRequest';
 import { PolicyListItem } from '../../../entities/policy';
 import { PolicyService } from '../../../services-ngx/policy.service';
 
+export const DEBUG_EVENT_FAILED_ERROR = 'DEBUG_EVENT_FAILED_ERROR';
+export const DEBUG_EVENT_FAILED_MESSAGE = 'Debug request failed. Please try again.';
+
 @Injectable()
 export abstract class DebugModeService {
   protected constructor(protected readonly policyService: PolicyService) {}

@@ -15,12 +15,12 @@
  */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { EMPTY, Subject } from 'rxjs';
+import { EMPTY, Subject, Subscription, timer } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 
 import { DebugRequest } from './models/DebugRequest';
 import { DebugResponse } from './models/DebugResponse';
-import { DebugModeService } from './debug-mode.service';
+import { DEBUG_EVENT_FAILED_ERROR, DEBUG_EVENT_FAILED_MESSAGE, DebugModeService } from './debug-mode.service';
 
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { PolicyListItem } from '../../../entities/policy';
@@ -34,9 +34,11 @@ import { PolicyListItem } from '../../../entities/policy';
 export class DebugModeComponent implements OnInit, OnDestroy {
   public debugResponse: DebugResponse;
   public listPolicies: PolicyListItem[];
+  public showLongRequestWarning = false;
 
   private unsubscribe$ = new Subject<boolean>();
   private cancelRequest$ = new Subject<void>();
+  private longRequestWarningSubscription?: Subscription;
 
   constructor(
     private readonly debugModeService: DebugModeService,
@@ -56,11 +58,14 @@ export class DebugModeComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.clearLongRequestWarningTimer();
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
   }
 
   onRequestSubmitted(debugRequest: DebugRequest) {
+    this.showLongRequestWarning = false;
+    this.startLongRequestWarningTimer();
     this.debugResponse = {
       isLoading: true,
       executionMode: null,
@@ -77,32 +82,45 @@ export class DebugModeComponent implements OnInit, OnDestroy {
     this.debugModeService
       .debug(debugRequest)
       .pipe(
-        catchError(() => {
-          this.snackBarService.error('Unable to try the request, please try again');
-          this.debugResponse = {
-            isLoading: false,
-            executionMode: null,
-            request: {},
-            response: {},
-            responsePolicyDebugSteps: [],
-            backendResponse: {},
-            requestPolicyDebugSteps: [],
-            preprocessorStep: {},
-            requestDebugSteps: {},
-            responseDebugSteps: {},
-          };
+        catchError((error: Error) => {
+          this.snackBarService.error(
+            error?.message === DEBUG_EVENT_FAILED_ERROR ? DEBUG_EVENT_FAILED_MESSAGE : 'Unable to try the request, please try again',
+          );
+          this.clearLongRequestWarningTimer();
+          this.showLongRequestWarning = false;
+          this.debugResponse = null;
           return EMPTY;
         }),
         takeUntil(this.unsubscribe$),
         takeUntil(this.cancelRequest$),
       )
       .subscribe((debugResponse) => {
+        this.clearLongRequestWarningTimer();
+        this.showLongRequestWarning = false;
         this.debugResponse = debugResponse;
       });
   }
 
   onRequestCancelled() {
     this.cancelRequest$.next();
+    this.clearLongRequestWarningTimer();
+    this.showLongRequestWarning = false;
     this.debugResponse = null;
+  }
+
+  private startLongRequestWarningTimer() {
+    this.clearLongRequestWarningTimer();
+    this.longRequestWarningSubscription = timer(20_000)
+      .pipe(takeUntil(this.unsubscribe$), takeUntil(this.cancelRequest$))
+      .subscribe(() => {
+        if (this.debugResponse?.isLoading) {
+          this.showLongRequestWarning = true;
+        }
+      });
+  }
+
+  private clearLongRequestWarningTimer() {
+    this.longRequestWarningSubscription?.unsubscribe();
+    this.longRequestWarningSubscription = undefined;
   }
 }
