@@ -87,11 +87,17 @@
         </div>
       }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
+        <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onEdit()">Edit</button>
         @if (isSelectedNotApiItem()) {
-          <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onEdit()">Edit</button>
-          <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onPublishToggle()">
-            {{ selectedNavigationItemIsPublished() ? 'Unpublish' : 'Publish' }}
-          </button>
+          <span
+            [matTooltip]="publishDisabled() ? 'A navigation item cannot be published within an unpublished '+ selectedNavigationItemParent()?.data.type.toLocaleLowerCase()  : ''"
+            [matTooltipDisabled]="!publishDisabled()"
+            [matTooltipShowDelay]="0"
+          >
+            <button [disabled]="publishActionDisabled()" mat-stroked-button (click)="onPublishToggle()">
+              {{ selectedNavigationItemIsPublished() ? 'Unpublish' : 'Publish' }}
+            </button>
+          </span>
         }
         <button mat-flat-button color="primary" [disabled]="contentControl.pristine" (click)="onSave()">Save</button>
       </div>
