@@ -13,14 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-kafka-explorer
- */
+import { CommonModule } from '@angular/common';
+import { Component, input } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
+import { MatTableModule } from '@angular/material/table';
 
-export * from './lib/models/kafka-cluster.model';
-export * from './lib/models/kafka-cluster.fixture';
-export * from './lib/kafka-explorer/kafka-explorer.component';
-export * from './lib/kafka-explorer/kafka-explorer.harness';
-export * from './lib/services/kafka-explorer.service';
-export * from './lib/brokers/brokers.component';
-export * from './lib/brokers/brokers.harness';
+import { KafkaNode } from '../models/kafka-cluster.model';
+
+@Component({
+  selector: 'gke-brokers',
+  standalone: true,
+  imports: [CommonModule, MatCardModule, MatTableModule],
+  templateUrl: './brokers.component.html',
+  styleUrls: ['./brokers.component.scss'],
+})
+export class BrokersComponent {
+  nodes = input<KafkaNode[]>([]);
+
+  displayedColumns = ['id', 'host', 'port'];
+}

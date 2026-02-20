@@ -1,0 +1,50 @@
+<!--
+
+    Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+@if (loading()) {
+  <div class="kafka-explorer__loader">
+    <mat-spinner diameter="40" />
+  </div>
+}
+
+@if (error(); as errorMsg) {
+  <div class="kafka-explorer__error">
+    <mat-icon>error</mat-icon>
+    <span>{{ errorMsg }}</span>
+  </div>
+}
+
+@if (clusterInfo(); as info) {
+  <div class="kafka-explorer">
+    <mat-card class="kafka-explorer__topbar">
+      <mat-card-content>
+        <div class="kafka-explorer__topbar-items">
+          <div class="kafka-explorer__topbar-item">
+            <span class="mat-caption">Cluster ID</span>
+            <span class="mat-body-2">{{ info.clusterId }}</span>
+          </div>
+          <div class="kafka-explorer__topbar-item">
+            <span class="mat-caption">Controller</span>
+            <span class="mat-body-2">{{ info.controller.host }}:{{ info.controller.port }} (node {{ info.controller.id }})</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <gke-brokers [nodes]="info.nodes" />
+  </div>
+}

@@ -7,5 +7,6 @@ module.exports = {
         '<rootDir>/gravitee-apim-portal-webui-next/jest.config.js',
         '<rootDir>/gravitee-apim-webui-libs/gravitee-dashboard/jest.config.js',
         '<rootDir>/gravitee-apim-webui-libs/gravitee-markdown/jest.config.js',
+        '<rootDir>/gravitee-apim-webui-libs/gravitee-kafka-explorer/jest.config.js',
     ],
 };

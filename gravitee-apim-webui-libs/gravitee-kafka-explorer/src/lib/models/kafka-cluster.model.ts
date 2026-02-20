@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-kafka-explorer
- */
+export interface KafkaNode {
+  id: number;
+  host: string;
+  port: number;
+}
 
-export * from './lib/models/kafka-cluster.model';
-export * from './lib/models/kafka-cluster.fixture';
-export * from './lib/kafka-explorer/kafka-explorer.component';
-export * from './lib/kafka-explorer/kafka-explorer.harness';
-export * from './lib/services/kafka-explorer.service';
-export * from './lib/brokers/brokers.component';
-export * from './lib/brokers/brokers.harness';
+export interface DescribeClusterResponse {
+  clusterId: string;
+  controller: KafkaNode;
+  nodes: KafkaNode[];
+}

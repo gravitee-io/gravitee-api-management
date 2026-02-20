@@ -13,11 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
 
-@Component({
-  selector: 'gke-kafka-explorer',
-  standalone: true,
-  template: `<p>Kafka Explorer works!</p>`,
+import { DescribeClusterResponse } from '../models/kafka-cluster.model';
+
+@Injectable({
+  providedIn: 'root',
 })
-export class KafkaExplorerComponent {}
+export class KafkaExplorerService {
+  private readonly http = inject(HttpClient);
+
+  describeCluster(baseURL: string, clusterId: string): Observable<DescribeClusterResponse> {
+    return this.http.post<DescribeClusterResponse>(`${baseURL}/kafka-explorer/describe-cluster`, { clusterId });
+  }
+}

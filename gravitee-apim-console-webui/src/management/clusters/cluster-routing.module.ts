@@ -21,6 +21,7 @@ import { ClusterGeneralComponent } from './details/general/cluster-general.compo
 import { ClusterConfigurationComponent } from './details/configuration/cluster-configuration.component';
 import { ClusterListComponent } from './list/cluster-list.component';
 import { ClusterUserPermissionsComponent } from './details/user-permissions/cluster-user-permissions.component';
+import { ClusterExplorerPageComponent } from './details/explorer/cluster-explorer-page.component';
 import { ClusterGuard } from './cluster.guard';
 
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
@@ -53,6 +54,15 @@ const clusterRoutes: Routes = [
       {
         path: 'general',
         component: ClusterGeneralComponent,
+        data: {
+          permissions: {
+            anyOf: ['cluster-definition-r'],
+          },
+        },
+      },
+      {
+        path: 'explorer',
+        component: ClusterExplorerPageComponent,
         data: {
           permissions: {
             anyOf: ['cluster-definition-r'],
