@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, input, signal } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -29,6 +29,7 @@ import { NavigationItemContentViewerComponent } from '../../../../components/nav
 import { SidenavLayoutComponent } from '../../../../components/sidenav-layout/sidenav-layout.component';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { PortalPageContent } from '../../../../entities/portal-navigation/portal-page-content';
+import { CurrentUserService } from '../../../../services/current-user.service';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
 import { TreeNode, TreeService } from '../../services/tree.service';
 
@@ -65,6 +66,7 @@ export class DocumentationFolderComponent {
   tree = signal<TreeNode[]>([]);
   breadcrumbs = signal<Breadcrumb[]>([]);
   subscribeApiId = signal<string | null>(null);
+  readonly currentUser = inject(CurrentUserService).isUserAuthenticated;
 
   constructor(
     private readonly router: Router,
@@ -75,6 +77,16 @@ export class DocumentationFolderComponent {
 
   onSelect(selectedPageId: string) {
     this.navigateToPage(selectedPageId);
+  }
+
+  onSubscribe() {
+    const apiId = this.subscribeApiId();
+    if (apiId) {
+      this.router.navigate(['api', apiId, 'subscribe'], {
+        relativeTo: this.activatedRoute,
+        queryParamsHandling: 'preserve',
+      });
+    }
   }
 
   private loadFolderData(): Observable<FolderData | undefined> {
