@@ -53,4 +53,15 @@
       text-transform: none;
     }
   }
+
+  .capabilities-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+
+    .gio-badge-neutral {
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+  }
 }

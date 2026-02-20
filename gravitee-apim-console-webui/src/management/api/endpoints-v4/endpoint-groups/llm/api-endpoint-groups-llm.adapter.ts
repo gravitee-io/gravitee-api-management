@@ -15,20 +15,33 @@
  */
 import { ApiV4 } from '../../../../../entities/management-api-v2';
 
+export type SupportedEndpoint = 'CHAT_COMPLETIONS' | 'RESPONSES' | 'EMBEDDINGS';
+
+export type InputModality = 'TEXT' | 'IMAGE' | 'AUDIO' | 'VIDEO' | 'DOCUMENT';
+
+export type OutputModality = 'TEXT' | 'IMAGE' | 'AUDIO';
+
 export type Provider = {
   name: string;
   providerConfiguration: ProviderConfiguration;
 };
 
 export type ProviderConfiguration = {
-  provider: 'OPEN_AI_COMPATIBLE' | 'OPEN_AI';
+  provider: 'OPEN_AI_COMPATIBLE' | 'OPEN_AI' | 'GEMINI' | 'BEDROCK';
   models: Model[];
 };
 
 export type Model = {
-  outputPrice?: number;
-  inputPrice?: number;
   name: string;
+  inputPrice?: number;
+  outputPrice?: number;
+  streaming?: boolean;
+  thinking?: boolean;
+  functionCalling?: boolean;
+  contextWindowSize?: number;
+  supportedEndpoints?: SupportedEndpoint[];
+  inputModalities?: InputModality[];
+  outputModalities?: OutputModality[];
 };
 
 export const toProviders = (api: ApiV4): Provider[] => {

@@ -22,7 +22,7 @@ import { combineLatest, EMPTY } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 
-import { Provider, toProviders } from './api-endpoint-groups-llm.adapter';
+import { Model, Provider, toProviders } from './api-endpoint-groups-llm.adapter';
 
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
@@ -67,7 +67,7 @@ export class ApiEndpointGroupsLlmComponent {
     const api = this.api();
     return api?.definitionContext?.origin === 'KUBERNETES' || !canUpdate;
   });
-  public llmProxyDisplayedColumns = ['model', 'costInput', 'costOutput'];
+  public llmProxyDisplayedColumns = ['model', 'capabilities', 'costInput', 'costOutput'];
   private readonly messageLicenseOptions = {
     feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
     context: UTMTags.GENERAL_ENDPOINT_CONFIG,
@@ -127,6 +127,24 @@ export class ApiEndpointGroupsLlmComponent {
 
   public onRequestUpgrade() {
     this.licenseService.openDialog(this.apiType === 'LLM_PROXY' ? this.llmProxyLicenseOptions : this.messageLicenseOptions);
+  }
+
+  public getCapabilityBadges(model: Model): string[] {
+    const badges: string[] = [];
+    if (model.streaming) badges.push('Streaming');
+    if (model.thinking) badges.push('Thinking');
+    if (model.functionCalling) badges.push('Function Calling');
+    if (model.contextWindowSize) badges.push(`${(model.contextWindowSize / 1000).toFixed(0)}k ctx`);
+    for (const ep of model.supportedEndpoints ?? []) {
+      badges.push(ep.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase()));
+    }
+    for (const mod of model.inputModalities ?? []) {
+      badges.push(`In: ${mod.charAt(0) + mod.slice(1).toLowerCase()}`);
+    }
+    for (const mod of model.outputModalities ?? []) {
+      badges.push(`Out: ${mod.charAt(0) + mod.slice(1).toLowerCase()}`);
+    }
+    return badges;
   }
 
   public getProviderTypeDisplayName(providerType: string): string {

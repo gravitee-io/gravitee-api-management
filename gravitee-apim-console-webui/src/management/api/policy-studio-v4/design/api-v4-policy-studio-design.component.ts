@@ -39,6 +39,7 @@ import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { PolicyV2Service } from '../../../../services-ngx/policy-v2.service';
 import { ResourceTypeService } from '../../../../shared/components/form-json-schema-extended/resource-type.service';
+import { EndpointGroupTypeService } from '../../../../shared/components/form-json-schema-extended/endpoint-group-type.service';
 import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
 import { SharedPolicyGroupsService } from '../../../../services-ngx/shared-policy-groups.service';
 import { getApiProtocolTypeFromApi } from '../../../../entities/management-api-v2/plugin/apiProtocolType';
@@ -85,6 +86,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
     private readonly policyV2Service: PolicyV2Service,
     private readonly sharedPolicyGroupsService: SharedPolicyGroupsService,
     private readonly resourceTypeService: ResourceTypeService,
+    private readonly endpointGroupTypeService: EndpointGroupTypeService,
     private readonly gioLicenseService: GioLicenseService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly permissionsService: GioPermissionService,
@@ -171,6 +173,9 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
 
         // Set resources for specific json schema resource type component
         this.resourceTypeService.setResources(api.resources ?? []);
+
+        // Set endpoint groups for specific json schema endpoint group type component
+        this.endpointGroupTypeService.setEndpointGroups(api.endpointGroups ?? []);
 
         this.selectedFlowIndexes.planIndex = Number(params['planIndex'] ?? 0);
         this.selectedFlowIndexes.flowIndex = Number(params['flowIndex'] ?? 0);

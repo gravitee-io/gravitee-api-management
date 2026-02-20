@@ -61,6 +61,18 @@
             </td>
           </ng-container>
 
+          <!-- Capabilities Column -->
+          <ng-container matColumnDef="capabilities">
+            <th mat-header-cell *matHeaderCellDef id="capabilities">Capabilities</th>
+            <td mat-cell *matCellDef="let element">
+              <div class="capabilities-badges">
+                @for (badge of getCapabilityBadges(element); track badge) {
+                  <span class="gio-badge-neutral" [matTooltip]="badge">{{ badge }}</span>
+                }
+              </div>
+            </td>
+          </ng-container>
+
           <!-- Options Column -->
           <ng-container matColumnDef="costInput">
             <th mat-header-cell *matHeaderCellDef id="costInput">Cost per 1m tokens (input) ($)</th>

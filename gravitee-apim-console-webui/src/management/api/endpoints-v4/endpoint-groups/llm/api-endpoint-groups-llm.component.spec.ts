@@ -197,8 +197,84 @@ describe('ApiEndpointGroupsLlmComponent', () => {
 
       const modelsRows = await componentHarness.getModelsTableRows(0);
       expect(modelsRows).toHaveLength(2);
-      expect(modelsRows[0]).toEqual(['gpt-3.5-turbo', '0.001', '0.002']);
-      expect(modelsRows[1]).toEqual(['gpt-4', '0.03', '0.06']);
+      expect(modelsRows[0]).toEqual(['gpt-3.5-turbo', '', '0.001', '0.002']);
+      expect(modelsRows[1]).toEqual(['gpt-4', '', '0.03', '0.06']);
+    });
+  });
+
+  describe('capabilities display tests', () => {
+    it('should display capability badges when model has capabilities', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [
+          {
+            name: 'OpenAI Provider',
+            type: 'llm',
+            endpoints: [
+              {
+                name: 'OpenAI Endpoint',
+                type: 'llm-proxy',
+                configuration: {
+                  provider: 'OPEN_AI',
+                  models: [
+                    {
+                      name: 'gpt-5',
+                      inputPrice: 2.5,
+                      outputPrice: 10.0,
+                      streaming: true,
+                      thinking: true,
+                      functionCalling: true,
+                      contextWindowSize: 128000,
+                      supportedEndpoints: ['CHAT_COMPLETIONS', 'RESPONSES'],
+                      inputModalities: ['TEXT', 'IMAGE'],
+                      outputModalities: ['TEXT'],
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      await initComponent(apiV4);
+
+      const modelsRows = await componentHarness.getModelsTableRows(0);
+      expect(modelsRows).toHaveLength(1);
+      // capabilities column (index 1) should contain badge text
+      expect(modelsRows[0][1]).toContain('Streaming');
+      expect(modelsRows[0][1]).toContain('Thinking');
+      expect(modelsRows[0][1]).toContain('Function Calling');
+      expect(modelsRows[0][1]).toContain('128k ctx');
+    });
+
+    it('should display empty capabilities for models without capabilities (backward compat)', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [
+          {
+            name: 'OpenAI Provider',
+            type: 'llm',
+            endpoints: [
+              {
+                name: 'OpenAI Endpoint',
+                type: 'llm-proxy',
+                configuration: {
+                  provider: 'OPEN_AI',
+                  models: [{ name: 'gpt-4', inputPrice: 0.03, outputPrice: 0.06 }],
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      await initComponent(apiV4);
+
+      const modelsRows = await componentHarness.getModelsTableRows(0);
+      expect(modelsRows).toHaveLength(1);
+      // capabilities column (index 1) should be empty
+      expect(modelsRows[0][1]).toBe('');
     });
   });
 

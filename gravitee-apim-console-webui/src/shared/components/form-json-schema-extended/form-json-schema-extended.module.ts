@@ -27,11 +27,19 @@ import { FORMLY_CONFIG, FormlyModule } from '@ngx-formly/core';
 
 import { ResourceTypeComponent } from './resource-type.component';
 import { ResourceTypeService } from './resource-type.service';
+import { EndpointGroupTypeComponent } from './endpoint-group-type.component';
+import { EndpointGroupModelTypeComponent } from './endpoint-group-model-type.component';
+import { EndpointGroupTypeService } from './endpoint-group-type.service';
+import { LlmProxyApiTypeComponent } from './llm-proxy-api-type.component';
+import { LlmProxyModelTypeComponent } from './llm-proxy-model-type.component';
+import { LlmProxyApiTypeService } from './llm-proxy-api-type.service';
+import { McpProxyApiTypeComponent } from './mcp-proxy-api-type.component';
+import { McpProxyApiTypeService } from './mcp-proxy-api-type.service';
 
 import { GioSafePipeModule } from '../../utils/safe.pipe.module';
 
 @NgModule({
-  declarations: [ResourceTypeComponent],
+  declarations: [ResourceTypeComponent, EndpointGroupTypeComponent, EndpointGroupModelTypeComponent, LlmProxyApiTypeComponent, LlmProxyModelTypeComponent, McpProxyApiTypeComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -51,6 +59,9 @@ import { GioSafePipeModule } from '../../utils/safe.pipe.module';
   exports: [GioFormJsonSchemaModule],
   providers: [
     ResourceTypeService,
+    EndpointGroupTypeService,
+    LlmProxyApiTypeService,
+    McpProxyApiTypeService,
     {
       provide: FORMLY_CONFIG,
       useValue: {
@@ -58,6 +69,26 @@ import { GioSafePipeModule } from '../../utils/safe.pipe.module';
           {
             name: 'resource-type',
             component: ResourceTypeComponent,
+          },
+          {
+            name: 'endpoint-group-type',
+            component: EndpointGroupTypeComponent,
+          },
+          {
+            name: 'endpoint-group-model-type',
+            component: EndpointGroupModelTypeComponent,
+          },
+          {
+            name: 'llm-proxy-api-type',
+            component: LlmProxyApiTypeComponent,
+          },
+          {
+            name: 'llm-proxy-model-type',
+            component: LlmProxyModelTypeComponent,
+          },
+          {
+            name: 'mcp-proxy-api-type',
+            component: McpProxyApiTypeComponent,
           },
         ],
       },
