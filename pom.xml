@@ -271,7 +271,7 @@
         <gravitee-policy-geoip-filtering.version>2.2.2</gravitee-policy-geoip-filtering.version>
         <gravitee-resource-auth-provider-http.version>1.4.0</gravitee-resource-auth-provider-http.version>
         <gravitee-resource-auth-provider-inline.version>1.4.0</gravitee-resource-auth-provider-inline.version>
-        <gravitee-resource-auth-provider-ldap.version>2.0.0</gravitee-resource-auth-provider-ldap.version>
+        <gravitee-resource-auth-provider-ldap.version>2.0.1</gravitee-resource-auth-provider-ldap.version>
         <gravitee-resource-cache-redis.version>4.0.3</gravitee-resource-cache-redis.version>
         <gravitee-resource-oauth2-provider-keycloak.version>3.0.0</gravitee-resource-oauth2-provider-keycloak.version>
         <gravitee-resource-ai-model-text-classification.version>2.2.1</gravitee-resource-ai-model-text-classification.version>
