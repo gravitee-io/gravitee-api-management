@@ -176,6 +176,7 @@
     "lint": {},
     "lint-eslint": {},
     "lint-license": {},
+    "lint-prettier": {},
     "storybook": {
       "executor": "@storybook/angular:start-storybook",
       "options": {

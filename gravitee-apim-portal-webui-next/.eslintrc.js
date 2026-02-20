@@ -17,7 +17,7 @@ module.exports = {
         'plugin:@typescript-eslint/recommended',
         'plugin:@angular-eslint/recommended',
         'plugin:@angular-eslint/template/process-inline-templates',
-        'plugin:prettier/recommended',
+        'prettier',
         'plugin:import/recommended',
         'plugin:import/typescript',
       ],
@@ -90,19 +90,6 @@ module.exports = {
       extends: ['plugin:@angular-eslint/template/recommended', 'plugin:@angular-eslint/template/accessibility'],
       rules: {
         '@angular-eslint/template/prefer-self-closing-tags': ['error'],
-      },
-    },
-    {
-      files: ['*.html'],
-      excludedFiles: ['*inline-template-*.component.html'],
-      extends: ['plugin:prettier/recommended'],
-      rules: {
-        'prettier/prettier': [
-          'error',
-          {
-            parser: 'angular',
-          },
-        ],
       },
     },
   ],

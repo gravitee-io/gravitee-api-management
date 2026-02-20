@@ -27,7 +27,7 @@ module.exports = {
     'plugin:rxjs/recommended',
     'plugin:import/recommended',
     'plugin:import/typescript',
-    'plugin:prettier/recommended',
+    'prettier',
     'plugin:storybook/recommended',
   ],
   reportUnusedDisableDirectives: true,
