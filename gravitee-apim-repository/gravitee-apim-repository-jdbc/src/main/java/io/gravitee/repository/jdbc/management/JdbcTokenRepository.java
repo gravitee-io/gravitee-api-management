@@ -36,7 +36,7 @@ public class JdbcTokenRepository extends JdbcAbstractCrudRepository<Token, Strin
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcTokenRepository.class);
 
-    JdbcTokenRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcTokenRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "tokens");
     }
 

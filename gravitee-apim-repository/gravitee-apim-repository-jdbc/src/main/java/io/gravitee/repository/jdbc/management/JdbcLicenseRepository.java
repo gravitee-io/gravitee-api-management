@@ -37,7 +37,10 @@ public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<Licens
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcLicenseRepository.class);
 
-    JdbcLicenseRepository(@Value("${management.jdbc.prefix:}") String tablePrefix, @Autowired JdbcTemplate jdbcTemplate) {
+    JdbcLicenseRepository(
+        @Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix,
+        @Autowired JdbcTemplate jdbcTemplate
+    ) {
         super(tablePrefix, "licenses");
         this.jdbcTemplate = jdbcTemplate;
     }

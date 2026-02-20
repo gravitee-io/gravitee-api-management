@@ -50,7 +50,7 @@ public class JdbcSharedPolicyGroupRepository
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcSharedPolicyGroupRepository.class);
 
-    JdbcSharedPolicyGroupRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcSharedPolicyGroupRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "sharedpolicygroups");
     }
 

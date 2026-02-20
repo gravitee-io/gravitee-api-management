@@ -50,7 +50,7 @@ public class JdbcNodeMonitoringRepository extends JdbcAbstractRepository<Monitor
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    JdbcNodeMonitoringRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcNodeMonitoringRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "node_monitoring");
     }
 

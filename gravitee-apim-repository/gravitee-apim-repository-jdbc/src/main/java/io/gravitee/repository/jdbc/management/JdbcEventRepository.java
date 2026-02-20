@@ -70,7 +70,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
     private final String EVENT_ENVIRONMENTS;
     private final String EVENT_ORGANIZATIONS;
 
-    JdbcEventRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcEventRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "events");
         EVENT_PROPERTIES = getTableNameFor("event_properties");
         EVENT_ENVIRONMENTS = getTableNameFor("event_environments");

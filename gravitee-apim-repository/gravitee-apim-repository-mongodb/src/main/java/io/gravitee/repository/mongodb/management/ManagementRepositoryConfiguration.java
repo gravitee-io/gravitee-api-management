@@ -65,7 +65,7 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
 
     @Bean(name = "managementMongo")
     public MongoFactory mongoFactory(Environment environment) {
-        return new MongoFactory(environment, Scope.MANAGEMENT.getName());
+        return new MongoFactory(environment, "repositories." + Scope.MANAGEMENT.getName());
     }
 
     @Override
@@ -98,5 +98,10 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    @Override
+    public String getScope() {
+        return Scope.MANAGEMENT.getName();
     }
 }

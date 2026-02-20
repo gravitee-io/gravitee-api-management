@@ -370,7 +370,8 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         int idx = 0;
 
         while (found) {
-            String serverHost = environment.getProperty(propertyPrefix + getServerWithIndex(idx++) + ".host");
+            // Use readPropertyValue instead of environment.getProperty to benefit from fallback logic
+            String serverHost = readPropertyValue(propertyPrefix + getServerWithIndex(idx++) + ".host", String.class);
             found = (serverHost != null);
         }
 
@@ -378,7 +379,8 @@ public class MongoFactory implements FactoryBean<MongoClient> {
     }
 
     private ServerAddress buildServerAddress(int idx) {
-        String host = environment.getProperty(propertyPrefix + getServerWithIndex(idx) + ".host");
+        // Use readPropertyValue to ensure consistency
+        String host = readPropertyValue(propertyPrefix + getServerWithIndex(idx) + ".host", String.class);
         int port = readPropertyValue(propertyPrefix + getServerWithIndex(idx) + ".port", int.class, 27017);
 
         return new ServerAddress(host, port);
@@ -414,12 +416,19 @@ public class MongoFactory implements FactoryBean<MongoClient> {
     }
 
     private <T> T readPropertyValue(String propertyName, Class<T> propertyType, T defaultValue) {
-        T value;
-        if (defaultValue == null) {
-            value = environment.getProperty(propertyName, propertyType);
-        } else {
-            value = environment.getProperty(propertyName, propertyType, defaultValue);
+        T value = environment.getProperty(propertyName, propertyType);
+
+        // If not found and we are using the new hierarchical path, fallback to legacy
+        if (value == null && propertyName.startsWith("repositories.")) {
+            // Example: repositories.management.mongodb.uri -> management.mongodb.uri
+            String legacyKey = propertyName.substring("repositories.".length());
+            value = environment.getProperty(legacyKey, propertyType);
         }
+
+        if (value == null) {
+            value = defaultValue;
+        }
+
         logger.debug("Read property {}: {}", propertyName, value);
         return value;
     }

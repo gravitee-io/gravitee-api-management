@@ -164,14 +164,22 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
     public JdbcTestRepositoryInitializer(DataSource dataSource, Properties graviteeProperties) {
         LOGGER.debug("Constructed");
         this.dataSource = dataSource;
-        this.prefix = graviteeProperties.getProperty("management.jdbc.prefix", "");
-        this.rateLimitPrefix = graviteeProperties.getProperty("ratelimit.jdbc.prefix", "");
+        this.prefix = getProperty(graviteeProperties, "management", "jdbc.prefix", "");
+        this.rateLimitPrefix = getProperty(graviteeProperties, "ratelimit", "jdbc.prefix", "");
         final JdbcTemplate jt = new JdbcTemplate(dataSource);
         for (String table : tablesToDrop) {
             LOGGER.debug("Dropping {}", table);
             jt.execute("drop table if exists " + escapeReservedWord(prefix + table));
         }
         jt.execute("drop table if exists " + escapeReservedWord(rateLimitPrefix + "ratelimit"));
+    }
+
+    private String getProperty(Properties properties, String scope, String key, String defaultValue) {
+        String value = properties.getProperty("repositories." + scope + "." + key);
+        if (value != null) {
+            return value;
+        }
+        return properties.getProperty(scope + "." + key, defaultValue);
     }
 
     private static <T> List<T> concatenate(List<T> first, List<T> second) {

@@ -32,7 +32,7 @@ public class JdbcScoringFunctionRepository
     extends JdbcAbstractCrudRepository<ScoringFunction, String>
     implements ScoringFunctionRepository {
 
-    JdbcScoringFunctionRepository(@Value("${management.jdbc.prefix:}") String prefix) {
+    JdbcScoringFunctionRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String prefix) {
         super(prefix, "scoring_functions");
     }
 

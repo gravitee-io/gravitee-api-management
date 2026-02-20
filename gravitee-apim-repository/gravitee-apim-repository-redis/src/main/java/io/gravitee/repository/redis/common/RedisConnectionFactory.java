@@ -309,7 +309,17 @@ public class RedisConnectionFactory {
     }
 
     private <T> T readPropertyValue(String propertyName, Class<T> propertyType, T defaultValue) {
-        T value = environment.getProperty(propertyName, propertyType, defaultValue);
+        T value = environment.getProperty(propertyName, propertyType);
+
+        if (value == null && propertyName.startsWith("repositories.")) {
+            String legacyKey = propertyName.substring("repositories.".length());
+            value = environment.getProperty(legacyKey, propertyType);
+        }
+
+        if (value == null) {
+            value = defaultValue;
+        }
+
         log.debug("Read property {}: {}", propertyName, value);
         return value;
     }

@@ -7,13 +7,13 @@ tests:
     asserts:
       - notMatchRegex:
           path: data["gravitee.yml"]
-          pattern: |
-            api:
-              properties:
+          pattern: "api:\n\\s+properties:"
+
   - it: Set the API properties
     template: api/api-configmap.yaml
     set:
       api:
+        enabled: true
         api:
           properties:
             encryption:
@@ -21,8 +21,22 @@ tests:
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: |
-            api:
-              properties:
-                encryption:
-                  secret: aSecret
+          pattern: "(?s)api:.*?properties:.*?encryption:.*?secret: aSecret"
+
+  - it: should prioritize new repositories hierarchy over legacy management
+    template: api/api-configmap.yaml
+    set:
+      api:
+        enabled: true
+      repositories:
+        management:
+          type: mongodb
+          mongodb:
+            uri: mongodb://new-path:27017/db
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "(?s)repositories:.*?management:.*?uri: mongodb://new-path:27017/db"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "(?m)^management:"

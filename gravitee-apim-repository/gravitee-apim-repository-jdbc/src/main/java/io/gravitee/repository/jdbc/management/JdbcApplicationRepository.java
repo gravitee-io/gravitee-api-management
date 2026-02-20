@@ -73,7 +73,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
 
     private static final GroupRowMapper GROUP_MAPPER = new GroupRowMapper();
 
-    JdbcApplicationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcApplicationRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "applications");
         APPLICATION_GROUPS = getTableNameFor("application_groups");
         APPLICATION_METADATA = getTableNameFor("application_metadata");

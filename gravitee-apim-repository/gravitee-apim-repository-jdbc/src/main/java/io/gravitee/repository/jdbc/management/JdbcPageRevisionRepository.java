@@ -41,7 +41,7 @@ public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<Pa
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPageRevisionRepository.class);
 
-    JdbcPageRevisionRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcPageRevisionRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "page_revisions");
     }
 

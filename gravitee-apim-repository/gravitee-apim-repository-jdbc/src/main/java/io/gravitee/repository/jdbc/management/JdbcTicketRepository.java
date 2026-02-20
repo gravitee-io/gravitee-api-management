@@ -41,7 +41,7 @@ public class JdbcTicketRepository extends JdbcAbstractCrudRepository<Ticket, Str
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcTicketRepository.class);
 
-    JdbcTicketRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcTicketRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "tickets");
     }
 

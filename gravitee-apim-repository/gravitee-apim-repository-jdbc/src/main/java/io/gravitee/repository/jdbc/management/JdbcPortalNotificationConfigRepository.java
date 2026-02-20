@@ -49,7 +49,7 @@ public class JdbcPortalNotificationConfigRepository
     private final String PORTAL_NOTIFICATION_CONFIG_HOOKS;
     private final String PORTAL_NOTIFICATION_CONFIG_GROUPS;
 
-    JdbcPortalNotificationConfigRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcPortalNotificationConfigRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "portal_notification_configs");
         PORTAL_NOTIFICATION_CONFIG_HOOKS = getTableNameFor("portal_notification_config_hooks");
         PORTAL_NOTIFICATION_CONFIG_GROUPS = getTableNameFor("portal_notification_config_groups");

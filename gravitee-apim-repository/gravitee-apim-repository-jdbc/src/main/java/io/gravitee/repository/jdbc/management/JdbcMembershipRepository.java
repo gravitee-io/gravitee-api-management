@@ -46,7 +46,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcMembershipRepository.class);
 
-    JdbcMembershipRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcMembershipRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "memberships");
     }
 

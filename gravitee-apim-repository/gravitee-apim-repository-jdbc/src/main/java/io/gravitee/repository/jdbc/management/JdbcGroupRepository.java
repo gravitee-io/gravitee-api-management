@@ -51,7 +51,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
     private final String GROUP_EVENT_RULES;
     private final String ENVIRONMENTS;
 
-    JdbcGroupRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcGroupRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "groups");
         GROUP_EVENT_RULES = getTableNameFor("group_event_rules");
         ENVIRONMENTS = getTableNameFor("environments");

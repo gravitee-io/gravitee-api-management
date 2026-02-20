@@ -43,7 +43,7 @@ public class JdbcTenantRepository extends JdbcAbstractCrudRepository<Tenant, Str
 
     private final Logger LOGGER = LoggerFactory.getLogger(JdbcTenantRepository.class);
 
-    JdbcTenantRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcTenantRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "tenants");
     }
 

@@ -37,7 +37,7 @@ public class JdbcPortalMenuLinkRepository extends JdbcAbstractCrudRepository<Por
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPortalMenuLinkRepository.class);
 
-    JdbcPortalMenuLinkRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcPortalMenuLinkRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "portal_menu_links");
     }
 

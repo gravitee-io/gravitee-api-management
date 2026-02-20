@@ -46,7 +46,7 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
 
     private final String TAG_GROUPS;
 
-    JdbcTagRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcTagRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "tags");
         TAG_GROUPS = getTableNameFor("tag_groups");
     }

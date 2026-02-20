@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.common;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -27,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.env.MockEnvironment;
+import org.springframework.test.util.ReflectionTestUtils;
 
 public class MongoFactoryTest {
 
@@ -335,5 +337,42 @@ public class MongoFactoryTest {
     @Test
     public void isSingletonShouldReturnTrue() {
         assertThat(mongoFactory.isSingleton()).isTrue();
+    }
+
+    @Test
+    public void shouldReadHierarchicalProperty() {
+        String withRepoPrefix = "repositories.management.mongodb.host";
+        String expectedValue = "New Prefix";
+        environment.setProperty(withRepoPrefix, expectedValue);
+
+        // WHEN: We call the private method using Spring Reflection
+        String actualValue = ReflectionTestUtils.invokeMethod(
+            mongoFactory,
+            "readPropertyValue",
+            withRepoPrefix,
+            String.class,
+            "default-value"
+        );
+
+        assertEquals("Should prioritize hierarchical property over default", expectedValue, actualValue);
+    }
+
+    @Test
+    public void shouldFallbackToLegacyProperty() {
+        String withRepoPrefix = "repositories.management.mongodb.host";
+        String legacyKey = "management.mongodb.host"; // The key after stripping "repositories."
+        String expectedLegacyValue = "legacy-host";
+
+        environment.setProperty(legacyKey, expectedLegacyValue);
+
+        String actualValue = ReflectionTestUtils.invokeMethod(
+            mongoFactory,
+            "readPropertyValue",
+            withRepoPrefix,
+            String.class,
+            "default-value"
+        );
+
+        assertEquals("Should fallback to legacy property when hierarchical is missing", expectedLegacyValue, actualValue);
     }
 }

@@ -44,7 +44,7 @@ public class JdbcThemeRepository extends JdbcAbstractCrudRepository<Theme, Strin
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcThemeRepository.class);
 
-    JdbcThemeRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcThemeRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "themes");
     }
 

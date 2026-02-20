@@ -42,7 +42,7 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcAsyncJobRepository.class);
 
-    JdbcAsyncJobRepository(@Value("${management.jdbc.prefix:}") String prefix) {
+    JdbcAsyncJobRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String prefix) {
         super(prefix, "asyncjobs");
     }
 

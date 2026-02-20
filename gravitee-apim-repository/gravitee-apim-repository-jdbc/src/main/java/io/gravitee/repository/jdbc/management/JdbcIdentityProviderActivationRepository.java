@@ -38,7 +38,9 @@ public class JdbcIdentityProviderActivationRepository
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcIdentityProviderActivationRepository.class);
 
-    JdbcIdentityProviderActivationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcIdentityProviderActivationRepository(
+        @Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix
+    ) {
         super(tablePrefix, "identity_provider_activations");
     }
 

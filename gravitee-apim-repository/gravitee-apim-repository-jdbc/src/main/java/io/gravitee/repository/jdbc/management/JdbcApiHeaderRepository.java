@@ -38,7 +38,7 @@ public class JdbcApiHeaderRepository extends JdbcAbstractCrudRepository<ApiHeade
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiHeaderRepository.class);
 
-    JdbcApiHeaderRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcApiHeaderRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "api_headers");
     }
 

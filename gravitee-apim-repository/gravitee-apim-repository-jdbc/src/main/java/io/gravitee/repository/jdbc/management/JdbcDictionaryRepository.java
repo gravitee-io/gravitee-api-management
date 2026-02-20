@@ -61,7 +61,7 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcDictionaryRepository.class);
     private final String DICTIONARY_PROPERTY;
 
-    JdbcDictionaryRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcDictionaryRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "dictionaries");
         DICTIONARY_PROPERTY = getTableNameFor("dictionary_property");
     }

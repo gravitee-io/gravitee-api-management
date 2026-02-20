@@ -43,7 +43,7 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcRatingRepository.class);
 
-    JdbcRatingRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcRatingRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "ratings");
     }
 

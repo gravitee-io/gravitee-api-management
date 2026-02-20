@@ -36,7 +36,7 @@ public class JdbcQualityRuleRepository extends JdbcAbstractCrudRepository<Qualit
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcQualityRuleRepository.class);
 
-    JdbcQualityRuleRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcQualityRuleRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "quality_rules");
     }
 

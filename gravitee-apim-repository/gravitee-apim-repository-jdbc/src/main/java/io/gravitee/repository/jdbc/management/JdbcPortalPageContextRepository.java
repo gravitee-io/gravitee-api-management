@@ -37,7 +37,7 @@ public class JdbcPortalPageContextRepository
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPortalPageContextRepository.class);
 
-    JdbcPortalPageContextRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcPortalPageContextRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "portal_page_contexts");
     }
 

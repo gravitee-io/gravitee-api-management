@@ -45,7 +45,7 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
     private final Logger LOGGER = LoggerFactory.getLogger(JdbcAlertRepository.class);
     private final String ALERT_EVENT_RULES;
 
-    JdbcAlertRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcAlertRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "alert_triggers");
         ALERT_EVENT_RULES = getTableNameFor("alert_event_rules");
     }

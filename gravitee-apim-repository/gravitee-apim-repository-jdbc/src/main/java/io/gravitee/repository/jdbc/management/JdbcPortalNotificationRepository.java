@@ -40,7 +40,7 @@ public class JdbcPortalNotificationRepository
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPortalNotificationRepository.class);
 
-    JdbcPortalNotificationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcPortalNotificationRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "portal_notifications");
     }
 

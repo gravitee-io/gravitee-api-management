@@ -39,7 +39,7 @@ public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypo
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcEntryPointRepository.class);
 
-    JdbcEntryPointRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcEntryPointRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "entrypoints");
     }
 

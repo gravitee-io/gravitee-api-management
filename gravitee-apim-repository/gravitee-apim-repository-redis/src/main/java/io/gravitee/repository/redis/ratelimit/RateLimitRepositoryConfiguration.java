@@ -21,7 +21,6 @@ import io.gravitee.repository.redis.vertx.RedisClient;
 import io.vertx.core.Vertx;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 
@@ -36,10 +35,21 @@ public class RateLimitRepositoryConfiguration {
 
     @Bean("redisRateLimitClient")
     public RedisClient redisRedisClient(Environment environment, Vertx vertx) {
+        String scope = Scope.RATE_LIMIT.getName();
+        String prefix = "repositories." + scope;
+
+        if (
+            !environment.containsProperty(prefix + ".redis.host") &&
+            !environment.containsProperty(prefix + ".redis.endpoints[0]") &&
+            !environment.containsProperty(prefix + ".redis.sentinel.nodes[0].host")
+        ) {
+            prefix = scope;
+        }
+
         return new RedisConnectionFactory(
             environment,
             vertx,
-            Scope.RATE_LIMIT.getName(),
+            prefix,
             Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA)
         ).createRedisClient();
     }
@@ -47,8 +57,17 @@ public class RateLimitRepositoryConfiguration {
     @Bean
     public RedisRateLimitRepository redisRateLimitRepository(
         @Qualifier("redisRateLimitClient") RedisClient redisClient,
-        @Value("${ratelimit.redis.operation.timeout:10}") int operationTimeout
+        Environment environment
     ) {
+        String scope = Scope.RATE_LIMIT.getName();
+        String newPath = "repositories." + scope + ".redis.operation.timeout";
+        String oldPath = scope + ".redis.operation.timeout";
+
+        Integer operationTimeout = environment.getProperty(newPath, Integer.class);
+        if (operationTimeout == null) {
+            operationTimeout = environment.getProperty(oldPath, Integer.class, 10);
+        }
+
         return new RedisRateLimitRepository(redisClient, operationTimeout);
     }
 }

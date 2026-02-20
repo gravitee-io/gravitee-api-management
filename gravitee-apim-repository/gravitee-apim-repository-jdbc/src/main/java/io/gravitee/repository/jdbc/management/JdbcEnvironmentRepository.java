@@ -41,7 +41,7 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
 
     private final String ENVIRONMENT_HRIDS;
 
-    JdbcEnvironmentRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcEnvironmentRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "environments");
         ENVIRONMENT_HRIDS = getTableNameFor("environment_hrids");
     }

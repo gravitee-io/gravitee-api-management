@@ -51,7 +51,9 @@ public class JdbcGenericNotificationConfigRepository
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcGenericNotificationConfigRepository.class);
     private final String GENERIC_NOTIFICATION_CONFIG_HOOKS;
 
-    JdbcGenericNotificationConfigRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcGenericNotificationConfigRepository(
+        @Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix
+    ) {
         super(tablePrefix, "generic_notification_configs");
         GENERIC_NOTIFICATION_CONFIG_HOOKS = getTableNameFor("generic_notification_config_hooks");
     }

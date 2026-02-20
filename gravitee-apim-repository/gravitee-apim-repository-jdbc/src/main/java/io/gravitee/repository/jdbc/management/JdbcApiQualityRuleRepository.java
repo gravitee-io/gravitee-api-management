@@ -41,7 +41,7 @@ public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiQualityRuleRepository.class);
 
-    JdbcApiQualityRuleRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcApiQualityRuleRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "api_quality_rules");
     }
 

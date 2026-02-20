@@ -29,4 +29,9 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: 
+  artifacthub.io/changes: |
+    - kind: added
+      description: 'Introduce hierarchical repository configuration. All repository settings for Management, Analytics, and Rate-limit should now be defined under "repositories.<scope>.<plugin>". Legacy top-level keys are still supported but deprecated.'
+      links:
+        - name: GitHub Issue
+          url: https://github.com/gravitee-io/issues/issues/11302

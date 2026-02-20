@@ -78,7 +78,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     private final String API_LABELS;
     private final String API_GROUPS;
 
-    JdbcApiRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcApiRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "apis");
         API_CATEGORIES = getTableNameFor("api_categories");
         API_LABELS = getTableNameFor("api_labels");

@@ -41,7 +41,9 @@ public class JdbcClientRegistrationProviderRepository
 
     private final String CLIENT_REGISTRATION_PROVIDER_SCOPES;
 
-    JdbcClientRegistrationProviderRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcClientRegistrationProviderRepository(
+        @Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix
+    ) {
         super(tablePrefix, "client_registration_providers");
         CLIENT_REGISTRATION_PROVIDER_SCOPES = getTableNameFor("client_registration_provider_scopes");
     }

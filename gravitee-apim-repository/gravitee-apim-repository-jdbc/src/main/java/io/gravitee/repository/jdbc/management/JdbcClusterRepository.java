@@ -47,7 +47,7 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
 
     private final String CLUSTER_GROUPS;
 
-    JdbcClusterRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcClusterRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "clusters");
         CLUSTER_GROUPS = getTableNameFor("cluster_groups");
     }

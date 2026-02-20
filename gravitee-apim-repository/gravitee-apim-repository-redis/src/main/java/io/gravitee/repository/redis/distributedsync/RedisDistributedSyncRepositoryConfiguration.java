@@ -34,7 +34,12 @@ public class RedisDistributedSyncRepositoryConfiguration {
 
     @Bean("redisDistributedSyncClient")
     public RedisClient redisRedisClient(Environment environment, Vertx vertx) {
-        return new RedisConnectionFactory(environment, vertx, Scope.DISTRIBUTED_SYNC.getName(), Map.of()).createRedisClient();
+        return new RedisConnectionFactory(
+            environment,
+            vertx,
+            "repositories." + Scope.DISTRIBUTED_SYNC.getName(),
+            Map.of()
+        ).createRedisClient();
     }
 
     @Bean

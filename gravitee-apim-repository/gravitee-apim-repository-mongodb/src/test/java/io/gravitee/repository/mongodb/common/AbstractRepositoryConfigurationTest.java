@@ -35,7 +35,12 @@ public class AbstractRepositoryConfigurationTest {
     @Before
     public void setUp() throws Exception {
         environment = new MockEnvironment();
-        abstractRepositoryConfiguration = new AbstractRepositoryConfiguration(environment, applicationContext) {};
+        abstractRepositoryConfiguration = new AbstractRepositoryConfiguration(environment, applicationContext) {
+            @Override
+            public String getScope() {
+                return "management";
+            }
+        };
     }
 
     @Test

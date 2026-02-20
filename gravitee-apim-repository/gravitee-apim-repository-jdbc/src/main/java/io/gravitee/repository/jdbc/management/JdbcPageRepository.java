@@ -57,7 +57,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     private final String PAGE_METADATA;
     private final String PAGE_ACL;
 
-    JdbcPageRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcPageRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "pages");
         PAGE_ATTACHED_MEDIA = getTableNameFor("page_attached_media");
         PAGE_CONFIGURATION = getTableNameFor("page_configuration");

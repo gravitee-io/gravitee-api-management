@@ -236,6 +236,35 @@ notifiers:
     #   keyStore:
     #   keyStorePassword:
 
+# Consolidated hierarchical structure for Management, Analytics, and Rate-limit storage.
+#repositories:
+#  management:
+#    type: mongodb
+#    mongodb:
+#      dbhost: graviteeio-apim-mongodb-replicaset-headless
+#      dbname: gravitee
+#      dbport: 27017
+#      sslEnabled: false
+#      rsEnabled: true
+#      rs: rs0
+#      connectTimeoutMS: 30000
+#      auth:
+#        enabled: false
+#        source: admin
+#  analytics:
+#    type: elasticsearch
+#    elasticsearch:
+#      endpoints:
+#        - http://graviteeio-apim-elasticsearch-ingest-hl:9200
+#      index: gravitee
+#      index_mode: daily
+#  ratelimit:
+#    type: mongodb
+#    mongodb:
+#      dbhost: graviteeio-apim-mongodb-replicaset-headless
+#      dbname: gravitee
+#      dbport: 27017
+
 mongo:
   # uri: mongodb://graviteeio-apim-mongodb-replicaset-headless:27017/gravitee?replicaset=rs0&connectTimeoutMS=30000
   # servers: |
