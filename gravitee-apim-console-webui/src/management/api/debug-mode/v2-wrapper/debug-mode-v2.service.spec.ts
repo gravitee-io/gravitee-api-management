@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { HttpTestingController } from '@angular/common/http/testing';
-import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { discardPeriodicTasks, fakeAsync, TestBed, tick } from '@angular/core/testing';
 
 import { DebugModeV2Service } from './debug-mode-v2.service';
 
@@ -24,6 +24,7 @@ import { toApiDefinition } from '../../policy-studio-v2/models/ApiDefinition';
 import { RequestPolicyDebugStep, ResponsePolicyDebugStep } from '../models/DebugStep';
 import { fakeDebugEvent } from '../models/DebugEvent.fixture';
 import { fakeApiV2 } from '../../../../entities/management-api-v2';
+import { DEBUG_EVENT_FAILED_ERROR } from '../debug-mode.service';
 
 describe('DebugModeV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -305,15 +306,16 @@ describe('DebugModeV2Service', () => {
 
       expectSendDebugEvent(eventId);
       tick(1000);
-      expectGetDebugEvent(eventId, false);
+      expectGetDebugEvent(eventId, 'DEBUGGING');
       tick(1000);
-      expectGetDebugEvent(eventId, true);
+      expectGetDebugEvent(eventId, 'SUCCESS');
       tick(1000);
 
       expect(done).toEqual(true);
     }));
 
-    it('should return some empty data when timeout is reached', fakeAsync(() => {
+    it('should keep polling beyond 10 seconds and not auto-complete', fakeAsync(() => {
+      const eventId = 'eventId';
       let done = false;
       debugModeV2Service
         .debug({
@@ -322,33 +324,50 @@ describe('DebugModeV2Service', () => {
           headers: [],
           path: '',
         })
-        .subscribe((response) => {
-          expect(response).toStrictEqual({
-            isLoading: false,
-            executionMode: null,
-            reachedTimeout: true,
-            request: {},
-            response: {},
-            responsePolicyDebugSteps: [],
-            backendResponse: {},
-            requestPolicyDebugSteps: [],
-            preprocessorStep: {},
-            requestDebugSteps: {},
-            responseDebugSteps: {},
-          });
+        .subscribe(() => {
           done = true;
         });
 
-      httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`).flush(api);
+      expectSendDebugEvent(eventId);
 
-      // Expect without flushing to wait for the timeout
-      httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/_debug`,
+      for (let i = 0; i < 11; i++) {
+        tick(1000);
+        expectGetDebugEvent(eventId, 'DEBUGGING');
+      }
+
+      expect(done).toEqual(false);
+      discardPeriodicTasks();
+    }));
+
+    it('should stop polling and throw an error when debug event status is error', fakeAsync(() => {
+      const eventId = 'eventId';
+      let error: Error;
+
+      debugModeV2Service
+        .debug({
+          method: 'GET',
+          body: '',
+          headers: [],
+          path: '',
+        })
+        .subscribe({
+          error: (err) => {
+            error = err;
+          },
+        });
+
+      expectSendDebugEvent(eventId);
+      tick(1000);
+      expectGetDebugEvent(eventId, 'ERROR');
+      tick();
+
+      expect(error.message).toEqual(DEBUG_EVENT_FAILED_ERROR);
+
+      tick(5000);
+      httpTestingController.expectNone({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/events/${eventId}`,
       });
-
-      tick(10000);
-      expect(done).toEqual(true);
     }));
   });
 
@@ -363,7 +382,7 @@ describe('DebugModeV2Service', () => {
       .flush({ id: eventId });
   }
 
-  function expectGetDebugEvent(eventId: string, success: boolean) {
+  function expectGetDebugEvent(eventId: string, status: 'SUCCESS' | 'ERROR' | 'DEBUGGING') {
     httpTestingController
       .expectOne({
         method: 'GET',
@@ -372,7 +391,7 @@ describe('DebugModeV2Service', () => {
       .flush({
         type: 'DEBUG_API',
         properties: {
-          api_debug_status: success ? 'SUCCESS' : 'FAILED',
+          api_debug_status: status,
         },
         payload: JSON.stringify(fakeDebugEvent().payload),
       });

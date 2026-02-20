@@ -16,93 +16,75 @@
 
 -->
 <div class="debug-mode-response">
-  <ng-container *ngIf="!debugResponse; then emptyResponse"></ng-container>
-  <ng-container *ngIf="!!debugResponse && debugResponse.isLoading; then loadingResponse"></ng-container>
-  <ng-container *ngIf="!!debugResponse && !debugResponse.isLoading && !debugResponse.reachedTimeout; then displayResponse"></ng-container>
-  <ng-container
-    *ngIf="!!debugResponse && !debugResponse.isLoading && !debugResponse.reachedTimeout && !inspectorVM; then inspectorHelper"
-  ></ng-container>
-  <ng-container *ngIf="!!debugResponse && !debugResponse.isLoading && debugResponse.reachedTimeout; then reachedTimeout"></ng-container>
+  @if (!debugResponse) {
+    <!-- Empty Response -->
+    <div class="debug-mode-response__empty-response">
+      <gv-icon class="debug-mode-response__empty-response__icon" shape="editor:format_align_left"></gv-icon>
+      <h5>Define and run the request you want to test!</h5>
+    </div>
+  } @else if (debugResponse.isLoading) {
+    <!-- Loading Response -->
+    <div class="debug-mode-response__loading-response">
+      <gv-icon class="debug-mode-response__loading-response__icon" shape="communication:sending"></gv-icon>
+      <h5>Request in progress!</h5>
+      <p *ngIf="showLongRequestWarning" class="debug-mode-response__loading-response__long-request-warning">
+        The debug request has taken more than 20 seconds. It is unlikely that a response will be received, but we will continue waiting.
+      </p>
+    </div>
+  } @else {
+    <!-- Display Response -->
+    <div class="debug-mode-response__display-response__header">
+      <div>Response</div>
+      <div
+        class="debug-mode-response__display-response__header__status"
+        [class.status-success]="responseDisplayableVM.successfulRequest"
+        [class.status-error]="responseDisplayableVM.errorRequest"
+      >
+        {{ responseDisplayableVM.statusCode }} - {{ responseDisplayableVM.statusCodeDescription }}
+      </div>
+      <div class="debug-mode-response__display-response__header__method" [ngClass]="responseDisplayableVM.methodBadgeCSSClass">
+        {{ debugResponse.request.method }}
+      </div>
+      <div class="debug-mode-response__display-response__header__path">{{ debugResponse.request.path }}</div>
+    </div>
+    <div>
+      <debug-mode-timeline
+        [nbPoliciesRequest]="debugResponse.requestPolicyDebugSteps.length"
+        [nbPoliciesResponse]="debugResponse.responsePolicyDebugSteps.length"
+        [metrics]="debugResponse.metrics"
+      >
+        <debug-mode-timeline-card
+          *ngFor="let timelineStep of responseDisplayableVM.timelineSteps"
+          [id]="'card_' + timelineStep.id"
+          [timelineStep]="timelineStep"
+          (click)="onSelectTimelineStep(timelineStep)"
+        ></debug-mode-timeline-card>
+      </debug-mode-timeline>
+    </div>
+    <div>
+      <debug-mode-timeline-overview
+        [timelineSteps]="responseDisplayableVM.timelineSteps"
+        (selected)="onSelectTimelineStepOverview($event)"
+      ></debug-mode-timeline-overview>
+    </div>
+    <div>
+      <debug-mode-timeline-legend></debug-mode-timeline-legend>
+    </div>
+
+    <debug-mode-inspector
+      class="debug-mode-response__display-response__inspector"
+      *ngIf="inspectorVM"
+      [inputDebugStep]="inspectorVM.input"
+      [outputDebugStep]="inspectorVM.output"
+      [executionStatus]="inspectorVM.executionStatus"
+    >
+    </debug-mode-inspector>
+    @if (inspectorVM == null) {
+      <!-- Display timeline helper text -->
+      <div class="debug-mode-response__inspector-helper">
+        <gv-icon class="debug-mode-response__inspector-helper__icon" shape="general:search"></gv-icon>
+        <h5>Select a step in the timeline to compare its inputs and outputs</h5>
+      </div>
+    }
+  }
 </div>
-
-<!-- Empty Response -->
-<ng-template #emptyResponse>
-  <div class="debug-mode-response__empty-response">
-    <gv-icon class="debug-mode-response__empty-response__icon" shape="editor:format_align_left"></gv-icon>
-    <h5>Define and run the request you want to test!</h5>
-  </div>
-</ng-template>
-
-<!-- Loading Response -->
-<ng-template #loadingResponse>
-  <div class="debug-mode-response__loading-response">
-    <gv-icon class="debug-mode-response__loading-response__icon" shape="communication:sending"></gv-icon>
-    <h5>Request in progress!</h5>
-  </div>
-</ng-template>
-
-<!-- Debug request ended in timeout -->
-<ng-template #reachedTimeout>
-  <div class="debug-mode-response__reached-timeout">
-    <gv-icon class="debug-mode-response__reached-timeout__icon" shape="devices:lte#2"></gv-icon>
-    <h5>Bad news, it looks like your request was lost in space. Please try again.</h5>
-  </div>
-</ng-template>
-
-<!-- Display timeline helper text -->
-<ng-template #inspectorHelper>
-  <div class="debug-mode-response__inspector-helper">
-    <gv-icon class="debug-mode-response__inspector-helper__icon" shape="general:search"></gv-icon>
-    <h5>Select a step in the timeline to compare its inputs and outputs</h5>
-  </div>
-</ng-template>
-
-<!-- Display Response -->
-<ng-template #displayResponse>
-  <div class="debug-mode-response__display-response__header">
-    <div>Response</div>
-    <div
-      class="debug-mode-response__display-response__header__status"
-      [class.status-success]="responseDisplayableVM.successfulRequest"
-      [class.status-error]="responseDisplayableVM.errorRequest"
-    >
-      {{ responseDisplayableVM.statusCode }} - {{ responseDisplayableVM.statusCodeDescription }}
-    </div>
-    <div class="debug-mode-response__display-response__header__method" [ngClass]="responseDisplayableVM.methodBadgeCSSClass">
-      {{ debugResponse.request.method }}
-    </div>
-    <div class="debug-mode-response__display-response__header__path">{{ debugResponse.request.path }}</div>
-  </div>
-  <div>
-    <debug-mode-timeline
-      [nbPoliciesRequest]="debugResponse.requestPolicyDebugSteps.length"
-      [nbPoliciesResponse]="debugResponse.responsePolicyDebugSteps.length"
-      [metrics]="debugResponse.metrics"
-    >
-      <debug-mode-timeline-card
-        *ngFor="let timelineStep of responseDisplayableVM.timelineSteps"
-        [id]="'card_' + timelineStep.id"
-        [timelineStep]="timelineStep"
-        (click)="onSelectTimelineStep(timelineStep)"
-      ></debug-mode-timeline-card>
-    </debug-mode-timeline>
-  </div>
-  <div>
-    <debug-mode-timeline-overview
-      [timelineSteps]="responseDisplayableVM.timelineSteps"
-      (selected)="onSelectTimelineStepOverview($event)"
-    ></debug-mode-timeline-overview>
-  </div>
-  <div>
-    <debug-mode-timeline-legend></debug-mode-timeline-legend>
-  </div>
-
-  <debug-mode-inspector
-    class="debug-mode-response__display-response__inspector"
-    *ngIf="inspectorVM"
-    [inputDebugStep]="inspectorVM.input"
-    [outputDebugStep]="inspectorVM.output"
-    [executionStatus]="inspectorVM.executionStatus"
-  >
-  </debug-mode-inspector>
-</ng-template>
