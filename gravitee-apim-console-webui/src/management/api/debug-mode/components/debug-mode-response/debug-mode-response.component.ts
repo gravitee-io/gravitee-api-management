@@ -45,6 +45,9 @@ export class DebugModeResponseComponent implements OnChanges {
   @Input()
   public listPolicies?: PolicyListItem[];
 
+  @Input()
+  public showLongRequestWarning = false;
+
   public responseDisplayableVM: ResponseDisplayableVM;
 
   public inspectorVM: {

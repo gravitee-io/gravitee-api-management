@@ -29,18 +29,23 @@ import { DebugModeModule } from './debug-mode.module';
 import { fakeDebugEvent } from './models/DebugEvent.fixture';
 import { DebugModeV2Service } from './v2-wrapper/debug-mode-v2.service';
 import { DebugModeV4Service } from './v4-wrapper/debug-mode-v4.service';
-import { DebugModeService } from './debug-mode.service';
+import { DEBUG_EVENT_FAILED_MESSAGE, DebugModeService } from './debug-mode.service';
 
 import { PolicyStudioService } from '../policy-studio-v2/policy-studio.service';
 import { fakePolicyListItem } from '../../../entities/policy';
 import { fakeApiV2, fakeApiV4 } from '../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { toApiDefinition } from '../policy-studio-v2/models/ApiDefinition';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+
+const LONG_REQUEST_WARNING_TEXT =
+  'The debug request has taken more than 20 seconds. It is unlikely that a response will be received, but we will continue waiting.';
 
 describe('DebugModeComponent with DebugModeV2Service', () => {
   let fixture: ComponentFixture<DebugModeComponent>;
   let httpTestingController: HttpTestingController;
   let policyStudioService: PolicyStudioService;
+  let snackBarService: SnackBarService;
   let loader: HarnessLoader;
 
   const policies = [
@@ -83,6 +88,7 @@ describe('DebugModeComponent with DebugModeV2Service', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
+    snackBarService = TestBed.inject(SnackBarService);
 
     policyStudioService = TestBed.inject(PolicyStudioService);
     policyStudioService.setApiDefinition(toApiDefinition(api));
@@ -106,15 +112,180 @@ describe('DebugModeComponent with DebugModeV2Service', () => {
 
     expectSendDebugEvent(eventId);
     tick(1000);
-    expectGetDebugEvent(eventId, false);
+    expectGetDebugEvent(eventId, 'DEBUGGING');
     tick(1000);
-    expectGetDebugEvent(eventId, true);
+    expectGetDebugEvent(eventId, 'SUCCESS');
 
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.debug-mode-response__display-response__header').textContent).toContain(
       'Response 200 - OK  GET /',
     );
+  }));
+
+  it('should display a warning only after 20 seconds while request is still loading', fakeAsync(async () => {
+    const eventId = 'eventId';
+
+    const sendButton = await loader.getHarness(MatButtonHarness.with({ text: 'Send' }));
+    const cancelButton = await loader.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
+
+    await sendButton.click();
+    tick();
+    expectSendDebugEvent(eventId);
+
+    for (let i = 0; i < 19; i++) {
+      tick(1000);
+      expectGetDebugEvent(eventId, 'DEBUGGING');
+    }
+
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain(LONG_REQUEST_WARNING_TEXT);
+
+    tick(1000);
+    expectGetDebugEvent(eventId, 'DEBUGGING');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain(LONG_REQUEST_WARNING_TEXT);
+
+    await cancelButton.click();
+    tick();
+  }));
+
+  it('should display late success response and clear the warning state', fakeAsync(async () => {
+    const eventId = 'eventId';
+
+    const sendButton = await loader.getHarness(MatButtonHarness.with({ text: 'Send' }));
+
+    await sendButton.click();
+    tick();
+    expectSendDebugEvent(eventId);
+
+    for (let i = 0; i < 30; i++) {
+      tick(1000);
+      expectGetDebugEvent(eventId, 'DEBUGGING');
+    }
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain(LONG_REQUEST_WARNING_TEXT);
+
+    for (let i = 0; i < 14; i++) {
+      tick(1000);
+      expectGetDebugEvent(eventId, 'DEBUGGING');
+    }
+
+    tick(1000);
+    expectGetDebugEvent(eventId, 'SUCCESS');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.debug-mode-response__display-response__header').textContent).toContain(
+      'Response 200 - OK  GET /',
+    );
+    expect(fixture.nativeElement.textContent).not.toContain(LONG_REQUEST_WARNING_TEXT);
+  }));
+
+  it('should stop polling when component is destroyed', fakeAsync(async () => {
+    const eventId = 'eventId';
+
+    const sendButton = await loader.getHarness(MatButtonHarness.with({ text: 'Send' }));
+
+    await sendButton.click();
+    tick();
+    expectSendDebugEvent(eventId);
+
+    tick(1000);
+    expectGetDebugEvent(eventId, 'DEBUGGING');
+
+    fixture.destroy();
+    tick(5000);
+
+    httpTestingController.expectNone({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/events/${eventId}`,
+    });
+  }));
+
+  it('should stop polling and clear warning when request is cancelled', fakeAsync(async () => {
+    const eventId = 'eventId';
+
+    const sendButton = await loader.getHarness(MatButtonHarness.with({ text: 'Send' }));
+    const cancelButton = await loader.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
+
+    await sendButton.click();
+    tick();
+    expectSendDebugEvent(eventId);
+
+    for (let i = 0; i < 30; i++) {
+      tick(1000);
+      expectGetDebugEvent(eventId, 'DEBUGGING');
+    }
+
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain(LONG_REQUEST_WARNING_TEXT);
+
+    await cancelButton.click();
+    tick();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Define and run the request you want to test!');
+    expect(fixture.nativeElement.textContent).not.toContain(LONG_REQUEST_WARNING_TEXT);
+
+    tick(5000);
+    httpTestingController.expectNone({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/events/${eventId}`,
+    });
+  }));
+
+  it('should allow a new request to be sent after a previous one was cancelled', fakeAsync(async () => {
+    const eventId = 'eventId';
+
+    const sendButton = await loader.getHarness(MatButtonHarness.with({ text: 'Send' }));
+    const cancelButton = await loader.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
+
+    // First request — cancel it
+    await sendButton.click();
+    tick();
+    expectSendDebugEvent(eventId);
+    tick(1000);
+    expectGetDebugEvent(eventId, 'DEBUGGING');
+
+    await cancelButton.click();
+    tick();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Define and run the request you want to test!');
+
+    // Second request — must not be immediately cancelled by the old Subject emission
+    await sendButton.click();
+    tick();
+    expectSendDebugEvent(eventId);
+    tick(1000);
+    expectGetDebugEvent(eventId, 'DEBUGGING');
+    tick(1000);
+    expectGetDebugEvent(eventId, 'SUCCESS');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.debug-mode-response__display-response__header').textContent).toContain(
+      'Response 200 - OK  GET /',
+    );
+  }));
+
+  it('should stop polling and display an error message when debug event status is error', fakeAsync(async () => {
+    const eventId = 'eventId';
+    const snackBarErrorSpy = jest.spyOn(snackBarService, 'error').mockImplementation();
+
+    const sendButton = await loader.getHarness(MatButtonHarness.with({ text: 'Send' }));
+    await sendButton.click();
+
+    tick();
+    expectSendDebugEvent(eventId);
+    tick(1000);
+    expectGetDebugEvent(eventId, 'ERROR');
+    tick();
+
+    expect(snackBarErrorSpy).toHaveBeenCalledWith(DEBUG_EVENT_FAILED_MESSAGE);
+    tick(5000);
+    httpTestingController.expectNone({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/events/${eventId}`,
+    });
   }));
 
   describe('when debug response is success', () => {
@@ -127,7 +298,7 @@ describe('DebugModeComponent with DebugModeV2Service', () => {
       tick();
       expectSendDebugEvent(EVENT_ID);
       tick(1000);
-      expectGetDebugEvent(EVENT_ID, true);
+      expectGetDebugEvent(EVENT_ID, 'SUCCESS');
 
       fixture.detectChanges();
     }));
@@ -228,7 +399,7 @@ describe('DebugModeComponent with DebugModeV2Service', () => {
       tick();
       expectSendDebugEvent(EVENT_ID);
       tick(1000);
-      expectGetDebugEvent(EVENT_ID, true);
+      expectGetDebugEvent(EVENT_ID, 'SUCCESS');
       fixture.detectChanges();
 
       expect(getInspectorContent()).toEqual(null);
@@ -246,7 +417,7 @@ describe('DebugModeComponent with DebugModeV2Service', () => {
       .flush({ id: eventId });
   }
 
-  function expectGetDebugEvent(eventId: string, success: boolean) {
+  function expectGetDebugEvent(eventId: string, status: 'SUCCESS' | 'ERROR' | 'DEBUGGING') {
     httpTestingController
       .expectOne({
         method: 'GET',
@@ -255,7 +426,7 @@ describe('DebugModeComponent with DebugModeV2Service', () => {
       .flush({
         type: 'DEBUG_API',
         properties: {
-          api_debug_status: success ? 'SUCCESS' : 'FAILED',
+          api_debug_status: status,
         },
         payload: JSON.stringify(fakeDebugEvent().payload),
       });
@@ -328,9 +499,9 @@ describe('DebugModeComponent with DebugModeV4Service', () => {
 
     expectSendDebugEvent(eventId);
     tick(1000);
-    expectGetDebugEvent(eventId, false);
+    expectGetDebugEvent(eventId, 'DEBUGGING');
     tick(1000);
-    expectGetDebugEvent(eventId, true);
+    expectGetDebugEvent(eventId, 'SUCCESS');
 
     fixture.detectChanges();
 
@@ -349,7 +520,7 @@ describe('DebugModeComponent with DebugModeV4Service', () => {
       tick();
       expectSendDebugEvent(EVENT_ID);
       tick(1000);
-      expectGetDebugEvent(EVENT_ID, true);
+      expectGetDebugEvent(EVENT_ID, 'SUCCESS');
 
       fixture.detectChanges();
     }));
@@ -450,7 +621,7 @@ describe('DebugModeComponent with DebugModeV4Service', () => {
       tick();
       expectSendDebugEvent(EVENT_ID);
       tick(1000);
-      expectGetDebugEvent(EVENT_ID, true);
+      expectGetDebugEvent(EVENT_ID, 'SUCCESS');
       fixture.detectChanges();
 
       expect(getInspectorContent()).toEqual(null);
@@ -466,7 +637,7 @@ describe('DebugModeComponent with DebugModeV4Service', () => {
       .flush({ id: eventId });
   }
 
-  function expectGetDebugEvent(eventId: string, success: boolean) {
+  function expectGetDebugEvent(eventId: string, status: 'SUCCESS' | 'ERROR' | 'DEBUGGING') {
     httpTestingController
       .expectOne({
         method: 'GET',
@@ -475,7 +646,7 @@ describe('DebugModeComponent with DebugModeV4Service', () => {
       .flush({
         type: 'DEBUG_API',
         properties: {
-          API_DEBUG_STATUS: success ? 'SUCCESS' : 'FAILED',
+          API_DEBUG_STATUS: status,
         },
         payload: JSON.stringify(fakeDebugEvent().payload),
       });
