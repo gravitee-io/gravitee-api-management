@@ -104,7 +104,7 @@ export class ApiProductAddApiDialogComponent implements OnInit {
         if (!term || term.trim() === '') {
           return of([]);
         }
-        return this.apiService.search({ query: term }).pipe(
+        return this.apiService.search({ query: term, apiTypes: ['V4_HTTP_PROXY'] }).pipe(
           map((apisResponse) => {
             const existingIds = this.data.existingApiIds || [];
             const selectedIds = selectedApis.map((api) => api.id);

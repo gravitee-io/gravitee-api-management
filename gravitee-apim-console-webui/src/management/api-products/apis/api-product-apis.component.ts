@@ -37,7 +37,7 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { Api, ApiV2, ApiV4, HttpListener, Listener } from '../../../entities/management-api-v2';
+import { Api, ApiV2, ApiV4, HttpListener } from '../../../entities/management-api-v2';
 
 export type ApiProductApiTableDS = {
   id: string;
@@ -201,7 +201,7 @@ export class ApiProductApisComponent implements OnInit {
       name: api.name,
       picture: api._links?.['pictureUrl'],
       contextPath: this.getContextPath(api) || '-',
-      definition: this.getApiDefinition(api),
+      definition: 'HTTP Proxy Gravitee',
       version: api.apiVersion || '-',
       lifecycleState: api.lifecycleState,
     }));
@@ -221,42 +221,6 @@ export class ApiProductApisComponent implements OnInit {
       }
     }
     return undefined;
-  }
-
-  private getApiDefinition(api: Api): string {
-    if (!api.definitionVersion) {
-      return 'HTTP Proxy Gravitee';
-    }
-
-    switch (api.definitionVersion) {
-      case 'V2':
-        return 'HTTP Proxy Gravitee';
-      case 'V4':
-        return this.getLabelType(api as ApiV4);
-      case 'FEDERATED':
-        return 'Federated API';
-      case 'FEDERATED_AGENT':
-        return 'Federated A2A Agent';
-      default:
-        return 'HTTP Proxy Gravitee';
-    }
-  }
-
-  private getLabelType(api: ApiV4): string {
-    if (api.type === 'MESSAGE') {
-      return 'Message';
-    }
-    if (api.type === 'NATIVE') {
-      return api.listeners?.some((listener: Listener) => listener.type === 'KAFKA') ? 'Kafka Native' : 'Native';
-    }
-    if (api.type === 'MCP_PROXY') {
-      return 'MCP Proxy';
-    }
-    if (api.type === 'LLM_PROXY') {
-      return 'LLM Proxy';
-    }
-
-    return api.listeners?.some((listener: Listener) => listener.type === 'TCP') ? 'TCP Proxy' : 'HTTP Proxy Gravitee';
   }
 
   onFiltersChanged(filters: ApiProductApisTableWrapperFilters): void {
