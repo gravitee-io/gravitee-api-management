@@ -1,0 +1,28 @@
+@use '../../../../scss/layout' as layout;
+@use '../../../../scss/theme' as app-theme;
+
+:host {
+  @include layout.medium-container();
+  padding-top: layout.$container-padding-vertical;
+}
+
+.content {
+  flex-direction: column;
+  gap: 24px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: app-theme.$inner-content-width;
+}
+
+.documentation-subscribe__back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  color: app-theme.$default-text-color;
+}
