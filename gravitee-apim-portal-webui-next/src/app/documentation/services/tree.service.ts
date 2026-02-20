@@ -59,6 +59,17 @@ export class TreeService {
     return this.parentItemBreadcrumb ? [this.parentItemBreadcrumb] : [];
   }
 
+  getAncestorApiId(nodeId: string): string | null {
+    let node = this.treeNodesById.get(nodeId);
+    while (node) {
+      if (node.type === 'API' && node.data?.type === 'API') {
+        return node.data.apiId;
+      }
+      node = node.__parentId ? this.treeNodesById.get(node.__parentId) : undefined;
+    }
+    return null;
+  }
+
   findFirstPageId(): string | null {
     return this.findFirstPageIdRecursively(this.treeNodes);
   }
