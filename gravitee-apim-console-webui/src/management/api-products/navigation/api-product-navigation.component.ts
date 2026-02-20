@@ -46,7 +46,10 @@ export class ApiProductNavigationComponent {
   private readonly apiProductV2Service = inject(ApiProductV2Service);
   private readonly snackBarService = inject(SnackBarService);
 
-  readonly subMenuItems: MenuItem[] = [{ displayName: 'Configuration', routerLink: 'configuration', icon: 'gio:settings' }];
+  readonly subMenuItems: MenuItem[] = [
+    { displayName: 'Configuration', routerLink: 'configuration', icon: 'gio:settings' },
+    { displayName: 'APIs', routerLink: 'apis', icon: 'gio:api' },
+  ];
   readonly hasBreadcrumb = toSignal(this.gioMenuService.reduced$, { initialValue: false });
 
   private readonly navTrigger = toSignal(

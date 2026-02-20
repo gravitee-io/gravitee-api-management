@@ -1,0 +1,140 @@
+@use 'sass:map';
+
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+  display: flex;
+  flex-direction: column;
+}
+
+.api-product-apis {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      margin-bottom: 0;
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+  }
+
+  .add-api-button {
+    flex-shrink: 0;
+  }
+
+  &__content-card {
+    flex: 1;
+    min-height: 400px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  &__avatar {
+    height: 32px;
+    width: 32px;
+  }
+}
+
+.api-product-apis-empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  padding: 48px 24px;
+}
+
+.empty-state-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  max-width: 500px;
+
+  h3 {
+    margin: 24px 0 8px 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.5;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'darker20');
+  }
+
+  p {
+    margin: 0;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+}
+
+.empty-state-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'lighter');
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'default');
+
+  &__svg {
+    width: 40px;
+    height: 40px;
+    color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'darker');
+  }
+}
+
+.mat-column-picture,
+.mat-column-version,
+.mat-column-actions {
+  padding: 0 8px;
+}
+
+.mat-column-name,
+.mat-column-contextPath,
+.mat-column-definition {
+  padding: 0 8px;
+  width: auto;
+}
+
+.mat-column-version {
+  .version__badge {
+    cursor: default;
+    margin-right: 8px;
+  }
+
+  .deprecated__badge {
+    cursor: default;
+  }
+}
+
+.actions__delete {
+  display: flex;
+  justify-content: center;
+}
+
+.deprecated-badge {
+  background-color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'lighter');
+  color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'darker40');
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'default');
+}
