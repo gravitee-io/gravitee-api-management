@@ -22,6 +22,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheConfiguration;
+import io.gravitee.node.api.cache.CacheListener;
 import io.gravitee.node.plugin.cache.common.InMemoryCache;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
@@ -65,6 +66,7 @@ public abstract class AbstractGraviteeUrlBasedCorsConfigurationSource extends Ur
             .build();
 
         this.corsConfigurationByUrl = new InMemoryCache<>("cors-config-by-url", cacheConfiguration);
+        this.corsConfigurationByUrl.addCacheListener(new CorsConfigurationCacheListener());
     }
 
     @Override
@@ -101,5 +103,28 @@ public abstract class AbstractGraviteeUrlBasedCorsConfigurationSource extends Ur
 
     private String extractUrlFromServer(HttpServletRequest request) {
         return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+    }
+
+    /**
+     * Cache listener to release CorsConfiguration when evicted or expired from cache.
+     * This is required to unregister any event listener registered by the CorsConfiguration.
+     */
+    private static class CorsConfigurationCacheListener implements CacheListener<String, CorsConfiguration> {
+
+        @Override
+        public void onEntryEvicted(String key, CorsConfiguration corsConfiguration) {
+            release(corsConfiguration);
+        }
+
+        @Override
+        public void onEntryExpired(String key, CorsConfiguration corsConfiguration) {
+            release(corsConfiguration);
+        }
+
+        private static void release(CorsConfiguration corsConfiguration) {
+            if (corsConfiguration instanceof GraviteeCorsConfiguration graviteeCorsConfiguration) {
+                graviteeCorsConfiguration.release();
+            }
+        }
     }
 }
