@@ -20,12 +20,17 @@ export class PaginationHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-pagination';
 
   protected locatePreviousPageButton = this.locatorFor(
-    MatButtonHarness.with({ selector: '[aria-label="Previous page of results"]', variant: 'icon' }),
+    MatButtonHarness.with({ selector: 'button.pagination__nav--previous[aria-label="Previous page of results"]' }),
   );
   protected locateNextPageButton = this.locatorFor(
-    MatButtonHarness.with({ selector: '[aria-label="Next page of results"]', variant: 'icon' }),
+    MatButtonHarness.with({ selector: 'button.pagination__nav--next[aria-label="Next page of results"]' }),
   );
-  protected locateCurrentPageButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Current page of results"]' }));
+  protected locateCurrentPageButton = this.locatorFor(
+    MatButtonHarness.with({ selector: 'button.pagination__current[aria-label="Current page of results"]' }),
+  );
+  protected locatePageNumberButtons = this.locatorForAll(
+    MatButtonHarness.with({ selector: 'button.pagination__current, button.pagination__page' }),
+  );
 
   async getPreviousPageButton(): Promise<MatButtonHarness> {
     return this.locatePreviousPageButton();
@@ -39,8 +44,12 @@ export class PaginationHarness extends ComponentHarness {
     return this.locateCurrentPageButton();
   }
 
-  async getPageButtonByNumber(pageNumber: number): Promise<MatButtonHarness> {
-    return this.locatePageButtonByLabel(`${pageNumber}`);
+  async getPageNumberButton(page: number): Promise<MatButtonHarness> {
+    const buttons = await this.locatePageNumberButtons();
+    for (const button of buttons) {
+      const text = await button.getText();
+      if (text.trim() === String(page)) return button;
+    }
+    throw new Error(`Page ${page} button not found`);
   }
-  protected locatePageButtonByLabel = (label: string) => this.locatorFor(MatButtonHarness.with({ text: label }))();
 }
