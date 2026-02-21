@@ -25,6 +25,7 @@ import { FlatTreeComponentHarness } from './flat-tree.component.harness';
 
 import { GioTestingModule } from '../../../shared/testing';
 import {
+  fakePortalNavigationApi,
   fakePortalNavigationFolder,
   fakePortalNavigationLink,
   fakePortalNavigationPage,
@@ -59,7 +60,7 @@ describe('FlatTreeComponent', () => {
 
   const makeItem = (
     id: string,
-    type: 'PAGE' | 'FOLDER' | 'LINK',
+    type: PortalNavigationItem['type'],
     title: string,
     order?: number,
     parentId?: string | null,
@@ -70,6 +71,8 @@ describe('FlatTreeComponent', () => {
         return fakePortalNavigationFolder({ id, title, order, parentId, published });
       case 'LINK':
         return fakePortalNavigationLink({ id, title, order, parentId, published });
+      case 'API':
+        return fakePortalNavigationApi({ id, title, order, parentId, published });
       case 'PAGE':
       default:
         return fakePortalNavigationPage({ id, title, order, parentId, published });
@@ -455,6 +458,38 @@ describe('FlatTreeComponent', () => {
         prevIndex: 2,
         expected: { newParentId: null, newOrder: 1 },
       },
+      {
+        description: 'should allow API to be dropped into another folder',
+        links: [makeItem('f1', 'FOLDER', 'Folder 1', 0), makeItem('p1', 'PAGE', 'Page 1', 0, 'f1'), makeItem('f2', 'FOLDER', 'Folder 2', 1), makeItem('a1', 'API', 'Page 2', 0, 'f2')],
+        dragId: 'a1',
+        dropIndex: 1,
+        prevIndex: 3,
+        expected: { newParentId: 'f1', newOrder: 0 }, // No change
+      },
+      {
+        description: 'should not allow API to be dropped at root level',
+        links: [makeItem('f1', 'FOLDER', 'Folder 1', 0), makeItem('a1', 'API', 'Page 1', 0, 'f1')],
+        dragId: 'a1',
+        dropIndex: 0,
+        prevIndex: 1,
+        expected: { newParentId: 'f1', newOrder: 0 }, // No change
+      },
+      {
+        description: 'should not allow API to be dropped in another API',
+        links: [makeItem('f1', 'FOLDER', 'Folder 1', 0), makeItem('a1', 'API', 'API 1', 0, 'f1'), makeItem('a2', 'API', 'API 2', 1, 'f1')],
+        dragId: 'a1',
+        dropIndex: 2,
+        prevIndex: 1,
+        expected: { newParentId: 'f1', newOrder: 1 }, // No change
+      },
+      {
+        description: 'should not allow API to be dropped in a folder with an API parent',
+        links: [makeItem('f1', 'FOLDER', 'Folder 1', 0), makeItem('a1', 'API', 'API 1', 0, 'f1'), makeItem('f2', 'FOLDER', 'Folder 2', 1, 'f1')],
+        dragId: 'a1',
+        dropIndex: 2,
+        prevIndex: 1,
+        expected: { newParentId: 'f1', newOrder: 0 }, // No change
+      }
     ];
 
     it.each(dropScenarios)('$description', async ({ links, dragId, dropIndex, prevIndex, expected }) => {

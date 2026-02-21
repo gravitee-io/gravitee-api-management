@@ -195,7 +195,19 @@ export class FlatTreeComponent {
     let newParentId: string | null;
     let newOrder: number;
 
-    if (currentIndex === 0) {
+    if (nodeToMove.type === 'API') {
+      // APIs cannot be moved to the root level
+      if (currentIndex === 0) {
+        return; // Invalid move, ignore
+      }
+      // APIs cannot be moved under a parent that is an API
+      const potentialParent = visibleNodes.at(currentIndex - 1);
+      if (potentialParent && potentialParent.type === 'API') {
+        return; // Invalid move, ignore
+      }
+    }
+
+    if (currentIndex === 0 && nodeToMove.type !== 'API') {
       // Dropped at the very top
       newParentId = null;
       newOrder = 0;
@@ -220,9 +232,22 @@ export class FlatTreeComponent {
       if (newParentId === nodeToMove.id) {
         newParentId = null;
       }
+
+      // if the node to move is an API and any item in the ancestry is an api, prevent the move
+      if (nodeToMove.type === 'API') {
+        let parentId = newParentId;
+        while (parentId) {
+          const parentNode = visibleNodes.find(n => n.id === parentId);
+          if (parentNode?.type === 'API') {
+            return; // Invalid move, ignore
+          }
+          parentId = parentNode?.data.parentId ?? null;
+        }
+        newParentId = parentId;
+      }
     }
 
-    if (nodeToMove.type === 'FOLDER') {
+    if (nodeToMove.type === 'FOLDER' || nodeToMove.type === 'API') {
       this.treeBase()?.expandAll();
     }
 
@@ -278,7 +303,7 @@ export class FlatTreeComponent {
         label: link.title,
         type,
         data: link,
-        children: type === 'FOLDER' ? [] : undefined,
+        children: type === 'FOLDER' || type === 'API' ? [] : undefined,
         __order: link.order ?? 0,
         __parentId: link.parentId ?? null,
       } as ProcessingNode);
