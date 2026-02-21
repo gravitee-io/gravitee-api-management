@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 export const AGENT_TO_AGENT = {
-  id: 'agent-to-agent',
-  name: 'Agent to agent',
+  id: 'a2a-proxy',
+  name: 'A2A Proxy',
+  icon: 'gio-literal:a2a-proxy',
 };

@@ -39,7 +39,13 @@ import org.jspecify.annotations.NonNull;
 @UseCase
 public class CreateHttpApiUseCase {
 
-    private static final List<ApiType> SUPPORTED_API_TYPES = List.of(ApiType.PROXY, ApiType.MESSAGE, ApiType.MCP_PROXY, ApiType.LLM_PROXY);
+    private static final List<ApiType> SUPPORTED_API_TYPES = List.of(
+        ApiType.PROXY,
+        ApiType.MESSAGE,
+        ApiType.MCP_PROXY,
+        ApiType.LLM_PROXY,
+        ApiType.A2A_PROXY
+    );
 
     private final ValidateApiDomainService validateApiDomainService;
     private final ApiPrimaryOwnerFactory apiPrimaryOwnerFactory;
