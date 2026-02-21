@@ -46,4 +46,16 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
     public static InvalidPortalNavigationItemDataException parentHierarchyContainsApi() {
         return new InvalidPortalNavigationItemDataException("Parent hierarchy cannot include API items.");
     }
+
+    public static InvalidPortalNavigationItemDataException parentMustBePublished(String parentId) {
+        return new InvalidPortalNavigationItemDataException(
+            "Parent item with id %s must be PUBLISHED to create a published child item.".formatted(parentId)
+        );
+    }
+
+    public static InvalidPortalNavigationItemDataException parentMustBePublic(String parentId) {
+        return new InvalidPortalNavigationItemDataException(
+            "Parent item with id %s must be PUBLIC to create a public child item.".formatted(parentId)
+        );
+    }
 }

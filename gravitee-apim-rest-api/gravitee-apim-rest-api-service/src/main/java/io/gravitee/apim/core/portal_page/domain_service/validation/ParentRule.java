@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service.validation;
 
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.ParentAreaMismatchException;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.ParentTypeMismatchException;
@@ -23,6 +24,7 @@ import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +44,14 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
 
     @Override
     public void validate(CreatePortalNavigationItem item, String environmentId, CreateValidationContext ctx) {
-        validateParent(navigationItemsQueryService, item.getParentId(), item.getArea(), environmentId);
+        validateParent(
+            navigationItemsQueryService,
+            item.getParentId(),
+            item.getArea(),
+            environmentId,
+            item.getPublished(),
+            resolveVisibility(item.getVisibility())
+        );
     }
 
     @Override
@@ -52,7 +61,14 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
 
     @Override
     public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
-        validateParent(navigationItemsQueryService, toUpdate.getParentId(), existingItem.getArea(), existingItem.getEnvironmentId());
+        validateParent(
+            navigationItemsQueryService,
+            toUpdate.getParentId(),
+            existingItem.getArea(),
+            existingItem.getEnvironmentId(),
+            toUpdate.getPublished(),
+            toUpdate.getVisibility()
+        );
     }
 
     /**
@@ -62,7 +78,9 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
         PortalNavigationItemsQueryService navigationItemsQueryService,
         PortalNavigationItemId parentId,
         PortalArea itemArea,
-        String environmentId
+        String environmentId,
+        Boolean itemPublished,
+        PortalVisibility itemVisibility
     ) {
         if (parentId == null) {
             return;
@@ -77,5 +95,15 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
         if (!parentItem.getArea().equals(itemArea)) {
             throw new ParentAreaMismatchException(parentId.toString());
         }
+        if (Boolean.TRUE.equals(itemPublished) && !parentItem.getPublished()) {
+            throw InvalidPortalNavigationItemDataException.parentMustBePublished(parentId.toString());
+        }
+        if (PortalVisibility.PUBLIC.equals(itemVisibility) && PortalVisibility.PRIVATE.equals(parentItem.getVisibility())) {
+            throw InvalidPortalNavigationItemDataException.parentMustBePublic(parentId.toString());
+        }
+    }
+
+    private PortalVisibility resolveVisibility(String visibility) {
+        return visibility == null ? PortalVisibility.PUBLIC : PortalVisibility.valueOf(visibility);
     }
 }
