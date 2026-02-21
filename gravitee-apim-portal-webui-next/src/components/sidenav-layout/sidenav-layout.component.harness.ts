@@ -25,6 +25,9 @@ export class SidenavLayoutComponentHarness extends ComponentHarness {
   private readonly getSidenavHarness = this.locatorFor(DivHarness.with({ selector: '.sidenav-layout__sidenav' }));
   private readonly getSidenavToggleButtonHarness = this.locatorFor(SidenavToggleButtonComponentHarness);
   private readonly getBreadcrumbsHarness = this.locatorForOptional(BreadcrumbsComponentHarness);
+  private readonly getBreadcrumbActionsHarness = this.locatorForOptional(
+    DivHarness.with({ selector: '.sidenav-layout__container__breadcrumbs__actions' }),
+  );
 
   public async getBreadcrumbs(): Promise<BreadcrumbsComponentHarness | null> {
     return this.getBreadcrumbsHarness();
@@ -36,6 +39,10 @@ export class SidenavLayoutComponentHarness extends ComponentHarness {
 
   public async getSidenavToggleButton(): Promise<SidenavToggleButtonComponentHarness | null> {
     return this.getSidenavToggleButtonHarness();
+  }
+
+  public async getBreadcrumbActions(): Promise<DivHarness | null> {
+    return this.getBreadcrumbActionsHarness();
   }
 
   public async toggleSidenav(): Promise<void> {
