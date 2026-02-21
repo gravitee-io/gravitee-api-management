@@ -19,16 +19,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
-import {
-  catchError,
-  debounceTime,
-  distinctUntilChanged,
-  filter,
-  map,
-  startWith,
-  switchMap,
-  tap,
-} from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -42,7 +33,7 @@ import { Api } from '../../../../entities/management-api-v2';
 import { ApiProductV2Service } from '../../../../services-ngx/api-product-v2.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { ApiContextPathPipe } from '../../../../shared/pipes/api-context-path.pipe';
+import { getApiContextPath } from '../../../../shared/utils/api.util';
 import { IsNonEmptyStringPipe } from '../../../../shared/pipes/is-non-empty-string.pipe';
 
 export interface ApiProductAddApiDialogData {
@@ -58,7 +49,6 @@ export type ApiProductAddApiDialogResult = boolean;
   styleUrls: ['./api-product-add-api-dialog.component.scss'],
   imports: [
     AsyncPipe,
-    ApiContextPathPipe,
     IsNonEmptyStringPipe,
     FormsModule,
     MatAutocompleteModule,
@@ -82,6 +72,7 @@ export class ApiProductAddApiDialogComponent implements OnInit {
   private readonly apiProductV2Service = inject(ApiProductV2Service);
   private readonly snackBarService = inject(SnackBarService);
   readonly data = inject<ApiProductAddApiDialogData>(MAT_DIALOG_DATA);
+  readonly getContextPath = getApiContextPath;
 
   readonly searchApiControl = new FormControl<string | Api>('');
   filteredOptions$!: Observable<Api[]>;
@@ -105,11 +96,11 @@ export class ApiProductAddApiDialogComponent implements OnInit {
           return of([]);
         }
         return this.apiService.search({ query: term, apiTypes: ['V4_HTTP_PROXY'] }).pipe(
-          map((apisResponse) => {
+          map(apisResponse => {
             const existingIds = this.data.existingApiIds || [];
-            const selectedIds = selectedApis.map((api) => api.id);
+            const selectedIds = selectedApis.map(api => api.id);
             const apis = apisResponse.data || [];
-            return apis.filter((api) => !existingIds.includes(api.id) && !selectedIds.includes(api.id));
+            return apis.filter(api => !existingIds.includes(api.id) && !selectedIds.includes(api.id));
           }),
         );
       }),
@@ -118,8 +109,7 @@ export class ApiProductAddApiDialogComponent implements OnInit {
     );
   }
 
-  readonly displayFn = (option: Api): string =>
-    option?.name && option?.apiVersion ? `${option.name} - ${option.apiVersion}` : '';
+  readonly displayFn = (option: Api): string => (option?.name && option?.apiVersion ? `${option.name} - ${option.apiVersion}` : '');
 
   resetSearchTerm(): void {
     this.searchApiControl.setValue('');
@@ -132,7 +122,7 @@ export class ApiProductAddApiDialogComponent implements OnInit {
   selectAPI(): void {
     const selectedApi = this.searchApiControl.getRawValue();
     if (selectedApi && typeof selectedApi !== 'string') {
-      if (!this.selectedApis.find((api) => api.id === selectedApi.id)) {
+      if (!this.selectedApis.find(api => api.id === selectedApi.id)) {
         this.selectedApis.push(selectedApi);
         this.selectedApis$.next(this.selectedApis);
         this.isApiSelected = true;
@@ -149,20 +139,20 @@ export class ApiProductAddApiDialogComponent implements OnInit {
     this.apiProductV2Service
       .get(this.data.apiProductId)
       .pipe(
-        switchMap((apiProduct) => this.buildUpdateRequest(apiProduct)),
-        catchError((error) => {
+        switchMap(apiProduct => this.buildUpdateRequest(apiProduct)),
+        catchError(error => {
           this.snackBarService.error(error.error?.message || 'An error occurred while adding the APIs');
           this.isSubmitting = false;
           return of(null);
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((result) => {
+      .subscribe(result => {
         if (!result) {
           this.isSubmitting = false;
           return;
         }
-        const apiNames = this.selectedApis.map((api) => api.name).join(', ');
+        const apiNames = this.selectedApis.map(api => api.name).join(', ');
         this.snackBarService.success(
           this.selectedApis.length === 1
             ? `API "${apiNames}" has been added to the API Product`
@@ -197,7 +187,7 @@ export class ApiProductAddApiDialogComponent implements OnInit {
   }
 
   removeApi(apiToRemove: Api): void {
-    this.selectedApis = this.selectedApis.filter((api) => api.id !== apiToRemove.id);
+    this.selectedApis = this.selectedApis.filter(api => api.id !== apiToRemove.id);
     this.selectedApis$.next(this.selectedApis);
     this.isApiSelected = this.selectedApis.length > 0;
   }

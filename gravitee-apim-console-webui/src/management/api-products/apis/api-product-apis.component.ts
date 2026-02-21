@@ -25,19 +25,23 @@ import { MatDialog } from '@angular/material/dialog';
 import { Observable, BehaviorSubject, forkJoin, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
-import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import { GioAvatarModule, GioIconsModule } from '@gravitee/ui-particles-angular';
-
 import {
-  ApiProductAddApiDialogComponent,
-  ApiProductAddApiDialogData,
-} from './add-api-dialog/api-product-add-api-dialog.component';
+  GIO_DIALOG_WIDTH,
+  GioAvatarModule,
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+  GioIconsModule,
+} from '@gravitee/ui-particles-angular';
+
+import { ApiProductAddApiDialogComponent, ApiProductAddApiDialogData } from './add-api-dialog/api-product-add-api-dialog.component';
+
+import { Api } from '../../../entities/management-api-v2';
+import { getApiContextPath } from '../../../shared/utils/api.util';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { Api, ApiV2, ApiV4, HttpListener } from '../../../entities/management-api-v2';
 
 export type ApiProductApiTableDS = {
   id: string;
@@ -55,15 +59,7 @@ interface ApiProductApisTableWrapperFilters extends GioTableWrapperFilters {}
   selector: 'api-product-apis',
   templateUrl: './api-product-apis.component.html',
   styleUrls: ['./api-product-apis.component.scss'],
-  imports: [
-    MatButtonModule,
-    MatIconModule,
-    MatTableModule,
-    MatTooltipModule,
-    GioAvatarModule,
-    GioIconsModule,
-    GioTableWrapperModule,
-  ],
+  imports: [MatButtonModule, MatIconModule, MatTableModule, MatTooltipModule, GioAvatarModule, GioIconsModule, GioTableWrapperModule],
   standalone: true,
 })
 export class ApiProductApisComponent implements OnInit {
@@ -117,7 +113,7 @@ export class ApiProductApisComponent implements OnInit {
           });
         }),
         switchMap(() => this.loadApisForProduct()),
-        tap((apis) => this.processAndDisplayApis(apis)),
+        tap(apis => this.processAndDisplayApis(apis)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
@@ -145,24 +141,17 @@ export class ApiProductApisComponent implements OnInit {
   private loadApisForProduct(): Observable<(Api | null)[]> {
     this.isLoadingData = true;
     return this.apiProductV2Service.get(this.apiProductId).pipe(
-      catchError((error) => {
+      catchError(error => {
         this.snackBarService.error(error.error?.message || 'An error occurred while loading the API Product');
         return of(null);
       }),
-      switchMap((apiProduct) => {
+      switchMap(apiProduct => {
         if (!apiProduct?.apiIds?.length) {
           return of([]);
         }
-        const apiObservables = apiProduct.apiIds.map((apiId) =>
-          this.apiV2Service.get(apiId).pipe(
-            catchError((error) => {
-              console.error(`Error loading API ${apiId}:`, error);
-              return of(null);
-            }),
-          ),
-        );
+        const apiObservables = apiProduct.apiIds.map(apiId => this.apiV2Service.get(apiId).pipe(catchError(() => of(null))));
         return forkJoin(apiObservables).pipe(
-          catchError((error) => {
+          catchError(error => {
             this.snackBarService.error(error.error?.message || 'An error occurred while loading APIs');
             return of([]);
           }),
@@ -177,9 +166,9 @@ export class ApiProductApisComponent implements OnInit {
 
     if (searchTerm) {
       filteredApis = filteredApis.filter(
-        (api) =>
+        api =>
           api.name?.toLowerCase().includes(searchTerm) ||
-          this.getContextPath(api)?.toLowerCase().includes(searchTerm) ||
+          getApiContextPath(api)?.toLowerCase().includes(searchTerm) ||
           api.apiVersion?.toLowerCase().includes(searchTerm),
       );
     }
@@ -196,31 +185,15 @@ export class ApiProductApisComponent implements OnInit {
   }
 
   private toApisTableDS(data: Api[]): ApiProductApiTableDS {
-    return data.map((api) => ({
+    return data.map(api => ({
       id: api.id,
       name: api.name,
       picture: api._links?.['pictureUrl'],
-      contextPath: this.getContextPath(api) || '-',
+      contextPath: getApiContextPath(api) || '-',
       definition: 'HTTP Proxy Gravitee',
       version: api.apiVersion || '-',
       lifecycleState: api.lifecycleState,
     }));
-  }
-
-  private getContextPath(api: Api): string | undefined {
-    if (api.definitionVersion === 'V2') {
-      return (api as ApiV2).contextPath;
-    }
-    if (api.definitionVersion === 'V4') {
-      const apiV4 = api as ApiV4;
-      const httpListener = apiV4.listeners?.find(
-        (listener) => listener.type === 'HTTP',
-      ) as HttpListener | undefined;
-      if (httpListener?.paths && httpListener.paths.length > 0) {
-        return httpListener.paths[0]?.path;
-      }
-    }
-    return undefined;
   }
 
   onFiltersChanged(filters: ApiProductApisTableWrapperFilters): void {
@@ -230,7 +203,10 @@ export class ApiProductApisComponent implements OnInit {
 
   private reloadTable(): void {
     this.loadApisForProduct()
-      .pipe(tap((apis) => this.processAndDisplayApis(apis)), takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        tap(apis => this.processAndDisplayApis(apis)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe();
   }
 
@@ -238,25 +214,22 @@ export class ApiProductApisComponent implements OnInit {
     this.apiProductV2Service
       .get(this.apiProductId)
       .pipe(
-        catchError((error) => {
+        catchError(error => {
           this.snackBarService.error(error.error?.message || 'An error occurred while loading the API Product');
           return of(null);
         }),
         filter((apiProduct): apiProduct is NonNullable<typeof apiProduct> => apiProduct != null),
-        switchMap((apiProduct) =>
+        switchMap(apiProduct =>
           this.matDialog
-            .open<ApiProductAddApiDialogComponent, ApiProductAddApiDialogData, boolean>(
-              ApiProductAddApiDialogComponent,
-              {
-                width: GIO_DIALOG_WIDTH.MEDIUM,
-                data: {
-                  apiProductId: this.apiProductId,
-                  existingApiIds: apiProduct.apiIds || [],
-                },
-                role: 'dialog',
-                id: 'addApiDialog',
+            .open<ApiProductAddApiDialogComponent, ApiProductAddApiDialogData, boolean>(ApiProductAddApiDialogComponent, {
+              width: GIO_DIALOG_WIDTH.MEDIUM,
+              data: {
+                apiProductId: this.apiProductId,
+                existingApiIds: apiProduct.apiIds || [],
               },
-            )
+              role: 'dialog',
+              id: 'addApiDialog',
+            })
             .afterClosed(),
         ),
         filter((success): success is true => success === true),
@@ -272,8 +245,7 @@ export class ApiProductApisComponent implements OnInit {
         width: GIO_DIALOG_WIDTH.SMALL,
         data: {
           title: 'Remove API',
-          content:
-            'Please note that once your API is removed from this API Product, consumers will lose access to this API.',
+          content: 'Please note that once your API is removed from this API Product, consumers will lose access to this API.',
           confirmButton: 'Remove',
         },
         role: 'alertdialog',
@@ -284,18 +256,18 @@ export class ApiProductApisComponent implements OnInit {
         filter((result): result is true => result === true),
         switchMap(() =>
           this.apiProductV2Service.get(this.apiProductId).pipe(
-            catchError((error) => {
+            catchError(error => {
               this.snackBarService.error(error.error?.message || 'An error occurred while loading the API Product');
               return of(null);
             }),
           ),
         ),
         filter((apiProduct): apiProduct is NonNullable<typeof apiProduct> => apiProduct != null),
-        switchMap((apiProduct) => {
+        switchMap(apiProduct => {
           const currentApiIds = apiProduct.apiIds || [];
-          const updatedApiIds = currentApiIds.filter((id) => id !== api.id);
+          const updatedApiIds = currentApiIds.filter(id => id !== api.id);
           return this.apiProductV2Service.updateApiProductApis(this.apiProductId, updatedApiIds).pipe(
-            catchError((error) => {
+            catchError(error => {
               this.snackBarService.error(error.error?.message || 'An error occurred while removing the API');
               return of(null);
             }),
