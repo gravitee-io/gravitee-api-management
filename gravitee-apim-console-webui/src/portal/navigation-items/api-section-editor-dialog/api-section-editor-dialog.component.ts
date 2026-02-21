@@ -19,30 +19,32 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { isEqual } from 'lodash';
-import { Observable, Subject, of, BehaviorSubject } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { Observable, Subject, of, BehaviorSubject, combineLatest } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map, startWith, switchMap, tap, finalize } from 'rxjs/operators';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { Api, ApiV2, ApiV4, PortalVisibility, ApisResponse } from '../../../entities/management-api-v2';
+import { Api, ApiV2, ApiV4, PortalVisibility, ApisResponse, PortalNavigationApi } from '../../../entities/management-api-v2';
 import { getApiAccess } from '../../../shared/utils';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 export interface ApiSectionEditorDialogData {
-  mode: 'create';
+  mode: 'create' | 'edit';
+  existingItem?: PortalNavigationApi;
 }
 
 export interface ApiSectionEditorDialogResult {
   visibility: PortalVisibility;
   apiId?: string;
-  apiIds: string[];
+  apiIds?: string[];
 }
 
 type ApiRow = {
@@ -60,10 +62,12 @@ type SelectedApi = {
 
 interface ApiSectionFormControls {
   apiIds: FormControl<string[]>;
+  isPrivate: FormControl<boolean>;
 }
 
 interface ApiSectionFormValues {
   apiIds: string[];
+  isPrivate: boolean;
 }
 
 type ApiSectionForm = FormGroup<ApiSectionFormControls>;
@@ -81,6 +85,7 @@ type ApiSectionForm = FormGroup<ApiSectionFormControls>;
     MatTableModule,
     MatChipsModule,
     MatExpansionModule,
+    MatSlideToggleModule,
     AsyncPipe,
     GioTableWrapperModule,
   ],
@@ -90,10 +95,14 @@ type ApiSectionForm = FormGroup<ApiSectionFormControls>;
 export class ApiSectionEditorDialogComponent implements OnInit {
   private readonly apiService = inject(ApiV2Service);
 
+  readonly data: ApiSectionEditorDialogData = inject(MAT_DIALOG_DATA);
+  readonly isEditMode = computed(() => this.data?.mode === 'edit');
+
   form!: ApiSectionForm;
   public initialFormValues: ApiSectionFormValues;
 
   public title = 'Add APIs';
+  public buttonTitle = 'Add';
 
   displayedColumns = ['select', 'name', 'path', 'labels'];
 
@@ -128,12 +137,32 @@ export class ApiSectionEditorDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const isEditMode = this.isEditMode();
+
+    if (isEditMode) {
+      this.title = 'Edit API';
+      this.buttonTitle = 'Save';
+    }
+
     this.form = new FormGroup<ApiSectionFormControls>({
       apiIds: new FormControl<string[]>([], {
-        validators: [Validators.required],
+        validators: isEditMode ? [] : [Validators.required],
         nonNullable: true,
       }),
+      isPrivate: new FormControl<boolean>(this.data?.existingItem?.visibility === 'PRIVATE'),
     });
+
+    if (isEditMode) {
+      const id = this.data.existingItem?.apiId;
+      if (id) {
+        this.form.controls.apiIds.setValue([id]);
+        this.selectedOrderedApis.set([{ id, name: id }]);
+      }
+
+      this.rows$ = of([]);
+      this.initialFormValues = this.form.getRawValue();
+      return;
+    }
 
     const initialApiIds = this.form.controls.apiIds.value ?? [];
     this.selectedOrderedApis.set(initialApiIds.map(id => ({ id, name: id })));
@@ -146,23 +175,12 @@ export class ApiSectionEditorDialogComponent implements OnInit {
 
     const disabledSet = new Set<string>([]);
 
-    this.rows$ = this.filters$.pipe(
-      debounceTime(100),
-      distinctUntilChanged(isEqual),
-      switchMap(filters =>
-        this.refresh$.pipe(
-          startWith(undefined),
-          tap(() => (this.isLoading = true)),
-          switchMap(() =>
-            this.apiService.search({ query: filters.searchTerm }, undefined, filters.pagination.index, filters.pagination.size, false),
-          ),
-          catchError((): Observable<ApisResponse> => {
-            this.total = 0;
-            return of({ data: [], pagination: undefined, links: undefined });
-          }),
-          tap(() => (this.isLoading = false)),
-        ),
-      ),
+    this.rows$ = combineLatest([
+      this.filters$.pipe(debounceTime(100), distinctUntilChanged(isEqual)),
+      this.refresh$.pipe(startWith(undefined)),
+    ]).pipe(
+      tap(() => (this.isLoading = true)),
+      switchMap(([filters]) => this.searchApis(filters)),
       tap(resp => {
         this.total = resp.pagination?.totalCount ?? 0;
       }),
@@ -180,6 +198,7 @@ export class ApiSectionEditorDialogComponent implements OnInit {
           };
         }),
       ),
+      startWith([]),
     );
 
     this.initialFormValues = this.form.getRawValue();
@@ -239,7 +258,7 @@ export class ApiSectionEditorDialogComponent implements OnInit {
       const apiIds = formValues.apiIds ?? [];
 
       this.dialogRef.close({
-        visibility: 'PUBLIC',
+        visibility: formValues.isPrivate ? 'PRIVATE' : 'PUBLIC',
         apiIds,
         apiId: apiIds[0],
       });
@@ -256,5 +275,26 @@ export class ApiSectionEditorDialogComponent implements OnInit {
 
   private isApiV2OrV4(api: Api): api is ApiV2 | ApiV4 {
     return api.definitionVersion === 'V2' || api.definitionVersion === 'V4';
+  }
+
+  private searchApis(filters: GioTableWrapperFilters): Observable<ApisResponse> {
+    return new Observable<ApisResponse>(subscriber => {
+      const sub = this.apiService
+        .search({ query: filters.searchTerm }, undefined, filters.pagination.index, filters.pagination.size, false)
+        .subscribe({
+          next: resp => subscriber.next(resp),
+          error: () => {
+            this.total = 0;
+            subscriber.next({ data: [], pagination: undefined, links: undefined });
+            subscriber.complete();
+          },
+          complete: () => subscriber.complete(),
+        });
+
+      return () => {
+        sub.unsubscribe();
+        this.isLoading = false;
+      };
+    }).pipe(finalize(() => (this.isLoading = false)));
   }
 }

@@ -211,7 +211,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           break;
         default:
           if (event.itemType === 'API') {
-            this.manageApiSection(event.node.data);
+            this.manageApiSection(event.action, event.node.data);
             return;
           }
           this.manageSection(event.itemType, event.action, 'TOP_NAVBAR', event.node.data);
@@ -220,29 +220,49 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     });
   }
 
-  private manageApiSection(existingItem?: PortalNavigationItem): void {
-    const data: ApiSectionEditorDialogData = { mode: 'create' };
+  private manageApiSection(mode: SectionEditorDialogMode, existingItem?: PortalNavigationItem): void {
+    const data: ApiSectionEditorDialogData =
+      mode === 'edit'
+        ? {
+            mode: 'edit',
+            existingItem: existingItem?.type === 'API' ? (existingItem as PortalNavigationApi) : undefined,
+          }
+        : { mode: 'create' };
 
     this.matDialog
       .open<ApiSectionEditorDialogComponent, ApiSectionEditorDialogData>(ApiSectionEditorDialogComponent, {
-        width: GIO_DIALOG_WIDTH.LARGE,
+        width: mode === 'create' ? GIO_DIALOG_WIDTH.LARGE : GIO_DIALOG_WIDTH.SMALL,
         data,
       })
       .afterClosed()
       .pipe(
         filter(result => !!result),
-        switchMap(result =>
-          this.createApisInOrder(existingItem?.id, result.apiIds ?? []).pipe(
-            map(lastCreatedId => lastCreatedId ?? existingItem?.id ?? null),
-          ),
-        ),
-        filter((id): id is string => typeof id === 'string' && id.length > 0),
+        switchMap(result => {
+          if (mode === 'create') {
+            return this.createApisInOrder(existingItem?.id, result.apiIds ?? []);
+          }
+
+          const apiItem = existingItem?.type === 'API' ? (existingItem as PortalNavigationApi) : undefined;
+          if (!apiItem) {
+            return EMPTY;
+          }
+
+          const { id: _id, area: _area, environmentId: _environmentId, organizationId: _organizationId, ...updatePayload } = apiItem;
+
+          return this.update(apiItem.id, {
+            ...updatePayload,
+            visibility: result.visibility,
+          }).pipe(map(() => apiItem.id));
+        }),
+        map(id => id ?? existingItem?.id ?? null),
         tap(id => {
           this.refreshMenuList.next(1);
-          this.navigateToItemByNavId(id);
+          if (mode === 'create' && typeof id === 'string' && id.length > 0) {
+            this.navigateToItemByNavId(id);
+          }
         }),
         catchError(() => {
-          this.snackBarService.error('Failed to create API navigation items');
+          this.snackBarService.error(mode === 'create' ? 'Failed to create API navigation items' : 'Failed to update navigation item');
           return EMPTY;
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -487,7 +507,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       }
       const navItem = selectedItem.data;
       if (navItem.type === 'API') {
-        this.manageApiSection(navItem);
+        this.manageApiSection('edit', navItem);
         return;
       }
       this.manageSection(navItem.type, 'edit', navItem.area, navItem);

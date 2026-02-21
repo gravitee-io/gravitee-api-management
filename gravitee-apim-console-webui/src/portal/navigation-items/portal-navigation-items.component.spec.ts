@@ -24,6 +24,7 @@ import { Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioConfirmAndValidateDialogHarness, GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import SpyInstance = jest.SpyInstance;
 
@@ -42,10 +43,14 @@ import {
   fakePortalNavigationItemsResponse,
   fakePortalNavigationLink,
   fakePortalNavigationPage,
+  fakeUpdateApiPortalNavigationItem,
   fakeUpdatePagePortalNavigationItem,
   NewPortalNavigationItem,
   PortalNavigationItem,
   PortalNavigationItemsResponse,
+  UpdateFolderPortalNavigationItem,
+  UpdateLinkPortalNavigationItem,
+  UpdatePortalNavigationItem,
 } from '../../entities/management-api-v2';
 import { SectionNode } from '../components/flat-tree/flat-tree.component';
 
@@ -334,7 +339,7 @@ describe('PortalNavigationItemsComponent', () => {
           url: 'https://new.com',
           published: linkData.published,
           visibility: linkData.visibility,
-        },
+        } as UpdateLinkPortalNavigationItem,
         fakePortalNavigationLink({
           id: linkData.id,
           title: 'Updated Link',
@@ -597,7 +602,7 @@ describe('PortalNavigationItemsComponent', () => {
           order: folderData.order,
           published: folderData.published,
           visibility: folderData.visibility,
-        },
+        } as UpdateFolderPortalNavigationItem,
         fakePortalNavigationFolder({
           id: folderData.id,
           title: 'Updated Folder',
@@ -1008,6 +1013,52 @@ describe('PortalNavigationItemsComponent', () => {
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [privateNavItem] }));
         expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
       });
+    });
+  });
+
+  describe('changing api navigation item visibility', () => {
+    const apiNavItem = fakePortalNavigationApi({
+      id: 'nav-api-1',
+      parentId: 'nav-folder-1',
+      apiId: 'api-v2',
+      visibility: 'PUBLIC',
+      area: 'TOP_NAVBAR',
+    });
+
+    beforeEach(async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [fakePortalNavigationFolder({ id: 'nav-folder-1', area: 'TOP_NAVBAR' }), apiNavItem],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+    });
+
+    it('should update visibility using edit dialog', async () => {
+      await harness.editNodeById('nav-api-1');
+
+      const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
+      expect(await dialog.getDialogTitle()).toContain('Edit API');
+
+      const authToggle = await rootLoader.getHarness(MatSlideToggleHarness);
+      expect(await authToggle.isChecked()).toBe(false);
+      await authToggle.toggle();
+
+      await dialog.clickSubmitButton();
+
+      expectPutPortalNavigationItem(
+        apiNavItem.id,
+        fakeUpdateApiPortalNavigationItem({
+          title: apiNavItem.title,
+          parentId: apiNavItem.parentId,
+          order: apiNavItem.order,
+          published: apiNavItem.published,
+          visibility: 'PRIVATE',
+          apiId: apiNavItem.apiId,
+        }),
+        fakePortalNavigationApi({}),
+      );
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [apiNavItem] }));
     });
   });
 
@@ -1685,7 +1736,7 @@ describe('PortalNavigationItemsComponent', () => {
     req.flush(result);
   }
 
-  function expectPutPortalNavigationItem(id: string, expectedBody: any, response: PortalNavigationItem) {
+  function expectPutPortalNavigationItem(id: string, expectedBody: UpdatePortalNavigationItem, response: PortalNavigationItem) {
     const req = httpTestingController.expectOne({
       method: 'PUT',
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${id}`,
