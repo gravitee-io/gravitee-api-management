@@ -510,6 +510,72 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void updateShouldUpdateEvent() throws TechnicalException {
+        LocalDateTime localDate = LocalDateTime.now().minusMinutes(1);
+        var createdDate = Date.from(localDate.atZone(ZoneId.systemDefault()).toInstant());
+        Event event = Event.builder()
+            .id(UUID.toString(UUID.random()))
+            .createdAt(createdDate)
+            .updatedAt(createdDate)
+            .environments(singleton("DEFAULT"))
+            .organizations(singleton("DEFAULT"))
+            .type(EventType.DEBUG_API)
+            .payload("{}")
+            .properties(
+                Map.ofEntries(
+                    Map.entry("to_update", "property_to_update"),
+                    Map.entry("to_update_with_null", "property_to_update_with_null"),
+                    Map.entry("not_updated", "will_not_change")
+                )
+            )
+            .build();
+
+        // Should create the event
+        Event createdEvent = eventRepository.create(event);
+
+        assertThat(createdEvent).isEqualTo(
+            Event.builder()
+                .id(event.getId())
+                .organizations(Set.of("DEFAULT"))
+                .environments(Set.of("DEFAULT"))
+                .type(EventType.DEBUG_API)
+                .payload("{}")
+                .properties(
+                    Map.ofEntries(
+                        Map.entry("to_update", "property_to_update"),
+                        Map.entry("to_update_with_null", "property_to_update_with_null"),
+                        Map.entry("not_updated", "will_not_change")
+                    )
+                )
+                .createdAt(createdDate)
+                .updatedAt(createdDate)
+                .build()
+        );
+
+        Date updateDate = new Date();
+        var updatedProperties = new HashMap<String, String>();
+        updatedProperties.put("to_update", "updated_property");
+        updatedProperties.put("to_update_with_null", null);
+
+        // Should update the event with the new type and properties.
+        var toUpdate = event.toBuilder().updatedAt(updateDate).properties(updatedProperties).build();
+        Event updatedEvent = eventRepository.update(toUpdate);
+
+        assertThat(updatedEvent).isEqualTo(
+            Event.builder()
+                .id(event.getId())
+                .organizations(Set.of("DEFAULT"))
+                .environments(Set.of("DEFAULT"))
+                .type(EventType.DEBUG_API)
+                .payload("{}")
+                .properties(updatedProperties)
+                .createdAt(createdDate)
+                .updatedAt(updateDate)
+                .build()
+        );
+    }
+
+    @Test
     public void should_find_by_environment_id() {
         List<Event> events = eventRepository.findByEnvironmentId("DEFAULT");
 
