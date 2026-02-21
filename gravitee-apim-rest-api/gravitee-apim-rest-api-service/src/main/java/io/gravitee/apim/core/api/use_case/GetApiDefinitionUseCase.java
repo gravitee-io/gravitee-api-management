@@ -24,6 +24,7 @@ import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.definition.model.ApiDefinition;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -54,7 +55,7 @@ public class GetApiDefinitionUseCase {
     private ApiDefinition enrichApiDefinitionV4(Api api, io.gravitee.definition.model.v4.Api apiDefinitionHttpV4) {
         apiDefinitionHttpV4.setFlows(flowCrudService.getApiV4Flows(api.getId()));
         var plans = planQueryService
-            .findAllByApiId(api.getId())
+            .findAllByReferenceIdAndReferenceType(api.getId(), GenericPlanEntity.ReferenceType.API.name())
             .stream()
             .filter(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED || plan.getPlanStatus() == PlanStatus.DEPRECATED)
             .map(Plan::getPlanDefinitionHttpV4)
@@ -67,7 +68,7 @@ public class GetApiDefinitionUseCase {
     private ApiDefinition enrichApiDefinitionNative(Api api, NativeApi apiDefinitionNativeV4) {
         apiDefinitionNativeV4.setFlows(flowCrudService.getNativeApiFlows(api.getId()));
         var plans = planQueryService
-            .findAllByApiId(api.getId())
+            .findAllByReferenceIdAndReferenceType(api.getId(), GenericPlanEntity.ReferenceType.API.name())
             .stream()
             .filter(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED || plan.getPlanStatus() == PlanStatus.DEPRECATED)
             .map(Plan::getPlanDefinitionNativeV4)
@@ -81,7 +82,7 @@ public class GetApiDefinitionUseCase {
         apiDefinition.setFlows(flowCrudService.getApiV2Flows(api.getId()));
 
         var plans = planQueryService
-            .findAllByApiId(api.getId())
+            .findAllByReferenceIdAndReferenceType(api.getId(), GenericPlanEntity.ReferenceType.API.name())
             .stream()
             .filter(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED || plan.getPlanStatus() == PlanStatus.DEPRECATED)
             .map(Plan::getPlanDefinitionV2)

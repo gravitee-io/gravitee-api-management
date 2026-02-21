@@ -37,6 +37,7 @@ import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -128,7 +129,10 @@ public class UpdatePlanDomainService {
     }
 
     private Map<String, PlanStatus> getPlanStatusMap(Api api) {
-        List<Plan> existingPlans = planQueryService.findAllByApiId(api.getId());
+        List<Plan> existingPlans = planQueryService.findAllByReferenceIdAndReferenceType(
+            api.getId(),
+            GenericPlanEntity.ReferenceType.API.name()
+        );
         return existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
     }
 
@@ -260,7 +264,7 @@ public class UpdatePlanDomainService {
 
     private Plan orderAwareUpdateForApiProduct(Plan existingPlan, Plan planToUpdate) {
         if (planToUpdate.getOrder() != existingPlan.getOrder()) {
-            return reorderPlanDomainService.reorderAfterUpdateForApiProduct(planToUpdate);
+            return reorderPlanDomainService.reorderAfterUpdate(planToUpdate);
         } else {
             return planCrudService.update(planToUpdate);
         }
@@ -315,7 +319,10 @@ public class UpdatePlanDomainService {
     }
 
     private Map<String, PlanStatus> getPlanStatusMapForApiProduct(ApiProduct apiProduct) {
-        List<Plan> existingPlans = planQueryService.findAllForApiProduct(apiProduct.getId());
+        List<Plan> existingPlans = planQueryService.findAllByReferenceIdAndReferenceType(
+            apiProduct.getId(),
+            GenericPlanEntity.ReferenceType.API_PRODUCT.name()
+        );
         return existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
     }
 

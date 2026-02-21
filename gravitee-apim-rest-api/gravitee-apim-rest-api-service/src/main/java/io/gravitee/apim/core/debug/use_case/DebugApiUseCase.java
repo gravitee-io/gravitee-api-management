@@ -49,6 +49,7 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
@@ -128,7 +129,7 @@ public class DebugApiUseCase {
                     throw new DebugApiInvalidDefinitionVersionException(apiId);
                 }
                 var plans = planQueryService
-                    .findAllByApiId(apiId)
+                    .findAllByReferenceIdAndReferenceType(apiId, GenericPlanEntity.ReferenceType.API.name())
                     .stream()
                     .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionHttpV4)
                     .map(plan -> plan.flows(flowCrudService.getPlanV4Flows(plan.getId())))
@@ -139,7 +140,7 @@ public class DebugApiUseCase {
             }
             case io.gravitee.definition.model.Api v2Api -> {
                 var plans = planQueryService
-                    .findAllByApiId(apiId)
+                    .findAllByReferenceIdAndReferenceType(apiId, GenericPlanEntity.ReferenceType.API.name())
                     .stream()
                     .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionV2)
                     .map(plan -> plan.flows(flowCrudService.getPlanV2Flows(plan.getId())))

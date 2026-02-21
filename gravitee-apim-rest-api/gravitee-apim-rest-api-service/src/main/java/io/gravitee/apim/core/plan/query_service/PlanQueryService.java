@@ -23,6 +23,8 @@ import java.util.Set;
 public interface PlanQueryService {
     List<Plan> findAllByApiIdAndGeneralConditionsAndIsActive(String apiId, DefinitionVersion definitionVersion, String pageId);
 
+    List<Plan> findAllByReferenceIdAndReferenceType(String referenceId, String referenceType);
+
     List<Plan> findAllByApiId(String apiId);
     List<Plan> findAllByApiIds(Set<String> apiIds, Set<String> environmentIds);
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.plan.use_case.api_product;
+package io.gravitee.apim.core.plan.use_case;
 
 import static io.gravitee.definition.model.DefinitionVersion.V4;
 
@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.function.Function;
@@ -39,25 +40,21 @@ public class CreateApiProductPlanUseCase {
 
     public Output execute(Input input) {
         log.debug("Creating plan for API Product {}", input.apiProductId());
-        var apiProduct = apiProductCrudService.get(input.apiProductId());
-
-        var plan = input.toPlan.apply(apiProduct);
+        ApiProduct apiProduct = apiProductCrudService.get(input.apiProductId());
+        Plan plan = input.toPlan.apply(apiProduct);
 
         plan.setEnvironmentId(apiProduct.getEnvironmentId());
-        //setting this to not null because jdbc looks for a not null value in this column
-
         plan.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
         plan.setReferenceId(input.apiProductId);
-        plan.setPlanStatus(PlanStatus.STAGING);
         plan.setDefinitionVersion(V4);
+        plan.setPlanStatus(PlanStatus.STAGING);
         if (plan.getPlanMode() == null) {
-            plan.setPlanMode(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD);
+            plan.setPlanMode(PlanMode.STANDARD);
         }
 
-        Plan createdPlan = createPlanDomainService.createApiProductPlan(plan, apiProduct, input.auditInfo);
-
-        log.debug("Plan {} created for API Product {}", createdPlan.getId(), input.apiProductId());
-        return new Output(createdPlan.getId(), createdPlan);
+        Plan created = createPlanDomainService.createApiProductPlan(plan, apiProduct, input.auditInfo);
+        log.debug("Plan {} created for API Product {}", created.getId(), input.apiProductId);
+        return new Output(created.getId(), created);
     }
 
     public record Input(String apiProductId, Function<ApiProduct, Plan> toPlan, AuditInfo auditInfo) {}

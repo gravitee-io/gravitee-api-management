@@ -38,7 +38,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 class ReorderPlanDomainServiceTest {
 
     private static final String API_ID = "my-api";
-    private static final String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
 
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory(planCrudService);
@@ -67,7 +66,15 @@ class ReorderPlanDomainServiceTest {
             existingOrder
                 .entrySet()
                 .stream()
-                .map(entry -> (Plan) PlanFixtures.HttpV4.aKeyless().toBuilder().id(entry.getKey()).order(entry.getValue()).build())
+                .map(entry ->
+                    (Plan) PlanFixtures.HttpV4.aKeyless()
+                        .toBuilder()
+                        .id(entry.getKey())
+                        .order(entry.getValue())
+                        .referenceId(API_ID)
+                        .referenceType(GenericPlanEntity.ReferenceType.API)
+                        .build()
+                )
                 .toList()
         );
 
@@ -86,44 +93,6 @@ class ReorderPlanDomainServiceTest {
     }
 
     @ParameterizedTest
-    @MethodSource("reorderAfterUpdateTestData")
-    void should_reorder_all_api_product_plans_when_order_is_updated(
-        Map<String, Integer> existingOrder,
-        Map.Entry<String, Integer> toUpdate,
-        List<Tuple> expectedOrder
-    ) {
-        // Given
-        var plans = givenExistingPlans(
-            existingOrder
-                .entrySet()
-                .stream()
-                .map(entry ->
-                    (Plan) PlanFixtures.HttpV4.aKeyless()
-                        .toBuilder()
-                        .id(entry.getKey())
-                        .order(entry.getValue())
-                        .referenceId(API_PRODUCT_ID)
-                        .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                        .build()
-                )
-                .toList()
-        );
-
-        // When
-        service.reorderAfterUpdateForApiProduct(
-            plans
-                .stream()
-                .filter(p -> p.getId().equals(toUpdate.getKey()))
-                .findFirst()
-                .map(p -> p.toBuilder().order(toUpdate.getValue()).build())
-                .orElseThrow()
-        );
-
-        // Then
-        Assertions.assertThat(planCrudService.storage()).extracting(Plan::getId, Plan::getOrder).containsAll(expectedOrder);
-    }
-
-    @ParameterizedTest
     @MethodSource("reorderAfterDeleteTestData")
     void should_update_order_all_plan_when_plans_have_been_deleted(Map<String, Integer> existingOrder, List<Tuple> expectedOrder) {
         // Given
@@ -132,13 +101,19 @@ class ReorderPlanDomainServiceTest {
                 .entrySet()
                 .stream()
                 .map(entry ->
-                    (Plan) PlanFixtures.HttpV4.aKeyless().toBuilder().id(entry.getKey()).apiId(API_ID).order(entry.getValue()).build()
+                    (Plan) PlanFixtures.HttpV4.aKeyless()
+                        .toBuilder()
+                        .id(entry.getKey())
+                        .referenceId(API_ID)
+                        .referenceType(GenericPlanEntity.ReferenceType.API)
+                        .order(entry.getValue())
+                        .build()
                 )
                 .toList()
         );
 
         // When
-        service.refreshOrderAfterDelete(API_ID);
+        service.refreshOrderAfterDelete(API_ID, GenericPlanEntity.ReferenceType.API.name());
 
         // Then
         Assertions.assertThat(planCrudService.storage()).extracting(Plan::getId, Plan::getOrder).containsAll(expectedOrder);

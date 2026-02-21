@@ -13,6 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package inmemory;
+package io.gravitee.apim.core.plan.exception;
 
-public class ApiProductPlanSearchQueryServiceInMemory {}
+import io.gravitee.apim.core.exception.ValidationDomainException;
+
+public class UnsupportedPlanOperationException extends ValidationDomainException {
+
+    public UnsupportedPlanOperationException(String operation) {
+        super("Unsupported plan operation: " + operation);
+    }
+}

@@ -47,6 +47,7 @@ import io.gravitee.rest.api.model.NewEventEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.UserService;
@@ -540,7 +541,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         var apiDefinitionNativeV4 = objectMapper.readValue(api.getDefinition(), NativeApi.class);
 
         var nativePlans = planQueryService
-            .findAllByApiId(api.getId())
+            .findAllByReferenceIdAndReferenceType(api.getId(), GenericPlanEntity.ReferenceType.API.name())
             .stream()
             .filter(p -> p.getPlanStatus() != PlanStatus.CLOSED && p.getPlanDefinitionNativeV4() != null)
             .map(p -> {

@@ -326,7 +326,10 @@ public class ImportApiCRDUseCase {
     }
 
     private Map<String, String> handlePlanUpdate(Input input, Api api) {
-        List<Plan> existingPlans = planQueryService.findAllByApiId(api.getId());
+        List<Plan> existingPlans = planQueryService.findAllByReferenceIdAndReferenceType(
+            api.getId(),
+            GenericPlanEntity.ReferenceType.API.name()
+        );
         Map<String, PlanStatus> existingPlanStatuses = existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
         Map<String, String> keyToIdMapping = new HashMap<>();
 
@@ -382,7 +385,7 @@ public class ImportApiCRDUseCase {
             deletePlanDomainService.delete(plan, auditInfo);
         });
 
-        reorderPlanDomainService.refreshOrderAfterDelete(api.getId());
+        reorderPlanDomainService.refreshOrderAfterDelete(api.getId(), GenericPlanEntity.ReferenceType.API.name());
     }
 
     private Plan initPlanFromCRD(String hrid, PlanCRD planCRD, Api api) {
