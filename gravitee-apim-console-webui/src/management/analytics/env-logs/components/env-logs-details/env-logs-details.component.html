@@ -17,7 +17,14 @@
 -->
 
 <div class="logs-details">
-  @if (log(); as log) {
+  @if (isLoading()) {
+    <div class="logs-details__loading">
+      <mat-spinner diameter="32"></mat-spinner>
+      <span>Loading log details…</span>
+    </div>
+  } @else if (error(); as errorMsg) {
+    <gio-banner-error data-testid="error-banner">{{ errorMsg }}</gio-banner-error>
+  } @else if (log(); as log) {
     <div class="logs-details__container">
       <div class="logs-details__header">
         <a class="back-button" mat-flat-button [routerLink]="['..']" aria-label="Back to logs"
@@ -41,7 +48,7 @@
                     <env-logs-details-row label="Method">
                       <div [class]="'gio-method-badge-' + log.method.toLocaleLowerCase()">{{ log.method }}</div>
                     </env-logs-details-row>
-                    <env-logs-details-row label="URI" dataTestId="overview-uri">{{ log.api ?? '—' }}</env-logs-details-row>
+                    <env-logs-details-row label="URI" dataTestId="overview-uri">{{ log.path ?? '—' }}</env-logs-details-row>
                     <env-logs-details-row label="Request ID">{{ log.requestId ?? '—' }}</env-logs-details-row>
                     <env-logs-details-row label="Transaction ID">{{ log.transactionId ?? '—' }}</env-logs-details-row>
                     <env-logs-details-row label="Remote IP">{{ log.remoteAddress ?? '—' }}</env-logs-details-row>
@@ -104,6 +111,24 @@
                       <env-logs-details-row [label]="header.key">{{ header.value }}</env-logs-details-row>
                     }
                   </dl>
+
+                  <!-- Body for Consumer Request -->
+                  <div class="payload">
+                    <div class="mat-body card__section__label">Body</div>
+                    @if (requestBody()) {
+                      <div gioMonacoClipboardCopy class="editor">
+                        <gio-monaco-editor
+                          disabled
+                          [options]="monacoEditorOptions"
+                          [singleLineMode]="false"
+                          [ngModel]="requestBody()"
+                          [disableMiniMap]="true"
+                        ></gio-monaco-editor>
+                      </div>
+                    } @else {
+                      <p class="payload__empty">No request body captured.</p>
+                    }
+                  </div>
                 </div>
 
                 <div class="card__section">
@@ -124,6 +149,24 @@
                       <env-logs-details-row [label]="header.key">{{ header.value }}</env-logs-details-row>
                     }
                   </dl>
+
+                  <!-- Body for Gateway Request -->
+                  <div class="payload">
+                    <div class="mat-body card__section__label">Body</div>
+                    @if (gatewayRequestBody()) {
+                      <div gioMonacoClipboardCopy class="editor">
+                        <gio-monaco-editor
+                          disabled
+                          [options]="monacoEditorOptions"
+                          [singleLineMode]="false"
+                          [ngModel]="gatewayRequestBody()"
+                          [disableMiniMap]="true"
+                        ></gio-monaco-editor>
+                      </div>
+                    } @else {
+                      <p class="payload__empty">No request body captured.</p>
+                    }
+                  </div>
                 </div>
               </div>
             </mat-card-content>
@@ -137,12 +180,13 @@
                   <span class="mat-body-strong">Response</span>
                   <dl class="card__section__kv">
                     <env-logs-details-row label="Status">
-                      @if (log.entrypointResponse?.status !== undefined) {
+                      @if (log.entrypointResponse?.status != null) {
+                        @let status = log.entrypointResponse!.status;
                         <span
-                          [class.gio-badge-success]="log.entrypointResponse!.status < 400"
-                          [class.gio-badge-warning]="log.entrypointResponse!.status >= 400 && log.entrypointResponse!.status <= 499"
-                          [class.gio-badge-error]="log.entrypointResponse!.status >= 500 || log.entrypointResponse!.status === 0"
-                          >{{ log.entrypointResponse!.status }}</span
+                          [class.gio-badge-success]="status < 400"
+                          [class.gio-badge-warning]="status >= 400 && status <= 499"
+                          [class.gio-badge-error]="status >= 500 || status === 0"
+                          >{{ status }}</span
                         >
                       } @else {
                         —
@@ -179,12 +223,13 @@
                   <span class="mat-body-strong">Gateway</span>
                   <dl class="card__section__kv">
                     <env-logs-details-row label="Status">
-                      @if (log.endpointResponse?.status !== undefined) {
+                      @if (log.endpointResponse?.status != null) {
+                        @let status = log.endpointResponse!.status;
                         <span
-                          [class.gio-badge-success]="log.endpointResponse!.status < 400"
-                          [class.gio-badge-warning]="log.endpointResponse!.status >= 400 && log.endpointResponse!.status <= 499"
-                          [class.gio-badge-error]="log.endpointResponse!.status >= 500 || log.endpointResponse!.status === 0"
-                          >{{ log.endpointResponse!.status }}</span
+                          [class.gio-badge-success]="status < 400"
+                          [class.gio-badge-warning]="status >= 400 && status <= 499"
+                          [class.gio-badge-error]="status >= 500 || status === 0"
+                          >{{ status }}</span
                         >
                       } @else {
                         —
