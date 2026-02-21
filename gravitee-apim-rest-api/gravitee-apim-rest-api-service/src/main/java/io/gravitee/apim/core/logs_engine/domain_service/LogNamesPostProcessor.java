@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.logs_engine.model;
+package io.gravitee.apim.core.logs_engine.domain_service;
 
-public record BaseApplication(
-    String id,
-    String name,
-    String description,
-    String domain,
-    String type,
-    PrimaryOwner primaryOwner,
-    ApiKeyMode apiKeyMode
-) {
-    public BaseApplication withName(String name) {
-        return new BaseApplication(id, name, description, domain, type, primaryOwner, apiKeyMode);
-    }
+import io.gravitee.apim.core.logs_engine.model.SearchLogsResponse;
+import io.gravitee.apim.core.user.model.UserContext;
+
+/**
+ * @author GraviteeSource Team
+ */
+public interface LogNamesPostProcessor {
+    SearchLogsResponse mapLogNames(UserContext context, SearchLogsResponse response);
 }
