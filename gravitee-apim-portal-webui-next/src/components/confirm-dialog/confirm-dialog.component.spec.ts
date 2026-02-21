@@ -23,11 +23,11 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
-import { CloseSubscriptionDialogComponent } from './close-subscription-dialog.component';
-import { CloseSubscriptionDialogHarness } from './close-subscription-dialog.harness';
+import { ConfirmDialogComponent, ConfirmDialogData } from './confirm-dialog.component';
+import { ConfirmDialogHarness } from './confirm-dialog.harness';
 
 @Component({
-  selector: 'app-close-subscription-dialog-test',
+  selector: 'app-confirm-dialog-test',
   imports: [MatButtonModule],
   template: `<button mat-button id="open-confirm-dialog" (click)="openConfirmDialog()">Open confirm dialog</button>`,
   standalone: true,
@@ -36,18 +36,26 @@ class TestComponent {
   public confirmed?: boolean;
   constructor(private readonly matDialog: MatDialog) {}
 
-  public openConfirmDialog() {
+  public openConfirmDialog(data?: Partial<ConfirmDialogData>) {
+    const dialogData: ConfirmDialogData = {
+      title: 'Test Title',
+      content: 'Test Content',
+      confirmLabel: 'Confirm',
+      cancelLabel: 'Cancel',
+      ...data,
+    };
     this.matDialog
-      .open<CloseSubscriptionDialogComponent, void, boolean>(CloseSubscriptionDialogComponent, {
+      .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
         role: 'alertdialog',
-        id: 'closeSubscriptionDialog',
+        id: 'confirmDialog',
+        data: dialogData,
       })
       .afterClosed()
       .subscribe(confirmed => (this.confirmed = confirmed));
   }
 }
 
-describe('CloseSubscriptionDialogComponent', () => {
+describe('ConfirmDialogComponent', () => {
   let component: TestComponent;
   let fixture: ComponentFixture<TestComponent>;
   let loader: HarnessLoader;
@@ -66,25 +74,46 @@ describe('CloseSubscriptionDialogComponent', () => {
     loader = TestbedHarnessEnvironment.documentRootLoader(fixture);
   });
 
-  it('should return true with the user confirms', async () => {
+  it('should return true when the user confirms', async () => {
     const openDialogButton = await loader.getHarness(MatButtonHarness);
     await openDialogButton.click();
     fixture.detectChanges();
 
-    const confirmDialogHarness = await loader.getHarness(CloseSubscriptionDialogHarness);
+    const confirmDialogHarness = await loader.getHarness(ConfirmDialogHarness);
     await confirmDialogHarness.confirm();
 
     expect(component.confirmed).toBe(true);
   });
 
-  it('should return false with the user cancels', async () => {
+  it('should return false when the user cancels', async () => {
     const openDialogButton = await loader.getHarness(MatButtonHarness);
     await openDialogButton.click();
     fixture.detectChanges();
 
-    const confirmDialogHarness = await loader.getHarness(CloseSubscriptionDialogHarness);
+    const confirmDialogHarness = await loader.getHarness(ConfirmDialogHarness);
     await confirmDialogHarness.cancel();
 
     expect(component.confirmed).toBe(false);
+  });
+
+  it('should use default cancel label when not provided', async () => {
+    const openDialogButton = await loader.getHarness(MatButtonHarness);
+    await openDialogButton.click();
+    fixture.detectChanges();
+
+    const confirmDialogHarness = await loader.getHarness(ConfirmDialogHarness);
+    const cancelText = await confirmDialogHarness.getCancelText();
+
+    expect(cancelText).toBe('Cancel');
+  });
+
+  it('should use default confirm label when not provided', async () => {
+    component.openConfirmDialog({ confirmLabel: undefined });
+    fixture.detectChanges();
+
+    const confirmDialogHarness = await loader.getHarness(ConfirmDialogHarness);
+    const confirmText = await confirmDialogHarness.getConfirmText();
+
+    expect(confirmText).toBe('OK');
   });
 });

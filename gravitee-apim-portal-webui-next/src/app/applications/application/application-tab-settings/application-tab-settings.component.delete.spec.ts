@@ -24,8 +24,8 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
 
 import { ApplicationTabSettingsComponent } from './application-tab-settings.component';
-import { DeleteConfirmDialogComponent } from './delete-confirm-dialog/delete-confirm-dialog.component';
-import { DeleteConfirmDialogHarness } from './delete-confirm-dialog/delete-confirm-dialog.harness';
+import { ConfirmDialogComponent } from '../../../../components/confirm-dialog/confirm-dialog.component';
+import { ConfirmDialogHarness } from '../../../../components/confirm-dialog/confirm-dialog.harness';
 import { fakeApplication, fakeSimpleApplicationType } from '../../../../entities/application/application.fixture';
 import { fakeUserApplicationPermissions } from '../../../../entities/permission/permission.fixtures';
 import { ConfigService } from '../../../../services/config.service';
@@ -52,7 +52,7 @@ describe('ApplicationTabSettingsComponent - Test application deletion', () => {
     await TestBed.configureTestingModule({
       imports: [
         ApplicationTabSettingsComponent,
-        DeleteConfirmDialogComponent,
+        ConfirmDialogComponent,
         HttpClientTestingModule,
         NoopAnimationsModule,
         AppTestingModule,
@@ -169,7 +169,7 @@ describe('ApplicationTabSettingsComponent - Test application deletion', () => {
     return await loader.getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testId="delete"]' }));
   }
 
-  async function deleteConfirmDialog(): Promise<DeleteConfirmDialogHarness | null> {
-    return await rootLoader.getHarnessOrNull(DeleteConfirmDialogHarness);
+  async function deleteConfirmDialog(): Promise<ConfirmDialogHarness | null> {
+    return await rootLoader.getHarnessOrNull(ConfirmDialogHarness);
   }
 });

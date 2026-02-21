@@ -22,7 +22,7 @@ import { EMPTY, Observable, Subject, switchMap, take, takeUntil, tap } from 'rxj
 
 import { ApplicationTabSettingsEditComponent } from './application-tab-settings-edit/application-tab-settings-edit.component';
 import { ApplicationTabSettingsReadComponent } from './application-tab-settings-read/application-tab-settings-read.component';
-import { DeleteConfirmDialogComponent } from './delete-confirm-dialog/delete-confirm-dialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../components/confirm-dialog/confirm-dialog.component';
 import { Application, ApplicationType } from '../../../../entities/application/application';
 import { UserApplicationPermissions } from '../../../../entities/permission/permission';
 import { ApplicationService } from '../../../../services/application.service';
@@ -62,14 +62,21 @@ export class ApplicationTabSettingsComponent implements OnInit {
   }
 
   deleteApplication(): void {
+    const dialogData: ConfirmDialogData = {
+      title: $localize`:@@titleDeleteApplicationDialog:Delete application`,
+      content: $localize`:@@contentDeleteApplicationDialog:All your subscriptions will be closed. Are you sure you want to delete this application?`,
+      confirmLabel: $localize`:@@confirmDeleteApplicationDialog:Delete`,
+      cancelLabel: $localize`:@@cancelDeleteApplicationDialog:Cancel`,
+    };
     this.application$
       .pipe(
         take(1),
         switchMap(application =>
           this.matDialog
-            .open<DeleteConfirmDialogComponent, void, boolean>(DeleteConfirmDialogComponent, {
+            .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
               role: 'alertdialog',
               id: 'confirmDialog',
+              data: dialogData,
             })
             .afterClosed()
             .pipe(
