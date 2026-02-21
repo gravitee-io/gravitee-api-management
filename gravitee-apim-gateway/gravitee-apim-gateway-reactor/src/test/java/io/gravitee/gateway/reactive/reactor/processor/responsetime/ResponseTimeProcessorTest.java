@@ -23,6 +23,9 @@ import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.reactor.processor.AbstractProcessorTest;
 import io.gravitee.reporter.api.v4.metric.Metrics;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -45,6 +48,33 @@ class ResponseTimeProcessorTest extends AbstractProcessorTest {
         );
         assertThat(ctx.metrics().getGatewayLatencyMs()).isEqualTo(
             ctx.metrics().getGatewayResponseTimeMs() - ctx.metrics().getEndpointResponseTimeMs()
+        );
+    }
+
+    @Test
+    void shouldRecordResponseTimeToMicrometerWhenRegistryProvided() {
+        MeterRegistry registry = new SimpleMeterRegistry();
+        ResponseTimeProcessor responseTimeProcessor = new ResponseTimeProcessor(registry);
+        ctx.metrics().setEndpointResponseTimeMs(100);
+        responseTimeProcessor.execute(ctx).test().assertResult();
+
+        // Verify metrics are recorded
+        assertThat(ctx.metrics().getGatewayResponseTimeMs()).isGreaterThanOrEqualTo(0);
+
+        // Verify Micrometer timer was recorded
+        Timer timer = registry.find("gateway_response_time").timer();
+        assertThat(timer).isNotNull();
+        assertThat(timer.count()).isEqualTo(1);
+        assertThat(timer.totalTime(java.util.concurrent.TimeUnit.MILLISECONDS)).isGreaterThanOrEqualTo(0);
+    }
+
+    @Test
+    void shouldWorkWithNullMeterRegistry() {
+        ResponseTimeProcessor responseTimeProcessor = new ResponseTimeProcessor(null);
+        ctx.metrics().setEndpointResponseTimeMs(100);
+        responseTimeProcessor.execute(ctx).test().assertResult();
+        assertThat(ctx.metrics().getGatewayResponseTimeMs()).isLessThanOrEqualTo(
+            System.currentTimeMillis() - ctx.metrics().getEndpointResponseTimeMs()
         );
     }
 }

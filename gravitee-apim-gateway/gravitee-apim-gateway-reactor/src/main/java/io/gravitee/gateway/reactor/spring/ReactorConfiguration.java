@@ -63,9 +63,11 @@ import io.gravitee.node.api.Node;
 import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.gravitee.secrets.api.discovery.DefinitionSecretRefsFinder;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.vertx.core.Vertx;
 import java.util.List;
 import lombok.CustomLog;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -136,7 +138,8 @@ public class ReactorConfiguration {
         @Value("${http.port:8082}") String httpPort,
         OpenTelemetryConfiguration openTelemetryConfiguration,
         GatewayConfiguration gatewayConfiguration,
-        ConnectionDrainManager connectionDrainManager
+        ConnectionDrainManager connectionDrainManager,
+        @Autowired(required = false) MeterRegistry meterRegistry
     ) {
         return new DefaultPlatformProcessorChainFactory(
             transactionHandlerFactory,
@@ -147,7 +150,8 @@ public class ReactorConfiguration {
             node,
             httpPort,
             gatewayConfiguration,
-            connectionDrainManager
+            connectionDrainManager,
+            meterRegistry
         );
     }
 
@@ -251,14 +255,16 @@ public class ReactorConfiguration {
         ReporterService reporterService,
         @Value("${handlers.notfound.analytics.enabled:false}") boolean notFoundAnalyticsEnabled,
         @Deprecated @Value("${handlers.notfound.log.enabled:false}") boolean notFoundLogEnabled,
-        GatewayConfiguration gatewayConfiguration
+        GatewayConfiguration gatewayConfiguration,
+        @Autowired(required = false) MeterRegistry meterRegistry
     ) {
         return new NotFoundProcessorChainFactory(
             transactionHandlerFactory,
             environment,
             reporterService,
             notFoundAnalyticsEnabled || notFoundLogEnabled,
-            gatewayConfiguration
+            gatewayConfiguration,
+            meterRegistry
         );
     }
 
