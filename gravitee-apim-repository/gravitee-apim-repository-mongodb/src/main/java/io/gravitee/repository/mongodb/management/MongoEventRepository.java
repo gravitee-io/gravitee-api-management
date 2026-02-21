@@ -92,7 +92,7 @@ public class MongoEventRepository implements EventRepository {
             eventMongo.setType(event.getType().toString());
             eventMongo.setPayload(event.getPayload());
             eventMongo.setParentId(event.getParentId());
-            eventMongo.setCreatedAt(event.getUpdatedAt());
+            eventMongo.setCreatedAt(event.getCreatedAt());
             eventMongo.setUpdatedAt(event.getUpdatedAt());
             eventMongo.setEnvironments(event.getEnvironments());
             eventMongo.setOrganizations(event.getOrganizations());
