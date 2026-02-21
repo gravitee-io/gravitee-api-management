@@ -15,4 +15,8 @@
  */
 package io.gravitee.apim.core.logs_engine.model;
 
-public record BasePlan(String id, String name, String description, String apiId, PlanSecurity security, PlanMode mode) {}
+public record BasePlan(String id, String name, String description, String apiId, PlanSecurity security, PlanMode mode) {
+    public BasePlan withName(String name) {
+        return new BasePlan(id, name, description, apiId, security, mode);
+    }
+}
