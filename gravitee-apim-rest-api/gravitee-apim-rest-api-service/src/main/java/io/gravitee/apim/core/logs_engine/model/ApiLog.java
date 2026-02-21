@@ -21,6 +21,7 @@ import java.util.Map;
 
 public record ApiLog(
     String apiId,
+    String apiName,
     OffsetDateTime timestamp,
     String id,
     String requestId,
@@ -41,4 +42,112 @@ public record ApiLog(
     String errorComponentType,
     List<ApiLogDiagnostic> warnings,
     Map<String, Object> additionalMetrics
-) {}
+) {
+    public ApiLog withApiName(String apiName) {
+        return new ApiLog(
+            apiId,
+            apiName,
+            timestamp,
+            id,
+            requestId,
+            method,
+            clientIdentifier,
+            plan,
+            application,
+            transactionId,
+            status,
+            requestEnded,
+            gatewayResponseTime,
+            gateway,
+            uri,
+            endpoint,
+            message,
+            errorKey,
+            errorComponentName,
+            errorComponentType,
+            warnings,
+            additionalMetrics
+        );
+    }
+
+    public ApiLog withPlan(BasePlan plan) {
+        return new ApiLog(
+            apiId,
+            apiName,
+            timestamp,
+            id,
+            requestId,
+            method,
+            clientIdentifier,
+            plan,
+            application,
+            transactionId,
+            status,
+            requestEnded,
+            gatewayResponseTime,
+            gateway,
+            uri,
+            endpoint,
+            message,
+            errorKey,
+            errorComponentName,
+            errorComponentType,
+            warnings,
+            additionalMetrics
+        );
+    }
+
+    public ApiLog withApplication(BaseApplication application) {
+        return new ApiLog(
+            apiId,
+            apiName,
+            timestamp,
+            id,
+            requestId,
+            method,
+            clientIdentifier,
+            plan,
+            application,
+            transactionId,
+            status,
+            requestEnded,
+            gatewayResponseTime,
+            gateway,
+            uri,
+            endpoint,
+            message,
+            errorKey,
+            errorComponentName,
+            errorComponentType,
+            warnings,
+            additionalMetrics
+        );
+    }
+
+    public ApiLog withGateway(String gateway) {
+        return new ApiLog(
+            apiId,
+            apiName,
+            timestamp,
+            id,
+            requestId,
+            method,
+            clientIdentifier,
+            plan,
+            application,
+            transactionId,
+            status,
+            requestEnded,
+            gatewayResponseTime,
+            gateway,
+            uri,
+            endpoint,
+            message,
+            errorKey,
+            errorComponentName,
+            errorComponentType,
+            warnings,
+            additionalMetrics
+        );
+    }
+}
