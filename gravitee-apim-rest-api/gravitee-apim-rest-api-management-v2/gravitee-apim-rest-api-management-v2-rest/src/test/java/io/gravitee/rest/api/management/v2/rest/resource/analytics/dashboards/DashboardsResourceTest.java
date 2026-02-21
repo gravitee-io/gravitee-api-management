@@ -40,6 +40,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -50,6 +51,9 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -231,6 +235,38 @@ class DashboardsResourceTest extends AbstractResourceTest {
                 .hasMessageContaining("measure");
         }
 
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("invalidLabels")
+        void should_return_400_for_invalid_labels(String description, Map<String, String> labels) {
+            var createDashboard = DashboardFixtures.aCreateDashboard();
+            createDashboard.setLabels(labels);
+            var response = rootTarget().request().post(json(createDashboard));
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+        }
+
+        private static Stream<Arguments> invalidLabels() {
+            var emptyKey = new HashMap<String, String>();
+            emptyKey.put("", "value");
+
+            var blankKey = new HashMap<String, String>();
+            blankKey.put(" ", "value");
+
+            var emptyValue = new HashMap<String, String>();
+            emptyValue.put("key", "");
+
+            var blankValue = new HashMap<String, String>();
+            blankValue.put("key", "");
+
+            return Stream.of(
+                Arguments.of("empty label key", emptyKey),
+                Arguments.of("blank label key", blankKey),
+                Arguments.of("empty label value", emptyValue),
+                Arguments.of("blank label value", blankValue),
+                Arguments.of("label key containing a dot", Map.of("invalid.key", "value"))
+            );
+        }
+
         @Test
         void should_return_400_if_missing_body() {
             var response = rootTarget().request().post(json(null));
@@ -256,7 +292,7 @@ class DashboardsResourceTest extends AbstractResourceTest {
         }
 
         private static Stream<String> provideInvalidName() {
-            return Stream.of("ab", "a".repeat(257));
+            return Stream.of(null, "ab", " ".repeat(4), "a".repeat(257));
         }
     }
 
