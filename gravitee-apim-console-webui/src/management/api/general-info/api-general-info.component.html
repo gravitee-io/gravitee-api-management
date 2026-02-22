@@ -161,6 +161,28 @@
                   </dd>
                 }
 
+                @if (apiProducts.length > 0) {
+                  <dt>Included in</dt>
+                  <dd>
+                    @let displayedProducts = apiProducts.slice(0, displayedApiProductsCount);
+                    @let remainingCount = apiProducts.length - displayedApiProductsCount;
+                    @for (product of displayedProducts; track product.id) {
+                      <a [routerLink]="['../../api-products', product.id]">{{ product.name }}</a
+                      >@if (!$last) {, }
+                    }
+                    @if (remainingCount > 0) {
+                      , <button
+                          type="button"
+                          (click)="openIncludedInDialog()"
+                          class="included-in-more-link"
+                          data-testid="api_info_included_in_more"
+                        >
+                          +{{ remainingCount }} more
+                        </button>
+                    }
+                  </dd>
+                }
+
                 <dt>Last connection</dt>
                 <dd>{{ apiLastDeploymentAt | date: 'medium' }}</dd>
               </dl>

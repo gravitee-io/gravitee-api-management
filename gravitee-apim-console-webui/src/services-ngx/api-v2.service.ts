@@ -39,6 +39,11 @@ import { PathToVerify, VerifyApiPathResponse } from '../entities/management-api-
 import { VerifyApiHostsResponse } from '../entities/management-api-v2/api/verifyApiHosts';
 import { ImportSwaggerDescriptor } from '../entities/management-api-v2/api/v4/importSwaggerDescriptor';
 import { MigrateToV4Response } from '../entities/management-api-v2/api/v2/migrateToV4Response';
+import { ApiProduct } from '../entities/management-api-v2/api-product/apiProduct';
+
+export interface ApiProductsForApiResponse {
+  data: ApiProduct[];
+}
 
 export interface HostValidatorParams {
   currentHost?: string;
@@ -257,7 +262,8 @@ export class ApiV2Service {
     );
   }
 
-  getApiProductsForApi(apiId: string): Observable<{ data: unknown[] }> {
-    return this.http.get<{ data: unknown[] }>(`${this.constants.env.v2BaseURL}/apis/${apiId}/api-products`);
+  getApiProductsForApi(apiId: string, page = 1, perPage = 1000): Observable<ApiProductsForApiResponse> {
+    const params = new HttpParams().set('page', page.toString()).set('perPage', perPage.toString());
+    return this.http.get<ApiProductsForApiResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/api-products`, { params });
   }
 }

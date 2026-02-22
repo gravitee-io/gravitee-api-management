@@ -385,11 +385,12 @@ describe('ApiV2Service', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/api-products`,
-        method: 'GET',
-      });
+      const req = httpTestingController.expectOne(
+        (r) => r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/api-products`) && r.method === 'GET',
+      );
 
+      expect(req.request.params.get('page')).toBe('1');
+      expect(req.request.params.get('perPage')).toBe('1000');
       req.flush(apiProductsResponse);
     });
   });
