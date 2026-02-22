@@ -2160,7 +2160,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         entity.setId(subscription.getId());
         entity.setReferenceId(subscription.getReferenceId());
         entity.setReferenceType(subscription.getReferenceType() != null ? subscription.getReferenceType().name() : null);
-        entity.setApi(subscription.getApi() != null ? subscription.getApi() : subscription.getReferenceId());
+        entity.setApi(
+            subscription.getReferenceType() != SubscriptionReferenceType.API_PRODUCT
+                ? (subscription.getApi() != null ? subscription.getApi() : subscription.getReferenceId())
+                : null
+        );
         entity.setPlan(subscription.getPlan());
         entity.setProcessedAt(subscription.getProcessedAt());
         entity.setStatus(SubscriptionStatus.valueOf(subscription.getStatus().name()));
