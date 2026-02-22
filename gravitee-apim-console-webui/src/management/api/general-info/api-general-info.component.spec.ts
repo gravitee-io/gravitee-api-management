@@ -623,10 +623,9 @@ describe('ApiGeneralInfoComponent', () => {
       await waitImageCheck();
       fixture.detectChanges();
 
-      const productsReq = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`,
-        method: 'GET',
-      });
+      const productsReq = httpTestingController.expectOne(
+        (req) => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
+      );
       productsReq.flush({ data: [] });
       fixture.detectChanges();
 
@@ -656,10 +655,9 @@ describe('ApiGeneralInfoComponent', () => {
       expectCategoriesGetRequest();
       await waitImageCheck();
       fixture.detectChanges();
-      let productsReq = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`,
-        method: 'GET',
-      });
+      let productsReq = httpTestingController.expectOne(
+        (req) => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
+      );
       productsReq.flush({ data: [] });
       fixture.detectChanges();
       let toggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="allowedInApiProducts"]' }));
@@ -672,10 +670,9 @@ describe('ApiGeneralInfoComponent', () => {
       expectCategoriesGetRequest();
       await waitImageCheck();
       fixture.detectChanges();
-      productsReq = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`,
-        method: 'GET',
-      });
+      productsReq = httpTestingController.expectOne(
+        (req) => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
+      );
       productsReq.flush({ data: [] });
       fixture.detectChanges();
       toggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="allowedInApiProducts"]' }));
@@ -689,10 +686,9 @@ describe('ApiGeneralInfoComponent', () => {
       expectCategoriesGetRequest();
       await waitImageCheck();
       fixture.detectChanges();
-      productsReq = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`,
-        method: 'GET',
-      });
+      productsReq = httpTestingController.expectOne(
+        (req) => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
+      );
       productsReq.flush({ data: [] });
       fixture.detectChanges();
       toggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="allowedInApiProducts"]' }));
@@ -708,10 +704,9 @@ describe('ApiGeneralInfoComponent', () => {
       fixture.detectChanges();
 
       // Simulate API is used in products (non-empty data)
-      const productsReq = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`,
-        method: 'GET',
-      });
+      const productsReq = httpTestingController.expectOne(
+        (req) => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
+      );
       productsReq.flush({ data: [{ id: 'apip1' }] });
       fixture.detectChanges();
 
@@ -727,10 +722,9 @@ describe('ApiGeneralInfoComponent', () => {
       await waitImageCheck();
       fixture.detectChanges();
 
-      const productsReq = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`,
-        method: 'GET',
-      });
+      const productsReq = httpTestingController.expectOne(
+        (req) => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
+      );
       productsReq.flush(
         { message: 'error' },
         {
@@ -756,10 +750,9 @@ describe('ApiGeneralInfoComponent', () => {
       await waitImageCheck();
       fixture.detectChanges();
 
-      const productsReq = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`,
-        method: 'GET',
-      });
+      const productsReq = httpTestingController.expectOne(
+        (req) => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
+      );
       productsReq.flush({ data: [] });
       fixture.detectChanges();
 
@@ -775,10 +768,9 @@ describe('ApiGeneralInfoComponent', () => {
       await waitImageCheck();
       fixture.detectChanges();
 
-      const productsReq = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`,
-        method: 'GET',
-      });
+      const productsReq = httpTestingController.expectOne(
+        (req) => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
+      );
       productsReq.flush({ data: null });
       fixture.detectChanges();
 
@@ -1149,10 +1141,9 @@ describe('ApiGeneralInfoComponent', () => {
   });
 
   function expectApiProductsRequest(apiId: string = API_ID, data: { data: unknown[] } = { data: [] }) {
-    const req = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/api-products`,
-      method: 'GET',
-    });
+    const req = httpTestingController.expectOne(
+      (r) => r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/api-products`) && r.method === 'GET',
+    );
     req.flush(data);
     fixture.detectChanges();
   }

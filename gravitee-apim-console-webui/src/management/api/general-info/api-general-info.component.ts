@@ -39,6 +39,10 @@ import {
   ApiGeneralInfoExportV4DialogComponent,
 } from './api-general-info-export-v4-dialog/api-general-info-export-v4-dialog.component';
 import { ApiGeneralInfoMigrateToV4DialogComponent } from './api-general-info-migrate-to-v4-dialog/api-general-info-migrate-to-v4-dialog.component';
+import {
+  ApiGeneralInfoIncludedInDialogComponent,
+  ApiGeneralInfoIncludedInDialogData,
+} from './api-general-info-included-in-dialog/api-general-info-included-in-dialog.component';
 
 import { Category } from '../../../entities/category/Category';
 import { Constants } from '../../../entities/Constants';
@@ -49,6 +53,7 @@ import { GioApiImportDialogComponent, GioApiImportDialogData } from '../componen
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api, ApiType, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../../entities/management-api-v2';
+import { ApiProduct } from '../../../entities/management-api-v2/api-product/apiProduct';
 import { MigrateToV4State } from '../../../entities/management-api-v2/api/v2/migrateToV4Response';
 import { Integration } from '../../integrations/integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
@@ -105,6 +110,9 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
   public integrationName = '';
   public integrationId = '';
+
+  public apiProducts: ApiProduct[] = [];
+  public readonly displayedApiProductsCount = 5;
 
   constructor(
     private readonly router: Router,
@@ -276,25 +284,36 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   }
 
   private loadApiProductsUsageAndUpdateControl(): void {
-    if (!this.canDisplayAllowInApiProduct) {
-      return;
-    }
     this.apiService
       .getApiProductsForApi(this.apiId)
       .pipe(
-        map(response => response.data && response.data.length > 0),
-        catchError(() => of(false)),
+        catchError(() => of({ data: [] })),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe(isUsedInProducts => {
-        this.isApiUsedInProducts = isUsedInProducts;
-        const allowedInApiProductsControl = this.apiDetailsForm.get('allowedInApiProducts');
-        if (!allowedInApiProductsControl) return;
-        const shouldDisable = isUsedInProducts || this.isReadOnly;
-        shouldDisable
-          ? allowedInApiProductsControl.disable({ emitEvent: false })
-          : allowedInApiProductsControl.enable({ emitEvent: false });
+      .subscribe(response => {
+        this.apiProducts = response.data ?? [];
+        this.isApiUsedInProducts = this.apiProducts.length > 0;
+        if (this.canDisplayAllowInApiProduct) {
+          const allowedInApiProductsControl = this.apiDetailsForm.get('allowedInApiProducts');
+          if (allowedInApiProductsControl) {
+            const shouldDisable = this.isApiUsedInProducts || this.isReadOnly;
+            shouldDisable
+              ? allowedInApiProductsControl.disable({ emitEvent: false })
+              : allowedInApiProductsControl.enable({ emitEvent: false });
+          }
+        }
       });
+  }
+
+  openIncludedInDialog(): void {
+    this.matDialog.open<ApiGeneralInfoIncludedInDialogComponent, ApiGeneralInfoIncludedInDialogData>(
+      ApiGeneralInfoIncludedInDialogComponent,
+      {
+        data: { apiProducts: this.apiProducts },
+        role: 'alertdialog',
+        id: 'includedInApiProductsDialog',
+      },
+    );
   }
 
   onSubmit() {
