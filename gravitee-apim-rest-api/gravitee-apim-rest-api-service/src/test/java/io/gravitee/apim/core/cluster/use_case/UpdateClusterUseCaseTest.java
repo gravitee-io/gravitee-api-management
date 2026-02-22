@@ -16,25 +16,29 @@
 package io.gravitee.apim.core.cluster.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.AbstractUseCaseTest;
 import inmemory.ClusterCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
 import io.gravitee.apim.core.cluster.model.UpdateCluster;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
+import io.gravitee.apim.infra.json.JsonSchemaCheckerImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.json.validation.JsonSchemaValidatorImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.impl.JsonSchemaServiceImpl;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
@@ -45,12 +49,14 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
 
     private UpdateClusterUseCase updateClusterUseCase;
     private final ClusterCrudService clusterCrudService = new ClusterCrudServiceInMemory();
-    private final ValidateClusterService validateClusterService = new ValidateClusterService();
     private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
     private Cluster existingCluster;
 
     @BeforeEach
     void setUp() {
+        var jsonSchemaChecker = new JsonSchemaCheckerImpl(new JsonSchemaServiceImpl(new JsonSchemaValidatorImpl()));
+        var clusterConfigurationSchemaService = new ClusterConfigurationSchemaService();
+        var validateClusterService = new ValidateClusterService(jsonSchemaChecker, clusterConfigurationSchemaService, new ObjectMapper());
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         updateClusterUseCase = new UpdateClusterUseCase(clusterCrudService, validateClusterService, auditService, permissionDomainService);
 
@@ -61,7 +67,7 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
             .description("The cluster no 1")
             .environmentId(ENV_ID)
             .organizationId(ORG_ID)
-            .configuration(Map.of("bootstrapServers", "localhost:9092"))
+            .configuration(Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT")))
             .build();
         ((ClusterCrudServiceInMemory) clusterCrudService).initWith(List.of(existingCluster));
 
@@ -115,7 +121,7 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_update_configuration() {
         // Given
-        Object configuration = Map.of("bootstrapServers", "localhost:9093");
+        Object configuration = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "SSL"));
         var toUpdate = UpdateCluster.builder().configuration(configuration).build();
 
         // When
@@ -166,7 +172,9 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
                 RolePermissionAction.UPDATE
             )
         ).thenReturn(false);
-        var toUpdate = UpdateCluster.builder().configuration(Map.of("bootstrapServers", "noooop:9093")).build();
+        var toUpdate = UpdateCluster.builder()
+            .configuration(Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "SSL")))
+            .build();
 
         // When
         var updatedCluster = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));

@@ -43,7 +43,7 @@ class KafkaClusterDomainServiceImplTest {
 
     private static final KafkaConnectionConfig CONFIG = new KafkaConnectionConfig(
         "localhost:9092",
-        new SecurityConfig(SecurityProtocol.PLAINTEXT, null)
+        new SecurityConfig(SecurityProtocol.PLAINTEXT, null, null)
     );
 
     @Test

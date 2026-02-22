@@ -1,0 +1,672 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "definitions": {
+    "saslExtension": {
+      "type": "object",
+      "properties": {
+        "extensionKey": {
+          "type": "string",
+          "title": "Extension key",
+          "description": "without 'extension_' prefix",
+          "pattern": "[A-Za-z]+"
+        },
+        "extensionValue": {
+          "type": "string",
+          "title": "Extension value",
+          "description": "Must be valid ASCII characters (supports EL and Secrets).",
+          "gioConfig": {
+            "el": true
+          }
+        }
+      },
+      "gioConfig": {
+        "uiBorder": "none"
+      }
+    },
+    "securityProtocol": {
+      "type": "string",
+      "title": "Security protocol",
+      "default": "PLAINTEXT",
+      "enum": ["PLAINTEXT", "SASL_PLAINTEXT", "SASL_SSL", "SSL"]
+    },
+    "securitySasl": {
+      "type": "object",
+      "title": "SASL Configuration",
+      "properties": {
+        "mechanism": {
+          "type": "object",
+          "title": "SASL Mechanism (sasl.mechanism)",
+          "description": "SASL mechanism used to connect the Kafka gateway to the broker.",
+          "properties": {
+            "type": {
+              "title": "Select SASL mechanism",
+              "enum": ["NONE", "AWS_MSK_IAM", "GSSAPI", "OAUTHBEARER", "OAUTHBEARER_TOKEN", "PLAIN", "SCRAM-SHA-256", "SCRAM-SHA-512"],
+              "default": "NONE"
+            }
+          },
+          "required": ["type"],
+          "dependencies": {
+            "type": {
+              "oneOf": [
+                {
+                  "properties": {
+                    "type": {
+                      "enum": ["NONE"]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "enum": ["GSSAPI"]
+                    },
+                    "saslJaasConfig": {
+                      "type": "string",
+                      "title": "SASL JAAS Config  (sasl.jaas.config)",
+                      "description": "(supports EL and Secrets)",
+                      "gioConfig": {
+                        "el": true,
+                        "banner": {
+                          "title": "SASL JAAS Config",
+                          "text": "JAAS login context parameters for SASL connections in the format used by JAAS configuration files. JAAS configuration file format is described here. The format for the value is: loginModuleClass controlFlag (optionName=optionValue)*;"
+                        }
+                      }
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": ["saslJaasConfig"]
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "enum": ["OAUTHBEARER"]
+                    },
+                    "tokenUrl": {
+                      "type": "string",
+                      "title": "OAuth token url",
+                      "description": "The OAuth token url to call to issue a new token (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true,
+                        "banner": {
+                          "title": "OAUTHBEARER Method",
+                          "text": "Defines how the token to send to the broker is retrieved."
+                        }
+                      }
+                    },
+                    "clientId": {
+                      "type": "string",
+                      "title": "Client id",
+                      "description": "The client id to use to call the OAuth server to issue a new token (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    },
+                    "clientSecret": {
+                      "type": "string",
+                      "title": "Client secret",
+                      "description": "The client id to use to call the OAuth server to issue a new token (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    },
+                    "scopes": {
+                      "type": "string",
+                      "title": "Scopes",
+                      "description": "The scopes to request when issuing the token, comma-separated (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    },
+                    "saslExtensions": {
+                      "type": "array",
+                      "title": "OAUTHBEARER SASL extensions",
+                      "items": {
+                        "$ref": "#/definitions/saslExtension"
+                      },
+                      "gioConfig": {
+                        "uiBorder": "none"
+                      }
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": ["tokenUrl", "clientId", "clientSecret"]
+                },
+                {
+                  "description": "Provide your own OAuthBearer token.",
+                  "properties": {
+                    "type": {
+                      "enum": ["OAUTHBEARER_TOKEN"]
+                    },
+                    "token": {
+                      "type": "string",
+                      "title": "Token value",
+                      "description": "The token to use (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": ["token"]
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "enum": ["PLAIN"]
+                    },
+                    "username": {
+                      "type": "string",
+                      "title": "Username",
+                      "description": "The username to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    },
+                    "password": {
+                      "type": "string",
+                      "title": "Password",
+                      "description": "The password to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": ["username", "password"]
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "enum": ["SCRAM-SHA-256"]
+                    },
+                    "username": {
+                      "type": "string",
+                      "title": "Username",
+                      "description": "The username to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    },
+                    "password": {
+                      "type": "string",
+                      "title": "Password",
+                      "description": "The password to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": ["username", "password"]
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "enum": ["SCRAM-SHA-512"]
+                    },
+                    "username": {
+                      "type": "string",
+                      "title": "Username",
+                      "description": "The username to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    },
+                    "password": {
+                      "type": "string",
+                      "title": "Password",
+                      "description": "The password to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": ["username", "password"]
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "enum": ["AWS_MSK_IAM"]
+                    },
+                    "saslJaasConfig": {
+                      "type": "string",
+                      "title": "SASL JAAS Config  (sasl.jaas.config)",
+                      "description": "(supports EL and Secrets)",
+                      "gioConfig": {
+                        "el": true,
+                        "banner": {
+                          "title": "SASL JAAS Config",
+                          "text": "JAAS login context parameters for SASL connections in the format used by JAAS configuration files. JAAS configuration file format is described here. The format for the value is: loginModuleClass controlFlag (optionName=optionValue)*;"
+                        }
+                      }
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": ["saslJaasConfig"]
+                }
+              ]
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["mechanism"],
+      "gioConfig": {
+        "displayIf": {
+          "$eq": {
+            "value.protocol": ["SASL_PLAINTEXT", "SASL_SSL"]
+          }
+        }
+      }
+    },
+    "sslTrustStoreHostnameVerifier": {
+      "title": "Verify Host",
+      "description": "Use to enable host name verification",
+      "type": "boolean",
+      "default": true
+    },
+    "sslTrustStoreTrustAll": {
+      "title": "Trust all",
+      "description": "Use this with caution (if over Internet). The gateway must trust any origin certificates. The connection will still be encrypted but this mode is vulnerable to 'man in the middle' attacks.",
+      "type": "boolean",
+      "default": false
+    },
+    "sslTrustStorePassword": {
+      "type": "string",
+      "title": "Password",
+      "description": "Truststore password (supports EL and Secrets)",
+      "format": "password",
+      "gioConfig": {
+        "el": true,
+        "banner": {
+          "title": "SSL truststore password",
+          "text": "The password for the truststore file. If a password is not set, truststore file configured will still be used, but integrity checking is disabled. Truststore password is not supported for PEM format."
+        }
+      }
+    },
+    "sslTrustStorePath": {
+      "type": "string",
+      "title": "Path to truststore",
+      "description": "Path to the truststore file (supports EL and Secrets)",
+      "gioConfig": {
+        "el": true
+      }
+    },
+    "sslTrustStoreContent": {
+      "type": "string",
+      "title": "Content",
+      "description": "Binary content as Base64 (supports EL and Secrets)",
+      "format": "text",
+      "gioConfig": {
+        "el": true
+      }
+    },
+    "sslKeyStorePassword": {
+      "type": "string",
+      "title": "Password",
+      "description": "Password to use to open the key store (supports EL and Secrets)",
+      "format": "password",
+      "gioConfig": {
+        "el": true
+      }
+    },
+    "sslKeyStoreAlias": {
+      "type": "string",
+      "title": "Alias for the key",
+      "description": "Alias of the key to use in case the key store contains more than one key (supports EL and Secrets)",
+      "gioConfig": {
+        "el": true
+      }
+    },
+    "sslKeyStoreKeyPassword": {
+      "type": "string",
+      "title": "Key Password",
+      "description": "Password to use to access the key when protected by password (supports EL and Secrets)",
+      "format": "password",
+      "gioConfig": {
+        "el": true
+      }
+    },
+    "sslKeyStorePath": {
+      "type": "string",
+      "title": "Path to key store",
+      "description": "Path to the key store file (supports EL and Secrets)",
+      "gioConfig": {
+        "el": true
+      }
+    },
+    "sslKeyStoreContent": {
+      "type": "string",
+      "title": "Content",
+      "description": "Binary content as Base64 (supports EL and Secrets)",
+      "format": "text",
+      "gioConfig": {
+        "el": true
+      }
+    },
+    "sslKeyStoreCertPath": {
+      "type": "string",
+      "title": "Path to cert file",
+      "description": "Path to cert file (.PEM) (supports EL and Secrets)",
+      "gioConfig": {
+        "el": true
+      }
+    },
+    "sslKeyStoreCertContent": {
+      "type": "string",
+      "title": "Certificate",
+      "description": "(supports EL and Secrets)",
+      "format": "text",
+      "gioConfig": {
+        "el": true
+      }
+    },
+    "sslKeyStoreKeyPath": {
+      "type": "string",
+      "title": "Path to private key file",
+      "description": "Path to private key file (.PEM) (supports EL and Secrets)",
+      "gioConfig": {
+        "el": true
+      }
+    },
+    "sslKeyStoreKeyContent": {
+      "type": "string",
+      "title": "Private key",
+      "description": "(supports EL and Secrets)",
+      "format": "text",
+      "gioConfig": {
+        "el": true
+      }
+    },
+    "securitySsl": {
+      "type": "object",
+      "title": "SSL Options",
+      "properties": {
+        "hostnameVerifier": {
+          "$ref": "#/definitions/sslTrustStoreHostnameVerifier"
+        },
+        "trustAll": {
+          "$ref": "#/definitions/sslTrustStoreTrustAll"
+        },
+        "trustStore": {
+          "type": "object",
+          "title": "Truststore",
+          "default": {
+            "type": ""
+          },
+          "oneOf": [
+            {
+              "type": "object",
+              "title": "None",
+              "properties": {
+                "type": {
+                  "const": ""
+                }
+              }
+            },
+            {
+              "type": "object",
+              "title": "JKS with path",
+              "properties": {
+                "type": {
+                  "const": "JKS"
+                },
+                "password": {
+                  "$ref": "#/definitions/sslTrustStorePassword"
+                },
+                "path": {
+                  "$ref": "#/definitions/sslTrustStorePath"
+                }
+              },
+              "required": ["password", "path"]
+            },
+            {
+              "type": "object",
+              "title": "JKS with content",
+              "properties": {
+                "type": {
+                  "const": "JKS"
+                },
+                "password": {
+                  "$ref": "#/definitions/sslTrustStorePassword"
+                },
+                "content": {
+                  "$ref": "#/definitions/sslTrustStoreContent"
+                }
+              },
+              "required": ["password", "content"]
+            },
+            {
+              "type": "object",
+              "title": "PKCS#12 / PFX with path",
+              "properties": {
+                "type": {
+                  "const": "PKCS12"
+                },
+                "password": {
+                  "$ref": "#/definitions/sslTrustStorePassword"
+                },
+                "path": {
+                  "$ref": "#/definitions/sslTrustStorePath"
+                }
+              },
+              "required": ["password", "path"]
+            },
+            {
+              "type": "object",
+              "title": "PKCS#12 / PFX with content",
+              "properties": {
+                "type": {
+                  "const": "PKCS12"
+                },
+                "password": {
+                  "$ref": "#/definitions/sslTrustStorePassword"
+                },
+                "content": {
+                  "$ref": "#/definitions/sslTrustStoreContent"
+                }
+              },
+              "required": ["password", "content"]
+            },
+            {
+              "type": "object",
+              "title": "PEM with path",
+              "properties": {
+                "type": {
+                  "const": "PEM"
+                },
+                "password": {
+                  "$ref": "#/definitions/sslTrustStorePassword"
+                },
+                "path": {
+                  "$ref": "#/definitions/sslTrustStorePath"
+                }
+              },
+              "required": ["password", "path"]
+            },
+            {
+              "type": "object",
+              "title": "PEM with content",
+              "properties": {
+                "type": {
+                  "const": "PEM"
+                },
+                "password": {
+                  "$ref": "#/definitions/sslTrustStorePassword"
+                },
+                "content": {
+                  "$ref": "#/definitions/sslTrustStoreContent"
+                }
+              },
+              "required": ["password", "content"]
+            }
+          ]
+        },
+        "keyStore": {
+          "type": "object",
+          "title": "Key store",
+          "default": {
+            "type": ""
+          },
+          "oneOf": [
+            {
+              "type": "object",
+              "title": "None",
+              "properties": {
+                "type": {
+                  "const": ""
+                }
+              }
+            },
+            {
+              "type": "object",
+              "title": "JKS with path",
+              "properties": {
+                "type": {
+                  "const": "JKS"
+                },
+                "password": {
+                  "$ref": "#/definitions/sslKeyStorePassword"
+                },
+                "alias": {
+                  "$ref": "#/definitions/sslKeyStoreAlias"
+                },
+                "keyPassword": {
+                  "$ref": "#/definitions/sslKeyStoreKeyPassword"
+                },
+                "path": {
+                  "$ref": "#/definitions/sslKeyStorePath"
+                }
+              },
+              "required": ["password", "path"]
+            },
+            {
+              "type": "object",
+              "title": "JKS with content",
+              "properties": {
+                "type": {
+                  "const": "JKS"
+                },
+                "password": {
+                  "$ref": "#/definitions/sslKeyStorePassword"
+                },
+                "alias": {
+                  "$ref": "#/definitions/sslKeyStoreAlias"
+                },
+                "keyPassword": {
+                  "$ref": "#/definitions/sslKeyStoreKeyPassword"
+                },
+                "content": {
+                  "$ref": "#/definitions/sslKeyStoreContent"
+                }
+              },
+              "required": ["password", "content"]
+            },
+            {
+              "type": "object",
+              "title": "PKCS#12 / PFX with path",
+              "properties": {
+                "type": {
+                  "const": "PKCS12"
+                },
+                "password": {
+                  "$ref": "#/definitions/sslKeyStorePassword"
+                },
+                "alias": {
+                  "$ref": "#/definitions/sslKeyStoreAlias"
+                },
+                "keyPassword": {
+                  "$ref": "#/definitions/sslKeyStoreKeyPassword"
+                },
+                "path": {
+                  "$ref": "#/definitions/sslKeyStorePath"
+                }
+              },
+              "required": ["password", "path"]
+            },
+            {
+              "type": "object",
+              "title": "PKCS#12 / PFX with content",
+              "properties": {
+                "type": {
+                  "const": "PKCS12"
+                },
+                "password": {
+                  "$ref": "#/definitions/sslKeyStorePassword"
+                },
+                "alias": {
+                  "$ref": "#/definitions/sslKeyStoreAlias"
+                },
+                "keyPassword": {
+                  "$ref": "#/definitions/sslKeyStoreKeyPassword"
+                },
+                "content": {
+                  "$ref": "#/definitions/sslKeyStoreContent"
+                }
+              },
+              "required": ["password", "content"]
+            },
+            {
+              "type": "object",
+              "title": "PEM with path",
+              "properties": {
+                "type": {
+                  "const": "PEM"
+                },
+                "certPath": {
+                  "$ref": "#/definitions/sslKeyStoreCertPath"
+                },
+                "keyPath": {
+                  "$ref": "#/definitions/sslKeyStoreKeyPath"
+                }
+              },
+              "required": ["certPath", "keyPath"]
+            },
+            {
+              "type": "object",
+              "title": "PEM with content",
+              "properties": {
+                "type": {
+                  "const": "PEM"
+                },
+                "certContent": {
+                  "$ref": "#/definitions/sslKeyStoreCertContent"
+                },
+                "keyContent": {
+                  "$ref": "#/definitions/sslKeyStoreKeyContent"
+                }
+              },
+              "required": ["certContent", "keyContent"]
+            }
+          ]
+        }
+      },
+      "gioConfig": {
+        "displayIf": {
+          "$eq": {
+            "value.protocol": ["SASL_SSL", "SSL"]
+          }
+        }
+      }
+    }
+  },
+  "properties": {
+    "protocol": {
+      "$ref": "#/definitions/securityProtocol"
+    },
+    "sasl": {
+      "$ref": "#/definitions/securitySasl"
+    },
+    "ssl": {
+      "$ref": "#/definitions/securitySsl"
+    }
+  },
+  "gioConfig": {
+    "uiBorder": "none"
+  },
+  "required": ["protocol"],
+  "additionalProperties": false
+}
