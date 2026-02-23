@@ -157,9 +157,6 @@ public interface ApiMapper {
         if (type == null) {
             return null;
         }
-        if (type == io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.API_KEY) {
-            return null;
-        }
         return io.gravitee.apim.rest.api.automation.model.PlanSecurityType.valueOf(type.name());
     }
 
