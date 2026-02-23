@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-public class ValidateApplicationSettingsDomainServiceImplTest {
+class ValidateApplicationSettingsDomainServiceImplTest {
 
     private final ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
 
@@ -315,8 +315,10 @@ public class ValidateApplicationSettingsDomainServiceImplTest {
 
             var result = cut.validateAndSanitize(inputWithTls(tls));
 
-            assertThat(result.severe()).isEmpty();
-            assertThat(result.warning()).isEmpty();
+            assertThat(result.severe()).isPresent();
+            assertThat(result.severe().get()).anyMatch(e ->
+                e.getMessage().contains("tls configuration must contain either clientCertificate or clientCertificates")
+            );
         }
     }
 }
