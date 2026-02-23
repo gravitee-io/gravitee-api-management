@@ -115,6 +115,11 @@
             <artifactId>gravitee-apim-rest-api-service</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api</groupId>
+            <artifactId>gravitee-apim-rest-api-rest</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Kafka -->
         <dependency>
