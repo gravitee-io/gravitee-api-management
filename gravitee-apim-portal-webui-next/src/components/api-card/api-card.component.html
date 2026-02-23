@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<gmd-card class="api-card" [routerLink]="['.', 'api', id]">
+<gmd-card class="api-card" (click)="select.emit()">
   <div class="api-card__content">
     <div class="api-card__header">
       <div class="api-card__header__content">

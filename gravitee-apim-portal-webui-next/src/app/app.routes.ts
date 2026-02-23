@@ -43,14 +43,12 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { RegistrationConfirmationComponent } from './registration/registration-confirmation/registration-confirmation.component';
 import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
 import { NavigationPageFullWidthComponent } from '../components/navigation-page-full-width/navigation-page-full-width.component';
-import { catalogTabsViewGuard } from '../guards/catalog-tabs-view.guard';
 import { redirectGuard } from '../guards/redirect.guard';
 import { apiResolver } from '../resolvers/api.resolver';
 import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
-import { categoriesResolver } from '../resolvers/categories.resolver';
 import { homepageContentResolver } from '../resolvers/homepage-content.resolver';
 import { CreateApplicationComponent } from './applications/create-application/create-application.component';
-import { TabsViewComponent } from './catalog/tabs-view/tabs-view.component';
+import { CatalogComponent } from './catalog/catalog.component';
 import { DocumentationSubscribeComponent } from './documentation/components/documentation-subscribe/documentation-subscribe.component';
 import { DocumentationComponent } from './documentation/components/documentation.component';
 import { documentationResolver } from './documentation/resolvers/documentation.resolver';
@@ -140,6 +138,7 @@ export const routes: Routes = [
     },
     component: NavigationPageFullWidthComponent,
   },
+  // Backward compatibility: redirect legacy 'categories' URLs for users with saved bookmarks or links
   {
     path: 'categories',
     redirectTo: 'catalog',
@@ -157,8 +156,7 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        canActivate: [catalogTabsViewGuard],
-        component: TabsViewComponent,
+        component: CatalogComponent,
       },
       ...apiRoutes,
     ],

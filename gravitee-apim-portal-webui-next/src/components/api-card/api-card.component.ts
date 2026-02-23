@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, Input, output } from '@angular/core';
 import { MatTooltip } from '@angular/material/tooltip';
-import { RouterModule } from '@angular/router';
 import { GmdCardModule } from '@gravitee/gravitee-markdown';
 
 @Component({
   selector: 'app-api-card',
-  imports: [GmdCardModule, RouterModule, MatTooltip],
+  imports: [GmdCardModule, MatTooltip],
   templateUrl: './api-card.component.html',
   styleUrl: './api-card.component.scss',
 })
@@ -29,12 +28,12 @@ export class ApiCardComponent {
   title!: string;
   @Input({ required: true })
   version!: string;
-  @Input({ required: true })
-  id!: string;
   @Input()
   picture: string | undefined;
   @Input()
   isEnabledMcpServer: boolean = false;
   @Input()
   content?: string;
+
+  select = output<void>();
 }
