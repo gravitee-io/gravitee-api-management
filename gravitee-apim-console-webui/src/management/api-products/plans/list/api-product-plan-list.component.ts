@@ -36,10 +36,6 @@ import { Plan, PLAN_STATUS, PlanStatus } from '../../../../entities/management-a
 import { PlanActionEvent, PlanListComponent, PlanDS } from '../../../api/component/plan/plan-list/plan-list.component';
 
 const API_PRODUCT_PLAN_TYPES = ['API_KEY', 'JWT', 'MTLS'] as const;
-const INITIAL_API_PLAN_STATUS: { name: PlanStatus; number: number | null }[] = PLAN_STATUS.map(status => ({
-  name: status,
-  number: null,
-}));
 
 @Component({
   selector: 'api-product-plan-list',
@@ -61,7 +57,6 @@ export class ApiProductPlanListComponent {
   private readonly snackBarService = inject(SnackBarService);
 
   private readonly filterOverride = signal<PlanStatus | null>(null);
-  private readonly reloadTrigger$ = new Subject<void>();
 
   private readonly apiProductId = toSignal(this.activatedRoute.paramMap.pipe(map(p => p.get('apiProductId') ?? '')), { initialValue: '' });
   private readonly initialStatusFromRoute = toSignal(
@@ -69,18 +64,6 @@ export class ApiProductPlanListComponent {
     { initialValue: 'PUBLISHED' as PlanStatus },
   );
   protected readonly selectedStatus = computed(() => this.filterOverride() ?? this.initialStatusFromRoute());
-
-  private readonly plansData = toSignal(this.buildPlansStream(), {
-    initialValue: {
-      plans: [] as PlanDS[],
-      apiPlanStatus: INITIAL_API_PLAN_STATUS,
-      loading: true,
-    },
-  });
-
-  protected readonly plansTableDS = computed(() => this.plansData()?.plans ?? []);
-  protected readonly isLoadingData = computed(() => this.plansData()?.loading ?? true);
-  protected readonly apiPlanStatus = computed(() => this.plansData()?.apiPlanStatus ?? INITIAL_API_PLAN_STATUS);
   protected readonly isReadOnly = computed(() => !this.permissionService.hasAnyMatching(['api_product-plan-u']));
 
   private readonly plansResource = rxResource({

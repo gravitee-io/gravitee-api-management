@@ -15,6 +15,7 @@
  */
 import { Component, computed, input, output } from '@angular/core';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
+import { RouterModule } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -55,6 +56,7 @@ export interface PlanListContext {
   standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
     DragDropModule,
     MatTableModule,
     MatButtonModule,
@@ -103,6 +105,7 @@ export class PlanListComponent {
       cols.push('deploy-on');
     }
     cols.push('actions');
+    if (!ctx.isReadOnly) {
       cols.unshift('drag-icon');
     }
     return cols;

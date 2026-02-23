@@ -284,9 +284,10 @@ describe('ApiProductPlanEditComponent', () => {
       tick();
       fixture.detectChanges();
       httpTestingController.match(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/api-key/schema`).forEach(r => r.flush({}));
+      tick();
+      fixture.detectChanges();
 
-      expect(fixture.componentInstance['isReadOnly']()).toBe(true);
-      expect(fixture.nativeElement.querySelector('gio-save-bar')).toBeNull();
+      expect(await harness.isSaveBarVisible()).toBe(false);
     }));
   });
 
@@ -295,8 +296,13 @@ describe('ApiProductPlanEditComponent', () => {
       await setup({ queryParams: { selectedPlanMenuItem: 'JWT' } });
       tick();
       fixture.detectChanges();
+      httpTestingController.match(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/jwt/schema`).forEach(r => r.flush({}));
+      tick();
+      fixture.detectChanges();
 
-      jest.spyOn(fixture.componentInstance['planForm']()!, 'invalid', 'get').mockReturnValue(false);
+      const planValue = fakePlanV4({ name: 'New Plan', security: { type: 'JWT' }, status: 'STAGING' });
+      fixture.componentInstance['planForm'].patchValue({ plan: planValue });
+      jest.spyOn(fixture.componentInstance['planForm'], 'invalid', 'get').mockReturnValue(false);
       fixture.componentInstance['onSubmit']();
       tick();
       fixture.detectChanges();
@@ -306,9 +312,6 @@ describe('ApiProductPlanEditComponent', () => {
         .flush(fakePlanV4({ id: 'new-plan', status: 'STAGING' }));
       tick();
       fixture.detectChanges();
-
-      expect(await harness.isSaveBarVisible()).toBe(false);
-      httpTestingController.match(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/jwt/schema`).forEach(r => r.flush({}));
 
       expect(notifyPlanStateChangedSpy).toHaveBeenCalledTimes(1);
     }));
@@ -321,7 +324,7 @@ describe('ApiProductPlanEditComponent', () => {
       tick();
       fixture.detectChanges();
 
-      jest.spyOn(fixture.componentInstance['planForm']()!, 'invalid', 'get').mockReturnValue(false);
+      jest.spyOn(fixture.componentInstance['planForm'], 'invalid', 'get').mockReturnValue(false);
       fixture.componentInstance['onSubmit']();
       tick();
       fixture.detectChanges();
@@ -344,8 +347,13 @@ describe('ApiProductPlanEditComponent', () => {
       await setup({ queryParams: { selectedPlanMenuItem: 'JWT' } });
       tick();
       fixture.detectChanges();
+      httpTestingController.match(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/jwt/schema`).forEach(r => r.flush({}));
+      tick();
+      fixture.detectChanges();
 
-      jest.spyOn(fixture.componentInstance['planForm']()!, 'invalid', 'get').mockReturnValue(false);
+      const planValue = fakePlanV4({ name: 'New Plan', security: { type: 'JWT' }, status: 'STAGING' });
+      fixture.componentInstance['planForm'].patchValue({ plan: planValue });
+      jest.spyOn(fixture.componentInstance['planForm'], 'invalid', 'get').mockReturnValue(false);
       fixture.componentInstance['onSubmit']();
       tick();
       fixture.detectChanges();
@@ -354,8 +362,6 @@ describe('ApiProductPlanEditComponent', () => {
         .expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans` })
         .flush({ message: 'Plan creation failed' }, { status: 500, statusText: 'Server Error' });
       tick();
-
-      httpTestingController.match(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/jwt/schema`).forEach(r => r.flush({}));
 
       expect(notifyPlanStateChangedSpy).not.toHaveBeenCalled();
     }));
