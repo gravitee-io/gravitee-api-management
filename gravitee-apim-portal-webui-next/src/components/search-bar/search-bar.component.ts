@@ -21,12 +21,16 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
 
 @Component({
   selector: 'app-search-bar',
   imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, FormsModule, MatIconModule, MatButtonModule],
   templateUrl: './search-bar.component.html',
   styleUrl: './search-bar.component.scss',
+  host: {
+    '[class.mobile]': 'isMobile()',
+  },
 })
 export class SearchBarComponent implements OnInit {
   searchParam = input('');
@@ -35,6 +39,7 @@ export class SearchBarComponent implements OnInit {
 
   @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
 
+  protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
   private destroyRef = inject(DestroyRef);
 
   constructor() {
