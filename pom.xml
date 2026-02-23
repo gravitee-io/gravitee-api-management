@@ -251,7 +251,7 @@
         <gravitee-fetcher-bitbucket.version>2.1.1</gravitee-fetcher-bitbucket.version>
         <gravitee-fetcher-git.version>2.1.2</gravitee-fetcher-git.version>
         <gravitee-fetcher-github.version>2.2.1</gravitee-fetcher-github.version>
-        <gravitee-fetcher-gitlab.version>2.1.1</gravitee-fetcher-gitlab.version>
+        <gravitee-fetcher-gitlab.version>2.1.2</gravitee-fetcher-gitlab.version>
         <gravitee-fetcher-http.version>2.1.1</gravitee-fetcher-http.version>
         <gravitee-notifier-email.version>3.0.0-alpha.1</gravitee-notifier-email.version>
         <gravitee-notifier-slack.version>2.0.0-alpha.1</gravitee-notifier-slack.version>
