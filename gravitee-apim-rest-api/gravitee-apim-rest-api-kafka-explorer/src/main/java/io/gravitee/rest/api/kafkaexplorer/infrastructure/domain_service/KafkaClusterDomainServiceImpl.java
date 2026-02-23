@@ -39,6 +39,7 @@ import org.springframework.stereotype.Service;
 public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService {
 
     private static final long TIMEOUT_SECONDS = 5;
+    private static final long GET_TIMEOUT_SECONDS = TIMEOUT_SECONDS + 2;
 
     @Override
     public KafkaClusterInfo describeCluster(KafkaConnectionConfig config) {
@@ -46,9 +47,9 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         try (AdminClient adminClient = createAdminClient(properties)) {
             DescribeClusterResult result = adminClient.describeCluster();
 
-            String clusterId = result.clusterId().get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            Node controller = result.controller().get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            var nodes = result.nodes().get(TIMEOUT_SECONDS, TimeUnit.SECONDS).stream().map(this::toKafkaNode).toList();
+            String clusterId = result.clusterId().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            Node controller = result.controller().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            var nodes = result.nodes().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS).stream().map(this::toKafkaNode).toList();
 
             return new KafkaClusterInfo(clusterId, toKafkaNode(controller), nodes);
         } catch (ExecutionException e) {
