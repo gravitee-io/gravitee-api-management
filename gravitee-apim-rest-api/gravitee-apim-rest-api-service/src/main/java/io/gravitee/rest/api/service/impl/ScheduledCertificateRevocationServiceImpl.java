@@ -13,32 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.services.certificate.revocation;
+package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.apim.core.application_certificate.use_case.ProcessPendingCertificateTransitionsUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.common.service.AbstractService;
-import java.time.Instant;
-import java.util.concurrent.atomic.AtomicLong;
+import io.gravitee.rest.api.service.ScheduledCertificateRevocationService;
+import java.util.concurrent.ScheduledFuture;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.stereotype.Component;
 
 /**
  * @author GraviteeSource Team
  */
 @CustomLog
-public class ScheduledCertificateRevocationService extends AbstractService implements Runnable {
+@Component
+public class ScheduledCertificateRevocationServiceImpl
+    extends AbstractService<ScheduledCertificateRevocationServiceImpl>
+    implements ScheduledCertificateRevocationService<ScheduledCertificateRevocationServiceImpl> {
 
     private final TaskScheduler scheduler;
     private final String cronTrigger;
     private final boolean enabled;
     private final ProcessPendingCertificateTransitionsUseCase processPendingCertificateTransitionsUseCase;
-    private final AtomicLong counter = new AtomicLong(0);
+    private static final AuditActor SYSTEM_ACTOR = AuditActor.builder().userId("system").build();
 
-    public ScheduledCertificateRevocationService(
+    private ScheduledFuture<?> scheduledFuture;
+    private boolean started = false;
+
+    public ScheduledCertificateRevocationServiceImpl(
         @Qualifier("certificateRevocationTaskScheduler") TaskScheduler scheduler,
         @Value("${services.certificate-revocation.cron:0 0 0 * * *}") String cronTrigger,
         @Value("${services.certificate-revocation.enabled:true}") boolean enabled,
@@ -58,10 +65,14 @@ public class ScheduledCertificateRevocationService extends AbstractService imple
     @Override
     protected void doStart() throws Exception {
         if (enabled) {
+            if (started) {
+                return;
+            }
+            started = true;
             super.doStart();
-            log.info("Certificate Revocation service has been initialized with cron [{}]", cronTrigger);
             try {
-                scheduler.schedule(this, new CronTrigger(cronTrigger));
+                scheduledFuture = scheduler.schedule(this::executeRevocation, new CronTrigger(cronTrigger));
+                log.info("Certificate Revocation service has been initialized with cron [{}]", cronTrigger);
             } catch (IllegalArgumentException e) {
                 log.error(
                     "Certificate Revocation service failed to start: invalid cron expression [{}] " +
@@ -76,17 +87,26 @@ public class ScheduledCertificateRevocationService extends AbstractService imple
     }
 
     @Override
-    public void run() {
-        log.debug("Certificate revocation #{} started at {}", counter.incrementAndGet(), Instant.now());
+    protected void doStop() throws Exception {
+        if (scheduledFuture != null) {
+            scheduledFuture.cancel(false);
+        }
+        super.doStop();
+    }
+
+    void executeRevocation() {
+        if (!enabled) {
+            log.debug("Certificate revocation processing is disabled");
+            return;
+        }
+        log.debug("Certificate revocation processing started");
 
         try {
-            processPendingCertificateTransitionsUseCase.execute(
-                new ProcessPendingCertificateTransitionsUseCase.Input(AuditActor.builder().userId("system").build())
-            );
+            processPendingCertificateTransitionsUseCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(SYSTEM_ACTOR));
         } catch (Exception e) {
             log.error("Error during certificate revocation processing", e);
         }
 
-        log.debug("Certificate revocation #{} ended at {}", counter.get(), Instant.now());
+        log.debug("Certificate revocation processing ended");
     }
 }

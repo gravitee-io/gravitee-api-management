@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.services.certificate.revocation.spring;
+package io.gravitee.rest.api.service.spring;
 
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,16 +25,20 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 /**
  * @author GraviteeSource Team
  */
+@CustomLog
 @Configuration
 public class CertificateRevocationConfiguration {
 
     @Bean
     @Qualifier("certificateRevocationTaskScheduler")
-    public TaskScheduler taskScheduler() {
+    public TaskScheduler certificateRevocationTaskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setThreadNamePrefix("certificate-revocation-");
         scheduler.setWaitForTasksToCompleteOnShutdown(true);
         scheduler.setAwaitTerminationSeconds(30);
+        scheduler.setErrorHandler(t ->
+            log.error("Unhandled error in certificate revocation scheduler — task will not reschedule. Operator intervention required.", t)
+        );
         return scheduler;
     }
 }

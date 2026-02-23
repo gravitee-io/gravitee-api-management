@@ -23,12 +23,12 @@ import io.gravitee.node.services.initializer.spring.InitializerConfiguration;
 import io.gravitee.node.services.upgrader.spring.UpgraderConfiguration;
 import io.gravitee.plugin.alert.AlertEventProducerManager;
 import io.gravitee.plugin.alert.AlertTriggerProviderManager;
+import io.gravitee.rest.api.service.ScheduledCertificateRevocationService;
 import io.gravitee.rest.api.service.ScheduledCommandService;
 import io.gravitee.rest.api.standalone.jetty.JettyEmbeddedContainer;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -68,6 +68,7 @@ public class GraviteeApisNode extends AbstractNode {
         components.add(AlertEventProducerManager.class);
         components.add(ScheduledCommandService.class);
         components.add(ManagementApiServicesManager.class);
+        components.add(ScheduledCertificateRevocationService.class);
 
         // Keep it at the end
         components.addAll(UpgraderConfiguration.getComponents());
