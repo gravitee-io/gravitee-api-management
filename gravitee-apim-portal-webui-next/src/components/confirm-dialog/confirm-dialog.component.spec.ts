@@ -95,25 +95,4 @@ describe('ConfirmDialogComponent', () => {
 
     expect(component.confirmed).toBe(false);
   });
-
-  it('should use default cancel label when not provided', async () => {
-    const openDialogButton = await loader.getHarness(MatButtonHarness);
-    await openDialogButton.click();
-    fixture.detectChanges();
-
-    const confirmDialogHarness = await loader.getHarness(ConfirmDialogHarness);
-    const cancelText = await confirmDialogHarness.getCancelText();
-
-    expect(cancelText).toBe('Cancel');
-  });
-
-  it('should use default confirm label when not provided', async () => {
-    component.openConfirmDialog({ confirmLabel: undefined });
-    fixture.detectChanges();
-
-    const confirmDialogHarness = await loader.getHarness(ConfirmDialogHarness);
-    const confirmText = await confirmDialogHarness.getConfirmText();
-
-    expect(confirmText).toBe('OK');
-  });
 });

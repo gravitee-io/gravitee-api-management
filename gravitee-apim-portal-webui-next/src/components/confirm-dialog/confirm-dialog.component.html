@@ -22,7 +22,7 @@
 
 <mat-dialog-actions align="end" class="confirm-dialog__actions">
   <button class="confirm-dialog__cancel-button" mat-button [mat-dialog-close]="false">
-    {{ data.cancelLabel || defaultCancelLabel }}
+    {{ data.cancelLabel }}
   </button>
   <button
     class="confirm-dialog__confirm-button"
@@ -32,6 +32,6 @@
     cdkFocusInitial
     data-testid="confirm-dialog-confirm"
   >
-    {{ data.confirmLabel || defaultConfirmLabel }}
+    {{ data.confirmLabel }}
   </button>
 </mat-dialog-actions>

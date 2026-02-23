@@ -17,11 +17,24 @@ import { Component, Inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 
+/**
+ * Confirm dialog data.
+ *
+ * Dialog component does not handle localization, so all translation must be handled calling $localize.
+ *
+ * @example
+ * {
+ *    title: $localize`:@@confirmDialogTitle:Confirm action?`,
+ *    content: $localize`:@@confirmDialogContent:Are you sure you want to confirm the action?`,
+ *    confirmLabel: $localize`:@@confirmDialogConfirmLabel:Confirm`,
+ *    cancelLabel: $localize`:@@confirmDialogCancelLabel:Cancel`,
+ * }
+ */
 export interface ConfirmDialogData {
   title: string;
   content: string;
-  confirmLabel?: string;
-  cancelLabel?: string;
+  confirmLabel: string;
+  cancelLabel: string;
 }
 
 @Component({
@@ -31,8 +44,5 @@ export interface ConfirmDialogData {
   standalone: true,
 })
 export class ConfirmDialogComponent {
-  public readonly defaultConfirmLabel = $localize`:@@confirmDialogConfirmAction:OK`;
-  public readonly defaultCancelLabel = $localize`:@@confirmDialogCancelAction:Cancel`;
-
   constructor(@Inject(MAT_DIALOG_DATA) public data: ConfirmDialogData) {}
 }
