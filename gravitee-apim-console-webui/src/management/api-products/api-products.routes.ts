@@ -16,6 +16,8 @@
 
 import { Routes } from '@angular/router';
 
+import { ApiProductsGuard } from './api-products.guard';
+
 export const API_PRODUCTS_ROUTES: Routes = [
   {
     path: '',
@@ -39,6 +41,8 @@ export const API_PRODUCTS_ROUTES: Routes = [
   {
     path: ':apiProductId',
     loadComponent: () => import('./navigation/api-product-navigation.component').then(m => m.ApiProductNavigationComponent),
+    canActivate: [ApiProductsGuard.loadPermissions],
+    canDeactivate: [ApiProductsGuard.clearPermissions],
     children: [
       {
         path: '',
@@ -48,6 +52,38 @@ export const API_PRODUCTS_ROUTES: Routes = [
       {
         path: 'configuration',
         loadComponent: () => import('./configuration/api-product-configuration.component').then(m => m.ApiProductConfigurationComponent),
+      },
+      {
+        path: 'consumers',
+        redirectTo: 'consumers/plans',
+        pathMatch: 'full',
+      },
+      {
+        path: 'consumers/plans',
+        loadComponent: () => import('./plans/list/api-product-plan-list.component').then(m => m.ApiProductPlanListComponent),
+        data: {
+          permissions: {
+            anyOf: ['api_product-plan-r'],
+          },
+        },
+      },
+      {
+        path: 'consumers/plans/new',
+        loadComponent: () => import('./plans/edit/api-product-plan-edit.component').then(m => m.ApiProductPlanEditComponent),
+        data: {
+          permissions: {
+            anyOf: ['api_product-plan-c'],
+          },
+        },
+      },
+      {
+        path: 'consumers/plans/:planId',
+        loadComponent: () => import('./plans/edit/api-product-plan-edit.component').then(m => m.ApiProductPlanEditComponent),
+        data: {
+          permissions: {
+            anyOf: ['api_product-plan-r'],
+          },
+        },
       },
     ],
   },
