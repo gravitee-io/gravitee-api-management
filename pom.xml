@@ -176,12 +176,12 @@
         <gravitee-alert-engine-connectors-ws.version>2.3.0</gravitee-alert-engine-connectors-ws.version>
         <gravitee-connector-http.version>5.0.8</gravitee-connector-http.version>
         <gravitee-policy-apikey.version>5.2.0</gravitee-policy-apikey.version>
-        <gravitee-policy-assign-attributes.version>3.1.0</gravitee-policy-assign-attributes.version>
+        <gravitee-policy-assign-attributes.version>3.2.0</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>3.1.0</gravitee-policy-assign-content.version>
         <gravitee-policy-assign-metrics.version>3.1.0</gravitee-policy-assign-metrics.version>
         <gravitee-policy-basic-authentication.version>1.6.0</gravitee-policy-basic-authentication.version>
         <gravitee-policy-cache.version>3.0.0</gravitee-policy-cache.version>
-        <gravitee-policy-callout-http.version>5.3.0</gravitee-policy-callout-http.version>
+        <gravitee-policy-callout-http.version>5.4.0</gravitee-policy-callout-http.version>
         <gravitee-policy-circuit-breaker.version>2.0.0</gravitee-policy-circuit-breaker.version>
         <gravitee-policy-custom-query-parameters.version>2.0.0</gravitee-policy-custom-query-parameters.version>
         <gravitee-policy-cloud-events.version>1.1.0</gravitee-policy-cloud-events.version>
@@ -191,12 +191,12 @@
         <gravitee-policy-generate-http-signature.version>1.3.0</gravitee-policy-generate-http-signature.version>
         <gravitee-policy-generate-jwt.version>1.8.0</gravitee-policy-generate-jwt.version>
         <gravitee-policy-geoip-filtering.version>2.2.2</gravitee-policy-geoip-filtering.version>
-        <gravitee-policy-groovy.version>4.1.0</gravitee-policy-groovy.version>
+        <gravitee-policy-groovy.version>4.2.0</gravitee-policy-groovy.version>
         <gravitee-policy-html-json.version>1.6.3</gravitee-policy-html-json.version>
         <gravitee-policy-http-signature.version>1.7.0</gravitee-policy-http-signature.version>
-        <gravitee-policy-interrupt.version>2.0.0</gravitee-policy-interrupt.version>
-        <gravitee-policy-ipfiltering.version>2.1.0</gravitee-policy-ipfiltering.version>
-        <gravitee-policy-javascript.version>2.0.0</gravitee-policy-javascript.version>
+        <gravitee-policy-interrupt.version>2.1.0</gravitee-policy-interrupt.version>
+        <gravitee-policy-ipfiltering.version>2.2.0</gravitee-policy-ipfiltering.version>
+        <gravitee-policy-javascript.version>2.1.0</gravitee-policy-javascript.version>
         <gravitee-policy-json-threat-protection.version>2.1.0</gravitee-policy-json-threat-protection.version>
         <gravitee-policy-json-to-json.version>3.0.1</gravitee-policy-json-to-json.version>
         <gravitee-policy-json-to-toon.version>1.0.0</gravitee-policy-json-to-toon.version>
@@ -215,22 +215,22 @@
         <gravitee-policy-openid-connect-userinfo.version>1.7.0</gravitee-policy-openid-connect-userinfo.version>
         <gravitee-policy-override-http-method.version>2.2.1</gravitee-policy-override-http-method.version>
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
-        <!--    <gravitee-policy-quota.version>4.1.1</gravitee-policy-quota.version>    -->
-        <!--    <gravitee-policy-spikearrest.version>4.1.1</gravitee-policy-spikearrest.version>    -->
-        <gravitee-policy-ratelimit.version>4.2.0</gravitee-policy-ratelimit.version>
+        <!--    <gravitee-policy-quota.version>4.3.0</gravitee-policy-quota.version>    -->
+        <!--    <gravitee-policy-spikearrest.version>4.3.0</gravitee-policy-spikearrest.version>    -->
+        <gravitee-policy-ratelimit.version>4.3.0</gravitee-policy-ratelimit.version>
         <gravitee-policy-regex-threat-protection.version>1.6.0</gravitee-policy-regex-threat-protection.version>
         <gravitee-policy-request-content-limit.version>1.8.1</gravitee-policy-request-content-limit.version>
         <gravitee-policy-request-validation.version>1.15.1</gravitee-policy-request-validation.version>
         <gravitee-policy-resource-filtering.version>1.10.0</gravitee-policy-resource-filtering.version>
         <gravitee-policy-rest-to-soap.version>1.14.1</gravitee-policy-rest-to-soap.version>
-        <gravitee-policy-retry.version>3.1.0</gravitee-policy-retry.version>
-        <gravitee-policy-role-based-access-control.version>2.0.0</gravitee-policy-role-based-access-control.version>
+        <gravitee-policy-retry.version>4.1.0</gravitee-policy-retry.version>
+        <gravitee-policy-role-based-access-control.version>2.1.0</gravitee-policy-role-based-access-control.version>
         <gravitee-policy-ssl-enforcement.version>1.5.0</gravitee-policy-ssl-enforcement.version>
         <gravitee-policy-traffic-shadowing.version>3.0.0</gravitee-policy-traffic-shadowing.version>
         <gravitee-policy-transform-avro-json.version>3.0.0</gravitee-policy-transform-avro-json.version>
         <gravitee-policy-transform-avro-protobuf.version>1.0.9</gravitee-policy-transform-avro-protobuf.version>
         <gravitee-policy-transform-protobuf-json.version>2.0.1</gravitee-policy-transform-protobuf-json.version>
-        <gravitee-policy-transformheaders.version>5.1.0</gravitee-policy-transformheaders.version>
+        <gravitee-policy-transformheaders.version>5.2.0</gravitee-policy-transformheaders.version>
         <gravitee-policy-transformqueryparams.version>1.9.0</gravitee-policy-transformqueryparams.version>
         <gravitee-policy-transform-status-code.version>1.0.2</gravitee-policy-transform-status-code.version>
         <gravitee-policy-url-rewriting.version>1.7.0</gravitee-policy-url-rewriting.version>
