@@ -27,7 +27,7 @@ import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 public interface SubscriptionValidationService {
     void validateAndSanitize(final GenericPlanEntity genericPlanEntity, final NewSubscriptionEntity subscription);
 
-    void validateAndSanitize(final GenericPlanEntity genericPlanEntity, final UpdateSubscriptionEntity subscription);
+    void validateAndSanitize(final GenericPlanEntity genericPlanEntity, final UpdateSubscriptionEntity subscription, String applicationId);
 
     void validateAndSanitize(
         final GenericPlanEntity genericPlanEntity,

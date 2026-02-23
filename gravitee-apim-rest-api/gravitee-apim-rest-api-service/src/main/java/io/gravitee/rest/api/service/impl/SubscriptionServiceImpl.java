@@ -150,7 +150,6 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -1177,7 +1176,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             ) {
                 final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
 
-                subscriptionValidationService.validateAndSanitize(genericPlanEntity, updateSubscription);
+                subscriptionValidationService.validateAndSanitize(genericPlanEntity, updateSubscription, subscription.getApplication());
 
                 Subscription previousSubscription = new Subscription(subscription);
                 setSubscriptionConfig(updateSubscription.getConfiguration(), subscription);
