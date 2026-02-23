@@ -455,7 +455,7 @@ class ClientCertificateCrudServiceImplTest {
         var result = clientCertificateCrudService.findByStatuses(ClientCertificateStatus.ACTIVE);
 
         assertThat(result).hasSize(2);
-        assertThat(result).extracting(ClientCertificate::getId).containsExactlyInAnyOrder(CERTIFICATE_ID, "cert-id-2");
+        assertThat(result).extracting(ClientCertificate::id).containsExactlyInAnyOrder(CERTIFICATE_ID, "cert-id-2");
     }
 
     @Test

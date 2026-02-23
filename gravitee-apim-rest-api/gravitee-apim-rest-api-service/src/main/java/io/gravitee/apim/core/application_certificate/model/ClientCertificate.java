@@ -48,4 +48,27 @@ public record ClientCertificate(
     public ClientCertificate(String name, Date startsAt, Date endsAt) {
         this(null, null, null, name, startsAt, endsAt, null, null, null, null, null, null, null, null, null);
     }
+
+    /**
+     * Copy constructor
+     */
+    public ClientCertificate(ClientCertificate other) {
+        this(
+            other.id,
+            other.crossId,
+            other.applicationId,
+            other.name,
+            other.startsAt,
+            other.endsAt,
+            other.createdAt,
+            other.updatedAt,
+            other.certificate,
+            other.certificateExpiration,
+            other.subject,
+            other.issuer,
+            other.fingerprint,
+            other.environmentId,
+            other.status
+        );
+    }
 }

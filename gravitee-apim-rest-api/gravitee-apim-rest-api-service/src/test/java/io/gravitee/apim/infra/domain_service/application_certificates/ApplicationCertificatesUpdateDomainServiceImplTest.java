@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.domain_service.application_certificates;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.ClientCertificateCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
@@ -30,6 +31,7 @@ import io.gravitee.common.util.KeyStoreUtils;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateLastRemovalException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.time.Instant;
@@ -234,13 +236,10 @@ class ApplicationCertificatesUpdateDomainServiceImplTest {
         ClientCertificate revokedCertificate = buildClientCertificate("cert-1", ClientCertificateStatus.REVOKED, PEM_CERTIFICATE_1);
         clientCertificateCrudService.initWith(List.of(revokedCertificate));
 
-        // When
-        service.updateActiveMTLSSubscriptions(APPLICATION_ID);
-
-        // Then: subscription should have null certificate
-        SubscriptionEntity result = subscriptionCrudService.get(SUBSCRIPTION_ID);
-        assertThat(result.getCreatedAt()).isNotEqualTo(result.getUpdatedAt());
-        assertThat(result.getClientCertificate()).isNull();
+        // When calling => error should be thrown
+        assertThatThrownBy(() -> service.updateActiveMTLSSubscriptions(APPLICATION_ID))
+            .isInstanceOf(ClientCertificateLastRemovalException.class)
+            .hasMessageContaining(APPLICATION_ID);
     }
 
     @Test

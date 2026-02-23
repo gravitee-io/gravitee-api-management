@@ -19,10 +19,20 @@ import static io.gravitee.repository.management.model.ApiKeyMode.SHARED;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static io.gravitee.repository.management.model.Application.METADATA_REGISTRATION_PAYLOAD;
 import static io.gravitee.rest.api.model.ApiKeyMode.UNSPECIFIED;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.isNull;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.same;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -33,7 +43,17 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.Subscription;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanSecurityType;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.UpdateApplicationEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
@@ -45,13 +65,21 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.settings.Enabled;
 import io.gravitee.rest.api.model.settings.UserGroup;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.ConfigService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.converter.ApplicationConverter;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.ApplicationClientIdException;
+import io.gravitee.rest.api.service.exceptions.ApplicationGrantTypesNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
@@ -59,11 +87,13 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.ws.rs.BadRequestException;
-import java.util.*;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import joptsimple.internal.Strings;
 import org.assertj.core.api.Assertions;
@@ -802,7 +832,7 @@ public class ApplicationService_UpdateTest {
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
         // Verify that the old certificate was expired and a new one was created
-        verify(clientCertificateCrudService).update(eq("old-cert-id"), any());
+        verify(clientCertificateCrudService).delete("old-cert-id");
         verify(clientCertificateCrudService).create(eq(APPLICATION_ID), any());
     }
 
@@ -934,7 +964,7 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
-    public void should_revoke_removed_cert() throws TechnicalException {
+    public void should_update_and_delete_cert() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
         settings.setApp(new SimpleApplicationSettings());
         // Only keep one cert out of two
@@ -942,7 +972,8 @@ public class ApplicationService_UpdateTest {
             TlsSettings.builder()
                 .clientCertificates(
                     java.util.List.of(
-                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("kept", null, null, "kept-pem")
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("kept", null, null, "kept-pem"),
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("to-update", null, null, "to-update-pem")
                     )
                 )
                 .build()
@@ -1001,110 +1032,39 @@ public class ApplicationService_UpdateTest {
                 null,
                 io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
             );
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate toUpdateCert =
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "update-cert-id",
+                null,
+                APPLICATION_ID,
+                "removed",
+                null,
+                null,
+                new java.util.Date(),
+                null,
+                "to-update-pem",
+                null,
+                null,
+                null,
+                null,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
         when(
             clientCertificateCrudService.findByApplicationIdAndStatuses(
                 any(),
                 any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
                 any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
             )
-        ).thenReturn(java.util.Set.of(keptCert, removedCert));
+        ).thenReturn(java.util.Set.of(keptCert, removedCert, toUpdateCert));
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
-        // Verify the removed cert is revoked (status set to REVOKED)
-        ArgumentCaptor<io.gravitee.apim.core.application_certificate.model.ClientCertificate> certCaptor = ArgumentCaptor.forClass(
-            io.gravitee.apim.core.application_certificate.model.ClientCertificate.class
-        );
-        verify(clientCertificateCrudService).update(eq("removed-cert-id"), certCaptor.capture());
-        io.gravitee.apim.core.application_certificate.model.ClientCertificate revokedCert = certCaptor.getValue();
-        Assertions.assertThat(revokedCert.endsAt()).isBeforeOrEqualTo(new Date());
-
+        // Even if unchanged, the remaining one should be kept
+        verify(clientCertificateCrudService).update(eq("update-cert-id"), any());
+        // No longer part of the list should be removed
+        verify(clientCertificateCrudService).delete("removed-cert-id");
         // Kept cert should NOT be touched
-        verify(clientCertificateCrudService, never()).update(eq("kept-cert-id"), any());
-        // No new certs to create
-        verify(clientCertificateCrudService, never()).create(any(), any());
-    }
-
-    @Test
-    public void should_expire_removed_cert() throws TechnicalException {
-        ApplicationSettings settings = new ApplicationSettings();
-        settings.setApp(new SimpleApplicationSettings());
-        settings.setTls(
-            TlsSettings.builder()
-                .clientCertificates(
-                    java.util.List.of(
-                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("kept", null, null, "kept-pem")
-                    )
-                )
-                .build()
-        );
-        ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
-
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
-        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
-        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
-        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
-        when(updateApplication.getSettings()).thenReturn(settings);
-        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
-        when(updateApplication.getDescription()).thenReturn("My description");
-        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
-        when(applicationRepository.update(any())).thenReturn(existingApplication);
-        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
-
-        MembershipEntity po = getPrimaryOwner();
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
-
-        // Two existing certs - one will be kept, one removed
-        io.gravitee.apim.core.application_certificate.model.ClientCertificate keptCert =
-            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
-                "kept-cert-id",
-                null,
-                APPLICATION_ID,
-                "kept",
-                null,
-                null,
-                new java.util.Date(),
-                null,
-                "kept-pem",
-                null,
-                null,
-                null,
-                null,
-                null,
-                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
-            );
-        io.gravitee.apim.core.application_certificate.model.ClientCertificate removedCert =
-            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
-                "removed-cert-id",
-                null,
-                APPLICATION_ID,
-                "removed",
-                null,
-                null,
-                new java.util.Date(),
-                null,
-                "removed-pem",
-                null,
-                null,
-                null,
-                null,
-                null,
-                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
-            );
-        when(
-            clientCertificateCrudService.findByApplicationIdAndStatuses(
-                any(),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
-                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
-            )
-        ).thenReturn(java.util.Set.of(keptCert, removedCert));
-
-        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
-
-        // Removed cert should be expired
-        verify(clientCertificateCrudService).update(eq("removed-cert-id"), any());
-        // Kept cert should NOT be expired
         verify(clientCertificateCrudService, never()).update(eq("kept-cert-id"), any());
         // No new certs to create
         verify(clientCertificateCrudService, never()).create(any(), any());

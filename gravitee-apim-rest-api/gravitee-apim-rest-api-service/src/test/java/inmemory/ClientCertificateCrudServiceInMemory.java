@@ -43,17 +43,14 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
             .stream()
             .filter(cert -> clientCertificateId.equals(cert.id()))
             .findFirst()
-            .map(cert -> cert.toBuilder().build())
+            .map(ClientCertificate::new)
             .orElseThrow(() -> new ClientCertificateNotFoundException(clientCertificateId));
     }
 
     @Override
     public ClientCertificate create(String applicationId, ClientCertificate clientCertificate) {
         Date now = new Date();
-        ClientCertificateStatus status = ClientCertificateStatus.computeStatus(
-            clientCertificate.startsAt(),
-            clientCertificate.endsAt()
-        );
+        ClientCertificateStatus status = ClientCertificateStatus.computeStatus(clientCertificate.startsAt(), clientCertificate.endsAt());
 
         ClientCertificate certificate = new ClientCertificate(
             UUID.randomUUID().toString(),
@@ -74,7 +71,7 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
         );
 
         storage.add(certificate);
-        return certificate.toBuilder().build();
+        return new ClientCertificate(certificate);
     }
 
     @Override
@@ -109,7 +106,7 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
         );
 
         storage.set(index.getAsInt(), updated);
-        return updated.toBuilder().build();
+        return new ClientCertificate(updated);
     }
 
     @Override
@@ -135,11 +132,7 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
         int toIndex = Math.min(fromIndex + pageSize, filtered.size());
 
         List<ClientCertificate> pageContent = fromIndex < filtered.size()
-            ? filtered
-                .subList(fromIndex, toIndex)
-                .stream()
-                .map(cert -> cert.toBuilder().build())
-                .toList()
+            ? filtered.subList(fromIndex, toIndex).stream().map(ClientCertificate::new).toList()
             : Collections.emptyList();
 
         return new Page<>(pageContent, pageNumber, pageSize, filtered.size());
@@ -155,7 +148,7 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
             .stream()
             .filter(cert -> applicationId.equals(cert.applicationId()))
             .filter(cert -> statusSet.contains(cert.status()))
-            .map(cert -> cert.toBuilder().build())
+            .map(ClientCertificate::new)
             .collect(Collectors.toSet());
     }
 
@@ -169,7 +162,7 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
             .stream()
             .filter(cert -> applicationIds.contains(cert.applicationId()))
             .filter(cert -> statusSet.contains(cert.status()))
-            .map(cert -> cert.toBuilder().build())
+            .map(ClientCertificate::new)
             .collect(Collectors.toSet());
     }
 
@@ -181,8 +174,8 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
         var statusSet = Set.of(statuses);
         return storage
             .stream()
-            .filter(cert -> statusSet.contains(cert.getStatus()))
-            .map(cert -> cert.toBuilder().build())
+            .filter(cert -> statusSet.contains(cert.status()))
+            .map(ClientCertificate::new)
             .collect(Collectors.toSet());
     }
 
@@ -198,16 +191,13 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
             .filter(cert -> applicationId.equals(cert.applicationId()))
             .filter(cert -> cert.status() == ClientCertificateStatus.ACTIVE || cert.status() == ClientCertificateStatus.ACTIVE_WITH_END)
             .max(Comparator.comparing(ClientCertificate::createdAt))
-            .map(cert -> cert.toBuilder().build());
+            .map(ClientCertificate::new);
     }
 
     @Override
     public void initWith(List<ClientCertificate> items) {
         storage.clear();
-        items
-            .stream()
-            .map(cert -> cert.toBuilder().build())
-            .forEach(storage::add);
+        items.stream().map(ClientCertificate::new).forEach(storage::add);
     }
 
     @Override

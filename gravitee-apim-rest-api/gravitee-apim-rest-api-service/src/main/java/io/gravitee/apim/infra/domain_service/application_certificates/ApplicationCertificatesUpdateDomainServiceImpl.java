@@ -24,6 +24,7 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.security.PKCS7Utils;
 import io.gravitee.rest.api.model.PlanSecurityType;
+import io.gravitee.rest.api.service.exceptions.ClientCertificateLastRemovalException;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.Base64;
@@ -62,23 +63,23 @@ public class ApplicationCertificatesUpdateDomainServiceImpl implements Applicati
             return;
         }
 
-        List<ClientCertificate> activeCertificates = clientCertificateCrudService
-            .findByApplicationIdAndStatuses(applicationId, ClientCertificateStatus.ACTIVE, ClientCertificateStatus.ACTIVE_WITH_END)
-            .stream()
-            .sorted(Comparator.comparing(ClientCertificate::createdAt))
-            .toList();
+        var activeCertificates = clientCertificateCrudService.findByApplicationIdAndStatuses(
+            applicationId,
+            ClientCertificateStatus.ACTIVE,
+            ClientCertificateStatus.ACTIVE_WITH_END
+        );
 
         if (activeCertificates.isEmpty()) {
-            log.debug("No active certificates found for application: {}", applicationId);
-            updateSubscriptionsWithCertificate(mtlsSubscriptions, null);
-            return;
+            throw new ClientCertificateLastRemovalException(applicationId);
         }
 
-        String encodedCertificate = createEncodedCertificate(activeCertificates);
+        String encodedCertificate = encodeCertificates(
+            activeCertificates.stream().sorted(Comparator.comparing(ClientCertificate::createdAt)).toList()
+        );
         updateSubscriptionsWithCertificate(mtlsSubscriptions, encodedCertificate);
     }
 
-    private String createEncodedCertificate(List<ClientCertificate> certificates) {
+    private String encodeCertificates(List<ClientCertificate> certificates) {
         if (certificates.size() == 1) {
             String pem = certificates.getFirst().certificate();
             return Base64.getEncoder().encodeToString(pem.getBytes(StandardCharsets.UTF_8));
