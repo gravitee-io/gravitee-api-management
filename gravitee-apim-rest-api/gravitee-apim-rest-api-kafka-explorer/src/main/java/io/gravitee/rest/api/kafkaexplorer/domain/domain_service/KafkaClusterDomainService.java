@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.kafkaexplorer.domain.domain_service;
 
+import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
-import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaConnectionConfig;
 
 public interface KafkaClusterDomainService {
-    KafkaClusterInfo describeCluster(KafkaConnectionConfig config);
+    KafkaClusterInfo describeCluster(KafkaClusterConfiguration config);
 }

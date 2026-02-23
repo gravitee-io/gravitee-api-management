@@ -15,14 +15,14 @@
  */
 package io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service;
 
+import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
+import io.gravitee.apim.core.cluster.model.SaslMechanism;
+import io.gravitee.apim.core.cluster.model.SecurityProtocol;
 import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.KafkaClusterDomainService;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
-import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaConnectionConfig;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaNode;
-import io.gravitee.rest.api.kafkaexplorer.domain.model.SaslMechanism;
-import io.gravitee.rest.api.kafkaexplorer.domain.model.SecurityProtocol;
 import java.time.Duration;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
@@ -42,7 +42,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
     private static final long GET_TIMEOUT_SECONDS = TIMEOUT_SECONDS + 2;
 
     @Override
-    public KafkaClusterInfo describeCluster(KafkaConnectionConfig config) {
+    public KafkaClusterInfo describeCluster(KafkaClusterConfiguration config) {
         Properties properties = buildProperties(config);
         try (AdminClient adminClient = createAdminClient(properties)) {
             DescribeClusterResult result = adminClient.describeCluster();
@@ -68,7 +68,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         return AdminClient.create(properties);
     }
 
-    private Properties buildProperties(KafkaConnectionConfig config) {
+    private Properties buildProperties(KafkaClusterConfiguration config) {
         Properties properties = new Properties();
         // TODO: Add allowed bootstrap servers validation via gravitee.yml config to prevent SSRF
         properties.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, config.bootstrapServers());
