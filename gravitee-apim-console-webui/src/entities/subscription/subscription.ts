@@ -67,6 +67,7 @@ export interface Subscription {
   security?: string;
   origin: SubscriptionOrigin;
   configuration?: SubscriptionConsumerConfiguration;
+  metadata?: { [key: string]: string };
   referenceType?: string;
   referenceId?: string;
 }

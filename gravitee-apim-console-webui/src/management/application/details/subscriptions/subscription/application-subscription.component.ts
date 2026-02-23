@@ -26,12 +26,16 @@ import {
   GioConfirmDialogModule,
   GioIconsModule,
   GioLoaderModule,
+  GioMonacoEditorModule,
+  MonacoEditorLanguageConfig,
 } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { combineLatest, BehaviorSubject, switchMap, Observable, EMPTY } from 'rxjs';
 import { catchError, filter, map, tap } from 'rxjs/operators';
 import { MatTooltip } from '@angular/material/tooltip';
+import { FormsModule } from '@angular/forms';
+import { editor } from 'monaco-editor';
 
 import { ApplicationService } from '../../../../../services-ngx/application.service';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
@@ -65,6 +69,8 @@ type PageVM = {
     SubscriptionApiKeysComponent,
     MatTooltip,
     SubscriptionEditPushConfigComponent,
+    GioMonacoEditorModule,
+    FormsModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -94,6 +100,31 @@ export class ApplicationSubscriptionComponent {
       subscription,
     })),
   );
+
+  readonly monacoEditorOptions: editor.IStandaloneEditorConstructionOptions = {
+    lineNumbers: 'off',
+    renderLineHighlight: 'none',
+    hideCursorInOverviewRuler: true,
+    overviewRulerBorder: false,
+    readOnly: true,
+    wordWrap: 'on',
+    scrollBeyondLastLine: false,
+    padding: { top: 0, bottom: 0 },
+    scrollbar: {
+      vertical: 'auto',
+      horizontal: 'hidden',
+      useShadows: false,
+    },
+  };
+
+  readonly metadataLanguageConfig: MonacoEditorLanguageConfig = { language: 'json', schemas: [] };
+
+  getMetadataJson(metadata: { [key: string]: string } | undefined): string {
+    if (!metadata || Object.keys(metadata).length === 0) {
+      return '';
+    }
+    return JSON.stringify(metadata, null, 2);
+  }
 
   public closeSubscription(application: Application, subscription: Subscription) {
     const applicationId = this.activatedRoute.snapshot.params.applicationId;

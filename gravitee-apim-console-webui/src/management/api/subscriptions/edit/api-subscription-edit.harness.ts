@@ -101,6 +101,14 @@ export class ApiSubscriptionEditHarness extends ComponentHarness {
     return this.getSubscriptionDetailText('domain');
   }
 
+  public async getMetadata(): Promise<string> {
+    return this.getSubscriptionDetailText('metadata');
+  }
+
+  public async metadataEditorIsVisible(): Promise<boolean> {
+    return this.isVisible(this.locatorFor('.subscription__metadata-editor')());
+  }
+
   /**
    * FOOTER
    */

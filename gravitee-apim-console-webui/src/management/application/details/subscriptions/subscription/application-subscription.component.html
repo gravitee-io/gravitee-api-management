@@ -101,6 +101,24 @@
         }
         <dt>Closed at</dt>
         <dd>{{ (pageVM.subscription.closed_at | date: 'medium') || '-' }}</dd>
+
+        <dt>Metadata</dt>
+        <dd class="subscription__metadata-cell" data-testid="subscription-metadata">
+          @if (!pageVM.subscription.metadata || (pageVM.subscription.metadata | keyvalue).length === 0) {
+            -
+          } @else {
+            <div class="subscription__metadata-editor" gioMonacoClipboardCopy>
+              <gio-monaco-editor
+                disabled
+                [options]="monacoEditorOptions"
+                [languageConfig]="metadataLanguageConfig"
+                [ngModel]="getMetadataJson(pageVM.subscription.metadata)"
+                [disableMiniMap]="true"
+              >
+              </gio-monaco-editor>
+            </div>
+          }
+        </dd>
       </dl>
     </mat-card-content>
 

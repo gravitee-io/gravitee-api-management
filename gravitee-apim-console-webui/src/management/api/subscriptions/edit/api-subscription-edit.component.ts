@@ -18,8 +18,14 @@ import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
-import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import {
+  GIO_DIALOG_WIDTH,
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+  MonacoEditorLanguageConfig,
+} from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router } from '@angular/router';
+import { editor } from 'monaco-editor';
 
 import {
   PlanMode,
@@ -121,6 +127,31 @@ export class ApiSubscriptionEditComponent implements OnInit {
   isFederatedApi: boolean;
   private apiId: string;
   private canUseCustomApiKey: boolean;
+
+  readonly monacoEditorOptions: editor.IStandaloneEditorConstructionOptions = {
+    lineNumbers: 'off',
+    renderLineHighlight: 'none',
+    hideCursorInOverviewRuler: true,
+    overviewRulerBorder: false,
+    readOnly: true,
+    wordWrap: 'on',
+    scrollBeyondLastLine: false,
+    padding: { top: 0, bottom: 0 },
+    scrollbar: {
+      vertical: 'auto',
+      horizontal: 'hidden',
+      useShadows: false,
+    },
+  };
+
+  readonly metadataLanguageConfig: MonacoEditorLanguageConfig = { language: 'json', schemas: [] };
+
+  get metadataJson(): string {
+    if (!this.subscription?.metadata || Object.keys(this.subscription.metadata).length === 0) {
+      return '';
+    }
+    return JSON.stringify(this.subscription.metadata, null, 2);
+  }
 
   constructor(
     private readonly router: Router,
