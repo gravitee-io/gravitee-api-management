@@ -15,40 +15,39 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContainer;
 import jakarta.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-public final class GraviteeMarkdownPageContent extends PortalPageContent<GraviteeMarkdownContent> implements GraviteeMarkdownContainer {
+public final class OpenApiPageContent extends PortalPageContent<OpenApiContent> {
 
-    private static final PortalPageContentType TYPE = PortalPageContentType.GRAVITEE_MARKDOWN;
+    private static final PortalPageContentType TYPE = PortalPageContentType.OPENAPI;
 
     @Setter
     @Nonnull
-    private GraviteeMarkdownContent content;
+    private OpenApiContent content;
 
-    public GraviteeMarkdownPageContent(
+    public OpenApiPageContent(
         @Nonnull PortalPageContentId id,
         @Nonnull String organizationId,
         @Nonnull String environmentId,
-        @Nonnull GraviteeMarkdownContent content
+        @Nonnull OpenApiContent content
     ) {
         super(id, organizationId, environmentId);
         this.content = content;
     }
 
-    public static GraviteeMarkdownPageContent create(
+    public static OpenApiPageContent create(
         @Nonnull String organizationId,
         @Nonnull String environmentId,
         @Nonnull String content
     ) {
-        return new GraviteeMarkdownPageContent(
+        return new OpenApiPageContent(
             PortalPageContentId.random(),
             organizationId,
             environmentId,
-            new GraviteeMarkdownContent(content)
+            new OpenApiContent(content)
         );
     }
 
@@ -57,17 +56,12 @@ public final class GraviteeMarkdownPageContent extends PortalPageContent<Gravite
     }
 
     @Override
-    public void update(@Nonnull UpdatePortalPageContent updateGraviteeMarkdownPageContent) {
-        this.content = new GraviteeMarkdownContent(updateGraviteeMarkdownPageContent.getContent());
-    }
-
-    @Override
-    public String getGmdContent() {
-        return content.getRaw();
+    public void update(@Nonnull UpdatePortalPageContent updatePortalPageContent) {
+        this.content = new OpenApiContent(updatePortalPageContent.getContent());
     }
 
     @Override
     public String toString() {
-        return "GraviteeMarkdown[id=" + getId() + ", content=" + content + "]";
+        return "OpenApi[id=" + getId() + ", content=" + content + "]";
     }
 }

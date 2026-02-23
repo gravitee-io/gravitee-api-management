@@ -17,7 +17,10 @@ package io.gravitee.apim.infra.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.OpenApiContent;
+import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.repository.management.model.PortalPageContent;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -50,7 +53,7 @@ class PortalPageContentAdapterTest {
             assertThat(entity).isInstanceOf(GraviteeMarkdownPageContent.class);
             var markdownContent = (GraviteeMarkdownPageContent) entity;
             assertThat(markdownContent.getId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440000"));
-            assertThat(markdownContent.getContent()).isEqualTo("# Welcome\n\nThis is a sample page content.");
+            assertThat(markdownContent.getContent().getRaw()).isEqualTo("# Welcome\n\nThis is a sample page content.");
         }
 
         @Test
@@ -70,7 +73,28 @@ class PortalPageContentAdapterTest {
             assertThat(entity).isInstanceOf(GraviteeMarkdownPageContent.class);
             var markdownContent = (GraviteeMarkdownPageContent) entity;
             assertThat(markdownContent.getId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440001"));
-            assertThat(markdownContent.getContent()).isEqualTo("Simple content without configuration");
+            assertThat(markdownContent.getContent().getRaw()).isEqualTo("Simple content without configuration");
+        }
+
+        @Test
+        void should_map_openapi_content_to_entity() {
+            // Given
+            var repositoryContent = io.gravitee.repository.management.model.PortalPageContent.builder()
+                .id("550e8400-e29b-41d4-a716-446655440002")
+                .organizationId("ORG")
+                .environmentId("ENV")
+                .type(io.gravitee.repository.management.model.PortalPageContent.Type.OPENAPI)
+                .content("openapi: 3.0.0\ninfo:\n  title: Test API")
+                .build();
+
+            // When
+            var entity = adapter.toEntity(repositoryContent);
+
+            // Then
+            assertThat(entity).isInstanceOf(OpenApiPageContent.class);
+            var openApiContent = (OpenApiPageContent) entity;
+            assertThat(openApiContent.getId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440002"));
+            assertThat(openApiContent.getContent().getRaw()).isEqualTo("openapi: 3.0.0\ninfo:\n  title: Test API");
         }
     }
 
@@ -84,7 +108,7 @@ class PortalPageContentAdapterTest {
                 PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440000"),
                 "DEFAULT_ORG",
                 "DEFAULT_ENV",
-                "# Welcome\n\nThis is a sample page content."
+                new GraviteeMarkdownContent("# Welcome\n\nThis is a sample page content.")
             );
 
             // When
@@ -95,7 +119,7 @@ class PortalPageContentAdapterTest {
             assertThat(repositoryContent.getId()).isEqualTo(entityContent.getId().toString());
             assertThat(repositoryContent.getOrganizationId()).isEqualTo("DEFAULT_ORG");
             assertThat(repositoryContent.getEnvironmentId()).isEqualTo("DEFAULT_ENV");
-            assertThat(repositoryContent.getContent()).isEqualTo(entityContent.getContent());
+            assertThat(repositoryContent.getContent()).isEqualTo(entityContent.getContent().getRaw());
         }
     }
 }

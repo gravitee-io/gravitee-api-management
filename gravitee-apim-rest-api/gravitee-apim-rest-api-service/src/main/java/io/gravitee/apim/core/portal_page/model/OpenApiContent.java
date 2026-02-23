@@ -15,7 +15,13 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-public enum PortalPageContentType {
-    GRAVITEE_MARKDOWN,
-    OPENAPI,
+/**
+ * OpenAPI specification content value for portal pages.
+ */
+public record OpenApiContent(String raw) implements PortalPageContentValue {
+
+    @Override
+    public String getRaw() {
+        return raw;
+    }
 }

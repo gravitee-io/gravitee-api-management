@@ -146,12 +146,12 @@ public class CreateDefaultPortalNavigationItemsUseCase {
         return CreatePortalNavigationItem.builder().title(title).area(area).parentId(parentId).published(true).build();
     }
 
-    private PortalPageContent createPortalPageContent(String organizationId, String environmentId, String contentPath) {
+    private PortalPageContent<?> createPortalPageContent(String organizationId, String environmentId, String contentPath) {
         final var content = new GraviteeMarkdownPageContent(
             PortalPageContentId.random(),
             organizationId,
             environmentId,
-            loadContent(contentPath)
+            new io.gravitee.apim.core.portal_page.model.GraviteeMarkdownContent(loadContent(contentPath))
         );
         return pageContentCrudService.create(content);
     }
