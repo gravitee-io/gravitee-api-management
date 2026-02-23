@@ -25,8 +25,33 @@ import { ClusterConfigurationHarness } from './cluster-configuration.harness';
 
 import { GioTestingModule } from '../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { expectGetClusterRequest, expectUpdateClusterRequest } from '../../../../services-ngx/cluster.service.spec';
+import {
+  expectGetClusterRequest,
+  expectGetConfigurationSchemaRequest,
+  expectUpdateClusterRequest,
+} from '../../../../services-ngx/cluster.service.spec';
 import { fakeCluster, fakeUpdateCluster } from '../../../../entities/management-api-v2';
+
+const securityJsonSchema = {
+  type: 'object',
+  properties: {
+    bootstrapServers: {
+      type: 'string',
+    },
+    security: {
+      type: 'object',
+      properties: {
+        protocol: {
+          title: 'Security protocol',
+          type: 'string',
+          enum: ['PLAINTEXT', 'SASL_PLAINTEXT', 'SASL_SSL', 'SSL'],
+        },
+      },
+      required: ['protocol'],
+    },
+  },
+  required: ['bootstrapServers'],
+};
 
 describe('ClusterConfigurationComponent', () => {
   const CLUSTER_ID = 'clusterId';
@@ -66,6 +91,7 @@ describe('ClusterConfigurationComponent', () => {
         id: CLUSTER_ID,
       }),
     );
+    expectGetConfigurationSchemaRequest(httpTestingController, securityJsonSchema);
     fixture.detectChanges();
   });
 
@@ -73,25 +99,18 @@ describe('ClusterConfigurationComponent', () => {
     httpTestingController.verify();
   });
 
+  it('should display the json schema form', async () => {
+    expect(await clusterConfigurationHarness.isJsonSchemaFormPresent()).toBe(true);
+  });
+
   it('should initialize the form with cluster data', async () => {
     expect(await clusterConfigurationHarness.getBootstrapServersValue()).toBe('kafka.example.com:9092');
     expect(await clusterConfigurationHarness.getSecurityTypeValue()).toBe('PLAINTEXT');
   });
 
-  it('should validate the form correctly', async () => {
-    // Clear the bootstrap servers field (which is required)
-    await clusterConfigurationHarness.setBootstrapServersValue('');
-
-    expect(await clusterConfigurationHarness.isFormValid()).toBe(false);
-
-    await clusterConfigurationHarness.setBootstrapServersValue('new-server:9092');
-
-    expect(await clusterConfigurationHarness.isFormValid()).toBe(true);
-  });
-
   it('should submit the form and update the cluster', async () => {
     await clusterConfigurationHarness.setBootstrapServersValue('updated-server:9092');
-    await clusterConfigurationHarness.setSecurityTypeValue('PLAINTEXT');
+    await clusterConfigurationHarness.setSecurityTypeValue('SASL_PLAINTEXT');
 
     await clusterConfigurationHarness.submitForm();
 
@@ -104,7 +123,7 @@ describe('ClusterConfigurationComponent', () => {
         configuration: {
           bootstrapServers: 'updated-server:9092',
           security: {
-            protocol: 'PLAINTEXT',
+            protocol: 'SASL_PLAINTEXT',
           },
         },
       }),
@@ -117,5 +136,6 @@ describe('ClusterConfigurationComponent', () => {
         id: CLUSTER_ID,
       }),
     );
+    expectGetConfigurationSchemaRequest(httpTestingController, securityJsonSchema);
   });
 });

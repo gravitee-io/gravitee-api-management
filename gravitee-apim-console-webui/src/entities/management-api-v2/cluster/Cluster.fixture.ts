@@ -22,7 +22,9 @@ export function fakeCluster(overrides: Partial<Cluster> = {}): Cluster {
     description: 'A test cluster',
     configuration: {
       bootstrapServers: 'kafka.example.com:9092',
-      security: 'none',
+      security: {
+        protocol: 'PLAINTEXT',
+      },
     },
     groups: [],
     updatedAt: new Date('2023-01-01T00:00:00Z'),
