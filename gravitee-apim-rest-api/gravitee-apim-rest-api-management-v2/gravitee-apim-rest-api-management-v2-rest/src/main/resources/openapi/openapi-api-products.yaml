@@ -667,9 +667,58 @@ paths:
       tags:
         - API Product Subscriptions
       summary: List subscriptions for the API Product
-      description: List all subscriptions for the specified API Product. User must have API_PRODUCT_SUBSCRIPTION[READ] permission.
+      description: |
+        List subscriptions for the specified API Product, with optional filters and expand options.
+        Same query parameters and expands as the API subscriptions endpoint.
+
+        User must have API_PRODUCT_SUBSCRIPTION[READ] permission.
       operationId: getApiProductSubscriptions
       parameters:
+        - name: applicationIds
+          in: query
+          description: List of application ids to filter on.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+        - name: planIds
+          in: query
+          description: List of plan ids to filter on.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+        - name: statuses
+          in: query
+          description: List of status filters.
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/SubscriptionStatus"
+          explode: false
+        - name: apiKey
+          in: query
+          description: API Key associated to the subscription to filter on.
+          schema:
+            type: string
+        - name: expands
+          in: query
+          description: Expansion of data to return in subscriptions (plan, application, subscribedBy).
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - application
+                - plan
+                - subscribedBy
+          explode: false
         - name: page
           in: query
           description: Page number (starting from 1)
@@ -832,6 +881,20 @@ paths:
       summary: Get an API Product subscription by ID
       description: User must have API_PRODUCT_SUBSCRIPTION[READ] permission.
       operationId: getApiProductSubscription
+      parameters:
+        - name: expands
+          in: query
+          description: Expansion of data to return in the subscription (plan, application, subscribedBy).
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - application
+                - plan
+                - subscribedBy
+          explode: false
       responses:
         '200':
           description: The API Product subscription
@@ -1934,6 +1997,18 @@ components:
         next:
           type: string
           description: In a paginated response, link to the next page. Maybe null if current is the last page
+
+    SubscriptionStatus:
+      type: string
+      description: The status of the subscription manageable by the api publisher.
+      example: ACCEPTED
+      enum:
+        - PENDING
+        - REJECTED
+        - ACCEPTED
+        - CLOSED
+        - PAUSED
+        - RESUMED
 
     Subscription:
       type: object

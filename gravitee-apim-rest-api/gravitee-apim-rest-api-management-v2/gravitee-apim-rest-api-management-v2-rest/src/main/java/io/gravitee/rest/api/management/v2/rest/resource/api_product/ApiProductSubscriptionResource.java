@@ -31,6 +31,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.TransferSubscriptionEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -58,9 +59,11 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
 
@@ -74,6 +77,9 @@ import org.apache.commons.lang3.StringUtils;
 public class ApiProductSubscriptionResource extends AbstractResource {
 
     private final SubscriptionMapper subscriptionMapper = SubscriptionMapper.INSTANCE;
+
+    @Inject
+    private SubscriptionExpandHelper subscriptionExpandHelper;
 
     @Inject
     private GetSubscriptionsUseCase getSubscriptionsUseCase;
@@ -114,7 +120,7 @@ public class ApiProductSubscriptionResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.READ }) })
-    public Response getApiProductSubscription() {
+    public Response getApiProductSubscription(@QueryParam("expands") Set<String> expands) {
         log.debug("Getting subscription {} for API Product {}", subscriptionId, apiProductId);
         var output = getSubscriptionsUseCase.execute(
             GetSubscriptionsUseCase.Input.of(apiProductId, SubscriptionReferenceType.API_PRODUCT, subscriptionId)
@@ -126,8 +132,15 @@ public class ApiProductSubscriptionResource extends AbstractResource {
             return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
         }
         io.gravitee.apim.core.subscription.model.SubscriptionEntity coreSubscription = subscription.orElseThrow();
+        Subscription subscriptionResponse = subscriptionMapper.map(coreSubscription);
+        subscriptionResponse.setApi(null);
+        expandData(subscriptionResponse, expands);
         log.debug("Subscription {} found for API Product {}", subscriptionId, apiProductId);
-        return Response.ok(subscriptionMapper.map(coreSubscription)).build();
+        return Response.ok(subscriptionResponse).build();
+    }
+
+    private void expandData(Subscription subscription, Set<String> expands) {
+        subscriptionExpandHelper.expandForApiProduct(GraviteeContext.getExecutionContext(), apiProductId, List.of(subscription), expands);
     }
 
     @PUT

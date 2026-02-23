@@ -31,6 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.ApplicationFixtures;
+import fixtures.PlanFixtures;
 import fixtures.SubscriptionFixtures;
 import fixtures.core.model.ApiKeyFixtures;
 import inmemory.ApiKeyCrudServiceInMemory;
@@ -58,6 +59,7 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
@@ -103,6 +105,9 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
     private ApplicationService applicationService;
 
     @Inject
+    private PlanSearchService planSearchService;
+
+    @Inject
     private ApiKeyCrudServiceInMemory apiKeyCrudServiceInMemory;
 
     @Inject
@@ -143,7 +148,8 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
             closeSubscriptionUseCase,
             subscriptionService,
             apiKeyService,
-            applicationService
+            applicationService,
+            planSearchService
         );
     }
 
@@ -184,6 +190,7 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(OK_200);
             var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Subscription.class);
             assertThat(body.getId()).isEqualTo(SUBSCRIPTION_ID);
+            assertThat(body.getApi()).isNull();
 
             var captor = ArgumentCaptor.forClass(GetSubscriptionsUseCase.Input.class);
             verify(getSubscriptionsUseCase).execute(captor.capture());
@@ -192,6 +199,37 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
                 soft.assertThat(captor.getValue().referenceType()).isEqualTo(SubscriptionReferenceType.API_PRODUCT);
                 soft.assertThat(captor.getValue().subscriptionId()).isEqualTo(SUBSCRIPTION_ID);
             });
+        }
+
+        @Test
+        void should_return_plan_with_apiProduct_and_no_apiId_when_expand_plan() {
+            String planId = "plan-1";
+            SubscriptionEntity sub = SubscriptionEntity.builder()
+                .id(SUBSCRIPTION_ID)
+                .apiId(null)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .planId(planId)
+                .applicationId("app-1")
+                .status(SubscriptionEntity.Status.ACCEPTED)
+                .createdAt(ZonedDateTime.now())
+                .updatedAt(ZonedDateTime.now())
+                .build();
+            when(getSubscriptionsUseCase.execute(any())).thenReturn(GetSubscriptionsUseCase.Output.single(Optional.of(sub)));
+
+            var planEntity = PlanFixtures.aPlanEntityV4().toBuilder().id(planId).referenceId(API_PRODUCT_ID).build();
+            when(planSearchService.findByIdIn(eq(GraviteeContext.getExecutionContext()), eq(Set.of(planId)))).thenReturn(
+                Set.of(planEntity)
+            );
+
+            Response response = rootTarget().queryParam("expands", "plan").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Subscription.class);
+            assertThat(body.getPlan()).isNotNull();
+            assertThat(body.getPlan().getId()).isEqualTo(planId);
+            assertThat(body.getPlan().getApiId()).isNull();
+            assertThat(body.getPlan().getApiProductId()).isEqualTo(API_PRODUCT_ID);
         }
 
         @Test

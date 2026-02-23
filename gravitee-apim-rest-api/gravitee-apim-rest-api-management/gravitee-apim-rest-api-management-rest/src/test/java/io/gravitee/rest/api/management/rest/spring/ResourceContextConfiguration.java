@@ -30,6 +30,7 @@ import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
+import inmemory.SubscriptionSearchQueryServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
@@ -129,6 +130,7 @@ import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGrou
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionSearchQueryService;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
@@ -504,6 +506,11 @@ public class ResourceContextConfiguration {
     @Bean
     public SubscriptionService subscriptionService() {
         return mock(SubscriptionService.class);
+    }
+
+    @Bean
+    public SubscriptionSearchQueryService subscriptionSearchQueryService() {
+        return new SubscriptionSearchQueryServiceInMemory();
     }
 
     @Bean

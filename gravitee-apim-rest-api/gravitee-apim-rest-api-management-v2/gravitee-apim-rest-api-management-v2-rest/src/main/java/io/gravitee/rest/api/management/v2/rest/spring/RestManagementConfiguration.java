@@ -25,9 +25,12 @@ import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.kafkaexplorer.spring.KafkaExplorerSpringConfiguration;
+import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -61,5 +64,14 @@ public class RestManagementConfiguration {
     @Bean
     public UserContextLoader userContextLoader(ApiAuthorizationService apiAuthorizationService, @Lazy ApiRepository apiRepository) {
         return new UserContextLoaderImpl(apiAuthorizationService, apiRepository);
+    }
+
+    @Bean
+    public SubscriptionExpandHelper subscriptionExpandHelper(
+        PlanSearchService planSearchService,
+        ApplicationService applicationService,
+        UserService userService
+    ) {
+        return new SubscriptionExpandHelper(planSearchService, applicationService, userService);
     }
 }
