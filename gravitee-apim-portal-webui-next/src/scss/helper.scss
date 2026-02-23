@@ -43,3 +43,18 @@ code {
   font-size: 85%;
   white-space: break-spaces !important; // Overrides Swagger-UI inline styling of bash language
 }
+
+.mcp-chip__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 27px;
+  padding: 0 10px;
+  border-radius: 4px;
+  background-color: #{theme.$mcp-chip-background-color};
+  color: #{theme.$mcp-chip-text-color};
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 27px;
+}
