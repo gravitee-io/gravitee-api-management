@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
+import { inject, Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 import { intersection, toLower } from 'lodash';
 import { map, shareReplay } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
@@ -45,6 +45,8 @@ export const GioTestingRolesScopePermissionProvider = new InjectionToken<GioTest
 
 @Injectable({ providedIn: 'root' })
 export class GioPermissionService {
+  private readonly apiProductV2Service = inject(ApiProductV2Service);
+
   private currentOrganizationPermissions: string[] = [];
   private currentApiPermissions: string[] = [];
   private currentEnvironmentPermissions: string[] = [];
