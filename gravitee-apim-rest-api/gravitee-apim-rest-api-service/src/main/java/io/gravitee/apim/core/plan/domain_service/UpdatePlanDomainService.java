@@ -294,6 +294,10 @@ public class UpdatePlanDomainService {
         Plan existingPlan = planCrudService.getById(planToUpdate.getId());
         Plan updatePlan = existingPlan.update(planToUpdate);
 
+        if (!planSynchronizationService.checkSynchronized(existingPlan, List.of(), updatePlan, List.of())) {
+            updatePlan.setNeedRedeployAt(Date.from(updatePlan.getUpdatedAt().toInstant()));
+        }
+
         Plan updated = orderAwareUpdateForApiProduct(existingPlan, updatePlan);
 
         createApiProductAuditLog(existingPlan, updated, auditInfo);
