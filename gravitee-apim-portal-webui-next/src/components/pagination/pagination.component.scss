@@ -13,55 +13,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-<<<<<<< HEAD
-:host {
-  --mat-button-filled-container-shape: 50%;
-  --mat-button-filled-horizontal-padding: 18px;
-  --mat-button-text-horizontal-padding: 18px;
-  --mdc-filled-button-container-shape: 4px;
-  --mat-filled-button-horizontal-padding: 18px;
-  --mat-text-button-horizontal-padding: 18px;
-}
-
-:host {
-=======
-// in general all stuff needed to override might be found at https://material.angular.dev/components/button/styling
-@use '../../scss/theme' as theme;
 @use '@angular/material' as mat;
+@use '../../scss/theme' as theme;
 
 :host {
-  display: block;
-}
-
-.pagination-container {
->>>>>>> 7967245c73 (feat(dev-portal): replace @media queries with isMobile directive and fix table row height)
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  &--centered {
-    justify-content: center;
-  }
-}
-
-.page-button {
-  width: 44px;
-  min-width: auto;
-  border-radius: 4px;
-
-  &--current {
-    background-color: transparent;
-    color: theme.$default-text-color;
-    border: 1px solid theme.$border-color;
-    border-radius: 4px;
-  }
-}
-
-.nav-button {
-  min-width: auto;
-  border-radius: 4px;
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 0 12px;
+}
+
+button[mat-stroked-button] {
+  @include mat.button-overrides(
+    (
+      outlined-container-shape: #{theme.$container-shape},
+      outlined-horizontal-padding: 12px,
+      outlined-label-text-color: black,
+      outlined-label-text-weight: 700,
+    )
+  );
+  min-width: 40px;
+}
+
+button[mat-button] {
+  @include mat.button-overrides(
+    (
+      text-horizontal-padding: 18px,
+    )
+  );
+  min-width: auto;
+}
+
+button.pagination__nav-button {
+  @include mat.button-overrides(
+    (
+      text-container-shape: 4px,
+      text-horizontal-padding: 8px,
+    )
+  );
+  display: inline-flex;
+  align-items: center;
+  min-width: auto;
+
+  &.pagination__nav-button--next {
+    span {
+      order: 1;
+    }
+
+    .breadcrumb-icon {
+      order: 2;
+      margin-left: 8px;
+    }
+  }
 }
