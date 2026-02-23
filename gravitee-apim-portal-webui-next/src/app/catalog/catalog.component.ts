@@ -13,27 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AsyncPipe, NgClass } from '@angular/common';
-import { Component, computed, effect, inject, input, InputSignal, output, signal } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { Component, effect, inject, Signal, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { isEqual } from 'lodash';
 import { BehaviorSubject, catchError, distinctUntilChanged, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { ApiCardComponent } from '../../../../components/api-card/api-card.component';
-import { LoaderComponent } from '../../../../components/loader/loader.component';
-import { PaginationComponent } from '../../../../components/pagination/pagination.component';
-import { SearchBarComponent } from '../../../../components/search-bar/search-bar.component';
-import { ApisResponse } from '../../../../entities/api/apis-response';
-import { Category } from '../../../../entities/categories/categories';
-import { ApiService } from '../../../../services/api.service';
-import { ObservabilityBreakpointService } from '../../../../services/observability-breakpoint.service';
+import { ApiCardComponent } from '../../components/api-card/api-card.component';
+import { LoaderComponent } from '../../components/loader/loader.component';
+import { PaginationComponent } from '../../components/pagination/pagination.component';
+import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
+import { ApisResponse } from '../../entities/api/apis-response';
+import { ApiService } from '../../services/api.service';
+import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
 
 interface ApiVM {
   id: string;
@@ -52,14 +52,13 @@ interface ApiPaginatorVM {
 }
 
 @Component({
-  selector: 'app-apis-list',
+  selector: 'app-catalog',
   standalone: true,
   imports: [
     AsyncPipe,
     ApiCardComponent,
     LoaderComponent,
     SearchBarComponent,
-    NgClass,
     PaginationComponent,
     MatFormFieldModule,
     MatSelectModule,
@@ -67,45 +66,29 @@ interface ApiPaginatorVM {
     MatIconModule,
     MatTooltipModule,
     MatChipsModule,
-    RouterModule,
   ],
-  templateUrl: './apis-list.component.html',
-  styleUrl: './apis-list.component.scss',
+  templateUrl: './catalog.component.html',
+  styleUrl: './catalog.component.scss',
 })
-export class ApisListComponent {
-  query: InputSignal<string> = input('');
-  currentCategory: InputSignal<Category> = input({});
-  searchTerm = output<string>();
-
-  categoryId = computed(() => this.currentCategory().id ?? 'all');
-
+export class CatalogComponent {
   apiPaginator$: Observable<ApiPaginatorVM> = of();
   loadingPage: boolean = true;
   pageSize = 20;
   pageSizeOptions = [8, 20, 40, 80];
   viewMode = signal<'grid' | 'list'>('grid');
+  protected readonly query: Signal<string>;
 
-  apiListContainerClasses = computed(() => ({
-    'api-list__container--narrow': this.isNarrow() && !this.isMobile(),
-    'api-list__container--mobile': this.isMobile(),
-    'api-list__container--list': this.viewMode() === 'list',
-  }));
-  headerClasses = computed(() => ({
-    'api-list__header--mobile': this.isMobile(),
-  }));
-  
   private readonly breakpointService = inject(ObservabilityBreakpointService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   protected readonly isMobile = this.breakpointService.isMobile;
   protected readonly isNarrow = this.breakpointService.isNarrow;
 
   private readonly page$ = new BehaviorSubject<number>(1);
 
   constructor(private readonly apiService: ApiService) {
+    this.query = toSignal(this.route.queryParams.pipe(map(p => p['query'] ?? '')), { initialValue: '' });
     effect(() => {
-      if (this.categoryId()) {
-        this.page$.next(1);
-      }
-
       if (this.query() || this.query() === '') {
         this.page$.next(1);
       }
@@ -124,7 +107,10 @@ export class ApisListComponent {
 
   onSearchResults(searchInput: string) {
     if (searchInput !== this.query()) {
-      this.searchTerm.emit(searchInput);
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { query: searchInput },
+      });
     }
   }
 
@@ -132,12 +118,16 @@ export class ApisListComponent {
     this.viewMode.set(this.viewMode() === 'grid' ? 'list' : 'grid');
   }
 
+  navigateToApi(id: string) {
+    this.router.navigate(['api', id], { relativeTo: this.route });
+  }
+
   private loadApis$(): Observable<ApiPaginatorVM> {
     return this.page$.pipe(
-      map(currentPage => ({ currentPage, pageSize: this.pageSize, category: this.categoryId(), query: this.query() })),
+      map(currentPage => ({ currentPage, pageSize: this.pageSize, query: this.query() })),
       distinctUntilChanged((previous, current) => isEqual(previous, current)),
       tap(_ => (this.loadingPage = true)),
-      switchMap(({ currentPage, pageSize, category, query }) => this.searchApis$(currentPage, pageSize, category, query)),
+      switchMap(({ currentPage, pageSize, query }) => this.searchApis$(currentPage, pageSize, query)),
       map(resp => {
         const data = resp.data
           ? resp.data.map(api => ({
@@ -163,7 +153,7 @@ export class ApisListComponent {
     );
   }
 
-  private searchApis$(page: number, size: number, category: string, query?: string): Observable<ApisResponse> {
-    return this.apiService.search(page, category, query ?? '', size).pipe(catchError(_ => of({ data: [], metadata: undefined })));
+  private searchApis$(page: number, size: number, query?: string): Observable<ApisResponse> {
+    return this.apiService.search(page, 'all', query ?? '', size).pipe(catchError(_ => of({ data: [], metadata: undefined })));
   }
 }

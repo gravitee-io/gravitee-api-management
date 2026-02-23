@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../../../scss/theme' as theme;
+@use '../../scss/layout' as layout;
+@use '../../scss/theme' as theme;
 
 :host {
-  display: flex;
+  @include layout.large-container-legacy();
+}
+
+.content {
   flex-flow: column;
   gap: 32px;
 }
@@ -48,7 +52,7 @@
       }
 
       .api-list__header__controls {
-        display: contents; 
+        display: contents;
       }
 
       .api-list__view-toggle {
@@ -264,21 +268,6 @@
         &--mcp {
           justify-content: flex-end;
           padding-left: 16px;
-
-          .mcp-chip__avatar {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            height: 27px;
-            padding: 0 10px;
-            border-radius: 4px;
-            background-color: theme.$mcp-chip-background-color;
-            color: theme.$mcp-chip-text-color;
-            font-family: Helvetica, Arial, sans-serif;
-            font-weight: 400;
-            font-size: 14px;
-            line-height: 27px;
-          }
         }
       }
 
