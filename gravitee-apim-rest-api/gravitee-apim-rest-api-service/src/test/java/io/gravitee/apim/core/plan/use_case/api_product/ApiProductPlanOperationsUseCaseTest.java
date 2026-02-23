@@ -133,6 +133,7 @@ class ApiProductPlanOperationsUseCaseTest {
 
             when(apiProductPlanSearchQueryService.findByPlanIdIdForApiProduct(eq(PLAN_ID), eq(API_PRODUCT_ID))).thenReturn(plan);
             doNothing().when(closePlanDomainService).close(eq(PLAN_ID), eq(auditInfo));
+            when(planCrudService.getById(PLAN_ID)).thenReturn(closedPlan);
 
             var input = ApiProductPlanOperationsUseCase.Input.builder()
                 .planId(PLAN_ID)
@@ -186,6 +187,7 @@ class ApiProductPlanOperationsUseCaseTest {
 
             when(apiProductPlanSearchQueryService.findByPlanIdIdForApiProduct(eq(PLAN_ID), eq(API_PRODUCT_ID))).thenReturn(plan);
             doNothing().when(deprecatePlanDomainService).deprecate(eq(PLAN_ID), eq(auditInfo), eq(false));
+            when(planCrudService.getById(PLAN_ID)).thenReturn(deprecatedPlan);
 
             var input = ApiProductPlanOperationsUseCase.Input.builder()
                 .planId(PLAN_ID)
