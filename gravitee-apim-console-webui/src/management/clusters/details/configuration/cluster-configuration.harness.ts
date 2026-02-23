@@ -15,20 +15,26 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
+import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 export class ClusterConfigurationHarness extends ComponentHarness {
   static hostSelector = 'cluster-configuration';
 
-  private getBootstrapServersInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="bootstrapServers"]' }));
-  private getSecurityTypeFormField = this.locatorForOptional(MatFormFieldHarness.with({ floatingLabelText: /Security protocol/ }));
+  private getJsonSchemaForm = this.locatorForOptional('gio-form-json-schema');
   private getSaveBar = this.locatorFor(GioSaveBarHarness);
+
+  async isJsonSchemaFormPresent(): Promise<boolean> {
+    return (await this.getJsonSchemaForm()) !== null;
+  }
+
+  async getBootstrapServersInput(): Promise<MatInputHarness | null> {
+    return this.locatorForOptional(MatInputHarness.with({ selector: '[id*="bootstrapServers"]' }))();
+  }
 
   async getBootstrapServersValue(): Promise<string> {
     const input = await this.getBootstrapServersInput();
-    return input.getValue();
+    return input ? input.getValue() : null;
   }
 
   async setBootstrapServersValue(value: string): Promise<void> {
@@ -37,20 +43,14 @@ export class ClusterConfigurationHarness extends ComponentHarness {
   }
 
   async getSecurityTypeValue(): Promise<string> {
-    const securityTypeFormField = await this.getSecurityTypeFormField();
-    const securityTypeInput = (await securityTypeFormField.getControl()) as MatSelectHarness;
-
-    if (securityTypeInput) {
-      return securityTypeInput.getValueText();
-    }
-    return null;
+    const select = await this.locatorForOptional(MatSelectHarness.with({ selector: '[id*="protocol"]' }))();
+    return select ? select.getValueText() : null;
   }
 
   async setSecurityTypeValue(value: string): Promise<void> {
-    const securityTypeFormField = await this.getSecurityTypeFormField();
-    const securityTypeInput = (await securityTypeFormField.getControl()) as MatSelectHarness;
-    if (securityTypeInput) {
-      return securityTypeInput.clickOptions({ text: value });
+    const select = await this.locatorForOptional(MatSelectHarness.with({ selector: '[id*="protocol"]' }))();
+    if (select) {
+      return select.clickOptions({ text: value });
     }
   }
 

@@ -112,6 +112,17 @@ describe('ClusterService', () => {
     });
   });
 
+  describe('getConfigurationSchema', () => {
+    it('should call the API', done => {
+      service.getConfigurationSchema().subscribe(schema => {
+        expect(schema).toBeTruthy();
+        done();
+      });
+
+      expectGetConfigurationSchemaRequest(httpTestingController);
+    });
+  });
+
   describe('getPermissions', () => {
     it('should call the API', done => {
       const cluster = fakeCluster();
@@ -190,4 +201,10 @@ export const expectGetClusterPermissionsRequest = (
   const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/clusters/${clusterId}/permissions`);
   expect(req.request.method).toEqual('GET');
   req.flush(permissions);
+};
+
+export const expectGetConfigurationSchemaRequest = (httpTestingController: HttpTestingController, schema: unknown = {}) => {
+  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/clusters/schema/configuration`);
+  expect(req.request.method).toEqual('GET');
+  req.flush(schema);
 };
