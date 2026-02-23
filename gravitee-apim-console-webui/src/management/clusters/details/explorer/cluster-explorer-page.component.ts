@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { KafkaExplorerComponent } from '@gravitee/gravitee-kafka-explorer';
+
 import { Component, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { KafkaExplorerComponent } from '@gravitee/gravitee-kafka-explorer';
 
 import { Constants } from '../../../../entities/Constants';
 

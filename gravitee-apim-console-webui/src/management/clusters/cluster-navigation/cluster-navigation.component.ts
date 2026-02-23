@@ -18,19 +18,22 @@ import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import {
   GioBreadcrumbModule,
   GioIconsModule,
+  GioLicenseService,
   GioMenuSearchService,
   GioMenuService,
   GioSubmenuModule,
+  LicenseOptions,
   MenuSearchItem,
 } from '@gravitee/ui-particles-angular';
-import { Subject } from 'rxjs';
-import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
+import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { flatMap } from 'lodash';
 import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 import { ClusterNavigationTabsComponent } from './cluster-navigation-tabs/cluster-navigation-tabs.component';
 
+import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 import { cleanRouterLink, getPathFromRoot } from '../../../util/router-link.util';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ClusterService } from '../../../services-ngx/cluster.service';
@@ -43,6 +46,8 @@ export interface MenuItem {
   header?: MenuItemHeader;
   routerLink?: string;
   routerLinkActiveOptions?: { exact: boolean };
+  license?: LicenseOptions;
+  iconRight$?: Observable<string>;
 }
 
 export interface MenuItemHeader {
@@ -69,6 +74,7 @@ export class ClusterNavigationComponent implements OnInit, OnDestroy {
   private readonly gioMenuService = inject(GioMenuService);
   private readonly clusterService = inject(ClusterService);
   private readonly gioMenuSearchService = inject(GioMenuSearchService);
+  private readonly gioLicenseService = inject(GioLicenseService);
 
   ngOnInit() {
     this.gioMenuService.reduced$.pipe(takeUntil(this.unsubscribe$)).subscribe(reduced => {
@@ -80,6 +86,14 @@ export class ClusterNavigationComponent implements OnInit, OnDestroy {
       .pipe(
         tap(cluster => {
           this.cluster = cluster;
+
+          const explorerLicense: LicenseOptions = {
+            feature: ApimFeature.APIM_NATIVE_KAFKA_EXPLORER,
+            context: UTMTags.CONTEXT_ENVIRONMENT,
+          };
+          const explorerIconRight$ = this.gioLicenseService
+            .isMissingFeature$(explorerLicense.feature)
+            .pipe(map(notAllowed => (notAllowed ? 'gio:lock' : null)));
 
           this.subMenuItems = this.filterMenuByPermission([
             {
@@ -96,6 +110,8 @@ export class ClusterNavigationComponent implements OnInit, OnDestroy {
                   displayName: 'Explorer',
                   routerLink: 'explorer',
                   permissions: ['cluster-definition-r'],
+                  license: explorerLicense,
+                  iconRight$: explorerIconRight$,
                 },
                 {
                   displayName: 'Configuration',

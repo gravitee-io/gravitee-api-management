@@ -25,6 +25,8 @@ import { ClusterExplorerPageComponent } from './details/explorer/cluster-explore
 import { ClusterGuard } from './cluster.guard';
 
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
+import { HasLicenseGuard } from '../../shared/components/gio-license/has-license.guard';
+import { ApimFeature } from '../../shared/components/gio-license/gio-license-data';
 
 const clusterRoutes: Routes = [
   {
@@ -43,7 +45,7 @@ const clusterRoutes: Routes = [
     path: ':clusterId',
     component: ClusterNavigationComponent,
     canActivate: [ClusterGuard.loadPermissions],
-    canActivateChild: [PermissionGuard.checkRouteDataPermissions],
+    canActivateChild: [PermissionGuard.checkRouteDataPermissions, HasLicenseGuard],
     canDeactivate: [ClusterGuard.clearPermissions],
     children: [
       {
@@ -66,6 +68,10 @@ const clusterRoutes: Routes = [
         data: {
           permissions: {
             anyOf: ['cluster-definition-r'],
+          },
+          requireLicense: {
+            license: { feature: ApimFeature.APIM_NATIVE_KAFKA_EXPLORER },
+            redirect: '/',
           },
         },
       },
