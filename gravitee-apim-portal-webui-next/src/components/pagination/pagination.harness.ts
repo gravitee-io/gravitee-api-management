@@ -20,10 +20,10 @@ export class PaginationHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-pagination';
 
   protected locatePreviousPageButton = this.locatorFor(
-    MatButtonHarness.with({ selector: '[aria-label="Previous page of results"]', variant: 'icon' }),
+    MatButtonHarness.with({ selector: '[aria-label="Previous page of results"].pagination__nav-button' }),
   );
   protected locateNextPageButton = this.locatorFor(
-    MatButtonHarness.with({ selector: '[aria-label="Next page of results"]', variant: 'icon' }),
+    MatButtonHarness.with({ selector: '[aria-label="Next page of results"].pagination__nav-button' }),
   );
   protected locateCurrentPageButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Current page of results"]' }));
 
@@ -42,5 +42,6 @@ export class PaginationHarness extends ComponentHarness {
   async getPageButtonByNumber(pageNumber: number): Promise<MatButtonHarness> {
     return this.locatePageButtonByLabel(`${pageNumber}`);
   }
+
   protected locatePageButtonByLabel = (label: string) => this.locatorFor(MatButtonHarness.with({ text: label }))();
 }

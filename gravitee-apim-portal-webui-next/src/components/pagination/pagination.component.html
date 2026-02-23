@@ -15,8 +15,15 @@
     limitations under the License.
 
 -->
-<button mat-icon-button [disabled]="!pagination().hasPreviousPage" (click)="goToPreviousPage()" aria-label="Previous page of results">
+<button
+  mat-button
+  [disabled]="!pagination().hasPreviousPage"
+  (click)="goToPreviousPage()"
+  aria-label="Previous page of results"
+  class="pagination__nav-button"
+>
   <mat-icon class="breadcrumb-icon">chevron_left</mat-icon>
+  <span i18n="@@paginationPrevious">Previous</span>
 </button>
 
 @if (pagination().hasPreviousPage) {
@@ -36,7 +43,7 @@
   }
 }
 
-<button mat-flat-button aria-label="Current page of results">{{ pagination().currentPage }}</button>
+<button mat-stroked-button aria-label="Current page of results">{{ pagination().currentPage }}</button>
 
 @if (pagination().hasNextPage) {
   @if (pagination().currentPage + 1 < pagination().totalPages) {
@@ -52,6 +59,13 @@
   <button mat-button (click)="goToPage(pagination().totalPages)" aria-label="Last page of results">{{ pagination().totalPages }}</button>
 }
 
-<button mat-icon-button [disabled]="!pagination().hasNextPage" (click)="goToNextPage()" aria-label="Next page of results">
+<button
+  mat-button
+  [disabled]="!pagination().hasNextPage"
+  (click)="goToNextPage()"
+  aria-label="Next page of results"
+  class="pagination__nav-button pagination__nav-button--next"
+>
+  <span i18n="@@paginationNext">Next</span>
   <mat-icon class="breadcrumb-icon">chevron_right</mat-icon>
 </button>

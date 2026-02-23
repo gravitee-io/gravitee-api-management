@@ -13,20 +13,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  --mat-button-filled-container-shape: 50%;
-  --mat-button-filled-horizontal-padding: 18px;
-  --mat-button-text-horizontal-padding: 18px;
+@use '@angular/material' as mat;
+@use '../../scss/theme' as theme;
 
+:host {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-button[mat-flat-button],
-button[mat-button],
-button[mat-icon-button] {
-  width: 44px;
+button[mat-stroked-button] {
+  @include mat.button-overrides(
+    (
+      outlined-container-shape: #{theme.$container-shape},
+      outlined-horizontal-padding: 12px,
+      outlined-label-text-color: black,
+      outlined-label-text-weight: 700,
+    )
+  );
+  min-width: 40px;
+}
+
+button[mat-button] {
+  @include mat.button-overrides(
+    (
+      text-horizontal-padding: 18px,
+    )
+  );
   min-width: auto;
-  border-radius: 50%;
+}
+
+button.pagination__nav-button {
+  @include mat.button-overrides(
+    (
+      text-container-shape: 4px,
+      text-horizontal-padding: 8px,
+    )
+  );
+  display: inline-flex;
+  align-items: center;
+  min-width: auto;
+
+  &.pagination__nav-button--next {
+    span {
+      order: 1;
+    }
+
+    .breadcrumb-icon {
+      order: 2;
+      margin-left: 8px;
+    }
+  }
 }
