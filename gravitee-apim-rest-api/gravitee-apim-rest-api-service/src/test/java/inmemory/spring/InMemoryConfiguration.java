@@ -17,6 +17,7 @@ package inmemory.spring;
 
 import inmemory.*;
 import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
+import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
 import io.gravitee.apim.core.integration.service_provider.A2aAgentFetcher;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
@@ -182,6 +183,11 @@ public class InMemoryConfiguration {
     @Bean
     public EventLatestCrudInMemory eventLatestCrudService() {
         return new EventLatestCrudInMemory();
+    }
+
+    @Bean
+    public EventLatestQueryService eventLatestQueryService() {
+        return new EventLatestQueryServiceInMemory();
     }
 
     @Bean
