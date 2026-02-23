@@ -18,7 +18,8 @@ package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
-import io.gravitee.apim.core.subscription.use_case.GetSubscriptionsUseCase;
+import io.gravitee.apim.core.subscription.use_case.SearchSubscriptionsUseCase;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
@@ -26,7 +27,9 @@ import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -43,6 +46,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -53,6 +57,8 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
 
@@ -72,10 +78,13 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @Inject
-    private GetSubscriptionsUseCase getSubscriptionsUseCase;
+    private SubscriptionExpandHelper subscriptionExpandHelper;
 
     @Inject
     private CreateSubscriptionUseCase createSubscriptionUseCase;
+
+    @Inject
+    private SearchSubscriptionsUseCase searchSubscriptionsUseCase;
 
     @Inject
     private ApiKeyService apiKeyService;
@@ -89,28 +98,48 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_SUBSCRIPTION, acls = { RolePermissionAction.READ }) })
-    public Response getApiProductSubscriptions(@BeanParam @Valid PaginationParam paginationParam) {
+    public Response getApiProductSubscriptions(
+        @QueryParam("applicationIds") Set<String> applicationIds,
+        @QueryParam("planIds") Set<String> planIds,
+        @QueryParam("statuses") @DefaultValue("ACCEPTED") Set<SubscriptionStatus> statuses,
+        @QueryParam("apiKey") String apiKey,
+        @QueryParam("expands") Set<String> expands,
+        @BeanParam @Valid PaginationParam paginationParam
+    ) {
         log.debug("Getting subscriptions for API Product {}", apiProductId);
-        var output = getSubscriptionsUseCase.execute(GetSubscriptionsUseCase.Input.of(apiProductId, SubscriptionReferenceType.API_PRODUCT));
-        List<io.gravitee.apim.core.subscription.model.SubscriptionEntity> subscriptions = output.subscriptions();
-        if (subscriptions == null) {
-            subscriptions = List.of();
-        }
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
-        List<Subscription> subscriptionList = subscriptions.stream().map(subscriptionMapper::map).map(this::filterSensitiveData).toList();
+        Page<SubscriptionEntity> subscriptionPage = searchSubscriptionsUseCase
+            .execute(
+                new SearchSubscriptionsUseCase.Input(
+                    executionContext,
+                    apiProductId,
+                    SubscriptionReferenceType.API_PRODUCT,
+                    applicationIds,
+                    planIds,
+                    subscriptionMapper.mapToStatusSet(statuses),
+                    apiKey,
+                    paginationParam.toPageable()
+                )
+            )
+            .page();
 
-        // TODO: Pagination is currently in-memory; consider DB-level pagination in GetSubscriptionsUseCase for scalability
-        int totalCount = subscriptionList.size();
-        int fromIndex = Math.min((paginationParam.getPage() - 1) * paginationParam.getPerPage(), totalCount);
-        int toIndex = Math.min(fromIndex + paginationParam.getPerPage(), totalCount);
-        List<Subscription> pageData = fromIndex < totalCount ? subscriptionList.subList(fromIndex, toIndex) : List.of();
+        List<Subscription> subscriptions = subscriptionMapper.mapToList(subscriptionPage.getContent());
+        subscriptions.forEach(sub -> {
+            sub.setApi(null);
+            sub.setApiProduct(new BaseApiProduct().id(apiProductId));
+        });
+        subscriptions = subscriptions.stream().map(this::filterSensitiveData).collect(Collectors.toList());
+        subscriptionExpandHelper.expandForApiProduct(executionContext, apiProductId, subscriptions, expands);
 
+        long totalCount = subscriptionPage.getTotalElements();
+        int pageItemsCount = Math.toIntExact(subscriptionPage.getPageElements());
         log.debug("Found {} subscriptions for API Product {}", totalCount, apiProductId);
         return Response.ok(
             new SubscriptionsResponse()
-                .data(new java.util.ArrayList<>(pageData))
-                .pagination(PaginationInfo.computePaginationInfo((long) totalCount, pageData.size(), paginationParam))
-                .links(computePaginationLinks(totalCount, paginationParam))
+                .data(new java.util.ArrayList<>(subscriptions))
+                .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
+                .links(computePaginationLinks((int) totalCount, paginationParam))
         ).build();
     }
 
@@ -200,6 +229,8 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
 
         CreateSubscriptionUseCase.Output output = createSubscriptionUseCase.execute(input);
         Subscription subscription = subscriptionMapper.map(output.subscription());
+        subscription.setApi(null);
+        subscription.setApiProduct(new BaseApiProduct().id(apiProductId));
 
         log.debug("Created subscription {} for API Product {}", output.subscription().getId(), apiProductId);
         return Response.created(this.getLocationHeader(output.subscription().getId())).entity(subscription).build();

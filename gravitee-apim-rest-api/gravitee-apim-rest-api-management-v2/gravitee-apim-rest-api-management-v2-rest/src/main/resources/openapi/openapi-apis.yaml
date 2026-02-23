@@ -3126,6 +3126,21 @@ components:
                     type: string
                     description: API's description. A short description of your API.
                     example: I can use many characters to describe this API.
+        BaseApiProduct:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: API Product's uuid.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                name:
+                    type: string
+                    description: API Product's name.
+                    example: My API Product
+                description:
+                    type: string
+                    description: API Product's description.
+                    example: A bundle of public APIs.
         GenericApi:
             type: object
             allOf:
@@ -4872,6 +4887,10 @@ components:
                     type: string
                     description: Id of the API owning the plan.
                     example: 6c530064-0b2c-4004-9300-640b2ce0047b
+                apiProductId:
+                    type: string
+                    description: Id of the API Product owning the plan. Present only when the plan belongs to an API Product (omitted for API plans).
+                    example: 6c530064-0b2c-4004-9300-640b2ce0047b
                 security:
                     $ref: "#/components/schemas/PlanSecurity"
                 mode:
@@ -5365,6 +5384,8 @@ components:
                 - properties:
                       api:
                           $ref: "#/components/schemas/BaseApi"
+                      apiProduct:
+                          $ref: "#/components/schemas/BaseApiProduct"
                       plan:
                           $ref: "#/components/schemas/BasePlan"
                       application:

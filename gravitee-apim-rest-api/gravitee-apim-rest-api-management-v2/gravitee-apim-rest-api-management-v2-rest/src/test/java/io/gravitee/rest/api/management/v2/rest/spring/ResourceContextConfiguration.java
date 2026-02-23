@@ -166,6 +166,7 @@ import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionSearchQueryService;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
@@ -188,6 +189,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.query_service.analytics_engine.HTTPDataPlaneAnalyticsQueryService;
 import io.gravitee.apim.infra.query_service.analytics_engine.MessageDataPlaneQueryService;
 import io.gravitee.apim.infra.query_service.gateway.InstanceQueryServiceLegacyWrapper;
+import io.gravitee.apim.infra.query_service.subscription.SubscriptionSearchQueryServiceImpl;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.common.util.DataEncryptor;
@@ -195,6 +197,7 @@ import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -379,6 +382,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public SubscriptionSearchQueryService subscriptionSearchQueryService(SubscriptionService subscriptionService) {
+        return new SubscriptionSearchQueryServiceImpl(subscriptionService);
+    }
+
+    @Bean
     public ApplicationService applicationService() {
         return mock(ApplicationService.class);
     }
@@ -391,6 +399,15 @@ public class ResourceContextConfiguration {
     @Bean
     public UserService userService() {
         return mock(UserService.class);
+    }
+
+    @Bean
+    public SubscriptionExpandHelper subscriptionExpandHelper(
+        PlanSearchService planSearchService,
+        ApplicationService applicationService,
+        UserService userService
+    ) {
+        return new SubscriptionExpandHelper(planSearchService, applicationService, userService);
     }
 
     @Bean
