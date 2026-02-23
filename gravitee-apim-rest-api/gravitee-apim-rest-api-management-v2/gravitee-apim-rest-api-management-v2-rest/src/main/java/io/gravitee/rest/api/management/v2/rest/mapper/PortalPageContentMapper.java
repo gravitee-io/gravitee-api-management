@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 import org.mapstruct.Mapper;
@@ -26,9 +27,10 @@ import org.mapstruct.factory.Mappers;
 public interface PortalPageContentMapper {
     PortalPageContentMapper INSTANCE = Mappers.getMapper(PortalPageContentMapper.class);
 
-    default io.gravitee.rest.api.management.v2.rest.model.PortalPageContent map(PortalPageContent portalPageContent) {
+    default io.gravitee.rest.api.management.v2.rest.model.PortalPageContent map(PortalPageContent<?> portalPageContent) {
         return switch (portalPageContent) {
-            case io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent markdownContent -> map(markdownContent);
+            case GraviteeMarkdownPageContent markdownContent -> map(markdownContent);
+            case OpenApiPageContent openApiContent -> map(openApiContent);
         };
     }
 
@@ -37,7 +39,12 @@ public interface PortalPageContentMapper {
     }
 
     @Mapping(target = "type", constant = "GRAVITEE_MARKDOWN")
+    @Mapping(target = "content", source = "content.raw")
     io.gravitee.rest.api.management.v2.rest.model.PortalPageContent map(GraviteeMarkdownPageContent markdownContent);
+
+    @Mapping(target = "type", constant = "OPENAPI")
+    @Mapping(target = "content", source = "content.raw")
+    io.gravitee.rest.api.management.v2.rest.model.PortalPageContent map(OpenApiPageContent openApiContent);
 
     UpdatePortalPageContent map(io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent portalPageContent);
 }

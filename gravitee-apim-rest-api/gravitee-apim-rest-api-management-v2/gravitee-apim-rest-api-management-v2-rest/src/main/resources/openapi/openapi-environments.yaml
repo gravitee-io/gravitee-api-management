@@ -2276,6 +2276,7 @@ components:
           description: Content type
           enum:
             - GRAVITEE_MARKDOWN
+            - OPENAPI
         content:
           type: string
           description: The content of the page

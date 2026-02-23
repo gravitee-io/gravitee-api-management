@@ -16,10 +16,10 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContainer;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 import lombok.RequiredArgsConstructor;
 
@@ -30,8 +30,8 @@ public class GraviteePortalPageContentValidatorService implements PortalPageCont
     private final GraviteeMarkdownValidator graviteeMarkdownValidator;
 
     @Override
-    public boolean appliesTo(PortalPageContent existingContent) {
-        return existingContent instanceof GraviteeMarkdownContainer;
+    public boolean appliesTo(PortalPageContent<?> existingContent) {
+        return existingContent.getType() == PortalPageContentType.GRAVITEE_MARKDOWN;
     }
 
     @Override

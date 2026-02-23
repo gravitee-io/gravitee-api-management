@@ -15,7 +15,13 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-public enum PortalPageContentType {
-    GRAVITEE_MARKDOWN,
-    OPENAPI,
+/**
+ * Gravitee Markdown (GMD) content value for portal pages.
+ */
+public record GraviteeMarkdownContent(String raw) implements PortalPageContentValue {
+
+    @Override
+    public String getRaw() {
+        return raw;
+    }
 }

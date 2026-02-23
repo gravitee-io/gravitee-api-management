@@ -15,6 +15,7 @@
  */
 package fixtures.core.model;
 
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -28,11 +29,21 @@ public class PortalPageContentFixtures {
     public static final String CONTENT = "# Welcome\n\nThis is a sample page content.";
 
     public static GraviteeMarkdownPageContent aGraviteeMarkdownPageContent() {
-        return new GraviteeMarkdownPageContent(PortalPageContentId.of(CONTENT_ID), ORGANIZATION_ID, ENVIRONMENT_ID, CONTENT);
+        return new GraviteeMarkdownPageContent(
+            PortalPageContentId.of(CONTENT_ID),
+            ORGANIZATION_ID,
+            ENVIRONMENT_ID,
+            new GraviteeMarkdownContent(CONTENT)
+        );
     }
 
     public static GraviteeMarkdownPageContent aGraviteeMarkdownPageContent(String content) {
-        return new GraviteeMarkdownPageContent(PortalPageContentId.of(CONTENT_ID), ORGANIZATION_ID, ENVIRONMENT_ID, content);
+        return new GraviteeMarkdownPageContent(
+            PortalPageContentId.of(CONTENT_ID),
+            ORGANIZATION_ID,
+            ENVIRONMENT_ID,
+            new GraviteeMarkdownContent(content)
+        );
     }
 
     public static GraviteeMarkdownPageContent aGraviteeMarkdownPageContent(
@@ -41,7 +52,7 @@ public class PortalPageContentFixtures {
         String environmentId,
         String content
     ) {
-        return new GraviteeMarkdownPageContent(id, organizationId, environmentId, content);
+        return new GraviteeMarkdownPageContent(id, organizationId, environmentId, new GraviteeMarkdownContent(content));
     }
 
     public static List<PortalPageContent> samplePortalPageContents() {

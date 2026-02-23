@@ -53,13 +53,13 @@ public class PortalPageContentCrudServiceImpl implements PortalPageContentCrudSe
     }
 
     @Override
-    public PortalPageContent createDefault(String organizationId, String environmentId) {
+    public PortalPageContent<?> createDefault(String organizationId, String environmentId) {
         final var pageContentId = PortalPageContentId.random();
         final var portalPageContent = new GraviteeMarkdownPageContent(
             pageContentId,
             organizationId,
             environmentId,
-            getDefaultPortalPageContent()
+            new io.gravitee.apim.core.portal_page.model.GraviteeMarkdownContent(getDefaultPortalPageContent())
         );
         return this.create(portalPageContent);
     }
