@@ -29,7 +29,7 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Widget;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetLayout;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetType;
-import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -141,16 +141,13 @@ public interface DashboardMapper {
         if (timeRange == null) {
             return null;
         }
-        return DashboardWidget.TimeRange.builder()
-            .from(timeRange.getFrom().toInstant().toString())
-            .to(timeRange.getTo().toInstant().toString())
-            .build();
+        return DashboardWidget.TimeRange.builder().from(timeRange.getFrom().toInstant()).to(timeRange.getTo().toInstant()).build();
     }
 
     default TimeRange mapToRestTimeRange(DashboardWidget.TimeRange timeRange) {
         if (timeRange == null) {
             return null;
         }
-        return new TimeRange().from(OffsetDateTime.parse(timeRange.getFrom())).to(OffsetDateTime.parse(timeRange.getTo()));
+        return new TimeRange().from(timeRange.getFrom().atOffset(ZoneOffset.UTC)).to(timeRange.getTo().atOffset(ZoneOffset.UTC));
     }
 }

@@ -223,7 +223,10 @@ public class DashboardCrudServiceImplTest {
                             DashboardWidget.Request.builder()
                                 .type("measures")
                                 .timeRange(
-                                    DashboardWidget.TimeRange.builder().from("2025-10-07T06:50:30Z").to("2025-12-07T11:35:30Z").build()
+                                    DashboardWidget.TimeRange.builder()
+                                        .from(Instant.parse("2025-10-07T06:50:30Z"))
+                                        .to(Instant.parse("2025-12-07T11:35:30Z"))
+                                        .build()
                                 )
                                 .metrics(
                                     List.of(

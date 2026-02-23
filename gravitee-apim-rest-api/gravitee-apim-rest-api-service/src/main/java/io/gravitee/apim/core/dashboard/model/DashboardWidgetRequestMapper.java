@@ -25,7 +25,6 @@ import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.utils.CollectionUtils;
-import java.time.Instant;
 import java.util.List;
 
 /**
@@ -80,17 +79,7 @@ public final class DashboardWidgetRequestMapper {
         if (timeRange == null || timeRange.getFrom() == null || timeRange.getTo() == null) {
             throw new InvalidQueryException("Widget request timeRange with from and to is required");
         }
-        var from = parseInstant(timeRange.getFrom(), "timeRange.from");
-        var to = parseInstant(timeRange.getTo(), "timeRange.to");
-        return new TimeRange(from, to);
-    }
-
-    private static Instant parseInstant(String value, String field) {
-        try {
-            return Instant.parse(value);
-        } catch (Exception e) {
-            throw new InvalidQueryException("Invalid " + field + ": expected ISO-8601 date-time");
-        }
+        return new TimeRange(timeRange.getFrom(), timeRange.getTo());
     }
 
     private static List<MetricMeasuresRequest> toMetricMeasuresRequests(List<DashboardWidget.MetricRequest> metrics) {

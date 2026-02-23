@@ -28,6 +28,7 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Widget;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetLayout;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetType;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -163,7 +164,10 @@ public class DashboardFixtures {
                             DashboardWidget.Request.builder()
                                 .type("measures")
                                 .timeRange(
-                                    DashboardWidget.TimeRange.builder().from("2025-10-07T06:50:30Z").to("2025-12-07T11:35:30Z").build()
+                                    DashboardWidget.TimeRange.builder()
+                                        .from(Instant.parse("2025-10-07T06:50:30Z"))
+                                        .to(Instant.parse("2025-12-07T11:35:30Z"))
+                                        .build()
                                 )
                                 .metrics(
                                     List.of(
@@ -182,7 +186,10 @@ public class DashboardFixtures {
                             DashboardWidget.Request.builder()
                                 .type("facets")
                                 .timeRange(
-                                    DashboardWidget.TimeRange.builder().from("2025-10-07T06:50:30Z").to("2025-12-07T11:35:30Z").build()
+                                    DashboardWidget.TimeRange.builder()
+                                        .from(Instant.parse("2025-10-07T06:50:30Z"))
+                                        .to(Instant.parse("2025-12-07T11:35:30Z"))
+                                        .build()
                                 )
                                 .by(List.of("HTTP_STATUS_CODE_GROUP"))
                                 .metrics(
@@ -202,7 +209,10 @@ public class DashboardFixtures {
                             DashboardWidget.Request.builder()
                                 .type("facets")
                                 .timeRange(
-                                    DashboardWidget.TimeRange.builder().from("2025-10-07T06:50:30Z").to("2025-12-07T11:35:30Z").build()
+                                    DashboardWidget.TimeRange.builder()
+                                        .from(Instant.parse("2025-10-07T06:50:30Z"))
+                                        .to(Instant.parse("2025-12-07T11:35:30Z"))
+                                        .build()
                                 )
                                 .by(List.of("API"))
                                 .limit(5)

@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.dashboard.model;
 
+import java.time.Instant;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -55,8 +56,8 @@ public class DashboardWidget {
     @Data
     public static class TimeRange {
 
-        private String from;
-        private String to;
+        private Instant from;
+        private Instant to;
     }
 
     @Builder

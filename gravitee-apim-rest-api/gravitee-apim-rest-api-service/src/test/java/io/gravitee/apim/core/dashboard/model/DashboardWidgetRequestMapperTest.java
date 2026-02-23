@@ -22,6 +22,7 @@ import io.gravitee.apim.core.analytics_engine.exception.InvalidQueryException;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -32,7 +33,10 @@ import org.junit.jupiter.api.Test;
 class DashboardWidgetRequestMapperTest {
 
     private static DashboardWidget.TimeRange validTimeRange() {
-        return DashboardWidget.TimeRange.builder().from("2025-10-07T06:50:30Z").to("2025-12-07T11:35:30Z").build();
+        return DashboardWidget.TimeRange.builder()
+            .from(Instant.parse("2025-10-07T06:50:30Z"))
+            .to(Instant.parse("2025-12-07T11:35:30Z"))
+            .build();
     }
 
     private static DashboardWidget.MetricRequest metricRequest(String name, String... measures) {
