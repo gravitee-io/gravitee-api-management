@@ -725,7 +725,7 @@ public class SubscriptionServiceTest {
 
         verify(subscriptionRepository, times(1)).update(any(Subscription.class));
         verify(apiKeyService, never()).findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
-        verify(subscriptionValidationService, times(1)).validateAndSanitize(any(), any(UpdateSubscriptionEntity.class));
+        verify(subscriptionValidationService, times(1)).validateAndSanitize(any(), any(UpdateSubscriptionEntity.class), eq(APPLICATION_ID));
     }
 
     @Test
@@ -1275,7 +1275,7 @@ public class SubscriptionServiceTest {
         // Verify
         verify(subscriptionRepository, times(1)).update(any(Subscription.class));
         verify(apiKeyService, never()).findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
-        verify(subscriptionValidationService, times(1)).validateAndSanitize(any(), any(UpdateSubscriptionEntity.class));
+        verify(subscriptionValidationService, times(1)).validateAndSanitize(any(), any(UpdateSubscriptionEntity.class), eq(APPLICATION_ID));
     }
 
     @Test
@@ -1301,7 +1301,7 @@ public class SubscriptionServiceTest {
         // Verify
         verify(subscriptionRepository, times(1)).update(any(Subscription.class));
         verify(apiKeyService, never()).findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
-        verify(subscriptionValidationService, times(1)).validateAndSanitize(any(), eq(updatedSubscription));
+        verify(subscriptionValidationService, times(1)).validateAndSanitize(any(), eq(updatedSubscription), eq(APPLICATION_ID));
     }
 
     @Test
