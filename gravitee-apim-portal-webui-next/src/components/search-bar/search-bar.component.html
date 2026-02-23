@@ -15,8 +15,8 @@
     limitations under the License.
 
 -->
-<div class="search-input">
-  <mat-form-field appearance="outline" class="search-input__form">
+<div class="search-input" [class.search-input--mobile]="isMobile()">
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-input__form">
     <div class="search-input__wrapper">
       <input matInput [formControl]="searchControl" placeholder="Search" #searchInput />
       @if (!searchControl.value) {

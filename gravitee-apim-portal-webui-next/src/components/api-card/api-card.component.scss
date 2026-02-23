@@ -13,45 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '../../scss/theme' as theme;
+@use '@gravitee/gravitee-markdown' as gmd;
+
 :host {
+  @include gmd.card-overrides((
+    outline-color: theme.$card-border-color,
+    outline-width: 1px,
+    container-shape: theme.$container-shape
+  ));
   display: flex;
-  width: 316px;
   min-height: 138px;
   flex-flow: column;
-
-  @media (max-width: 1200px) {
-    width: 556px;
-  }
-
-  @media (max-width: 880px) {
-    width: 396px;
-  }
-
-  @media (max-width: 640px) {
-    width: 556px;
-  }
-
-  @media (max-width: 480px) {
-    width: 396px;
-  }
+  width: 100%; 
 }
 
 .api-card {
-  --gmd-card-outline-color: #e0e0e0;
-  --gmd-card-outline-width: 1px;
-  --gmd-card-container-shape: 16px;
-
   cursor: pointer;
-  border-radius: 16px;
   overflow: hidden;
   transition: box-shadow 0.2s ease;
 
   &:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  }
-
-  ::ng-deep .gmd-card {
-    border-radius: 16px;
   }
 
   &__header {
@@ -66,14 +49,6 @@
       flex: 1;
       flex-flow: column;
       gap: 2px;
-
-      .m3-title-medium {
-        font-family: Helvetica, Arial, sans-serif;
-        font-weight: 700;
-        font-size: 16px;
-        line-height: 21px;
-        letter-spacing: 0;
-      }
     }
   }
 
@@ -93,12 +68,7 @@
     line-clamp: 2;
     text-overflow: ellipsis;
     word-wrap: break-word;
-    font-family: Helvetica, Arial, sans-serif;
-    font-weight: 400;
-    font-size: 16px;
-    line-height: 27px;
-    letter-spacing: 0;
-    color: #465055;
+    color: theme.$paragraph-color;
   }
 }
 
@@ -111,12 +81,11 @@
   padding: 0 10px;
 
   border-radius: 4px;
-  background-color: #275cf62b;
-  color: #0436c8;
+  background-color: theme.$mcp-chip-background-color;
+  color: theme.$mcp-chip-text-color;
 
   font-family: Helvetica, Arial, sans-serif;
   font-weight: 400;
   font-size: 14px;
   line-height: 27px;
 }
-

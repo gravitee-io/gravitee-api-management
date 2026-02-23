@@ -54,6 +54,7 @@ $card-background-color: var(--gio-app-card-background-color);
 $card-text-color: var(--gio-app-card-text-color);
 $card-elevation: var(--gio-app-card-elevation);
 
+
 // -- Nav Bar --
 $nav-bar-background-color: var(--gio-app-nav-bar-container-color, $background-color);
 $nav-bar-link-padding: var(--gio-app-nav-bar-link-padding);
@@ -111,7 +112,7 @@ $search-bar-input-text-color: var(--gio-app-search-bar-input-text-color);
 // -- Table --
 $table-border-color: var(--gio-app-table-outline-color, $border-color);
 $table-border-radius: var(--gio-app-table-container-shape, $container-shape);
-$table-header-background-color: var(--gio-app-table-header-container-color, none);
+$table-header-background-color: var(--gio-app-table-header-container-color, var(--mat-sys-surface-container-low));
 $table-body-background-color: var(--gio-app-table-body-container-color, $card-background-color);
 $table-header-headline-color: var(--gio-app-table-header-headline-color, $default-text-color);
 
@@ -120,3 +121,15 @@ $chip-background: var(--gio-app-chip-container-color, $card-background-color);
 $select-panel-background-color: color-mix(in srgb, $banner-background-color 12%, $card-background-color);
 $calendar-background-color: color-mix(in srgb, $banner-background-color 50%, $card-background-color);
 $primary-highlight-color: color-mix(in srgb, $primary-main-color 8%, white 92%);
+
+// -- Catalog / View Toggle --
+$view-toggle-active-background-color: var(--gio-app-view-toggle-active-container-color, $primary-highlight-color);
+$view-toggle-active-text-color: var(--gio-app-view-toggle-active-label-text-color, $primary-main-color);
+
+// -- MCP chip --
+$mcp-chip-background-color: var(--gio-app-mcp-chip-container-color, color-mix(in srgb, $primary-main-color 17%, transparent));
+$mcp-chip-text-color: var(--gio-app-mcp-chip-label-text-color, $primary-main-color);
+
+// -- Keyboard shortcut --
+$keyboard-shortcut-text-color: var(--gio-app-keyboard-shortcut-label-text-color, $paragraph-color);
+$keyboard-shortcut-background-color: var(--gio-app-keyboard-shortcut-container-color, #e1e5ed);

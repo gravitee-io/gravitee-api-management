@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, input, output, Signal } from '@angular/core';
-import { MatButton } from '@angular/material/button';
+import { Component, computed, inject, input, output, Signal } from '@angular/core';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
+import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
 
 interface PaginationVM {
   hasPreviousPage: boolean;
@@ -32,6 +33,8 @@ interface PaginationVM {
   styleUrl: './pagination.component.scss',
 })
 export class PaginationComponent {
+  protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
+
   totalResults = input.required<number>();
   currentPage = input.required<number>();
   pageSize = input<number>(10);

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+<<<<<<< HEAD
 :host {
   --mat-button-filled-container-shape: 50%;
   --mat-button-filled-horizontal-padding: 18px;
@@ -23,27 +24,40 @@
 }
 
 :host {
+=======
+// in general all stuff needed to override might be found at https://material.angular.dev/components/button/styling
+@use '../../scss/theme' as theme;
+@use '@angular/material' as mat;
+
+:host {
+  display: block;
+}
+
+.pagination-container {
+>>>>>>> 7967245c73 (feat(dev-portal): replace @media queries with isMobile directive and fix table row height)
   display: flex;
   align-items: center;
   gap: 8px;
+
+  &--centered {
+    justify-content: center;
+  }
 }
 
-button[mat-flat-button],
-button[mat-button]:not(.nav-button),
-button[mat-icon-button] {
+.page-button {
   width: 44px;
   min-width: auto;
   border-radius: 4px;
+
+  &--current {
+    background-color: transparent;
+    color: theme.$default-text-color;
+    border: 1px solid theme.$border-color;
+    border-radius: 4px;
+  }
 }
 
-button[mat-flat-button] {
-  background-color: transparent;
-  color: #000000;
-  border: 1px solid #d0d0d0;
-  border-radius: 4px;
-}
-
-button.nav-button {
+.nav-button {
   min-width: auto;
   border-radius: 4px;
   display: flex;

@@ -86,10 +86,17 @@ export class ApisListComponent {
   viewMode = signal<'grid' | 'list'>('grid');
 
   apiListContainerClasses = computed(() => ({
+    'api-list__container--narrow': this.isNarrow() && !this.isMobile(),
     'api-list__container--mobile': this.isMobile(),
     'api-list__container--list': this.viewMode() === 'list',
   }));
-  protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
+  headerClasses = computed(() => ({
+    'api-list__header--mobile': this.isMobile(),
+  }));
+  
+  private readonly breakpointService = inject(ObservabilityBreakpointService);
+  protected readonly isMobile = this.breakpointService.isMobile;
+  protected readonly isNarrow = this.breakpointService.isNarrow;
 
   private readonly page$ = new BehaviorSubject<number>(1);
   private readonly pageSize$ = new BehaviorSubject<number>(20);
