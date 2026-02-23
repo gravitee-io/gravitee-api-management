@@ -441,6 +441,28 @@
 			</plugin>
 
 			<plugin>
+				<groupId>io.gravitee.plugin</groupId>
+				<artifactId>gravitee-plugin-common-configurations-maven-plugin</artifactId>
+				<configuration>
+					<includeArtifacts>
+						<include>io.gravitee.plugin:gravitee-plugin-common-configurations</include>
+					</includeArtifacts>
+					<includeSchemas>
+						<include>schemas/**/schema-form-ssl.json</include>
+					</includeSchemas>
+					<localSchemaFile>${project.basedir}/src/main/resources/cluster/kafka-cluster-configuration-schema-form.json</localSchemaFile>
+					<outputFile>${project.build.outputDirectory}/cluster/kafka-cluster-configuration-schema-form.json</outputFile>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>common-schema-form-bundle</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<executions>
