@@ -257,416 +257,45 @@
       "gioConfig": {
         "displayIf": {
           "$eq": {
-            "value.protocol": ["SASL_PLAINTEXT", "SASL_SSL"]
-          }
-        }
-      }
-    },
-    "sslTrustStoreHostnameVerifier": {
-      "title": "Verify Host",
-      "description": "Use to enable host name verification",
-      "type": "boolean",
-      "default": true
-    },
-    "sslTrustStoreTrustAll": {
-      "title": "Trust all",
-      "description": "Use this with caution (if over Internet). The gateway must trust any origin certificates. The connection will still be encrypted but this mode is vulnerable to 'man in the middle' attacks.",
-      "type": "boolean",
-      "default": false
-    },
-    "sslTrustStorePassword": {
-      "type": "string",
-      "title": "Password",
-      "description": "Truststore password (supports EL and Secrets)",
-      "format": "password",
-      "gioConfig": {
-        "el": true,
-        "banner": {
-          "title": "SSL truststore password",
-          "text": "The password for the truststore file. If a password is not set, truststore file configured will still be used, but integrity checking is disabled. Truststore password is not supported for PEM format."
-        }
-      }
-    },
-    "sslTrustStorePath": {
-      "type": "string",
-      "title": "Path to truststore",
-      "description": "Path to the truststore file (supports EL and Secrets)",
-      "gioConfig": {
-        "el": true
-      }
-    },
-    "sslTrustStoreContent": {
-      "type": "string",
-      "title": "Content",
-      "description": "Binary content as Base64 (supports EL and Secrets)",
-      "format": "text",
-      "gioConfig": {
-        "el": true
-      }
-    },
-    "sslKeyStorePassword": {
-      "type": "string",
-      "title": "Password",
-      "description": "Password to use to open the key store (supports EL and Secrets)",
-      "format": "password",
-      "gioConfig": {
-        "el": true
-      }
-    },
-    "sslKeyStoreAlias": {
-      "type": "string",
-      "title": "Alias for the key",
-      "description": "Alias of the key to use in case the key store contains more than one key (supports EL and Secrets)",
-      "gioConfig": {
-        "el": true
-      }
-    },
-    "sslKeyStoreKeyPassword": {
-      "type": "string",
-      "title": "Key Password",
-      "description": "Password to use to access the key when protected by password (supports EL and Secrets)",
-      "format": "password",
-      "gioConfig": {
-        "el": true
-      }
-    },
-    "sslKeyStorePath": {
-      "type": "string",
-      "title": "Path to key store",
-      "description": "Path to the key store file (supports EL and Secrets)",
-      "gioConfig": {
-        "el": true
-      }
-    },
-    "sslKeyStoreContent": {
-      "type": "string",
-      "title": "Content",
-      "description": "Binary content as Base64 (supports EL and Secrets)",
-      "format": "text",
-      "gioConfig": {
-        "el": true
-      }
-    },
-    "sslKeyStoreCertPath": {
-      "type": "string",
-      "title": "Path to cert file",
-      "description": "Path to cert file (.PEM) (supports EL and Secrets)",
-      "gioConfig": {
-        "el": true
-      }
-    },
-    "sslKeyStoreCertContent": {
-      "type": "string",
-      "title": "Certificate",
-      "description": "(supports EL and Secrets)",
-      "format": "text",
-      "gioConfig": {
-        "el": true
-      }
-    },
-    "sslKeyStoreKeyPath": {
-      "type": "string",
-      "title": "Path to private key file",
-      "description": "Path to private key file (.PEM) (supports EL and Secrets)",
-      "gioConfig": {
-        "el": true
-      }
-    },
-    "sslKeyStoreKeyContent": {
-      "type": "string",
-      "title": "Private key",
-      "description": "(supports EL and Secrets)",
-      "format": "text",
-      "gioConfig": {
-        "el": true
-      }
-    },
-    "securitySsl": {
-      "type": "object",
-      "title": "SSL Options",
-      "properties": {
-        "hostnameVerifier": {
-          "$ref": "#/definitions/sslTrustStoreHostnameVerifier"
-        },
-        "trustAll": {
-          "$ref": "#/definitions/sslTrustStoreTrustAll"
-        },
-        "trustStore": {
-          "type": "object",
-          "title": "Truststore",
-          "default": {
-            "type": ""
-          },
-          "oneOf": [
-            {
-              "type": "object",
-              "title": "None",
-              "properties": {
-                "type": {
-                  "const": ""
-                }
-              }
-            },
-            {
-              "type": "object",
-              "title": "JKS with path",
-              "properties": {
-                "type": {
-                  "const": "JKS"
-                },
-                "password": {
-                  "$ref": "#/definitions/sslTrustStorePassword"
-                },
-                "path": {
-                  "$ref": "#/definitions/sslTrustStorePath"
-                }
-              },
-              "required": ["password", "path"]
-            },
-            {
-              "type": "object",
-              "title": "JKS with content",
-              "properties": {
-                "type": {
-                  "const": "JKS"
-                },
-                "password": {
-                  "$ref": "#/definitions/sslTrustStorePassword"
-                },
-                "content": {
-                  "$ref": "#/definitions/sslTrustStoreContent"
-                }
-              },
-              "required": ["password", "content"]
-            },
-            {
-              "type": "object",
-              "title": "PKCS#12 / PFX with path",
-              "properties": {
-                "type": {
-                  "const": "PKCS12"
-                },
-                "password": {
-                  "$ref": "#/definitions/sslTrustStorePassword"
-                },
-                "path": {
-                  "$ref": "#/definitions/sslTrustStorePath"
-                }
-              },
-              "required": ["password", "path"]
-            },
-            {
-              "type": "object",
-              "title": "PKCS#12 / PFX with content",
-              "properties": {
-                "type": {
-                  "const": "PKCS12"
-                },
-                "password": {
-                  "$ref": "#/definitions/sslTrustStorePassword"
-                },
-                "content": {
-                  "$ref": "#/definitions/sslTrustStoreContent"
-                }
-              },
-              "required": ["password", "content"]
-            },
-            {
-              "type": "object",
-              "title": "PEM with path",
-              "properties": {
-                "type": {
-                  "const": "PEM"
-                },
-                "password": {
-                  "$ref": "#/definitions/sslTrustStorePassword"
-                },
-                "path": {
-                  "$ref": "#/definitions/sslTrustStorePath"
-                }
-              },
-              "required": ["password", "path"]
-            },
-            {
-              "type": "object",
-              "title": "PEM with content",
-              "properties": {
-                "type": {
-                  "const": "PEM"
-                },
-                "password": {
-                  "$ref": "#/definitions/sslTrustStorePassword"
-                },
-                "content": {
-                  "$ref": "#/definitions/sslTrustStoreContent"
-                }
-              },
-              "required": ["password", "content"]
-            }
-          ]
-        },
-        "keyStore": {
-          "type": "object",
-          "title": "Key store",
-          "default": {
-            "type": ""
-          },
-          "oneOf": [
-            {
-              "type": "object",
-              "title": "None",
-              "properties": {
-                "type": {
-                  "const": ""
-                }
-              }
-            },
-            {
-              "type": "object",
-              "title": "JKS with path",
-              "properties": {
-                "type": {
-                  "const": "JKS"
-                },
-                "password": {
-                  "$ref": "#/definitions/sslKeyStorePassword"
-                },
-                "alias": {
-                  "$ref": "#/definitions/sslKeyStoreAlias"
-                },
-                "keyPassword": {
-                  "$ref": "#/definitions/sslKeyStoreKeyPassword"
-                },
-                "path": {
-                  "$ref": "#/definitions/sslKeyStorePath"
-                }
-              },
-              "required": ["password", "path"]
-            },
-            {
-              "type": "object",
-              "title": "JKS with content",
-              "properties": {
-                "type": {
-                  "const": "JKS"
-                },
-                "password": {
-                  "$ref": "#/definitions/sslKeyStorePassword"
-                },
-                "alias": {
-                  "$ref": "#/definitions/sslKeyStoreAlias"
-                },
-                "keyPassword": {
-                  "$ref": "#/definitions/sslKeyStoreKeyPassword"
-                },
-                "content": {
-                  "$ref": "#/definitions/sslKeyStoreContent"
-                }
-              },
-              "required": ["password", "content"]
-            },
-            {
-              "type": "object",
-              "title": "PKCS#12 / PFX with path",
-              "properties": {
-                "type": {
-                  "const": "PKCS12"
-                },
-                "password": {
-                  "$ref": "#/definitions/sslKeyStorePassword"
-                },
-                "alias": {
-                  "$ref": "#/definitions/sslKeyStoreAlias"
-                },
-                "keyPassword": {
-                  "$ref": "#/definitions/sslKeyStoreKeyPassword"
-                },
-                "path": {
-                  "$ref": "#/definitions/sslKeyStorePath"
-                }
-              },
-              "required": ["password", "path"]
-            },
-            {
-              "type": "object",
-              "title": "PKCS#12 / PFX with content",
-              "properties": {
-                "type": {
-                  "const": "PKCS12"
-                },
-                "password": {
-                  "$ref": "#/definitions/sslKeyStorePassword"
-                },
-                "alias": {
-                  "$ref": "#/definitions/sslKeyStoreAlias"
-                },
-                "keyPassword": {
-                  "$ref": "#/definitions/sslKeyStoreKeyPassword"
-                },
-                "content": {
-                  "$ref": "#/definitions/sslKeyStoreContent"
-                }
-              },
-              "required": ["password", "content"]
-            },
-            {
-              "type": "object",
-              "title": "PEM with path",
-              "properties": {
-                "type": {
-                  "const": "PEM"
-                },
-                "certPath": {
-                  "$ref": "#/definitions/sslKeyStoreCertPath"
-                },
-                "keyPath": {
-                  "$ref": "#/definitions/sslKeyStoreKeyPath"
-                }
-              },
-              "required": ["certPath", "keyPath"]
-            },
-            {
-              "type": "object",
-              "title": "PEM with content",
-              "properties": {
-                "type": {
-                  "const": "PEM"
-                },
-                "certContent": {
-                  "$ref": "#/definitions/sslKeyStoreCertContent"
-                },
-                "keyContent": {
-                  "$ref": "#/definitions/sslKeyStoreKeyContent"
-                }
-              },
-              "required": ["certContent", "keyContent"]
-            }
-          ]
-        }
-      },
-      "gioConfig": {
-        "displayIf": {
-          "$eq": {
-            "value.protocol": ["SASL_SSL", "SSL"]
+            "value.security.protocol": ["SASL_PLAINTEXT", "SASL_SSL"]
           }
         }
       }
     }
   },
   "properties": {
-    "protocol": {
-      "$ref": "#/definitions/securityProtocol"
+    "bootstrapServers": {
+      "type": "string",
+      "title": "Bootstrap servers",
+      "description": "The Kafka bootstrap server address (e.g., kafka.example.com:9092)"
     },
-    "sasl": {
-      "$ref": "#/definitions/securitySasl"
-    },
-    "ssl": {
-      "$ref": "#/definitions/securitySsl"
+    "security": {
+      "type": "object",
+      "title": "Security",
+      "properties": {
+        "protocol": {
+          "$ref": "#/definitions/securityProtocol"
+        },
+        "sasl": {
+          "$ref": "#/definitions/securitySasl"
+        },
+        "ssl": {
+          "$ref": "#/gioExternalDefinitions/sslOptions",
+          "gioConfig": {
+            "displayIf": {
+              "$eq": {
+                "value.security.protocol": ["SASL_SSL", "SSL"]
+              }
+            }
+          }
+        }
+      },
+      "required": ["protocol"]
     }
   },
   "gioConfig": {
     "uiBorder": "none"
   },
-  "required": ["protocol"],
+  "required": ["bootstrapServers", "security"],
   "additionalProperties": false
 }
