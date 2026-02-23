@@ -134,6 +134,7 @@ import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.GraviteePortalPageContentValidatorService;
+import io.gravitee.apim.core.portal_page.domain_service.OpenApiPortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
@@ -1073,7 +1074,10 @@ public class ResourceContextConfiguration {
     ) {
         GraviteeMarkdownValidator gmdValidator = new GraviteeMarkdownValidator();
         GraviteePortalPageContentValidatorService gmdContentValidator = new GraviteePortalPageContentValidatorService(gmdValidator);
-        PortalPageContentValidatorService validatorService = new PortalPageContentValidatorService(List.of(gmdContentValidator));
+        OpenApiPortalPageContentValidatorService openApiContentValidator = new OpenApiPortalPageContentValidatorService();
+        PortalPageContentValidatorService validatorService = new PortalPageContentValidatorService(
+            List.of(gmdContentValidator, openApiContentValidator)
+        );
 
         return new UpdatePortalPageContentUseCase(portalPageContentQueryService, portalPageContentCrudService, validatorService);
     }

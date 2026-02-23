@@ -6512,6 +6512,7 @@ components:
             description: Type of portal page content
             enum:
                 - GRAVITEE_MARKDOWN
+                - OPENAPI
 
     responses:
         InternalServerError:

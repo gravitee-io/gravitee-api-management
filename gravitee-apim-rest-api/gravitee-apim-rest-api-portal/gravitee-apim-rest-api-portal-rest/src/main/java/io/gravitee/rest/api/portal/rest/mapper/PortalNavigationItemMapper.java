@@ -59,8 +59,9 @@ public interface PortalNavigationItemMapper {
     io.gravitee.rest.api.portal.rest.model.PortalNavigationPage map(PortalNavigationPage page);
     io.gravitee.rest.api.portal.rest.model.PortalNavigationApi map(PortalNavigationApi api);
 
+    @Mapping(target = "content", expression = "java(content.getContent().getRaw())")
     @Mapping(source = "type", target = "type")
-    io.gravitee.rest.api.portal.rest.model.PortalPageContent map(PortalPageContent content);
+    io.gravitee.rest.api.portal.rest.model.PortalPageContent map(PortalPageContent<?> content);
 
     default String map(@Nullable PortalNavigationItemId portalNavigationItemId) {
         if (portalNavigationItemId == null) {

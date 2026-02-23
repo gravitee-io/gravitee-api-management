@@ -19,7 +19,7 @@ import jakarta.annotation.Nonnull;
 import lombok.Getter;
 
 @Getter
-public abstract sealed class PortalPageContent permits GraviteeMarkdownPageContent {
+public abstract sealed class PortalPageContent<T extends PortalPageContentValue> permits GraviteeMarkdownPageContent, OpenApiPageContent {
 
     @Nonnull
     private final PortalPageContentId id;
@@ -40,13 +40,13 @@ public abstract sealed class PortalPageContent permits GraviteeMarkdownPageConte
 
     public abstract PortalPageContentType getType();
 
-    public abstract String getContent();
+    public abstract T getContent();
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PortalPageContent that = (PortalPageContent) o;
+        PortalPageContent<?> that = (PortalPageContent<?>) o;
         return id.equals(that.id);
     }
 

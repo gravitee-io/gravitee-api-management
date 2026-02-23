@@ -15,7 +15,14 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-public enum PortalPageContentType {
-    GRAVITEE_MARKDOWN,
-    OPENAPI,
+/**
+ * Sealed type for portal page content value (GMD or OpenAPI raw string).
+ * Used for serialization, REST and persistence via {@link #getRaw()}.
+ */
+public sealed interface PortalPageContentValue permits GraviteeMarkdownContent, OpenApiContent {
+
+    /**
+     * Raw content string for serialization/REST/persistence.
+     */
+    String getRaw();
 }
