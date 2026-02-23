@@ -17,41 +17,25 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatCardHarness } from '@angular/material/card/testing';
 
-import { ApisListComponent } from './apis-list.component';
-import { ApiCardHarness } from '../../../../components/api-card/api-card.harness';
-import { fakeApi, fakeApisResponse } from '../../../../entities/api/api.fixtures';
-import { ApisResponse } from '../../../../entities/api/apis-response';
-import { Category } from '../../../../entities/categories/categories';
-import { fakeCategory } from '../../../../entities/categories/categories.fixture';
-import { AppTestingModule, TESTING_BASE_URL } from '../../../../testing/app-testing.module';
+import { CatalogComponent } from './catalog.component';
+import { ApiCardHarness } from '../../components/api-card/api-card.harness';
+import { PaginationHarness } from '../../components/pagination/pagination.harness';
+import { fakeApi, fakeApisResponse } from '../../entities/api/api.fixtures';
+import { ApisResponse } from '../../entities/api/apis-response';
+import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
 
-describe('ApisListComponent', () => {
-  let fixture: ComponentFixture<ApisListComponent>;
+describe('CatalogComponent', () => {
+  let fixture: ComponentFixture<CatalogComponent>;
   let harnessLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const initBase = async (
-    params: Partial<{
-      page: number;
-      size: number;
-      query: string;
-      currentCategory: Category;
-    }> = {
-      page: 1,
-      size: 18,
-      query: '',
-      currentCategory: fakeCategory(),
-    },
-  ) => {
+  const initBase = async () => {
     await TestBed.configureTestingModule({
-      imports: [ApisListComponent, AppTestingModule],
+      imports: [CatalogComponent, AppTestingModule],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ApisListComponent);
-    fixture.componentRef.setInput('query', params.query);
-    fixture.componentRef.setInput('currentCategory', params.currentCategory ?? {});
+    fixture = TestBed.createComponent(CatalogComponent);
 
     httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
@@ -64,18 +48,14 @@ describe('ApisListComponent', () => {
       apisResponse: ApisResponse;
       page: number;
       size: number;
-      query: string;
-      currentCategory: Category;
     }> = {
       apisResponse: fakeApisResponse(),
       page: 1,
-      size: 18,
-      query: '',
-      currentCategory: fakeCategory(),
+      size: 20,
     },
   ) => {
-    await initBase(params);
-    expectApiList(params.apisResponse, params.page, params.size, params.query, params.currentCategory?.id);
+    await initBase();
+    expectApiList(params.apisResponse, params.page, params.size);
     fixture.detectChanges();
   };
 
@@ -127,13 +107,39 @@ describe('ApisListComponent', () => {
       expect(await apiCard.getVersion()).toEqual('v.1.2');
     });
 
-    it('should call second page when pagination changes', async () => {
+        it('should call API list with search query', async () => {
       const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
       expect(apiCard).toBeDefined();
       expect(apiCard.length).toEqual(2);
       expect(await apiCard[0].getTitle()).toEqual('Test title');
 
-      fixture.componentInstance.onPageChange(2);
+      document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
+      fixture.detectChanges();
+
+      expectApiList(
+        fakeApisResponse({
+          data: [fakeApi({ id: 'second-page-api', name: 'second page api', version: '24' })],
+          metadata: {
+            pagination: {
+              current_page: 3,
+              total_pages: 5,
+            },
+          },
+        }),
+        3,
+        9,
+      );
+      fixture.detectChanges();
+    });
+
+    it('should call second page when pagination changes', async () => {
+      const apiCards = await harnessLoader.getAllHarnesses(ApiCardHarness);
+      expect(apiCards.length).toEqual(2);
+      expect(await apiCards[0].getTitle()).toEqual('Test title');
+
+      const pagination = await harnessLoader.getHarness(PaginationHarness);
+      const nextButton = await pagination.getNextPageButton();
+      await nextButton.click();
       fixture.detectChanges();
 
       expectApiList(
@@ -147,8 +153,7 @@ describe('ApisListComponent', () => {
           },
         }),
         2,
-        18,
-        '',
+        20,
       );
       fixture.detectChanges();
 
@@ -169,48 +174,29 @@ describe('ApisListComponent', () => {
         await init({ apisResponse: fakeApisResponse({ data: [] }) });
       });
 
-      it('should show empty API list', async () => {
-        const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
-        expect(noApiCard).toBeTruthy();
-        expect(await noApiCard.getText()).toContain(`Sorry, there are no APIs listed yet.`);
+      it('should show empty API list', () => {
+        const emptyState = fixture.nativeElement.querySelector('.api-list__empty-state');
+        expect(emptyState).toBeTruthy();
+        expect(emptyState.textContent).toContain('No APIs available yet');
       });
     });
 
     describe('when error occurs', () => {
-      it('should show empty API list if no search params', async () => {
-        await initBase({ currentCategory: {} });
+      it('should show empty API list', async () => {
+        await initBase();
         httpTestingController
-          .expectOne(`${TESTING_BASE_URL}/apis/_search?page=1&category=&size=18&q=`)
+          .expectOne(`${TESTING_BASE_URL}/apis/_search?page=1&category=all&size=20&q=`)
           .flush({ error: { message: 'Error occurred' } }, { status: 500, statusText: 'Internal Error' });
         fixture.detectChanges();
 
-        const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
-        expect(noApiCard).toBeTruthy();
-        expect(await noApiCard.getText()).toContain(`Sorry, there are no APIs listed yet.`);
-      });
-
-      it('should show empty API list if search params in request', async () => {
-        await initBase({ currentCategory: fakeCategory({ id: 'my-category' }) });
-        httpTestingController
-          .expectOne(`${TESTING_BASE_URL}/apis/_search?page=1&category=my-category&size=18&q=`)
-          .flush({ error: { message: 'Error occurred' } }, { status: 500, statusText: 'Internal Error' });
-        fixture.detectChanges();
-
-        const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
-        expect(noApiCard).toBeTruthy();
-        expect(await noApiCard.getText()).toContain(`Your search didn't return any APIs`);
+        const emptyState = fixture.nativeElement.querySelector('.api-list__empty-state');
+        expect(emptyState).toBeTruthy();
+        expect(emptyState.textContent).toContain('No APIs available yet');
       });
     });
   });
-  function expectApiList(
-    apisResponse: ApisResponse = fakeApisResponse(),
-    page: number = 1,
-    size: number = 18,
-    q: string = '',
-    category: string = '',
-  ) {
-    httpTestingController
-      .expectOne(`${TESTING_BASE_URL}/apis/_search?page=${page}&category=${category}&size=${size}&q=${q}`)
-      .flush(apisResponse);
+
+  function expectApiList(apisResponse: ApisResponse = fakeApisResponse(), page: number = 1, size: number = 20) {
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/_search?page=${page}&category=all&size=${size}&q=`).flush(apisResponse);
   }
 });
