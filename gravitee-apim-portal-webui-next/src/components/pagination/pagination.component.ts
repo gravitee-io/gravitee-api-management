@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, computed, input, output, Signal } from '@angular/core';
-import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 
 interface PaginationVM {
@@ -27,7 +27,7 @@ interface PaginationVM {
 @Component({
   selector: 'app-pagination',
   standalone: true,
-  imports: [MatButton, MatIcon, MatIconButton],
+  imports: [MatButton, MatIcon],
   templateUrl: './pagination.component.html',
   styleUrl: './pagination.component.scss',
 })

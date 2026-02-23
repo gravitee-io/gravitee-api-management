@@ -154,4 +154,30 @@ describe('PaginationComponent', () => {
       expect(selectPageSpy).toHaveBeenCalledWith(2);
     });
   });
+
+  describe('Previous and Next button labels', () => {
+    beforeEach(async () => {
+      await init(2, 30);
+    });
+
+    it('should show "Previous" text on previous button', async () => {
+      const previousPageButton = await componentHarness.getPreviousPageButton();
+      expect(await previousPageButton.getText()).toContain('Previous');
+    });
+
+    it('should show "Next" text on next button', async () => {
+      const nextPageButton = await componentHarness.getNextPageButton();
+      expect(await nextPageButton.getText()).toContain('Next');
+    });
+
+    it('should enable Previous button when not on first page', async () => {
+      const previousPageButton = await componentHarness.getPreviousPageButton();
+      expect(await previousPageButton.isDisabled()).toEqual(false);
+    });
+
+    it('should enable Next button when not on last page', async () => {
+      const nextPageButton = await componentHarness.getNextPageButton();
+      expect(await nextPageButton.isDisabled()).toEqual(false);
+    });
+  });
 });
