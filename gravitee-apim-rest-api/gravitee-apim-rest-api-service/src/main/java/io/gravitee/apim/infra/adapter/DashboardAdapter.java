@@ -19,6 +19,7 @@ import io.gravitee.apim.core.dashboard.model.Dashboard;
 import io.gravitee.apim.core.dashboard.model.DashboardWidget;
 import io.gravitee.repository.management.model.CustomDashboard;
 import io.gravitee.repository.management.model.CustomDashboardWidget;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import org.mapstruct.Mapper;
@@ -61,6 +62,14 @@ public interface DashboardAdapter {
     DashboardWidget.MetricRequest toMetricRequestModel(CustomDashboardWidget.MetricRequest repository);
 
     CustomDashboardWidget.MetricRequest toMetricRequestRepository(DashboardWidget.MetricRequest domain);
+
+    default Instant stringToInstant(String value) {
+        return value == null ? null : Instant.parse(value);
+    }
+
+    default String instantToString(Instant value) {
+        return value == null ? null : value.toString();
+    }
 
     @Named("dateToZonedDateTime")
     default ZonedDateTime dateToZonedDateTime(Date date) {
