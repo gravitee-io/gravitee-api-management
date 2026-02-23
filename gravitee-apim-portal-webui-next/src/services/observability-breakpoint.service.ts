@@ -20,24 +20,23 @@ import { map, shareReplay } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class ObservabilityBreakpointService {
+  private readonly breakpointObserver = inject(BreakpointObserver);
+
   // Using Breakpoints.XSmall for true mobile devices (max-width: 599.98px)
   // This ensures only smartphones and very small tablets are considered mobile
   // Laptops and larger screens will use desktop navigation
-  readonly isMobile$ = inject(BreakpointObserver)
-    .observe([Breakpoints.XSmall])
-    .pipe(
-      map(state => state.matches),
-      shareReplay({ refCount: true, bufferSize: 1 }),
-    );
+  readonly isMobile$ = this.breakpointObserver.observe([Breakpoints.XSmall]).pipe(
+    map(state => state.matches),
+    shareReplay({ refCount: true, bufferSize: 1 }),
+  );
   readonly isMobile = toSignal(this.isMobile$);
 
   // Using Breakpoints.XSmall + Small + Medium for narrow viewports (max-width: 1279.98px)
   // This covers phones, small tablets, and medium tablets — cards grid switches to 2-col below this threshold
-  readonly isNarrow$ = inject(BreakpointObserver)
-    .observe([Breakpoints.XSmall, Breakpoints.Small, Breakpoints.Medium])
-    .pipe(
-      map(state => state.matches),
-      shareReplay({ refCount: true, bufferSize: 1 }),
-    );
+  readonly isNarrow$ = this.breakpointObserver.observe([Breakpoints.XSmall, Breakpoints.Small, Breakpoints.Medium]).pipe(
+    map(state => state.matches),
+    shareReplay({ refCount: true, bufferSize: 1 }),
+  );
+
   readonly isNarrow = toSignal(this.isNarrow$);
 }
