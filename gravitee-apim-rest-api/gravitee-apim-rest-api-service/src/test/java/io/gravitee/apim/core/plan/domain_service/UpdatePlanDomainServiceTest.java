@@ -788,6 +788,64 @@ class UpdatePlanDomainServiceTest {
         }
 
         @Test
+        void should_set_needRedeployAt_when_update_triggers_synchronization() {
+            // Given
+            var plan = givenExistingApiProductPlan(
+                PlanFixtures.HttpV4.anApiKey()
+                    .toBuilder()
+                    .id("plan-1")
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .build()
+                    .setPlanStatus(PlanStatus.PUBLISHED)
+            );
+            when(planSynchronizationService.checkSynchronized(any(), any(), any(), any())).thenReturn(false);
+
+            // When
+            var result = service.updatePlanForApiProduct(
+                plan
+                    .toBuilder()
+                    .planDefinitionHttpV4(
+                        plan.getPlanDefinitionHttpV4().toBuilder().selectionRule("{ #request.headers['X-Api-Key'] != null }").build()
+                    )
+                    .build(),
+                Map.of(),
+                API_PRODUCT,
+                AUDIT_INFO
+            );
+
+            // Then
+            assertThat(result.getNeedRedeployAt()).isEqualTo(Date.from(INSTANT_NOW));
+        }
+
+        @Test
+        void should_not_set_needRedeployAt_when_update_is_cosmetic() {
+            // Given
+            var plan = givenExistingApiProductPlan(
+                PlanFixtures.HttpV4.anApiKey()
+                    .toBuilder()
+                    .id("plan-1")
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .needRedeployAt(Date.from(INSTANT_NOW.minusSeconds(3600)))
+                    .build()
+                    .setPlanStatus(PlanStatus.PUBLISHED)
+            );
+            when(planSynchronizationService.checkSynchronized(any(), any(), any(), any())).thenReturn(true);
+
+            // When
+            var result = service.updatePlanForApiProduct(
+                plan.toBuilder().name("New display name").description("New description").build(),
+                Map.of(),
+                API_PRODUCT,
+                AUDIT_INFO
+            );
+
+            // Then
+            assertThat(result.getNeedRedeployAt()).isEqualTo(Date.from(INSTANT_NOW.minusSeconds(3600)));
+        }
+
+        @Test
         void should_get_plan_status_map_when_null_is_passed() {
             // Given
             var plan1 = givenExistingApiProductPlan(
