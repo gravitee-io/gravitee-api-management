@@ -100,9 +100,9 @@
           [pageSize]="pageSize"
           (selectPage)="onPageChange($event)" />
         <div class="api-list__pagination__page-size">
-          <span class="api-list__pagination__page-size__label">Show per page</span>
-          <mat-form-field appearance="outline">
-            <mat-select [(value)]="pageSize" (selectionChange)="onPageSizeChange($event.value)">
+          <span class="m3-body-medium" i18n="@@showPerPage">Show per page:</span>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-select [value]="pageSize" (selectionChange)="onPageSizeChange($event.value)">
               @for (size of pageSizeOptions; track size) {
                 <mat-option [value]="size">{{ size }}</mat-option>
               }
