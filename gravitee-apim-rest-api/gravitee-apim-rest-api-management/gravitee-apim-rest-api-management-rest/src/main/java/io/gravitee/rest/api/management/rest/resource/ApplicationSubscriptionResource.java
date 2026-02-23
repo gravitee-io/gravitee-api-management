@@ -280,6 +280,7 @@ public class ApplicationSubscriptionResource extends AbstractResource {
             subscriptionEntity.getOrigin() != null ? OriginContext.Origin.valueOf(subscriptionEntity.getOrigin()) : null
         );
         subscription.setConfiguration(subscriptionEntity.getConfiguration());
+        subscription.setMetadata(subscriptionEntity.getMetadata());
 
         return subscription;
     }

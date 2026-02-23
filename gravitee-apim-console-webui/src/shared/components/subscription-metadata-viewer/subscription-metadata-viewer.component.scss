@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,33 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
 
-@use '../../../../../scss/gio-layout' as gio-layout;
-
-:host {
-  @include gio-layout.gio-responsive-content-container;
-}
-
-.subscriptionDetailsCard {
-  margin-top: 8px;
-  margin-bottom: 16px;
-
-  .subscription__metadata-cell {
-    min-width: 0;
-    max-width: 100%;
-  }
-
-  .kubernetes-origin-message {
-    margin: 15px 0 0 15px;
-    display: flex;
-
-    .matt-icon__origin {
-      color: #326ce5;
-      margin-right: 5px;
-    }
-
-    p {
-      margin-top: 1px;
-    }
-  }
+.metadata-editor {
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter60');
+  border-radius: 4px;
+  overflow: hidden;
 }

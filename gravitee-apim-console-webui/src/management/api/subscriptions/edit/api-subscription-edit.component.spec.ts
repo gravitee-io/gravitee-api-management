@@ -139,6 +139,7 @@ describe('ApiSubscriptionEditComponent', () => {
       expect(await harness.getStartingAt()).toEqual('Jan 1, 2020, 12:00:00 AM');
       expect(await harness.getEndingAt()).toEqual('-');
       expect(await harness.getDomain()).toEqual('https://my-domain.com');
+      expect(await harness.metadataEditorIsVisible()).toEqual(true);
 
       expect(await harness.footerIsVisible()).toEqual(true);
 
@@ -265,6 +266,25 @@ describe('ApiSubscriptionEditComponent', () => {
 
       const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.footerIsVisible()).toEqual(false);
+    });
+  });
+
+  describe('metadata display', () => {
+    it('should show dash when subscription has no metadata', async () => {
+      await initComponent({ subscription: { ...BASIC_SUBSCRIPTION(), metadata: undefined } });
+      expectApiKeyListGet();
+
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
+      expect(await harness.getMetadata()).toEqual('-');
+      expect(await harness.metadataEditorIsVisible()).toEqual(false);
+    });
+
+    it('should show monaco editor when subscription has metadata', async () => {
+      await initComponent({ subscription: BASIC_SUBSCRIPTION() });
+      expectApiKeyListGet();
+
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
+      expect(await harness.metadataEditorIsVisible()).toEqual(true);
     });
   });
 

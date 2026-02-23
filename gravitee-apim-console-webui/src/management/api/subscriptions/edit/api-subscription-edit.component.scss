@@ -32,6 +32,11 @@
     }
   }
 
+  &__metadata-cell {
+    min-width: 0;
+    max-width: 100%;
+  }
+
   &__api-keys {
     &__subtitle {
       padding-bottom: 24px;
