@@ -40,7 +40,7 @@
             "options": {
                 "fix": false,
                 "cwd": "{projectRoot}",
-                "command": "sh -c 'case \"$*\" in *--fix*) license-check-and-add add -r $(date +%Y) -f license-check-config.json ;; *) license-check-and-add check -f license-check-config.json ;; esac' _"
+                "command": "sh -c 'case \"$*\" in *--fix*) license-check-and-add add -f license-check-config.json ;; *) license-check-and-add check -f license-check-config.json ;; esac' _"
             },
             "cache": true
         },
