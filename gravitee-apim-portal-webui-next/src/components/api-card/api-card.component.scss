@@ -71,21 +71,3 @@
     color: theme.$paragraph-color;
   }
 }
-
-.mcp-chip__avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  height: 27px;
-  padding: 0 10px;
-
-  border-radius: 4px;
-  background-color: theme.$mcp-chip-background-color;
-  color: theme.$mcp-chip-text-color;
-
-  font-family: Helvetica, Arial, sans-serif;
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 27px;
-}
