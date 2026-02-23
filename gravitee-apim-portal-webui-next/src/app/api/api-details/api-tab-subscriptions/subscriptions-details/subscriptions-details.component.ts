@@ -29,6 +29,7 @@ import { of } from 'rxjs/internal/observable/of';
 
 import { SubscriptionConsumerConfigurationComponent } from './subscription-consumer-configuration';
 import { ApiAccessComponent } from '../../../../../components/api-access/api-access.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../../components/confirm-dialog/confirm-dialog.component';
 import { LoaderComponent } from '../../../../../components/loader/loader.component';
 import { SubscriptionInfoComponent } from '../../../../../components/subscription-info/subscription-info.component';
 import { Api } from '../../../../../entities/api/api';
@@ -47,7 +48,6 @@ import { ApplicationService } from '../../../../../services/application.service'
 import { PermissionsService } from '../../../../../services/permissions.service';
 import { PlanService } from '../../../../../services/plan.service';
 import { SubscriptionService } from '../../../../../services/subscription.service';
-import { CloseSubscriptionDialogComponent } from '../../../../dashboard/subscription-details/close-subscription-dialog/close-subscription-dialog.component';
 
 interface SubscriptionDetailsVM {
   result?: SubscriptionDetailsData;
@@ -122,10 +122,17 @@ export class SubscriptionsDetailsComponent implements OnInit {
   }
 
   closeSubscription() {
+    const dialogData: ConfirmDialogData = {
+      title: $localize`:@@titleCancelSubscriptionDialog:Close this subscription?`,
+      content: $localize`:@@contentCancelSubscriptionDialog:You will lose access to the API.`,
+      confirmLabel: $localize`:@@confirmCancelSubscriptionDialog:Yes, close`,
+      cancelLabel: $localize`:@@cancelCancelSubscriptionDialog:Cancel`,
+    };
     this.dialog
-      .open<CloseSubscriptionDialogComponent, void, boolean>(CloseSubscriptionDialogComponent, {
+      .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
         role: 'alertdialog',
         id: 'confirmDialog',
+        data: dialogData,
       })
       .afterClosed()
       .pipe(
