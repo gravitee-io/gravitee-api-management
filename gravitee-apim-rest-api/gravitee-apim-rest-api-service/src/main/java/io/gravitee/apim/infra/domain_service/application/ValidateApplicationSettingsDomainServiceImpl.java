@@ -137,12 +137,12 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
         if (hasSingle) {
             errors.add(Error.warning("clientCertificate is deprecated, use clientCertificates instead"));
             errors.addAll(validateCertificatePem(tls.getClientCertificate()).errors());
-        }
-
-        if (hasList) {
+        } else if (hasList) {
             for (var cert : tls.getClientCertificates()) {
                 errors.addAll(validateCertificateEntry(cert));
             }
+        } else {
+            errors.add(Error.severe("tls configuration must contain either clientCertificate or clientCertificates"));
         }
 
         return errors;
@@ -157,10 +157,8 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
             errors.add(Error.severe("certificate [%s]: startsAt must be before endsAt", cert.name()));
         }
 
-        if (cert.endsAt() != null && parsed.certificate() != null) {
-            if (cert.endsAt().after(parsed.certificate().getNotAfter())) {
-                errors.add(Error.warning("certificate [%s]: endsAt is after certificate expiration date", cert.name()));
-            }
+        if (cert.endsAt() != null && parsed.certificate() != null && cert.endsAt().after(parsed.certificate().getNotAfter())) {
+            errors.add(Error.warning("certificate [%s]: endsAt is after certificate expiration date", cert.name()));
         }
 
         return errors;
