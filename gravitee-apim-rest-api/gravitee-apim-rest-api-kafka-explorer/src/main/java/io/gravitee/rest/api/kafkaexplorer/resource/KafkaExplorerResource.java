@@ -21,6 +21,11 @@ import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeKafkaClusterUs
 import io.gravitee.rest.api.kafkaexplorer.mapper.KafkaExplorerMapper;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaExplorerError;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.GraviteeLicenseFeature;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -39,6 +44,8 @@ public class KafkaExplorerResource {
     @Path("/describe-cluster")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @GraviteeLicenseFeature("apim-native-kafka-explorer")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ) })
     public Response describeCluster(DescribeClusterRequest request) {
         if (request == null || request.getClusterId() == null || request.getClusterId().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
