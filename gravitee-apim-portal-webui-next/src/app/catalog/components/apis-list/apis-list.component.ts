@@ -99,7 +99,6 @@ export class ApisListComponent {
   protected readonly isNarrow = this.breakpointService.isNarrow;
 
   private readonly page$ = new BehaviorSubject<number>(1);
-  private readonly pageSize$ = new BehaviorSubject<number>(20);
 
   constructor(private readonly apiService: ApiService) {
     effect(() => {
@@ -120,7 +119,6 @@ export class ApisListComponent {
 
   onPageSizeChange(newPageSize: number) {
     this.pageSize = newPageSize;
-    this.pageSize$.next(newPageSize);
     this.page$.next(1);
   }
 
@@ -136,9 +134,7 @@ export class ApisListComponent {
 
   private loadApis$(): Observable<ApiPaginatorVM> {
     return this.page$.pipe(
-      switchMap(currentPage =>
-        this.pageSize$.pipe(map(pageSize => ({ currentPage, pageSize, category: this.categoryId(), query: this.query() }))),
-      ),
+      map(currentPage => ({ currentPage, pageSize: this.pageSize, category: this.categoryId(), query: this.query() })),
       distinctUntilChanged((previous, current) => isEqual(previous, current)),
       tap(_ => (this.loadingPage = true)),
       switchMap(({ currentPage, pageSize, category, query }) => this.searchApis$(currentPage, pageSize, category, query)),

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 @use '../../../../scss/theme' as theme;
-@use '@angular/material' as mat;
 
 :host {
   display: flex;
@@ -344,39 +343,15 @@
     &--mobile {
       flex-direction: column;
       gap: 16px;
-
-      .api-list__pagination__page-size {
-        justify-content: center;
-      }
     }
 
     &__page-size {
       display: flex;
       align-items: center;
-      gap: 12px;
-
-      &__label {
-        font-size: 14px;
-        color: theme.$default-text-color;
-      }
+      gap: 8px;
 
       mat-form-field {
-        --mat-form-field-container-height: 44px;
-        --mat-form-field-container-vertical-padding: 0px;
-
         width: 80px;
-
-        @include mat.form-field-overrides(
-          (
-            outlined-outline-color: theme.$border-color,
-          )
-        );
-
-        @include mat.select-overrides(
-          (
-            enabled-trigger-text-color: theme.$default-text-color,
-          )
-        );
       }
     }
   }
