@@ -26,22 +26,28 @@
   &__command-line {
     display: flex;
     flex-flow: row;
-    align-items: center;
-    padding-left: 10px;
+    padding: 0 8px 0 10px;
     border-width: theme.$border-width;
     border-style: solid;
     border-color: theme.$border-color;
     border-radius: theme.$container-shape;
-    gap: 4px;
 
     &__container {
       flex-grow: 1;
+      padding: 10px 0;
+      margin: auto;
       overflow-x: auto;
 
       &__code {
         max-width: 0;
         margin: 0;
       }
+    }
+
+    &__icon-container {
+      display: flex;
+      flex-grow: 0;
+      align-items: flex-start;
     }
   }
 }

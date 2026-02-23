@@ -14,82 +14,74 @@
  * limitations under the License.
  */
 
+@use 'sass:map';
 @use './theme';
 
-// Next gen typography
+// Next gen typography, single source of truth
 
-.next-gen-h1 {
-  font-size: 48px;
-  font-weight: bold;
-  line-height: 56px;
+$typography-map: (
+  h1: (
+    font-size: 48px,
+    font-weight: bold,
+    line-height: 56px,
+  ),
+  h2: (
+    font-size: 32px,
+    font-weight: bold,
+    line-height: 48px,
+  ),
+  h3: (
+    font-size: 24px,
+    font-weight: bold,
+    line-height: 30px,
+  ),
+  h4: (
+    font-size: 20px,
+    font-weight: bold,
+    line-height: 25px,
+  ),
+  h5: (
+    font-size: 18px,
+    font-weight: bold,
+    line-height: 27px,
+  ),
+  body: (
+    font-size: 16px,
+    font-weight: normal,
+    line-height: 24px,
+  ),
+  body-strong: (
+    font-size: 16px,
+    font-weight: bold,
+    line-height: 24px,
+  ),
+  small: (
+    font-size: 14px,
+    font-weight: normal,
+    line-height: 20px,
+  ),
+  small-bold: (
+    font-size: 14px,
+    font-weight: bold,
+    line-height: 20px,
+  ),
+  caption: (
+    font-size: 12px,
+    font-weight: normal,
+    line-height: 16px,
+  ),
+);
+
+// Token extractor to use in theme overrides
+@function token($level, $prop) {
+  @return map.get(map.get($typography-map, $level), $prop);
 }
 
-.next-gen-h2 {
-  font-size: 32px;
-  font-weight: bold;
-  line-height: 48px;
-}
-
-.next-gen-h3 {
-  font-size: 24px;
-  font-weight: bold;
-  line-height: 30px;
-}
-
-.next-gen-h4 {
-  font-size: 20px;
-  font-weight: bold;
-  line-height: 25px;
-}
-
-.next-gen-h5 {
-  font-size: 18px;
-  font-weight: bold;
-  line-height: 27px;
-}
-
-%next-gen-body-shared {
-  font-size: 16px;
-  line-height: 24px;
-}
-
-.next-gen-body {
-  @extend %next-gen-body-shared;
-
-  font-weight: normal;
-}
-
-.next-gen-body-strong {
-  @extend %next-gen-body-shared;
-
-  font-weight: bold;
-}
-
-%next-gen-small-shared {
-  font-size: 14px;
-  line-height: 20px;
-}
-
-.next-gen-small {
-  @extend %next-gen-small-shared;
-
-  font-weight: normal;
-}
-
-.next-gen-small-bold {
-  @extend %next-gen-small-shared;
-
-  font-weight: bold;
-}
-
-.next-gen-caption {
-  font-size: 12px;
-  font-weight: normal;
-  line-height: 16px;
-}
-
-// Icons sizes
-
-.material-icons.icon-small {
-  font-size: 16px;
+// Generated typography classes
+@each $level, $props in $typography-map {
+  .next-gen-#{$level} {
+    font-size: map.get($props, font-size);
+    font-weight: map.get($props, font-weight);
+    line-height: map.get($props, line-height);
+  }
 }

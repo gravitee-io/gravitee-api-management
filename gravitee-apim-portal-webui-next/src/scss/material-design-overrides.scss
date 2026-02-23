@@ -16,6 +16,7 @@
 @use 'sass:map';
 @use '@angular/material' as mat;
 @use '../scss/theme';
+@use './typography';
 @use './m3-adapter';
 
 mat-chip {
@@ -25,6 +26,10 @@ mat-chip {
 mat-dialog-container {
   --mat-dialog-container-color: #{theme.$card-background-color};
   --mat-dialog-container-shape: #{theme.$container-shape};
+  --mat-dialog-subhead-font: #{theme.$font-family};
+  --mat-dialog-subhead-size: #{typography.token(h3, font-size)};
+  --mat-dialog-subhead-weight: #{typography.token(h3, font-weight)};
+  --mat-dialog-subhead-line-height: #{typography.token(h3, line-height)};
 }
 
 mat-form-field {
@@ -52,15 +57,18 @@ mat-datepicker-content.mat-datepicker-content.mat-primary {
       outlined-container-shape: #{theme.$button-outlined-container-shape},
       outlined-label-text-transform: #{theme.$button-outlined-text-transform},
       outlined-label-text-color: #{theme.$button-outlined-text-color},
+      outlined-label-text-weight: #{typography.token(small-bold, font-weight)},
       outlined-outline-color: #{theme.$button-outlined-border-color},
       outlined-outline-width: #{theme.$button-outlined-border-width},
       filled-container-shape: #{theme.$button-filled-container-shape},
       filled-container-color: #{theme.$button-filled-container-color},
       filled-label-text-transform: #{theme.$button-filled-text-transform},
       filled-label-text-color: #{theme.$button-filled-text-color},
+      filled-label-text-weight: #{typography.token(small-bold, font-weight)},
       text-container-shape: #{theme.$button-text-container-shape},
       text-label-text-transform: #{theme.$button-text-text-transform},
       text-label-text-color: #{theme.$button-text-text-color},
+      text-label-text-weight: #{typography.token(small-bold, font-weight)},
     )
   );
 }
@@ -114,7 +122,9 @@ mat-card {
     (
       outlined-outline-color: transparent,
       outlined-label-text-color: #{theme.$nav-bar-link-color},
+      outlined-label-text-weight: #{typography.token(small-bold, font-weight)},
       filled-label-text-color: #{theme.$nav-bar-link-active-color},
+      filled-label-text-weight: #{typography.token(small-bold, font-weight)},
       filled-container-color: #{theme.$nav-bar-link-active-background-color},
       outlined-hover-state-layer-opacity: 7%,
       filled-horizontal-padding: #{theme.$nav-bar-link-padding},
@@ -149,4 +159,25 @@ mat-icon,
   text-transform: none;
   white-space: nowrap;
   word-wrap: normal;
+}
+
+@mixin icon-size($size) {
+  // direct icon use case
+  font-size: $size;
+
+  // material icon button use case
+  --mat-icon-button-icon-size: #{$size};
+  --mdc-icon-button-icon-size: #{$size}; // M3
+
+  & > .material-icons,
+  & > mat-icon {
+    width: $size;
+    height: $size;
+    font-size: $size;
+    line-height: $size;
+  }
+}
+
+.icon-small {
+  @include icon-size(16px);
 }

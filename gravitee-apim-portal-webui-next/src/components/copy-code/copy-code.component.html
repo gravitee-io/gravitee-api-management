@@ -25,18 +25,21 @@
         <pre class="copy-code__command-line__container__code">{{ passwordContent() }}</pre>
       </div>
 
-      @if (mode() === 'PASSWORD') {
-        <button
-          mat-icon-button
-          matSuffix
-          (click)="hidePassword.set(!hidePassword())"
-          [attr.aria-label]="'Hide password'"
-          [attr.aria-pressed]="hidePassword()"
-        >
-          <mat-icon> {{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
-        </button>
-      }
-      <app-copy-code-icon [contentToCopy]="text()" [label]="title()" />
+      <div class="copy-code__command-line__icon-container">
+        @if (mode() === 'PASSWORD') {
+          <button
+            mat-icon-button
+            matSuffix
+            class="icon-small"
+            (click)="hidePassword.set(!hidePassword())"
+            [attr.aria-label]="'Hide password'"
+            [attr.aria-pressed]="hidePassword()"
+          >
+            <span class="material-icons"> {{ hidePassword() ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        }
+        <app-copy-code-icon [contentToCopy]="text()" [label]="title()" />
+      </div>
     </div>
   </div>
 }

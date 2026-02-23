@@ -23,13 +23,13 @@ import { MatIconButton } from '@angular/material/button';
   template: `
     <button
       mat-icon-button
-      class="btn"
+      class="btn icon-small"
       [attr.aria-label]="label"
       [class.clicked]="clicked"
       [cdkCopyToClipboard]="contentToCopy"
       (cdkCopyToClipboardCopied)="onCopied()"
     >
-      <span class="material-icons icon-small">{{ clicked ? 'check' : 'content_copy' }}</span>
+      <span class="material-icons">{{ clicked ? 'check' : 'content_copy' }}</span>
     </button>
   `,
 })
