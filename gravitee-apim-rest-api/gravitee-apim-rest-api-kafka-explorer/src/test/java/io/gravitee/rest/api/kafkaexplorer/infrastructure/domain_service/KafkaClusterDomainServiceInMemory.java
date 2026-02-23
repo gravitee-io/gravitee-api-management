@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service;
 
+import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
 import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.KafkaClusterDomainService;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
-import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaConnectionConfig;
 
 public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainService {
 
@@ -36,7 +36,7 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
     }
 
     @Override
-    public KafkaClusterInfo describeCluster(KafkaConnectionConfig config) {
+    public KafkaClusterInfo describeCluster(KafkaClusterConfiguration config) {
         if (exception != null) {
             throw exception;
         }

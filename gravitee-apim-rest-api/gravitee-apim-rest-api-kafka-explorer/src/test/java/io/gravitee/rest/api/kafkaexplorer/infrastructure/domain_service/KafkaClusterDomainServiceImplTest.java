@@ -22,11 +22,11 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
+import io.gravitee.apim.core.cluster.model.SecurityConfig;
+import io.gravitee.apim.core.cluster.model.SecurityProtocol;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
-import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaConnectionConfig;
-import io.gravitee.rest.api.kafkaexplorer.domain.model.SecurityConfig;
-import io.gravitee.rest.api.kafkaexplorer.domain.model.SecurityProtocol;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class KafkaClusterDomainServiceImplTest {
 
-    private static final KafkaConnectionConfig CONFIG = new KafkaConnectionConfig(
+    private static final KafkaClusterConfiguration CONFIG = new KafkaClusterConfiguration(
         "localhost:9092",
         new SecurityConfig(SecurityProtocol.PLAINTEXT, null, null)
     );
