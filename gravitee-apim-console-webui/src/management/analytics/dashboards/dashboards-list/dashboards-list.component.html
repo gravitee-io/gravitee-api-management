@@ -28,13 +28,15 @@
   </mat-menu>
 </div>
 
-<gio-table-wrapper [filters]="filters()" [length]="totalCount()" [disablePageSize]="true" [disableSearchInput]="true"
+<gio-table-wrapper [filters]="filters()" [length]="totalCount()" [disableSearchInput]="true"
   (filtersChange)="onFiltersChanged($event)">
   <table mat-table [dataSource]="dashboardItems()">
     <!-- Name Column -->
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef>Name</th>
-      <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+      <td mat-cell *matCellDef="let element">
+        <h5>{{ element.name }}</h5>
+      </td>
     </ng-container>
 
     <!-- Created by Column -->
