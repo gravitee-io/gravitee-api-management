@@ -410,6 +410,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
               url: result.url,
               parentId: existingItem?.id,
               visibility: result.visibility,
+              ...(type === 'PAGE' && result.contentType ? { contentType: result.contentType } : {}),
             });
           } else {
             if (!existingItem) {

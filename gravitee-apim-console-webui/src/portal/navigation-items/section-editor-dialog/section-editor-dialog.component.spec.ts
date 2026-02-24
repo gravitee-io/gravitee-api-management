@@ -96,7 +96,11 @@ describe('SectionEditorDialogComponent', () => {
         expect(await titleInput.getValue()).toBe('');
         expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
       });
-      it('should save the title', async () => {
+      it('should show Page Type selection when adding a page', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(await dialog.isPageTypeSelectionVisible()).toBe(true);
+      });
+      it('should save the title with default contentType GRAVITEE_MARKDOWN', async () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
         const titleInput = await dialog.getTitleInput();
 
@@ -108,6 +112,21 @@ describe('SectionEditorDialogComponent', () => {
         expect(component.dialogValue).toEqual({
           title: 'My new page',
           visibility: 'PUBLIC',
+          contentType: 'GRAVITEE_MARKDOWN',
+        });
+      });
+      it('should save contentType OPENAPI when OpenAPI is selected', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        const titleInput = await dialog.getTitleInput();
+        await titleInput.setValue('Open API Page');
+        await dialog.selectPageType('OPENAPI');
+        await dialog.clickSubmitButton();
+        fixture.detectChanges();
+
+        expect(component.dialogValue).toEqual({
+          title: 'Open API Page',
+          visibility: 'PUBLIC',
+          contentType: 'OPENAPI',
         });
       });
       it('should save authentication', async () => {
@@ -123,6 +142,7 @@ describe('SectionEditorDialogComponent', () => {
         expect(component.dialogValue).toEqual({
           title: 'My new page',
           visibility: 'PRIVATE',
+          contentType: 'GRAVITEE_MARKDOWN',
         });
       });
       it('should close the dialog when canceling', async () => {
@@ -149,6 +169,10 @@ describe('SectionEditorDialogComponent', () => {
 
         await dialog.setUrlInputValue('https://gravitee.io');
         expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
+      });
+      it('should not show Page Type selection when adding a link', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(await dialog.isPageTypeSelectionVisible()).toBe(false);
       });
       it('should not allow empty url', async () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
@@ -195,6 +219,10 @@ describe('SectionEditorDialogComponent', () => {
         const titleInput = await dialog.getTitleInput();
         expect(await titleInput.getValue()).toBe('');
         expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
+      });
+      it('should not show Page Type selection when adding a folder', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(await dialog.isPageTypeSelectionVisible()).toBe(false);
       });
       it('should save the title', async () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
@@ -244,7 +272,11 @@ describe('SectionEditorDialogComponent', () => {
         const titleInput = await dialog.getTitleInput();
         expect(await titleInput.getValue()).toBe('Existing Page');
       });
-      it('should save the updated title', async () => {
+      it('should not show Page Type selection when editing a page', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(await dialog.isPageTypeSelectionVisible()).toBe(false);
+      });
+      it('should save the updated title without contentType', async () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
         const titleInput = await dialog.getTitleInput();
 
