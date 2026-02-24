@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>24.0.0-alpha.2</version>
+        <version>24.0.0-alpha.3</version>
     </parent>
 
     <groupId>io.gravitee.apim</groupId>
@@ -68,7 +68,7 @@
         <gravitee-node.version>8.0.0-alpha.9</gravitee-node.version>
         <gravitee-notifier-api.version>2.0.0-alpha.1</gravitee-notifier-api.version>
         <gravitee-platform-repository-api.version>1.4.0</gravitee-platform-repository-api.version>
-        <gravitee-plugin.version>5.0.0-alpha.1</gravitee-plugin.version>
+        <gravitee-plugin.version>5.0.0-alpha.3</gravitee-plugin.version>
         <gravitee-plugin-common-configurations.version>1.1.0</gravitee-plugin-common-configurations.version>
         <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>
         <gravitee-reporter-api.version>2.1.0</gravitee-reporter-api.version>
