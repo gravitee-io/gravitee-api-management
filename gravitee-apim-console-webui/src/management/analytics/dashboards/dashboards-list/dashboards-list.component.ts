@@ -33,19 +33,24 @@ import {
 } from '@angular/material/table';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatIcon } from '@angular/material/icon';
-import { startWith, switchMap, map, debounceTime, filter, scan } from 'rxjs/operators';
+import { startWith, switchMap, map, debounceTime, filter, scan, catchError } from 'rxjs/operators';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { forkJoin, of } from 'rxjs';
 import { MatDivider } from '@angular/material/list';
 import { KeyValuePipe, DatePipe } from '@angular/common';
 import { MatTooltip } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { TemplateSelectorDialogComponent, TemplateSelectorDialogResult } from './ui/template-selector-dialog/template-selector-dialog.component';
+import {
+  TemplateSelectorDialogComponent,
+  TemplateSelectorDialogResult,
+} from './ui/template-selector-dialog/template-selector-dialog.component';
 
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { DashboardService } from '../../data-access/dashboard.service';
-import { PagedResult } from '../../../../entities/management-api-v2/pagedResult';
+import { PagedResult } from '../../../../entities/management-api-v2';
+import { UsersService } from '../../../../services-ngx/users.service';
 
 @Component({
   selector: 'dashboards-list',
@@ -80,6 +85,7 @@ import { PagedResult } from '../../../../entities/management-api-v2/pagedResult'
 })
 export class DashboardsListComponent {
   private readonly dashboardService = inject(DashboardService);
+  private readonly usersService = inject(UsersService);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -96,21 +102,42 @@ export class DashboardsListComponent {
       debounceTime(200),
       switchMap(filters =>
         this.dashboardService.list(filters.pagination.index, filters.pagination.size).pipe(
-          map(result => ({ isLoading: false as const, result })),
+          switchMap(result => {
+            const userIds = [...new Set((result.data ?? []).map(d => d.createdBy).filter((id): id is string => !!id))];
+            if (userIds.length === 0) {
+              return of({ isLoading: false as const, result, userNames: new Map<string, string>() });
+            }
+            return forkJoin(
+              userIds.map(id =>
+                this.usersService.get(id).pipe(
+                  map(user => [id, (user.displayName ?? [user.firstname, user.lastname].filter(Boolean).join(' ')) || 'Unknown'] as const),
+                  catchError(() => of([id, 'Unknown'] as const)),
+                ),
+              ),
+            ).pipe(map(entries => ({ isLoading: false as const, result, userNames: new Map(entries) })));
+          }),
           startWith({ isLoading: true as const }),
         ),
       ),
       scan((prev, curr) => ('result' in curr ? curr : { ...prev, isLoading: true }), {
         isLoading: true,
         result: undefined as PagedResult<Dashboard> | undefined,
+        userNames: new Map<string, string>(),
       }),
     ),
-    { initialValue: { isLoading: true, result: undefined as PagedResult<Dashboard> | undefined } },
+    {
+      initialValue: {
+        isLoading: true,
+        result: undefined as PagedResult<Dashboard> | undefined,
+        userNames: new Map<string, string>(),
+      },
+    },
   );
 
   public dashboardItems = computed(() => this.dashboardsResource().result?.data ?? []);
   public totalCount = computed(() => this.dashboardsResource().result?.pagination?.totalCount ?? 0);
   public isLoading = computed(() => this.dashboardsResource().isLoading);
+  public userNames = computed(() => this.dashboardsResource().userNames);
 
   public onFiltersChanged(event: GioTableWrapperFilters) {
     this.filters.update(f => ({ ...f, ...event }));
@@ -135,4 +162,3 @@ export class DashboardsListComponent {
       });
   }
 }
-
