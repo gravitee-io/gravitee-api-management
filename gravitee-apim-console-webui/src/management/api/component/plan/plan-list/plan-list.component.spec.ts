@@ -129,6 +129,11 @@ describe('PlanListComponent', () => {
     it('add plan menu lists only the provided plan types', async () => {
       await create({ context: { isReadOnly: false }, plans: [] });
       const texts = await harness.getAddPlanMenuItems();
+      await create({ isReadOnly: false, plans: [] });
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).then(btn => btn.click());
+      const menu = await loader.getHarness(MatMenuHarness);
+      const items = await menu.getItems();
+      const texts = await parallel(() => items.map(i => i.getText()));
       expect(texts).toEqual(['API Key', 'JWT', 'mTLS']);
     });
   });
