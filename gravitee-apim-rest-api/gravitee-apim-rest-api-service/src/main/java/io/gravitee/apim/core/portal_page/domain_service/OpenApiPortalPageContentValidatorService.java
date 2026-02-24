@@ -16,13 +16,17 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
+import io.gravitee.apim.core.open_api.OpenApiValidator;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @DomainService
 public class OpenApiPortalPageContentValidatorService implements PortalPageContentValidator {
+
+    private final OpenApiValidator openApiValidator;
 
     @Override
     public boolean appliesTo(PortalPageContent<?> existingContent) {
@@ -31,9 +35,6 @@ public class OpenApiPortalPageContentValidatorService implements PortalPageConte
 
     @Override
     public void validate(UpdatePortalPageContent updateContent) {
-        String content = updateContent.getContent();
-        if (content == null || content.trim().isEmpty()) {
-            throw new GraviteeMarkdownContentEmptyException();
-        }
+        openApiValidator.validateNotEmpty(updateContent.getContent());
     }
 }

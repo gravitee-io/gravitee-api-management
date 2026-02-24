@@ -19,11 +19,11 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 
 public interface PortalPageContentCrudService {
-    PortalPageContent create(PortalPageContent content);
+    PortalPageContent<?> create(PortalPageContent<?> content);
 
-    PortalPageContent createDefault(String organizationId, String environmentId);
+    PortalPageContent<?> createDefault(String organizationId, String environmentId);
 
-    PortalPageContent update(PortalPageContent content);
+    PortalPageContent<?> update(PortalPageContent<?> content);
 
     void delete(PortalPageContentId id);
 }

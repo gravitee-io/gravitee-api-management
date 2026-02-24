@@ -15,20 +15,20 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContent;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
-import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PortalPageContentCrudServiceInMemory implements InMemoryAlternative<PortalPageContent>, PortalPageContentCrudService {
+public class PortalPageContentCrudServiceInMemory implements InMemoryAlternative<PortalPageContent<?>>, PortalPageContentCrudService {
 
-    ArrayList<PortalPageContent> storage = new ArrayList<>();
+    ArrayList<PortalPageContent<?>> storage = new ArrayList<>();
 
     @Override
-    public void initWith(List<PortalPageContent> items) {
+    public void initWith(List<PortalPageContent<?>> items) {
         storage.clear();
         storage.addAll(items);
     }
@@ -39,18 +39,18 @@ public class PortalPageContentCrudServiceInMemory implements InMemoryAlternative
     }
 
     @Override
-    public List<PortalPageContent> storage() {
+    public List<PortalPageContent<?>> storage() {
         return storage;
     }
 
     @Override
-    public PortalPageContent create(PortalPageContent content) {
+    public PortalPageContent<?> create(PortalPageContent<?> content) {
         storage.add(content);
         return content;
     }
 
     @Override
-    public PortalPageContent createDefault(String organizationId, String environmentId) {
+    public PortalPageContent<?> createDefault(String organizationId, String environmentId) {
         final var pageContentId = PortalPageContentId.random();
         final var portalPageContent = new GraviteeMarkdownPageContent(
             pageContentId,
@@ -62,7 +62,7 @@ public class PortalPageContentCrudServiceInMemory implements InMemoryAlternative
     }
 
     @Override
-    public PortalPageContent update(PortalPageContent content) {
+    public PortalPageContent<?> update(PortalPageContent<?> content) {
         final var existingContent = storage
             .stream()
             .filter(c -> c.getId().id().equals(content.getId().id()))

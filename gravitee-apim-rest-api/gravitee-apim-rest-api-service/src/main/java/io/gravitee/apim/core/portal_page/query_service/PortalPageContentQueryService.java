@@ -20,5 +20,5 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import java.util.Optional;
 
 public interface PortalPageContentQueryService {
-    Optional<PortalPageContent> findById(PortalPageContentId id);
+    Optional<PortalPageContent<?>> findById(PortalPageContentId id);
 }
