@@ -184,7 +184,7 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         assertThat(output.portalNavigationItem()).isNotNull();
         assertThat(output.portalNavigationItem()).isInstanceOf(PortalNavigationPage.class);
         assertThat(output.portalNavigationItem().getId().toString()).isEqualTo(PAGE11_ID);
-        assertThat(((GraviteeMarkdownPageContent) output.portalPageContent()).getContent().getRaw()).isEqualTo("Page 11 content");
+        assertThat(((GraviteeMarkdownPageContent) output.portalPageContent()).getContent().raw()).isEqualTo("Page 11 content");
     }
 
     @Test

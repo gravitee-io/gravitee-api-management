@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.apim.core.open_api.exception;
+
+import io.gravitee.apim.core.exception.ValidationDomainException;
 
 /**
- * Sealed type for portal page content value (GMD or OpenAPI raw string).
- * Used for serialization, REST and persistence via {@link #getRaw()}.
+ * Exception thrown when OpenAPI content is null, empty, or contains only whitespace.
+ *
+ * @author Gravitee.io Team
  */
-public sealed interface PortalPageContentValue permits GraviteeMarkdownContent, OpenApiContent {
+public class OpenApiContentEmptyException extends ValidationDomainException {
 
-    /**
-     * Raw content string for serialization/REST/persistence.
-     */
-    String getRaw();
+    public OpenApiContentEmptyException() {
+        super("Content must not be null or empty");
+    }
 }

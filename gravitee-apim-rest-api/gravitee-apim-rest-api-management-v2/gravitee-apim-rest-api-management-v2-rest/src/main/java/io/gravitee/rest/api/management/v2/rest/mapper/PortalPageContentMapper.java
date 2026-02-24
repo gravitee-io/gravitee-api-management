@@ -39,11 +39,11 @@ public interface PortalPageContentMapper {
     }
 
     @Mapping(target = "type", constant = "GRAVITEE_MARKDOWN")
-    @Mapping(target = "content", source = "content.raw")
+    @Mapping(target = "content", expression = "java(markdownContent.getGmdContent())")
     io.gravitee.rest.api.management.v2.rest.model.PortalPageContent map(GraviteeMarkdownPageContent markdownContent);
 
     @Mapping(target = "type", constant = "OPENAPI")
-    @Mapping(target = "content", source = "content.raw")
+    @Mapping(target = "content", expression = "java(openApiContent.getOpenApiContent())")
     io.gravitee.rest.api.management.v2.rest.model.PortalPageContent map(OpenApiPageContent openApiContent);
 
     UpdatePortalPageContent map(io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent portalPageContent);

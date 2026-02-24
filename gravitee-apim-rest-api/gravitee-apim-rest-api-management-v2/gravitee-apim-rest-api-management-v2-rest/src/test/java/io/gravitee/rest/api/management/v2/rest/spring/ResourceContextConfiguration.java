@@ -117,6 +117,7 @@ import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainServi
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
+import io.gravitee.apim.core.open_api.OpenApiValidator;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
@@ -1074,7 +1075,8 @@ public class ResourceContextConfiguration {
     ) {
         GraviteeMarkdownValidator gmdValidator = new GraviteeMarkdownValidator();
         GraviteePortalPageContentValidatorService gmdContentValidator = new GraviteePortalPageContentValidatorService(gmdValidator);
-        OpenApiPortalPageContentValidatorService openApiContentValidator = new OpenApiPortalPageContentValidatorService();
+        OpenApiValidator openApiValidator = new OpenApiValidator();
+        OpenApiPortalPageContentValidatorService openApiContentValidator = new OpenApiPortalPageContentValidatorService(openApiValidator);
         PortalPageContentValidatorService validatorService = new PortalPageContentValidatorService(
             List.of(gmdContentValidator, openApiContentValidator)
         );

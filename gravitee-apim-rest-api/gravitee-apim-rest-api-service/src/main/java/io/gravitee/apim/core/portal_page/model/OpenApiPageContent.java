@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import io.gravitee.apim.core.open_api.OpenApiContent;
 import jakarta.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
@@ -38,17 +39,8 @@ public final class OpenApiPageContent extends PortalPageContent<OpenApiContent> 
         this.content = content;
     }
 
-    public static OpenApiPageContent create(
-        @Nonnull String organizationId,
-        @Nonnull String environmentId,
-        @Nonnull String content
-    ) {
-        return new OpenApiPageContent(
-            PortalPageContentId.random(),
-            organizationId,
-            environmentId,
-            new OpenApiContent(content)
-        );
+    public static OpenApiPageContent create(@Nonnull String organizationId, @Nonnull String environmentId, @Nonnull String content) {
+        return new OpenApiPageContent(PortalPageContentId.random(), organizationId, environmentId, new OpenApiContent(content));
     }
 
     public PortalPageContentType getType() {
@@ -58,6 +50,10 @@ public final class OpenApiPageContent extends PortalPageContent<OpenApiContent> 
     @Override
     public void update(@Nonnull UpdatePortalPageContent updatePortalPageContent) {
         this.content = new OpenApiContent(updatePortalPageContent.getContent());
+    }
+
+    public String getOpenApiContent() {
+        return content.raw();
     }
 
     @Override
