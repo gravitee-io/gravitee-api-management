@@ -73,18 +73,31 @@ public class HTTPMeasuresQueryAdapter {
         return new JsonObject().put("size", 0).put("query", queryAdapter.adaptForHTTP(query)).put("aggs", adaptMetrics(query.metrics()));
     }
 
+    static final String FILTER_AGG_SUFFIX = "__FILTER__";
+
     JsonObject adaptMetrics(List<MetricMeasuresQuery> metrics) {
         var aggs = new JsonObject();
         for (var metric : metrics) {
-            for (var measure : metric.measures()) {
-                var aggName = AggregationAdapter.adaptName(metric.metric(), measure);
-
-                var field = isComputedMetric(metric.metric()) ? null : fieldResolver.fromMetric(metric.metric());
-
-                aggregate(aggName, field, metric.metric(), measure).ifPresent(agg -> {
-                    aggs.put(agg.keySet().iterator().next(), agg.values().iterator().next());
-                });
+            var measureAggs = buildMeasureAggs(metric);
+            if (metric.filters() != null && !metric.filters().isEmpty()) {
+                var filterName = metric.metric().name() + AggregationAdapter.AGG_NAME_SEPARATOR + FILTER_AGG_SUFFIX;
+                var filterAgg = new JsonObject().put("filter", filterAdapter.adaptMetricFilters(metric.filters())).put("aggs", measureAggs);
+                aggs.put(filterName, filterAgg);
+            } else {
+                aggs.mergeIn(measureAggs);
             }
+        }
+        return aggs;
+    }
+
+    private JsonObject buildMeasureAggs(MetricMeasuresQuery metric) {
+        var aggs = new JsonObject();
+        for (var measure : metric.measures()) {
+            var aggName = AggregationAdapter.adaptName(metric.metric(), measure);
+            var field = isComputedMetric(metric.metric()) ? null : fieldResolver.fromMetric(metric.metric());
+            aggregate(aggName, field, metric.metric(), measure).ifPresent(agg -> {
+                aggs.put(agg.keySet().iterator().next(), agg.values().iterator().next());
+            });
         }
         return aggs;
     }

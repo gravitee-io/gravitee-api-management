@@ -1227,6 +1227,7 @@ components:
                 - MCP_PROXY_TOOL
                 - MCP_PROXY_RESOURCE
                 - MCP_PROXY_PROMPT
+                - API_TYPE
             description: Available filter names for filtering analytics data
 
         Operator:

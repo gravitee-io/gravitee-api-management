@@ -25,14 +25,18 @@ import static org.mockito.Mockito.*;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.model.*;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -62,19 +66,28 @@ class BucketNamesProcessorTest {
     static final long FIXED_TIMESTAMP = 1234567890L;
     static final String FIXED_TIME_KEY = "2024-01-01T00:00:00.000Z";
 
+    final Map<String, String> apiNamesById = Map.of(API_ID1, API_NAME1, API_ID2, API_NAME2);
     final Map<String, String> applicationNamesById = Map.of(APPLICATION_ID1, APPLICATION_NAME1, APPLICATION_ID2, APPLICATION_NAME2);
 
+    private final ApiRepository apiRepository = mock(ApiRepository.class);
     private final ApplicationService applicationService = mock(ApplicationService.class);
 
-    private final BucketNamesPostProcessor processor = new BucketNamesPostProcessorImpl(applicationService);
+    private final BucketNamesPostProcessor processor = new BucketNamesPostProcessorImpl(apiRepository, applicationService);
 
-    private UserContext context;
+    private AnalyticsQueryContext context;
 
     @BeforeEach
     void setUp() {
-        var apiNamesById = Map.of(API_ID1, API_NAME1, API_ID2, API_NAME2);
+        context = new AnalyticsQueryContext(
+            AuditInfo.builder().build(),
+            new ExecutionContext("DEFAULT", "DEFAULT"),
+            Set.of(API_ID1, API_ID2),
+            apiNamesById,
+            Map.of(),
+            Map.of()
+        );
 
-        context = new UserContext(AuditInfo.builder().build()).withApiNamesById(apiNamesById);
+        when(apiRepository.search(any(ApiCriteria.class), any(ApiFieldFilter.class))).thenReturn(getApiList(API_ID1, API_ID2));
 
         when(applicationService.search(any(), any(), isNull(), isNull())).thenReturn(
             getApplicationListContent(APPLICATION_ID1, APPLICATION_ID2)
@@ -538,6 +551,121 @@ class BucketNamesProcessorTest {
         }
     }
 
+    @Nested
+    class DbFallback {
+
+        @Test
+        void should_use_pre_loaded_api_names_and_skip_db_for_facets() {
+            var facetBucketResponse = newUnnamedBucketResponse(API_ID1);
+            var response = new FacetsResponse(
+                List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(facetBucketResponse)))
+            );
+
+            processor.mapBucketNames(context, List.of(API), response);
+
+            verify(apiRepository, never()).search(any(ApiCriteria.class), any(ApiFieldFilter.class));
+        }
+
+        @Test
+        void should_load_api_names_from_db_when_not_pre_loaded_for_facets() {
+            var emptyApiNamesContext = new AnalyticsQueryContext(
+                AuditInfo.builder().build(),
+                new ExecutionContext("DEFAULT", "DEFAULT"),
+                Set.of(API_ID1, API_ID2),
+                Map.of(),
+                Map.of(),
+                Map.of()
+            );
+
+            var facetBucketResponse = newUnnamedBucketResponse(API_ID1);
+            var response = new FacetsResponse(
+                List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(facetBucketResponse)))
+            );
+
+            var mappedResponse = processor.mapBucketNames(emptyApiNamesContext, List.of(API), response);
+
+            verify(apiRepository).search(any(ApiCriteria.class), any(ApiFieldFilter.class));
+
+            var expectedResponse = new FacetsResponse(
+                List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(getNamedApiBucketResponse(facetBucketResponse))))
+            );
+            assertThat(mappedResponse).isEqualTo(expectedResponse);
+        }
+
+        @Test
+        void should_use_pre_loaded_application_names_and_skip_db_for_facets() {
+            var contextWithApps = context.withApplicationNamesById(applicationNamesById);
+
+            var facetBucketResponse = newUnnamedBucketResponse(APPLICATION_ID1);
+            var response = new FacetsResponse(
+                List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(facetBucketResponse)))
+            );
+
+            processor.mapBucketNames(contextWithApps, List.of(APPLICATION), response);
+
+            verify(applicationService, never()).search(any(), any(), any(), any());
+        }
+
+        @Test
+        void should_load_api_names_from_db_when_not_pre_loaded_for_time_series() {
+            var emptyApiNamesContext = new AnalyticsQueryContext(
+                AuditInfo.builder().build(),
+                new ExecutionContext("DEFAULT", "DEFAULT"),
+                Set.of(API_ID1, API_ID2),
+                Map.of(),
+                Map.of(),
+                Map.of()
+            );
+
+            var facetBucketResponse = newUnnamedBucketResponse(API_ID1);
+            TimeSeriesBucketResponse timeSeriesBucketResponse = new TimeSeriesBucketResponse(
+                FIXED_TIME_KEY,
+                null,
+                FIXED_TIMESTAMP,
+                List.of(facetBucketResponse),
+                null
+            );
+            var response = new TimeSeriesResponse(
+                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(timeSeriesBucketResponse)))
+            );
+
+            var mappedResponse = processor.mapBucketNames(emptyApiNamesContext, List.of(API), response);
+
+            verify(apiRepository).search(any(ApiCriteria.class), any(ApiFieldFilter.class));
+
+            TimeSeriesBucketResponse expectedTimeBucket = new TimeSeriesBucketResponse(
+                FIXED_TIME_KEY,
+                null,
+                FIXED_TIMESTAMP,
+                List.of(getNamedApiBucketResponse(facetBucketResponse)),
+                null
+            );
+            var expectedResponse = new TimeSeriesResponse(
+                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(expectedTimeBucket)))
+            );
+            assertThat(mappedResponse).isEqualTo(expectedResponse);
+        }
+
+        @Test
+        void should_use_pre_loaded_api_names_and_skip_db_for_time_series() {
+            var facetBucketResponse = newUnnamedBucketResponse(API_ID1);
+            TimeSeriesBucketResponse timeSeriesBucketResponse = new TimeSeriesBucketResponse(
+                FIXED_TIME_KEY,
+                null,
+                FIXED_TIMESTAMP,
+                List.of(facetBucketResponse),
+                null
+            );
+            var response = new TimeSeriesResponse(
+                List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, List.of(timeSeriesBucketResponse)))
+            );
+
+            processor.mapBucketNames(context, List.of(API), response);
+
+            verify(apiRepository, never()).search(any(ApiCriteria.class), any(ApiFieldFilter.class));
+        }
+    }
+
     private FacetBucketResponse newUnnamedBucketResponse(String apiId) {
         return newUnnamedBucketResponse(apiId, null);
     }
@@ -553,6 +681,17 @@ class BucketNamesProcessorTest {
             measures = List.of(new Measure(COUNT, FIXED_COUNT_VALUE));
         }
         return new FacetBucketResponse(apiId, null, innerBuckets, measures);
+    }
+
+    private List<io.gravitee.repository.management.model.Api> getApiList(String... apiIds) {
+        return Arrays.stream(apiIds).map(this::getRepositoryApi).toList();
+    }
+
+    private io.gravitee.repository.management.model.Api getRepositoryApi(String apiId) {
+        var api = new io.gravitee.repository.management.model.Api();
+        api.setId(apiId);
+        api.setName(apiNamesById.get(apiId));
+        return api;
     }
 
     private Page<ApplicationListItem> getApplicationListContent(String... applicationIds) {
@@ -574,7 +713,7 @@ class BucketNamesProcessorTest {
 
     private FacetBucketResponse getNamedApiBucketResponse(FacetBucketResponse bucketResponse, List<FacetBucketResponse> innerBuckets) {
         var key = bucketResponse.key();
-        var name = context.apiNameById().get().getOrDefault(key, key);
+        var name = apiNamesById.getOrDefault(key, key);
         return new FacetBucketResponse(key, name, innerBuckets, bucketResponse.measures());
     }
 

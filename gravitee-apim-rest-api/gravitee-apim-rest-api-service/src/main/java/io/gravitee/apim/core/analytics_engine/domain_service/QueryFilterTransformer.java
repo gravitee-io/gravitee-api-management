@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.analytics_engine.model;
+package io.gravitee.apim.core.analytics_engine.domain_service;
 
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
+import io.gravitee.apim.core.analytics_engine.model.Filter;
 import java.util.List;
 
 /**
- * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
+ * Composable filter transformer for analytics queries. Implementations take
+ * the current list of {@link Filter}s and return a transformed version, allowing
+ * filter extraction, replacement, and tightening in a chainable pipeline.
+ *
  * @author GraviteeSource Team
  */
-public record MetricMeasuresRequest(MetricSpec.Name name, List<MetricSpec.Measure> measures, List<Filter> filters) {
-    public MetricMeasuresRequest(MetricSpec.Name name, List<MetricSpec.Measure> measures) {
-        this(name, measures, List.of());
-    }
-
-    public MetricMeasuresRequest withFilters(List<Filter> filters) {
-        return new MetricMeasuresRequest(name, measures, filters);
-    }
+public interface QueryFilterTransformer {
+    List<Filter> transform(AnalyticsQueryContext context, List<Filter> filters);
 }
