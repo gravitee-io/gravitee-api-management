@@ -51,7 +51,9 @@ class GetPortalPageContentUseCaseTest {
         // Then
         assertThat(result.content()).isInstanceOf(GraviteeMarkdownPageContent.class);
         assertThat(result.content().getId()).isEqualTo(CONTENT_ID);
-        assertThat(((GraviteeMarkdownPageContent) result.content()).getContent().getRaw()).isEqualTo("# Welcome\n\nThis is a sample page content.");
+        assertThat(((GraviteeMarkdownPageContent) result.content()).getContent().raw()).isEqualTo(
+            "# Welcome\n\nThis is a sample page content."
+        );
     }
 
     @Test

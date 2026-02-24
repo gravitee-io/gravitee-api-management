@@ -217,7 +217,7 @@ class CreatePortalNavigationItemUseCaseTest {
                 assertThat(content.getOrganizationId()).isEqualTo(ORG_ID);
                 assertThat(content.getEnvironmentId()).isEqualTo(ENV_ID);
                 assertThat(content).isInstanceOf(GraviteeMarkdownPageContent.class);
-                assertThat(((GraviteeMarkdownPageContent) content).getContent().getRaw()).isEqualTo("default page content");
+                assertThat(((GraviteeMarkdownPageContent) content).getContent().raw()).isEqualTo("default page content");
             });
     }
 

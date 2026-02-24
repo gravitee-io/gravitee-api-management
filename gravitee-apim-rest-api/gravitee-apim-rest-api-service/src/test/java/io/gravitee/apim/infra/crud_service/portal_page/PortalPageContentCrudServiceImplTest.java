@@ -78,7 +78,7 @@ class PortalPageContentCrudServiceImplTest {
                 pageContentId,
                 ORGANIZATION_ID,
                 ENVIRONMENT_ID,
-                new io.gravitee.apim.core.portal_page.model.GraviteeMarkdownContent("# Welcome\n\nThis is a sample page content.")
+                new io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContent("# Welcome\n\nThis is a sample page content.")
             );
             final var repoContent = portalPageContentAdapter.toRepository(portalPageContent);
 
@@ -125,7 +125,7 @@ class PortalPageContentCrudServiceImplTest {
                 pageContentId,
                 ORGANIZATION_ID,
                 ENVIRONMENT_ID,
-                new io.gravitee.apim.core.portal_page.model.GraviteeMarkdownContent("# Updated Content\n\nThis is the updated content.")
+                new io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContent("# Updated Content\n\nThis is the updated content.")
             );
             final var repoContent = portalPageContentAdapter.toRepository(portalPageContent);
 

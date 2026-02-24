@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -59,7 +61,14 @@ public interface PortalNavigationItemMapper {
     io.gravitee.rest.api.portal.rest.model.PortalNavigationPage map(PortalNavigationPage page);
     io.gravitee.rest.api.portal.rest.model.PortalNavigationApi map(PortalNavigationApi api);
 
-    @Mapping(target = "content", expression = "java(content.getContent().getRaw())")
+    default String extractContent(PortalPageContent<?> content) {
+        return switch (content) {
+            case GraviteeMarkdownPageContent gmd -> gmd.getGmdContent();
+            case OpenApiPageContent oapi -> oapi.getOpenApiContent();
+        };
+    }
+
+    @Mapping(target = "content", expression = "java(extractContent(content))")
     @Mapping(source = "type", target = "type")
     io.gravitee.rest.api.portal.rest.model.PortalPageContent map(PortalPageContent<?> content);
 

@@ -75,7 +75,7 @@ class UpdatePortalPageContentUseCaseTest {
         // Then
         assertThat(output.portalPageContent()).isInstanceOf(GraviteeMarkdownPageContent.class);
         final var updatedContent = (GraviteeMarkdownPageContent) output.portalPageContent();
-        assertThat(updatedContent.getContent().getRaw()).isEqualTo("Updated content");
+        assertThat(updatedContent.getContent().raw()).isEqualTo("Updated content");
         assertThat(updatedContent.getId()).isEqualTo(PortalPageContentId.of(CONTENT_ID));
     }
 

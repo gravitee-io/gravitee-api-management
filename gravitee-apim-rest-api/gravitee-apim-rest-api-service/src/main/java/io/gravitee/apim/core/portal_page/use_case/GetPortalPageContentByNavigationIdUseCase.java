@@ -66,5 +66,5 @@ public class GetPortalPageContentByNavigationIdUseCase {
 
     public record Input(String portalNavigationItemId, String environmentId, PortalNavigationItemViewerContext viewerContext) {}
 
-    public record Output(PortalPageContent portalPageContent, PortalNavigationItem portalNavigationItem) {}
+    public record Output(PortalPageContent<?> portalPageContent, PortalNavigationItem portalNavigationItem) {}
 }

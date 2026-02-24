@@ -15,9 +15,9 @@
  */
 package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownContent;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContent;
+import io.gravitee.apim.core.open_api.OpenApiContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
-import io.gravitee.apim.core.portal_page.model.OpenApiContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -36,39 +36,43 @@ public interface PortalPageContentAdapter {
     }
 
     default GraviteeMarkdownPageContent graviteeMarkdownPageContentFromRepository(
-            io.gravitee.repository.management.model.PortalPageContent portalPageContent
+        io.gravitee.repository.management.model.PortalPageContent portalPageContent
     ) {
         return new GraviteeMarkdownPageContent(
-                PortalPageContentId.of(portalPageContent.getId()),
-                portalPageContent.getOrganizationId(),
-                portalPageContent.getEnvironmentId(),
-                new GraviteeMarkdownContent(portalPageContent.getContent())
+            PortalPageContentId.of(portalPageContent.getId()),
+            portalPageContent.getOrganizationId(),
+            portalPageContent.getEnvironmentId(),
+            new GraviteeMarkdownContent(portalPageContent.getContent())
         );
     }
 
     default OpenApiPageContent openApiPageContentFromRepository(
-            io.gravitee.repository.management.model.PortalPageContent portalPageContent
+        io.gravitee.repository.management.model.PortalPageContent portalPageContent
     ) {
         return new OpenApiPageContent(
-                PortalPageContentId.of(portalPageContent.getId()),
-                portalPageContent.getOrganizationId(),
-                portalPageContent.getEnvironmentId(),
-                new OpenApiContent(portalPageContent.getContent())
+            PortalPageContentId.of(portalPageContent.getId()),
+            portalPageContent.getOrganizationId(),
+            portalPageContent.getEnvironmentId(),
+            new OpenApiContent(portalPageContent.getContent())
         );
     }
 
     default io.gravitee.repository.management.model.PortalPageContent toRepository(PortalPageContent<?> portalPageContent) {
+        String rawContent = switch (portalPageContent) {
+            case GraviteeMarkdownPageContent gmd -> gmd.getGmdContent();
+            case OpenApiPageContent oapi -> oapi.getOpenApiContent();
+        };
         return io.gravitee.repository.management.model.PortalPageContent.builder()
-                .id(portalPageContent.getId().toString())
-                .organizationId(portalPageContent.getOrganizationId())
-                .environmentId(portalPageContent.getEnvironmentId())
-                .type(toRepositoryType(portalPageContent.getType()))
-                .content(portalPageContent.getContent().getRaw())
-                .build();
+            .id(portalPageContent.getId().toString())
+            .organizationId(portalPageContent.getOrganizationId())
+            .environmentId(portalPageContent.getEnvironmentId())
+            .type(toRepositoryType(portalPageContent.getType()))
+            .content(rawContent)
+            .build();
     }
 
     default io.gravitee.repository.management.model.PortalPageContent.Type toRepositoryType(
-            io.gravitee.apim.core.portal_page.model.PortalPageContentType type
+        io.gravitee.apim.core.portal_page.model.PortalPageContentType type
     ) {
         return switch (type) {
             case GRAVITEE_MARKDOWN -> io.gravitee.repository.management.model.PortalPageContent.Type.GRAVITEE_MARKDOWN;

@@ -33,7 +33,7 @@ public class GetPortalPageContentUseCase {
         return new Output(content.orElseThrow(() -> new PageContentNotFoundException(input.portalPageContentId().json())));
     }
 
-    public record Output(PortalPageContent content) {}
+    public record Output(PortalPageContent<?> content) {}
 
     public record Input(PortalPageContentId portalPageContentId) {}
 }

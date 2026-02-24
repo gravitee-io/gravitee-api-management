@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContainer;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContent;
 import jakarta.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
@@ -63,7 +64,7 @@ public final class GraviteeMarkdownPageContent extends PortalPageContent<Gravite
 
     @Override
     public String getGmdContent() {
-        return content.getRaw();
+        return content.raw();
     }
 
     @Override
