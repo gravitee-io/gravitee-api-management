@@ -14,15 +14,27 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 
 import { DashboardService } from './dashboard.service';
 
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { DashboardTemplate } from './templates/dashboard-template.model';
+
 describe('DashboardService', () => {
   let service: DashboardService;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      imports: [GioTestingModule],
+    });
     service = TestBed.inject(DashboardService);
+    httpTestingController = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   it('should be created', () => {
@@ -82,4 +94,83 @@ describe('DashboardService', () => {
       });
     });
   });
+
+  describe('create', () => {
+    it('should POST to the correct URL with the dashboard payload', done => {
+      const payload = { name: 'Test Dashboard', labels: { env: 'prod' }, widgets: [] };
+      const mockResponse = { id: 'new-id', name: 'Test Dashboard', createdBy: 'Admin', createdAt: '2025-01-01', lastModified: '2025-01-01', labels: { env: 'prod' }, widgets: [] };
+
+      service.create(payload).subscribe(result => {
+        expect(result).toEqual(mockResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/analytics/dashboards`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(payload);
+      req.flush(mockResponse);
+    });
+  });
+
+  describe('getById', () => {
+    it('should GET the correct URL with the dashboard id', done => {
+      const mockResponse = { id: 'abc-123', name: 'My Dashboard', createdBy: 'Admin', createdAt: '2025-01-01', lastModified: '2025-01-01', labels: {}, widgets: [] };
+
+      service.getById('abc-123').subscribe(result => {
+        expect(result).toEqual(mockResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/analytics/dashboards/abc-123`);
+      expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
+    });
+  });
+
+  describe('toCreateDashboard', () => {
+    it('should extract name, labels and widgets from template initialConfig', () => {
+      const template: DashboardTemplate = {
+        id: 'tpl-1',
+        name: 'Template Name',
+        shortDescription: 'Short desc',
+        description: 'Long desc',
+        previewImage: 'assets/preview.png',
+        initialConfig: {
+          name: 'Dashboard from Template',
+          labels: { Focus: 'HTTP' },
+          widgets: [{ id: 'w1', title: 'Widget 1', type: 'stats', layout: { cols: 1, rows: 1, x: 0, y: 0 }, request: { type: 'measures', metrics: [] } }],
+        },
+      };
+
+      const result = service.toCreateDashboard(template);
+
+      expect(result.name).toBe('Dashboard from Template');
+      expect(result.labels).toEqual({ Focus: 'HTTP' });
+      expect(result.widgets).toHaveLength(1);
+      // Should NOT contain template-specific fields
+      expect(result).not.toHaveProperty('previewImage');
+      expect(result).not.toHaveProperty('shortDescription');
+      expect(result).not.toHaveProperty('description');
+    });
+
+    it('should fallback to template name if initialConfig.name is not set', () => {
+      const template: DashboardTemplate = {
+        id: 'tpl-2',
+        name: 'Fallback Name',
+        shortDescription: 'Short desc',
+        description: 'Long desc',
+        previewImage: 'assets/preview.png',
+        initialConfig: {
+          labels: { Theme: 'AI' },
+        },
+      };
+
+      const result = service.toCreateDashboard(template);
+
+      expect(result.name).toBe('Fallback Name');
+      expect(result.labels).toEqual({ Theme: 'AI' });
+      expect(result.widgets).toEqual([]);
+    });
+  });
 });
+

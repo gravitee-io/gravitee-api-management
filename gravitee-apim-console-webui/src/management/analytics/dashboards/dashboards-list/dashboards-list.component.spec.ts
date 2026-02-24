@@ -25,6 +25,9 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { DashboardsListComponent } from './dashboards-list.component';
 
+import { Constants } from '../../../../entities/Constants';
+import { CONSTANTS_TESTING } from '../../../../shared/testing';
+
 describe('DashboardsListComponent', () => {
   let component: DashboardsListComponent;
   let fixture: ComponentFixture<DashboardsListComponent>;
@@ -33,7 +36,7 @@ describe('DashboardsListComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [DashboardsListComponent, NoopAnimationsModule],
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting(), { provide: Constants, useValue: CONSTANTS_TESTING }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardsListComponent);

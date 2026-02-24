@@ -33,14 +33,14 @@ import {
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
 import { MatIcon } from '@angular/material/icon';
-import { startWith, switchMap, map, debounceTime } from 'rxjs/operators';
+import { startWith, switchMap, map, debounceTime, filter } from 'rxjs/operators';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatDivider } from '@angular/material/list';
 import { KeyValuePipe } from '@angular/common';
 import { MatTooltip } from '@angular/material/tooltip';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { TemplateSelectorDialogComponent } from './ui/template-selector-dialog/template-selector-dialog.component';
+import { TemplateSelectorDialogComponent, TemplateSelectorDialogResult } from './ui/template-selector-dialog/template-selector-dialog.component';
 
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
@@ -81,6 +81,8 @@ import { DashboardService } from '../../data-access/dashboard.service';
 export class DashboardsListComponent {
   private readonly dashboardService = inject(DashboardService);
   private readonly dialog = inject(MatDialog);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   public displayedColumns = ['name', 'createdBy', 'lastUpdated', 'labels', 'actions'];
 
@@ -114,12 +116,21 @@ export class DashboardsListComponent {
   }
 
   public openTemplateDialog(): void {
-    this.dialog.open(TemplateSelectorDialogComponent, {
-      panelClass: 'template-selector-dialog-panel',
-      width: '1300px',
-      maxWidth: '90vw',
-      height: '720px',
-      maxHeight: '80vh',
-    });
+    this.dialog
+      .open(TemplateSelectorDialogComponent, {
+        panelClass: 'template-selector-dialog-panel',
+        width: '1300px',
+        maxWidth: '90vw',
+        height: '720px',
+        maxHeight: '80vh',
+      })
+      .afterClosed()
+      .pipe(
+        filter((result): result is TemplateSelectorDialogResult => !!result),
+        switchMap(result => this.dashboardService.create(this.dashboardService.toCreateDashboard(result.template))),
+      )
+      .subscribe(dashboard => {
+        this.router.navigate(['./', dashboard.id], { relativeTo: this.route });
+      });
   }
 }

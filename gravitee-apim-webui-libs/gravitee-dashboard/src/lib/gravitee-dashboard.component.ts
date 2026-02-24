@@ -159,7 +159,7 @@ export class GraviteeDashboardComponent {
   }
 
   private getTimeRangeAndInterval(period?: string, from?: string, to?: string): { timeRange: TimeRange; interval?: number } {
-    const normalizedPeriod = period || '1d';
+    const normalizedPeriod = period || '5m';
 
     if (normalizedPeriod === 'custom' && from && to) {
       const fromTimestamp = Number.parseInt(from, 10);
@@ -175,7 +175,7 @@ export class GraviteeDashboardComponent {
       };
     }
 
-    const timeFrame = timeFrames.find(tf => tf.id === normalizedPeriod) || timeFrames.find(tf => tf.id === '1d');
+    const timeFrame = timeFrames.find(tf => tf.id === normalizedPeriod) || timeFrames.find(tf => tf.id === '5m');
     const timeRangeParams = timeFrameRangesParams(timeFrame!.id);
 
     return {
