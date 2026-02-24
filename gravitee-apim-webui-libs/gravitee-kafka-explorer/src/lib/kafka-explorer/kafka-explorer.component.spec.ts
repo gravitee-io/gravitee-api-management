@@ -71,6 +71,8 @@ describe('KafkaExplorerComponent', () => {
     const topbarText = await harness.getTopbarText();
     expect(topbarText).toContain('test-cluster-id');
     expect(topbarText).toContain('kafka-broker-0.example.com');
+    expect(topbarText).toContain('5');
+    expect(topbarText).toContain('15');
   });
 
   it('should render broker nodes table via BrokersHarness', async () => {
@@ -82,7 +84,9 @@ describe('KafkaExplorerComponent', () => {
 
     const rows = await brokersHarness!.getRowsData();
     expect(rows.length).toBe(3);
-    expect(rows[0]).toEqual({ id: '0', host: 'kafka-broker-0.example.com', port: '9092' });
+    expect(rows[0]['host']).toBe('kafka-broker-0.example.com');
+    expect(rows[0]['port']).toBe('9092');
+    expect(rows[0]['id']).toContain('0');
   });
 
   it('should show error on failure', async () => {

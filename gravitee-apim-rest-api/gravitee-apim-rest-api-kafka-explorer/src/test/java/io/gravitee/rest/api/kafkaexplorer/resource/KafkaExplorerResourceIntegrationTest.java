@@ -117,6 +117,14 @@ class KafkaExplorerResourceIntegrationTest {
             assertThat(body.getClusterId()).isNotBlank();
             assertThat(body.getController()).isNotNull();
             assertThat(body.getNodes()).isNotEmpty();
+            assertThat(body.getTotalTopics()).isGreaterThanOrEqualTo(0);
+            assertThat(body.getTotalPartitions()).isGreaterThanOrEqualTo(0);
+
+            var firstNode = body.getNodes().get(0);
+            assertThat(firstNode.getHost()).isNotBlank();
+            assertThat(firstNode.getPort()).isGreaterThan(0);
+            assertThat(firstNode.getLeaderPartitions()).isGreaterThanOrEqualTo(0);
+            assertThat(firstNode.getReplicaPartitions()).isGreaterThanOrEqualTo(0);
         }
     }
 
@@ -147,6 +155,8 @@ class KafkaExplorerResourceIntegrationTest {
             var body = (DescribeClusterResponse) response.getEntity();
             assertThat(body.getClusterId()).isNotBlank();
             assertThat(body.getNodes()).isNotEmpty();
+            assertThat(body.getTotalTopics()).isGreaterThanOrEqualTo(0);
+            assertThat(body.getTotalPartitions()).isGreaterThanOrEqualTo(0);
         }
 
         @Test

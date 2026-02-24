@@ -20,16 +20,17 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { BrokersComponent } from './brokers.component';
 import { BrokersHarness } from './brokers.harness';
-import { fakeKafkaNode } from '../models/kafka-cluster.fixture';
-import { KafkaNode } from '../models/kafka-cluster.model';
+import { fakeBrokerDetail } from '../models/kafka-cluster.fixture';
+import { BrokerDetail } from '../models/kafka-cluster.model';
 
 @Component({
   standalone: true,
   imports: [BrokersComponent],
-  template: `<gke-brokers [nodes]="nodes" />`,
+  template: `<gke-brokers [nodes]="nodes" [controllerId]="controllerId" />`,
 })
 class TestHostComponent {
-  nodes: KafkaNode[] = [];
+  nodes: BrokerDetail[] = [];
+  controllerId = -1;
 }
 
 describe('BrokersComponent', () => {
@@ -47,19 +48,58 @@ describe('BrokersComponent', () => {
     host = fixture.componentInstance;
   });
 
-  it('should render broker nodes in the table', async () => {
+  it('should render broker nodes in the table with enriched columns', async () => {
     host.nodes = [
-      fakeKafkaNode({ id: 0, host: 'kafka-broker-0.example.com' }),
-      fakeKafkaNode({ id: 1, host: 'kafka-broker-1.example.com' }),
-      fakeKafkaNode({ id: 2, host: 'kafka-broker-2.example.com' }),
+      fakeBrokerDetail({ id: 0, host: 'kafka-broker-0.example.com' }),
+      fakeBrokerDetail({ id: 1, host: 'kafka-broker-1.example.com' }),
+      fakeBrokerDetail({ id: 2, host: 'kafka-broker-2.example.com' }),
     ];
     fixture.detectChanges();
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, BrokersHarness);
 
     const rows = await harness.getRowsData();
     expect(rows.length).toBe(3);
-    expect(rows[0]).toEqual({ id: '0', host: 'kafka-broker-0.example.com', port: '9092' });
-    expect(rows[1]).toEqual({ id: '1', host: 'kafka-broker-1.example.com', port: '9092' });
+    expect(rows[0]).toEqual({
+      id: '0',
+      host: 'kafka-broker-0.example.com',
+      port: '9092',
+      rack: '-',
+      leaderPartitions: '10',
+      replicaPartitions: '20',
+      logDirSize: '1 GB',
+    });
+  });
+
+  it('should show controller badge for the controller node', async () => {
+    host.nodes = [
+      fakeBrokerDetail({ id: 0, host: 'kafka-broker-0.example.com' }),
+      fakeBrokerDetail({ id: 1, host: 'kafka-broker-1.example.com' }),
+    ];
+    host.controllerId = 0;
+    fixture.detectChanges();
+    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, BrokersHarness);
+
+    const rows = await harness.getRowsData();
+    expect(rows[0]['id']).toContain('Controller');
+    expect(rows[1]['id']).not.toContain('Controller');
+  });
+
+  it('should display rack when available', async () => {
+    host.nodes = [fakeBrokerDetail({ id: 0, rack: 'us-east-1a' })];
+    fixture.detectChanges();
+    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, BrokersHarness);
+
+    const rows = await harness.getRowsData();
+    expect(rows[0]['rack']).toBe('us-east-1a');
+  });
+
+  it('should display dash for null logDirSize', async () => {
+    host.nodes = [fakeBrokerDetail({ id: 0, logDirSize: null })];
+    fixture.detectChanges();
+    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, BrokersHarness);
+
+    const rows = await harness.getRowsData();
+    expect(rows[0]['logDirSize']).toBe('-');
   });
 
   it('should render an empty table when no nodes', async () => {

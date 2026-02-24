@@ -19,8 +19,20 @@ export interface KafkaNode {
   port: number;
 }
 
+export interface BrokerDetail {
+  id: number;
+  host: string;
+  port: number;
+  rack: string | null;
+  leaderPartitions: number;
+  replicaPartitions: number;
+  logDirSize: number | null;
+}
+
 export interface DescribeClusterResponse {
   clusterId: string;
   controller: KafkaNode;
-  nodes: KafkaNode[];
+  nodes: BrokerDetail[];
+  totalTopics: number;
+  totalPartitions: number;
 }

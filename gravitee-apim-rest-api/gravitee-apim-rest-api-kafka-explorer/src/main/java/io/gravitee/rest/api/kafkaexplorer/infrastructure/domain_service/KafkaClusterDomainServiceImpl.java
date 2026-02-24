@@ -30,6 +30,7 @@ import io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore;
 import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.KafkaClusterDomainService;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaNode;
 import java.io.IOException;
@@ -38,14 +39,19 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.DescribeClusterResult;
+import org.apache.kafka.clients.admin.ListTopicsOptions;
+import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.errors.AuthenticationException;
@@ -66,9 +72,25 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
             String clusterId = result.clusterId().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             Node controller = result.controller().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            var nodes = result.nodes().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS).stream().map(this::toKafkaNode).toList();
+            var nodes = result.nodes().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-            return new KafkaClusterInfo(clusterId, toKafkaNode(controller), nodes);
+            var topicStats = fetchTopicStats(adminClient);
+
+            List<Integer> brokerIds = nodes.stream().map(Node::id).toList();
+            var logDirSizes = fetchLogDirSizes(adminClient, brokerIds);
+
+            List<BrokerDetail> brokerDetails = nodes
+                .stream()
+                .map(node -> toBrokerDetail(node, topicStats, logDirSizes))
+                .toList();
+
+            return new KafkaClusterInfo(
+                clusterId,
+                toKafkaNode(controller),
+                brokerDetails,
+                topicStats.totalTopics(),
+                topicStats.totalPartitions()
+            );
         } catch (ExecutionException e) {
             throw handleExecutionException(e);
         } catch (TimeoutException e) {
@@ -76,6 +98,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new KafkaExplorerException("Connection to Kafka cluster was interrupted", TechnicalCode.INTERRUPTED, e);
+        } catch (KafkaExplorerException e) {
+            throw e;
         } catch (Exception e) {
             throw new KafkaExplorerException("Failed to connect to Kafka cluster: " + e.getMessage(), TechnicalCode.CONNECTION_FAILED, e);
         } finally {
@@ -85,6 +109,81 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
     protected AdminClient createAdminClient(Properties properties) {
         return AdminClient.create(properties);
+    }
+
+    private record TopicStats(
+        int totalTopics,
+        int totalPartitions,
+        Map<Integer, Integer> leaderCounts,
+        Map<Integer, Integer> replicaCounts
+    ) {}
+
+    private TopicStats fetchTopicStats(AdminClient adminClient) throws ExecutionException, InterruptedException, TimeoutException {
+        Set<String> topicNames = adminClient
+            .listTopics(new ListTopicsOptions().listInternal(true))
+            .names()
+            .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        if (topicNames.isEmpty()) {
+            return new TopicStats(0, 0, Map.of(), Map.of());
+        }
+
+        Map<String, TopicDescription> descriptions = adminClient
+            .describeTopics(topicNames)
+            .allTopicNames()
+            .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        Map<Integer, Integer> leaderCounts = new HashMap<>();
+        Map<Integer, Integer> replicaCounts = new HashMap<>();
+        int totalPartitions = 0;
+
+        for (TopicDescription topic : descriptions.values()) {
+            for (var partition : topic.partitions()) {
+                totalPartitions++;
+                if (partition.leader() != null && partition.leader().id() >= 0) {
+                    leaderCounts.merge(partition.leader().id(), 1, Integer::sum);
+                }
+                for (Node replica : partition.replicas()) {
+                    replicaCounts.merge(replica.id(), 1, Integer::sum);
+                }
+            }
+        }
+
+        return new TopicStats(topicNames.size(), totalPartitions, leaderCounts, replicaCounts);
+    }
+
+    private Map<Integer, Long> fetchLogDirSizes(AdminClient adminClient, List<Integer> brokerIds) {
+        try {
+            var logDirsResult = adminClient.describeLogDirs(brokerIds).allDescriptions().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            Map<Integer, Long> sizes = new HashMap<>();
+            for (var entry : logDirsResult.entrySet()) {
+                long totalSize = entry
+                    .getValue()
+                    .values()
+                    .stream()
+                    .flatMap(logDir -> logDir.replicaInfos().values().stream())
+                    .mapToLong(info -> info.size())
+                    .sum();
+                sizes.put(entry.getKey(), totalSize);
+            }
+            return sizes;
+        } catch (Exception e) {
+            // Log dir info is best-effort, don't fail the whole request
+            return Map.of();
+        }
+    }
+
+    private BrokerDetail toBrokerDetail(Node node, TopicStats topicStats, Map<Integer, Long> logDirSizes) {
+        return new BrokerDetail(
+            node.id(),
+            node.host(),
+            node.port(),
+            node.rack(),
+            topicStats.leaderCounts().getOrDefault(node.id(), 0),
+            topicStats.replicaCounts().getOrDefault(node.id(), 0),
+            logDirSizes.getOrDefault(node.id(), null)
+        );
     }
 
     private Properties buildProperties(KafkaClusterConfiguration config, List<Path> tempFiles) {

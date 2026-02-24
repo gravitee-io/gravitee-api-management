@@ -18,4 +18,19 @@
   table {
     width: 100%;
   }
+
+  &__node-id {
+    white-space: nowrap;
+  }
+
+  &__controller-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    background-color: var(--mat-sys-primary-container, #e8def8);
+    color: var(--mat-sys-on-primary-container, #1d192b);
+  }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DescribeClusterResponse, KafkaNode } from './kafka-cluster.model';
+import { BrokerDetail, DescribeClusterResponse, KafkaNode } from './kafka-cluster.model';
 
 export function fakeKafkaNode(overrides: Partial<KafkaNode> = {}): KafkaNode {
   return {
@@ -24,15 +24,30 @@ export function fakeKafkaNode(overrides: Partial<KafkaNode> = {}): KafkaNode {
   };
 }
 
+export function fakeBrokerDetail(overrides: Partial<BrokerDetail> = {}): BrokerDetail {
+  return {
+    id: 0,
+    host: 'kafka-broker-0.example.com',
+    port: 9092,
+    rack: null,
+    leaderPartitions: 10,
+    replicaPartitions: 20,
+    logDirSize: 1073741824,
+    ...overrides,
+  };
+}
+
 export function fakeDescribeClusterResponse(overrides: Partial<DescribeClusterResponse> = {}): DescribeClusterResponse {
   return {
     clusterId: 'test-cluster-id',
     controller: fakeKafkaNode({ id: 0 }),
     nodes: [
-      fakeKafkaNode({ id: 0, host: 'kafka-broker-0.example.com' }),
-      fakeKafkaNode({ id: 1, host: 'kafka-broker-1.example.com' }),
-      fakeKafkaNode({ id: 2, host: 'kafka-broker-2.example.com' }),
+      fakeBrokerDetail({ id: 0, host: 'kafka-broker-0.example.com' }),
+      fakeBrokerDetail({ id: 1, host: 'kafka-broker-1.example.com' }),
+      fakeBrokerDetail({ id: 2, host: 'kafka-broker-2.example.com' }),
     ],
+    totalTopics: 5,
+    totalPartitions: 15,
     ...overrides,
   };
 }

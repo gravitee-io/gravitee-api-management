@@ -17,7 +17,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { Meta, StoryObj, applicationConfig } from '@storybook/angular';
 
 import { BrokersComponent } from './brokers.component';
-import { fakeKafkaNode } from '../models/kafka-cluster.fixture';
+import { fakeBrokerDetail } from '../models/kafka-cluster.fixture';
 
 const meta: Meta<BrokersComponent> = {
   title: 'Brokers',
@@ -35,15 +35,56 @@ type Story = StoryObj<BrokersComponent>;
 export const Default: Story = {
   args: {
     nodes: [
-      fakeKafkaNode({ id: 0, host: 'kafka-broker-0.example.com' }),
-      fakeKafkaNode({ id: 1, host: 'kafka-broker-1.example.com' }),
-      fakeKafkaNode({ id: 2, host: 'kafka-broker-2.example.com' }),
+      fakeBrokerDetail({
+        id: 0,
+        host: 'kafka-broker-0.example.com',
+        rack: 'us-east-1a',
+        leaderPartitions: 50,
+        replicaPartitions: 100,
+        logDirSize: 5368709120,
+      }),
+      fakeBrokerDetail({
+        id: 1,
+        host: 'kafka-broker-1.example.com',
+        rack: 'us-east-1b',
+        leaderPartitions: 48,
+        replicaPartitions: 100,
+        logDirSize: 4294967296,
+      }),
+      fakeBrokerDetail({
+        id: 2,
+        host: 'kafka-broker-2.example.com',
+        rack: 'us-east-1c',
+        leaderPartitions: 52,
+        replicaPartitions: 100,
+        logDirSize: 5905580032,
+      }),
     ],
+    controllerId: 0,
   },
 };
 
 export const SingleNode: Story = {
   args: {
-    nodes: [fakeKafkaNode({ id: 0, host: 'kafka-broker-0.example.com' })],
+    nodes: [
+      fakeBrokerDetail({
+        id: 0,
+        host: 'kafka-broker-0.example.com',
+        leaderPartitions: 150,
+        replicaPartitions: 150,
+        logDirSize: 10737418240,
+      }),
+    ],
+    controllerId: 0,
+  },
+};
+
+export const NoRack: Story = {
+  args: {
+    nodes: [
+      fakeBrokerDetail({ id: 0, host: 'kafka-broker-0.example.com', rack: null, logDirSize: null }),
+      fakeBrokerDetail({ id: 1, host: 'kafka-broker-1.example.com', rack: null, logDirSize: null }),
+    ],
+    controllerId: 1,
   },
 };
