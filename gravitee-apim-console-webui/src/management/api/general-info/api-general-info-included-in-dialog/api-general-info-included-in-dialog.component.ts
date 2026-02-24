@@ -61,6 +61,6 @@ export class ApiGeneralInfoIncludedInDialogComponent {
     if (!term) {
       return products;
     }
-    return products.filter(p => p.name?.toLowerCase().includes(term) || p.description?.toLowerCase().includes(term));
+    return products.filter(p => p.name?.toLowerCase().includes(term));
   });
 }

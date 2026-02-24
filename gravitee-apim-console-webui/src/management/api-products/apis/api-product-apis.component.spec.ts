@@ -16,8 +16,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatDialog } from '@angular/material/dialog';
@@ -26,6 +28,7 @@ import { BehaviorSubject } from 'rxjs';
 
 import { ApiProductApisComponent } from './api-product-apis.component';
 
+import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { Api, fakeProxyApiV4 } from '../../../entities/management-api-v2';
 import { ApiProduct } from '../../../entities/management-api-v2/api-product';
@@ -62,8 +65,8 @@ describe('ApiProductApisComponent', () => {
         paths: [{ path: '/payments' }],
         entrypoints: [{ type: 'http-proxy' }],
       },
-    ] as any,
-  }) as Api;
+    ],
+  });
 
   const fakeApi2 = fakeProxyApiV4({
     id: 'api-2',
@@ -75,8 +78,8 @@ describe('ApiProductApisComponent', () => {
         paths: [{ path: '/orders' }],
         entrypoints: [{ type: 'http-proxy' }],
       },
-    ] as any,
-  }) as Api;
+    ],
+  });
 
   beforeEach(() => {
     queryParams$ = new BehaviorSubject<Record<string, string>>({});
@@ -96,7 +99,7 @@ describe('ApiProductApisComponent', () => {
               snapshot: { params: { apiProductId: API_PRODUCT_ID }, queryParams: {} },
               params: new BehaviorSubject({ apiProductId: API_PRODUCT_ID }),
               queryParams: queryParams$.asObservable(),
-            } as any,
+            },
           },
         },
       ],
@@ -121,9 +124,8 @@ describe('ApiProductApisComponent', () => {
   it('should display empty state when no APIs in product', async () => {
     await initComponent({ ...fakeApiProduct, apiIds: [] });
 
-    const emptyState = fixture.nativeElement.querySelector('.api-product-apis-empty-state');
-    expect(emptyState).toBeTruthy();
-    expect(emptyState?.textContent).toContain('There are no APIs in this API Product (yet).');
+    const emptyState = await loader.getHarness(DivHarness.with({ selector: '.api-product-apis-empty-state' }));
+    expect(await emptyState.getText()).toContain('There are no APIs in this API Product (yet).');
   });
 
   it('should display table with API rows when product has APIs', async () => {
@@ -146,20 +148,17 @@ describe('ApiProductApisComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const emptyState = fixture.nativeElement.querySelector('.api-product-apis-empty-state');
-    expect(emptyState?.textContent).toContain('Loading...');
+    const emptyState = await loader.getHarness(DivHarness.with({ selector: '.api-product-apis-empty-state' }));
+    expect(await emptyState.getText()).toContain('Loading...');
 
     const productReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
     productReq.flush(fakeApiProduct);
-
-    await fixture.whenStable();
 
     const api1Req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/api-1`);
     api1Req.flush(fakeApi1);
     const api2Req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/api-2`);
     api2Req.flush(fakeApi2);
 
-    await new Promise(r => setTimeout(r, 50));
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -170,7 +169,7 @@ describe('ApiProductApisComponent', () => {
 
   it('should handle error when loading API product', async () => {
     fixture.detectChanges();
-    await new Promise(r => setTimeout(r, 150));
+    await fixture.whenStable();
 
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
     req.flush({ message: 'Error' }, { status: 500, statusText: 'Server Error' });
@@ -183,9 +182,8 @@ describe('ApiProductApisComponent', () => {
   it('should have Add API button', async () => {
     await initComponent({ ...fakeApiProduct, apiIds: ['api-1'] }, [fakeApi1]);
 
-    const addButton = fixture.nativeElement.querySelector('[data-testid="add-api-button"]');
-    expect(addButton).toBeTruthy();
-    expect(addButton?.textContent?.trim()).toContain('Add API');
+    const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="add-api-button"]' }));
+    expect(await addButton.getText()).toContain('Add API');
   });
 
   it('should open Add API dialog when Add API clicked', async () => {
@@ -193,8 +191,8 @@ describe('ApiProductApisComponent', () => {
     const dialogOpenSpy = jest.spyOn(matDialog, 'open');
     await initComponent({ ...fakeApiProduct, apiIds: ['api-1'] }, [fakeApi1]);
 
-    const addButton = fixture.nativeElement.querySelector('[data-testid="add-api-button"]');
-    addButton?.dispatchEvent(new Event('click'));
+    const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="add-api-button"]' }));
+    await addButton.click();
     fixture.detectChanges();
 
     const productReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
@@ -215,11 +213,9 @@ describe('ApiProductApisComponent', () => {
   it('should filter APIs by search term', async () => {
     await initComponent(fakeApiProduct, [fakeApi1, fakeApi2]);
 
-    fixture.componentInstance.onFiltersChanged({
-      searchTerm: 'Orders',
-      pagination: { index: 1, size: 10 },
-    });
-    await new Promise(r => setTimeout(r, 150));
+    const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
+    await tableWrapper.setSearchValue('Orders');
+    await fixture.whenStable();
 
     const productReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
     productReq.flush(fakeApiProduct);
@@ -229,13 +225,16 @@ describe('ApiProductApisComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(fixture.componentInstance.apisTableDS.length).toBe(1);
-    expect(fixture.componentInstance.apisTableDS[0].name).toBe('Orders API');
+    const table = await loader.getHarness(MatTableHarness.with({ selector: 'table' }));
+    const rows = await table.getRows();
+    expect(rows.length).toBe(1);
+    const rowCells = await rows[0].getCellTextByIndex();
+    expect(rowCells[1]).toContain('Orders API');
   });
 
   async function initComponent(apiProduct: ApiProduct, apis: Api[] = []) {
     fixture.detectChanges();
-    await new Promise(r => setTimeout(r, 150));
+    await fixture.whenStable();
 
     const productReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
     productReq.flush(apiProduct);

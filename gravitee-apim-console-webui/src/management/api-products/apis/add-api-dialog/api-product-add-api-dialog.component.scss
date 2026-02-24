@@ -57,7 +57,6 @@ $typography: map.get(gio.$mat-theme, typography);
       @include mat.m2-typography-level($typography, caption);
       margin-left: 2px;
       opacity: 0.9;
-      font-style: italic;
       white-space: nowrap;
     }
 

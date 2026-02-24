@@ -21,8 +21,8 @@
       <h1>APIs</h1>
       <p class="subtitle">Manage APIs grouped together in your API Product.</p>
     </div>
-    <button mat-raised-button color="primary" (click)="onAddApi()" class="add-api-button" data-testid="add-api-button" aria-label="Add API">
-      Add API
+    <button mat-raised-button color="primary" (click)="onAddApi()" data-testid="add-api-button" aria-label="Add API">
+      <mat-icon svgIcon="gio:plus"></mat-icon> Add API
     </button>
   </div>
 
@@ -60,7 +60,7 @@
       <ng-container matColumnDef="version">
         <th mat-header-cell *matHeaderCellDef>Version</th>
         <td mat-cell *matCellDef="let element">
-          v{{ element.version }}
+          {{ element.version }}
           @if (element.lifecycleState === 'DEPRECATED') {
             <span class="gio-badge-error">Deprecated</span>
           }
@@ -73,7 +73,7 @@
             mat-icon-button
             [matTooltip]="'Remove from API Product'"
             (click)="onDeleteApi(element)"
-            data-testid="delete-api-button"
+            [attr.data-testid]="'delete-api-button-' + element.id"
             aria-label="Remove API"
           >
             <mat-icon svgIcon="gio:trash"></mat-icon>
@@ -86,13 +86,13 @@
 
       <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
         <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
-          @if (!isLoadingData && apisTableDS.length === 0) {
-            <div class="api-product-apis-empty-state">
-              <p>There are no APIs in this API Product (yet).</p>
-            </div>
-          } @else if (isLoadingData) {
+          @if (isLoadingData) {
             <div class="api-product-apis-empty-state">
               <p>Loading...</p>
+            </div>
+          } @else {
+            <div class="api-product-apis-empty-state">
+              <p>There are no APIs in this API Product (yet).</p>
             </div>
           }
         </td>
