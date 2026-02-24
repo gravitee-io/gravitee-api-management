@@ -98,8 +98,6 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new KafkaExplorerException("Connection to Kafka cluster was interrupted", TechnicalCode.INTERRUPTED, e);
-        } catch (KafkaExplorerException e) {
-            throw e;
         } catch (Exception e) {
             throw new KafkaExplorerException("Failed to connect to Kafka cluster: " + e.getMessage(), TechnicalCode.CONNECTION_FAILED, e);
         } finally {
