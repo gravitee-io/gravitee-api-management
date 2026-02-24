@@ -274,7 +274,7 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
     void should_build_query_with_llm_total_cost_count_measure() throws JsonProcessingException {
         var timeRange = buildTimeRange();
         var filters = buildFilters();
-        var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_COST, Set.of(Measure.COUNT)));
+        var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_TOTAL_COST, Set.of(Measure.COUNT)));
 
         var query = new MeasuresQuery(timeRange, filters, metrics);
 
@@ -285,7 +285,7 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var sumAgg = aggs.at("/LLM_PROMPT_TOKEN_COST#COUNT/sum/script/source");
+        var sumAgg = aggs.at("/LLM_PROMPT_TOKEN_TOTAL_COST#COUNT/sum/script/source");
         assertThat(sumAgg).isNotNull();
         assertThat(sumAgg.asText()).contains("additional-metrics.double_llm-proxy_sent-cost");
         assertThat(sumAgg.asText()).contains("additional-metrics.double_llm-proxy_received-cost");
@@ -295,7 +295,7 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
     void should_build_query_with_llm_total_cost_avg_measure() throws JsonProcessingException {
         var timeRange = buildTimeRange();
         var filters = buildFilters();
-        var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_COST, Set.of(Measure.AVG)));
+        var metrics = List.of(new MetricMeasuresQuery(Metric.LLM_PROMPT_TOKEN_TOTAL_COST, Set.of(Measure.AVG)));
 
         var query = new MeasuresQuery(timeRange, filters, metrics);
 
@@ -306,7 +306,7 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        var avgAgg = aggs.at("/LLM_PROMPT_TOKEN_COST#AVG/avg/script/source");
+        var avgAgg = aggs.at("/LLM_PROMPT_TOKEN_TOTAL_COST#AVG/avg/script/source");
         assertThat(avgAgg).isNotNull();
         assertThat(avgAgg.asText()).contains("additional-metrics.double_llm-proxy_sent-cost");
         assertThat(avgAgg.asText()).contains("additional-metrics.double_llm-proxy_received-cost");
