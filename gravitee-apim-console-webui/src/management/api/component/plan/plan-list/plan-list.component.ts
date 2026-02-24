@@ -103,7 +103,6 @@ export class PlanListComponent {
       cols.push('deploy-on');
     }
     cols.push('actions');
-    if (!ctx.isReadOnly) {
       cols.unshift('drag-icon');
     }
     return cols;

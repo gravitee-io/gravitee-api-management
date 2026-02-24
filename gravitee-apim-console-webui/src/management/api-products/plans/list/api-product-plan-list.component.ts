@@ -28,6 +28,7 @@ import {
 import { MatDialog } from '@angular/material/dialog';
 
 import { ApiProductPlanV2Service } from '../../../../services-ngx/api-product-plan-v2.service';
+import { ApiProductV2Service } from '../../../../services-ngx/api-product-v2.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ConstantsService, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
@@ -35,6 +36,10 @@ import { Plan, PLAN_STATUS, PlanStatus } from '../../../../entities/management-a
 import { PlanActionEvent, PlanListComponent, PlanDS } from '../../../api/component/plan/plan-list/plan-list.component';
 
 const API_PRODUCT_PLAN_TYPES = ['API_KEY', 'JWT', 'MTLS'] as const;
+const INITIAL_API_PLAN_STATUS: { name: PlanStatus; number: number | null }[] = PLAN_STATUS.map(status => ({
+  name: status,
+  number: null,
+}));
 
 @Component({
   selector: 'api-product-plan-list',
@@ -49,12 +54,14 @@ export class ApiProductPlanListComponent {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly plansService = inject(ApiProductPlanV2Service);
+  private readonly apiProductV2Service = inject(ApiProductV2Service);
   private readonly constantsService = inject(ConstantsService);
   private readonly permissionService = inject(GioPermissionService);
   private readonly matDialog = inject(MatDialog);
   private readonly snackBarService = inject(SnackBarService);
 
   private readonly filterOverride = signal<PlanStatus | null>(null);
+  private readonly reloadTrigger$ = new Subject<void>();
 
   private readonly apiProductId = toSignal(this.activatedRoute.paramMap.pipe(map(p => p.get('apiProductId') ?? '')), { initialValue: '' });
   private readonly initialStatusFromRoute = toSignal(
@@ -62,6 +69,18 @@ export class ApiProductPlanListComponent {
     { initialValue: 'PUBLISHED' as PlanStatus },
   );
   protected readonly selectedStatus = computed(() => this.filterOverride() ?? this.initialStatusFromRoute());
+
+  private readonly plansData = toSignal(this.buildPlansStream(), {
+    initialValue: {
+      plans: [] as PlanDS[],
+      apiPlanStatus: INITIAL_API_PLAN_STATUS,
+      loading: true,
+    },
+  });
+
+  protected readonly plansTableDS = computed(() => this.plansData()?.plans ?? []);
+  protected readonly isLoadingData = computed(() => this.plansData()?.loading ?? true);
+  protected readonly apiPlanStatus = computed(() => this.plansData()?.apiPlanStatus ?? INITIAL_API_PLAN_STATUS);
   protected readonly isReadOnly = computed(() => !this.permissionService.hasAnyMatching(['api_product-plan-u']));
 
   private readonly plansResource = rxResource({
@@ -166,7 +185,10 @@ export class ApiProductPlanListComponent {
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(() => this.triggerReload());
+      .subscribe(() => {
+        this.apiProductV2Service.notifyPlanStateChanged();
+        this.triggerReload();
+      });
   }
 
   protected onPublishPlan(plan: Plan): void {
@@ -194,6 +216,7 @@ export class ApiProductPlanListComponent {
       )
       .subscribe(published => {
         this.snackBarService.success(`The plan ${published.name} has been published with success.`);
+        this.apiProductV2Service.notifyPlanStateChanged();
         this.triggerReload();
       });
   }
@@ -223,6 +246,7 @@ export class ApiProductPlanListComponent {
       )
       .subscribe(deprecated => {
         this.snackBarService.success(`The plan ${deprecated.name} has been deprecated with success.`);
+        this.apiProductV2Service.notifyPlanStateChanged();
         this.triggerReload();
       });
   }
@@ -255,6 +279,7 @@ export class ApiProductPlanListComponent {
       )
       .subscribe(closed => {
         this.snackBarService.success(`The plan ${closed.name} has been closed with success.`);
+        this.apiProductV2Service.notifyPlanStateChanged();
         this.triggerReload();
       });
   }

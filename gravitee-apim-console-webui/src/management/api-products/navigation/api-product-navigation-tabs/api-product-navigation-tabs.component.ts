@@ -25,6 +25,7 @@ export interface ApiProductTabMenuItem {
 @Component({
   selector: 'api-product-navigation-tabs',
   templateUrl: './api-product-navigation-tabs.component.html',
+  styleUrls: ['./api-product-navigation-tabs.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterModule, MatTabsModule],

@@ -22,8 +22,8 @@
   </span>
 </div>
 
-@if (planMenuItem()) {
-  <form autocomplete="off" gioFormFocusInvalid [formGroup]="planForm" (ngSubmit)="onSubmit()">
+@if (planForm() && planMenuItem()) {
+  <form autocomplete="off" gioFormFocusInvalid [formGroup]="planForm()!" (ngSubmit)="onSubmit()">
     <mat-card>
       <api-plan-form
         #apiPlanForm

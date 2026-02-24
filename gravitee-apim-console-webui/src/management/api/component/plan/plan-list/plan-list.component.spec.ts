@@ -49,6 +49,10 @@ describe('PlanListComponent', () => {
   async function create(
     inputs: Partial<{
       plans: PlanDS[];
+      isReadOnly: boolean;
+      showDeployOnColumn: boolean;
+      canAddPlan: boolean;
+      isV2Api: boolean;
       context: PlanListContext;
       filterState: PlanFilterState;
     }> = {},

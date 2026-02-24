@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
-export * from './apiProduct';
-export * from './apiProductSearchQuery';
-export * from './apiProductSortByParam';
-export * from './apiProductsResponse';
-export * from './createApiProduct';
-export * from './updateApiProduct';
-export * from './verifyApiProductDeploy';
+export class ApiProductConfirmDeploymentDialogHarness extends ComponentHarness {
+  static hostSelector = 'api-product-confirm-deployment-dialog';
+
+  async clickDeploy(): Promise<void> {
+    const btn = await this.locatorFor(MatButtonHarness.with({ text: 'Deploy' }))();
+    return btn.click();
+  }
+}
