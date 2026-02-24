@@ -21,13 +21,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { LowerCasePipe, TitleCasePipe } from '@angular/common';
-import { GioBannerModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormSelectionInlineModule } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
 import {
   PortalNavigationItem,
   PortalNavigationItemType,
   PortalNavigationLink,
+  PortalPageContentType,
   PortalVisibility,
 } from '../../../entities/management-api-v2';
 import { urlValidator } from '../../../shared/validators/url.validator';
@@ -53,18 +54,33 @@ export interface SectionEditorDialogResult {
   title: string;
   visibility: PortalVisibility;
   url?: string;
+  contentType?: PortalPageContentType;
 }
+
+export interface PortalPageTypeOption {
+  value: PortalPageContentType;
+  label: string;
+  icon: string;
+  available: boolean;
+}
+
+export const PORTAL_PAGE_CONTENT_TYPE_OPTIONS: PortalPageTypeOption[] = [
+  { value: 'GRAVITEE_MARKDOWN', label: 'Markdown', icon: 'gio:gravitee', available: true },
+  { value: 'OPENAPI', label: 'OpenAPI', icon: 'gio:open-api', available: true },
+];
 
 interface SectionFormControls {
   title: FormControl<string>;
   isPrivate: FormControl<boolean>;
   url?: FormControl<string>; // Optional for 'LINK' type
+  contentType?: FormControl<PortalPageContentType>; // Optional for 'PAGE' create only
 }
 
 interface SectionFormValues {
   title: string;
   isPrivate: boolean;
   url?: string;
+  contentType?: PortalPageContentType;
 }
 
 type SectionForm = FormGroup<SectionFormControls>;
@@ -80,6 +96,7 @@ type SectionForm = FormGroup<SectionFormControls>;
     MatInputModule,
     TitleCasePipe,
     GioBannerModule,
+    GioFormSelectionInlineModule,
     LowerCasePipe,
   ],
   templateUrl: './section-editor-dialog.component.html',
@@ -95,6 +112,11 @@ export class SectionEditorDialogComponent implements OnInit {
   public type: PortalNavigationItemType;
   public mode: SectionEditorDialogMode;
   public title: string;
+  readonly pageContentTypeOptions = PORTAL_PAGE_CONTENT_TYPE_OPTIONS;
+
+  showPageTypeSelection(): boolean {
+    return this.mode === 'create' && this.type === 'PAGE';
+  }
 
   private readonly dialogRef = inject(MatDialogRef<SectionEditorDialogComponent, SectionEditorDialogResult>);
   private readonly data: SectionEditorDialogData = inject(MAT_DIALOG_DATA);
@@ -138,6 +160,9 @@ export class SectionEditorDialogComponent implements OnInit {
         }),
       );
     }
+    if (this.showPageTypeSelection()) {
+      this.form.addControl('contentType', new FormControl<PortalPageContentType>('GRAVITEE_MARKDOWN', { nonNullable: true }));
+    }
   }
 
   private prefillExistingItem(): void {
@@ -158,6 +183,7 @@ export class SectionEditorDialogComponent implements OnInit {
         title: formValues.title,
         visibility: formValues.isPrivate ? 'PRIVATE' : 'PUBLIC',
         ...(this.type === 'LINK' ? { url: formValues.url! } : {}),
+        ...(this.showPageTypeSelection() && formValues.contentType ? { contentType: formValues.contentType } : {}),
       });
     }
   }

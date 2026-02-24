@@ -21,6 +21,18 @@
 
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
+    @if (showPageTypeSelection()) {
+      <div class="form-field-title">Page Type</div>
+      <gio-form-selection-inline class="section-editor-dialog__page-types" formControlName="contentType">
+        @for (option of pageContentTypeOptions; track option.value) {
+          <gio-form-selection-inline-card [value]="option.value" [disabled]="!option.available">
+            <gio-form-selection-inline-card-content [icon]="option.icon">
+              <gio-card-content-title>{{ option.label }}</gio-card-content-title>
+            </gio-form-selection-inline-card-content>
+          </gio-form-selection-inline-card>
+        }
+      </gio-form-selection-inline>
+    }
     @if (type !== 'API') {
       <div class="form-field-title">Title</div>
       <mat-form-field>

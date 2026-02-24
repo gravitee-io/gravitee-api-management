@@ -163,7 +163,24 @@ describe('PortalNavigationItemsComponent', () => {
         await dialogHarness.clickSubmitButton();
 
         expectCreateNavigationItem(
-          fakeNewPagePortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'PAGE' }),
+          fakeNewPagePortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'PAGE', contentType: 'GRAVITEE_MARKDOWN' }),
+          fakePortalNavigationPage({
+            title,
+            area: 'TOP_NAVBAR',
+            type: 'PAGE',
+            portalPageContentId: 'content-id',
+          }),
+        );
+        await expectGetNavigationItems(fakeResponse);
+      });
+      it('should create the page with contentType OPENAPI when OpenAPI is selected in the dialog', async () => {
+        const title = 'Open API Page';
+        await dialogHarness.selectPageType('OPENAPI');
+        await dialogHarness.setTitleInputValue(title);
+        await dialogHarness.clickSubmitButton();
+
+        expectCreateNavigationItem(
+          fakeNewPagePortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'PAGE', contentType: 'OPENAPI' }),
           fakePortalNavigationPage({
             title,
             area: 'TOP_NAVBAR',
@@ -190,6 +207,7 @@ describe('PortalNavigationItemsComponent', () => {
             title,
             area: 'TOP_NAVBAR',
             type: 'PAGE',
+            contentType: 'GRAVITEE_MARKDOWN',
           }),
           createdItem,
         );
@@ -454,7 +472,13 @@ describe('PortalNavigationItemsComponent', () => {
       });
 
       expectCreateNavigationItem(
-        fakeNewPagePortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'PAGE', parentId: folderData.id }),
+        fakeNewPagePortalNavigationItem({
+          title,
+          area: 'TOP_NAVBAR',
+          type: 'PAGE',
+          parentId: folderData.id,
+          contentType: 'GRAVITEE_MARKDOWN',
+        }),
         createdItem,
       );
       await expectGetNavigationItems(fakeResponse);

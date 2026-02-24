@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type PortalPageContentType = 'GRAVITEE_MARKDOWN';
+export type PortalPageContentType = 'GRAVITEE_MARKDOWN' | 'OPENAPI';
 
 export interface PortalPageContent {
   id: string;
