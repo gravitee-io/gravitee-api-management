@@ -16,28 +16,22 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpTestingController } from '@angular/common/http/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { ApiProductAddApiDialogComponent, ApiProductAddApiDialogData } from './api-product-add-api-dialog.component';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
+import { GioTestingModule } from '../../../../shared/testing';
 import { fakeProxyApiV4 } from '../../../../entities/management-api-v2';
-import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 describe('ApiProductAddApiDialogComponent', () => {
   let fixture: ComponentFixture<ApiProductAddApiDialogComponent>;
-  let _loader: HarnessLoader;
-  let httpTestingController: HttpTestingController;
+  let loader: HarnessLoader;
   let dialogRef: MatDialogRef<ApiProductAddApiDialogComponent>;
 
   const API_PRODUCT_ID = 'product-1';
-  const fakeSnackBarService = {
-    error: jest.fn(),
-    success: jest.fn(),
-  };
 
   const dialogData: ApiProductAddApiDialogData = {
     apiProductId: API_PRODUCT_ID,
@@ -63,18 +57,15 @@ describe('ApiProductAddApiDialogComponent', () => {
       providers: [
         { provide: MAT_DIALOG_DATA, useValue: dialogData },
         { provide: MatDialogRef, useValue: { close: jest.fn() } },
-        { provide: SnackBarService, useValue: fakeSnackBarService },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiProductAddApiDialogComponent);
-    _loader = TestbedHarnessEnvironment.loader(fixture);
-    httpTestingController = TestBed.inject(HttpTestingController);
+    loader = TestbedHarnessEnvironment.loader(fixture);
     dialogRef = TestBed.inject(MatDialogRef);
   });
 
   afterEach(() => {
-    httpTestingController.verify();
     jest.clearAllMocks();
   });
 
@@ -83,56 +74,38 @@ describe('ApiProductAddApiDialogComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should close dialog on cancel', () => {
+  it('should close dialog on cancel', async () => {
     fixture.detectChanges();
-    const cancelButton = fixture.nativeElement.querySelector('[data-testid="cancel-button"]');
-    cancelButton?.dispatchEvent(new Event('click'));
+    const cancelButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="cancel-button"]' }));
+    await cancelButton.click();
     expect(dialogRef.close).toHaveBeenCalled();
   });
 
-  it('should disable submit when no APIs selected', () => {
+  it('should disable submit when no APIs selected', async () => {
     fixture.detectChanges();
-    const submitButton = fixture.nativeElement.querySelector('[data-testid="submit-button"]');
-    expect(submitButton?.hasAttribute('disabled')).toBe(true);
+    const submitButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="submit-button"]' }));
+    expect(await submitButton.isDisabled()).toBe(true);
   });
 
-  it('should call close with true on successful submit', async () => {
-    fixture.componentInstance.selectedApis = [fakeApi];
+  it('should close with selected APIs on successful submit', async () => {
+    fixture.componentInstance.selectedApis.set([fakeApi]);
     fixture.detectChanges();
 
-    const submitButton = fixture.nativeElement.querySelector('[data-testid="submit-button"]');
-    (submitButton as HTMLButtonElement)?.click();
-    fixture.detectChanges();
+    const submitButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="submit-button"]' }));
+    await submitButton.click();
 
-    const productReq = httpTestingController.expectOne(req => req.url.includes('/api-products/') && req.method === 'GET');
-    productReq.flush({ id: API_PRODUCT_ID, apiIds: ['api-1'] });
-
-    const updateReq = httpTestingController.expectOne(req => req.url.includes('/api-products/') && req.method === 'PUT');
-    updateReq.flush({});
-
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    expect(fakeSnackBarService.success).toHaveBeenCalled();
-    expect(dialogRef.close).toHaveBeenCalledWith(true);
+    expect(dialogRef.close).toHaveBeenCalledWith([fakeApi]);
   });
 
-  it('should show error when API already in product', async () => {
-    fixture.componentInstance.selectedApis = [fakeProxyApiV4({ id: 'api-1', name: 'Existing API' }) as any];
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const submitButton = fixture.nativeElement.querySelector('[data-testid="submit-button"]');
-    (submitButton as HTMLButtonElement)?.click();
+  it('should show validation error when API already in product', async () => {
+    fixture.componentInstance.selectedApis.set([fakeProxyApiV4({ id: 'api-1', name: 'Existing API' }) as any]);
     fixture.detectChanges();
 
-    const productReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
-    productReq.flush({ id: API_PRODUCT_ID, apiIds: ['api-1'] });
-
+    const submitButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="submit-button"]' }));
+    await submitButton.click();
     fixture.detectChanges();
-    await fixture.whenStable();
 
-    expect(fakeSnackBarService.error).toHaveBeenCalledWith(expect.stringContaining('already in this API Product'));
+    expect(fixture.componentInstance.validationError()).toContain('already in this API Product');
     expect(dialogRef.close).not.toHaveBeenCalled();
   });
 });

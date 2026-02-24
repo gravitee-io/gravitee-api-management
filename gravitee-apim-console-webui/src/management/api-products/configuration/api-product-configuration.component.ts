@@ -204,7 +204,7 @@ export class ApiProductConfigurationComponent {
           title: 'Delete API Product',
           content: 'Are you sure you want to delete this API Product?',
           confirmButton: 'Yes, delete it',
-          validationMessage: `Please, type in the name of the API Product ${product.name} to confirm.`,
+          validationMessage: `Please, type in the name of the API Product <code>${product.name}</code> to confirm.`,
           validationValue: product.name,
           warning: 'This operation is irreversible.',
         },

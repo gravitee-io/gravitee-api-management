@@ -25,21 +25,25 @@
       <span gioBannerBody>APIs must have API products enabled before they appear in the list.</span>
     </gio-banner-info>
 
-    @if (selectedApis.length > 0) {
+    @if (validationError(); as error) {
+      <gio-banner-error>{{ error }}</gio-banner-error>
+    }
+
+    @if (selectedApisWithContext().length > 0) {
       <div class="selected-apis-section">
         <h3 class="selected-apis-section__header">APIs added to this product</h3>
         <mat-chip-set class="selected-apis-section__chips">
-          @for (api of selectedApis; track api.id) {
+          @for (api of selectedApisWithContext(); track api.id) {
             <mat-chip
               class="selected-apis-section__chip"
               [removable]="true"
               (removed)="removeApi(api)"
               [attr.aria-label]="'Remove ' + api.name"
-              [attr.data-testid]="'selected-api-chip'"
+              [attr.data-testid]="'selected-api-chip-' + api.id"
             >
               <span class="selected-apis-section__chip-name">{{ api.name }}</span>
-              @if (getContextPath(api); as contextPath) {
-                <span class="selected-apis-section__chip-path">{{ contextPath }}</span>
+              @if (api.contextPath) {
+                <span class="selected-apis-section__chip-path">{{ api.contextPath }}</span>
               }
               @if (api.lifecycleState === 'DEPRECATED') {
                 <span class="gio-badge-error">Deprecated</span>
@@ -61,30 +65,28 @@
       }
       <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectAPI()" [displayWith]="displayFn">
         @if (filteredOptions$ | async; as filteredOptions) {
-          @if (filteredOptions.length > 0) {
-            @for (option of filteredOptions; track option.id) {
-              <mat-option [value]="option" [attr.data-testid]="'api-select-option'">
-                <span class="autocompleteRow">
-                  <gio-avatar
-                    class="autocompleteRow__avatar"
-                    [src]="option._links?.pictureUrl"
-                    [name]="option.name + ' ' + option.apiVersion"
-                    [size]="28"
-                    [roundedBorder]="true"
-                  ></gio-avatar>
-                  <span class="autocompleteRow__content">
-                    <span class="autocompleteRow__name">{{ option.name }}</span>
-                    @if (getContextPath(option); as contextPath) {
-                      <span class="autocompleteRow__path">{{ contextPath }}</span>
-                    }
-                  </span>
-                  @if (option.lifecycleState === 'DEPRECATED') {
-                    <span class="autocompleteRow__badge gio-badge-error">Deprecated</span>
+          @for (option of filteredOptions; track option.id) {
+            <mat-option [value]="option" [attr.data-testid]="'api-select-option-' + option.id">
+              <span class="autocompleteRow">
+                <gio-avatar
+                  class="autocompleteRow__avatar"
+                  [src]="option._links?.pictureUrl"
+                  [name]="option.name + ' ' + option.apiVersion"
+                  [size]="28"
+                  [roundedBorder]="true"
+                ></gio-avatar>
+                <span class="autocompleteRow__content">
+                  <span class="autocompleteRow__name">{{ option.name }}</span>
+                  @if (option.contextPath) {
+                    <span class="autocompleteRow__path">{{ option.contextPath }}</span>
                   }
                 </span>
-              </mat-option>
-            }
-          } @else {
+                @if (option.lifecycleState === 'DEPRECATED') {
+                  <span class="autocompleteRow__badge gio-badge-error">Deprecated</span>
+                }
+              </span>
+            </mat-option>
+          } @empty {
             @if (hasNonEmptySearchTerm) {
               <mat-option disabled>No APIs matching search criteria</mat-option>
             }
@@ -95,21 +97,9 @@
   </mat-dialog-content>
 
   <mat-dialog-actions class="actions">
-    <button type="button" mat-button (click)="onCancelClick()" [disabled]="isSubmitting" [attr.data-testid]="'cancel-button'">
-      Cancel
-    </button>
-    <button
-      type="submit"
-      [disabled]="selectedApis.length === 0 || isSubmitting"
-      mat-raised-button
-      color="primary"
-      [attr.data-testid]="'submit-button'"
-    >
-      @if (isSubmitting) {
-        Adding...
-      } @else {
-        Add API
-      }
+    <button type="button" mat-button (click)="onCancelClick()" [attr.data-testid]="'cancel-button'">Cancel</button>
+    <button type="submit" [disabled]="selectedApis().length === 0" mat-raised-button color="primary" [attr.data-testid]="'submit-button'">
+      Add API
     </button>
   </mat-dialog-actions>
 </form>

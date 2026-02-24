@@ -35,28 +35,26 @@ $typography: map.get(gio.$mat-theme, typography);
     }
   }
 
-  .add-api-button {
-    flex-shrink: 0;
-  }
-
   &__content-card {
     flex: 1;
-    min-height: 400px;
+    min-height: 25rem;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   &__avatar {
-    height: 32px;
-    width: 32px;
+    height: 2rem;
+    width: 2rem;
   }
 }
 
 .api-product-apis-empty-state {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 300px;
+  gap: 16px;
+  min-height: 18.75rem;
   padding: 48px 24px;
 }
 
