@@ -36,6 +36,7 @@ import { ApiPlansResponse, Plan, PLAN_STATUS, fakePlanV4 } from '../../../../ent
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../../entities/Constants';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { ApiProductV2Service } from '../../../../services-ngx/api-product-v2.service';
 
 describe('ApiProductPlanListComponent', () => {
   const API_PRODUCT_ID = 'product-abc';
@@ -46,6 +47,7 @@ describe('ApiProductPlanListComponent', () => {
   let planListHarness: PlanListComponentHarness;
   let httpTestingController: HttpTestingController;
   let routerNavigateSpy: jest.SpyInstance;
+  let notifyPlanStateChangedSpy: jest.SpyInstance;
   const snackBarService = { error: jest.fn(), success: jest.fn() };
 
   async function init(permissions: string[] = ['api_product-plan-u', 'api_product-plan-r', 'api_product-plan-c']) {
@@ -87,6 +89,7 @@ describe('ApiProductPlanListComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);
     routerNavigateSpy = jest.spyOn(router, 'navigate');
+    notifyPlanStateChangedSpy = jest.spyOn(TestBed.inject(ApiProductV2Service), 'notifyPlanStateChanged');
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     planListHarness = await loader.getHarness(PlanListComponentHarness);
@@ -397,31 +400,147 @@ describe('ApiProductPlanListComponent', () => {
     }));
   });
 
-  describe('clicking a plan navigates to edit route', () => {
-    it('navigates to plan edit route when plan name is clicked', fakeAsync(async () => {
+  describe('deploy banner notification', () => {
+    it('notifies plan state changed after publish so deploy banner is triggered', fakeAsync(async () => {
       await init();
       fixture.detectChanges();
-      const plan = fakePlanV4({ status: 'PUBLISHED', security: { type: 'JWT' } });
+
+      const plan = fakePlanV4({ name: 'New Plan', status: 'STAGING', security: { type: 'API_KEY' } });
       flushPlansList([plan]);
       tick();
       fixture.detectChanges();
 
-      await planListHarness.clickPlanName();
+      await planListHarness.selectStatusFilter(/STAGING/);
+      tick();
+      fixture.detectChanges();
 
-      expect(routerNavigateSpy).toHaveBeenCalledWith(['./', plan.id], expect.objectContaining({ relativeTo: expect.anything() }));
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' })).then(btn => btn.click());
+      const dialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#publishPlanDialog' }));
+      await dialog.getHarness(MatButtonHarness.with({ text: 'Publish' })).then(btn => btn.click());
+
+      httpTestingController
+        .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans/${plan.id}/_publish`)
+        .flush({ ...plan, status: 'PUBLISHED' });
+      fixture.detectChanges();
+      flushPlansList([{ ...plan, status: 'PUBLISHED' }]);
+
+      expect(notifyPlanStateChangedSpy).toHaveBeenCalledTimes(1);
     }));
 
-    it('navigates to plan edit route when edit button is clicked', fakeAsync(async () => {
+    it('notifies plan state changed after deprecate so deploy banner is triggered', fakeAsync(async () => {
       await init();
       fixture.detectChanges();
-      const plan = fakePlanV4({ status: 'PUBLISHED', security: { type: 'JWT' } });
+
+      const plan = fakePlanV4({ name: 'Active Plan', status: 'PUBLISHED', security: { type: 'JWT' } });
       flushPlansList([plan]);
       tick();
       fixture.detectChanges();
 
-      await planListHarness.clickEditPlanButton();
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Deprecate the plan"]' })).then(btn => btn.click());
+      const dialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#deprecatePlanDialog' }));
+      await dialog.getHarness(MatButtonHarness.with({ text: 'Deprecate' })).then(btn => btn.click());
 
-      expect(routerNavigateSpy).toHaveBeenCalledWith(['./', plan.id], expect.objectContaining({ relativeTo: expect.anything() }));
+      httpTestingController
+        .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans/${plan.id}/_deprecate`)
+        .flush({ ...plan, status: 'DEPRECATED' });
+      fixture.detectChanges();
+      flushPlansList([{ ...plan, status: 'DEPRECATED' }]);
+
+      expect(notifyPlanStateChangedSpy).toHaveBeenCalledTimes(1);
+    }));
+
+    it('notifies plan state changed after close so deploy banner is triggered', fakeAsync(async () => {
+      await init();
+      fixture.detectChanges();
+
+      const plan = fakePlanV4({ name: 'Close Me', status: 'PUBLISHED', security: { type: 'API_KEY' } });
+      flushPlansList([plan]);
+      tick();
+      fixture.detectChanges();
+
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Close the plan"]' })).then(btn => btn.click());
+      const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+      await confirmDialog.confirm();
+
+      httpTestingController
+        .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans/${plan.id}/_close`)
+        .flush({ ...plan, status: 'CLOSED' });
+      fixture.detectChanges();
+      flushPlansList([{ ...plan, status: 'CLOSED' }]);
+
+      expect(notifyPlanStateChangedSpy).toHaveBeenCalledTimes(1);
+    }));
+
+    it('notifies plan state changed after reorder so deploy banner is triggered', fakeAsync(async () => {
+      await init();
+      fixture.detectChanges();
+      const plan1 = fakePlanV4({ id: 'p1', name: 'First', order: 1, status: 'PUBLISHED', security: { type: 'API_KEY' } });
+      const plan2 = fakePlanV4({ id: 'p2', name: 'Second', order: 2, status: 'PUBLISHED', security: { type: 'JWT' } });
+      flushPlansList([plan1, plan2]);
+      tick();
+      fixture.detectChanges();
+
+      const dropEvent = { previousIndex: 0, currentIndex: 1 } as CdkDragDrop<string[]>;
+      fixture.componentInstance['onPlanReordered'](dropEvent);
+      tick();
+      fixture.detectChanges();
+
+      httpTestingController
+        .expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans/${plan1.id}` })
+        .flush({ ...plan1, order: 2 });
+      tick();
+      tick(); // allow reload() to schedule the list request
+      fixture.detectChanges();
+
+      // Reload is triggered by triggerReload(); flush the second (reload) list request
+      const listUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans?page=1&perPage=9999&statuses=${PLAN_STATUS.join(',')}&fields=-flow`;
+      const listReq = httpTestingController.expectOne(req => req.method === 'GET' && req.urlWithParams === listUrl);
+      listReq.flush({ data: [plan2, { ...plan1, order: 2 }] });
+      fixture.detectChanges();
+
+      expect(notifyPlanStateChangedSpy).toHaveBeenCalledTimes(1);
+    }));
+
+    it('does not notify plan state changed when publish fails', fakeAsync(async () => {
+      await init();
+      fixture.detectChanges();
+
+      const plan = fakePlanV4({ name: 'New Plan', status: 'STAGING', security: { type: 'API_KEY' } });
+      flushPlansList([plan]);
+      tick();
+      fixture.detectChanges();
+
+      await planListHarness.selectStatusFilter(/STAGING/);
+      tick();
+      fixture.detectChanges();
+
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' })).then(btn => btn.click());
+      const dialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#publishPlanDialog' }));
+      await dialog.getHarness(MatButtonHarness.with({ text: 'Publish' })).then(btn => btn.click());
+
+      httpTestingController
+        .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans/${plan.id}/_publish`)
+        .flush({ message: 'Publish failed' }, { status: 500, statusText: 'Server Error' });
+      fixture.detectChanges();
+
+      expect(notifyPlanStateChangedSpy).not.toHaveBeenCalled();
+    }));
+  });
+
+  describe('selecting a plan type navigates to create route', () => {
+    it('navigates to new plan route with selected plan type as query param', fakeAsync(async () => {
+      await init();
+      fixture.detectChanges();
+      flushPlansList([]);
+      tick();
+      fixture.detectChanges();
+
+      await planListHarness.clickAddPlanMenuItem('API Key');
+
+      expect(routerNavigateSpy).toHaveBeenCalledWith(
+        ['./new'],
+        expect.objectContaining({ queryParams: { selectedPlanMenuItem: 'API_KEY' } }),
+      );
     }));
   });
 
@@ -451,10 +570,11 @@ describe('ApiProductPlanListComponent', () => {
       tick(); // allow reload() to schedule the list request
       fixture.detectChanges();
 
-      // Reload is triggered by triggerReload(); flush the second (reload) list request
-      const listUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans?page=1&perPage=9999&statuses=${PLAN_STATUS.join(',')}&fields=-flow`;
-      const listReq = httpTestingController.expectOne(req => req.method === 'GET' && req.urlWithParams === listUrl);
-      listReq.flush({ data: [plan2, { ...plan1, order: 2 }] });
+      httpTestingController
+        .expectOne(
+          `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans?page=1&perPage=9999&statuses=${PLAN_STATUS.join(',')}&fields=-flow`,
+        )
+        .flush({ data: [plan2, { ...plan1, order: 2 }] });
       fixture.detectChanges();
 
       const rowCells = await planListHarness.getRowCells();

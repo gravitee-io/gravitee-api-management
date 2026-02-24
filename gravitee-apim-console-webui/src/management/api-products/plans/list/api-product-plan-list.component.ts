@@ -20,6 +20,7 @@ import { catchError, EMPTY, filter, map, of, switchMap } from 'rxjs';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { orderBy } from 'lodash';
 import {
+  GIO_DIALOG_WIDTH,
   GioConfirmAndValidateDialogComponent,
   GioConfirmAndValidateDialogData,
   GioConfirmDialogComponent,
@@ -28,6 +29,7 @@ import {
 import { MatDialog } from '@angular/material/dialog';
 
 import { ApiProductPlanV2Service } from '../../../../services-ngx/api-product-plan-v2.service';
+import { ApiProductV2Service } from '../../../../services-ngx/api-product-v2.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ConstantsService, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
@@ -49,6 +51,7 @@ export class ApiProductPlanListComponent {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly plansService = inject(ApiProductPlanV2Service);
+  private readonly apiProductV2Service = inject(ApiProductV2Service);
   private readonly constantsService = inject(ConstantsService);
   private readonly permissionService = inject(GioPermissionService);
   private readonly matDialog = inject(MatDialog);
@@ -116,6 +119,11 @@ export class ApiProductPlanListComponent {
     this.plansResource.reload();
   }
 
+  private refreshPlansAfterStateChange(): void {
+    this.apiProductV2Service.notifyPlanStateChanged();
+    this.triggerReload();
+  }
+
   protected onStatusFilterChanged(status: PlanStatus): void {
     this.filterOverride.set(status);
   }
@@ -166,14 +174,14 @@ export class ApiProductPlanListComponent {
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(() => this.triggerReload());
+      .subscribe(() => this.refreshPlansAfterStateChange());
   }
 
   protected onPublishPlan(plan: Plan): void {
     const apiProductId = this.apiProductId();
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-        width: '500px',
+        width: GIO_DIALOG_WIDTH.SMALL,
         data: {
           title: 'Publish plan',
           content: `Are you sure you want to publish the plan ${plan.name}?`,
@@ -194,7 +202,7 @@ export class ApiProductPlanListComponent {
       )
       .subscribe(published => {
         this.snackBarService.success(`The plan ${published.name} has been published with success.`);
-        this.triggerReload();
+        this.refreshPlansAfterStateChange();
       });
   }
 
@@ -223,7 +231,7 @@ export class ApiProductPlanListComponent {
       )
       .subscribe(deprecated => {
         this.snackBarService.success(`The plan ${deprecated.name} has been deprecated with success.`);
-        this.triggerReload();
+        this.refreshPlansAfterStateChange();
       });
   }
 
@@ -255,7 +263,7 @@ export class ApiProductPlanListComponent {
       )
       .subscribe(closed => {
         this.snackBarService.success(`The plan ${closed.name} has been closed with success.`);
-        this.triggerReload();
+        this.refreshPlansAfterStateChange();
       });
   }
 

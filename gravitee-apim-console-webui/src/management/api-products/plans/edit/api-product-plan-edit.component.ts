@@ -23,6 +23,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { GioFormFocusInvalidModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 
 import { ApiProductPlanV2Service } from '../../../../services-ngx/api-product-plan-v2.service';
+import { ApiProductV2Service } from '../../../../services-ngx/api-product-v2.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { AVAILABLE_PLANS_FOR_MENU, PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
@@ -52,6 +53,7 @@ export class ApiProductPlanEditComponent {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly planService = inject(ApiProductPlanV2Service);
+  private readonly apiProductV2Service = inject(ApiProductV2Service);
   private readonly permissionService = inject(GioPermissionService);
   private readonly snackBarService = inject(SnackBarService);
 
@@ -76,7 +78,7 @@ export class ApiProductPlanEditComponent {
     combineLatest([toObservable(this.apiProductId), toObservable(this.planId)]).pipe(
       switchMap(([apiProductId, planId]) => {
         if (!planId) return of(undefined as Plan | undefined);
-        return this.planService.get(apiProductId, planId).pipe(catchError(err => this.handleError(err)));
+        return this.planService.get(apiProductId, planId).pipe(catchError(err => this.handleError(err, 'An error occurred.')));
       }),
     ),
     { initialValue: null as Plan | undefined | null },
@@ -114,7 +116,10 @@ export class ApiProductPlanEditComponent {
 
     savePlan$
       .pipe(
-        tap(() => this.snackBarService.success('Configuration successfully saved!')),
+        tap(() => {
+          this.snackBarService.success('Configuration successfully saved!');
+          this.apiProductV2Service.notifyPlanStateChanged();
+        }),
         catchError(err => this.handleError(err, 'An error occurred while saving configuration.')),
         takeUntilDestroyed(this.destroyRef),
       )

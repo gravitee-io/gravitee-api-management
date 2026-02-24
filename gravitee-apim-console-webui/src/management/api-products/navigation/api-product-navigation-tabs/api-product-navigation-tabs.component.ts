@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
 
@@ -26,7 +26,6 @@ export interface ApiProductTabMenuItem {
   selector: 'api-product-navigation-tabs',
   templateUrl: './api-product-navigation-tabs.component.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterModule, MatTabsModule],
 })
 export class ApiProductNavigationTabsComponent {
