@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Inject, Injectable, signal } from '@angular/core';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { distinctUntilChanged, filter, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { isEqual } from 'lodash';
 
 import { Constants } from '../entities/Constants';
 import {
@@ -25,16 +27,31 @@ import {
   CreateApiProduct,
   toApiProductSortByParam,
   UpdateApiProduct,
+  VerifyApiProductDeployResponse,
 } from '../entities/management-api-v2/api-product';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiProductV2Service {
+  private readonly _planStateVersion = signal(0);
+  readonly planStateVersion = this._planStateVersion.asReadonly();
+
+  private readonly lastApiProductFetch$ = new BehaviorSubject<ApiProduct | null>(null);
+
   constructor(
     private readonly http: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
+
+  /**
+   * Notifies subscribers that plan state has changed. Must be called after any operation that
+   * modifies plans: create, update, publish, deprecate, close, reorder, or delete.
+   * Keeps the navigation banner (e.g. NEED_REDEPLOY) in sync with the latest plan state.
+   */
+  notifyPlanStateChanged(): void {
+    this._planStateVersion.update(v => v + 1);
+  }
 
   /**
    * Create a new API Product
@@ -85,7 +102,31 @@ export class ApiProductV2Service {
    * @returns Observable of the API Product
    */
   get(apiProductId: string): Observable<ApiProduct> {
-    return this.http.get<ApiProduct>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}`);
+    return this.http
+      .get<ApiProduct>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}`)
+      .pipe(tap(api => this.lastApiProductFetch$.next(api)));
+  }
+
+  /**
+   * Returns the last fetched API Product, refetching if the cache is empty or for a different ID.
+   * Subscribers receive updates when the product is refreshed (e.g. after deploy or plan changes).
+   */
+  getLastApiProductFetch(apiProductId: string): Observable<ApiProduct> {
+    const start = this.lastApiProductFetch$.value?.id === apiProductId ? of(this.lastApiProductFetch$.value) : this.get(apiProductId);
+    return start.pipe(
+      switchMap(() => this.lastApiProductFetch$.asObservable()),
+      filter((api): api is ApiProduct => api !== null && api.id === apiProductId),
+      distinctUntilChanged(isEqual),
+      shareReplay({ bufferSize: 1, refCount: true }),
+    );
+  }
+
+  /**
+   * Refreshes the cached API Product by re-fetching from the server.
+   * Use when plan state or deployment state may have changed (e.g. after plan publish, deploy).
+   */
+  refreshLastApiProductFetch(apiProductId: string): Observable<ApiProduct> {
+    return this.get(apiProductId);
   }
 
   /**
@@ -117,7 +158,9 @@ export class ApiProductV2Service {
    * @returns Observable of the updated API Product
    */
   update(apiProductId: string, updateApiProduct: UpdateApiProduct): Observable<ApiProduct> {
-    return this.http.put<ApiProduct>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}`, updateApiProduct);
+    return this.http
+      .put<ApiProduct>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}`, updateApiProduct)
+      .pipe(tap(api => this.lastApiProductFetch$.next(api)));
   }
 
   /**
@@ -128,9 +171,11 @@ export class ApiProductV2Service {
    * @returns Observable of the updated API Product
    */
   updateApiProductApis(apiProductId: string, apiIds: string[]): Observable<ApiProduct> {
-    return this.http.put<ApiProduct>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}`, {
-      apiIds,
-    });
+    return this.http
+      .put<ApiProduct>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}`, {
+        apiIds,
+      })
+      .pipe(tap(api => this.lastApiProductFetch$.next(api)));
   }
 
   /**
@@ -144,6 +189,30 @@ export class ApiProductV2Service {
   }
 
   /**
+   * Deploy an API Product to gateway instances
+   * Calls POST /environments/{envId}/api-products/{apiProductId}/deployments
+   * @param apiProductId - The API Product ID
+   * @returns Observable of the deployed API Product
+   */
+  deploy(apiProductId: string): Observable<ApiProduct> {
+    return this.http
+      .post<ApiProduct>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}/deployments`, {})
+      .pipe(tap(api => this.lastApiProductFetch$.next(api)));
+  }
+
+  /**
+   * Check whether an API Product can be deployed (license check)
+   * Calls GET /environments/{envId}/api-products/{apiProductId}/deployments/_verify
+   * @param apiProductId - The API Product ID
+   * @returns Observable with ok boolean and optional reason
+   */
+  verifyDeploy(apiProductId: string): Observable<VerifyApiProductDeployResponse> {
+    return this.http.get<VerifyApiProductDeployResponse>(
+      `${this.constants.env.v2BaseURL}/api-products/${apiProductId}/deployments/_verify`,
+    );
+  }
+
+  /**
    * Verify if an API Product name is unique
    * Calls POST /environments/{envId}/api-products/_verify
    * @param name - The API Product name to verify
@@ -153,5 +222,15 @@ export class ApiProductV2Service {
     return this.http.post<{ ok: boolean; reason?: string }>(`${this.constants.env.v2BaseURL}/api-products/_verify`, {
       name,
     });
+  }
+
+  /**
+   * Get the current user's permissions for a given API Product
+   * Calls GET /environments/{envId}/api-products/{apiProductId}/members/permissions
+   * @param apiProductId - The API Product ID
+   * @returns Observable of permission map, where each value is a string of permission characters (e.g. { PLAN: 'CRUD' })
+   */
+  getPermissions(apiProductId: string): Observable<Record<string, string>> {
+    return this.http.get<Record<string, string>>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}/members/permissions`);
   }
 }

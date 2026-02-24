@@ -16,7 +16,7 @@
 
 -->
 
-@if (currentApiProduct$ | async; as currentApiProduct) {
+@if (currentApiProduct(); as currentApiProduct) {
   <div class="api-product-navigation">
     <div class="api-product-navigation__menu">
       <gio-submenu class="api-product-navigation__submenu">
@@ -47,7 +47,38 @@
       }
 
       <div class="api-product-navigation__content__view">
-        <router-outlet></router-outlet>
+        @if (banners().length > 0) {
+          <div class="api-product-navigation__content__view__banners">
+            @for (banner of banners(); track banner.title) {
+              <gio-banner [type]="banner.type">
+                {{ banner.title }}
+                @if (banner.action) {
+                  <div gioBannerAction>
+                    <button mat-stroked-button color="basic" (click)="banner.action.onClick()" [disabled]="isActionDisabled()">
+                      {{ banner.action.btnText }}
+                    </button>
+                  </div>
+                }
+                @if (banner.body) {
+                  <div gioBannerBody [innerHTML]="banner.body"></div>
+                }
+              </gio-banner>
+            }
+          </div>
+        }
+        @if (selectedItemHeader(); as header) {
+          <div class="api-product-navigation__content__view__section-header">
+            <div class="mat-h2">{{ header.title }}</div>
+            @if (header.subtitle) {
+              <div class="api-product-navigation__content__view__section-header__subtitle">{{ header.subtitle }}</div>
+            }
+          </div>
+        }
+        @if (selectedItemWithTabs(); as itemWithTabs) {
+          <api-product-navigation-tabs [tabMenuItems]="itemWithTabs.tabs"><router-outlet></router-outlet></api-product-navigation-tabs>
+        } @else {
+          <router-outlet></router-outlet>
+        }
       </div>
     </div>
   </div>
