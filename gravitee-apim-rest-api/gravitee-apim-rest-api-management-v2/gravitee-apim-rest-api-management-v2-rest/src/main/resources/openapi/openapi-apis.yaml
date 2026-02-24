@@ -4038,6 +4038,10 @@ components:
                   type: array
                   items:
                     type: string
+                allowedInApiProducts:
+                  type: boolean
+                  description: When set, filters results to only APIs with this allowedInApiProducts value. When true, only returns APIs allowed in API Products. When false, only returns APIs not allowed in API Products. Only applicable for V4 HTTP Proxy APIs.
+                  example: true
         ApiType:
             type: string
             description: API's type.
