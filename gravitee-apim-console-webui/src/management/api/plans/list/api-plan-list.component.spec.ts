@@ -290,6 +290,18 @@ describe('ApiPlanListComponent', () => {
         });
       });
 
+      it('should navigate to v4 policy studio when designPlan is called with V4 API', async () => {
+        const v4Api = fakeApiV4({ id: API_ID });
+        const plan = fakePlanV4({ apiId: API_ID, status: 'PUBLISHED' });
+        await initComponent([plan], v4Api);
+
+        component.designPlan(plan.id);
+
+        expect(routerNavigateSpy).toBeCalledWith(['../v4/policy-studio'], {
+          relativeTo: expect.anything(),
+        });
+      });
+
       describe('should publish the staging plan', () => {
         it('With a plan V2', async () => {
           const plan = fakePlanV2({ apiId: API_ID, name: 'publish me ☁️️', status: 'STAGING' });
@@ -694,6 +706,74 @@ describe('ApiPlanListComponent', () => {
           const dialog = await rootLoader.getHarness(MatDialogHarness);
           const cancelBtnInDialog = await dialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
           await cancelBtnInDialog.click();
+        });
+      });
+
+      describe('MTLS plan in staging', () => {
+        const MTLS_PLAN = fakePlanV4({ security: { type: 'MTLS' }, status: 'STAGING' });
+        beforeEach(async () => {
+          await initComponent([MTLS_PLAN], nativeApi, 'STAGING');
+        });
+
+        it('should publish MTLS plan and close published Keyless and auth plans', async () => {
+          const publishBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' }));
+          await publishBtn.click();
+
+          const publishedKeylessPlan = fakePlanV4({ id: 'keyless-plan', status: 'PUBLISHED', security: { type: 'KEY_LESS' } });
+          const publishedAuthPlan = fakePlanV4({ id: 'auth-plan', status: 'PUBLISHED', security: { type: 'API_KEY' } });
+
+          expectApiPlansListRequest([publishedKeylessPlan, publishedAuthPlan], ['PUBLISHED']);
+
+          const dialog = await rootLoader.getHarness(MatDialogHarness);
+          expect(await dialog.getText()).toContain('Are you sure you want to publish the mTLS plan');
+
+          const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+          expect(await rootLoader.getHarness(MatButtonHarness.with({ text: 'Publish & Close' }))).toBeTruthy();
+          await confirmDialog.confirm();
+
+          expectApiPlanCloseRequest(publishedKeylessPlan);
+          expectApiPlanCloseRequest(publishedAuthPlan);
+          expectApiPlanPublishRequest(MTLS_PLAN);
+
+          expectApiGetRequest(nativeApi);
+          expectApiPlansListRequest([], [...PLAN_STATUS]);
+        });
+
+        it('should publish MTLS plan and close published Keyless plan only', async () => {
+          const publishBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' }));
+          await publishBtn.click();
+
+          const publishedKeylessPlan = fakePlanV4({ id: 'keyless-plan', status: 'PUBLISHED', security: { type: 'KEY_LESS' } });
+
+          expectApiPlansListRequest([publishedKeylessPlan], ['PUBLISHED']);
+
+          const dialog = await rootLoader.getHarness(MatDialogHarness);
+          expect(await dialog.getText()).toContain('Are you sure you want to publish the mTLS plan');
+
+          const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+          await confirmDialog.confirm();
+
+          expectApiPlanCloseRequest(publishedKeylessPlan);
+          expectApiPlanPublishRequest(MTLS_PLAN);
+
+          expectApiGetRequest(nativeApi);
+          expectApiPlansListRequest([], [...PLAN_STATUS]);
+        });
+
+        it('should publish MTLS plan directly if no Keyless or auth plans are published', async () => {
+          const publishBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' }));
+          await publishBtn.click();
+
+          expectApiPlansListRequest([], ['PUBLISHED']);
+
+          const dialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#publishPlanDialog' }));
+          const publishBtnInDialog = await dialog.getHarness(MatButtonHarness.with({ text: 'Publish' }));
+          await publishBtnInDialog.click();
+
+          expectApiPlanPublishRequest(MTLS_PLAN);
+
+          expectApiGetRequest(nativeApi);
+          expectApiPlansListRequest([], [...PLAN_STATUS]);
         });
       });
     });
