@@ -46,7 +46,6 @@ type PlanDS = Plan & { securityTypeLabel: string };
 export class ApiPlanListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public api: Api;
-  public displayedColumns = ['name', 'type', 'status', 'deploy-on', 'actions'];
   public plansTableDS: PlanDS[] = [];
   public isLoadingData = true;
   public apiPlanStatus: { name: PlanStatus; number: number | null }[] = PLAN_STATUS.map(status => ({ name: status, number: null }));
@@ -81,10 +80,6 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
             api.definitionContext?.origin === 'KUBERNETES' ||
             api.definitionVersion === 'V1';
 
-          if (!this.isReadOnly && !this.displayedColumns.includes('drag-icon')) {
-            this.displayedColumns.unshift('drag-icon');
-          }
-
           this.computePlanOptions();
         }),
         tap(() => this.initPlansTableDS(this.status, true)),
@@ -105,6 +100,13 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
   public searchPlansByStatus(status: PlanStatus): void {
     this.status = status;
     this.initPlansTableDS(this.status);
+  }
+
+  public navigateToNewPlan(planFormType: string): void {
+    this.router.navigate(['./new'], {
+      relativeTo: this.activatedRoute,
+      queryParams: { selectedPlanMenuItem: planFormType },
+    });
   }
 
   public dropRow(event: CdkDragDrop<string[]>) {
