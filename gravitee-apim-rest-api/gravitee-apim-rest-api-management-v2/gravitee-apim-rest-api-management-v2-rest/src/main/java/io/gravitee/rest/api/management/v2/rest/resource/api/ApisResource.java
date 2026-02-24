@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ALLOW_IN_API_PRODUCTS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
@@ -321,12 +322,12 @@ public class ApisResource extends AbstractResource {
             apiQueryBuilder.addFilter(FIELD_PORTAL_STATUS, apiSearchQuery.getPublished());
         }
 
-        if (apiSearchQuery.getPublished() != null && !apiSearchQuery.getPublished().isEmpty()) {
-            apiQueryBuilder.addFilter(FIELD_PORTAL_STATUS, apiSearchQuery.getPublished());
-        }
-
         if (CollectionUtils.isNotEmpty(apiSearchQuery.getVisibilities())) {
             apiQueryBuilder.addFilter(FIELD_VISIBILITY, apiSearchQuery.getVisibilities());
+        }
+
+        if (apiSearchQuery.getAllowedInApiProducts() != null) {
+            apiQueryBuilder.addFilter(FIELD_ALLOW_IN_API_PRODUCTS, apiSearchQuery.getAllowedInApiProducts());
         }
 
         var selectedDefinitions = Stream.concat(

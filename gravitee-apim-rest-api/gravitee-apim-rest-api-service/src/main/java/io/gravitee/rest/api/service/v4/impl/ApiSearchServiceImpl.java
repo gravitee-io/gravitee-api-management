@@ -17,13 +17,16 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ALLOW_IN_API_PRODUCTS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.IntegrationRepository;
@@ -296,6 +299,13 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             return new Page<>(List.of(), 0, 0, 0);
         }
 
+        // Filter by allowedInApiProducts when requested (source of truth from DB, handles index staleness)
+        apis = filterApisByAllowedInApiProducts(apis, apiQuery);
+
+        if (apis.isEmpty()) {
+            return new Page<>(List.of(), 0, 0, 0);
+        }
+
         Map<String, PrimaryOwnerEntity> primaryOwners = primaryOwnerService.getPrimaryOwners(
             executionContext,
             apis.stream().map(Api::getId).toList()
@@ -324,9 +334,69 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             .sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()))
             .collect(
                 Collectors.collectingAndThen(Collectors.toList(), apiEntityList ->
-                    new Page<>(apiEntityList, pageable.getPageNumber(), apis.size(), apiIds.size())
+                    new Page<>(apiEntityList, pageable.getPageNumber(), apiEntityList.size(), apiIds.size())
                 )
             );
+    }
+
+    private List<Api> filterApisByAllowedInApiProducts(List<Api> apis, io.gravitee.rest.api.service.search.query.Query<?> apiQuery) {
+        if (apiQuery.getFilters() == null) {
+            return apis;
+        }
+        Object filterValue = apiQuery.getFilters().get(FIELD_ALLOW_IN_API_PRODUCTS);
+        if (filterValue == null) {
+            return apis;
+        }
+        Boolean expectedValue;
+        if (filterValue instanceof Boolean b) {
+            expectedValue = b;
+        } else if (filterValue instanceof Collection<?> coll && !coll.isEmpty()) {
+            String first = coll.iterator().next().toString();
+            expectedValue = "true".equalsIgnoreCase(first) ? Boolean.TRUE : Boolean.FALSE;
+        } else {
+            String filterStr = filterValue != null ? filterValue.toString() : "";
+            expectedValue = "true".equalsIgnoreCase(filterStr) ? Boolean.TRUE : Boolean.FALSE;
+        }
+
+        var objectMapper = new ObjectMapper();
+        List<Api> filtered = apis
+            .stream()
+            .filter(api -> {
+                if (api.getDefinition() == null) {
+                    return false;
+                }
+                if (!isV4ProxyApi(api, objectMapper)) {
+                    return false;
+                }
+                try {
+                    var tree = objectMapper.readTree(api.getDefinition());
+                    if (!tree.has("allowedInApiProducts")) {
+                        return !expectedValue;
+                    }
+                    boolean actualValue = tree.get("allowedInApiProducts").asBoolean();
+                    return Objects.equals(actualValue, expectedValue);
+                } catch (Exception e) {
+                    log.warn("Failed to parse allowedInApiProducts from API {} definition", api.getId(), e);
+                    return false;
+                }
+            })
+            .toList();
+        return filtered;
+    }
+
+    private static boolean isV4ProxyApi(Api api, ObjectMapper objectMapper) {
+        if (api.getType() == ApiType.PROXY) {
+            return true;
+        }
+        if (api.getDefinition() == null) {
+            return false;
+        }
+        try {
+            var tree = objectMapper.readTree(api.getDefinition());
+            return "PROXY".equals(tree.path("type").asText(null));
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private List<String> getApiIdPageSubset(Collection<String> ids, Pageable pageable) {
