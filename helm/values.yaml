@@ -414,6 +414,10 @@ alerts:
     enabled: false
     username: admin
     password: adminadmin
+  api:
+    ws:
+      defaultFilters:
+        enabled: true
 
 management:
   type: mongodb

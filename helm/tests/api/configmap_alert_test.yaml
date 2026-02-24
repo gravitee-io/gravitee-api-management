@@ -36,6 +36,38 @@ tests:
       - matchRegex:
           path: data["gravitee.yml"]
           pattern: "[ ]{6}- http://localhost:8072/"
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "defaultFilters:"
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "[ ]{6}enabled: true"
+
+  - it: should set defaultFilters enabled to true when explicitly set
+    set:
+      alerts.enabled: true
+      alerts.security.enabled: false
+      alerts.api.ws.defaultFilters.enabled: true
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "defaultFilters:"
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "[ ]{6}enabled: true"
+
+  - it: should set defaultFilters enabled to false when explicitly set
+    set:
+      alerts.enabled: true
+      alerts.security.enabled: false
+      alerts.api.ws.defaultFilters.enabled: false
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "defaultFilters:"
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "[ ]{6}enabled: false"
 
   - it: should set alert engine values enabled
     set:
