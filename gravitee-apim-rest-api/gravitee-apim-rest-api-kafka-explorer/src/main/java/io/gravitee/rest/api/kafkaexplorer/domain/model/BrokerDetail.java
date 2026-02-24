@@ -15,6 +15,4 @@
  */
 package io.gravitee.rest.api.kafkaexplorer.domain.model;
 
-import java.util.List;
-
-public record KafkaClusterInfo(String clusterId, KafkaNode controller, List<BrokerDetail> nodes, int totalTopics, int totalPartitions) {}
+public record BrokerDetail(int id, String host, int port, String rack, int leaderPartitions, int replicaPartitions, Long logDirSize) {}

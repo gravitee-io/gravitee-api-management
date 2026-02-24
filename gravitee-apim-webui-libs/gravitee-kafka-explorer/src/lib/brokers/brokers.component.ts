@@ -18,7 +18,7 @@ import { Component, input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 
-import { KafkaNode } from '../models/kafka-cluster.model';
+import { BrokerDetail } from '../models/kafka-cluster.model';
 
 @Component({
   selector: 'gke-brokers',
@@ -28,7 +28,17 @@ import { KafkaNode } from '../models/kafka-cluster.model';
   styleUrls: ['./brokers.component.scss'],
 })
 export class BrokersComponent {
-  nodes = input<KafkaNode[]>([]);
+  nodes = input<BrokerDetail[]>([]);
+  controllerId = input<number>(-1);
 
-  displayedColumns = ['id', 'host', 'port'];
+  displayedColumns = ['id', 'host', 'port', 'rack', 'leaderPartitions', 'replicaPartitions', 'logDirSize'];
+
+  formatBytes(bytes: number | null): string {
+    if (bytes === null || bytes === undefined) return '-';
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
 }

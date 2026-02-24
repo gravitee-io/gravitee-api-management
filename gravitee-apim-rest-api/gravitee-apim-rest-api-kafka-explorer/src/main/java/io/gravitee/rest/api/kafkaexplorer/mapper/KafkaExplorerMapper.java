@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.kafkaexplorer.mapper;
 
+import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaNode;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterResponse;
@@ -28,4 +29,6 @@ public interface KafkaExplorerMapper {
     DescribeClusterResponse map(KafkaClusterInfo clusterInfo);
 
     io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaNode map(KafkaNode node);
+
+    io.gravitee.rest.api.kafkaexplorer.rest.model.BrokerDetail map(BrokerDetail brokerDetail);
 }

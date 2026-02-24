@@ -70,7 +70,15 @@ components:
                 nodes:
                     type: array
                     items:
-                        $ref: "#/components/schemas/KafkaNode"
+                        $ref: "#/components/schemas/BrokerDetail"
+                totalTopics:
+                    type: integer
+                    format: int32
+                    description: Total number of topics in the cluster
+                totalPartitions:
+                    type: integer
+                    format: int32
+                    description: Total number of partitions across all topics
 
         KafkaNode:
             type: object
@@ -83,6 +91,33 @@ components:
                 port:
                     type: integer
                     format: int32
+
+        BrokerDetail:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+                host:
+                    type: string
+                port:
+                    type: integer
+                    format: int32
+                rack:
+                    type: string
+                    description: Rack identifier of this broker, or null if not configured
+                leaderPartitions:
+                    type: integer
+                    format: int32
+                    description: Number of partitions for which this broker is the leader
+                replicaPartitions:
+                    type: integer
+                    format: int32
+                    description: Number of partition replicas hosted on this broker
+                logDirSize:
+                    type: integer
+                    format: int64
+                    description: Total size of all log directories on this broker in bytes, or null if unavailable
 
         KafkaExplorerError:
             type: object

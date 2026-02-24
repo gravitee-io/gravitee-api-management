@@ -23,6 +23,7 @@ import inmemory.ClusterCrudServiceInMemory;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaNode;
 import io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service.KafkaClusterDomainServiceInMemory;
@@ -59,7 +60,9 @@ class DescribeKafkaClusterUseCaseTest {
         var expectedInfo = new KafkaClusterInfo(
             "cluster-1",
             new KafkaNode(0, "broker-host", 9092),
-            List.of(new KafkaNode(0, "broker-host", 9092))
+            List.of(new BrokerDetail(0, "broker-host", 9092, null, 5, 10, 1024L)),
+            1,
+            5
         );
         clusterDomainService.givenClusterInfo(expectedInfo);
 

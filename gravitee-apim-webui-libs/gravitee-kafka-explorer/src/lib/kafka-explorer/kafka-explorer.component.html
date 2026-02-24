@@ -41,10 +41,22 @@
             <span class="mat-caption">Controller</span>
             <span class="mat-body-2">{{ info.controller.host }}:{{ info.controller.port }} (node {{ info.controller.id }})</span>
           </div>
+          <div class="kafka-explorer__topbar-item">
+            <span class="mat-caption">Brokers</span>
+            <span class="mat-body-2">{{ info.nodes.length }}</span>
+          </div>
+          <div class="kafka-explorer__topbar-item">
+            <span class="mat-caption">Topics</span>
+            <span class="mat-body-2">{{ info.totalTopics }}</span>
+          </div>
+          <div class="kafka-explorer__topbar-item">
+            <span class="mat-caption">Partitions</span>
+            <span class="mat-body-2">{{ info.totalPartitions }}</span>
+          </div>
         </div>
       </mat-card-content>
     </mat-card>
 
-    <gke-brokers [nodes]="info.nodes" />
+    <gke-brokers [nodes]="info.nodes" [controllerId]="info.controller.id" />
   </div>
 }
