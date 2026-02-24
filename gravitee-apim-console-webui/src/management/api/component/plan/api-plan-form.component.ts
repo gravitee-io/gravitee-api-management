@@ -19,6 +19,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   Host,
   HostBinding,
   Input,
@@ -26,7 +27,10 @@ import {
   OnInit,
   Optional,
   ViewChild,
+  inject,
+  signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -133,6 +137,9 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   isNative = false;
 
   @Input()
+  hideAccessControl = false;
+
+  @Input()
   apiType?: ApiType;
 
   @Input()
@@ -163,6 +170,13 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
 
   @ViewChild('stepper', { static: true })
   private matStepper: MatStepper;
+
+  /**
+   * Increments on init and step changes. Reading this inside hasNextStep() / hasPreviousStep()
+   * forces parent computed() signals to re-evaluate reactively.
+   */
+  private readonly _stepChangeCounter = signal(0);
+  private readonly destroyRef = inject(DestroyRef);
 
   private _onChange: (_: PlanFormValue) => void;
   private _onTouched: () => void;
@@ -224,6 +238,13 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     this.initPlanForm();
     this.isInit = true;
 
+    // Subscribe to step navigation so _stepChangeCounter stays reactive across step changes.
+    this.matStepper.selectionChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this._stepChangeCounter.update(n => n + 1);
+    });
+
+    this._stepChangeCounter.update(n => n + 1);
+
     // https://github.com/angular/components/issues/19027
     this.changeDetectorRef.detectChanges();
   }
@@ -278,6 +299,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   }
 
   hasNextStep(): boolean | null {
+    this._stepChangeCounter(); // Establish reactive dependency for parent computed() signals.
     if (isEmpty(this.matStepper?.steps)) {
       return null;
     }
@@ -303,6 +325,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   }
 
   hasPreviousStep(): boolean | null {
+    this._stepChangeCounter(); // Establish reactive dependency for parent computed() signals.
     if (isEmpty(this.matStepper?.steps)) {
       return false;
     }
