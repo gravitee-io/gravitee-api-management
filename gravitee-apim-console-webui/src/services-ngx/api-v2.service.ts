@@ -262,7 +262,7 @@ export class ApiV2Service {
     );
   }
 
-  getApiProductsForApi(apiId: string, page = 1, perPage = 1000): Observable<ApiProductsForApiResponse> {
+  getApiProductsForApi(apiId: string, page = 1, perPage = 500): Observable<ApiProductsForApiResponse> {
     const params = new HttpParams().set('page', page.toString()).set('perPage', perPage.toString());
     return this.http.get<ApiProductsForApiResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/api-products`, { params });
   }

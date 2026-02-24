@@ -97,7 +97,7 @@
                   <span
                     matTooltip="API is currently used in API Products"
                     [matTooltipDisabled]="
-                      !isApiUsedInProducts ||
+                      !isApiUsedInProducts() ||
                       !apiDetailsForm.get('allowedInApiProducts')?.disabled ||
                       !apiDetailsForm.get('allowedInApiProducts')?.value
                     "
@@ -161,24 +161,27 @@
                   </dd>
                 }
 
-                @if (apiProducts.length > 0) {
+                @if (apiProducts().length > 0) {
                   <dt>Included in</dt>
                   <dd>
-                    @let displayedProducts = apiProducts.slice(0, displayedApiProductsCount);
-                    @let remainingCount = apiProducts.length - displayedApiProductsCount;
+                    @let displayedProducts = apiProducts().slice(0, displayedApiProductsCount);
+                    @let remainingCount = apiProducts().length - displayedApiProductsCount;
                     @for (product of displayedProducts; track product.id) {
-                      <a [routerLink]="['../../api-products', product.id]">{{ product.name }}</a
-                      >@if (!$last) {, }
+                      {{ product.name }}
+                      @if (!$last) {
+                        ,
+                      }
                     }
                     @if (remainingCount > 0) {
-                      , <button
-                          type="button"
-                          (click)="openIncludedInDialog()"
-                          class="included-in-more-link"
-                          data-testid="api_info_included_in_more"
-                        >
-                          +{{ remainingCount }} more
-                        </button>
+                      ,
+                      <button
+                        type="button"
+                        (click)="openIncludedInDialog()"
+                        class="included-in-more-link"
+                        data-testid="api_info_included_in_more"
+                      >
+                        +{{ remainingCount }} more
+                      </button>
                     }
                   </dd>
                 }

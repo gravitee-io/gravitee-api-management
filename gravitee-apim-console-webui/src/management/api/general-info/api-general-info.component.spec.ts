@@ -156,6 +156,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
+      expectApiProductsRequest();
 
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
@@ -218,6 +219,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       expectQualityRulesRequest();
       expectQualityRequest(api.id);
+      expectApiProductsRequest();
 
       const apiQualityInfo = await loader.getHarness(ApiGeneralInfoQualityHarness);
       expect(apiQualityInfo).toBeTruthy();
@@ -244,6 +246,7 @@ describe('ApiGeneralInfoComponent', () => {
 
         // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
         await waitImageCheck();
+        expectApiProductsRequest();
 
         const saveBar = await loader.getHarness(GioSaveBarHarness);
         expect(await saveBar.isVisible()).toBe(false);
@@ -322,6 +325,8 @@ describe('ApiGeneralInfoComponent', () => {
           { id: 'category1', name: 'Category 1', key: 'category1' },
           { id: 'category2', name: 'Category 2', key: 'category2' },
         ]);
+        await waitImageCheck();
+        expectApiProductsRequest();
       });
 
       it('should disable field when origin is kubernetes', async () => {
@@ -343,6 +348,7 @@ describe('ApiGeneralInfoComponent', () => {
 
         // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
         await waitImageCheck();
+        expectApiProductsRequest();
 
         const saveBar = await loader.getHarness(GioSaveBarHarness);
         expect(await saveBar.isVisible()).toBe(false);
@@ -399,6 +405,7 @@ describe('ApiGeneralInfoComponent', () => {
 
         // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
         await waitImageCheck();
+        expectApiProductsRequest();
 
         const button = await loader.getHarness(MatButtonHarness.with({ text: /Export/ }));
         await button.click();
@@ -425,6 +432,7 @@ describe('ApiGeneralInfoComponent', () => {
 
         // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
         await waitImageCheck();
+        expectApiProductsRequest();
 
         const button = await loader.getHarness(MatButtonHarness.with({ text: /Duplicate/ }));
         await button.click();
@@ -456,6 +464,7 @@ describe('ApiGeneralInfoComponent', () => {
 
         // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
         await waitImageCheck();
+        expectApiProductsRequest();
         fixture.detectChanges();
 
         await expectQualityRulesRequest();
@@ -472,6 +481,7 @@ describe('ApiGeneralInfoComponent', () => {
 
         // Wait image to be loaded
         await waitImageCheck();
+        expectApiProductsRequest();
 
         const migrateBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="api_info_migrate_menu"]' }));
         expect(migrateBtn).toBeTruthy();
@@ -482,6 +492,7 @@ describe('ApiGeneralInfoComponent', () => {
         expectApiGetRequest(api);
         expectCategoriesGetRequest();
         await waitImageCheck();
+        expectApiProductsRequest();
 
         // Click migrate
         const migrateBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="api_info_migrate_menu"]' }));
@@ -520,6 +531,8 @@ describe('ApiGeneralInfoComponent', () => {
         // After migration success, component reloads API and categories
         expectApiGetRequest(api);
         expectCategoriesGetRequest();
+        await waitImageCheck();
+        expectApiProductsRequest();
       });
 
       it('should open migration dialog and perform forced migration on CAN_BE_FORCED', async () => {
@@ -527,6 +540,7 @@ describe('ApiGeneralInfoComponent', () => {
         expectApiGetRequest(api);
         expectCategoriesGetRequest();
         await waitImageCheck();
+        expectApiProductsRequest();
 
         const migrateBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="api_info_migrate_menu"]' }));
         await migrateBtn.click();
@@ -565,6 +579,8 @@ describe('ApiGeneralInfoComponent', () => {
         // After migration success, component reloads API and categories
         expectApiGetRequest(api);
         expectCategoriesGetRequest();
+        await waitImageCheck();
+        expectApiProductsRequest();
       });
 
       it('should show IMPOSSIBLE state and not allow migration', async () => {
@@ -572,6 +588,7 @@ describe('ApiGeneralInfoComponent', () => {
         expectApiGetRequest(api);
         expectCategoriesGetRequest();
         await waitImageCheck();
+        expectApiProductsRequest();
 
         // Open dialog
         const btn = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="api_info_migrate_menu"]' }));
@@ -624,7 +641,7 @@ describe('ApiGeneralInfoComponent', () => {
       fixture.detectChanges();
 
       const productsReq = httpTestingController.expectOne(
-        (req) => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
+        req => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
       );
       productsReq.flush({ data: [] });
       fixture.detectChanges();
@@ -638,8 +655,8 @@ describe('ApiGeneralInfoComponent', () => {
       fixture.componentInstance['refresh$']?.next?.();
       expectApiGetRequest(apiNative);
       expectCategoriesGetRequest();
-
       await waitImageCheck();
+      expectApiProductsRequest();
       fixture.detectChanges();
 
       allowInProductToggle = await loader.getHarnessOrNull(
@@ -656,7 +673,7 @@ describe('ApiGeneralInfoComponent', () => {
       await waitImageCheck();
       fixture.detectChanges();
       let productsReq = httpTestingController.expectOne(
-        (req) => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
+        req => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
       );
       productsReq.flush({ data: [] });
       fixture.detectChanges();
@@ -671,7 +688,7 @@ describe('ApiGeneralInfoComponent', () => {
       await waitImageCheck();
       fixture.detectChanges();
       productsReq = httpTestingController.expectOne(
-        (req) => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
+        req => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
       );
       productsReq.flush({ data: [] });
       fixture.detectChanges();
@@ -687,7 +704,7 @@ describe('ApiGeneralInfoComponent', () => {
       await waitImageCheck();
       fixture.detectChanges();
       productsReq = httpTestingController.expectOne(
-        (req) => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
+        req => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
       );
       productsReq.flush({ data: [] });
       fixture.detectChanges();
@@ -705,7 +722,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       // Simulate API is used in products (non-empty data)
       const productsReq = httpTestingController.expectOne(
-        (req) => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
+        req => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
       );
       productsReq.flush({ data: [{ id: 'apip1' }] });
       fixture.detectChanges();
@@ -723,7 +740,7 @@ describe('ApiGeneralInfoComponent', () => {
       fixture.detectChanges();
 
       const productsReq = httpTestingController.expectOne(
-        (req) => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
+        req => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
       );
       productsReq.flush(
         { message: 'error' },
@@ -751,7 +768,7 @@ describe('ApiGeneralInfoComponent', () => {
       fixture.detectChanges();
 
       const productsReq = httpTestingController.expectOne(
-        (req) => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
+        req => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
       );
       productsReq.flush({ data: [] });
       fixture.detectChanges();
@@ -769,7 +786,7 @@ describe('ApiGeneralInfoComponent', () => {
       fixture.detectChanges();
 
       const productsReq = httpTestingController.expectOne(
-        (req) => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
+        req => req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/api-products`) && req.method === 'GET',
       );
       productsReq.flush({ data: null });
       fixture.detectChanges();
@@ -795,6 +812,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
+      expectApiProductsRequest();
 
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
@@ -871,6 +889,8 @@ describe('ApiGeneralInfoComponent', () => {
         { id: 'category1', name: 'Category 1', key: 'category1' },
         { id: 'category2', name: 'Category 2', key: 'category2' },
       ]);
+      await waitImageCheck();
+      expectApiProductsRequest();
     });
 
     it('should disable field when origin is kubernetes', async () => {
@@ -892,6 +912,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
+      expectApiProductsRequest();
 
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
@@ -943,6 +964,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
+      expectApiProductsRequest();
       fixture.detectChanges();
       expectApiVerifyDeployment(api, true);
 
@@ -969,6 +991,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
+      expectApiProductsRequest();
       fixture.detectChanges();
       expectApiVerifyDeployment(api, true);
 
@@ -994,6 +1017,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
+      expectApiProductsRequest();
 
       const button = await loader.getHarness(MatButtonHarness.with({ text: /Duplicate/ }));
       expect(await button.isDisabled()).toBeFalsy();
@@ -1066,6 +1090,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
+      expectApiProductsRequest();
       fixture.detectChanges();
 
       expectApiVerifyDeployment(api, true);
@@ -1083,6 +1108,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
+      expectApiProductsRequest();
       fixture.detectChanges();
       expectApiVerifyDeployment(api, true);
 
@@ -1115,9 +1141,14 @@ describe('ApiGeneralInfoComponent', () => {
       fixture.componentInstance.isQualityEnabled = true;
       const api = fakeApiFederated({
         id: API_ID,
-      });
+        primaryOwner: { id: 'owner-1', displayName: 'Owner', email: 'owner@gravitee.io' },
+        _links: { pictureUrl: null, backgroundUrl: null },
+      } as any);
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
+      await waitImageCheck();
+      expectApiProductsRequest();
+      expectIntegrationGetRequest();
 
       const apiQualityInfo = await loader.getHarnessOrNull(ApiGeneralInfoQualityHarness);
       expect(apiQualityInfo).toBeNull();
@@ -1127,9 +1158,14 @@ describe('ApiGeneralInfoComponent', () => {
       fixture.componentInstance.isQualityEnabled = true;
       const api = fakeApiFederated({
         id: API_ID,
-      });
+        primaryOwner: { id: 'owner-1', displayName: 'Owner', email: 'owner@gravitee.io' },
+        _links: { pictureUrl: null, backgroundUrl: null },
+      } as any);
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
+      await waitImageCheck();
+      expectApiProductsRequest();
+      expectIntegrationGetRequest();
 
       await Promise.all(
         [/Import/, /Export/, /Duplicate/, /Promote/].map(async btnText => {
@@ -1142,7 +1178,7 @@ describe('ApiGeneralInfoComponent', () => {
 
   function expectApiProductsRequest(apiId: string = API_ID, data: { data: unknown[] } = { data: [] }) {
     const req = httpTestingController.expectOne(
-      (r) => r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/api-products`) && r.method === 'GET',
+      r => r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/api-products`) && r.method === 'GET',
     );
     req.flush(data);
     fixture.detectChanges();
@@ -1219,6 +1255,13 @@ describe('ApiGeneralInfoComponent', () => {
 
   function expectQualityRulesRequest() {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/configuration/quality-rules`, method: 'GET' });
+    fixture.detectChanges();
+  }
+
+  function expectIntegrationGetRequest(integrationId = 'integration-id') {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}`, method: 'GET' })
+      .flush({ id: integrationId, name: 'Test Integration', provider: 'A2A' });
     fixture.detectChanges();
   }
 

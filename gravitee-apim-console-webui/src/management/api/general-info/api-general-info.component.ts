@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, computed, DestroyRef, Inject, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { combineLatest, EMPTY, of, Subject, throwError, merge } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, NewFile } from '@gravitee/ui-particles-angular';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import {
   ApiGeneralInfoDuplicateDialogComponent,
@@ -100,7 +101,8 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   public cannotPromote = true;
   public canDisplayV4EmulationEngineToggle = false;
   public canDisplayAllowInApiProduct = false;
-  public isApiUsedInProducts = false;
+  public readonly apiProducts = signal<ApiProduct[]>([]);
+  public readonly isApiUsedInProducts = computed(() => this.apiProducts().length > 0);
 
   public isQualityEnabled = false;
   public isQualitySupported = false;
@@ -111,8 +113,9 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   public integrationName = '';
   public integrationId = '';
 
-  public apiProducts: ApiProduct[] = [];
   public readonly displayedApiProductsCount = 5;
+
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(
     private readonly router: Router,
@@ -238,7 +241,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
             }),
             allowedInApiProducts: new UntypedFormControl({
               value: this.canDisplayAllowInApiProduct && (api.allowedInApiProducts ?? false),
-              disabled: this.isReadOnly || !this.canDisplayAllowInApiProduct || this.isApiUsedInProducts,
+              disabled: this.isReadOnly || !this.canDisplayAllowInApiProduct || this.isApiUsedInProducts(),
             }),
           });
           this.apiImagesForm = new UntypedFormGroup({
@@ -288,28 +291,27 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
       .getApiProductsForApi(this.apiId)
       .pipe(
         catchError(() => of({ data: [] })),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe(response => {
-        this.apiProducts = response.data ?? [];
-        this.isApiUsedInProducts = this.apiProducts.length > 0;
-        if (this.canDisplayAllowInApiProduct) {
-          const allowedInApiProductsControl = this.apiDetailsForm.get('allowedInApiProducts');
-          if (allowedInApiProductsControl) {
-            const shouldDisable = this.isApiUsedInProducts || this.isReadOnly;
-            shouldDisable
-              ? allowedInApiProductsControl.disable({ emitEvent: false })
-              : allowedInApiProductsControl.enable({ emitEvent: false });
+        tap(response => {
+          const data = response.data ?? [];
+          this.apiProducts.set(data);
+          if (this.canDisplayAllowInApiProduct) {
+            const control = this.apiDetailsForm.get('allowedInApiProducts');
+            if (control) {
+              const shouldDisable = data.length > 0 || this.isReadOnly;
+              shouldDisable ? control.disable({ emitEvent: false }) : control.enable({ emitEvent: false });
+            }
           }
-        }
-      });
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   openIncludedInDialog(): void {
     this.matDialog.open<ApiGeneralInfoIncludedInDialogComponent, ApiGeneralInfoIncludedInDialogData>(
       ApiGeneralInfoIncludedInDialogComponent,
       {
-        data: { apiProducts: this.apiProducts },
+        data: { apiProducts: this.apiProducts() },
         role: 'alertdialog',
         id: 'includedInApiProductsDialog',
       },

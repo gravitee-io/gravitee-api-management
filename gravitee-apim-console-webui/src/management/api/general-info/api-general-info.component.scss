@@ -150,7 +150,7 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .included-in-more-link {
-  color: var(--gio-color-primary, #3366ff);
+  color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
   text-decoration: underline;
   cursor: pointer;
   background: none;
