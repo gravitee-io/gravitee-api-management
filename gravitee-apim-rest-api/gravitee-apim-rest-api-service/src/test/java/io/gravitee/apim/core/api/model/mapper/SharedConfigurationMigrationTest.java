@@ -28,7 +28,10 @@ import io.gravitee.definition.model.HttpProxy;
 import io.gravitee.definition.model.ProtocolVersion;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class SharedConfigurationMigrationTest {
 
@@ -82,5 +85,153 @@ class SharedConfigurationMigrationTest {
         assertThat(json.has("ssl")).isFalse();
         assertThat(json.has("headers")).isFalse();
         assertThat(json.has("proxy")).isFalse();
+    }
+
+    @Test
+    void should_produce_empty_json_when_all_options_are_null() throws JsonProcessingException {
+        var group = new EndpointGroup();
+        group.setHttpClientOptions(null);
+        group.setHttpClientSslOptions(null);
+        group.setHeaders(null);
+        group.setHttpProxy(null);
+
+        var result = sharedConfigurationMigration.convert(group);
+        JsonNode json = objectMapper.readTree(result);
+
+        assertThat(json.has("http")).isFalse();
+        assertThat(json.has("ssl")).isFalse();
+        assertThat(json.has("headers")).isFalse();
+        assertThat(json.has("proxy")).isFalse();
+        assertThat(json.isEmpty()).isTrue();
+    }
+
+    @Test
+    void should_include_http2_specific_fields_when_version_is_http2() throws JsonProcessingException {
+        var group = new EndpointGroup();
+        var options = new HttpClientOptions();
+        options.setVersion(ProtocolVersion.HTTP_2);
+        options.setClearTextUpgrade(true);
+        group.setHttpClientOptions(options);
+
+        var result = sharedConfigurationMigration.convert(group);
+        JsonNode json = objectMapper.readTree(result);
+
+        JsonNode httpNode = json.get("http");
+        assertThat(httpNode).isNotNull();
+        assertThat(httpNode.get("version").asText()).isEqualTo(ProtocolVersion.HTTP_2.name());
+        assertThat(httpNode.has("clearTextUpgrade")).isTrue();
+        assertThat(httpNode.get("clearTextUpgrade").asBoolean()).isTrue();
+    }
+
+    @Test
+    void should_not_include_clearTextUpgrade_when_version_is_http11() throws JsonProcessingException {
+        var group = new EndpointGroup();
+        var options = new HttpClientOptions();
+        options.setVersion(ProtocolVersion.HTTP_1_1);
+        options.setClearTextUpgrade(true); // should be ignored for HTTP_1_1
+        group.setHttpClientOptions(options);
+
+        var result = sharedConfigurationMigration.convert(group);
+        JsonNode json = objectMapper.readTree(result);
+
+        JsonNode httpNode = json.get("http");
+        assertThat(httpNode).isNotNull();
+        assertThat(httpNode.get("version").asText()).isEqualTo(ProtocolVersion.HTTP_1_1.name());
+        assertThat(httpNode.has("clearTextUpgrade")).isFalse();
+    }
+
+    @Nested
+    class ProxyMigrationTest {
+
+        @Test
+        void should_map_proxy_with_use_system_proxy_enabled() throws JsonProcessingException {
+            var group = new EndpointGroup();
+            var options = new HttpClientOptions();
+            options.setVersion(ProtocolVersion.HTTP_1_1);
+            group.setHttpClientOptions(options);
+
+            var proxy = new HttpProxy();
+            proxy.setEnabled(true);
+            proxy.setUseSystemProxy(true);
+            proxy.setHost("proxy.example.com");
+            proxy.setPort(8080);
+            group.setHttpProxy(proxy);
+
+            var result = sharedConfigurationMigration.convert(group);
+            JsonNode json = objectMapper.readTree(result);
+
+            JsonNode proxyNode = json.get("proxy");
+            assertThat(proxyNode).isNotNull();
+            assertThat(proxyNode.has("host")).isFalse();
+            assertThat(proxyNode.has("port")).isFalse();
+            assertThat(proxyNode.has("type")).isFalse();
+            assertThat(proxyNode.has("enabled")).isFalse();
+            assertThat(proxyNode.get("useSystemProxy").asBoolean()).isTrue();
+        }
+
+        @Test
+        void should_not_modify_proxy_when_not_using_system_proxy() throws JsonProcessingException {
+            var group = new EndpointGroup();
+            var options = new HttpClientOptions();
+            options.setVersion(ProtocolVersion.HTTP_1_1);
+            group.setHttpClientOptions(options);
+
+            var proxy = new HttpProxy();
+            proxy.setEnabled(true);
+            proxy.setUseSystemProxy(false);
+            proxy.setHost("proxy.example.com");
+            proxy.setPort(3128);
+            group.setHttpProxy(proxy);
+
+            var result = sharedConfigurationMigration.convert(group);
+            JsonNode json = objectMapper.readTree(result);
+
+            JsonNode proxyNode = json.get("proxy");
+            assertThat(proxyNode).isNotNull();
+            assertThat(proxyNode.get("host").asText()).isEqualTo("proxy.example.com");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "" })
+        void should_set_host_to_slash_when_host_is_blank(String host) throws JsonProcessingException {
+            var group = new EndpointGroup();
+            var options = new HttpClientOptions();
+            options.setVersion(ProtocolVersion.HTTP_1_1);
+            group.setHttpClientOptions(options);
+
+            var proxy = new HttpProxy();
+            proxy.setEnabled(false);
+            proxy.setUseSystemProxy(false);
+            proxy.setHost(host);
+            group.setHttpProxy(proxy);
+
+            var result = sharedConfigurationMigration.convert(group);
+            JsonNode json = objectMapper.readTree(result);
+
+            JsonNode proxyNode = json.get("proxy");
+            assertThat(proxyNode).isNotNull();
+            assertThat(proxyNode.get("host").asText()).isEqualTo("/");
+        }
+
+        @Test
+        void should_set_host_to_slash_when_host_is_null() throws JsonProcessingException {
+            var group = new EndpointGroup();
+            var options = new HttpClientOptions();
+            options.setVersion(ProtocolVersion.HTTP_1_1);
+            group.setHttpClientOptions(options);
+
+            var proxy = new HttpProxy();
+            proxy.setEnabled(false);
+            proxy.setUseSystemProxy(false);
+            proxy.setHost(null);
+            group.setHttpProxy(proxy);
+
+            var result = sharedConfigurationMigration.convert(group);
+            JsonNode json = objectMapper.readTree(result);
+
+            JsonNode proxyNode = json.get("proxy");
+            assertThat(proxyNode).isNotNull();
+            assertThat(proxyNode.get("host").asText()).isEqualTo("/");
+        }
     }
 }
