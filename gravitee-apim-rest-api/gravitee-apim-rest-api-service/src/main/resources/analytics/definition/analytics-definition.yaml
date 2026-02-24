@@ -17,6 +17,8 @@ spec:
           apis:
               - HTTP_PROXY
               - LLM
+              - MESSAGE
+              - MCP
           type: COUNTER
           measures:
               - COUNT
@@ -49,6 +51,7 @@ spec:
               - MCP_PROXY_PROMPT
           filters:
               - API
+              - API_TYPE
               - APPLICATION
               - PLAN
               - GATEWAY
@@ -82,6 +85,8 @@ spec:
           apis:
               - HTTP_PROXY
               - LLM
+              - MESSAGE
+              - MCP
           type: GAUGE
           unit: NUMBER
           measures:
@@ -114,6 +119,7 @@ spec:
               - MCP_PROXY_PROMPT
           filters:
               - API
+              - API_TYPE
               - APPLICATION
               - PLAN
               - GATEWAY
@@ -147,6 +153,8 @@ spec:
           apis:
               - HTTP_PROXY
               - LLM
+              - MESSAGE
+              - MCP
           type: GAUGE
           unit: BYTES
           measures:
@@ -184,6 +192,7 @@ spec:
               - MCP_PROXY_PROMPT
           filters:
               - API
+              - API_TYPE
               - APPLICATION
               - PLAN
               - GATEWAY
@@ -216,6 +225,8 @@ spec:
           apis:
               - HTTP_PROXY
               - LLM
+              - MESSAGE
+              - MCP
           measures:
               - AVG
               - MIN
@@ -253,6 +264,7 @@ spec:
               - MCP_PROXY_PROMPT
           filters:
               - API
+              - API_TYPE
               - APPLICATION
               - PLAN
               - GATEWAY
@@ -285,6 +297,8 @@ spec:
           apis:
               - HTTP_PROXY
               - LLM
+              - MESSAGE
+              - MCP
           type: GAUGE
           unit: MILLISECONDS
           measures:
@@ -322,6 +336,7 @@ spec:
               - MCP_PROXY_PROMPT
           filters:
               - API
+              - API_TYPE
               - APPLICATION
               - PLAN
               - GATEWAY
@@ -354,6 +369,8 @@ spec:
           apis:
               - HTTP_PROXY
               - LLM
+              - MESSAGE
+              - MCP
           type: GAUGE
           unit: MILLISECONDS
           measures:
@@ -387,6 +404,7 @@ spec:
               - LLM_PROXY_PROVIDER
           filters:
               - API
+              - API_TYPE
               - APPLICATION
               - PLAN
               - GATEWAY
@@ -421,6 +439,8 @@ spec:
           apis:
               - HTTP_PROXY
               - LLM
+              - MESSAGE
+              - MCP
           measures:
               - AVG
               - MIN
@@ -456,6 +476,7 @@ spec:
               - MCP_PROXY_PROMPT
           filters:
               - API
+              - API_TYPE
               - APPLICATION
               - PLAN
               - GATEWAY
@@ -1687,6 +1708,18 @@ spec:
               - EQ
               - LTE
               - GTE
+
+        - name: API_TYPE
+          label: API Type
+          type: ENUM
+          enumValues:
+              - HTTP_PROXY
+              - LLM
+              - MESSAGE
+              - MCP
+          operators:
+              - EQ
+              - IN
 
         - name: LLM_PROXY_MODEL
           label: LLM Model

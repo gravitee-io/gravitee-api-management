@@ -29,6 +29,7 @@ import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
+import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
@@ -41,6 +42,8 @@ import java.util.List;
 import java.util.Map;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -99,4 +102,8 @@ public interface AnalyticsMeasuresAdapter {
     default MetricSpec.Measure fromResult(io.gravitee.repository.analytics.engine.api.metric.Measure result) {
         return MetricSpec.Measure.valueOf(result.name());
     }
+
+    // API_TYPE should never reach this layer, because it *must* have been transformed to API IDs beforehand.
+    @ValueMapping(source = "API_TYPE", target = MappingConstants.THROW_EXCEPTION)
+    Filter.Name toFilterName(io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name name);
 }

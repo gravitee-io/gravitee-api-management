@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
+import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import java.util.List;
@@ -310,5 +311,56 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         assertThat(avgAgg).isNotNull();
         assertThat(avgAgg.asText()).contains("additional-metrics.double_llm-proxy_sent-cost");
         assertThat(avgAgg.asText()).contains("additional-metrics.double_llm-proxy_received-cost");
+    }
+
+    @Test
+    void should_wrap_metric_aggs_in_filter_aggregation_when_metric_has_filters() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metricFilters = List.of(new Filter(Filter.Name.API, Filter.Operator.IN, List.of("id1", "id2")));
+        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT), metricFilters, List.of()));
+
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+
+        var queryString = adapter.adapt(query);
+
+        var jsonQuery = JSON.readTree(queryString);
+
+        var aggs = jsonQuery.at("/aggs");
+        assertThat(aggs).isNotEmpty();
+
+        var filterAgg = aggs.at("/HTTP_REQUESTS#__FILTER__");
+        assertThat(filterAgg.isMissingNode()).isFalse();
+
+        var filterClause = filterAgg.at("/filter/bool/must/0/terms/api-id");
+        assertThat(filterClause.isMissingNode()).isFalse();
+        assertThat(filterClause.get(0).asText()).isEqualTo("id1");
+        assertThat(filterClause.get(1).asText()).isEqualTo("id2");
+
+        var nestedCountAgg = filterAgg.at("/aggs/HTTP_REQUESTS#COUNT/value_count/field");
+        assertThat(nestedCountAgg.isMissingNode()).isFalse();
+        assertThat(nestedCountAgg.asText()).isEqualTo("@timestamp");
+    }
+
+    @Test
+    void should_not_wrap_metric_aggs_when_metric_has_no_filters() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+
+        var queryString = adapter.adapt(query);
+
+        var jsonQuery = JSON.readTree(queryString);
+
+        var aggs = jsonQuery.at("/aggs");
+
+        var filterAgg = aggs.at("/HTTP_REQUESTS#__FILTER__");
+        assertThat(filterAgg.isMissingNode()).isTrue();
+
+        var countAgg = aggs.at("/HTTP_REQUESTS#COUNT/value_count/field");
+        assertThat(countAgg.isMissingNode()).isFalse();
+        assertThat(countAgg.asText()).isEqualTo("@timestamp");
     }
 }

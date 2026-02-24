@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.analytics_engine.model;
+package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.apis;
 
-import java.util.List;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
- * @author GraviteeSource Team
- */
-public record MetricMeasuresRequest(MetricSpec.Name name, List<MetricSpec.Measure> measures, List<Filter> filters) {
-    public MetricMeasuresRequest(MetricSpec.Name name, List<MetricSpec.Measure> measures) {
-        this(name, measures, List.of());
-    }
+@Component("ApisTypeIndexUpgrader")
+public class TypeIndexUpgrader extends IndexUpgrader {
 
-    public MetricMeasuresRequest withFilters(List<Filter> filters) {
-        return new MetricMeasuresRequest(name, measures, filters);
+    @Override
+    protected Index buildIndex() {
+        return Index.builder()
+            .collection("apis")
+            .name("t1")
+            .key("type", ascending())
+            .build();
     }
 }
