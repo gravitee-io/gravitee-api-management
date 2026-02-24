@@ -18,12 +18,27 @@ package io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service;
 import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
 import io.gravitee.apim.core.cluster.model.SaslMechanism;
 import io.gravitee.apim.core.cluster.model.SecurityProtocol;
+import io.gravitee.plugin.configurations.ssl.KeyStore;
+import io.gravitee.plugin.configurations.ssl.SslOptions;
+import io.gravitee.plugin.configurations.ssl.TrustStore;
+import io.gravitee.plugin.configurations.ssl.jks.JKSKeyStore;
+import io.gravitee.plugin.configurations.ssl.jks.JKSTrustStore;
+import io.gravitee.plugin.configurations.ssl.pem.PEMKeyStore;
+import io.gravitee.plugin.configurations.ssl.pem.PEMTrustStore;
+import io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12KeyStore;
+import io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore;
 import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.KafkaClusterDomainService;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaNode;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +47,7 @@ import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.DescribeClusterResult;
 import org.apache.kafka.common.Node;
+import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.errors.AuthenticationException;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +59,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
     @Override
     public KafkaClusterInfo describeCluster(KafkaClusterConfiguration config) {
-        Properties properties = buildProperties(config);
+        List<Path> tempFiles = new ArrayList<>();
+        Properties properties = buildProperties(config, tempFiles);
         try (AdminClient adminClient = createAdminClient(properties)) {
             DescribeClusterResult result = adminClient.describeCluster();
 
@@ -61,6 +78,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             throw new KafkaExplorerException("Connection to Kafka cluster was interrupted", TechnicalCode.INTERRUPTED, e);
         } catch (Exception e) {
             throw new KafkaExplorerException("Failed to connect to Kafka cluster: " + e.getMessage(), TechnicalCode.CONNECTION_FAILED, e);
+        } finally {
+            deleteTempFiles(tempFiles);
         }
     }
 
@@ -68,7 +87,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         return AdminClient.create(properties);
     }
 
-    private Properties buildProperties(KafkaClusterConfiguration config) {
+    private Properties buildProperties(KafkaClusterConfiguration config, List<Path> tempFiles) {
         Properties properties = new Properties();
         // TODO: Add allowed bootstrap servers validation via gravitee.yml config to prevent SSRF
         properties.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, config.bootstrapServers());
@@ -90,11 +109,138 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             configureSasl(properties, config.security().sasl().mechanism());
         }
 
+        if (isSslProtocol(protocol) && config.security() != null && config.security().ssl() != null) {
+            configureSsl(properties, config.security().ssl(), tempFiles);
+        }
+
         return properties;
     }
 
     private boolean isSaslProtocol(SecurityProtocol protocol) {
         return protocol == SecurityProtocol.SASL_PLAINTEXT || protocol == SecurityProtocol.SASL_SSL;
+    }
+
+    private boolean isSslProtocol(SecurityProtocol protocol) {
+        return protocol == SecurityProtocol.SSL || protocol == SecurityProtocol.SASL_SSL;
+    }
+
+    private void configureSsl(Properties properties, SslOptions sslOptions, List<Path> tempFiles) {
+        if (sslOptions.isTrustAll()) {
+            properties.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "");
+        }
+
+        if (!sslOptions.isHostnameVerifier()) {
+            properties.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "");
+        }
+
+        configureTrustStore(properties, sslOptions.getTrustStore(), tempFiles);
+        configureKeyStore(properties, sslOptions.getKeyStore(), tempFiles);
+    }
+
+    private void configureTrustStore(Properties properties, TrustStore trustStore, List<Path> tempFiles) {
+        if (trustStore == null) {
+            return;
+        }
+        switch (trustStore) {
+            case JKSTrustStore jks -> {
+                properties.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, "JKS");
+                setStoreLocation(properties, SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, jks.getPath(), jks.getContent(), tempFiles);
+                if (jks.getPassword() != null) {
+                    properties.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, jks.getPassword());
+                }
+            }
+            case PKCS12TrustStore pkcs12 -> {
+                properties.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, "PKCS12");
+                setStoreLocation(properties, SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, pkcs12.getPath(), pkcs12.getContent(), tempFiles);
+                if (pkcs12.getPassword() != null) {
+                    properties.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, pkcs12.getPassword());
+                }
+            }
+            case PEMTrustStore pem -> {
+                properties.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, "PEM");
+                if (pem.getContent() != null) {
+                    properties.put(SslConfigs.SSL_TRUSTSTORE_CERTIFICATES_CONFIG, pem.getContent());
+                } else if (pem.getPath() != null) {
+                    properties.put(SslConfigs.SSL_TRUSTSTORE_CERTIFICATES_CONFIG, readFileContent(pem.getPath()));
+                }
+            }
+            default -> {}
+        }
+    }
+
+    private void configureKeyStore(Properties properties, KeyStore keyStore, List<Path> tempFiles) {
+        if (keyStore == null) {
+            return;
+        }
+        switch (keyStore) {
+            case JKSKeyStore jks -> {
+                properties.put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, "JKS");
+                setStoreLocation(properties, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, jks.getPath(), jks.getContent(), tempFiles);
+                if (jks.getPassword() != null) {
+                    properties.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, jks.getPassword());
+                }
+                if (jks.getKeyPassword() != null) {
+                    properties.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG, jks.getKeyPassword());
+                }
+            }
+            case PKCS12KeyStore pkcs12 -> {
+                properties.put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, "PKCS12");
+                setStoreLocation(properties, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, pkcs12.getPath(), pkcs12.getContent(), tempFiles);
+                if (pkcs12.getPassword() != null) {
+                    properties.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, pkcs12.getPassword());
+                }
+                if (pkcs12.getKeyPassword() != null) {
+                    properties.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG, pkcs12.getKeyPassword());
+                }
+            }
+            case PEMKeyStore pem -> {
+                properties.put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, "PEM");
+                if (pem.getCertContent() != null) {
+                    properties.put(SslConfigs.SSL_KEYSTORE_CERTIFICATE_CHAIN_CONFIG, pem.getCertContent());
+                } else if (pem.getCertPath() != null) {
+                    properties.put(SslConfigs.SSL_KEYSTORE_CERTIFICATE_CHAIN_CONFIG, readFileContent(pem.getCertPath()));
+                }
+                if (pem.getKeyContent() != null) {
+                    properties.put(SslConfigs.SSL_KEYSTORE_KEY_CONFIG, pem.getKeyContent());
+                } else if (pem.getKeyPath() != null) {
+                    properties.put(SslConfigs.SSL_KEYSTORE_KEY_CONFIG, readFileContent(pem.getKeyPath()));
+                }
+            }
+            default -> {}
+        }
+    }
+
+    private void setStoreLocation(Properties properties, String configKey, String path, String base64Content, List<Path> tempFiles) {
+        if (path != null) {
+            properties.put(configKey, path);
+        } else if (base64Content != null) {
+            try {
+                Path tempFile = Files.createTempFile("kafka-ssl-", ".store");
+                Files.write(tempFile, Base64.getDecoder().decode(base64Content));
+                tempFiles.add(tempFile);
+                properties.put(configKey, tempFile.toString());
+            } catch (IOException e) {
+                throw new KafkaExplorerException("Failed to create temporary SSL store file", TechnicalCode.CONNECTION_FAILED, e);
+            }
+        }
+    }
+
+    private String readFileContent(String path) {
+        try {
+            return Files.readString(Path.of(path));
+        } catch (IOException e) {
+            throw new KafkaExplorerException("Failed to read file: " + path, TechnicalCode.CONNECTION_FAILED, e);
+        }
+    }
+
+    private void deleteTempFiles(List<Path> tempFiles) {
+        for (Path tempFile : tempFiles) {
+            try {
+                Files.deleteIfExists(tempFile);
+            } catch (IOException ignored) {
+                // Best effort cleanup
+            }
+        }
     }
 
     private void configureSasl(Properties properties, SaslMechanism mechanism) {
