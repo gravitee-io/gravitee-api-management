@@ -58,6 +58,9 @@ describe('ApiPlanEditComponent', () => {
   let httpTestingController: HttpTestingController;
   let routerNavigationSpy: jest.SpyInstance;
 
+  /** Allow waitForNextStep() interval(100) to run so the submit button is shown (no polling). */
+  const waitForStepTransition = () => new Promise<void>(r => setTimeout(r, 150));
+
   const configureTestingModule = (planId: string = undefined) => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiPlansModule, MatIconTestingModule],
@@ -132,9 +135,10 @@ describe('ApiPlanEditComponent', () => {
 
         await planForm.getNameInput().then(i => i.setValue('My new plan'));
 
-        // Click on Next buttons to display Save one
+        // Click on Next buttons to display Save one (waitForNextStep uses interval(100))
         await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then(b => b.click());
         await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then(b => b.click());
+        await waitForStepTransition();
 
         await saveBar.clickSubmit();
 
@@ -449,8 +453,9 @@ describe('ApiPlanEditComponent', () => {
 
         await planForm.getNameInput().then(i => i.setValue('My new plan'));
 
-        // Click on Next buttons to display Save one
+        // Click on Next to display Save one (waitForNextStep uses interval(100))
         await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then(b => b.click());
+        await waitForStepTransition();
 
         await saveBar.clickSubmit();
 
