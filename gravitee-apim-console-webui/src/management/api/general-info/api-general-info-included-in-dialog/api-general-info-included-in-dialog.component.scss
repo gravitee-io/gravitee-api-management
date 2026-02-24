@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,53 +14,57 @@
  * limitations under the License.
  */
 
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
 .title {
   margin: 0;
 }
 
 .content {
-  min-width: 400px;
-  max-width: 500px;
-  max-height: 400px;
+  min-width: 25rem;
+  max-width: 31.25rem;
+  max-height: 25rem;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding-top: 16px;
 }
 
 .search-field {
   width: 100%;
+  flex-shrink: 0;
+  padding-top: 5px;
 }
 
 .api-products-list {
   overflow-y: auto;
   flex: 1;
-  min-height: 200px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  min-height: 12.5rem;
   border-radius: 4px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 
   &__item {
     display: block;
     padding: 12px 16px;
-    text-decoration: underline;
-    color: inherit;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    font-family: var(--mat-list-list-item-label-text-font);
+    font-size: var(--mat-list-list-item-label-text-size);
+    font-weight: var(--mat-list-list-item-label-text-weight);
+    line-height: var(--mat-list-list-item-label-text-line-height);
+    border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  }
 
-    &:last-child {
-      border-bottom: none;
-    }
-
-    &:hover {
-      background-color: rgba(0, 0, 0, 0.04);
-    }
+  li:last-child &__item {
+    border-bottom: none;
   }
 
   &__empty {
     padding: 24px;
     text-align: center;
-    color: rgba(0, 0, 0, 0.6);
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    list-style: none;
   }
-}
-
-.actions {
-  padding: 16px 0 0;
 }

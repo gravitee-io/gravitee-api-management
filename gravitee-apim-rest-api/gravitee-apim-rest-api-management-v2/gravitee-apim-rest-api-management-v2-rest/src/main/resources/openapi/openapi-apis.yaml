@@ -3059,7 +3059,7 @@ paths:
       get:
         tags:
           - API Product
-        summary: Get API Products for a an API
+        summary: Get API Products for an API
         description: Returns the list of API Products that include the specified API.
         operationId: getApiProductsForApi
         parameters:

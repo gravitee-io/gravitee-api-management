@@ -41,7 +41,7 @@ public class ApiProductsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.READ }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCT, acls = { RolePermissionAction.READ }) })
     public Response getApiProductsForApi(@PathParam("apiId") String apiId, @BeanParam @Valid PaginationParam paginationParam) {
         var executionContext = GraviteeContext.getExecutionContext();
         var input = GetApiProductsByApiIdUseCase.Input.of(apiId, executionContext.getOrganizationId());
