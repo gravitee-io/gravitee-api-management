@@ -90,13 +90,13 @@ public class HTTPMeasuresQueryAdapter {
     }
 
     private boolean isComputedMetric(Metric metric) {
-        return metric == Metric.LLM_PROMPT_TOTAL_TOKEN || metric == Metric.LLM_PROMPT_TOKEN_COST;
+        return metric == Metric.LLM_PROMPT_TOTAL_TOKEN || metric == Metric.LLM_PROMPT_TOKEN_TOTAL_COST;
     }
 
     private Optional<Map<String, JsonObject>> aggregate(String aggName, String field, Metric metric, Measure measure) {
         return switch (metric) {
             case LLM_PROMPT_TOTAL_TOKEN -> aggregateLLMTotalToken(aggName, measure);
-            case LLM_PROMPT_TOKEN_COST -> aggregateLLMTotalCost(aggName, measure);
+            case LLM_PROMPT_TOKEN_TOTAL_COST -> aggregateLLMTotalCost(aggName, measure);
             case HTTP_ERRORS -> aggregateHTTPErrors(aggName, field, metric, measure);
             default -> aggregateByMeasure(aggName, field, metric, measure);
         };
