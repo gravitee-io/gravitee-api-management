@@ -245,6 +245,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public EventLatestQueryServiceInMemory eventLatestQueryService() {
+        return new EventLatestQueryServiceInMemory();
+    }
+
+    @Bean
     public GroupQueryServiceInMemory groupQueryService() {
         return new GroupQueryServiceInMemory();
     }
