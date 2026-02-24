@@ -320,7 +320,7 @@
         <gravitee-policy-offloading.version>1.1.0</gravitee-policy-offloading.version>
         <gravitee-policy-token-ratelimit.version>1.0.0</gravitee-policy-token-ratelimit.version>
         <gravitee-policy-mcp-acl.version>1.0.2</gravitee-policy-mcp-acl.version>
-        <gravitee-policy-pii-filtering.version>1.0.0-alpha.6</gravitee-policy-pii-filtering.version>
+        <gravitee-policy-pii-filtering.version>1.0.0-alpha.7</gravitee-policy-pii-filtering.version>
         <gravitee-resource-ai-model-token-classification.version>1.0.0-alpha.2</gravitee-resource-ai-model-token-classification.version>
     </properties>
 
