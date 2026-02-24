@@ -116,6 +116,14 @@ public class AggregationAdapter {
                 continue;
             }
 
+            if (agg.getAggregations() != null && !agg.getAggregations().isEmpty()) {
+                var nested = toMetricsAndMeasures(agg.getAggregations(), query);
+                for (var nestedEntry : nested.entrySet()) {
+                    metricsAndMeasures.computeIfAbsent(nestedEntry.getKey(), m -> new HashMap<>()).putAll(nestedEntry.getValue());
+                }
+                continue;
+            }
+
             if (agg.getBuckets() != null) {
                 for (var bucket : agg.getBuckets()) {
                     for (var name : aggNames) {

@@ -133,6 +133,18 @@ public class FilterAdapter {
         return JsonObject.of("bool", JsonObject.of("should", JsonArray.of(termsFilter, fieldMissingFilter), "minimum_should_match", 1));
     }
 
+    /*
+     * Add a bool step to the aggregation pipeline so that filters defined
+     * at the metric level are applied to the aggregation results.
+     */
+    public JsonObject adaptMetricFilters(List<Filter> filters) {
+        var must = new JsonArray();
+        for (var f : filters) {
+            must.add(filter(f));
+        }
+        return JsonObject.of("bool", JsonObject.of("must", must));
+    }
+
     public JsonObject messageFilter() {
         return JsonObject.of("bool", JsonObject.of("must_not", JsonArray.of(httpFilter())));
     }

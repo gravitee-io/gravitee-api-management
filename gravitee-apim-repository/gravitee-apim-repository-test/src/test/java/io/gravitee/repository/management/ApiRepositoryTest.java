@@ -473,6 +473,40 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldFindByApiTypes() {
+        List<Api> proxyApis = apiRepository.search(
+            new ApiCriteria.Builder().apiTypes(List.of(ApiType.PROXY)).build(),
+            ApiFieldFilter.allFields()
+        );
+        assertThat(proxyApis).hasSize(2);
+        assertThat(proxyApis.stream().map(Api::getId).toList()).containsExactlyInAnyOrder("api-to-findById", "grouped-api");
+
+        List<Api> messageApis = apiRepository.search(
+            new ApiCriteria.Builder().apiTypes(List.of(ApiType.MESSAGE)).build(),
+            ApiFieldFilter.allFields()
+        );
+        assertThat(messageApis).hasSize(1);
+        assertThat(messageApis.get(0).getId()).isEqualTo("async-api");
+
+        List<Api> proxyAndMessageApis = apiRepository.search(
+            new ApiCriteria.Builder().apiTypes(List.of(ApiType.PROXY, ApiType.MESSAGE)).build(),
+            ApiFieldFilter.allFields()
+        );
+        assertThat(proxyAndMessageApis).hasSize(3);
+        assertThat(proxyAndMessageApis.stream().map(Api::getId).toList()).containsExactlyInAnyOrder(
+            "api-to-findById",
+            "grouped-api",
+            "async-api"
+        );
+
+        List<Api> mcpApis = apiRepository.search(
+            new ApiCriteria.Builder().apiTypes(List.of(ApiType.MCP_PROXY)).build(),
+            ApiFieldFilter.allFields()
+        );
+        assertThat(mcpApis).isEmpty();
+    }
+
+    @Test
     public void shouldFindByIntegrationId() {
         var integrationId = "integration-id";
         final List<Api> apis = apiRepository.search(

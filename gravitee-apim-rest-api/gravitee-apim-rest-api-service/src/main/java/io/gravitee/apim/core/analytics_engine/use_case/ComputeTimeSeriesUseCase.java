@@ -16,16 +16,18 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
-import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
+import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.user.domain_service.UserContextLoader;
-import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,24 +44,24 @@ public class ComputeTimeSeriesUseCase {
 
     private final AnalyticsQueryValidator validator;
 
-    private final FilterPreProcessor filterPreprocessor;
+    private final List<QueryFilterTransformer> filterTransformers;
 
     private final BucketNamesPostProcessor bucketNamesPostprocessor;
 
-    private final UserContextLoader userContextLoader;
+    private final AnalyticsQueryContextLoader contextLoader;
 
     public ComputeTimeSeriesUseCase(
         AnalyticsQueryContextProvider queryContextProvider,
         AnalyticsQueryValidator validator,
-        FilterPreProcessor filterPreprocessor,
+        List<QueryFilterTransformer> filterTransformers,
         BucketNamesPostProcessor bucketNamesPostprocessor,
-        UserContextLoader userContextLoader
+        AnalyticsQueryContextLoader contextLoader
     ) {
         this.queryContextProvider = queryContextProvider;
         this.validator = validator;
-        this.filterPreprocessor = filterPreprocessor;
+        this.filterTransformers = filterTransformers;
         this.bucketNamesPostprocessor = bucketNamesPostprocessor;
-        this.userContextLoader = userContextLoader;
+        this.contextLoader = contextLoader;
     }
 
     public record Input(AuditInfo auditInfo, TimeSeriesRequest request) {}
@@ -69,34 +71,64 @@ public class ComputeTimeSeriesUseCase {
     public Output execute(Input input) {
         validator.validateTimeSeriesRequest(input.request);
 
-        var executionContext = new ExecutionContext(input.auditInfo.organizationId(), input.auditInfo.environmentId());
-
-        var userContext = userContextLoader.loadApis(new UserContext(input.auditInfo));
+        var analyticsContext = contextLoader.load(input.auditInfo);
 
         var queryContext = queryContextProvider.resolve(input.request);
 
-        var responses = executeQueries(executionContext, userContext, queryContext);
+        var responses = executeQueries(analyticsContext.executionContext(), analyticsContext, queryContext);
 
         TimeSeriesResponse response = TimeSeriesResponse.merge(responses);
 
-        var mappedResponse = bucketNamesPostprocessor.mapBucketNames(userContext, input.request.facets(), response);
+        var mappedResponse = bucketNamesPostprocessor.mapBucketNames(analyticsContext, input.request.facets(), response);
 
         return new Output(mappedResponse);
     }
 
     private List<TimeSeriesResponse> executeQueries(
         ExecutionContext executionContext,
-        UserContext userContext,
+        AnalyticsQueryContext analyticsContext,
         Map<AnalyticsEngineQueryService, TimeSeriesRequest> queryContext
     ) {
         var responses = new ArrayList<TimeSeriesResponse>();
 
         queryContext.forEach((queryService, request) -> {
-            var filters = new ArrayList<>(request.filters());
-            filters.addAll(filterPreprocessor.buildFilters(userContext));
+            var filters = transformFilters(analyticsContext, request.filters());
+            var metrics = request
+                .metrics()
+                .stream()
+                .map(m -> transformMetricFilters(analyticsContext, m))
+                .toList();
 
-            responses.add(queryService.searchTimeSeries(executionContext, request.withFilters(filters)));
+            responses.add(
+                queryService.searchTimeSeries(
+                    executionContext,
+                    new TimeSeriesRequest(
+                        request.timeRange(),
+                        request.interval(),
+                        filters,
+                        metrics,
+                        request.facets(),
+                        request.limit(),
+                        request.ranges()
+                    )
+                )
+            );
         });
         return responses;
+    }
+
+    private List<Filter> transformFilters(AnalyticsQueryContext context, List<Filter> filters) {
+        List<Filter> result = new ArrayList<>(filters);
+        for (var transformer : filterTransformers) {
+            result = transformer.transform(context, result);
+        }
+        return result;
+    }
+
+    private FacetMetricMeasuresRequest transformMetricFilters(AnalyticsQueryContext context, FacetMetricMeasuresRequest metric) {
+        if (metric.filters() == null || metric.filters().isEmpty()) {
+            return metric;
+        }
+        return metric.withFilters(transformFilters(context, metric.filters()));
     }
 }

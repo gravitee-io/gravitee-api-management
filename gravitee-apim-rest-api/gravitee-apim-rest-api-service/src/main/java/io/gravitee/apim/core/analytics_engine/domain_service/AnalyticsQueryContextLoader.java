@@ -15,13 +15,13 @@
  */
 package io.gravitee.apim.core.analytics_engine.domain_service;
 
-import io.gravitee.apim.core.analytics_engine.model.Filter;
-import io.gravitee.apim.core.user.model.UserContext;
-import java.util.List;
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 
 /**
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface FilterPreProcessor {
-    List<Filter> buildFilters(UserContext context);
+public interface AnalyticsQueryContextLoader {
+    AnalyticsQueryContext load(AuditInfo auditInfo);
 }

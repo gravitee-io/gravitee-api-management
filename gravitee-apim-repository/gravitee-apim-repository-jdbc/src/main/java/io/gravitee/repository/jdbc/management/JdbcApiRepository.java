@@ -536,6 +536,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             if (hasText(apiCriteria.getIntegrationId())) {
                 ps.setString(lastIndex++, apiCriteria.getIntegrationId());
             }
+            if (!isEmpty(apiCriteria.getApiTypes())) {
+                lastIndex = getOrm().setArguments(ps, apiCriteria.getApiTypes(), lastIndex);
+            }
         }
         return lastIndex;
     }
@@ -601,6 +604,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 clauseBuilder.append("a.definition_version in (").append(getOrm().buildInClause(definitionVersionList)).append(")");
             }
             clauses.add(clauseBuilder.toString());
+        }
+        if (!isEmpty(apiCriteria.getApiTypes())) {
+            clauses.add("a.type in (" + getOrm().buildInClause(apiCriteria.getApiTypes()) + ")");
         }
         if (!clauses.isEmpty()) {
             return String.join(" and ", clauses);

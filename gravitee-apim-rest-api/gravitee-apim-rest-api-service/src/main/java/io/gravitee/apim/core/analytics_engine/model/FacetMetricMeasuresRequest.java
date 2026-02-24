@@ -21,7 +21,15 @@ import java.util.List;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record FacetMetricMeasuresRequest(MetricSpec.Name name, List<MetricSpec.Measure> measures, List<Sort> sorts) {
+public record FacetMetricMeasuresRequest(MetricSpec.Name name, List<MetricSpec.Measure> measures, List<Filter> filters, List<Sort> sorts) {
+    public FacetMetricMeasuresRequest(MetricSpec.Name name, List<MetricSpec.Measure> measures, List<Sort> sorts) {
+        this(name, measures, List.of(), sorts);
+    }
+
+    public FacetMetricMeasuresRequest withFilters(List<Filter> filters) {
+        return new FacetMetricMeasuresRequest(name, measures, filters, sorts);
+    }
+
     public record Sort(MetricSpec.Measure measure, Sort.Order order) {
         public enum Order {
             ASC,
