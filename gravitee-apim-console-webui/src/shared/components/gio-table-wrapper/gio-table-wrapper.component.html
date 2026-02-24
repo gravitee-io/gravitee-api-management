@@ -30,15 +30,9 @@
     </div>
 
     @if (!disablePaginator) {
-      <mat-paginator
-        class="gio-table-wrapper__header-bar__paginator"
-        #paginatorTop
-        [length]="length"
-        [pageSizeOptions]="paginationPageSizeOptions"
-        [hidePageSize]="disablePageSize"
-        aria-label="Select page"
-        data-testid="paginator-header"
-      ></mat-paginator>
+    <mat-paginator class="gio-table-wrapper__header-bar__paginator" #paginatorTop [length]="length"
+      [pageSizeOptions]="paginationPageSizeOptions" [hidePageSize]="disablePageSize" [showFirstLastButtons]="true"
+      aria-label="Select page" data-testid="paginator-header"></mat-paginator>
     }
   </div>
 </div>
@@ -46,13 +40,7 @@
 <div class="gio-table-wrapper__table"><ng-content select="[mat-table]"></ng-content></div>
 
 <div class="gio-table-wrapper__footer-bar">
-  <mat-paginator
-    #paginatorBottom
-    class="gio-table-wrapper__footer-bar__paginator"
-    [class.hidden]="length <= paginatorBottom.pageSize"
-    [length]="length"
-    [hidePageSize]="true"
-    aria-label="Select page"
-    data-testid="paginator-footer"
-  ></mat-paginator>
+  <mat-paginator #paginatorBottom class="gio-table-wrapper__footer-bar__paginator"
+    [class.hidden]="length <= paginatorBottom.pageSize" [length]="length" [hidePageSize]="true"
+    [showFirstLastButtons]="true" aria-label="Select page" data-testid="paginator-footer"></mat-paginator>
 </div>

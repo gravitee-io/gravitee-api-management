@@ -41,57 +41,44 @@ describe('DashboardService', () => {
     expect(service).toBeTruthy();
   });
 
-  describe('sort by labels', () => {
-    it('should sort by labels ascending', done => {
-      service.list(undefined, { active: 'labels', direction: 'asc' }, 1, 100).subscribe(result => {
-        const labels = result.data.map(d => d.labels);
-        // Items without labels (empty string) should come first in ascending order
-        const withoutLabels = labels.filter(l => !l || Object.keys(l).length === 0);
-        const withLabels = labels.filter(l => l && Object.keys(l).length > 0);
-        expect(withoutLabels.length + withLabels.length).toBe(labels.length);
+  describe('list', () => {
+    it('should GET dashboards with page and perPage query params', done => {
+      const mockResponse = {
+        data: [
+          { id: '1', name: 'Dashboard 1', createdBy: 'Admin', createdAt: '2025-01-01', lastModified: '2025-01-01', labels: {}, widgets: [] },
+          { id: '2', name: 'Dashboard 2', createdBy: 'Admin', createdAt: '2025-01-01', lastModified: '2025-01-01', labels: {}, widgets: [] },
+        ],
+        pagination: { page: 1, perPage: 10, totalCount: 2, pageItemsCount: 2, pageCount: 1 },
+        links: {},
+      };
 
-        // Verify items with labels are sorted
-        const labelStrings = withLabels.map(l =>
-          Object.entries(l)
-            .map(([k, v]) => `${k}:${v}`)
-            .sort()
-            .join(','),
-        );
-        for (let i = 1; i < labelStrings.length; i++) {
-          expect(labelStrings[i] >= labelStrings[i - 1]).toBeTruthy();
-        }
+      service.list(1, 10).subscribe(result => {
+        expect(result.data).toHaveLength(2);
+        expect(result.data[0].name).toBe('Dashboard 1');
+        expect(result.pagination.totalCount).toBe(2);
         done();
       });
+
+      const req = httpTestingController.expectOne(
+        `${CONSTANTS_TESTING.org.v2BaseURL}/analytics/dashboards?page=1&perPage=10`,
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
     });
 
-    it('should sort by labels descending', done => {
-      service.list(undefined, { active: 'labels', direction: 'desc' }, 1, 100).subscribe(result => {
-        const labels = result.data.map(d => d.labels);
-        const labelStrings = labels
-          .filter(l => l && Object.keys(l).length > 0)
-          .map(l =>
-            Object.entries(l)
-              .map(([k, v]) => `${k}:${v}`)
-              .sort()
-              .join(','),
-          );
-        for (let i = 1; i < labelStrings.length; i++) {
-          expect(labelStrings[i] <= labelStrings[i - 1]).toBeTruthy();
-        }
-        done();
-      });
-    });
+    it('should pass correct pagination params', done => {
+      const mockResponse = { data: [], pagination: { page: 3, perPage: 5, totalCount: 0, pageItemsCount: 0, pageCount: 0 }, links: {} };
 
-    it('should handle items without labels when sorting', done => {
-      service.list(undefined, { active: 'labels', direction: 'asc' }, 1, 100).subscribe(result => {
-        expect(result.data.length).toBeGreaterThan(0);
-        // Should not throw an error and should return all items
-        const itemsWithLabels = result.data.filter(d => d.labels && Object.keys(d.labels).length > 0);
-        const itemsWithoutLabels = result.data.filter(d => !d.labels || Object.keys(d.labels).length === 0);
-        expect(itemsWithLabels.length).toBeGreaterThan(0);
-        expect(itemsWithoutLabels.length).toBeGreaterThan(0);
+      service.list(3, 5).subscribe(result => {
+        expect(result.data).toHaveLength(0);
         done();
       });
+
+      const req = httpTestingController.expectOne(
+        `${CONSTANTS_TESTING.org.v2BaseURL}/analytics/dashboards?page=3&perPage=5`,
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
     });
   });
 
@@ -128,7 +115,7 @@ describe('DashboardService', () => {
   });
 
   describe('toCreateDashboard', () => {
-    it('should extract name, labels and widgets from template initialConfig', () => {
+    it('should use template name with locale date for dashboard name', () => {
       const template: DashboardTemplate = {
         id: 'tpl-1',
         name: 'Template Name',
@@ -144,7 +131,7 @@ describe('DashboardService', () => {
 
       const result = service.toCreateDashboard(template);
 
-      expect(result.name).toBe('Dashboard from Template');
+      expect(result.name).toContain('Template Name - ');
       expect(result.labels).toEqual({ Focus: 'HTTP' });
       expect(result.widgets).toHaveLength(1);
       // Should NOT contain template-specific fields
@@ -153,7 +140,7 @@ describe('DashboardService', () => {
       expect(result).not.toHaveProperty('description');
     });
 
-    it('should fallback to template name if initialConfig.name is not set', () => {
+    it('should inject default timeRange on widget requests', () => {
       const template: DashboardTemplate = {
         id: 'tpl-2',
         name: 'Fallback Name',
@@ -162,15 +149,50 @@ describe('DashboardService', () => {
         previewImage: 'assets/preview.png',
         initialConfig: {
           labels: { Theme: 'AI' },
+          widgets: [{ id: 'w1', title: 'Widget', type: 'stats', layout: { cols: 1, rows: 1, x: 0, y: 0 }, request: { type: 'measures', metrics: [] } }],
         },
       };
 
       const result = service.toCreateDashboard(template);
 
-      expect(result.name).toBe('Fallback Name');
-      expect(result.labels).toEqual({ Theme: 'AI' });
+      expect(result.widgets[0].request.timeRange).toBeDefined();
+      expect(result.widgets[0].request.timeRange.from).toBeDefined();
+      expect(result.widgets[0].request.timeRange.to).toBeDefined();
+    });
+
+    it('should inject default interval on time-series widget requests', () => {
+      const template: DashboardTemplate = {
+        id: 'tpl-3',
+        name: 'Time Series',
+        shortDescription: 'Short desc',
+        description: 'Long desc',
+        previewImage: 'assets/preview.png',
+        initialConfig: {
+          labels: {},
+          widgets: [{ id: 'w1', title: 'Widget', type: 'line', layout: { cols: 1, rows: 1, x: 0, y: 0 }, request: { type: 'time-series', metrics: [], by: [] } }],
+        },
+      };
+
+      const result = service.toCreateDashboard(template);
+
+      expect((result.widgets[0].request as any).interval).toBe(10000);
+    });
+
+    it('should handle template with no widgets', () => {
+      const template: DashboardTemplate = {
+        id: 'tpl-4',
+        name: 'Empty',
+        shortDescription: 'Short desc',
+        description: 'Long desc',
+        previewImage: 'assets/preview.png',
+        initialConfig: {
+          labels: {},
+        },
+      };
+
+      const result = service.toCreateDashboard(template);
+
       expect(result.widgets).toEqual([]);
     });
   });
 });
-

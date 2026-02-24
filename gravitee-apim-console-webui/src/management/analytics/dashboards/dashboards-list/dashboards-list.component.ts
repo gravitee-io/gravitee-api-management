@@ -15,6 +15,7 @@
  */
 import { Component, computed, inject, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { Dashboard } from '@gravitee/gravitee-dashboard';
 import { GioActionMenuComponent, GioActionMenuItemComponent } from '@gravitee/ui-particles-angular';
 import { MatButton } from '@angular/material/button';
 import {
@@ -31,12 +32,11 @@ import {
   MatTable,
 } from '@angular/material/table';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
-import { MatSort, MatSortHeader } from '@angular/material/sort';
 import { MatIcon } from '@angular/material/icon';
-import { startWith, switchMap, map, debounceTime, filter } from 'rxjs/operators';
+import { startWith, switchMap, map, debounceTime, filter, scan } from 'rxjs/operators';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatDivider } from '@angular/material/list';
-import { KeyValuePipe } from '@angular/common';
+import { KeyValuePipe, DatePipe } from '@angular/common';
 import { MatTooltip } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
@@ -45,6 +45,7 @@ import { TemplateSelectorDialogComponent, TemplateSelectorDialogResult } from '.
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { DashboardService } from '../../data-access/dashboard.service';
+import { PagedResult } from '../../../../entities/management-api-v2/pagedResult';
 
 @Component({
   selector: 'dashboards-list',
@@ -65,13 +66,12 @@ import { DashboardService } from '../../data-access/dashboard.service';
     MatMenuItem,
     MatRow,
     MatRowDef,
-    MatSort,
-    MatSortHeader,
     MatTable,
     MatNoDataRow,
     MatMenuTrigger,
     MatDivider,
     KeyValuePipe,
+    DatePipe,
     MatTooltip,
     RouterLink,
   ],
@@ -84,7 +84,7 @@ export class DashboardsListComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
-  public displayedColumns = ['name', 'createdBy', 'lastUpdated', 'labels', 'actions'];
+  public displayedColumns = ['name', 'createdBy', 'lastModified', 'labels', 'actions'];
 
   public filters = signal<GioTableWrapperFilters>({
     pagination: { index: 1, size: 10 },
@@ -95,24 +95,25 @@ export class DashboardsListComponent {
     toObservable(this.filters).pipe(
       debounceTime(200),
       switchMap(filters =>
-        this.dashboardService.list(filters.searchTerm, filters.sort, filters.pagination.index, filters.pagination.size).pipe(
-          map(result => ({ isLoading: false, result })),
-          startWith({ isLoading: true, result: undefined }),
+        this.dashboardService.list(filters.pagination.index, filters.pagination.size).pipe(
+          map(result => ({ isLoading: false as const, result })),
+          startWith({ isLoading: true as const }),
         ),
       ),
+      scan((prev, curr) => ('result' in curr ? curr : { ...prev, isLoading: true }), {
+        isLoading: true,
+        result: undefined as PagedResult<Dashboard> | undefined,
+      }),
     ),
-    { initialValue: { isLoading: true, result: undefined } },
+    { initialValue: { isLoading: true, result: undefined as PagedResult<Dashboard> | undefined } },
   );
 
   public dashboardItems = computed(() => this.dashboardsResource().result?.data ?? []);
+  public totalCount = computed(() => this.dashboardsResource().result?.pagination?.totalCount ?? 0);
   public isLoading = computed(() => this.dashboardsResource().isLoading);
 
   public onFiltersChanged(event: GioTableWrapperFilters) {
     this.filters.update(f => ({ ...f, ...event }));
-  }
-
-  public onSortChanged(sort: { active: string; direction: string }) {
-    this.filters.update(f => ({ ...f, sort: { active: sort.active, direction: sort.direction as 'asc' | 'desc' } }));
   }
 
   public openTemplateDialog(): void {
@@ -134,3 +135,4 @@ export class DashboardsListComponent {
       });
   }
 }
+
