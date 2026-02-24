@@ -418,6 +418,8 @@
                             <ignoreExecutionContextClasses>
 <!--                                Management API declare an ExecutionContext that does not interest us for logging purpose -->
                                 <ignoreExecutionContextClass>io.gravitee.rest.api.service.common.ExecutionContext</ignoreExecutionContextClass>
+<!--                                Fields are also analyzed, exclude V3ExecutionContextFactory -->
+                                <ignoreExecutionContextClass>io.gravitee.gateway.reactor.handler.context.V3ExecutionContextFactory</ignoreExecutionContextClass>
                             </ignoreExecutionContextClasses>
                         </configuration>
                     </execution>
