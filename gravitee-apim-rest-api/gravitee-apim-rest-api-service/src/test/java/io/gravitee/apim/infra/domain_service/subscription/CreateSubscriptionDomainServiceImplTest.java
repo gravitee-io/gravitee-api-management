@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
+import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -68,6 +69,7 @@ class CreateSubscriptionDomainServiceImplTest {
             null,
             null,
             Map.of("k", "v"),
+            ApiKeyMode.EXCLUSIVE,
             null,
             null
         );
@@ -82,6 +84,7 @@ class CreateSubscriptionDomainServiceImplTest {
         assertThat(entityCaptor.getValue().getApplication()).isEqualTo(APP_ID);
         assertThat(entityCaptor.getValue().getRequest()).isEqualTo("request-msg");
         assertThat(entityCaptor.getValue().getMetadata()).isEqualTo(Map.of("k", "v"));
+        assertThat(entityCaptor.getValue().getApiKeyMode()).isEqualTo(ApiKeyMode.EXCLUSIVE);
     }
 
     @Test
@@ -94,7 +97,7 @@ class CreateSubscriptionDomainServiceImplTest {
             .build();
         when(subscriptionService.create(any(), any(), any())).thenReturn(new SubscriptionEntity());
 
-        cut.create(auditInfo, PLAN_ID, APP_ID, null, null, config, null, null, null);
+        cut.create(auditInfo, PLAN_ID, APP_ID, null, null, config, null, null, null, null);
 
         ArgumentCaptor<NewSubscriptionEntity> entityCaptor = ArgumentCaptor.forClass(NewSubscriptionEntity.class);
         verify(subscriptionService).create(any(), entityCaptor.capture(), any());

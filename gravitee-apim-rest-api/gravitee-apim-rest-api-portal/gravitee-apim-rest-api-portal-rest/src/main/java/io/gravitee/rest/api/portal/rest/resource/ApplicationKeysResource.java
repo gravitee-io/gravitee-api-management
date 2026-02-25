@@ -16,8 +16,6 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.apim.core.api_key.use_case.RevokeApplicationApiKeyUseCase;
-import io.gravitee.apim.core.audit.model.AuditActor;
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -80,26 +78,7 @@ public class ApplicationKeysResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
     public Response revokeKeySubscription(@PathParam("apiKey") String apiKey) {
-        final var executionContext = GraviteeContext.getExecutionContext();
-        final var user = getAuthenticatedUserDetails();
-
-        revokeApplicationApiKeyUsecase.execute(
-            new RevokeApplicationApiKeyUseCase.Input(
-                apiKey,
-                applicationId,
-                AuditInfo.builder()
-                    .organizationId(executionContext.getOrganizationId())
-                    .environmentId(executionContext.getEnvironmentId())
-                    .actor(
-                        AuditActor.builder()
-                            .userId(user.getUsername())
-                            .userSource(user.getSource())
-                            .userSourceId(user.getSourceId())
-                            .build()
-                    )
-                    .build()
-            )
-        );
+        revokeApplicationApiKeyUsecase.execute(new RevokeApplicationApiKeyUseCase.Input(apiKey, applicationId, getAuditInfo()));
 
         return Response.noContent().build();
     }
