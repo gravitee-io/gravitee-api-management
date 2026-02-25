@@ -16,11 +16,9 @@
 package io.gravitee.apim.core.dashboard.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.DashboardCrudServiceInMemory;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
-import io.gravitee.apim.core.dashboard.exception.DashboardNotFoundException;
 import io.gravitee.apim.core.dashboard.model.Dashboard;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import java.util.List;

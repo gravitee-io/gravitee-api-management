@@ -823,7 +823,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/CreateDashboard"
+                            $ref: "#/components/schemas/CreateUpdateDashboard"
                         examples:
                             simple-dashboard:
                                 summary: Simple dashboard with stats and facets widgets
@@ -998,7 +998,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/UpdateDashboard"
+                            $ref: "#/components/schemas/CreateUpdateDashboard"
             responses:
                 "200":
                     description: The dashboard has been successfully updated.
@@ -1744,7 +1744,7 @@ components:
                         - name: "HTTP_REQUESTS"
                           measures: ["COUNT"]
 
-        CreateDashboard:
+        CreateUpdateDashboard:
             type: object
             required:
                 - name
@@ -1773,53 +1773,6 @@ components:
                     description: List of widget definitions to include in the dashboard
             example:
                 name: "llm-proxy"
-                labels:
-                    graviteeio/team: "apim"
-                widgets:
-                    - id: "1"
-                      title: "Requests"
-                      type: "stats"
-                      layout:
-                          cols: 1
-                          rows: 1
-                          x: 0
-                          "y": 0
-                      request:
-                          type: "measures"
-                          timeRange:
-                              from: "2025-10-07T06:50:30Z"
-                              to: "2025-12-07T11:35:30Z"
-                          metrics:
-                              - name: "HTTP_REQUESTS"
-                                measures: ["COUNT"]
-
-        UpdateDashboard:
-            type: object
-            description: Request body for updating an existing custom analytics dashboard. All fields are optional.
-            properties:
-                name:
-                    type: string
-                    minLength: 3
-                    maxLength: 256
-                    description: Updated name for the dashboard
-                    example: "llm-proxy-updated"
-                labels:
-                    type: object
-                    description: >-
-                        Updated key-value label pairs for the dashboard.
-                    additionalProperties:
-                        type: string
-                    x-propertyNames:
-                        pattern: "^[^.]+$"
-                    example:
-                        graviteeio/team: "apim"
-                widgets:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/Widget"
-                    description: Updated list of widget definitions for the dashboard
-            example:
-                name: "llm-proxy-updated"
                 labels:
                     graviteeio/team: "apim"
                 widgets:

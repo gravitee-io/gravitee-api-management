@@ -78,6 +78,7 @@ public class DashboardDomainService {
         if (dashboard.getName().isBlank()) {
             throw new ValidationDomainException("Dashboard name cannot be blank");
         }
+
         ofNullable(dashboard.getWidgets()).ifPresent(this::validateWidgets);
         ofNullable(dashboard.getLabels()).ifPresent(this::validateLabels);
     }

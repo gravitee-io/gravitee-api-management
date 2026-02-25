@@ -17,14 +17,13 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.dashboard.model.Dashboard;
 import io.gravitee.apim.core.dashboard.model.DashboardWidget;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CreateDashboard;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CreateUpdateDashboard;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CustomInterval;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasureName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeRange;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.UpdateDashboard;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Widget;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetLayout;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetRequest;
@@ -44,14 +43,7 @@ public interface DashboardMapper {
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModified", ignore = true)
-    Dashboard map(CreateDashboard createDashboard);
-
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "organizationId", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "lastModified", ignore = true)
-    Dashboard map(UpdateDashboard updateDashboard);
+    Dashboard map(CreateUpdateDashboard dashboard);
 
     io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Dashboard map(Dashboard dashboard);
 
