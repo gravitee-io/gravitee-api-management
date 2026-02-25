@@ -18,7 +18,7 @@ import { Component, input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 
-import { BrokerDetail } from '../models/kafka-cluster.model';
+import { BrokerDetail, KafkaNode } from '../models/kafka-cluster.model';
 import { FileSizePipe } from '../pipes/file-size.pipe';
 
 @Component({
@@ -31,6 +31,10 @@ import { FileSizePipe } from '../pipes/file-size.pipe';
 export class BrokersComponent {
   nodes = input<BrokerDetail[]>([]);
   controllerId = input<number>(-1);
+  clusterId = input<string>('');
+  controller = input<KafkaNode | undefined>(undefined);
+  totalTopics = input<number>(0);
+  totalPartitions = input<number>(0);
 
   displayedColumns = ['id', 'host', 'port', 'rack', 'leaderPartitions', 'replicaPartitions', 'logDirSize'];
 }

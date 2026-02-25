@@ -17,9 +17,37 @@
 -->
 <mat-card class="brokers">
   <mat-card-header>
-    <mat-card-title>Broker Nodes</mat-card-title>
+    <mat-card-title>Brokers</mat-card-title>
   </mat-card-header>
   <mat-card-content>
+    @if (controller(); as ctrl) {
+      <div class="brokers__cluster-info">
+        <div class="brokers__cluster-info-items">
+          <div class="brokers__cluster-info-item">
+            <span class="mat-caption">Cluster ID</span>
+            <span class="mat-body-2">{{ clusterId() }}</span>
+          </div>
+          <div class="brokers__cluster-info-item">
+            <span class="mat-caption">Controller</span>
+            <span class="mat-body-2">{{ ctrl.host }}:{{ ctrl.port }} (node {{ ctrl.id }})</span>
+          </div>
+          <div class="brokers__cluster-info-item">
+            <span class="mat-caption">Brokers</span>
+            <span class="mat-body-2">{{ nodes().length }}</span>
+          </div>
+          <div class="brokers__cluster-info-item">
+            <span class="mat-caption">Topics</span>
+            <span class="mat-body-2">{{ totalTopics() }}</span>
+          </div>
+          <div class="brokers__cluster-info-item">
+            <span class="mat-caption">Partitions</span>
+            <span class="mat-body-2">{{ totalPartitions() }}</span>
+          </div>
+        </div>
+      </div>
+    }
+
+    <h5 class="brokers__section-title">Broker Nodes</h5>
     <table mat-table [dataSource]="nodes()">
       <ng-container matColumnDef="id">
         <th mat-header-cell *matHeaderCellDef>Node ID</th>

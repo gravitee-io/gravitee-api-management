@@ -16,7 +16,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
@@ -29,7 +29,7 @@ import { TopicsComponent } from '../topics/topics.component';
 @Component({
   selector: 'gke-kafka-explorer',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatProgressSpinnerModule, MatIconModule, BrokersComponent, TopicsComponent],
+  imports: [CommonModule, MatButtonModule, MatProgressSpinnerModule, MatIconModule, BrokersComponent, TopicsComponent],
   templateUrl: './kafka-explorer.component.html',
   styleUrls: ['./kafka-explorer.component.scss'],
 })
@@ -37,6 +37,7 @@ export class KafkaExplorerComponent implements OnInit {
   baseURL = input.required<string>();
   clusterId = input.required<string>();
 
+  activeSection = signal<'brokers' | 'topics'>('brokers');
   clusterInfo = signal<DescribeClusterResponse | undefined>(undefined);
   topicsPage = signal<ListTopicsResponse | undefined>(undefined);
   loading = signal(false);
