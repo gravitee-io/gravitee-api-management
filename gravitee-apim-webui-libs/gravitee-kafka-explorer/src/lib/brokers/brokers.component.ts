@@ -19,11 +19,12 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 
 import { BrokerDetail } from '../models/kafka-cluster.model';
+import { FileSizePipe } from '../pipes/file-size.pipe';
 
 @Component({
   selector: 'gke-brokers',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatTableModule],
+  imports: [CommonModule, MatCardModule, MatTableModule, FileSizePipe],
   templateUrl: './brokers.component.html',
   styleUrls: ['./brokers.component.scss'],
 })
@@ -32,13 +33,4 @@ export class BrokersComponent {
   controllerId = input<number>(-1);
 
   displayedColumns = ['id', 'host', 'port', 'rack', 'leaderPartitions', 'replicaPartitions', 'logDirSize'];
-
-  formatBytes(bytes: number | null): string {
-    if (bytes === null || bytes === undefined) return '-';
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  }
 }
