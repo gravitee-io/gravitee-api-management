@@ -15,26 +15,34 @@
  */
 
 .kafka-explorer {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-
-  &__topbar {
-    mat-card-content {
-      padding: 16px;
-    }
-  }
-
-  &__topbar-items {
+  &__layout {
     display: flex;
-    gap: 32px;
-    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
   }
 
-  &__topbar-item {
+  &__sidebar {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    min-width: 120px;
+  }
+
+  &__sidebar-btn {
+    justify-content: flex-start;
+    background-color: transparent;
+    color: var(--mat-sys-on-surface, #1d1b20);
+
+    &--active {
+      background-color: var(--mat-sys-surface-variant, #e7e0ec);
+      color: var(--mat-sys-on-surface-variant, #49454f);
+    }
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+    max-width: 1200px;
   }
 }
 

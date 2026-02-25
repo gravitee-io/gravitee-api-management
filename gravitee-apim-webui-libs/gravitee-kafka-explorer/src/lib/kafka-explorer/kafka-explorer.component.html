@@ -30,43 +30,50 @@
 
 @if (clusterInfo(); as info) {
   <div class="kafka-explorer">
-    <mat-card class="kafka-explorer__topbar">
-      <mat-card-content>
-        <div class="kafka-explorer__topbar-items">
-          <div class="kafka-explorer__topbar-item">
-            <span class="mat-caption">Cluster ID</span>
-            <span class="mat-body-2">{{ info.clusterId }}</span>
-          </div>
-          <div class="kafka-explorer__topbar-item">
-            <span class="mat-caption">Controller</span>
-            <span class="mat-body-2">{{ info.controller.host }}:{{ info.controller.port }} (node {{ info.controller.id }})</span>
-          </div>
-          <div class="kafka-explorer__topbar-item">
-            <span class="mat-caption">Brokers</span>
-            <span class="mat-body-2">{{ info.nodes.length }}</span>
-          </div>
-          <div class="kafka-explorer__topbar-item">
-            <span class="mat-caption">Topics</span>
-            <span class="mat-body-2">{{ info.totalTopics }}</span>
-          </div>
-          <div class="kafka-explorer__topbar-item">
-            <span class="mat-caption">Partitions</span>
-            <span class="mat-body-2">{{ info.totalPartitions }}</span>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
-
-    <gke-brokers [nodes]="info.nodes" [controllerId]="info.controller.id" />
-
-    <gke-topics
-      [topics]="topicsPage()?.data ?? []"
-      [totalElements]="topicsPage()?.pagination?.totalCount ?? 0"
-      [page]="(topicsPage()?.pagination?.page ?? 1) - 1"
-      [pageSize]="topicsPage()?.pagination?.perPage ?? 10"
-      [loading]="topicsLoading()"
-      (filterChange)="onTopicsFilterChange($event)"
-      (pageChange)="onTopicsPageChange($event)"
-    />
+    <div class="kafka-explorer__layout">
+      <aside class="kafka-explorer__sidebar">
+        <button
+          mat-button
+          class="kafka-explorer__sidebar-btn"
+          [class.kafka-explorer__sidebar-btn--active]="activeSection() === 'brokers'"
+          (click)="activeSection.set('brokers')"
+        >
+          Brokers
+        </button>
+        <button
+          mat-button
+          class="kafka-explorer__sidebar-btn"
+          [class.kafka-explorer__sidebar-btn--active]="activeSection() === 'topics'"
+          (click)="activeSection.set('topics')"
+        >
+          Topics
+        </button>
+      </aside>
+      <div class="kafka-explorer__content">
+        @switch (activeSection()) {
+          @case ('brokers') {
+            <gke-brokers
+              [nodes]="info.nodes"
+              [controllerId]="info.controller.id"
+              [clusterId]="info.clusterId"
+              [controller]="info.controller"
+              [totalTopics]="info.totalTopics"
+              [totalPartitions]="info.totalPartitions"
+            />
+          }
+          @case ('topics') {
+            <gke-topics
+              [topics]="topicsPage()?.data ?? []"
+              [totalElements]="topicsPage()?.pagination?.totalCount ?? 0"
+              [page]="(topicsPage()?.pagination?.page ?? 1) - 1"
+              [pageSize]="topicsPage()?.pagination?.perPage ?? 10"
+              [loading]="topicsLoading()"
+              (filterChange)="onTopicsFilterChange($event)"
+              (pageChange)="onTopicsPageChange($event)"
+            />
+          }
+        }
+      </div>
+    </div>
   </div>
 }

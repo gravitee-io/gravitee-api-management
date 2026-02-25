@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatProgressSpinnerHarness } from '@angular/material/progress-spinner/testing';
 
 import { BrokersHarness } from '../brokers/brokers.harness';
@@ -26,7 +27,7 @@ export class KafkaExplorerHarness extends ComponentHarness {
   private readonly getBrokers = this.locatorForOptional(BrokersHarness);
   private readonly getTopics = this.locatorForOptional(TopicsHarness);
   private readonly getErrorBanner = this.locatorForOptional('.kafka-explorer__error');
-  private readonly getTopbar = this.locatorForOptional('.kafka-explorer__topbar');
+  private readonly getSidebarButtons = this.locatorForAll(MatButtonHarness.with({ ancestor: '.kafka-explorer__sidebar' }));
 
   async isLoading() {
     return (await this.getSpinner()) !== null;
@@ -37,9 +38,20 @@ export class KafkaExplorerHarness extends ComponentHarness {
     return error ? error.text() : null;
   }
 
-  async getTopbarText() {
-    const topbar = await this.getTopbar();
-    return topbar ? topbar.text() : null;
+  async selectSection(label: string) {
+    const buttons = await this.getSidebarButtons();
+    for (const button of buttons) {
+      if ((await button.getText()) === label) {
+        await button.click();
+        return;
+      }
+    }
+    throw new Error(`Sidebar button "${label}" not found`);
+  }
+
+  async getSidebarLabels() {
+    const buttons = await this.getSidebarButtons();
+    return Promise.all(buttons.map(b => b.getText()));
   }
 
   async getBrokersHarness() {

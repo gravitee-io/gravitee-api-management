@@ -20,6 +20,12 @@ export class BrokersHarness extends ComponentHarness {
   static hostSelector = 'gke-brokers';
 
   private readonly getTable = this.locatorFor(MatTableHarness);
+  private readonly getClusterInfo = this.locatorForOptional('.brokers__cluster-info');
+
+  async getClusterInfoText() {
+    const info = await this.getClusterInfo();
+    return info ? info.text() : null;
+  }
 
   async getRows() {
     const table = await this.getTable();

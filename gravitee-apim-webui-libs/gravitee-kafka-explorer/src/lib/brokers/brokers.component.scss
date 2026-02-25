@@ -37,4 +37,27 @@
     background-color: var(--mat-sys-primary-container, #e8def8);
     color: var(--mat-sys-on-primary-container, #1d192b);
   }
+
+  &__cluster-info {
+    margin-top: 4px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--mat-sys-outline-variant, #cac4d0);
+  }
+
+  &__cluster-info-items {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  &__cluster-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__section-title {
+    margin: 0 0 8px;
+  }
 }

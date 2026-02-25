@@ -55,43 +55,52 @@ describe('KafkaExplorerComponent', () => {
     httpTesting.verify();
   });
 
-  function flushClusterAndTopics() {
+  function flushCluster() {
     httpTesting.expectOne('/api/v2/kafka-explorer/describe-cluster').flush(fakeDescribeClusterResponse());
     fixture.detectChanges();
+  }
+
+  function flushTopics() {
     httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/list-topics').flush(fakeListTopicsResponse());
+    fixture.detectChanges();
   }
 
   it('should show loader while loading', async () => {
     expect(await harness.isLoading()).toBe(true);
 
-    flushClusterAndTopics();
+    flushCluster();
+    flushTopics();
   });
 
-  it('should display cluster info after successful response', async () => {
+  it('should display sidebar with Brokers and Topics buttons', async () => {
+    flushCluster();
+    flushTopics();
+
+    const labels = await harness.getSidebarLabels();
+    expect(labels).toEqual(['Brokers', 'Topics']);
+  });
+
+  it('should display cluster info in brokers section by default', async () => {
     const clusterReq = httpTesting.expectOne('/api/v2/kafka-explorer/describe-cluster');
     expect(clusterReq.request.body).toEqual({ clusterId: 'test-cluster-id' });
     clusterReq.flush(fakeDescribeClusterResponse());
 
     fixture.detectChanges();
+    flushTopics();
 
-    const topicsReq = httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/list-topics');
-    expect(topicsReq.request.body).toEqual({ clusterId: 'test-cluster-id' });
-    expect(topicsReq.request.params.get('page')).toBe('1');
-    expect(topicsReq.request.params.get('perPage')).toBe('10');
-    topicsReq.flush(fakeListTopicsResponse());
+    const brokersHarness = await harness.getBrokersHarness();
+    expect(brokersHarness).toBeTruthy();
 
-    fixture.detectChanges();
-
-    const topbarText = await harness.getTopbarText();
-    expect(topbarText).toContain('test-cluster-id');
-    expect(topbarText).toContain('kafka-broker-0.example.com');
-    expect(topbarText).toContain('5');
-    expect(topbarText).toContain('15');
+    const clusterInfoText = await brokersHarness!.getClusterInfoText();
+    expect(clusterInfoText).toContain('test-cluster-id');
+    expect(clusterInfoText).toContain('kafka-broker-0.example.com');
+    expect(clusterInfoText).toContain('5');
+    expect(clusterInfoText).toContain('15');
   });
 
   it('should render broker nodes table via BrokersHarness', async () => {
-    flushClusterAndTopics();
-    fixture.detectChanges();
+    flushCluster();
+    flushTopics();
 
     const brokersHarness = await harness.getBrokersHarness();
     expect(brokersHarness).toBeTruthy();
@@ -103,8 +112,11 @@ describe('KafkaExplorerComponent', () => {
     expect(rows[0]['id']).toContain('0');
   });
 
-  it('should render topics table via TopicsHarness', async () => {
-    flushClusterAndTopics();
+  it('should navigate to Topics section', async () => {
+    flushCluster();
+    flushTopics();
+
+    await harness.selectSection('Topics');
     fixture.detectChanges();
 
     const topicsHarness = await harness.getTopicsHarness();
@@ -113,6 +125,26 @@ describe('KafkaExplorerComponent', () => {
     const rows = await topicsHarness!.getRowsData();
     expect(rows.length).toBe(3);
     expect(rows[0]['name']).toBe('my-topic');
+
+    const brokersHarness = await harness.getBrokersHarness();
+    expect(brokersHarness).toBeNull();
+  });
+
+  it('should navigate back to Brokers section', async () => {
+    flushCluster();
+    flushTopics();
+
+    await harness.selectSection('Topics');
+    fixture.detectChanges();
+
+    await harness.selectSection('Brokers');
+    fixture.detectChanges();
+
+    const brokersHarness = await harness.getBrokersHarness();
+    expect(brokersHarness).toBeTruthy();
+
+    const topicsHarness = await harness.getTopicsHarness();
+    expect(topicsHarness).toBeNull();
   });
 
   it('should show error on failure', async () => {
