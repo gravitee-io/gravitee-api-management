@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.subscription_form.model;
 
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContainer;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -36,18 +36,18 @@ import lombok.Getter;
  */
 @Getter
 @Builder
-public class SubscriptionForm implements GraviteeMarkdownContainer {
+public class SubscriptionForm {
 
     private final SubscriptionFormId id;
     private final String environmentId;
 
-    private String gmdContent;
+    private GraviteeMarkdown gmdContent;
     private boolean enabled;
 
     /**
      * Updates this form with new GMD content (mutates in place).
      */
-    public void update(String gmdContent) {
+    public void update(GraviteeMarkdown gmdContent) {
         this.gmdContent = gmdContent;
     }
 

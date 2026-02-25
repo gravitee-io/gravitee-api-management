@@ -23,6 +23,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import io.gravitee.apim.core.open_api.OpenApi;
 import io.gravitee.apim.core.open_api.OpenApiValidator;
 import io.gravitee.apim.core.open_api.exception.OpenApiContentEmptyException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
@@ -79,7 +80,7 @@ class OpenApiPortalPageContentValidatorServiceTest {
         validator.validate(updateContent);
 
         // Then
-        verify(openApiValidator).validateNotEmpty(eq("openapi: 3.0.0"));
+        verify(openApiValidator).validateNotEmpty(eq(new OpenApi("openapi: 3.0.0")));
     }
 
     @Test

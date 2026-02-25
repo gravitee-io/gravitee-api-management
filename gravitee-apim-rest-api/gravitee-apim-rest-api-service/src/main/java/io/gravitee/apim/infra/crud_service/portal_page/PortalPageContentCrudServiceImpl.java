@@ -16,7 +16,7 @@
 package io.gravitee.apim.infra.crud_service.portal_page;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContent;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
@@ -60,7 +60,7 @@ public class PortalPageContentCrudServiceImpl implements PortalPageContentCrudSe
             pageContentId,
             organizationId,
             environmentId,
-            new GraviteeMarkdownContent(getDefaultPortalPageContent())
+            new GraviteeMarkdown(getDefaultPortalPageContent())
         );
         return this.create(portalPageContent);
     }

@@ -35,8 +35,8 @@ public class OpenApiValidator {
      * @param content the OpenAPI content string to validate
      * @throws OpenApiContentEmptyException if content is null, empty, or whitespace-only
      */
-    public void validateNotEmpty(String content) {
-        if (content == null || content.trim().isEmpty()) {
+    public void validateNotEmpty(OpenApi content) {
+        if (content.value() == null || content.value().trim().isEmpty()) {
             throw new OpenApiContentEmptyException();
         }
     }

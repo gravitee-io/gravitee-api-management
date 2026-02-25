@@ -15,26 +15,25 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContainer;
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContent;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import jakarta.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-public final class GraviteeMarkdownPageContent extends PortalPageContent<GraviteeMarkdownContent> implements GraviteeMarkdownContainer {
+public final class GraviteeMarkdownPageContent extends PortalPageContent<GraviteeMarkdown> {
 
     private static final PortalPageContentType TYPE = PortalPageContentType.GRAVITEE_MARKDOWN;
 
     @Setter
     @Nonnull
-    private GraviteeMarkdownContent content;
+    private GraviteeMarkdown content;
 
     public GraviteeMarkdownPageContent(
         @Nonnull PortalPageContentId id,
         @Nonnull String organizationId,
         @Nonnull String environmentId,
-        @Nonnull GraviteeMarkdownContent content
+        @Nonnull GraviteeMarkdown content
     ) {
         super(id, organizationId, environmentId);
         this.content = content;
@@ -45,12 +44,7 @@ public final class GraviteeMarkdownPageContent extends PortalPageContent<Gravite
         @Nonnull String environmentId,
         @Nonnull String content
     ) {
-        return new GraviteeMarkdownPageContent(
-            PortalPageContentId.random(),
-            organizationId,
-            environmentId,
-            new GraviteeMarkdownContent(content)
-        );
+        return new GraviteeMarkdownPageContent(PortalPageContentId.random(), organizationId, environmentId, GraviteeMarkdown.of(content));
     }
 
     public PortalPageContentType getType() {
@@ -59,12 +53,7 @@ public final class GraviteeMarkdownPageContent extends PortalPageContent<Gravite
 
     @Override
     public void update(@Nonnull UpdatePortalPageContent updateGraviteeMarkdownPageContent) {
-        this.content = new GraviteeMarkdownContent(updateGraviteeMarkdownPageContent.getContent());
-    }
-
-    @Override
-    public String getGmdContent() {
-        return content.raw();
+        this.content = GraviteeMarkdown.of(updateGraviteeMarkdownPageContent.getContent());
     }
 
     @Override
