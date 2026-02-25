@@ -148,23 +148,24 @@
           }
         }
       }
-
-      @if (canUpdate && node.type !== 'API') {
+      @if (canUpdate) {
         <button mat-menu-item (click)="onEdit(node)" data-testid="edit-node-button">
           <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
           Edit
         </button>
 
-        @if (isUnpublished(node)) {
-          <button mat-menu-item (click)="onPublish(node)" data-testid="publish-node-button">
-            <mat-icon svgIcon="gio:eye-empty"></mat-icon>
-            Publish
-          </button>
-        } @else {
-          <button mat-menu-item (click)="onUnpublish(node)" data-testid="unpublish-node-button">
-            <mat-icon svgIcon="gio:eye-off"></mat-icon>
-            Unpublish
-          </button>
+        @if (node.type !== 'API') {
+          @if (isUnpublished(node)) {
+            <button mat-menu-item (click)="onPublish(node)" data-testid="publish-node-button">
+              <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+              Publish
+            </button>
+          } @else {
+            <button mat-menu-item (click)="onUnpublish(node)" data-testid="unpublish-node-button">
+              <mat-icon svgIcon="gio:eye-off"></mat-icon>
+              Unpublish
+            </button>
+          }
         }
       }
 

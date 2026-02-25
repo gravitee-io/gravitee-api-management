@@ -87,8 +87,8 @@
         </div>
       }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
+        <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onEdit()">Edit</button>
         @if (isSelectedNotApiItem()) {
-          <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onEdit()">Edit</button>
           <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onPublishToggle()">
             {{ selectedNavigationItemIsPublished() ? 'Unpublish' : 'Publish' }}
           </button>

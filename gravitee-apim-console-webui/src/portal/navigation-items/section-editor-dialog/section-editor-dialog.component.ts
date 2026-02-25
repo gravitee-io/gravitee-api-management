@@ -43,7 +43,7 @@ interface SectionEditorDialogCreateData {
 
 interface SectionEditorDialogEditData {
   mode: 'edit';
-  type: SectionEditorDialogItemType;
+  type: PortalNavigationItemType;
   existingItem: PortalNavigationItem;
 }
 
@@ -92,7 +92,7 @@ export class SectionEditorDialogComponent implements OnInit {
   });
   public initialFormValues: SectionFormValues;
 
-  public type: SectionEditorDialogItemType;
+  public type: PortalNavigationItemType;
   public mode: SectionEditorDialogMode;
   public title: string;
 
