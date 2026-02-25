@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.InlinePictureEntity;
@@ -32,6 +34,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
@@ -122,6 +125,16 @@ public abstract class AbstractResource<T, K> {
 
     protected UserDetails getAuthenticatedUserDetails() {
         return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+
+    protected AuditInfo getAuditInfo() {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var user = getAuthenticatedUserDetails();
+        return AuditInfo.builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(AuditActor.builder().userId(user.getUsername()).userSource(user.getSource()).userSourceId(user.getSourceId()).build())
+            .build();
     }
 
     protected boolean isAuthenticated() {

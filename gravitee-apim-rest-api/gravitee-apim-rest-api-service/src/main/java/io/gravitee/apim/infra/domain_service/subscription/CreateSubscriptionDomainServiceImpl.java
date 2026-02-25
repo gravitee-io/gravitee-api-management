@@ -44,6 +44,7 @@ public class CreateSubscriptionDomainServiceImpl implements CreateSubscriptionDo
         String customApiKey,
         io.gravitee.apim.core.subscription.model.SubscriptionConfiguration configuration,
         java.util.Map<String, String> metadata,
+        io.gravitee.rest.api.model.ApiKeyMode apiKeyMode,
         Boolean generalConditionsAccepted,
         io.gravitee.rest.api.model.PageEntity.PageRevisionId generalConditionsContentRevision
     ) {
@@ -63,6 +64,9 @@ public class CreateSubscriptionDomainServiceImpl implements CreateSubscriptionDo
         }
         if (metadata != null) {
             newSubscriptionEntity.setMetadata(metadata);
+        }
+        if (apiKeyMode != null) {
+            newSubscriptionEntity.setApiKeyMode(apiKeyMode);
         }
         if (generalConditionsAccepted != null) {
             newSubscriptionEntity.setGeneralConditionsAccepted(generalConditionsAccepted);

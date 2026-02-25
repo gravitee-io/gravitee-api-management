@@ -35,6 +35,7 @@ public interface CreateSubscriptionDomainService {
      * @param customApiKey Optional custom API key
      * @param configuration Optional subscription configuration
      * @param metadata Optional metadata
+     * @param apiKeyMode Optional API key mode (SHARED or EXCLUSIVE)
      * @param generalConditionsAccepted Whether general conditions were accepted
      * @param generalConditionsContentRevision General conditions content revision
      * @return The created subscription entity (REST model, will be converted to core by caller)
@@ -47,6 +48,7 @@ public interface CreateSubscriptionDomainService {
         String customApiKey,
         io.gravitee.apim.core.subscription.model.SubscriptionConfiguration configuration,
         java.util.Map<String, String> metadata,
+        io.gravitee.rest.api.model.ApiKeyMode apiKeyMode,
         Boolean generalConditionsAccepted,
         io.gravitee.rest.api.model.PageEntity.PageRevisionId generalConditionsContentRevision
     );
