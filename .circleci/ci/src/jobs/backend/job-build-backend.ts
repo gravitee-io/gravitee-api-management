@@ -37,7 +37,7 @@ export class BuildBackendJob {
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: jobName }),
       new commands.Run({
         name: 'Build project',
-        command: `mvn -s ${config.maven.settingsFile} clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 2C -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc`,
+        command: `mvn -s ${config.maven.settingsFile} clean install --no-transfer-progress --update-snapshots -Dmaven.test.skip=true -Dskip.validation=true -Dgravitee.archrules.skip=false -T 2C -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc`,
         environment: {
           BUILD_ID: environment.buildId,
           BUILD_NUMBER: environment.buildNum,

@@ -214,7 +214,7 @@ jobs:
           jobName: job-build
       - run:
           name: Build project
-          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 2C -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc
+          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -Dmaven.test.skip=true -Dskip.validation=true -Dgravitee.archrules.skip=false -T 2C -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc
           environment:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"
@@ -1069,7 +1069,7 @@ jobs:
           jobName: job-community-build
       - run:
           name: Build project
-          command: mvn clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 2C
+          command: mvn clean install --no-transfer-progress --update-snapshots -Dmaven.test.skip=true -Dskip.validation=true -Dgravitee.archrules.skip=false -T 2C
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
           jobName: job-community-build
