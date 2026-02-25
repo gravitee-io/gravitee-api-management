@@ -30,15 +30,23 @@ import { KafkaExplorerComponent } from './kafka-explorer.component';
 import {
   fakeBrokerDetail,
   fakeDescribeClusterResponse,
+  fakeDescribeTopicResponse,
   fakeKafkaNode,
   fakeKafkaTopic,
   fakeListTopicsResponse,
   fakePagination,
 } from '../models/kafka-cluster.fixture';
-import { DescribeClusterResponse, ListTopicsResponse } from '../models/kafka-cluster.model';
+import { DescribeClusterResponse, DescribeTopicResponse, ListTopicsResponse } from '../models/kafka-cluster.model';
 
-function mockSuccessInterceptor(clusterResponse: DescribeClusterResponse, topicsResponse: ListTopicsResponse): HttpInterceptorFn {
+function mockSuccessInterceptor(
+  clusterResponse: DescribeClusterResponse,
+  topicsResponse: ListTopicsResponse,
+  topicDetailResponse: DescribeTopicResponse = fakeDescribeTopicResponse(),
+): HttpInterceptorFn {
   return (req: HttpRequest<unknown>, _next: HttpHandlerFn): Observable<HttpEvent<unknown>> => {
+    if (req.url.includes('describe-topic')) {
+      return of(new HttpResponse({ status: 200, body: topicDetailResponse })).pipe(delay(200));
+    }
     if (req.url.includes('list-topics')) {
       return of(new HttpResponse({ status: 200, body: topicsResponse })).pipe(delay(0));
     }

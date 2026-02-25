@@ -22,14 +22,23 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
 import { BrokersComponent } from '../brokers/brokers.component';
-import { DescribeClusterResponse, ListTopicsResponse } from '../models/kafka-cluster.model';
+import { DescribeClusterResponse, DescribeTopicResponse, ListTopicsResponse } from '../models/kafka-cluster.model';
 import { KafkaExplorerService } from '../services/kafka-explorer.service';
+import { TopicDetailComponent } from '../topic-detail/topic-detail.component';
 import { TopicsComponent } from '../topics/topics.component';
 
 @Component({
   selector: 'gke-kafka-explorer',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatProgressSpinnerModule, MatIconModule, BrokersComponent, TopicsComponent],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatProgressSpinnerModule,
+    MatIconModule,
+    BrokersComponent,
+    TopicsComponent,
+    TopicDetailComponent,
+  ],
   templateUrl: './kafka-explorer.component.html',
   styleUrls: ['./kafka-explorer.component.scss'],
 })
@@ -42,6 +51,9 @@ export class KafkaExplorerComponent implements OnInit {
   topicsPage = signal<ListTopicsResponse | undefined>(undefined);
   loading = signal(false);
   topicsLoading = signal(false);
+  selectedTopic = signal<string | null>(null);
+  topicDetail = signal<DescribeTopicResponse | undefined>(undefined);
+  topicDetailLoading = signal(false);
   error = signal<string | null>(null);
 
   private currentFilter = '';
@@ -80,6 +92,29 @@ export class KafkaExplorerComponent implements OnInit {
 
   onTopicsFilterChange(filter: string) {
     this.filterSubject.next(filter);
+  }
+
+  onTopicSelect(topicName: string) {
+    this.selectedTopic.set(topicName);
+    this.topicDetail.set(undefined);
+    this.topicDetailLoading.set(true);
+    this.kafkaExplorerService
+      .describeTopic(this.baseURL(), this.clusterId(), topicName)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: detail => {
+          this.topicDetail.set(detail);
+          this.topicDetailLoading.set(false);
+        },
+        error: () => {
+          this.topicDetailLoading.set(false);
+        },
+      });
+  }
+
+  onTopicBack() {
+    this.selectedTopic.set(null);
+    this.topicDetail.set(undefined);
   }
 
   onTopicsPageChange(event: { page: number; pageSize: number }) {

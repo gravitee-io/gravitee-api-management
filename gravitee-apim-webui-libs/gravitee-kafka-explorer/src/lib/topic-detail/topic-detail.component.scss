@@ -14,46 +14,36 @@
  * limitations under the License.
  */
 
-.topics {
-  mat-card-content {
-    overflow-x: auto;
+.topic-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
-  table {
-    width: 100%;
-  }
-
-  &__filter {
-    width: 100%;
-    margin-bottom: 8px;
-  }
-
-  &__warning-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 500;
-    background-color: var(--mat-sys-error-container, #fff3e0);
-    color: var(--mat-sys-on-error-container, #e65100);
-  }
-
-  &__row {
-    cursor: pointer;
-
-    &:hover {
-      background-color: var(--mat-sys-surface-variant, #f5f5f5);
-    }
+  &__title {
+    margin: 0;
   }
 
   &__internal-badge {
     display: inline-block;
-    margin-left: 8px;
     padding: 2px 8px;
     border-radius: 12px;
     font-size: 11px;
     font-weight: 500;
     background-color: var(--mat-sys-surface-variant, #e7e0ec);
     color: var(--mat-sys-on-surface-variant, #49454f);
+  }
+
+  mat-card-content {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
   }
 }

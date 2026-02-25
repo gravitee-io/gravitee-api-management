@@ -193,15 +193,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .get(topicName);
 
-            boolean internal = adminClient
-                .listTopics(new ListTopicsOptions().listInternal(true))
-                .listings()
-                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .stream()
-                .filter(l -> l.name().equals(topicName))
-                .findFirst()
-                .map(TopicListing::isInternal)
-                .orElse(false);
+            boolean internal = description.isInternal();
 
             List<TopicPartitionDetail> partitions = description
                 .partitions()

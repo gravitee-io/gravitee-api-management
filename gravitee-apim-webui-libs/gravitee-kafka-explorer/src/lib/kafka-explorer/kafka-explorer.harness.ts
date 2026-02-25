@@ -18,6 +18,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatProgressSpinnerHarness } from '@angular/material/progress-spinner/testing';
 
 import { BrokersHarness } from '../brokers/brokers.harness';
+import { TopicDetailHarness } from '../topic-detail/topic-detail.harness';
 import { TopicsHarness } from '../topics/topics.harness';
 
 export class KafkaExplorerHarness extends ComponentHarness {
@@ -60,5 +61,9 @@ export class KafkaExplorerHarness extends ComponentHarness {
 
   async getTopicsHarness() {
     return this.getTopics();
+  }
+
+  async getTopicDetailHarness() {
+    return this.locatorForOptional(TopicDetailHarness)();
   }
 }

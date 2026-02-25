@@ -26,4 +26,6 @@ export * from './lib/brokers/brokers.component';
 export * from './lib/brokers/brokers.harness';
 export * from './lib/topics/topics.component';
 export * from './lib/topics/topics.harness';
+export * from './lib/topic-detail/topic-detail.component';
+export * from './lib/topic-detail/topic-detail.harness';
 export * from './lib/pipes/file-size.pipe';

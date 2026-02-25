@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BrokerDetail, DescribeClusterResponse, KafkaNode, KafkaTopic, ListTopicsResponse, Pagination } from './kafka-cluster.model';
+import {
+  BrokerDetail,
+  DescribeClusterResponse,
+  DescribeTopicResponse,
+  KafkaNode,
+  KafkaTopic,
+  ListTopicsResponse,
+  Pagination,
+  TopicConfig,
+  TopicPartitionDetail,
+} from './kafka-cluster.model';
 
 export function fakeKafkaNode(overrides: Partial<KafkaNode> = {}): KafkaNode {
   return {
@@ -90,6 +100,41 @@ export function fakeListTopicsResponse(overrides: Partial<ListTopicsResponse> = 
       }),
     ],
     pagination: fakePagination(),
+    ...overrides,
+  };
+}
+
+export function fakeTopicPartitionDetail(overrides: Partial<TopicPartitionDetail> = {}): TopicPartitionDetail {
+  return {
+    id: 0,
+    leader: fakeKafkaNode({ id: 0 }),
+    replicas: [fakeKafkaNode({ id: 0 }), fakeKafkaNode({ id: 1 })],
+    isr: [fakeKafkaNode({ id: 0 }), fakeKafkaNode({ id: 1 })],
+    offline: [],
+    ...overrides,
+  };
+}
+
+export function fakeTopicConfig(overrides: Partial<TopicConfig> = {}): TopicConfig {
+  return {
+    name: 'retention.ms',
+    value: '604800000',
+    source: 'DYNAMIC_TOPIC_CONFIG',
+    readOnly: false,
+    sensitive: false,
+    ...overrides,
+  };
+}
+
+export function fakeDescribeTopicResponse(overrides: Partial<DescribeTopicResponse> = {}): DescribeTopicResponse {
+  return {
+    name: 'my-topic',
+    internal: false,
+    partitions: [fakeTopicPartitionDetail({ id: 0 }), fakeTopicPartitionDetail({ id: 1, leader: fakeKafkaNode({ id: 1 }) })],
+    configs: [
+      fakeTopicConfig({ name: 'retention.ms', value: '604800000' }),
+      fakeTopicConfig({ name: 'cleanup.policy', value: 'delete', source: 'DEFAULT_CONFIG' }),
+    ],
     ...overrides,
   };
 }
