@@ -30,6 +30,8 @@ servers:
 tags:
   - name: API Product
     description: API Product lifecycle - create, read, update, delete, verify, deploy
+  - name: API Product Members
+    description: Manage API Product members and their permissions
   - name: API Product Subscriptions
     description: Subscribe applications to API Product plans and manage subscriptions
   - name: API Product Plans
@@ -442,6 +444,69 @@ paths:
                 $ref: '#/components/schemas/Error'
         '500':
           $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/members/permissions:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+    get:
+      tags:
+        - API Product Members
+      summary: Get API Product member permissions
+      description: |-
+        Get the permissions of the current user for the API Product.
+        Returns a map of permission names to allowed actions (CRUD) for the authenticated user.
+        Admins receive all permissions; other users receive their membership-based permissions.
+      operationId: getApiProductMemberPermissions
+      responses:
+        '200':
+          description: Map of permission names to allowed actions (e.g. CREATE, READ, UPDATE, DELETE)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+                  description: Allowed action IDs as a string (e.g. "CRUD" for Create, Read, Update, Delete)
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/deployments/_verify:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+    get:
+      tags:
+        - API Product
+      summary: Check if a deployment is possible
+      description: |-
+        Verifies whether the API Product can be deployed to gateway instances, based on the current license.
+
+        User must have the API_PRODUCT_DEFINITION[READ] permission.
+      operationId: verifyApiProductDeployment
+      responses:
+        "200":
+          description: Verification successfully performed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyApiProductDeploymentResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        default:
+          $ref: '#/components/responses/Error'
 
   /environments/{envId}/api-products/{apiProductId}/deployments:
     parameters:
@@ -1732,6 +1797,25 @@ components:
           example: "2025-01-01T10:15:30Z"
         primaryOwner:
           $ref: '#/components/schemas/PrimaryOwner'
+        deploymentState:
+          $ref: '#/components/schemas/ApiProductDeploymentState'
+
+    ApiProductDeploymentState:
+      type: string
+      description: Indicates whether the API Product is in sync with the latest deployment.
+      enum:
+        - DEPLOYED
+        - NEED_REDEPLOY
+
+    VerifyApiProductDeploymentResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          description: Indicates whether the deployment can be done or not.
+        reason:
+          type: string
+          description: An optional reason giving details about the result.
 
     PrimaryOwner:
       type: object

@@ -14,20 +14,33 @@
  * limitations under the License.
  */
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Inject, Injectable } from '@angular/core';
+import { Inject, Injectable, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { ApiProduct, ApiProductsResponse, CreateApiProduct, UpdateApiProduct } from '../entities/management-api-v2/api-product';
+import {
+  ApiProduct,
+  ApiProductsResponse,
+  CreateApiProduct,
+  UpdateApiProduct,
+  VerifyApiProductDeployResponse,
+} from '../entities/management-api-v2/api-product';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiProductV2Service {
+  private readonly _planStateVersion = signal(0);
+  readonly planStateVersion = this._planStateVersion.asReadonly();
+
   constructor(
     private readonly http: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
+
+  notifyPlanStateChanged(): void {
+    this._planStateVersion.update(v => v + 1);
+  }
 
   /**
    * Create a new API Product
@@ -117,6 +130,28 @@ export class ApiProductV2Service {
   }
 
   /**
+   * Deploy an API Product to gateway instances
+   * Calls POST /environments/{envId}/api-products/{apiProductId}/deployments
+   * @param apiProductId - The API Product ID
+   * @returns Observable of the deployed API Product
+   */
+  deploy(apiProductId: string): Observable<ApiProduct> {
+    return this.http.post<ApiProduct>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}/deployments`, {});
+  }
+
+  /**
+   * Check whether an API Product can be deployed (license check)
+   * Calls GET /environments/{envId}/api-products/{apiProductId}/deployments/_verify
+   * @param apiProductId - The API Product ID
+   * @returns Observable with ok boolean and optional reason
+   */
+  verifyDeploy(apiProductId: string): Observable<VerifyApiProductDeployResponse> {
+    return this.http.get<VerifyApiProductDeployResponse>(
+      `${this.constants.env.v2BaseURL}/api-products/${apiProductId}/deployments/_verify`,
+    );
+  }
+
+  /**
    * Verify if an API Product name is unique
    * Calls POST /environments/{envId}/api-products/_verify
    * @param name - The API Product name to verify
@@ -126,5 +161,15 @@ export class ApiProductV2Service {
     return this.http.post<{ ok: boolean; reason?: string }>(`${this.constants.env.v2BaseURL}/api-products/_verify`, {
       name,
     });
+  }
+
+  /**
+   * Get the current user's permissions for a given API Product
+   * Calls GET /environments/{envId}/api-products/{apiProductId}/members/permissions
+   * @param apiProductId - The API Product ID
+   * @returns Observable of permission map (e.g. { PLAN: ['C','R','U','D'] })
+   */
+  getPermissions(apiProductId: string): Observable<Record<string, string>> {
+    return this.http.get<Record<string, string>>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}/members/permissions`);
   }
 }

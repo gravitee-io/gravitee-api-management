@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-export * from './apiProduct';
-export * from './createApiProduct';
-export * from './updateApiProduct';
-export * from './apiProductsResponse';
-export * from './verifyApiProductDeploy';
+export interface VerifyApiProductDeployResponse {
+  ok?: boolean;
+  reason?: string;
+}
