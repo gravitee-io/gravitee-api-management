@@ -40,6 +40,10 @@ export class ApiProductV2Service {
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
+  notifyPlanStateChanged(): void {
+    this._planStateVersion.update(v => v + 1);
+  }
+
   /**
    * Notifies subscribers that plan state has changed. Must be called after any operation that
    * modifies plans: create, update, publish, deprecate, close, reorder, or delete.

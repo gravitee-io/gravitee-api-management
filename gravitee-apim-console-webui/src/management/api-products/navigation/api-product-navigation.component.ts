@@ -52,8 +52,6 @@ export interface MenuItem {
   displayName: string;
   routerLink: string;
   icon?: string;
-  tabs?: ApiProductTabMenuItem[];
-  header?: { title: string; subtitle?: string };
 }
 
 type TopBanner = {
