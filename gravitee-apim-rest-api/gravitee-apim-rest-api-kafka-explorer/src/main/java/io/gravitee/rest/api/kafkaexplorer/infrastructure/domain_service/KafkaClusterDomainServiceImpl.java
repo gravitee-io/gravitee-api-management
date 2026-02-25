@@ -42,7 +42,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,9 +72,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
     @Override
     public KafkaClusterInfo describeCluster(KafkaClusterConfiguration config) {
-        List<Path> tempFiles = new ArrayList<>();
-        Properties properties = buildProperties(config, tempFiles);
-        try (AdminClient adminClient = createAdminClient(properties)) {
+        return withAdminClient(config, adminClient -> {
             DescribeClusterResult result = adminClient.describeCluster();
 
             String clusterId = result.clusterId().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -99,25 +96,12 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 topicStats.totalTopics(),
                 topicStats.totalPartitions()
             );
-        } catch (ExecutionException e) {
-            throw handleExecutionException(e);
-        } catch (TimeoutException e) {
-            throw new KafkaExplorerException("Connection to Kafka cluster timed out", TechnicalCode.TIMEOUT, e);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new KafkaExplorerException("Connection to Kafka cluster was interrupted", TechnicalCode.INTERRUPTED, e);
-        } catch (Exception e) {
-            throw new KafkaExplorerException("Failed to connect to Kafka cluster: " + e.getMessage(), TechnicalCode.CONNECTION_FAILED, e);
-        } finally {
-            deleteTempFiles(tempFiles);
-        }
+        });
     }
 
     @Override
     public TopicsPage listTopics(KafkaClusterConfiguration config, String nameFilter, int page, int perPage) {
-        List<Path> tempFiles = new ArrayList<>();
-        Properties properties = buildProperties(config, tempFiles);
-        try (AdminClient adminClient = createAdminClient(properties)) {
+        return withAdminClient(config, adminClient -> {
             // Step 1: List all topics (cheap call)
             Collection<TopicListing> listings = adminClient
                 .listTopics(new ListTopicsOptions().listInternal(true))
@@ -190,18 +174,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 .toList();
 
             return new TopicsPage(topics, totalCount, page, perPage);
-        } catch (ExecutionException e) {
-            throw handleExecutionException(e);
-        } catch (TimeoutException e) {
-            throw new KafkaExplorerException("Connection to Kafka cluster timed out", TechnicalCode.TIMEOUT, e);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new KafkaExplorerException("Connection to Kafka cluster was interrupted", TechnicalCode.INTERRUPTED, e);
-        } catch (Exception e) {
-            throw new KafkaExplorerException("Failed to connect to Kafka cluster: " + e.getMessage(), TechnicalCode.CONNECTION_FAILED, e);
-        } finally {
-            deleteTempFiles(tempFiles);
-        }
+        });
     }
 
     private Map<String, Long> fetchTopicSizes(AdminClient adminClient, Set<String> topicNames) {
@@ -255,6 +228,30 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 .collect(Collectors.groupingBy(e -> e.getKey().topic(), Collectors.summingLong(e -> e.getValue().offset())));
         } catch (Exception e) {
             return Map.of();
+        }
+    }
+
+    @FunctionalInterface
+    private interface AdminClientAction<T> {
+        T execute(AdminClient adminClient) throws Exception;
+    }
+
+    private <T> T withAdminClient(KafkaClusterConfiguration config, AdminClientAction<T> action) {
+        List<Path> tempFiles = new ArrayList<>();
+        Properties properties = buildProperties(config, tempFiles);
+        try (AdminClient adminClient = createAdminClient(properties)) {
+            return action.execute(adminClient);
+        } catch (ExecutionException e) {
+            throw handleExecutionException(e);
+        } catch (TimeoutException e) {
+            throw new KafkaExplorerException("Connection to Kafka cluster timed out", TechnicalCode.TIMEOUT, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new KafkaExplorerException("Connection to Kafka cluster was interrupted", TechnicalCode.INTERRUPTED, e);
+        } catch (Exception e) {
+            throw new KafkaExplorerException("Failed to connect to Kafka cluster", TechnicalCode.CONNECTION_FAILED, e);
+        } finally {
+            deleteTempFiles(tempFiles);
         }
     }
 
@@ -517,13 +514,9 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
     private KafkaExplorerException handleExecutionException(ExecutionException e) {
         Throwable cause = e.getCause();
         if (cause instanceof AuthenticationException) {
-            return new KafkaExplorerException("Authentication failed: " + cause.getMessage(), TechnicalCode.AUTHENTICATION_FAILED, cause);
+            return new KafkaExplorerException("Authentication failed", TechnicalCode.AUTHENTICATION_FAILED, cause);
         }
-        return new KafkaExplorerException(
-            "Failed to connect to Kafka cluster: " + cause.getMessage(),
-            TechnicalCode.CONNECTION_FAILED,
-            cause
-        );
+        return new KafkaExplorerException("Failed to connect to Kafka cluster", TechnicalCode.CONNECTION_FAILED, cause);
     }
 
     private KafkaNode toKafkaNode(Node node) {
