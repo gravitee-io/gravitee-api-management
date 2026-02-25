@@ -912,12 +912,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             );
             subscription.setFailureCause(null);
             setSubscriptionConfig(subscriptionConfigEntity.getConfiguration(), subscription);
-            if (subscriptionConfigEntity.getMetadata() != null) {
-                subscription.setMetadata(subscriptionConfigEntity.getMetadata());
-            }
+            subscription.setMetadata(subscriptionConfigEntity.getMetadata());
 
             subscription = subscriptionRepository.update(subscription);
-
             String referenceId = planEntity.getReferenceId();
             createAudit(
                 executionContext,
