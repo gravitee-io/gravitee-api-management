@@ -1379,7 +1379,7 @@ describe('PortalNavigationItemsComponent', () => {
       expect(result?.id).toBe('page-111');
     });
 
-    it('returns null when no pages exist', () => {
+    it('returns folder parent when no pages exist', () => {
       const folder1 = fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1', order: 0 });
       const folder11 = fakePortalNavigationFolder({
         id: 'folder-11',
@@ -1391,7 +1391,7 @@ describe('PortalNavigationItemsComponent', () => {
 
       const result = findFirstAvailablePage(null, items);
 
-      expect(result).toBeNull();
+      expect(result).toEqual(folder11);
     });
   });
 

@@ -679,6 +679,7 @@ export function findFirstAvailablePage(
       if (element.type === 'FOLDER') {
         const found = search(element);
         if (found) return found;
+        return element;
       }
     }
     return null;
