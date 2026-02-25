@@ -15,69 +15,32 @@
     limitations under the License.
 
 -->
-@if (loading()) {
+@if (store.loading()) {
   <div class="kafka-explorer__loader">
     <mat-spinner diameter="40" />
   </div>
 }
 
-@if (error(); as errorMsg) {
+@if (store.error(); as errorMsg) {
   <div class="kafka-explorer__error">
     <mat-icon>error</mat-icon>
     <span>{{ errorMsg }}</span>
   </div>
 }
 
-@if (clusterInfo(); as info) {
+@if (store.clusterInfo()) {
   <div class="kafka-explorer">
     <div class="kafka-explorer__layout">
       <aside class="kafka-explorer__sidebar">
-        <button
-          mat-button
-          class="kafka-explorer__sidebar-btn"
-          [class.kafka-explorer__sidebar-btn--active]="activeSection() === 'brokers'"
-          (click)="activeSection.set('brokers')"
-        >
+        <a mat-button routerLink="brokers" routerLinkActive="kafka-explorer__sidebar-btn--active" class="kafka-explorer__sidebar-btn">
           Brokers
-        </button>
-        <button
-          mat-button
-          class="kafka-explorer__sidebar-btn"
-          [class.kafka-explorer__sidebar-btn--active]="activeSection() === 'topics'"
-          (click)="activeSection.set('topics')"
-        >
+        </a>
+        <a mat-button routerLink="topics" routerLinkActive="kafka-explorer__sidebar-btn--active" class="kafka-explorer__sidebar-btn">
           Topics
-        </button>
+        </a>
       </aside>
       <div class="kafka-explorer__content">
-        @switch (activeSection()) {
-          @case ('brokers') {
-            <gke-brokers
-              [nodes]="info.nodes"
-              [controllerId]="info.controller.id"
-              [clusterId]="info.clusterId"
-              [controller]="info.controller"
-              [totalTopics]="info.totalTopics"
-              [totalPartitions]="info.totalPartitions"
-            />
-          }
-          @case ('topics') {
-            @if (selectedTopic()) {
-              <gke-topic-detail [topicDetail]="topicDetail()" [loading]="topicDetailLoading()" (back)="onTopicBack()" />
-            } @else {
-              <gke-topics
-                [topics]="topicsPage()?.data ?? []"
-                [totalElements]="topicsPage()?.pagination?.totalCount ?? 0"
-                [page]="(topicsPage()?.pagination?.page ?? 1) - 1"
-                [pageSize]="topicsPage()?.pagination?.perPage ?? 10"
-                [loading]="topicsLoading()"
-                (filterChange)="onTopicsFilterChange($event)"
-                (pageChange)="onTopicsPageChange($event)"
-                (topicSelect)="onTopicSelect($event)"
-              />
-            }
-          }
-        }
+        <router-outlet />
       </div>
     </div>
   </div>

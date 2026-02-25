@@ -28,7 +28,7 @@ export class KafkaExplorerHarness extends ComponentHarness {
   private readonly getBrokers = this.locatorForOptional(BrokersHarness);
   private readonly getTopics = this.locatorForOptional(TopicsHarness);
   private readonly getErrorBanner = this.locatorForOptional('.kafka-explorer__error');
-  private readonly getSidebarButtons = this.locatorForAll(MatButtonHarness.with({ ancestor: '.kafka-explorer__sidebar' }));
+  private readonly getSidebarLinks = this.locatorForAll(MatButtonHarness.with({ ancestor: '.kafka-explorer__sidebar' }));
 
   async isLoading() {
     return (await this.getSpinner()) !== null;
@@ -40,19 +40,19 @@ export class KafkaExplorerHarness extends ComponentHarness {
   }
 
   async selectSection(label: string) {
-    const buttons = await this.getSidebarButtons();
-    for (const button of buttons) {
-      if ((await button.getText()) === label) {
-        await button.click();
+    const links = await this.getSidebarLinks();
+    for (const link of links) {
+      if ((await link.getText()) === label) {
+        await link.click();
         return;
       }
     }
-    throw new Error(`Sidebar button "${label}" not found`);
+    throw new Error(`Sidebar link "${label}" not found`);
   }
 
   async getSidebarLabels() {
-    const buttons = await this.getSidebarButtons();
-    return Promise.all(buttons.map(b => b.getText()));
+    const links = await this.getSidebarLinks();
+    return Promise.all(links.map(l => l.getText()));
   }
 
   async getBrokersHarness() {
