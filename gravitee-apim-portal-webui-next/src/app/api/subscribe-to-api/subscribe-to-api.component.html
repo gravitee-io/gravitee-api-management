@@ -15,94 +15,95 @@
     limitations under the License.
 
 -->
-<mat-card class="subscribe-to-api" appearance="outlined">
-  @if (currentStep() === 1) {
-    <mat-card-header class="subscribe-to-api__header">
-      <div class="m3-title-large" i18n="@@subscribeChoosePlan">Choose a plan</div>
-      <div class="m3-body-medium" i18n="@@subscribeChoosePlanDescription">Select the plan that best suit for your needs.</div>
-    </mat-card-header>
-    <mat-card-content>
-      @if (plans$ | async; as plans) {
-        @if (plans.length) {
-          <app-subscribe-to-api-choose-plan
-            [plans]="plans"
-            [selectedPlan]="currentPlan"
-            [api]="api"
-            (selectPlan)="currentPlan.set($event)"
-          />
+<div>
+  <mat-card class="subscribe-to-api" appearance="outlined">
+    @if (currentStep() === SubscribeStep.PLAN_SELECTION) {
+      <app-subscribe-to-api-step-header [stepNumber]="stepNumberOf(SubscribeStep.PLAN_SELECTION)">
+        <div class="next-gen-h5" i18n="@@subscribeChoosePlan">Choose a plan</div>
+        <div class="next-gen-body" i18n="@@subscribeChoosePlanDescription">A plan lets an application access an API. Once subscribed and approved, the application gets credentials to use it.</div>
+      </app-subscribe-to-api-step-header>
+      <mat-card-content>
+        @if (plans$ | async; as plans) {
+          @if (plans.length) {
+            <app-subscribe-to-api-choose-plan
+              [plans]="plans"
+              [selectedPlan]="currentPlan"
+              [api]="api"
+              (selectPlan)="currentPlan.set($event)"
+            />
+          }
+        } @else {
+          <app-loader />
         }
-      } @else {
-        <app-loader />
-      }
-    </mat-card-content>
-  } @else if (currentStep() === 2) {
-    <mat-card-header class="subscribe-to-api__header">
-      <div class="m3-title-large" i18n="@@subscribeChooseApplication">Choose an application</div>
-      <div class="m3-body-medium" i18n="@@subscribeChooseApplicationDescription">
-        An application represents a developer's project that interacts with the API. It acts as a means to manage access control to APIs via
-        subscriptions.
-      </div>
-    </mat-card-header>
-    <mat-card-content>
-      @if (applicationsData$ | async; as applicationsData) {
-        <app-subscribe-to-api-choose-application
-          [applications]="applicationsData.applications"
-          [selectedApplication]="currentApplication()"
-          [pagination]="applicationsData.pagination"
-          (selectApplication)="currentApplication.set($event)"
-          (previousPage)="onPreviousApplicationPage()"
-          (nextPage)="onNextApplicationPage()"
-        />
-      } @else {
-        <app-loader />
-      }
-    </mat-card-content>
-  } @else if (currentStep() === 3) {
-    <mat-card-header class="subscribe-to-api__header">
-      <div class="m3-title-large" i18n="@@subscribeConfigureConsumer">Configure Consumer</div>
-    </mat-card-header>
-    <mat-card-content>
-      <app-consumer-configuration
-        (consumerConfigurationFormDataChange)="consumerConfigurationFormChanges($event)"
-        [consumerConfigurationFormValues]="consumerConfigurationFormData().value"
-      />
-    </mat-card-content>
-  } @else if (currentStep() === 4) {
-    <mat-card-header class="subscribe-to-api__header">
-      <div class="m3-title-large" i18n="@@subscribeCheckout">Checkout</div>
-      @if (currentPlan()?.security === 'KEY_LESS') {
-        <div class="m3-body-medium" i18n="@@subscribeChooseApplicationDescription">
-          This plan does not need any subscription to consume the API.
+      </mat-card-content>
+    } @else if (currentStep() === SubscribeStep.APP_SELECTION) {
+      <app-subscribe-to-api-step-header [stepNumber]="stepNumberOf(SubscribeStep.APP_SELECTION)">
+        <div class="next-gen-h5" i18n="@@subscribeChooseApplication">Choose an application</div>
+        <div class="next-gen-body" i18n="@@subscribeChooseApplicationDescription">
+          An application represents a developer's project that interacts with the API. It acts as a means to manage access control to APIs via
+          subscriptions.
         </div>
-      }
-    </mat-card-header>
-    <mat-card-content class="subscribe-to-api__checkout">
-      @if (currentPlan(); as plan) {
-        @if (checkoutData$ | async; as checkoutData) {
-          <app-subscribe-to-api-checkout
-            [api]="api"
-            [application]="currentApplication()"
-            [plan]="plan"
-            [message]="message"
-            [apiKeyMode]="applicationApiKeyMode"
-            [showApiKeyModeSelection]="showApiKeyModeSelection()"
-            [applicationApiKeySubscriptions]="checkoutData.applicationApiKeySubscriptions"
+      </app-subscribe-to-api-step-header>
+      <mat-card-content>
+        @if (applicationsData$ | async; as applicationsData) {
+          <app-subscribe-to-api-choose-application
+            [applications]="applicationsData.applications"
+            [selectedApplication]="currentApplication()"
+            [pagination]="applicationsData.pagination"
+            (selectApplication)="currentApplication.set($event)"
+            (pageChange)="onApplicationPageChange($event)"
           />
         } @else {
           <app-loader />
         }
-      }
-      @if (hasSubscriptionError) {
-        <div class="m3-title-medium error-message" i18n="@@subscribeToApiGeneralErrorMessage">
-          There was an error with your subscription and it could not be processed. Try again, and if the issue persists, contact your portal
-          administrator.
-        </div>
-      }
-    </mat-card-content>
-  }
+      </mat-card-content>
+    } @else if (currentStep() === SubscribeStep.PUSH_DETAILS) {
+      <app-subscribe-to-api-step-header [stepNumber]="stepNumberOf(SubscribeStep.PUSH_DETAILS)">
+        <div class="next-gen-h5" i18n="@@subscribeConfigureConsumer">Configure Consumer</div>
+      </app-subscribe-to-api-step-header>
+      <mat-card-content>
+        <app-consumer-configuration
+          (consumerConfigurationFormDataChange)="consumerConfigurationFormChanges($event)"
+          [consumerConfigurationFormValues]="consumerConfigurationFormData().value"
+        />
+      </mat-card-content>
+    } @else if (currentStep() === SubscribeStep.REVIEW) {
+      <app-subscribe-to-api-step-header [stepNumber]="stepNumberOf(SubscribeStep.REVIEW)">
+        <div class="next-gen-h5" i18n="@@subscribeReview">Review</div>
+        @if (currentPlan()?.security === 'KEY_LESS') {
+          <div class="next-gen-body" i18n="@@subscribeChooseApplicationDescription">
+            This plan does not need any subscription to consume the API.
+          </div>
+        }
+      </app-subscribe-to-api-step-header>
+      <mat-card-content class="subscribe-to-api__review">
+        @if (currentPlan(); as plan) {
+          @if (checkoutData$ | async; as checkoutData) {
+            <app-subscribe-to-api-review
+              [api]="api"
+              [application]="currentApplication()"
+              [plan]="plan"
+              [message]="message"
+              [apiKeyMode]="applicationApiKeyMode"
+              [showApiKeyModeSelection]="showApiKeyModeSelection()"
+              [applicationApiKeySubscriptions]="checkoutData.applicationApiKeySubscriptions"
+            />
+          } @else {
+            <app-loader />
+          }
+        }
+        @if (hasSubscriptionError) {
+          <div class="m3-title-medium error-message" i18n="@@subscribeToApiGeneralErrorMessage">
+            There was an error with your subscription and it could not be processed. Try again, and if the issue persists, contact your portal
+            administrator.
+          </div>
+        }
+      </mat-card-content>
+    }
+  </mat-card>
   <mat-card-actions class="subscribe-to-api__actions">
     <div>
-      @if (currentStep() > 1) {
+      @if (activeSteps().indexOf(currentStep()) > 0) {
         <button
           (click)="goToPreviousStep()"
           mat-stroked-button
@@ -112,10 +113,12 @@
         >
           Previous
         </button>
+      } @else if (cancelFn()) {
+        <button mat-stroked-button color="primary" (click)="cancelFn()!()" i18n="@@subscribeToApiCancel">Cancel</button>
       }
     </div>
     <div>
-      @if (currentStep() < 4) {
+      @if (currentStep() !== SubscribeStep.REVIEW) {
         <div class="subscribe-to-api__actions__next">
           @if (currentApplication()) {
             <div class="m3-body-medium subscribe-to-api__actions__selected-application">
@@ -131,14 +134,14 @@
           <button
             (click)="goToNextStep()"
             mat-flat-button
-            class="secondary-button"
+            color="primary"
             [disabled]="stepIsInvalid()"
             i18n="@@subscribeToApiNext"
           >
             Next
           </button>
         </div>
-      } @else if (currentStep() === 4 && currentPlan()?.security !== 'KEY_LESS') {
+      } @else if (currentStep() === SubscribeStep.REVIEW && currentPlan()?.security !== 'KEY_LESS') {
         <button (click)="subscribe()" mat-flat-button class="secondary-button" [disabled]="stepIsInvalid() || subscriptionInProgress()">
           @if (subscriptionInProgress()) {
             <span i18n="@@subscribeToApiSubscribingInProgress">Subscribing...</span>
@@ -149,4 +152,4 @@
       }
     </div>
   </mat-card-actions>
-</mat-card>
+</div>

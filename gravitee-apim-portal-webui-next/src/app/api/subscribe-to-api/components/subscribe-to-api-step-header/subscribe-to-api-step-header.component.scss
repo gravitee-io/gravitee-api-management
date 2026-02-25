@@ -13,46 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../../scss/theme';
 
-.subscribe-to-api {
+@use '../../../../../scss/theme';
 
-&__review {
-    display: flex;
-    flex-flow: column;
-    gap: 32px;
-  }
+:host {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
 
-  &__actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    padding: 24px 16px;
-
-    @media (width <= 768px) {
-      gap: 16px;
-    }
-
-    &__selected-application {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    &__next {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 48px;
-
-      @media (width <= 768px) {
-        gap: 16px;
-      }
-    }
-  }
+  background: #{theme.$card-background-color}; // TODO: confirm - in figma its #f4f7fd while this resolves to transparent
+  border-bottom: #{theme.$border-width} solid #{theme.$border-color};
 }
 
-.error-message {
-  padding: 0 16px;
-  color: theme.$error-main-color;
+.step-header__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  border: #{theme.$border-width} solid #{theme.$border-color};
+}
+
+.step-header__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }

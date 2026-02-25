@@ -15,30 +15,30 @@
     limitations under the License.
 
 -->
-<div class="subscribe-to-api-checkout__container">
-  <app-subscription-info
-    class="subscribe-to-api-checkout__container__subscription-info"
-    [application]="application"
-    [planName]="plan.name"
-    [planUsageConfiguration]="plan.usage_configuration"
-    [planSecurity]="plan.security"
-    [planValidation]="plan.validation"
-    [api]="api"
-  />
-  @if (plan.security === 'KEY_LESS') {
-    <app-api-access [planSecurity]="plan.security" [entrypointUrls]="api.entrypoints" [apiType]="api.type" />
-  } @else {
-    <div class="subscribe-to-api-checkout__container__right-column">
-      @if (showApiKeyModeSelection()) {
+<div class="subscribe-to-api-review__container">
+  <div class="subscribe-to-api-review__container__top">
+    <app-subscription-info
+      class="subscribe-to-api-review__container__subscription-info"
+      [application]="application"
+      [planName]="plan.name"
+      [planUsageConfiguration]="plan.usage_configuration"
+      [planSecurity]="plan.security"
+      [planValidation]="plan.validation"
+      [api]="api"
+    />
+    @if (plan.security === 'KEY_LESS') {
+      <app-api-access [planSecurity]="plan.security" [entrypointUrls]="api.entrypoints" [apiType]="api.type" />
+    } @else if (showApiKeyModeSelection()) {
+      <div class="subscribe-to-api-review__container__right-column">
         <mat-card appearance="outlined">
-          <mat-card-content class="subscribe-to-api-checkout__container__api-key-mode">
+          <mat-card-content class="subscribe-to-api-review__container__api-key-mode">
             <div>
               <div class="m3-title-medium" i18n="@@subscribeToApiChooseApiKeyMode">Choose API Key management mode</div>
               <div class="m3-body-medium" i18n="@@subscribeToApiChooseApiKeyModeSubtitle">
                 Please be aware that this decision is final and cannot be changed
               </div>
             </div>
-            <div class="subscribe-to-api-checkout__container__api-key-mode__radio-cards">
+            <div class="subscribe-to-api-review__container__api-key-mode__radio-cards">
               <app-radio-card
                 title="Generated API Key"
                 [value]="'EXCLUSIVE'"
@@ -65,30 +65,34 @@
             </div>
           </mat-card-content>
         </mat-card>
-      }
-      <mat-card class="subscribe-to-api-checkout__leave-a-comment" appearance="outlined">
-        <mat-card-content class="subscribe-to-api-checkout__leave-a-comment__container">
-          <div>
-            <div class="m3-title-medium">
-              <span i18n="@@subscribeToApiAddAComment">Add a comment</span>
-              @if (plan.comment_required) {
-                <span i18n="@@subscribeToApiRequired"> (required)</span>
-              }
-            </div>
-            @if (plan.comment_question) {
-              <div class="m3-body-medium">{{ plan.comment_question }}</div>
+      </div>
+    }
+  </div>
+  @if (plan.security !== 'KEY_LESS') {
+    <mat-card class="subscribe-to-api-review__leave-a-comment" appearance="outlined">
+      <mat-card-content class="subscribe-to-api-review__leave-a-comment__container">
+        <div>
+          <div class="m3-title-medium">
+            <span i18n="@@subscribeToApiAddAComment">Add a comment</span>
+            @if (plan.comment_required) {
+              <span i18n="@@subscribeToApiRequired"> (required)</span>
             } @else {
-              <div class="m3-body-medium" i18n="@@subscribeToApiCommentSubtitle">
-                Please provide a brief explanation of why you want to use this API
-              </div>
+              <span i18n="@@subscribeToApiOptional"> (optional)</span>
             }
           </div>
-          <mat-form-field appearance="outline" class="subscribe-to-api-checkout__leave-a-comment__field">
-            <mat-label>Message</mat-label>
-            <textarea #messageText [value]="message()" (input)="message.set(messageText.value)" matInput maxlength="250"></textarea>
-          </mat-form-field>
-        </mat-card-content>
-      </mat-card>
-    </div>
+          @if (plan.comment_question) {
+            <div class="m3-body-medium">{{ plan.comment_question }}</div>
+          } @else {
+            <div class="m3-body-medium" i18n="@@subscribeToApiCommentSubtitle">
+              Briefly explain why you need this API so the owner can review your request.
+            </div>
+          }
+        </div>
+        <mat-form-field appearance="outline" class="subscribe-to-api-review__leave-a-comment__field">
+          <mat-label>Message</mat-label>
+          <textarea #messageText [value]="message()" (input)="message.set(messageText.value)" matInput maxlength="250"></textarea>
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
   }
 </div>

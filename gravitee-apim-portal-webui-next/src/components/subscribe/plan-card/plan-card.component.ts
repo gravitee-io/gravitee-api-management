@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 import { Component, computed, EventEmitter, input, Input, Output } from '@angular/core';
+import { MatChipsModule } from '@angular/material/chips';
 
 import { ApiType } from '../../../entities/api/api';
-import { getPlanSecurityTypeLabel, Plan, PlanSecurityEnum } from '../../../entities/plan/plan';
+import { getPlanSecurityTypeLabel, Plan, PlanMode, PlanSecurityEnum } from '../../../entities/plan/plan';
 import { ToPeriodTimeUnitLabelPipe } from '../../../pipe/time-unit.pipe';
 import { RadioCardComponent } from '../../radio-card/radio-card.component';
 
 @Component({
   selector: 'app-plan-card',
-  imports: [ToPeriodTimeUnitLabelPipe, RadioCardComponent],
+  imports: [ToPeriodTimeUnitLabelPipe, RadioCardComponent, MatChipsModule],
   templateUrl: './plan-card.component.html',
   providers: [ToPeriodTimeUnitLabelPipe],
   styleUrl: './plan-card.component.scss',
@@ -43,6 +44,10 @@ export class PlanCardComponent {
   plan = input.required<Plan>();
 
   authentication = computed(() => {
+    // TODO: decide how to display security for push plans
+    if (this.plan().mode === PlanMode.PUSH) {
+      return 'Push';
+    }
     if (this.apiType === 'NATIVE') {
       return this.getNativeSecurityLabel(this.plan().security);
     }

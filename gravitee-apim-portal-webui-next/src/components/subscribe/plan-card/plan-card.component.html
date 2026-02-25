@@ -23,25 +23,27 @@
   [title]="plan().name"
   (selectItem)="onSelectPlan()"
 >
-  <div class="m3-body-medium">Plan includes:</div>
-  <ul class="plan-card__content">
-    <li class="m3-body-medium">Authentication: {{ authentication() }}</li>
-    @if (!!plan().usage_configuration?.quota?.limit) {
-      <li class="m3-body-medium">
-        Quota: up to {{ plan().usage_configuration?.quota?.limit ?? 0 }} hits /
-        {{ plan().usage_configuration?.quota ?? {} | toPeriodTimeUnitLabelPipe }}
-      </li>
-    }
-    @if (!!plan().usage_configuration?.rate_limit?.limit) {
-      <li class="m3-body-medium">
-        Rate-limit: up to {{ plan().usage_configuration?.rate_limit?.limit ?? 0 }} hits /
-        {{ plan().usage_configuration?.rate_limit ?? {} | toPeriodTimeUnitLabelPipe }}
-      </li>
-    }
-  </ul>
-  @if (plan().security !== 'KEY_LESS') {
-    <div class="m3-body-medium">
-      {{ plan().validation === 'AUTO' ? 'The subscription is automatic.' : 'The subscription is under admin review.' }}
-    </div>
+  @if (plan().description) {
+    <p class="next-gen-body">{{ plan().description }}</p>
   }
+  @if (!!plan().usage_configuration?.quota?.limit) {
+    <mat-chip>
+      Quota: up to {{ plan().usage_configuration?.quota?.limit }} hits /
+      {{ plan().usage_configuration?.quota ?? {} | toPeriodTimeUnitLabelPipe }}
+    </mat-chip>
+  }
+  @if (!!plan().usage_configuration?.rate_limit?.limit) {
+    <mat-chip>
+      Rate-limit: up to {{ plan().usage_configuration?.rate_limit?.limit }} hits /
+      {{ plan().usage_configuration?.rate_limit ?? {} | toPeriodTimeUnitLabelPipe }}
+    </mat-chip>
+  }
+  <mat-chip-set class="plan-card__badges">
+    <mat-chip>{{ authentication() }}</mat-chip>
+    @if (plan().validation === 'AUTO') {
+      <mat-chip i18n="@@planCardNoApproval">No approval</mat-chip>
+    } @else {
+      <mat-chip i18n="@@planCardRequiresApproval">Requires approval</mat-chip>
+    }
+  </mat-chip-set>
 </app-radio-card>

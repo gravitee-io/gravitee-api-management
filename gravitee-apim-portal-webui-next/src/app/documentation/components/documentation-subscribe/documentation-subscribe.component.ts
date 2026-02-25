@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component, inject, input } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 
 import { Api } from '../../../../entities/api/api';
 import { SubscribeToApiComponent } from '../../../api/subscribe-to-api/subscribe-to-api.component';
 
 @Component({
   selector: 'app-documentation-subscribe',
-  imports: [RouterModule, SubscribeToApiComponent],
+  imports: [RouterModule, SubscribeToApiComponent, MatIconModule],
   templateUrl: './documentation-subscribe.component.html',
   styleUrls: ['./documentation-subscribe.component.scss'],
 })
@@ -29,4 +30,8 @@ export class DocumentationSubscribeComponent {
   api = input.required<Api>();
   navId = input.required<string>();
   pageId = input<string>();
+
+  private router = inject(Router);
+
+  cancel = () => this.router.navigate(['/documentation', this.navId(), 'api', this.api().id]);
 }

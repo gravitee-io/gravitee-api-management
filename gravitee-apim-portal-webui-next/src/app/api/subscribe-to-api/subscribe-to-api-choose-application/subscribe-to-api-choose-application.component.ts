@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { MatIconButton } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
+import { NgClass } from '@angular/common';
+import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 
+import { PaginationComponent } from '../../../../components/pagination/pagination.component';
 import { RadioCardComponent } from '../../../../components/radio-card/radio-card.component';
 import { Application } from '../../../../entities/application/application';
+import { ObservabilityBreakpointService } from '../../../../services/observability-breakpoint.service';
 import { ApplicationVM } from '../subscribe-to-api.component';
 
 export interface ApplicationsPagination {
   currentPage: number;
   totalApplications: number;
-  start: number;
-  end: number;
 }
 
 @Component({
   selector: 'app-subscribe-to-api-choose-application',
-  imports: [RadioCardComponent, MatIcon, MatIconButton],
+  imports: [RadioCardComponent, NgClass, PaginationComponent],
   templateUrl: './subscribe-to-api-choose-application.component.html',
   styleUrl: './subscribe-to-api-choose-application.component.scss',
 })
@@ -42,14 +41,15 @@ export class SubscribeToApiChooseApplicationComponent {
   selectedApplication?: Application;
 
   @Input()
-  pagination: ApplicationsPagination = { currentPage: 0, totalApplications: 0, start: 0, end: 0 };
+  pagination: ApplicationsPagination = { currentPage: 0, totalApplications: 0 };
 
   @Output()
   selectApplication = new EventEmitter<ApplicationVM>();
 
   @Output()
-  previousPage = new EventEmitter();
+  pageChange = new EventEmitter<number>();
 
-  @Output()
-  nextPage = new EventEmitter();
+  // TODO: potentially reuse CardsGridComponent introduced in https://github.com/gravitee-io/gravitee-api-management/pull/15436
+  protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
+  protected readonly isNarrow = inject(ObservabilityBreakpointService).isNarrow;
 }

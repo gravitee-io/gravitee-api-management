@@ -19,8 +19,8 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 export class SubscribeToApiChooseApplicationHarness extends ComponentHarness {
   public static hostSelector = 'app-subscribe-to-api-choose-application';
   protected locateNoApplications = this.locatorFor('.no-applications');
-  protected locateNextPage = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Next page of applications"]' }));
-  protected locatePreviousPage = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Previous page of applications"]' }));
+  protected locateNextPage = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Next page of results"].pagination__nav-button' }));
+  protected locatePreviousPage = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Previous page of results"].pagination__nav-button' }));
 
   public async noApplicationsMessageShown(): Promise<boolean> {
     return await this.locateNoApplications()

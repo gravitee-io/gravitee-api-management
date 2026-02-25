@@ -15,11 +15,7 @@
     limitations under the License.
 
 -->
-<div class="content">
-  <a [routerLink]="['/documentation', navId()]" [queryParams]="{ pageId: pageId() }" class="documentation-subscribe__back-link internal-link">
-    <mat-icon>arrow_backward</mat-icon>
-    <span i18n="@@documentationSubscribeBack">Back to API</span>
-  </a>
-  <div class="next-gen-h3"><span i18n="@@documentationSubscribeCTA">Subscribe to the API:</span> {{ api().name }}</div>
-  <app-subscribe-to-api [api]="api()" [cancelFn]="cancel" />
+<div class="step-header__badge">{{ stepNumber() }}</div>
+<div class="step-header__content">
+  <ng-content />
 </div>

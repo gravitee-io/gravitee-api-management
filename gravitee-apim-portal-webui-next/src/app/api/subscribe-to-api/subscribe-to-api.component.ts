@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { Component, computed, DestroyRef, inject, Input, OnInit, Signal, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, input, Input, OnInit, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
-import { MatCard, MatCardActions, MatCardContent, MatCardHeader } from '@angular/material/card';
+import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -29,7 +29,8 @@ import {
   TermsAndConditionsDialogComponent,
   TermsAndConditionsDialogData,
 } from './components/terms-and-conditions-dialog/terms-and-conditions-dialog.component';
-import { SubscribeToApiCheckoutComponent } from './subscribe-to-api-checkout/subscribe-to-api-checkout.component';
+import { SubscribeToApiStepHeaderComponent } from './components/subscribe-to-api-step-header/subscribe-to-api-step-header.component';
+import { SubscribeToApiReviewComponent } from './subscribe-to-api-review/subscribe-to-api-review.component';
 import {
   ApplicationsPagination,
   SubscribeToApiChooseApplicationComponent,
@@ -51,6 +52,13 @@ import { PageService } from '../../../services/page.service';
 import { PlanService } from '../../../services/plan.service';
 import { SubscriptionService } from '../../../services/subscription.service';
 
+export enum SubscribeStep {
+  PLAN_SELECTION = 'PLAN_SELECTION',
+  APP_SELECTION = 'APP_SELECTION',
+  PUSH_DETAILS = 'PUSH_DETAILS',
+  REVIEW = 'REVIEW',
+}
+
 export interface ApplicationVM extends Application {
   disabled?: boolean;
   disabledMessage?: string;
@@ -70,11 +78,11 @@ interface CheckoutData {
   imports: [
     CommonModule,
     MatCard,
-    SubscribeToApiCheckoutComponent,
+    SubscribeToApiReviewComponent,
     SubscribeToApiChoosePlanComponent,
     SubscribeToApiChooseApplicationComponent,
+    SubscribeToApiStepHeaderComponent,
     MatCardActions,
-    MatCardHeader,
     MatCardContent,
     MatButton,
     LoaderComponent,
@@ -87,10 +95,28 @@ interface CheckoutData {
 })
 export class SubscribeToApiComponent implements OnInit {
   @Input() api!: Api;
+  cancelFn = input<() => void>();
 
-  currentStep = signal(1);
+  readonly SubscribeStep = SubscribeStep;
+
+  currentStep = signal<SubscribeStep>(SubscribeStep.PLAN_SELECTION);
   currentPlan = signal<Plan | undefined>(undefined);
   currentApplication = signal<Application | undefined>(undefined);
+
+  activeSteps = computed<SubscribeStep[]>(() => {
+    const plan = this.currentPlan();
+    const steps: SubscribeStep[] = [SubscribeStep.PLAN_SELECTION];
+
+    if (plan?.security !== 'KEY_LESS') {
+      steps.push(SubscribeStep.APP_SELECTION);
+      if (plan?.mode === 'PUSH') {
+        steps.push(SubscribeStep.PUSH_DETAILS);
+      }
+    }
+
+    steps.push(SubscribeStep.REVIEW);
+    return steps;
+  });
 
   message = signal<string>('');
   applicationApiKeyMode = signal<'EXCLUSIVE' | 'SHARED' | 'UNSPECIFIED' | null>(null);
@@ -98,19 +124,21 @@ export class SubscribeToApiComponent implements OnInit {
   showApiKeyModeSelection = signal<boolean>(false);
 
   stepIsInvalid: Signal<boolean> = computed(() => {
-    if (this.currentStep() === 1) {
-      return this.currentPlan() === undefined;
-    } else if (this.currentStep() === 2) {
-      return this.currentApplication() === undefined;
-    } else if (this.currentStep() === 3) {
-      return !this.consumerConfigurationFormData().isValid;
-    } else if (this.currentStep() === 4) {
-      return (
-        (this.currentPlan()?.comment_required === true && !this.message()) ||
-        (this.showApiKeyModeSelection() && !this.applicationApiKeyMode())
-      );
+    switch (this.currentStep()) {
+      case SubscribeStep.PLAN_SELECTION:
+        return this.currentPlan() === undefined;
+      case SubscribeStep.APP_SELECTION:
+        return this.currentApplication() === undefined;
+      case SubscribeStep.PUSH_DETAILS:
+        return !this.consumerConfigurationFormData().isValid;
+      case SubscribeStep.REVIEW:
+        return (
+          (this.currentPlan()?.comment_required === true && !this.message()) ||
+          (this.showApiKeyModeSelection() && !this.applicationApiKeyMode())
+        );
+      default:
+        return false;
     }
-    return false;
   });
 
   plans$: Observable<Plan[]> = of();
@@ -144,7 +172,7 @@ export class SubscribeToApiComponent implements OnInit {
     this.applicationsData$ = this.subscriptionService.list({ apiIds: [this.api.id], statuses: ['PENDING', 'ACCEPTED'], size: -1 }).pipe(
       combineLatestWith(this.currentApplicationsPage),
       switchMap(([subscriptions, page]) => this.getApplicationsData$(page, subscriptions)),
-      catchError(_ => of({ applications: [], pagination: { currentPage: 0, totalApplications: 0, start: 0, end: 0 } })),
+      catchError(_ => of({ applications: [], pagination: { currentPage: 0, totalApplications: 0 } })),
     );
 
     this.checkoutData$ = this.handleCheckoutData$(this.api).pipe(
@@ -162,34 +190,28 @@ export class SubscribeToApiComponent implements OnInit {
     this.consumerConfigurationFormData.set(data);
   }
 
+  stepNumberOf(step: SubscribeStep): number {
+    return this.activeSteps().indexOf(step) + 1;
+  }
+
   goToNextStep(): void {
-    if (this.currentPlan()?.mode !== 'PUSH' && this.currentStep() === 2) {
-      this.currentStep.set(4);
-    } else if (this.currentPlan()?.security === 'KEY_LESS' && this.currentStep() === 1) {
-      this.currentStep.set(4);
-    } else if (this.currentStep() < 4) {
-      this.currentStep.update(currentStep => currentStep + 1);
+    const steps = this.activeSteps();
+    const currentIndex = steps.indexOf(this.currentStep());
+    if (currentIndex < steps.length - 1) {
+      this.currentStep.set(steps[currentIndex + 1]);
     }
   }
 
   goToPreviousStep(): void {
-    if (this.currentPlan()?.mode !== 'PUSH' && this.currentPlan()?.security !== 'KEY_LESS' && this.currentStep() === 4) {
-      this.currentStep.set(2);
-    } else if (this.currentPlan()?.security === 'KEY_LESS' && this.currentStep() === 4) {
-      this.currentStep.set(1);
-    } else if (this.currentStep() > 1) {
-      this.currentStep.update(currentStep => currentStep - 1);
+    const steps = this.activeSteps();
+    const currentIndex = steps.indexOf(this.currentStep());
+    if (currentIndex > 0) {
+      this.currentStep.set(steps[currentIndex - 1]);
     }
   }
 
-  onNextApplicationPage() {
-    this.currentApplicationsPage.next(this.currentApplicationsPage.getValue() + 1);
-  }
-
-  onPreviousApplicationPage() {
-    if (this.currentApplicationsPage.getValue() > 1) {
-      this.currentApplicationsPage.next(this.currentApplicationsPage.getValue() - 1);
-    }
+  onApplicationPageChange(page: number) {
+    this.currentApplicationsPage.next(page);
   }
 
   subscribe() {
@@ -260,8 +282,6 @@ export class SubscribeToApiComponent implements OnInit {
         pagination: {
           currentPage: response.metadata?.pagination?.current_page ?? 0,
           totalApplications: response.metadata?.pagination?.total ?? 0,
-          start: response.metadata?.pagination?.first ?? 0,
-          end: response.metadata?.pagination?.last ?? 0,
         },
       })),
       tap(({ applications }) => {
@@ -311,7 +331,7 @@ export class SubscribeToApiComponent implements OnInit {
 
     return applicationsResponse.data.map(application => {
       if (this.applicationHasExistingValidSubscriptionsForPlan(application, subscriptions.data)) {
-        return { ...application, disabled: true, disabledMessage: 'A pending or accepted subscription already exists for this plan' };
+        return { ...application, disabled: true, disabledMessage: 'A subscription already exists for this plan' };
       }
       if (this.applicationInSharedKeyModeHasExistingValidApiKeySubscriptionsForApi(application, subscriptions)) {
         return {

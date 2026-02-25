@@ -18,10 +18,10 @@ import { MatInputHarness } from '@angular/material/input/testing';
 
 import { RadioCardHarness } from '../../../../components/radio-card/radio-card.harness';
 
-export class SubscribeToApiCheckoutHarness extends ComponentHarness {
-  public static hostSelector = 'app-subscribe-to-api-checkout';
+export class SubscribeToApiReviewHarness extends ComponentHarness {
+  public static hostSelector = 'app-subscribe-to-api-review';
   protected locateInput = this.locatorFor(MatInputHarness);
-  protected locateApiKeyMode = this.locatorForOptional('.subscribe-to-api-checkout__container__api-key-mode');
+  protected locateApiKeyMode = this.locatorForOptional('.subscribe-to-api-review__container__api-key-mode');
 
   public async getMessageInput(): Promise<MatInputHarness> {
     return await this.locateInput();

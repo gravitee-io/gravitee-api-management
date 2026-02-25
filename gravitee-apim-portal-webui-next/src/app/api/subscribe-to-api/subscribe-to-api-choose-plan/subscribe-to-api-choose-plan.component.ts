@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, EventEmitter, Input, Output, Signal, WritableSignal } from '@angular/core';
-import { MatIcon } from '@angular/material/icon';
+import { NgClass } from '@angular/common';
+import { Component, computed, EventEmitter, inject, Input, Output, Signal, WritableSignal } from '@angular/core';
 
-import { BannerComponent } from '../../../../components/banner/banner.component';
 import { PlanCardComponent } from '../../../../components/subscribe/plan-card/plan-card.component';
 import { Api } from '../../../../entities/api/api';
 import { Plan } from '../../../../entities/plan/plan';
+import { ObservabilityBreakpointService } from '../../../../services/observability-breakpoint.service';
 
 @Component({
   selector: 'app-subscribe-to-api-choose-plan',
-  imports: [PlanCardComponent, BannerComponent, MatIcon],
+  imports: [PlanCardComponent, NgClass],
   templateUrl: './subscribe-to-api-choose-plan.component.html',
   styleUrl: './subscribe-to-api-choose-plan.component.scss',
 })
@@ -40,4 +40,8 @@ export class SubscribeToApiChoosePlanComponent {
   selectPlan = new EventEmitter<Plan>();
 
   selectedPlanId: Signal<string> = computed(() => this.selectedPlan()?.id ?? '');
+
+  // TODO: potentially reuse CardsGridComponent introduced in https://github.com/gravitee-io/gravitee-api-management/pull/15436
+  protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
+  protected readonly isNarrow = inject(ObservabilityBreakpointService).isNarrow;
 }

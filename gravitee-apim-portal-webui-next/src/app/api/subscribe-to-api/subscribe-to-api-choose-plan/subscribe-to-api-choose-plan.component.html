@@ -15,23 +15,7 @@
     limitations under the License.
 
 -->
-<app-banner class="api-details__banner">
-  <div class="api-details__banner__content">
-    <mat-icon class="api-details__banner__content__icon" aria-hidden="false" aria-label="Light-bulb icon">lightbulb</mat-icon>
-    @if (api.type === 'NATIVE') {
-      <div class="m3-body-large" i18n="@@subscribeToApiChoosePlanKafkaExplanation">
-        Plans provides an access layer in front of APIs and proxies. When you subscribe to a plan (and your subscription is approved), you
-        get a credential to access the Kafka instance.
-      </div>
-    } @else {
-      <div class="m3-body-large" i18n="@@subscribeToApiChoosePlanExplanation">
-        Plans provides an access layer in front of APIs and proxies. When you subscribe to a plan (and your subscription is approved), you
-        get a credential to access the API.
-      </div>
-    }
-  </div>
-</app-banner>
-<div class="plan-list__container">
+<div class="plan-list__container" [ngClass]="{ 'plan-list__container--narrow': isNarrow(), 'plan-list__container--mobile': isMobile() }">
   @for (plan of plans; track plan.id) {
     <app-plan-card
       [id]="plan.id"

@@ -23,7 +23,7 @@ import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 
 import { TermsAndConditionsDialogHarness } from './components/terms-and-conditions-dialog/terms-and-conditions-dialog.harness';
-import { SubscribeToApiCheckoutHarness } from './subscribe-to-api-checkout/subscribe-to-api-checkout.harness';
+import { SubscribeToApiReviewHarness } from './subscribe-to-api-review/subscribe-to-api-review.harness';
 import { SubscribeToApiChooseApplicationHarness } from './subscribe-to-api-choose-application/subscribe-to-api-choose-application.harness';
 import { SubscribeToApiChoosePlanHarness } from './subscribe-to-api-choose-plan/subscribe-to-api-choose-plan.harness';
 import { SubscribeToApiComponent } from './subscribe-to-api.component';
@@ -174,12 +174,12 @@ describe('SubscribeToApiComponent', () => {
         await goToNextStep();
         fixture.detectChanges();
 
-        expect(getTitle()).toEqual('Checkout');
-        const checkout = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+        expect(getTitle()).toEqual('Review');
+        const review = await harnessLoader.getHarness(SubscribeToApiReviewHarness);
         const subscribeButton = await getSubscribeButton();
         expect(await subscribeButton?.isDisabled()).toEqual(true);
 
-        const messageBox = await checkout.getMessageInput();
+        const messageBox = await review.getMessageInput();
         await messageBox.setValue('Test message');
 
         expect(await subscribeButton?.isDisabled()).toEqual(false);
@@ -224,10 +224,10 @@ describe('SubscribeToApiComponent', () => {
         await goToNextStep();
 
         fixture.detectChanges();
-        expect(getTitle()).toEqual('Checkout');
+        expect(getTitle()).toEqual('Review');
       });
     });
-    describe('Step 3 -- Checkout', () => {
+    describe('Step 2 -- Review', () => {
       describe('V4 Proxy', () => {
         beforeEach(async () => {
           await init(true, fakeApi({ id: API_ID, type: 'PROXY', definitionVersion: 'V4', entrypoints: [ENTRYPOINT] }));
@@ -237,7 +237,7 @@ describe('SubscribeToApiComponent', () => {
           await goToNextStep();
           fixture.detectChanges();
         });
-        it('should see checkout information', async () => {
+        it('should see review information', async () => {
           expect(fixture.debugElement.query(By.css('app-subscription-info'))).toBeTruthy();
           const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
           expect(apiAccess).toBeTruthy();
@@ -267,7 +267,7 @@ describe('SubscribeToApiComponent', () => {
           await goToNextStep();
           fixture.detectChanges();
         });
-        it('should see checkout information', async () => {
+        it('should see review information', async () => {
           expect(fixture.debugElement.query(By.css('app-subscription-info'))).toBeTruthy();
           const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
           expect(apiAccess).toBeTruthy();
@@ -323,7 +323,7 @@ describe('SubscribeToApiComponent', () => {
           fixture.detectChanges();
         });
 
-        it('should not allow checkout', async () => {
+        it('should not allow proceeding without an application', async () => {
           const step2 = await harnessLoader.getHarness(SubscribeToApiChooseApplicationHarness);
           expect(step2).toBeTruthy();
           expect(await step2.noApplicationsMessageShown()).toEqual(true);
@@ -399,7 +399,7 @@ describe('SubscribeToApiComponent', () => {
           await goToNextStep();
 
           fixture.detectChanges();
-          expect(getTitle()).toEqual('Checkout');
+          expect(getTitle()).toEqual('Review');
         });
 
         it('should list pages of applications and go to next step', async () => {
@@ -439,7 +439,7 @@ describe('SubscribeToApiComponent', () => {
           await goToNextStep();
 
           fixture.detectChanges();
-          expect(getTitle()).toEqual('Checkout');
+          expect(getTitle()).toEqual('Review');
         });
 
         it('should disable applications with valid subscriptions', async () => {
@@ -466,7 +466,7 @@ describe('SubscribeToApiComponent', () => {
       });
     });
 
-    describe('Step 3 -- Checkout', () => {
+    describe('Step 3 -- Review', () => {
       describe('When comment is required', () => {
         beforeEach(async () => {
           await init(true);
@@ -484,7 +484,7 @@ describe('SubscribeToApiComponent', () => {
           const subscribeButton = await getSubscribeButton();
           expect(await subscribeButton?.isDisabled()).toEqual(true);
 
-          const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+          const step3 = await harnessLoader.getHarness(SubscribeToApiReviewHarness);
           const messageBox = await step3.getMessageInput();
           await messageBox.setValue('My new message');
 
@@ -562,7 +562,7 @@ describe('SubscribeToApiComponent', () => {
             fixture.detectChanges();
           });
           it('should NOT show api key mode choice', async () => {
-            const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+            const step3 = await harnessLoader.getHarness(SubscribeToApiReviewHarness);
             expect(await step3.isChooseApiKeyModeVisible()).toBeFalsy();
           });
           it('should create subscription', async () => {
@@ -595,7 +595,7 @@ describe('SubscribeToApiComponent', () => {
                 fixture.detectChanges();
               });
               it('should show api key mode choice + only allow exclusive', async () => {
-                const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+                const step3 = await harnessLoader.getHarness(SubscribeToApiReviewHarness);
                 expect(await step3.isChooseApiKeyModeVisible()).toBeTruthy();
 
                 const sharedApiKeyOption = await step3.getSharedApiKeyRadio();
@@ -605,7 +605,7 @@ describe('SubscribeToApiComponent', () => {
                 expect(await generatedApiKeyOption.isDisabled()).toEqual(false);
               });
               it('should create subscription', async () => {
-                const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+                const step3 = await harnessLoader.getHarness(SubscribeToApiReviewHarness);
                 const generatedApiKeyOption = await step3.getGeneratedApiKeyRadio();
                 await generatedApiKeyOption.select();
 
@@ -638,7 +638,7 @@ describe('SubscribeToApiComponent', () => {
               });
 
               it('should not show api key mode selection', async () => {
-                const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+                const step3 = await harnessLoader.getHarness(SubscribeToApiReviewHarness);
                 expect(await step3.isChooseApiKeyModeVisible()).toBeFalsy();
               });
               it('should create subscription', async () => {
@@ -670,7 +670,7 @@ describe('SubscribeToApiComponent', () => {
               fixture.detectChanges();
             });
             it('should show api key mode choice', async () => {
-              const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+              const step3 = await harnessLoader.getHarness(SubscribeToApiReviewHarness);
               expect(await step3.isChooseApiKeyModeVisible()).toBeTruthy();
 
               const sharedApiKeyOption = await step3.getSharedApiKeyRadio();
@@ -682,7 +682,7 @@ describe('SubscribeToApiComponent', () => {
               expect(await generatedApiKeyOption.isSelected()).toEqual(false);
             });
             it('should create subscription', async () => {
-              const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+              const step3 = await harnessLoader.getHarness(SubscribeToApiReviewHarness);
               const sharedApiKeyOption = await step3.getSharedApiKeyRadio();
               await sharedApiKeyOption.select();
 
@@ -706,7 +706,7 @@ describe('SubscribeToApiComponent', () => {
             fixture.detectChanges();
           });
           it('should not show api key mode choice', async () => {
-            const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+            const step3 = await harnessLoader.getHarness(SubscribeToApiReviewHarness);
             expect(await step3.isChooseApiKeyModeVisible()).toBeFalsy();
           });
           it('should create subscription', async () => {
@@ -737,7 +737,7 @@ describe('SubscribeToApiComponent', () => {
           expectPostCreateSubscription({ plan: API_KEY_PLAN_ID, application: 'app-id' });
         });
         it('should subscribe with comment', async () => {
-          const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+          const step3 = await harnessLoader.getHarness(SubscribeToApiReviewHarness);
           const messageBox = await step3.getMessageInput();
           await messageBox.setValue('My new message');
 
@@ -889,7 +889,7 @@ describe('SubscribeToApiComponent', () => {
       });
     });
 
-    describe('Step 3 -- Checkout', () => {
+    describe('Step 3 -- Review', () => {
       beforeEach(async () => {
         await selectPlan(OAUTH2_PLAN_ID);
         await selectApplication();
@@ -1044,7 +1044,7 @@ describe('SubscribeToApiComponent', () => {
       });
     });
 
-    describe('Step 3 -- Checkout', () => {
+    describe('Step 3 -- Review', () => {
       beforeEach(async () => {
         await selectPlan(JWT_PLAN_ID);
         await selectApplication();
@@ -1152,7 +1152,7 @@ describe('SubscribeToApiComponent', () => {
       });
     });
 
-    describe('Step 3 -- Checkout', () => {
+    describe('Step 3 -- Review', () => {
       beforeEach(async () => {
         await selectPlan(MTLS_PLAN_ID);
         await selectApplication(APP_ID_WITH_CLIENT_CERTIFICATE);
@@ -1244,7 +1244,7 @@ describe('SubscribeToApiComponent', () => {
   }
 
   function getTitle(): string {
-    return fixture.debugElement.query(By.css('.m3-title-large')).nativeElement.textContent;
+    return fixture.debugElement.query(By.css('.next-gen-h5')).nativeElement.textContent;
   }
 
   async function selectPlan(planId: string): Promise<void> {
