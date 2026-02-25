@@ -58,5 +58,15 @@
     </mat-card>
 
     <gke-brokers [nodes]="info.nodes" [controllerId]="info.controller.id" />
+
+    <gke-topics
+      [topics]="topicsPage()?.data ?? []"
+      [totalElements]="topicsPage()?.pagination?.totalCount ?? 0"
+      [page]="(topicsPage()?.pagination?.page ?? 1) - 1"
+      [pageSize]="topicsPage()?.pagination?.perPage ?? 10"
+      [loading]="topicsLoading()"
+      (filterChange)="onTopicsFilterChange($event)"
+      (pageChange)="onTopicsPageChange($event)"
+    />
   </div>
 }

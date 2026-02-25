@@ -27,12 +27,22 @@ import { Meta, StoryObj, applicationConfig } from '@storybook/angular';
 import { EMPTY, Observable, delay, of, throwError } from 'rxjs';
 
 import { KafkaExplorerComponent } from './kafka-explorer.component';
-import { fakeBrokerDetail, fakeDescribeClusterResponse, fakeKafkaNode } from '../models/kafka-cluster.fixture';
-import { DescribeClusterResponse } from '../models/kafka-cluster.model';
+import {
+  fakeBrokerDetail,
+  fakeDescribeClusterResponse,
+  fakeKafkaNode,
+  fakeKafkaTopic,
+  fakeListTopicsResponse,
+  fakePagination,
+} from '../models/kafka-cluster.fixture';
+import { DescribeClusterResponse, ListTopicsResponse } from '../models/kafka-cluster.model';
 
-function mockSuccessInterceptor(response: DescribeClusterResponse): HttpInterceptorFn {
-  return (_req: HttpRequest<unknown>, _next: HttpHandlerFn): Observable<HttpEvent<unknown>> => {
-    return of(new HttpResponse({ status: 200, body: response })).pipe(delay(0));
+function mockSuccessInterceptor(clusterResponse: DescribeClusterResponse, topicsResponse: ListTopicsResponse): HttpInterceptorFn {
+  return (req: HttpRequest<unknown>, _next: HttpHandlerFn): Observable<HttpEvent<unknown>> => {
+    if (req.url.includes('list-topics')) {
+      return of(new HttpResponse({ status: 200, body: topicsResponse })).pipe(delay(0));
+    }
+    return of(new HttpResponse({ status: 200, body: clusterResponse })).pipe(delay(0));
   };
 }
 
@@ -53,6 +63,53 @@ const meta: Meta<KafkaExplorerComponent> = {
 
 export default meta;
 type Story = StoryObj<KafkaExplorerComponent>;
+
+const defaultTopics = fakeListTopicsResponse({
+  data: [
+    fakeKafkaTopic({
+      name: 'orders',
+      partitionCount: 6,
+      replicationFactor: 3,
+      underReplicatedCount: 0,
+      size: 5242880,
+      messageCount: 12000,
+    }),
+    fakeKafkaTopic({
+      name: 'payments',
+      partitionCount: 3,
+      replicationFactor: 3,
+      underReplicatedCount: 0,
+      size: 2097152,
+      messageCount: 3500,
+    }),
+    fakeKafkaTopic({
+      name: 'notifications',
+      partitionCount: 1,
+      replicationFactor: 2,
+      underReplicatedCount: 0,
+      size: 524288,
+      messageCount: 800,
+    }),
+    fakeKafkaTopic({
+      name: 'events',
+      partitionCount: 12,
+      replicationFactor: 3,
+      underReplicatedCount: 2,
+      size: 52428800,
+      messageCount: 100000,
+    }),
+    fakeKafkaTopic({
+      name: '__consumer_offsets',
+      partitionCount: 50,
+      replicationFactor: 1,
+      underReplicatedCount: 0,
+      internal: true,
+      size: 10485760,
+      messageCount: 50000,
+    }),
+  ],
+  pagination: fakePagination({ pageItemsCount: 5, totalCount: 5 }),
+});
 
 export const Default: Story = {
   args: { baseURL: '/api/v2', clusterId: 'my-cluster' },
@@ -93,6 +150,7 @@ export const Default: Story = {
                 totalTopics: 42,
                 totalPartitions: 150,
               }),
+              defaultTopics,
             ),
           ]),
         ),
@@ -115,6 +173,20 @@ export const SingleNode: Story = {
                 controller: fakeKafkaNode({ id: 0 }),
                 totalTopics: 3,
                 totalPartitions: 12,
+              }),
+              fakeListTopicsResponse({
+                data: [
+                  fakeKafkaTopic({ name: 'my-topic', partitionCount: 3, replicationFactor: 1, size: 1048576, messageCount: 1500 }),
+                  fakeKafkaTopic({
+                    name: '__consumer_offsets',
+                    partitionCount: 50,
+                    replicationFactor: 1,
+                    internal: true,
+                    size: 10485760,
+                    messageCount: 50000,
+                  }),
+                ],
+                pagination: fakePagination({ pageItemsCount: 2, totalCount: 2 }),
               }),
             ),
           ]),

@@ -17,12 +17,14 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatProgressSpinnerHarness } from '@angular/material/progress-spinner/testing';
 
 import { BrokersHarness } from '../brokers/brokers.harness';
+import { TopicsHarness } from '../topics/topics.harness';
 
 export class KafkaExplorerHarness extends ComponentHarness {
   static hostSelector = 'gke-kafka-explorer';
 
   private readonly getSpinner = this.locatorForOptional(MatProgressSpinnerHarness);
   private readonly getBrokers = this.locatorForOptional(BrokersHarness);
+  private readonly getTopics = this.locatorForOptional(TopicsHarness);
   private readonly getErrorBanner = this.locatorForOptional('.kafka-explorer__error');
   private readonly getTopbar = this.locatorForOptional('.kafka-explorer__topbar');
 
@@ -42,5 +44,9 @@ export class KafkaExplorerHarness extends ComponentHarness {
 
   async getBrokersHarness() {
     return this.getBrokers();
+  }
+
+  async getTopicsHarness() {
+    return this.getTopics();
   }
 }
