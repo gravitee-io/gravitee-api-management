@@ -74,7 +74,7 @@ class PortalPageContentQueryServiceImplTest {
             assertThat(result.get().getId()).isEqualTo(PortalPageContentId.of(contentId));
             assertThat(result.get().getOrganizationId()).isEqualTo("DEFAULT_ORG");
             assertThat(result.get().getEnvironmentId()).isEqualTo("DEFAULT_ENV");
-            assertThat(((GraviteeMarkdownPageContent) result.get()).getContent().raw()).isEqualTo(
+            assertThat(((GraviteeMarkdownPageContent) result.get()).getContent().value()).isEqualTo(
                 "# Welcome\n\nThis is a sample page content."
             );
         }

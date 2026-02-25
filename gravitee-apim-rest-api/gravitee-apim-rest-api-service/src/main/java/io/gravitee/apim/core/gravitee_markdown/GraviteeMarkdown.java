@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.open_api;
+package io.gravitee.apim.core.gravitee_markdown;
 
 /**
- * OpenAPI specification content value for portal pages.
+ * Gravitee Markdown (GMD) content value.
  */
-public record OpenApiContent(String raw) {}
+public record GraviteeMarkdown(String value) {
+    public static GraviteeMarkdown of(String value) {
+        return new GraviteeMarkdown(value);
+    }
+}

@@ -15,8 +15,11 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -26,5 +29,11 @@ import org.mapstruct.factory.Mappers;
 public interface SubscriptionFormMapper {
     SubscriptionFormMapper INSTANCE = Mappers.getMapper(SubscriptionFormMapper.class);
 
+    @Mapping(target = "gmdContent", source = "gmdContent", qualifiedByName = "graviteeMarkdownToString")
     io.gravitee.rest.api.portal.rest.model.SubscriptionForm map(SubscriptionForm subscriptionForm);
+
+    @Named("graviteeMarkdownToString")
+    default String graviteeMarkdownToString(GraviteeMarkdown gmd) {
+        return gmd != null ? gmd.value() : null;
+    }
 }

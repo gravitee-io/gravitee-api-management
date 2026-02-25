@@ -63,8 +63,8 @@ public interface PortalNavigationItemMapper {
 
     default String extractContent(PortalPageContent<?> content) {
         return switch (content) {
-            case GraviteeMarkdownPageContent gmd -> gmd.getGmdContent();
-            case OpenApiPageContent oapi -> oapi.getOpenApiContent();
+            case GraviteeMarkdownPageContent gmd -> gmd.getContent().value();
+            case OpenApiPageContent oapi -> oapi.getContent().value();
         };
     }
 

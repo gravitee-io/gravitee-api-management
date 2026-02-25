@@ -15,32 +15,32 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-import io.gravitee.apim.core.open_api.OpenApiContent;
+import io.gravitee.apim.core.open_api.OpenApi;
 import jakarta.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-public final class OpenApiPageContent extends PortalPageContent<OpenApiContent> {
+public final class OpenApiPageContent extends PortalPageContent<OpenApi> {
 
     private static final PortalPageContentType TYPE = PortalPageContentType.OPENAPI;
 
     @Setter
     @Nonnull
-    private OpenApiContent content;
+    private OpenApi content;
 
     public OpenApiPageContent(
         @Nonnull PortalPageContentId id,
         @Nonnull String organizationId,
         @Nonnull String environmentId,
-        @Nonnull OpenApiContent content
+        @Nonnull OpenApi content
     ) {
         super(id, organizationId, environmentId);
         this.content = content;
     }
 
     public static OpenApiPageContent create(@Nonnull String organizationId, @Nonnull String environmentId, @Nonnull String content) {
-        return new OpenApiPageContent(PortalPageContentId.random(), organizationId, environmentId, new OpenApiContent(content));
+        return new OpenApiPageContent(PortalPageContentId.random(), organizationId, environmentId, OpenApi.of(content));
     }
 
     public PortalPageContentType getType() {
@@ -49,11 +49,7 @@ public final class OpenApiPageContent extends PortalPageContent<OpenApiContent> 
 
     @Override
     public void update(@Nonnull UpdatePortalPageContent updatePortalPageContent) {
-        this.content = new OpenApiContent(updatePortalPageContent.getContent());
-    }
-
-    public String getOpenApiContent() {
-        return content.raw();
+        this.content = OpenApi.of(updatePortalPageContent.getContent());
     }
 
     @Override
