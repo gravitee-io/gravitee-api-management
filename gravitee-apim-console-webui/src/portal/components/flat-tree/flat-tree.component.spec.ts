@@ -673,6 +673,27 @@ describe('FlatTreeComponent', () => {
       expect(editButton).toBeNull();
       expect(deleteButton).toBeTruthy();
     });
+
+    it('should disable "Delete" option for folder with children', async () => {
+      setupPermissions(['environment-documentation-d']);
+      fixture = TestBed.createComponent(FlatTreeComponent);
+      component = fixture.componentInstance;
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, FlatTreeComponentHarness);
+
+      const links = [makeItem('f1', 'FOLDER', 'Folder 1', 0), makeItem('p1', 'PAGE', 'Child Page', 0, 'f1')];
+      fixture.componentRef.setInput('links', links);
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const moreActionsButton = await harness['getMoreActionsButtonById']('f1')();
+      await moreActionsButton.click();
+
+      const deleteButton = await harness.getMenuItemByTestId('delete-node-button');
+
+      expect(deleteButton).toBeTruthy();
+      expect(await deleteButton!.isDisabled()).toBe(true);
+    });
   });
 
   function createDropEvent(itemData: any, currentIndex: number, previousIndex: number): CdkDragDrop<SectionNode[]> {
