@@ -302,7 +302,7 @@
         <gravitee-reactor-message.version>9.0.0</gravitee-reactor-message.version>
         <gravitee-reactor-native-kafka.version>5.0.2</gravitee-reactor-native-kafka.version>
         <gravitee-reactor-mcp-proxy.version>1.0.1</gravitee-reactor-mcp-proxy.version>
-        <gravitee-reactor-llm-proxy.version>1.2.3</gravitee-reactor-llm-proxy.version>
+        <gravitee-reactor-llm-proxy.version>1.3.0</gravitee-reactor-llm-proxy.version>
         <gravitee-apim-repository-bridge.version>7.1.0</gravitee-apim-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>2.1.0</gravitee-secretprovider-hc-vault.version>
         <gravitee-secretprovider-aws.version>2.0.0</gravitee-secretprovider-aws.version>
