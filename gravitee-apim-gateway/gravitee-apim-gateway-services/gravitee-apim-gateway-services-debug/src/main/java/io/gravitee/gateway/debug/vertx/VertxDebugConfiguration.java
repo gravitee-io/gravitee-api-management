@@ -49,7 +49,7 @@ public class VertxDebugConfiguration {
             .compressionSupported(options.isCompressionSupported())
             .alpn(options.isAlpn())
             .connectTimeout(environment.getProperty("debug.timeout.connect", Integer.class, 5000))
-            .requestTimeout(environment.getProperty("debug.timeout.request", Integer.class, 10000))
+            .requestTimeout(environment.getProperty("debug.timeout.request", Integer.class, 30000))
             .build();
     }
 
