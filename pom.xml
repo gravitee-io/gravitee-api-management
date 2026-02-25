@@ -299,11 +299,24 @@
         <gravitee-policy-graphql-rate-limit.version>1.0.2</gravitee-policy-graphql-rate-limit.version>
         <gravitee-resource-schema-registry-confluent.version>4.0.0</gravitee-resource-schema-registry-confluent.version>
         <gravitee-resource-storage-azure-blob.version>1.1.0</gravitee-resource-storage-azure-blob.version>
+<<<<<<< HEAD
         <gravitee-reactor-message.version>9.0.0</gravitee-reactor-message.version>
         <gravitee-reactor-native-kafka.version>5.0.2</gravitee-reactor-native-kafka.version>
         <gravitee-reactor-mcp-proxy.version>1.0.1</gravitee-reactor-mcp-proxy.version>
         <gravitee-reactor-llm-proxy.version>1.2.3</gravitee-reactor-llm-proxy.version>
         <gravitee-apim-repository-bridge.version>7.1.0</gravitee-apim-repository-bridge.version>
+=======
+        <gravitee-reactor-message.version>10.0.0-alpha.1</gravitee-reactor-message.version>
+        <gravitee-reactor-native-kafka.version>6.0.0-alpha.1</gravitee-reactor-native-kafka.version>
+        <gravitee-reactor-mcp-proxy.version>1.1.0</gravitee-reactor-mcp-proxy.version>
+        <gravitee-reactor-llm-proxy.version>1.3.0</gravitee-reactor-llm-proxy.version>
+        <gravitee-reactor-a2a-proxy.version>1.0.0-alpha.1</gravitee-reactor-a2a-proxy.version>
+        <gravitee-resource-ai-vector-store-redis.version>1.0.0-alpha.2</gravitee-resource-ai-vector-store-redis.version>
+        <gravitee-resource-ai-vector-store-aws-s3.version>1.0.0-alpha.1</gravitee-resource-ai-vector-store-aws-s3.version>
+        <gravitee-resource-ai-model-text-embedding.version>1.0.0-alpha.4</gravitee-resource-ai-model-text-embedding.version>
+        <gravitee-policy-ai-semantic-caching.version>1.0.0-alpha.3</gravitee-policy-ai-semantic-caching.version>
+        <gravitee-apim-repository-bridge.version>8.0.0-alpha.1</gravitee-apim-repository-bridge.version>
+>>>>>>> b42266e683 (chore: update gravitee-reactor-llm-proxy to 1.3.0)
         <gravitee-secretprovider-hc-vault.version>2.1.0</gravitee-secretprovider-hc-vault.version>
         <gravitee-secretprovider-aws.version>2.0.0</gravitee-secretprovider-aws.version>
         <gravitee-service-secrets.version>3.0.1</gravitee-service-secrets.version>
