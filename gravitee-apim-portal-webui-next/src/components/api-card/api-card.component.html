@@ -15,14 +15,14 @@
     limitations under the License.
 
 -->
-<gmd-card class="api-card" (click)="select.emit()">
+<gmd-card class="api-card" (click)="select.emit(apiId)">
   <div class="api-card__content">
     <div class="api-card__header">
       <div class="api-card__header__content">
         <div class="m3-title-medium">{{ title }}</div>
       </div>
       @if (isEnabledMcpServer) {
-        <span class="mcp-chip__avatar" i18n="@@apiCardMcpEnabled" matTooltip="MCP available for this API"> MCP </span>
+        <app-badge i18n-label label="MCP" i18n-matTooltip matTooltip="MCP available for this API" />
       }
     </div>
     <div class="api-card__description m3-body-medium">

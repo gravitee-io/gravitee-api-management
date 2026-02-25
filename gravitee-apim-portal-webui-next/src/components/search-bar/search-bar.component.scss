@@ -10,14 +10,14 @@
 }
 
 .search-input__form {
-  --mat-form-field-container-height: 40px;
-  --mat-form-field-container-vertical-padding: 0px;
-  --mat-form-field-subscript-text-line-height: 0;
-  --mat-form-field-subscript-text-size: 0;
   width: 100%;
 
   @include mat.form-field-overrides(
     (
+      container-height: 40px,
+      container-vertical-padding: 0px,
+      subscript-text-line-height: 0,
+      subscript-text-size: 0,
       outlined-outline-color: theme.$search-bar-border-color,
       outlined-hover-outline-color: theme.$search-bar-border-color,
       outlined-container-shape: 4px,
@@ -56,13 +56,13 @@
   padding: 2px 8px;
   font-size: 12px;
   font-family: inherit;
-  color: theme.$keyboard-shortcut-text-color;
-  background-color: theme.$keyboard-shortcut-background-color;
+  color: theme.$search-bar-shortcut-text-color;
+  background-color: theme.$search-bar-shortcut-background-color;
   border-radius: 6px;
   white-space: nowrap;
 }
 
 .search-input__separator {
   font-size: 12px;
-  color: theme.$keyboard-shortcut-text-color;
+  color: theme.$search-bar-shortcut-text-color;
 }

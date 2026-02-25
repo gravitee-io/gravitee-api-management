@@ -118,18 +118,21 @@ $table-header-headline-color: var(--gio-app-table-header-headline-color, $defaul
 
 // -- Other Components --
 $chip-background: var(--gio-app-chip-container-color, $card-background-color);
+$label-chip-container-color: var(--gio-app-label-chip-container-color, #e1e5ed);
+$label-chip-label-text-color: var(--gio-app-label-chip-label-text-color, #5f6368);
+$label-chip-container-shape-radius: var(--gio-app-label-chip-container-shape-radius, 16px);
 $select-panel-background-color: color-mix(in srgb, $banner-background-color 12%, $card-background-color);
 $calendar-background-color: color-mix(in srgb, $banner-background-color 50%, $card-background-color);
 $primary-highlight-color: color-mix(in srgb, $primary-main-color 8%, white 92%);
 
-// -- Catalog / View Toggle --
-$view-toggle-active-background-color: var(--gio-app-view-toggle-active-container-color, $primary-highlight-color);
-$view-toggle-active-text-color: var(--gio-app-view-toggle-active-label-text-color, $primary-main-color);
+// -- Button Toggle --
+$button-toggle-active-background-color: var(--gio-app-button-toggle-active-container-color, $primary-highlight-color);
+$button-toggle-active-text-color: var(--gio-app-button-toggle-active-label-text-color, $primary-main-color);
 
-// -- MCP chip --
-$mcp-chip-background-color: var(--gio-app-mcp-chip-container-color, color-mix(in srgb, $primary-main-color 17%, transparent));
-$mcp-chip-text-color: var(--gio-app-mcp-chip-label-text-color, $primary-main-color);
+// -- Badge --
+$badge-container-color: var(--gio-app-badge-container-color, color-mix(in srgb, $primary-main-color 17%, transparent));
+$badge-label-text-color: var(--gio-app-badge-label-text-color, $primary-main-color);
 
-// -- Keyboard shortcut --
-$keyboard-shortcut-text-color: var(--gio-app-keyboard-shortcut-label-text-color, $paragraph-color);
-$keyboard-shortcut-background-color: var(--gio-app-keyboard-shortcut-container-color, #e1e5ed);
+// -- Search bar shortcut --
+$search-bar-shortcut-text-color: var(--gio-app-search-bar-shortcut-label-text-color, $paragraph-color);
+$search-bar-shortcut-background-color: var(--gio-app-search-bar-shortcut-container-color, $label-chip-container-color);

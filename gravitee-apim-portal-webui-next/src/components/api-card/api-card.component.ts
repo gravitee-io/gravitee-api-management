@@ -17,13 +17,17 @@ import { Component, Input, output } from '@angular/core';
 import { MatTooltip } from '@angular/material/tooltip';
 import { GmdCardModule } from '@gravitee/gravitee-markdown';
 
+import { BadgeComponent } from '../badge/badge.component';
+
 @Component({
   selector: 'app-api-card',
-  imports: [GmdCardModule, MatTooltip],
+  imports: [GmdCardModule, MatTooltip, BadgeComponent],
   templateUrl: './api-card.component.html',
   styleUrl: './api-card.component.scss',
 })
 export class ApiCardComponent {
+  @Input({ required: true })
+  apiId!: string;
   @Input({ required: true })
   title!: string;
   @Input({ required: true })
@@ -35,5 +39,5 @@ export class ApiCardComponent {
   @Input()
   content?: string;
 
-  select = output<void>();
+  select = output<string>();
 }

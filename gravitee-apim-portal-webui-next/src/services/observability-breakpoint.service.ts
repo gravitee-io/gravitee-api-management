@@ -22,17 +22,13 @@ import { map, shareReplay } from 'rxjs/operators';
 export class ObservabilityBreakpointService {
   private readonly breakpointObserver = inject(BreakpointObserver);
 
-  // Using Breakpoints.XSmall for true mobile devices (max-width: 599.98px)
-  // This ensures only smartphones and very small tablets are considered mobile
-  // Laptops and larger screens will use desktop navigation
   readonly isMobile$ = this.breakpointObserver.observe([Breakpoints.XSmall]).pipe(
     map(state => state.matches),
     shareReplay({ refCount: true, bufferSize: 1 }),
   );
   readonly isMobile = toSignal(this.isMobile$);
 
-  // Narrow screens (max-width: 1199.98px) — used for 2-column catalog layout
-  readonly isNarrow$ = this.breakpointObserver.observe(['(max-width: 1199.98px)']).pipe(
+  readonly isNarrow$ = this.breakpointObserver.observe([Breakpoints.XSmall, Breakpoints.Small, Breakpoints.Medium]).pipe(
     map(state => state.matches),
     shareReplay({ refCount: true, bufferSize: 1 }),
   );

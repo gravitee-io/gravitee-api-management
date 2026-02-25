@@ -32,10 +32,7 @@
     justify-content: space-between;
     gap: 16px;
 
-    .m3-headline-medium {
-      font-size: 48px;
-      font-weight: 400;
-      line-height: 1.2;
+    .next-gen-h1 {
       color: theme.$default-text-color;
     }
 
@@ -45,8 +42,7 @@
       grid-template-rows: auto auto;
       gap: 16px;
 
-      .m3-headline-medium {
-        font-size: 36px;
+      .next-gen-h1 {
         grid-column: 1 / 2;
         grid-row: 1 / 2;
       }
@@ -55,7 +51,7 @@
         display: contents;
       }
 
-      .api-list__view-toggle {
+      app-button-toggle-group {
         grid-column: 2 / 3;
         grid-row: 1 / 2;
       }
@@ -75,85 +71,6 @@
     }
   }
 
-  &__view-toggle {
-    display: flex;
-    border: 1px solid theme.$border-color;
-    border-radius: 4px;
-    overflow: hidden;
-    background-color: theme.$card-background-color;
-    height: 40px;
-    width: 141px;
-
-    &__button {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 0;
-      border: none;
-      background-color: transparent;
-      cursor: pointer;
-      font-family: Helvetica, Arial, sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      color: theme.$paragraph-color;
-      transition: all 0.2s ease;
-      position: relative;
-      height: 100%;
-
-      &:first-child {
-        width: 78px;
-      }
-
-      &:last-child {
-        width: 62px;
-      }
-
-      mat-icon {
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
-        line-height: 20px;
-      }
-
-      &--active mat-icon {
-        font-variation-settings:
-          'FILL' 1,
-          'wght' 400,
-          'GRAD' 0,
-          'opsz' 20;
-      }
-
-      &:not(:last-child)::after {
-        content: '';
-        position: absolute;
-        right: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 1px;
-        height: 24px;
-        background-color: theme.$border-color;
-      }
-
-      &:hover:not(&--active) {
-        background-color: var(--mat-sys-surface-container-low);
-      }
-
-      &--active {
-        background-color: theme.$view-toggle-active-background-color;
-        color: theme.$view-toggle-active-text-color;
-
-        mat-icon {
-          color: theme.$view-toggle-active-text-color;
-        }
-      }
-
-      &--active::after {
-        display: none;
-      }
-    }
-  }
-
   &__container {
     display: grid;
     gap: 16px;
@@ -164,147 +81,76 @@
     }
 
     &--mobile {
-      grid-template-columns: 1fr !important;
-    }
-
-    &--list {
-      grid-template-columns: 1fr !important;
-      gap: 12px;
+      grid-template-columns: 1fr;
     }
   }
 
+  &__table-container {
+    overflow-x: auto;
+  }
+
   &__table {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    border: 1px solid theme.$table-border-color;
-    border-radius: 8px;
-    overflow: hidden;
     width: 100%;
 
-    &-header {
-      display: grid;
-      grid-template-columns: 1fr 2fr 0.5fr 100px;
-      background-color: theme.$table-header-background-color;
-      padding: 16px;
-      font-weight: 600;
-      font-size: 14px;
+    .mat-column-name {
+      width: 25%;
+      font-weight: 500;
       color: theme.$default-text-color;
-      border-bottom: 1px solid theme.$table-border-color;
-
-      &--mobile {
-        grid-template-columns: 2fr 0.5fr 60px;
-      }
-
-      &__cell {
-        display: flex;
-        align-items: center;
-
-        &--name {
-          padding-right: 16px;
-        }
-
-        &--labels,
-        &--version {
-          padding-left: 16px;
-        }
-
-        &--mcp {
-          justify-content: flex-end;
-          padding-left: 16px;
-        }
-      }
     }
 
-    &-row {
-      display: grid;
-      grid-template-columns: 1fr 2fr 0.5fr 100px;
-      align-items: center;
-      height: 56px;
-      padding: 0 16px;
-      border-bottom: 1px solid theme.$table-border-color;
-      transition: background-color 0.2s ease;
+    .mat-column-labels {
+      width: 50%;
+    }
+
+    .mat-column-version {
+      width: 12%;
+    }
+
+    .mat-column-mcp {
+      width: 80px;
+      text-align: right;
+    }
+
+    &__row {
       cursor: pointer;
+    }
 
-      &--mobile {
-        grid-template-columns: 2fr 0.5fr 60px;
-      }
+    &__name-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
-      &:last-child {
-        border-bottom: none;
+    &__info-button {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      margin-left: 6px;
+      background-color: theme.$card-background-color;
+      border: 1px solid theme.$default-text-color;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      vertical-align: middle;
+
+      &__text {
+        font-family: 'Times New Roman', serif;
+        font-style: italic;
+        color: theme.$default-text-color;
+        line-height: 1;
       }
 
       &:hover {
-        background-color: var(--mat-sys-surface-container-lowest);
+        background-color: var(--mat-sys-surface-container-low);
       }
+    }
 
-      &__cell {
-        display: flex;
-        align-items: center;
-        font-size: 14px;
-        color: theme.$paragraph-color;
-
-        &--name {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding-right: 16px;
-          font-weight: 500;
-          color: theme.$default-text-color;
-        }
-
-        &--labels {
-          display: flex;
-          flex-wrap: nowrap;
-          gap: 8px;
-          padding-left: 16px;
-          overflow: hidden;
-        }
-
-        &--version {
-          padding-left: 16px;
-        }
-
-        &--mcp {
-          justify-content: flex-end;
-          padding-left: 16px;
-        }
-      }
-
-      &__name-text {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      &__info-button {
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 18px;
-        height: 18px;
-        padding: 0;
-        margin-left: 6px;
-        background-color: theme.$card-background-color;
-        border: 1px solid theme.$default-text-color;
-        border-radius: 50%;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-
-        &__text {
-          font-family: 'Times New Roman', serif;
-          font-size: 12px;
-          font-weight: 400;
-          font-style: italic;
-          color: theme.$default-text-color;
-          line-height: 1;
-        }
-
-        &:hover {
-          background-color: var(--mat-sys-surface-container-low);
-        }
-      }
+    &__mcp-cell {
+      text-align: right;
     }
   }
 
