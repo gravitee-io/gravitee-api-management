@@ -20,6 +20,7 @@ import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.KafkaClusterDoma
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaTopic;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicsPage;
 import java.util.Comparator;
 import java.util.List;
@@ -28,6 +29,7 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
 
     private KafkaClusterInfo result;
     private List<KafkaTopic> topics;
+    private TopicDetail topicDetail;
     private KafkaExplorerException exception;
 
     public void givenClusterInfo(KafkaClusterInfo info) {
@@ -40,10 +42,16 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
         this.exception = null;
     }
 
+    public void givenTopicDetail(TopicDetail detail) {
+        this.topicDetail = detail;
+        this.exception = null;
+    }
+
     public void givenException(KafkaExplorerException exception) {
         this.exception = exception;
         this.result = null;
         this.topics = null;
+        this.topicDetail = null;
     }
 
     @Override
@@ -71,5 +79,13 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
         int toIndex = Math.min(fromIndex + perPage, totalCount);
 
         return new TopicsPage(filtered.subList(fromIndex, toIndex), totalCount, page, perPage);
+    }
+
+    @Override
+    public TopicDetail describeTopic(KafkaClusterConfiguration config, String topicName) {
+        if (exception != null) {
+            throw exception;
+        }
+        return topicDetail;
     }
 }

@@ -18,9 +18,11 @@ package io.gravitee.rest.api.kafkaexplorer.resource;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeKafkaClusterUseCase;
+import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeTopicUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.ListTopicsUseCase;
 import io.gravitee.rest.api.kafkaexplorer.mapper.KafkaExplorerMapper;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterRequest;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeTopicRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaExplorerError;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.ListTopicsRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.ListTopicsResponse;
@@ -47,6 +49,9 @@ public class KafkaExplorerResource {
 
     @Inject
     private ListTopicsUseCase listTopicsUseCase;
+
+    @Inject
+    private DescribeTopicUseCase describeTopicUseCase;
 
     @POST
     @Path("/describe-cluster")
@@ -102,6 +107,38 @@ public class KafkaExplorerResource {
                 new ListTopicsUseCase.Input(request.getClusterId(), environmentId, request.getNameFilter(), page0Based, perPage)
             );
             return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.topicsPage(), page, perPage)).build();
+        } catch (KafkaExplorerException e) {
+            return Response.status(Response.Status.BAD_GATEWAY)
+                .entity(new KafkaExplorerError().message(e.getMessage()).technicalCode(e.getTechnicalCode().name()))
+                .build();
+        }
+    }
+
+    @POST
+    @Path("/describe-topic")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @GraviteeLicenseFeature("apim-native-kafka-explorer")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ) })
+    public Response describeTopic(DescribeTopicRequest request) {
+        if (request == null || request.getClusterId() == null || request.getClusterId().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                .build();
+        }
+
+        if (request.getTopicName() == null || request.getTopicName().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new KafkaExplorerError().message("topicName is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                .build();
+        }
+
+        try {
+            var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
+            var result = describeTopicUseCase.execute(
+                new DescribeTopicUseCase.Input(request.getClusterId(), environmentId, request.getTopicName())
+            );
+            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.topicDetail())).build();
         } catch (KafkaExplorerException e) {
             return Response.status(Response.Status.BAD_GATEWAY)
                 .entity(new KafkaExplorerError().message(e.getMessage()).technicalCode(e.getTechnicalCode().name()))

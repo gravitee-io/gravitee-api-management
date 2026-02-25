@@ -34,6 +34,9 @@ import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaNode;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaTopic;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicConfigEntry;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicDetail;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicPartitionDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicsPage;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -42,6 +45,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +64,8 @@ import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.admin.TopicListing;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.TopicPartitionInfo;
+import org.apache.kafka.common.config.ConfigResource;
 import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.errors.AuthenticationException;
 import org.springframework.stereotype.Service;
@@ -175,6 +181,69 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
             return new TopicsPage(topics, totalCount, page, perPage);
         });
+    }
+
+    @Override
+    public TopicDetail describeTopic(KafkaClusterConfiguration config, String topicName) {
+        return withAdminClient(config, adminClient -> {
+            // Describe topic to get partition info
+            TopicDescription description = adminClient
+                .describeTopics(List.of(topicName))
+                .allTopicNames()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .get(topicName);
+
+            boolean internal = adminClient
+                .listTopics(new ListTopicsOptions().listInternal(true))
+                .listings()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .stream()
+                .filter(l -> l.name().equals(topicName))
+                .findFirst()
+                .map(TopicListing::isInternal)
+                .orElse(false);
+
+            List<TopicPartitionDetail> partitions = description
+                .partitions()
+                .stream()
+                .map(p ->
+                    new TopicPartitionDetail(
+                        p.partition(),
+                        p.leader() != null ? toKafkaNode(p.leader()) : null,
+                        p.replicas().stream().map(this::toKafkaNode).toList(),
+                        p.isr().stream().map(this::toKafkaNode).toList(),
+                        getOfflineNodes(p).stream().map(this::toKafkaNode).toList()
+                    )
+                )
+                .toList();
+
+            // Describe topic configs
+            ConfigResource configResource = new ConfigResource(ConfigResource.Type.TOPIC, topicName);
+            var configResult = adminClient
+                .describeConfigs(Collections.singleton(configResource))
+                .all()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            List<TopicConfigEntry> configs = configResult
+                .get(configResource)
+                .entries()
+                .stream()
+                .map(entry ->
+                    new TopicConfigEntry(entry.name(), entry.value(), entry.source().name(), entry.isReadOnly(), entry.isSensitive())
+                )
+                .toList();
+
+            return new TopicDetail(topicName, internal, partitions, configs);
+        });
+    }
+
+    private List<Node> getOfflineNodes(TopicPartitionInfo partitionInfo) {
+        Set<Integer> isrIds = partitionInfo.isr().stream().map(Node::id).collect(Collectors.toSet());
+        return partitionInfo
+            .replicas()
+            .stream()
+            .filter(r -> !isrIds.contains(r.id()))
+            .toList();
     }
 
     private Map<String, Long> fetchTopicSizes(AdminClient adminClient, Set<String> topicNames) {
