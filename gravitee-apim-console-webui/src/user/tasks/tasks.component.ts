@@ -267,5 +267,6 @@ export class TasksComponent implements OnInit, OnDestroy {
 
   private removeTask(taskToRemove: TaskData): void {
     this.data = this.data.filter(task => task !== taskToRemove);
+    this.cdr.detectChanges();
   }
 }
