@@ -49,6 +49,53 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/KafkaExplorerError"
 
+    /kafka-explorer/list-topics:
+        post:
+            tags:
+                - Kafka Explorer
+            summary: List topics of a Kafka cluster
+            description: |
+                Connects to a Kafka cluster and returns the list of topics with their metadata.
+            operationId: listTopics
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                      type: integer
+                      default: 1
+                  description: Page number (1-based)
+                - name: perPage
+                  in: query
+                  schema:
+                      type: integer
+                      default: 10
+                  description: Number of topics per page
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ListTopicsRequest"
+            responses:
+                "200":
+                    description: List of topics
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ListTopicsResponse"
+                "400":
+                    description: Invalid parameters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+                "502":
+                    description: Connection failure
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+
 components:
     schemas:
         DescribeClusterRequest:
@@ -118,6 +165,72 @@ components:
                     type: integer
                     format: int64
                     description: Total size of all log directories on this broker in bytes, or null if unavailable
+
+        ListTopicsRequest:
+            type: object
+            required:
+                - clusterId
+            properties:
+                clusterId:
+                    type: string
+                    description: ID of the Cluster to connect to
+                nameFilter:
+                    type: string
+                    description: Optional filter to match topic names (case-insensitive contains)
+
+        ListTopicsResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/KafkaTopic"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+        Pagination:
+            type: object
+            properties:
+                page:
+                    type: integer
+                perPage:
+                    type: integer
+                pageCount:
+                    type: integer
+                pageItemsCount:
+                    type: integer
+                totalCount:
+                    type: integer
+                    format: int64
+
+        KafkaTopic:
+            type: object
+            properties:
+                name:
+                    type: string
+                partitionCount:
+                    type: integer
+                    format: int32
+                    description: Number of partitions for this topic
+                replicationFactor:
+                    type: integer
+                    format: int32
+                    description: Replication factor of this topic
+                underReplicatedCount:
+                    type: integer
+                    format: int32
+                    description: Number of partitions where ISR size is less than replica count
+                internal:
+                    type: boolean
+                    description: Whether this is an internal Kafka topic
+                size:
+                    type: integer
+                    format: int64
+                    description: Total size of the topic in bytes across all brokers, or null if unavailable
+                messageCount:
+                    type: integer
+                    format: int64
+                    description: Total number of messages (sum of latest offsets), or null if unavailable
 
         KafkaExplorerError:
             type: object
