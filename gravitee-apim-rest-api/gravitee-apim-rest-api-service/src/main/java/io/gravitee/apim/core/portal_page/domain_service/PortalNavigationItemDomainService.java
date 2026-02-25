@@ -25,6 +25,7 @@ import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
@@ -58,7 +59,11 @@ public class PortalNavigationItemDomainService {
             createPortalNavigationItem.getType() == PortalNavigationItemType.PAGE &&
             createPortalNavigationItem.getPortalPageContentId() == null
         ) {
-            final var defaultPageContent = pageContentCrudService.createDefault(organizationId, environmentId);
+            final var defaultPageContent = pageContentCrudService.createDefault(
+                organizationId,
+                environmentId,
+                createPortalNavigationItem.getContentType()
+            );
             createPortalNavigationItem.setPortalPageContentId(defaultPageContent.getId());
         }
 

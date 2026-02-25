@@ -23,7 +23,10 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.infra.adapter.PortalPageContentAdapter;
+import io.gravitee.apim.infra.crud_service.portal_page.adapter.DefaultGraviteeMarkdownProvider;
+import io.gravitee.apim.infra.crud_service.portal_page.adapter.DefaultOpenApiProvider;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalPageContentRepository;
 import io.gravitee.repository.management.model.PortalPageContent;
@@ -60,7 +63,10 @@ class PortalPageContentCrudServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new PortalPageContentCrudServiceImpl(repository);
+        service = new PortalPageContentCrudServiceImpl(
+            repository,
+            java.util.List.of(new DefaultOpenApiProvider(), new DefaultGraviteeMarkdownProvider())
+        );
     }
 
     @Nested
@@ -102,12 +108,33 @@ class PortalPageContentCrudServiceImplTest {
             }
 
             // When
-            service.createDefault(ORGANIZATION_ID, ENVIRONMENT_ID);
+            service.createDefault(ORGANIZATION_ID, ENVIRONMENT_ID, PortalPageContentType.GRAVITEE_MARKDOWN);
 
             // Then
             verify(repository).create(captor.capture());
             assertThat(captor.getValue().getType()).isEqualTo(PortalPageContent.Type.GRAVITEE_MARKDOWN);
             assertThat(captor.getValue().getContent()).isEqualTo(defaultContent);
+            assertThat(captor.getValue().getOrganizationId()).isEqualTo(ORGANIZATION_ID);
+            assertThat(captor.getValue().getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+        }
+
+        @Test
+        void should_create_a_default_openapi_page_content() throws TechnicalException {
+            String defaultOpenApiContent;
+            try {
+                final var resource = new ClassPathResource("templates/default-portal-openapi-page-content.yaml");
+                defaultOpenApiContent = resource.getContentAsString(StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new IllegalStateException("Could not load default OpenAPI portal page template", e);
+            }
+
+            // When
+            service.createDefault(ORGANIZATION_ID, ENVIRONMENT_ID, PortalPageContentType.OPENAPI);
+
+            // Then
+            verify(repository).create(captor.capture());
+            assertThat(captor.getValue().getType()).isEqualTo(PortalPageContent.Type.OPENAPI);
+            assertThat(captor.getValue().getContent()).isEqualTo(defaultOpenApiContent);
             assertThat(captor.getValue().getOrganizationId()).isEqualTo(ORGANIZATION_ID);
             assertThat(captor.getValue().getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
         }

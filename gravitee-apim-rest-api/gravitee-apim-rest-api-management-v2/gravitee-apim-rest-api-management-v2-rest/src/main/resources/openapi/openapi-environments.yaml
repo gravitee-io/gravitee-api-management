@@ -2122,6 +2122,9 @@ components:
               format: uuid
               description: The UUID of the portal page content
               example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+            contentType:
+              $ref: "#/components/schemas/PortalPageContentType"
+              description: The content type for the page. Defaults to GRAVITEE_MARKDOWN if not provided.
     CreatePortalNavigationLink:
       type: object
       title: "CreatePortalNavigationLink"
@@ -2264,6 +2267,13 @@ components:
           LINK: "#/components/schemas/UpdatePortalNavigationLink"
           API: "#/components/schemas/UpdatePortalNavigationApi"
 
+    PortalPageContentType:
+      type: string
+      description: Type of portal page content
+      enum:
+        - GRAVITEE_MARKDOWN
+        - OPENAPI
+
     PortalPageContent:
       type: object
       description: Portal page content
@@ -2272,11 +2282,7 @@ components:
           type: string
           description: The unique ID of the portal page content
         type:
-          type: string
-          description: Content type
-          enum:
-            - GRAVITEE_MARKDOWN
-            - OPENAPI
+          $ref: "#/components/schemas/PortalPageContentType"
         content:
           type: string
           description: The content of the page

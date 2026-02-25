@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalPageContentFixtures;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import io.gravitee.rest.api.management.v2.rest.model.PortalPageContent;
+import io.gravitee.rest.api.management.v2.rest.model.PortalPageContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -56,7 +56,7 @@ class PortalPageContentMapperTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo("12345678-1234-1234-1234-123456789abc");
         assertThat(result.getContent()).isEqualTo("# Welcome\n\nThis is a test page.");
-        assertThat(result.getType()).isEqualTo(PortalPageContent.TypeEnum.GRAVITEE_MARKDOWN);
+        assertThat(result.getType()).isEqualTo(PortalPageContentType.GRAVITEE_MARKDOWN);
     }
 
     @Test
@@ -84,6 +84,6 @@ class PortalPageContentMapperTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(contentId.json());
         assertThat(result.getContent()).isEqualTo("Test content");
-        assertThat(result.getType()).isEqualTo(PortalPageContent.TypeEnum.GRAVITEE_MARKDOWN);
+        assertThat(result.getType()).isEqualTo(PortalPageContentType.GRAVITEE_MARKDOWN);
     }
 }

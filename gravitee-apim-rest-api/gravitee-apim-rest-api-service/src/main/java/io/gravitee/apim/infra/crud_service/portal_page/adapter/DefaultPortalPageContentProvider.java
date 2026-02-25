@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.crud_service;
+package io.gravitee.apim.infra.crud_service.portal_page.adapter;
 
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
-import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 
-public interface PortalPageContentCrudService {
-    PortalPageContent<?> create(PortalPageContent<?> content);
+/**
+ * Provides default portal page content for a given content type.
+ * Implementations can be added for new content types without modifying the crud service.
+ */
+public interface DefaultPortalPageContentProvider {
+    boolean appliesTo(PortalPageContentType contentType);
 
-    PortalPageContent<?> createDefault(String organizationId, String environmentId, PortalPageContentType contentType);
-
-    PortalPageContent<?> update(PortalPageContent<?> content);
-
-    void delete(PortalPageContentId id);
+    PortalPageContent<?> provide(String organizationId, String environmentId);
 }
