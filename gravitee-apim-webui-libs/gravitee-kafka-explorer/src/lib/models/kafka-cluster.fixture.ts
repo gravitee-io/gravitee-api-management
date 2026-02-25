@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BrokerDetail, DescribeClusterResponse, KafkaNode } from './kafka-cluster.model';
+import { BrokerDetail, DescribeClusterResponse, KafkaNode, KafkaTopic, ListTopicsResponse, Pagination } from './kafka-cluster.model';
 
 export function fakeKafkaNode(overrides: Partial<KafkaNode> = {}): KafkaNode {
   return {
@@ -29,7 +29,6 @@ export function fakeBrokerDetail(overrides: Partial<BrokerDetail> = {}): BrokerD
     id: 0,
     host: 'kafka-broker-0.example.com',
     port: 9092,
-    rack: null,
     leaderPartitions: 10,
     replicaPartitions: 20,
     logDirSize: 1073741824,
@@ -48,6 +47,49 @@ export function fakeDescribeClusterResponse(overrides: Partial<DescribeClusterRe
     ],
     totalTopics: 5,
     totalPartitions: 15,
+    ...overrides,
+  };
+}
+
+export function fakeKafkaTopic(overrides: Partial<KafkaTopic> = {}): KafkaTopic {
+  return {
+    name: 'my-topic',
+    partitionCount: 3,
+    replicationFactor: 2,
+    underReplicatedCount: 0,
+    internal: false,
+    size: 1048576,
+    messageCount: 1500,
+    ...overrides,
+  };
+}
+
+export function fakePagination(overrides: Partial<Pagination> = {}): Pagination {
+  return {
+    page: 1,
+    perPage: 10,
+    pageCount: 1,
+    pageItemsCount: 3,
+    totalCount: 3,
+    ...overrides,
+  };
+}
+
+export function fakeListTopicsResponse(overrides: Partial<ListTopicsResponse> = {}): ListTopicsResponse {
+  return {
+    data: [
+      fakeKafkaTopic({ name: 'my-topic' }),
+      fakeKafkaTopic({ name: 'orders', partitionCount: 6, replicationFactor: 3, size: 5242880, messageCount: 12000 }),
+      fakeKafkaTopic({
+        name: '__consumer_offsets',
+        partitionCount: 50,
+        replicationFactor: 1,
+        internal: true,
+        size: 10485760,
+        messageCount: 50000,
+      }),
+    ],
+    pagination: fakePagination(),
     ...overrides,
   };
 }
