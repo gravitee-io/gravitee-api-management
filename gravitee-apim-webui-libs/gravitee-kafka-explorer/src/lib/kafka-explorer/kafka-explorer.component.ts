@@ -13,128 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, inject, input, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { ActivatedRoute, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
-import { BrokersComponent } from '../brokers/brokers.component';
-import { DescribeClusterResponse, DescribeTopicResponse, ListTopicsResponse } from '../models/kafka-cluster.model';
+import { KAFKA_EXPLORER_BASE_URL } from '../services/kafka-explorer-config.token';
+import { KafkaExplorerStore } from '../services/kafka-explorer-store.service';
 import { KafkaExplorerService } from '../services/kafka-explorer.service';
-import { TopicDetailComponent } from '../topic-detail/topic-detail.component';
-import { TopicsComponent } from '../topics/topics.component';
 
 @Component({
   selector: 'gke-kafka-explorer',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
-    MatIconModule,
-    BrokersComponent,
-    TopicsComponent,
-    TopicDetailComponent,
-  ],
+  imports: [MatButtonModule, MatProgressSpinnerModule, MatIconModule, RouterOutlet, RouterLink, RouterLinkActive],
+  providers: [KafkaExplorerStore],
   templateUrl: './kafka-explorer.component.html',
   styleUrls: ['./kafka-explorer.component.scss'],
 })
 export class KafkaExplorerComponent implements OnInit {
-  baseURL = input.required<string>();
-  clusterId = input.required<string>();
+  store = inject(KafkaExplorerStore);
 
-  activeSection = signal<'brokers' | 'topics'>('brokers');
-  clusterInfo = signal<DescribeClusterResponse | undefined>(undefined);
-  topicsPage = signal<ListTopicsResponse | undefined>(undefined);
-  loading = signal(false);
-  topicsLoading = signal(false);
-  selectedTopic = signal<string | null>(null);
-  topicDetail = signal<DescribeTopicResponse | undefined>(undefined);
-  topicDetailLoading = signal(false);
-  error = signal<string | null>(null);
-
-  private currentFilter = '';
-  private currentPage = 0;
-  private currentPageSize = 10;
-  private readonly filterSubject = new Subject<string>();
-
+  private readonly baseURL = inject(KAFKA_EXPLORER_BASE_URL);
+  private readonly route = inject(ActivatedRoute);
   private readonly kafkaExplorerService = inject(KafkaExplorerService);
   private readonly destroyRef = inject(DestroyRef);
 
   ngOnInit() {
-    this.loading.set(true);
-    this.error.set(null);
+    const clusterId = this.route.parent!.snapshot.params['clusterId'];
+    this.store.baseURL.set(this.baseURL);
+    this.store.clusterId.set(clusterId);
+    this.store.loading.set(true);
+    this.store.error.set(null);
 
     this.kafkaExplorerService
-      .describeCluster(this.baseURL(), this.clusterId())
+      .describeCluster(this.baseURL, clusterId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: cluster => {
-          this.clusterInfo.set(cluster);
-          this.loading.set(false);
-          this.loadTopics(this.currentFilter, this.currentPage, this.currentPageSize);
+          this.store.clusterInfo.set(cluster);
+          this.store.loading.set(false);
         },
         error: err => {
-          this.error.set(err?.error?.message || 'Failed to load cluster data');
-          this.loading.set(false);
-        },
-      });
-
-    this.filterSubject.pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(filter => {
-      this.currentFilter = filter;
-      this.currentPage = 0;
-      this.loadTopics(filter, 0, this.currentPageSize);
-    });
-  }
-
-  onTopicsFilterChange(filter: string) {
-    this.filterSubject.next(filter);
-  }
-
-  onTopicSelect(topicName: string) {
-    this.selectedTopic.set(topicName);
-    this.topicDetail.set(undefined);
-    this.topicDetailLoading.set(true);
-    this.kafkaExplorerService
-      .describeTopic(this.baseURL(), this.clusterId(), topicName)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: detail => {
-          this.topicDetail.set(detail);
-          this.topicDetailLoading.set(false);
-        },
-        error: () => {
-          this.topicDetailLoading.set(false);
-        },
-      });
-  }
-
-  onTopicBack() {
-    this.selectedTopic.set(null);
-    this.topicDetail.set(undefined);
-  }
-
-  onTopicsPageChange(event: { page: number; pageSize: number }) {
-    this.currentPage = event.page;
-    this.currentPageSize = event.pageSize;
-    this.loadTopics(this.currentFilter, event.page, event.pageSize);
-  }
-
-  private loadTopics(nameFilter: string, page: number, pageSize: number) {
-    this.topicsLoading.set(true);
-    this.kafkaExplorerService
-      .listTopics(this.baseURL(), this.clusterId(), nameFilter || undefined, page + 1, pageSize)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: response => {
-          this.topicsPage.set(response);
-          this.topicsLoading.set(false);
-        },
-        error: () => {
-          this.topicsLoading.set(false);
+          this.store.error.set(err?.error?.message || 'Failed to load cluster data');
+          this.store.loading.set(false);
         },
       });
   }

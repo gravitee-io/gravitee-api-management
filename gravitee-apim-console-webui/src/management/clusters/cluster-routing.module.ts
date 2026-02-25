@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
+import { KAFKA_EXPLORER_BASE_URL } from '@gravitee/gravitee-kafka-explorer';
+
+import { inject, NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+
 
 import { ClusterNavigationComponent } from './cluster-navigation/cluster-navigation.component';
 import { ClusterGeneralComponent } from './details/general/cluster-general.component';
 import { ClusterConfigurationComponent } from './details/configuration/cluster-configuration.component';
 import { ClusterListComponent } from './list/cluster-list.component';
 import { ClusterUserPermissionsComponent } from './details/user-permissions/cluster-user-permissions.component';
-import { ClusterExplorerPageComponent } from './details/explorer/cluster-explorer-page.component';
 import { ClusterGuard } from './cluster.guard';
 
+import { Constants } from '../../entities/Constants';
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
 import { HasLicenseGuard } from '../../shared/components/gio-license/has-license.guard';
 import { ApimFeature } from '../../shared/components/gio-license/gio-license-data';
@@ -64,7 +67,8 @@ const clusterRoutes: Routes = [
       },
       {
         path: 'explorer',
-        component: ClusterExplorerPageComponent,
+        loadChildren: () => import('@gravitee/gravitee-kafka-explorer').then(m => m.KAFKA_EXPLORER_ROUTES),
+        providers: [{ provide: KAFKA_EXPLORER_BASE_URL, useFactory: () => inject(Constants).env.v2BaseURL }],
         data: {
           permissions: {
             anyOf: ['cluster-definition-r'],
