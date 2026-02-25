@@ -15,6 +15,10 @@
  */
 
 .brokers {
+  mat-card-content {
+    overflow-x: auto;
+  }
+
   table {
     width: 100%;
   }
