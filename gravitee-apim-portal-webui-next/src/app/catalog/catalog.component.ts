@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, effect, inject, Signal, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isEqual } from 'lodash';
@@ -28,6 +28,9 @@ import { BehaviorSubject, catchError, distinctUntilChanged, map, Observable, swi
 import { of } from 'rxjs/internal/observable/of';
 
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
+import { BadgeComponent } from '../../components/badge/badge.component';
+import { ButtonToggleGroupComponent } from '../../components/button-toggle-group/button-toggle-group.component';
+import { ButtonToggleOptionComponent } from '../../components/button-toggle-group/button-toggle-option.component';
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
@@ -57,15 +60,18 @@ interface ApiPaginatorVM {
   imports: [
     AsyncPipe,
     ApiCardComponent,
+    BadgeComponent,
+    ButtonToggleGroupComponent,
+    ButtonToggleOptionComponent,
     LoaderComponent,
     SearchBarComponent,
     PaginationComponent,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTooltipModule,
     MatChipsModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatSelectModule,
+    MatTableModule,
+    MatTooltipModule,
   ],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss',
@@ -76,8 +82,8 @@ export class CatalogComponent {
   pageSize = 20;
   pageSizeOptions = [8, 20, 40, 80];
   viewMode = signal<'grid' | 'list'>('grid');
-  protected readonly query: Signal<string>;
 
+  private readonly apiService = inject(ApiService);
   private readonly breakpointService = inject(ObservabilityBreakpointService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -85,9 +91,10 @@ export class CatalogComponent {
   protected readonly isNarrow = this.breakpointService.isNarrow;
 
   private readonly page$ = new BehaviorSubject<number>(1);
+  protected readonly query = toSignal(this.route.queryParams.pipe(map(p => p['query'] ?? '')), { initialValue: '' });
+  protected readonly tableColumns = computed(() => (this.isMobile() ? ['name', 'version', 'mcp'] : ['name', 'labels', 'version', 'mcp']));
 
-  constructor(private readonly apiService: ApiService) {
-    this.query = toSignal(this.route.queryParams.pipe(map(p => p['query'] ?? '')), { initialValue: '' });
+  constructor() {
     effect(() => {
       if (this.query() || this.query() === '') {
         this.page$.next(1);

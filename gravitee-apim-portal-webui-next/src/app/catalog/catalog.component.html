@@ -17,26 +17,12 @@
 -->
 <div class="content">
   <div class="api-list__header" [class.api-list__header--mobile]="isMobile()">
-    <div class="m3-headline-medium">Catalog</div>
+    <div class="next-gen-h1" i18n="@@catalogTitle">Catalog</div>
     <div class="api-list__header__controls">
-      <div class="api-list__view-toggle">
-        <button
-          class="api-list__view-toggle__button"
-          [class.api-list__view-toggle__button--active]="viewMode() === 'grid'"
-          (click)="viewMode.set('grid')"
-          aria-label="Grid view">
-          <mat-icon>grid_view</mat-icon>
-          <span>Cards</span>
-        </button>
-        <button
-          class="api-list__view-toggle__button"
-          [class.api-list__view-toggle__button--active]="viewMode() === 'list'"
-          (click)="viewMode.set('list')"
-          aria-label="List view">
-          <mat-icon>view_list</mat-icon>
-          <span>List</span>
-        </button>
-      </div>
+      <app-button-toggle-group [(value)]="viewMode">
+        <app-button-toggle-option value="grid" icon="grid_view" i18n-label label="Cards" />
+        <app-button-toggle-option value="list" icon="view_list" i18n-label label="List" />
+      </app-button-toggle-group>
       <app-search-bar (searchTerm)="onSearchResults($event)" [searchParam]="query()" />
     </div>
   </div>
@@ -46,55 +32,64 @@
       @if (viewMode() === 'grid') {
         <div class="api-list__container"
           [class.api-list__container--narrow]="isNarrow() && !isMobile()"
-          [class.api-list__container--mobile]="isMobile()"
-          [class.api-list__container--list]="viewMode() === 'list'">
+          [class.api-list__container--mobile]="isMobile()">
           @for (api of apis.data; track api.id) {
             <app-api-card
+              [apiId]="api.id"
               [title]="api.title"
               [version]="api.version"
               [content]="api.content"
               [picture]="api.picture"
               [isEnabledMcpServer]="api.isEnabledMcpServer"
-              (select)="navigateToApi(api.id)" />
+              (select)="navigateToApi($event)" />
           }
         </div>
       } @else {
-        <div class="api-list__table">
-          <div class="api-list__table-header" [class.api-list__table-header--mobile]="isMobile()">
-            <div class="api-list__table-header__cell api-list__table-header__cell--name" i18n="@@tableHeaderApiName">API Name</div>
-            @if (!isMobile()) {
-              <div class="api-list__table-header__cell api-list__table-header__cell--labels" i18n="@@tableHeaderLabels">Labels</div>
-            }
-            <div class="api-list__table-header__cell api-list__table-header__cell--version" i18n="@@tableHeaderVersion">Version</div>
-            <div class="api-list__table-header__cell api-list__table-header__cell--mcp"></div>
-          </div>
-          @for (api of apis.data; track api.id) {
-            <div class="api-list__table-row" [class.api-list__table-row--mobile]="isMobile()" (click)="navigateToApi(api.id)">
-              <div class="api-list__table-row__cell api-list__table-row__cell--name">
-                <span class="api-list__table-row__name-text">{{ api.title }}</span>
+        <div class="api-list__table-container">
+          <table mat-table [dataSource]="apis.data" class="api-list__table">
+
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef i18n="@@tableHeaderApiName">API Name</th>
+              <td mat-cell *matCellDef="let api">
+                <span class="api-list__table__name-text">{{ api.title }}</span>
                 @if (api.content) {
-                  <button class="api-list__table-row__info-button" [matTooltip]="api.content">
-                    <span class="api-list__table-row__info-button__text">i</span>
+                  <button class="api-list__table__info-button" [matTooltip]="api.content">
+                    <span class="api-list__table__info-button__text next-gen-caption">i</span>
                   </button>
                 }
-              </div>
-              @if (!isMobile()) {
-                <div class="api-list__table-row__cell api-list__table-row__cell--labels">
-                  @if (api.labels) {
-                    @for (label of api.labels; track label) {
-                      <mat-chip class="label-chip"># {{ label }}</mat-chip>
-                    }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="labels">
+              <th mat-header-cell *matHeaderCellDef i18n="@@tableHeaderLabels">Labels</th>
+              <td mat-cell *matCellDef="let api">
+                @if (api.labels) {
+                  @for (label of api.labels; track label) {
+                    <mat-chip class="label-chip"># {{ label }}</mat-chip>
                   }
-                </div>
-              }
-              <div class="api-list__table-row__cell api-list__table-row__cell--version">{{ api.version }}</div>
-              <div class="api-list__table-row__cell api-list__table-row__cell--mcp">
-                @if (api.isEnabledMcpServer) {
-                  <span class="mcp-chip__avatar" i18n="@@apiCardMcpEnabled" matTooltip="MCP available for this API"> MCP </span>
                 }
-              </div>
-            </div>
-          }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="version">
+              <th mat-header-cell *matHeaderCellDef i18n="@@tableHeaderVersion">Version</th>
+              <td mat-cell *matCellDef="let api">{{ api.version }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="mcp">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let api" class="api-list__table__mcp-cell">
+                @if (api.isEnabledMcpServer) {
+                  <app-badge i18n-label label="MCP" i18n-matTooltip matTooltip="MCP available for this API" />
+                }
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="tableColumns()"></tr>
+            <tr mat-row class="api-list__table__row"
+                *matRowDef="let row; columns: tableColumns()"
+                (click)="navigateToApi(row.id)"></tr>
+          </table>
         </div>
       }
         <div class="api-list__pagination" [class.api-list__pagination--mobile]="isMobile()">
