@@ -23,10 +23,10 @@ export interface BrokerDetail {
   id: number;
   host: string;
   port: number;
-  rack: string | null;
+  rack?: string;
   leaderPartitions: number;
   replicaPartitions: number;
-  logDirSize: number | null;
+  logDirSize?: number;
 }
 
 export interface DescribeClusterResponse {
@@ -35,4 +35,27 @@ export interface DescribeClusterResponse {
   nodes: BrokerDetail[];
   totalTopics: number;
   totalPartitions: number;
+}
+
+export interface KafkaTopic {
+  name: string;
+  partitionCount: number;
+  replicationFactor: number;
+  underReplicatedCount: number;
+  internal: boolean;
+  size?: number;
+  messageCount?: number;
+}
+
+export interface Pagination {
+  page: number;
+  perPage: number;
+  pageCount: number;
+  pageItemsCount: number;
+  totalCount: number;
+}
+
+export interface ListTopicsResponse {
+  data: KafkaTopic[];
+  pagination: Pagination;
 }

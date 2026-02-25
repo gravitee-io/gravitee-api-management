@@ -22,7 +22,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { KafkaExplorerComponent } from './kafka-explorer.component';
 import { KafkaExplorerHarness } from './kafka-explorer.harness';
-import { fakeDescribeClusterResponse } from '../models/kafka-cluster.fixture';
+import { fakeDescribeClusterResponse, fakeListTopicsResponse } from '../models/kafka-cluster.fixture';
 
 @Component({
   standalone: true,
@@ -55,17 +55,31 @@ describe('KafkaExplorerComponent', () => {
     httpTesting.verify();
   });
 
+  function flushClusterAndTopics() {
+    httpTesting.expectOne('/api/v2/kafka-explorer/describe-cluster').flush(fakeDescribeClusterResponse());
+    fixture.detectChanges();
+    httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/list-topics').flush(fakeListTopicsResponse());
+  }
+
   it('should show loader while loading', async () => {
     expect(await harness.isLoading()).toBe(true);
 
-    httpTesting.expectOne('/api/v2/kafka-explorer/describe-cluster').flush(fakeDescribeClusterResponse());
+    flushClusterAndTopics();
   });
 
   it('should display cluster info after successful response', async () => {
-    const req = httpTesting.expectOne('/api/v2/kafka-explorer/describe-cluster');
-    expect(req.request.body).toEqual({ clusterId: 'test-cluster-id' });
+    const clusterReq = httpTesting.expectOne('/api/v2/kafka-explorer/describe-cluster');
+    expect(clusterReq.request.body).toEqual({ clusterId: 'test-cluster-id' });
+    clusterReq.flush(fakeDescribeClusterResponse());
 
-    req.flush(fakeDescribeClusterResponse());
+    fixture.detectChanges();
+
+    const topicsReq = httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/list-topics');
+    expect(topicsReq.request.body).toEqual({ clusterId: 'test-cluster-id' });
+    expect(topicsReq.request.params.get('page')).toBe('1');
+    expect(topicsReq.request.params.get('perPage')).toBe('10');
+    topicsReq.flush(fakeListTopicsResponse());
+
     fixture.detectChanges();
 
     const topbarText = await harness.getTopbarText();
@@ -76,7 +90,7 @@ describe('KafkaExplorerComponent', () => {
   });
 
   it('should render broker nodes table via BrokersHarness', async () => {
-    httpTesting.expectOne('/api/v2/kafka-explorer/describe-cluster').flush(fakeDescribeClusterResponse());
+    flushClusterAndTopics();
     fixture.detectChanges();
 
     const brokersHarness = await harness.getBrokersHarness();
@@ -87,6 +101,18 @@ describe('KafkaExplorerComponent', () => {
     expect(rows[0]['host']).toBe('kafka-broker-0.example.com');
     expect(rows[0]['port']).toBe('9092');
     expect(rows[0]['id']).toContain('0');
+  });
+
+  it('should render topics table via TopicsHarness', async () => {
+    flushClusterAndTopics();
+    fixture.detectChanges();
+
+    const topicsHarness = await harness.getTopicsHarness();
+    expect(topicsHarness).toBeTruthy();
+
+    const rows = await topicsHarness!.getRowsData();
+    expect(rows.length).toBe(3);
+    expect(rows[0]['name']).toBe('my-topic');
   });
 
   it('should show error on failure', async () => {

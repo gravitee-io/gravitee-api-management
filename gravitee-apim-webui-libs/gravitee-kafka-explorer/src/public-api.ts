@@ -24,3 +24,6 @@ export * from './lib/kafka-explorer/kafka-explorer.harness';
 export * from './lib/services/kafka-explorer.service';
 export * from './lib/brokers/brokers.component';
 export * from './lib/brokers/brokers.harness';
+export * from './lib/topics/topics.component';
+export * from './lib/topics/topics.harness';
+export * from './lib/pipes/file-size.pipe';
