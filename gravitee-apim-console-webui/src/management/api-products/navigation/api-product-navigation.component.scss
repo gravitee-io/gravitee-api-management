@@ -48,7 +48,7 @@ $textColor: map.get(gio.$mat-dove-palette, default);
       &__name {
         @include mat.m2-typography-level($typography, subtitle-1);
         margin: 0;
-        padding: 16px 20px;
+        padding: 1rem 1.25rem;
       }
     }
 
@@ -58,7 +58,7 @@ $textColor: map.get(gio.$mat-dove-palette, default);
       align-items: center;
 
       &__icon {
-        margin-right: 8px;
+        margin-right: 0.5rem;
         color: $textColor;
         width: 1.25rem;
         height: 1.25rem;
@@ -67,7 +67,7 @@ $textColor: map.get(gio.$mat-dove-palette, default);
   }
 
   &__breadcrumb {
-    padding: 16px 32px 0 32px;
+    padding: 1rem 2rem 0 2rem;
 
     &__item {
       display: contents;
@@ -85,7 +85,19 @@ $textColor: map.get(gio.$mat-dove-palette, default);
       flex-direction: column;
       flex: 1 1 auto;
       height: 100%;
-      margin: 12px 24px 0 24px;
+      margin: 0.75rem 1.5rem 0 1.5rem;
+
+      &__section-header {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        margin-bottom: 1.5rem;
+
+        &__subtitle {
+          color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+          @include mat.m2-typography-level($typography, 'body-2');
+        }
+      }
     }
   }
 }
