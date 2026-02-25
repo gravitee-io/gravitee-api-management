@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { Component, computed, DestroyRef, inject, Input, OnInit, Signal, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, input, Input, OnInit, Signal, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
-import { MatCard, MatCardActions, MatCardContent, MatCardHeader } from '@angular/material/card';
+import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -27,6 +27,7 @@ import { of } from 'rxjs/internal/observable/of';
 
 import { GMD_FORM_STATE_STORE, provideGmdFormStore } from '@gravitee/gravitee-markdown';
 
+import { SubscribeToApiStepHeaderComponent } from './components/subscribe-to-api-step-header/subscribe-to-api-step-header.component';
 import {
   TermsAndConditionsDialogComponent,
   TermsAndConditionsDialogData,
@@ -34,6 +35,7 @@ import {
 import { SubscribeToApiCheckoutComponent } from './subscribe-to-api-checkout/subscribe-to-api-checkout.component';
 import {
   ApplicationsPagination,
+  DEFAULT_APPLICATIONS_PAGE_SIZE,
   SubscribeToApiChooseApplicationComponent,
 } from './subscribe-to-api-choose-application/subscribe-to-api-choose-application.component';
 import { SubscribeToApiChoosePlanComponent } from './subscribe-to-api-choose-plan/subscribe-to-api-choose-plan.component';
@@ -53,6 +55,13 @@ import { PageService } from '../../../services/page.service';
 import { PlanService } from '../../../services/plan.service';
 import { PortalService } from '../../../services/portal.service';
 import { SubscriptionService } from '../../../services/subscription.service';
+
+export enum SubscribeStep {
+  PLAN_SELECTION = 'PLAN_SELECTION',
+  APP_SELECTION = 'APP_SELECTION',
+  PUSH_DETAILS = 'PUSH_DETAILS',
+  REVIEW = 'REVIEW',
+}
 
 export interface ApplicationVM extends Application {
   disabled?: boolean;
@@ -76,8 +85,8 @@ interface CheckoutData {
     SubscribeToApiCheckoutComponent,
     SubscribeToApiChoosePlanComponent,
     SubscribeToApiChooseApplicationComponent,
+    SubscribeToApiStepHeaderComponent,
     MatCardActions,
-    MatCardHeader,
     MatCardContent,
     MatButton,
     LoaderComponent,
@@ -102,12 +111,32 @@ export class SubscribeToApiComponent implements OnInit {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly matDialog = inject(MatDialog);
   private readonly currentApplicationsPage = new BehaviorSubject(1);
+  private readonly currentApplicationsPageSize = new BehaviorSubject(DEFAULT_APPLICATIONS_PAGE_SIZE);
 
   @Input() api!: Api;
+  cancelFn = input<() => void>();
 
-  currentStep = signal(1);
+  readonly SubscribeStep = SubscribeStep;
+
+  currentStep = signal<SubscribeStep>(SubscribeStep.PLAN_SELECTION);
   currentPlan = signal<Plan | undefined>(undefined);
   currentApplication = signal<Application | undefined>(undefined);
+
+  activeSteps = computed<SubscribeStep[]>(() => {
+    const plan = this.currentPlan();
+    const steps: SubscribeStep[] = [SubscribeStep.PLAN_SELECTION];
+
+    if (plan?.security !== 'KEY_LESS') {
+      steps.push(SubscribeStep.APP_SELECTION);
+      if (plan?.mode === 'PUSH') {
+        steps.push(SubscribeStep.PUSH_DETAILS);
+      }
+    }
+
+    steps.push(SubscribeStep.REVIEW);
+    return steps;
+  });
+
   message = signal<string>('');
   applicationApiKeyMode = signal<'EXCLUSIVE' | 'SHARED' | 'UNSPECIFIED' | null>(null);
   subscriptionInProgress = signal<boolean>(false);
@@ -135,20 +164,23 @@ export class SubscribeToApiComponent implements OnInit {
   });
   formIsValid = this.store.formValid;
   stepIsInvalid: Signal<boolean> = computed(() => {
-    if (this.currentStep() === 1) {
-      return this.currentPlan() === undefined;
-    } else if (this.currentStep() === 2) {
-      return this.currentApplication() === undefined;
-    } else if (this.currentStep() === 3) {
-      return !this.consumerConfigurationFormData().isValid;
-    } else if (this.currentStep() === 4) {
-      if (this.showApiKeyModeSelection() && !this.applicationApiKeyMode()) {
-        return true;
+    switch (this.currentStep()) {
+      case SubscribeStep.PLAN_SELECTION:
+        return this.currentPlan() === undefined;
+      case SubscribeStep.APP_SELECTION:
+        return this.currentApplication() === undefined;
+      case SubscribeStep.PUSH_DETAILS:
+        return !this.consumerConfigurationFormData().isValid;
+      case SubscribeStep.REVIEW: {
+        if (this.showApiKeyModeSelection() && !this.applicationApiKeyMode()) {
+          return true;
+        }
+        const showSubscriptionForm = this.subscriptionForm()?.gmdContent && this.currentPlan()?.security !== 'KEY_LESS';
+        return showSubscriptionForm ? !this.formIsValid() : false;
       }
-      const showSubscriptionForm = this.subscriptionForm()?.gmdContent && this.currentPlan()?.security !== 'KEY_LESS';
-      return showSubscriptionForm ? !this.formIsValid() : false;
+      default:
+        return false;
     }
-    return false;
   });
 
   ngOnInit(): void {
@@ -158,9 +190,11 @@ export class SubscribeToApiComponent implements OnInit {
     );
 
     this.applicationsData$ = this.subscriptionService.list({ apiIds: [this.api.id], statuses: ['PENDING', 'ACCEPTED'], size: -1 }).pipe(
-      combineLatestWith(this.currentApplicationsPage),
-      switchMap(([subscriptions, page]) => this.getApplicationsData$(page, subscriptions)),
-      catchError(_ => of({ applications: [], pagination: { currentPage: 0, totalApplications: 0, start: 0, end: 0 } })),
+      combineLatestWith(this.currentApplicationsPage, this.currentApplicationsPageSize),
+      switchMap(([subscriptions, page, pageSize]) => this.getApplicationsData$(page, pageSize, subscriptions)),
+      catchError(_ =>
+        of({ applications: [], pagination: { currentPage: 0, totalApplications: 0, pageSize: DEFAULT_APPLICATIONS_PAGE_SIZE } }),
+      ),
     );
 
     this.checkoutData$ = this.handleCheckoutData$(this.api).pipe(
@@ -178,34 +212,33 @@ export class SubscribeToApiComponent implements OnInit {
     this.consumerConfigurationFormData.set(data);
   }
 
+  stepNumberOf(step: SubscribeStep): number {
+    return this.activeSteps().indexOf(step) + 1;
+  }
+
   goToNextStep(): void {
-    if (this.currentPlan()?.mode !== 'PUSH' && this.currentStep() === 2) {
-      this.currentStep.set(4);
-    } else if (this.currentPlan()?.security === 'KEY_LESS' && this.currentStep() === 1) {
-      this.currentStep.set(4);
-    } else if (this.currentStep() < 4) {
-      this.currentStep.update(currentStep => currentStep + 1);
+    const steps = this.activeSteps();
+    const currentIndex = steps.indexOf(this.currentStep());
+    if (currentIndex < steps.length - 1) {
+      this.currentStep.set(steps[currentIndex + 1]);
     }
   }
 
   goToPreviousStep(): void {
-    if (this.currentPlan()?.mode !== 'PUSH' && this.currentPlan()?.security !== 'KEY_LESS' && this.currentStep() === 4) {
-      this.currentStep.set(2);
-    } else if (this.currentPlan()?.security === 'KEY_LESS' && this.currentStep() === 4) {
-      this.currentStep.set(1);
-    } else if (this.currentStep() > 1) {
-      this.currentStep.update(currentStep => currentStep - 1);
+    const steps = this.activeSteps();
+    const currentIndex = steps.indexOf(this.currentStep());
+    if (currentIndex > 0) {
+      this.currentStep.set(steps[currentIndex - 1]);
     }
   }
 
-  onNextApplicationPage() {
-    this.currentApplicationsPage.next(this.currentApplicationsPage.getValue() + 1);
+  onApplicationPageChange(page: number) {
+    this.currentApplicationsPage.next(page);
   }
 
-  onPreviousApplicationPage() {
-    if (this.currentApplicationsPage.getValue() > 1) {
-      this.currentApplicationsPage.next(this.currentApplicationsPage.getValue() - 1);
-    }
+  onApplicationPageSizeChange(pageSize: number) {
+    this.currentApplicationsPageSize.next(pageSize);
+    this.currentApplicationsPage.next(1);
   }
 
   subscribe() {
@@ -268,15 +301,14 @@ export class SubscribeToApiComponent implements OnInit {
     return consumerConfiguration;
   }
 
-  private getApplicationsData$(page: number, subscriptionsResponse: SubscriptionsResponse): Observable<ApplicationsData> {
-    return this.applicationService.list(page, 9, true).pipe(
+  private getApplicationsData$(page: number, pageSize: number, subscriptionsResponse: SubscriptionsResponse): Observable<ApplicationsData> {
+    return this.applicationService.list(page, pageSize, true).pipe(
       map(response => ({
         applications: this.addApplicationDisabledState(response, subscriptionsResponse),
         pagination: {
           currentPage: response.metadata?.pagination?.current_page ?? 0,
           totalApplications: response.metadata?.pagination?.total ?? 0,
-          start: response.metadata?.pagination?.first ?? 0,
-          end: response.metadata?.pagination?.last ?? 0,
+          pageSize,
         },
       })),
       tap(({ applications }) => {
@@ -326,7 +358,7 @@ export class SubscribeToApiComponent implements OnInit {
 
     return applicationsResponse.data.map(application => {
       if (this.applicationHasExistingValidSubscriptionsForPlan(application, subscriptions.data)) {
-        return { ...application, disabled: true, disabledMessage: 'A pending or accepted subscription already exists for this plan' };
+        return { ...application, disabled: true, disabledMessage: 'A subscription already exists for this plan' };
       }
       if (this.applicationInSharedKeyModeHasExistingValidApiKeySubscriptionsForApi(application, subscriptions)) {
         return {

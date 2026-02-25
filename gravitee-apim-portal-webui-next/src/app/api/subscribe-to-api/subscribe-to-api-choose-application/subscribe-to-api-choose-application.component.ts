@@ -14,23 +14,26 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { MatIconButton } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
 
+import { PaginationComponent } from '../../../../components/pagination/pagination.component';
 import { RadioCardComponent } from '../../../../components/radio-card/radio-card.component';
+import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
+import { NarrowClassDirective } from '../../../../directives/narrow-class.directive';
 import { Application } from '../../../../entities/application/application';
 import { ApplicationVM } from '../subscribe-to-api.component';
+
+export const APPLICATIONS_PAGE_SIZE_OPTIONS: number[] = [6, 12, 24, 48, 96];
+export const DEFAULT_APPLICATIONS_PAGE_SIZE = 6;
 
 export interface ApplicationsPagination {
   currentPage: number;
   totalApplications: number;
-  start: number;
-  end: number;
+  pageSize: number;
 }
 
 @Component({
   selector: 'app-subscribe-to-api-choose-application',
-  imports: [RadioCardComponent, MatIcon, MatIconButton],
+  imports: [RadioCardComponent, PaginationComponent, MobileClassDirective, NarrowClassDirective],
   templateUrl: './subscribe-to-api-choose-application.component.html',
   styleUrl: './subscribe-to-api-choose-application.component.scss',
 })
@@ -42,14 +45,16 @@ export class SubscribeToApiChooseApplicationComponent {
   selectedApplication?: Application;
 
   @Input()
-  pagination: ApplicationsPagination = { currentPage: 0, totalApplications: 0, start: 0, end: 0 };
+  pagination: ApplicationsPagination = { currentPage: 0, totalApplications: 0, pageSize: DEFAULT_APPLICATIONS_PAGE_SIZE };
 
   @Output()
   selectApplication = new EventEmitter<ApplicationVM>();
 
   @Output()
-  previousPage = new EventEmitter();
+  pageChange = new EventEmitter<number>();
 
   @Output()
-  nextPage = new EventEmitter();
+  pageSizeChange = new EventEmitter<number>();
+
+  protected readonly pageSizeOptions = APPLICATIONS_PAGE_SIZE_OPTIONS;
 }

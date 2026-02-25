@@ -16,10 +16,14 @@
 
 -->
 <div class="content">
-  <a [routerLink]="['/documentation', navId()]" [queryParams]="{ pageId: pageId() }" class="documentation-subscribe__back-link">
-    <span class="material-icons">arrow_back</span>
-    <span i18n="@@documentationSubscribeBack">Back to Documentation</span>
+  <a
+    [routerLink]="['/documentation', navId()]"
+    [queryParams]="{ pageId: pageId() }"
+    class="documentation-subscribe__back-link internal-link"
+  >
+    <mat-icon>arrow_backward</mat-icon>
+    <span i18n="@@documentationSubscribeBack">Back to API</span>
   </a>
-  <div class="next-gen-h3"><span i18n="@@documentationSubscribeCTA">Subscribe to an API:</span> {{ api().name }}</div>
-  <app-subscribe-to-api [api]="api()" />
+  <div class="next-gen-h3"><span i18n="@@documentationSubscribeCTA">Subscribe to the API:</span> {{ api().name }}</div>
+  <app-subscribe-to-api [api]="api()" [cancelFn]="cancel" />
 </div>
