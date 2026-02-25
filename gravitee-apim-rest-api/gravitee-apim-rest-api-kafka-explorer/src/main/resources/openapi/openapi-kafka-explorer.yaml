@@ -96,6 +96,40 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/KafkaExplorerError"
 
+    /kafka-explorer/describe-topic:
+        post:
+            tags:
+                - Kafka Explorer
+            summary: Describe a Kafka topic
+            description: |
+                Connects to a Kafka cluster and returns detailed information about a specific topic including partitions and configuration.
+            operationId: describeTopic
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DescribeTopicRequest"
+            responses:
+                "200":
+                    description: Topic detail
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DescribeTopicResponse"
+                "400":
+                    description: Invalid parameters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+                "502":
+                    description: Connection failure
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+
 components:
     schemas:
         DescribeClusterRequest:
@@ -231,6 +265,70 @@ components:
                     type: integer
                     format: int64
                     description: Total number of messages (sum of latest offsets), or null if unavailable
+
+        DescribeTopicRequest:
+            type: object
+            required:
+                - clusterId
+                - topicName
+            properties:
+                clusterId:
+                    type: string
+                    description: ID of the Cluster to connect to
+                topicName:
+                    type: string
+                    description: Name of the topic to describe
+
+        DescribeTopicResponse:
+            type: object
+            properties:
+                name:
+                    type: string
+                internal:
+                    type: boolean
+                partitions:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/TopicPartition"
+                configs:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/TopicConfig"
+
+        TopicPartition:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+                leader:
+                    $ref: "#/components/schemas/KafkaNode"
+                replicas:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/KafkaNode"
+                isr:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/KafkaNode"
+                offline:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/KafkaNode"
+
+        TopicConfig:
+            type: object
+            properties:
+                name:
+                    type: string
+                value:
+                    type: string
+                source:
+                    type: string
+                readOnly:
+                    type: boolean
+                sensitive:
+                    type: boolean
 
         KafkaExplorerError:
             type: object

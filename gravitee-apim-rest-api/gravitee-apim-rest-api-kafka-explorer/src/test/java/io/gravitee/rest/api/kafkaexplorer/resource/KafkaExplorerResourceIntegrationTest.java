@@ -21,10 +21,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.ClusterCrudServiceInMemory;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeKafkaClusterUseCase;
+import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeTopicUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.ListTopicsUseCase;
 import io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service.KafkaClusterDomainServiceImpl;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterResponse;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeTopicRequest;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeTopicResponse;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaExplorerError;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.ListTopicsRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.ListTopicsResponse;
@@ -91,8 +94,10 @@ class KafkaExplorerResourceIntegrationTest {
         var objectMapper = new ObjectMapper();
         var describeUseCase = new DescribeKafkaClusterUseCase(clusterCrudService, clusterService, objectMapper);
         var listTopicsUseCase = new ListTopicsUseCase(clusterCrudService, clusterService, objectMapper);
+        var describeTopicUseCase = new DescribeTopicUseCase(clusterCrudService, clusterService, objectMapper);
         injectField(resource, "describeKafkaClusterUseCase", describeUseCase);
         injectField(resource, "listTopicsUseCase", listTopicsUseCase);
+        injectField(resource, "describeTopicUseCase", describeTopicUseCase);
     }
 
     @BeforeEach
@@ -427,6 +432,68 @@ class KafkaExplorerResourceIntegrationTest {
             var request = new ListTopicsRequest().clusterId(CLUSTER_ID);
 
             var response = resource.listTopics(request, 1, 10);
+
+            assertThat(response.getStatus()).isEqualTo(502);
+            var error = (KafkaExplorerError) response.getEntity();
+            assertThat(error.getTechnicalCode()).isEqualTo("CONNECTION_FAILED");
+        }
+    }
+
+    @Nested
+    class DescribeTopic {
+
+        private static final String DESCRIBE_TOPIC = "describe-topic-test";
+
+        @BeforeAll
+        static void createTestTopic() throws Exception {
+            var props = new Properties();
+            props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, plaintextBootstrapServers());
+            try (var admin = AdminClient.create(props)) {
+                admin.createTopics(List.of(new NewTopic(DESCRIBE_TOPIC, 2, (short) 1))).all().get(10, TimeUnit.SECONDS);
+            }
+        }
+
+        @Test
+        void should_return_200_with_topic_detail() {
+            givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+
+            var request = new DescribeTopicRequest().clusterId(CLUSTER_ID).topicName(DESCRIBE_TOPIC);
+
+            var response = resource.describeTopic(request);
+
+            assertThat(response.getStatus()).isEqualTo(200);
+            var body = (DescribeTopicResponse) response.getEntity();
+            assertThat(body.getName()).isEqualTo(DESCRIBE_TOPIC);
+            assertThat(body.getInternal()).isFalse();
+            assertThat(body.getPartitions()).hasSize(2);
+            assertThat(body.getPartitions().get(0).getId()).isGreaterThanOrEqualTo(0);
+            assertThat(body.getPartitions().get(0).getLeader()).isNotNull();
+            assertThat(body.getPartitions().get(0).getReplicas()).isNotEmpty();
+            assertThat(body.getPartitions().get(0).getIsr()).isNotEmpty();
+            assertThat(body.getConfigs()).isNotEmpty();
+            assertThat(body.getConfigs()).anyMatch(c -> c.getName() != null && !c.getName().isBlank());
+        }
+
+        @Test
+        void should_return_400_when_topic_name_missing() {
+            givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+
+            var request = new DescribeTopicRequest().clusterId(CLUSTER_ID);
+
+            var response = resource.describeTopic(request);
+
+            assertThat(response.getStatus()).isEqualTo(400);
+            var error = (KafkaExplorerError) response.getEntity();
+            assertThat(error.getTechnicalCode()).isEqualTo("INVALID_PARAMETERS");
+        }
+
+        @Test
+        void should_return_502_when_broker_unreachable() {
+            givenClusterWithConfig(Map.of("bootstrapServers", "localhost:19092", "security", Map.of("protocol", "PLAINTEXT")));
+
+            var request = new DescribeTopicRequest().clusterId(CLUSTER_ID).topicName(DESCRIBE_TOPIC);
+
+            var response = resource.describeTopic(request);
 
             assertThat(response.getStatus()).isEqualTo(502);
             var error = (KafkaExplorerError) response.getEntity();
