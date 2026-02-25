@@ -222,7 +222,7 @@ export class FlatTreeComponent {
       }
     }
 
-    if (nodeToMove.type === 'FOLDER') {
+    if (nodeToMove.type === 'FOLDER' || nodeToMove.type === 'API') {
       this.treeBase()?.expandAll();
     }
 
@@ -278,7 +278,7 @@ export class FlatTreeComponent {
         label: link.title,
         type,
         data: link,
-        children: type === 'FOLDER' ? [] : undefined,
+        children: type === 'FOLDER' || type === 'API' ? [] : undefined,
         __order: link.order ?? 0,
         __parentId: link.parentId ?? null,
       } as ProcessingNode);

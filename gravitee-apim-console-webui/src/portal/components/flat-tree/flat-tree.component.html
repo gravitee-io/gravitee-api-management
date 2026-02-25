@@ -125,16 +125,20 @@
     }
 
     <mat-menu #moreMenu="matMenu">
-      @if (node.type === 'FOLDER') {
+      @if (node.type === 'FOLDER' || node.type === 'API') {
         @if (canCreate) {
           <button mat-menu-item (click)="onCreate(node, 'PAGE')">
             <mat-icon [svgIcon]="'PAGE' | portalNavigationItemIcon"></mat-icon>
             Add Page
           </button>
-          <button mat-menu-item (click)="onCreate(node, 'API')">
-            <mat-icon [svgIcon]="'API' | portalNavigationItemIcon"></mat-icon>
-            Add API
-          </button>
+
+          @if (node.type != 'API') {
+            <button mat-menu-item (click)="onCreate(node, 'API')">
+              <mat-icon [svgIcon]="'API' | portalNavigationItemIcon"></mat-icon>
+              Add API
+            </button>
+          }
+
           <button mat-menu-item (click)="onCreate(node, 'FOLDER')">
             <mat-icon [svgIcon]="'FOLDER' | portalNavigationItemIcon"></mat-icon>
             Add Folder
@@ -154,18 +158,16 @@
           Edit
         </button>
 
-        @if (node.type !== 'API') {
-          @if (isUnpublished(node)) {
-            <button mat-menu-item (click)="onPublish(node)" data-testid="publish-node-button">
-              <mat-icon svgIcon="gio:eye-empty"></mat-icon>
-              Publish
-            </button>
-          } @else {
-            <button mat-menu-item (click)="onUnpublish(node)" data-testid="unpublish-node-button">
-              <mat-icon svgIcon="gio:eye-off"></mat-icon>
-              Unpublish
-            </button>
-          }
+        @if (isUnpublished(node)) {
+          <button mat-menu-item (click)="onPublish(node)" data-testid="publish-node-button">
+            <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+            Publish
+          </button>
+        } @else {
+          <button mat-menu-item (click)="onUnpublish(node)" data-testid="unpublish-node-button">
+            <mat-icon svgIcon="gio:eye-off"></mat-icon>
+            Unpublish
+          </button>
         }
       }
 
