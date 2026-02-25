@@ -22,9 +22,6 @@ import { map, shareReplay } from 'rxjs/operators';
 export class ObservabilityBreakpointService {
   private readonly breakpointObserver = inject(BreakpointObserver);
 
-  // Using Breakpoints.XSmall for true mobile devices (max-width: 599.98px)
-  // This ensures only smartphones and very small tablets are considered mobile
-  // Laptops and larger screens will use desktop navigation
   readonly isMobile$ = this.breakpointObserver.observe([Breakpoints.XSmall]).pipe(
     map(state => state.matches),
     shareReplay({ refCount: true, bufferSize: 1 }),

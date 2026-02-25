@@ -152,7 +152,6 @@ export const routes: Routes = [
   {
     path: 'catalog',
     canActivateChild: [redirectGuard, authGuard],
-    data: { breadcrumb: { skip: true } },
     children: [
       {
         path: '',
