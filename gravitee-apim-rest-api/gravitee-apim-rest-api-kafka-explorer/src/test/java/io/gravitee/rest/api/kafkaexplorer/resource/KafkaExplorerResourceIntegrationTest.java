@@ -21,10 +21,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.ClusterCrudServiceInMemory;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeKafkaClusterUseCase;
+import io.gravitee.rest.api.kafkaexplorer.domain.use_case.ListTopicsUseCase;
 import io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service.KafkaClusterDomainServiceImpl;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterResponse;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaExplorerError;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.ListTopicsRequest;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.ListTopicsResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.File;
 import java.io.IOException;
@@ -77,7 +80,9 @@ class KafkaExplorerResourceIntegrationTest {
         var clusterService = new KafkaClusterDomainServiceImpl();
         var objectMapper = new ObjectMapper();
         var describeUseCase = new DescribeKafkaClusterUseCase(clusterCrudService, clusterService, objectMapper);
+        var listTopicsUseCase = new ListTopicsUseCase(clusterCrudService, clusterService, objectMapper);
         injectField(resource, "describeKafkaClusterUseCase", describeUseCase);
+        injectField(resource, "listTopicsUseCase", listTopicsUseCase);
     }
 
     @BeforeEach
@@ -313,6 +318,88 @@ class KafkaExplorerResourceIntegrationTest {
             var response = resource.describeCluster(request);
 
             assertThat(response.getStatus()).isEqualTo(400);
+        }
+    }
+
+    @Nested
+    class ListTopics {
+
+        @Test
+        void should_return_200_with_topics() {
+            givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+
+            var request = new ListTopicsRequest().clusterId(CLUSTER_ID);
+
+            var response = resource.listTopics(request, 1, 10);
+
+            assertThat(response.getStatus()).isEqualTo(200);
+            var body = (ListTopicsResponse) response.getEntity();
+            assertThat(body.getData()).isNotNull();
+            assertThat(body.getData()).isNotEmpty();
+            assertThat(body.getData()).anyMatch(t -> t.getInternal() != null && t.getInternal());
+            assertThat(body.getPagination()).isNotNull();
+            assertThat(body.getPagination().getTotalCount()).isGreaterThan(0);
+            assertThat(body.getPagination().getPage()).isEqualTo(1);
+            assertThat(body.getPagination().getPerPage()).isEqualTo(10);
+            assertThat(body.getPagination().getPageItemsCount()).isEqualTo(body.getData().size());
+            assertThat(body.getPagination().getPageCount()).isGreaterThanOrEqualTo(1);
+        }
+
+        @Test
+        void should_return_topics_with_size_and_message_count() {
+            givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+
+            var request = new ListTopicsRequest().clusterId(CLUSTER_ID);
+
+            var response = resource.listTopics(request, 1, 10);
+
+            assertThat(response.getStatus()).isEqualTo(200);
+            var body = (ListTopicsResponse) response.getEntity();
+            assertThat(body.getData()).isNotEmpty();
+            // Internal topics should have non-null size and messageCount
+            var internalTopic = body
+                .getData()
+                .stream()
+                .filter(t -> Boolean.TRUE.equals(t.getInternal()))
+                .findFirst();
+            assertThat(internalTopic).isPresent();
+            assertThat(internalTopic.get().getSize()).isNotNull();
+            assertThat(internalTopic.get().getMessageCount()).isNotNull();
+        }
+
+        @Test
+        void should_return_400_when_request_is_null() {
+            var response = resource.listTopics(null, 1, 10);
+
+            assertThat(response.getStatus()).isEqualTo(400);
+            var error = (KafkaExplorerError) response.getEntity();
+            assertThat(error.getTechnicalCode()).isEqualTo("INVALID_PARAMETERS");
+        }
+
+        @Test
+        void should_return_400_when_page_is_less_than_1() {
+            givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+
+            var request = new ListTopicsRequest().clusterId(CLUSTER_ID);
+
+            var response = resource.listTopics(request, 0, 10);
+
+            assertThat(response.getStatus()).isEqualTo(400);
+            var error = (KafkaExplorerError) response.getEntity();
+            assertThat(error.getTechnicalCode()).isEqualTo("INVALID_PARAMETERS");
+        }
+
+        @Test
+        void should_return_502_when_broker_unreachable() {
+            givenClusterWithConfig(Map.of("bootstrapServers", "localhost:19092", "security", Map.of("protocol", "PLAINTEXT")));
+
+            var request = new ListTopicsRequest().clusterId(CLUSTER_ID);
+
+            var response = resource.listTopics(request, 1, 10);
+
+            assertThat(response.getStatus()).isEqualTo(502);
+            var error = (KafkaExplorerError) response.getEntity();
+            assertThat(error.getTechnicalCode()).isEqualTo("CONNECTION_FAILED");
         }
     }
 

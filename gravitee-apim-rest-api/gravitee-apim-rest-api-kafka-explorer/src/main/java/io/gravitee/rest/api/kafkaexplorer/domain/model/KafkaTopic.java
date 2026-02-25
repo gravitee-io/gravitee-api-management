@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.kafkaexplorer.domain.domain_service;
+package io.gravitee.rest.api.kafkaexplorer.domain.model;
 
-import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
-import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
-import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicsPage;
-
-public interface KafkaClusterDomainService {
-    KafkaClusterInfo describeCluster(KafkaClusterConfiguration config);
-    TopicsPage listTopics(KafkaClusterConfiguration config, String nameFilter, int page, int perPage);
-}
+public record KafkaTopic(
+    String name,
+    int partitionCount,
+    int replicationFactor,
+    int underReplicatedCount,
+    boolean internal,
+    Long size,
+    Long messageCount
+) {}

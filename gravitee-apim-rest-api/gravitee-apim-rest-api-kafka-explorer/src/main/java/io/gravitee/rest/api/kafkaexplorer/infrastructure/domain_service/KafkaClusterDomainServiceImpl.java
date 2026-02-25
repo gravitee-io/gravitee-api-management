@@ -33,12 +33,16 @@ import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaNode;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaTopic;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicsPage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,12 +51,16 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.DescribeClusterResult;
 import org.apache.kafka.clients.admin.ListTopicsOptions;
+import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.TopicDescription;
+import org.apache.kafka.clients.admin.TopicListing;
 import org.apache.kafka.common.Node;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.errors.AuthenticationException;
 import org.springframework.stereotype.Service;
@@ -102,6 +110,151 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             throw new KafkaExplorerException("Failed to connect to Kafka cluster: " + e.getMessage(), TechnicalCode.CONNECTION_FAILED, e);
         } finally {
             deleteTempFiles(tempFiles);
+        }
+    }
+
+    @Override
+    public TopicsPage listTopics(KafkaClusterConfiguration config, String nameFilter, int page, int perPage) {
+        List<Path> tempFiles = new ArrayList<>();
+        Properties properties = buildProperties(config, tempFiles);
+        try (AdminClient adminClient = createAdminClient(properties)) {
+            // Step 1: List all topics (cheap call)
+            Collection<TopicListing> listings = adminClient
+                .listTopics(new ListTopicsOptions().listInternal(true))
+                .listings()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            Map<String, Boolean> internalFlags = new HashMap<>();
+            for (TopicListing listing : listings) {
+                internalFlags.put(listing.name(), listing.isInternal());
+            }
+
+            if (internalFlags.isEmpty()) {
+                return new TopicsPage(List.of(), 0, page, perPage);
+            }
+
+            // Step 2: Filter by nameFilter (case-insensitive contains)
+            List<String> filteredNames = internalFlags
+                .keySet()
+                .stream()
+                .filter(name -> nameFilter == null || nameFilter.isBlank() || name.toLowerCase().contains(nameFilter.toLowerCase()))
+                .sorted()
+                .toList();
+
+            int totalCount = filteredNames.size();
+
+            // Step 3: Paginate
+            int fromIndex = Math.min(page * perPage, totalCount);
+            int toIndex = Math.min(fromIndex + perPage, totalCount);
+            List<String> pageNames = filteredNames.subList(fromIndex, toIndex);
+
+            if (pageNames.isEmpty()) {
+                return new TopicsPage(List.of(), totalCount, page, perPage);
+            }
+
+            // Step 4: Describe topics for the current page only (expensive calls)
+            Map<String, TopicDescription> descriptions = adminClient
+                .describeTopics(pageNames)
+                .allTopicNames()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            // Step 5: Fetch topic sizes via describeLogDirs
+            Map<String, Long> topicSizes = fetchTopicSizes(adminClient, Set.copyOf(pageNames));
+
+            // Step 6: Fetch message counts via listOffsets
+            Map<String, Long> messageCounts = fetchMessageCounts(adminClient, descriptions);
+
+            // Step 7: Map to KafkaTopic records
+            List<KafkaTopic> topics = pageNames
+                .stream()
+                .map(name -> {
+                    TopicDescription topic = descriptions.get(name);
+                    int partitionCount = topic.partitions().size();
+                    int replicationFactor = topic.partitions().isEmpty() ? 0 : topic.partitions().get(0).replicas().size();
+                    int underReplicatedCount = (int) topic
+                        .partitions()
+                        .stream()
+                        .filter(p -> p.isr().size() < p.replicas().size())
+                        .count();
+                    boolean internal = internalFlags.getOrDefault(name, false);
+                    return new KafkaTopic(
+                        name,
+                        partitionCount,
+                        replicationFactor,
+                        underReplicatedCount,
+                        internal,
+                        topicSizes.get(name),
+                        messageCounts.get(name)
+                    );
+                })
+                .toList();
+
+            return new TopicsPage(topics, totalCount, page, perPage);
+        } catch (ExecutionException e) {
+            throw handleExecutionException(e);
+        } catch (TimeoutException e) {
+            throw new KafkaExplorerException("Connection to Kafka cluster timed out", TechnicalCode.TIMEOUT, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new KafkaExplorerException("Connection to Kafka cluster was interrupted", TechnicalCode.INTERRUPTED, e);
+        } catch (Exception e) {
+            throw new KafkaExplorerException("Failed to connect to Kafka cluster: " + e.getMessage(), TechnicalCode.CONNECTION_FAILED, e);
+        } finally {
+            deleteTempFiles(tempFiles);
+        }
+    }
+
+    private Map<String, Long> fetchTopicSizes(AdminClient adminClient, Set<String> topicNames) {
+        try {
+            List<Integer> brokerIds = adminClient
+                .describeCluster()
+                .nodes()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .stream()
+                .map(Node::id)
+                .toList();
+
+            var logDirsResult = adminClient.describeLogDirs(brokerIds).allDescriptions().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            Map<String, Long> sizes = new HashMap<>();
+            for (var brokerEntry : logDirsResult.values()) {
+                for (var logDir : brokerEntry.values()) {
+                    for (var replicaEntry : logDir.replicaInfos().entrySet()) {
+                        String topic = replicaEntry.getKey().topic();
+                        long replicaSize = replicaEntry.getValue().size();
+                        if (topicNames.contains(topic) && replicaSize >= 0) {
+                            sizes.merge(topic, replicaSize, Long::sum);
+                        }
+                    }
+                }
+            }
+            return sizes;
+        } catch (Exception e) {
+            return Map.of();
+        }
+    }
+
+    private Map<String, Long> fetchMessageCounts(AdminClient adminClient, Map<String, TopicDescription> descriptions) {
+        try {
+            Map<TopicPartition, OffsetSpec> offsetRequests = new HashMap<>();
+            for (TopicDescription topic : descriptions.values()) {
+                for (var partition : topic.partitions()) {
+                    offsetRequests.put(new TopicPartition(topic.name(), partition.partition()), OffsetSpec.latest());
+                }
+            }
+
+            if (offsetRequests.isEmpty()) {
+                return Map.of();
+            }
+
+            var offsets = adminClient.listOffsets(offsetRequests).all().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            return offsets
+                .entrySet()
+                .stream()
+                .collect(Collectors.groupingBy(e -> e.getKey().topic(), Collectors.summingLong(e -> e.getValue().offset())));
+        } catch (Exception e) {
+            return Map.of();
         }
     }
 

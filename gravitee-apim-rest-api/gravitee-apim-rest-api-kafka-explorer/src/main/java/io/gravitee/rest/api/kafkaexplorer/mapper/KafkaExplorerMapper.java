@@ -18,7 +18,12 @@ package io.gravitee.rest.api.kafkaexplorer.mapper;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaNode;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaTopic;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicsPage;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterResponse;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.ListTopicsResponse;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.Pagination;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -31,4 +36,21 @@ public interface KafkaExplorerMapper {
     io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaNode map(KafkaNode node);
 
     io.gravitee.rest.api.kafkaexplorer.rest.model.BrokerDetail map(BrokerDetail brokerDetail);
+
+    io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaTopic map(KafkaTopic topic);
+
+    List<io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaTopic> mapTopics(List<KafkaTopic> topics);
+
+    default ListTopicsResponse map(TopicsPage topicsPage, int page, int perPage) {
+        return new ListTopicsResponse()
+            .data(mapTopics(topicsPage.data()))
+            .pagination(
+                new Pagination()
+                    .page(page)
+                    .perPage(perPage)
+                    .pageCount((int) Math.ceil((double) topicsPage.totalCount() / perPage))
+                    .pageItemsCount(topicsPage.data().size())
+                    .totalCount(topicsPage.totalCount())
+            );
+    }
 }
