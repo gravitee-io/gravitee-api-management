@@ -52,12 +52,12 @@ export interface NodeMenuActionEvent {
 }
 
 interface FlatTreeNode {
-  expandable: boolean;
   id: string;
   label: string;
   type: PortalNavigationItemType;
   data?: PortalNavigationItem;
   level: number;
+  children?: SectionNode[];
 }
 
 type ProcessingNode = SectionNode & {
@@ -181,7 +181,7 @@ export class FlatTreeComponent {
   }
 
   hasChildren(node: FlatTreeNode): boolean {
-    return node.expandable;
+    return (node?.children ?? []).length > 0;
   }
 
   onDrop(event: CdkDragDrop<SectionNode[]>) {
