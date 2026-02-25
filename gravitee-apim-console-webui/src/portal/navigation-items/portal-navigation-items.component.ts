@@ -143,9 +143,6 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   readonly selectedNavigationItemIsPublished: Signal<boolean> = computed(() => {
     return this.selectedNavigationItem()?.data?.published ?? false;
   });
-  readonly isSelectedNotApiItem: Signal<boolean> = computed(() => {
-    return this.selectedNavigationItem()?.type !== 'API';
-  });
 
   // --- Resize Configuration ---
   private readonly ngZone = inject(NgZone);
@@ -206,9 +203,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           break;
         case 'publish':
         case 'unpublish':
-          if (event.node.type !== 'API') {
-            this.handlePublishToggle(event.node.data);
-          }
+          this.handlePublishToggle(event.node.data);
           break;
         default:
           if (event.itemType === 'API' && event.action !== 'edit') {
@@ -556,12 +551,12 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   private getPublishDialogData(navItem: PortalNavigationItem): GioConfirmDialogData {
     const isPublished = navItem.published;
-    const typeLabel = navItem.type.toLowerCase();
+    const typeLabel = navItem.type === 'API' ? 'API' : navItem.type.toLowerCase();
 
     const action = isPublished ? 'Unpublish' : 'Publish';
     const pastAction = `${action.toLowerCase()}ed`;
 
-    const contentScope = navItem.type === 'FOLDER' ? ' and its content ' : ' ';
+    const contentScope = navItem.type === 'FOLDER' || navItem.type === 'API' ? ' and its content ' : ' ';
 
     return {
       title: `${action} "${navItem.title}" ${typeLabel}?`,
@@ -676,7 +671,7 @@ export function findFirstAvailablePage(
       if (element.type === 'PAGE') {
         return element;
       }
-      if (element.type === 'FOLDER') {
+      if (element.type === 'FOLDER' || element.type === 'API') {
         const found = search(element);
         if (found) return found;
         return element;

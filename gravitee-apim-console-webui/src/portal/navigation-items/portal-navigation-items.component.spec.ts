@@ -35,6 +35,7 @@ import { ApiSectionEditorDialogHarness } from './api-section-editor-dialog/api-s
 import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 import { GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
 import {
+  fakeNewFolderPortalNavigationItem,
   fakeNewLinkPortalNavigationItem,
   fakeNewPagePortalNavigationItem,
   fakePortalNavigationApi,
@@ -702,6 +703,146 @@ describe('PortalNavigationItemsComponent', () => {
       deleteReq.flush('error', { status: 500, statusText: 'Server Error' });
 
       // No further GET expected; afterEach will verify outstanding requests are handled
+    });
+  });
+
+  describe('adding children to an api from tree node "More actions" menu', () => {
+    const api = fakePortalNavigationApi({ id: 'api-1', title: 'API 1' });
+    const fakeResponse = fakePortalNavigationItemsResponse({
+      items: [api],
+    });
+    const node = { id: api.id, label: api.title, type: api.type, data: api };
+
+    beforeEach(async () => {
+      await expectGetNavigationItems(fakeResponse);
+    });
+
+    describe('creating a page under an api from tree node "More actions" menu', () => {
+      beforeEach(async () => {
+        const component = fixture.componentInstance;
+
+        component.onNodeMenuAction({ action: 'create', itemType: 'PAGE', node });
+        fixture.detectChanges();
+      });
+
+      it('opens create dialog and does not call backend when cancelled', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(dialog).toBeTruthy();
+
+        // cancel should not send any POST request
+        await dialog.clickCancelButton();
+      });
+
+      it('calls backend create with parentId when dialog is submitted', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(dialog).toBeTruthy();
+
+        const title = 'New Child Page';
+        await dialog.setTitleInputValue(title);
+        await dialog.clickSubmitButton();
+
+        const createdItem = fakePortalNavigationPage({
+          id: 'child-page-1',
+          title,
+          area: 'TOP_NAVBAR',
+          type: 'PAGE',
+          parentId: api.id,
+          portalPageContentId: 'content-id',
+        });
+
+        expectCreateNavigationItem(
+          fakeNewPagePortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'PAGE', parentId: api.id }),
+          createdItem,
+        );
+        await expectGetNavigationItems(fakeResponse);
+
+        expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdItem.id } }));
+      });
+    });
+
+    describe('creating a folder under an api from tree node "More actions" menu', () => {
+      beforeEach(async () => {
+        const component = fixture.componentInstance;
+
+        component.onNodeMenuAction({ action: 'create', itemType: 'FOLDER', node });
+        fixture.detectChanges();
+      });
+      it('opens create dialog and does not call backend when cancelled', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(dialog).toBeTruthy();
+
+        // cancel should not send any POST request
+        await dialog.clickCancelButton();
+      });
+
+      it('calls backend create with parentId when dialog is submitted', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(dialog).toBeTruthy();
+
+        const title = 'New Child Folder';
+        await dialog.setTitleInputValue(title);
+        await dialog.clickSubmitButton();
+
+        const createdItem = fakePortalNavigationFolder({
+          id: 'child-page-1',
+          title,
+          area: 'TOP_NAVBAR',
+          type: 'FOLDER',
+          parentId: api.id,
+        });
+
+        expectCreateNavigationItem(
+          fakeNewFolderPortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'FOLDER', parentId: api.id }),
+          createdItem,
+        );
+        await expectGetNavigationItems(fakeResponse);
+
+        expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdItem.id } }));
+      });
+    });
+
+    describe('creating a link under an api from tree node "More actions" menu', () => {
+      beforeEach(async () => {
+        const component = fixture.componentInstance;
+        component.onNodeMenuAction({ action: 'create', itemType: 'LINK', node });
+        fixture.detectChanges();
+      });
+
+      it('opens create dialog and does not call backend when cancelled', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(dialog).toBeTruthy();
+
+        // cancel should not send any POST request
+        await dialog.clickCancelButton();
+      });
+
+      it('calls backend create with parentId when dialog is submitted', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(dialog).toBeTruthy();
+
+        const title = 'New Child Link';
+        const url = 'https://cats-rule.com';
+        await dialog.setTitleInputValue(title);
+        await dialog.setUrlInputValue(url);
+        await dialog.clickSubmitButton();
+
+        const createdItem = fakePortalNavigationLink({
+          id: 'child-page-1',
+          title,
+          area: 'TOP_NAVBAR',
+          type: 'LINK',
+          parentId: api.id,
+          url,
+        });
+
+        expectCreateNavigationItem(
+          fakeNewLinkPortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'LINK', parentId: api.id, url }),
+          createdItem,
+        );
+        await expectGetNavigationItems(fakeResponse);
+
+        expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdItem.id } }));
+      });
     });
   });
 
@@ -1874,23 +2015,104 @@ describe('PortalNavigationItemsComponent', () => {
   });
 
   describe('publish/unpublish action on API type node', () => {
-    it('should not open a confirm dialog when publish is triggered on an API type node', async () => {
-      const apiItem = fakePortalNavigationApi({ id: 'api-nav-1', title: 'My API', apiId: 'api-id-1' });
-
-      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [apiItem] }));
-
-      component.onNodeMenuAction({
-        action: 'publish',
-        itemType: 'API',
-        node: { id: apiItem.id, label: apiItem.title, type: 'API', data: apiItem },
+    describe('when item is unpublished', () => {
+      const api = fakePortalNavigationApi({
+        id: 'api-item-1',
+        title: 'API Item 1',
+        published: false,
       });
-      fixture.detectChanges();
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [api],
+      });
 
-      const dialog = await rootLoader.getHarnessOrNull(GioConfirmDialogHarness);
-      expect(dialog).toBeNull();
-      httpTestingController.expectNone({
-        method: 'PUT',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${apiItem.id}`,
+      beforeEach(async () => {
+        await expectGetNavigationItems(fakeResponse);
+        fixture.detectChanges();
+      });
+      it('should change state from "More Actions" menu', async () => {
+        const node = { id: api.id, label: api.title, type: api.type, data: api };
+        const component = fixture.componentInstance;
+        component.onNodeMenuAction({ action: 'publish', itemType: 'API', node });
+
+        const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        await dialog.confirm();
+        fixture.detectChanges();
+
+        expectPutPortalNavigationItem(
+          api.id,
+          fakeUpdateApiPortalNavigationItem({
+            ...api,
+            published: true,
+          }),
+          api,
+        );
+        await expectGetNavigationItems(fakeResponse);
+      });
+      it('should change state from static button', async () => {
+        await harness.clickPublishButton();
+
+        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        await confirmDialog.confirm();
+
+        expectPutPortalNavigationItem(
+          api.id,
+          fakeUpdateApiPortalNavigationItem({
+            ...api,
+            published: true,
+          }),
+          api,
+        );
+        await expectGetNavigationItems(fakeResponse);
+      });
+    });
+    describe('when item is published', () => {
+      const api = fakePortalNavigationApi({
+        id: 'api-item-1',
+        title: 'API Item 1',
+        published: true,
+      });
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [api],
+      });
+
+      beforeEach(async () => {
+        await expectGetNavigationItems(fakeResponse);
+        fixture.detectChanges();
+      });
+      it('should change state from "More Actions" menu', async () => {
+        const node = { id: api.id, label: api.title, type: api.type, data: api };
+        const component = fixture.componentInstance;
+        component.onNodeMenuAction({ action: 'unpublish', itemType: 'API', node });
+
+        const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        await dialog.confirm();
+        fixture.detectChanges();
+
+        expectPutPortalNavigationItem(
+          api.id,
+          fakeUpdateApiPortalNavigationItem({
+            ...api,
+            published: false,
+          }),
+          api,
+        );
+        await expectGetNavigationItems(fakeResponse);
+      });
+      it('should change state from static button', async () => {
+        await harness.clickUnpublishButton();
+
+        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        await confirmDialog.confirm();
+
+        expectPutPortalNavigationItem(
+          api.id,
+          fakeUpdateApiPortalNavigationItem({
+            ...api,
+            published: false,
+          }),
+          api,
+        );
+        await expectGetNavigationItems(fakeResponse);
       });
     });
   });
