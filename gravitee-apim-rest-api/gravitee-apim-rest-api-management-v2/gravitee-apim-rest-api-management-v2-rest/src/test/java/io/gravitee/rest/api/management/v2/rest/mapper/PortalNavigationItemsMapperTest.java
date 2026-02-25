@@ -25,6 +25,7 @@ import io.gravitee.rest.api.management.v2.rest.model.BasePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
+import io.gravitee.rest.api.management.v2.rest.model.PortalPageContentType;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -157,6 +158,17 @@ class PortalNavigationItemsMapperTest {
             assertThat(result.getOrder()).isEqualTo(1);
             assertThat(result.getParentId().id()).isEqualTo(page.getParentId());
             assertThat(result.getPortalPageContentId().id()).isEqualTo(((CreatePortalNavigationPage) page).getPortalPageContentId());
+        }
+
+        @Test
+        void should_map_content_type_from_create_portal_navigation_page() {
+            final var page = (CreatePortalNavigationPage) PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
+            page.setContentType(PortalPageContentType.OPENAPI);
+
+            var result = mapper.map(page);
+
+            assertThat(result).isInstanceOf(CreatePortalNavigationItem.class);
+            assertThat(result.getContentType()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalPageContentType.OPENAPI);
         }
 
         @Test

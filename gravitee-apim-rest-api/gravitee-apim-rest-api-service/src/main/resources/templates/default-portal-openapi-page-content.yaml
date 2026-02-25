@@ -1,0 +1,19 @@
+openapi: 3.0.3
+info:
+  title: Petstore API
+  version: 1.0.0
+  description: Default OpenAPI page content
+paths:
+  /pets:
+    get:
+      summary: List pets
+      operationId: listPets
+      responses:
+        '200':
+          description: A list of pets
+    post:
+      summary: Create a pet
+      operationId: createPet
+      responses:
+        '201':
+          description: Created

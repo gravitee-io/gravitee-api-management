@@ -16,29 +16,31 @@
 package io.gravitee.apim.infra.crud_service.portal_page;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
-import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.infra.adapter.PortalPageContentAdapter;
+import io.gravitee.apim.infra.crud_service.portal_page.adapter.DefaultPortalPageContentProvider;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalPageContentRepository;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.util.List;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PortalPageContentCrudServiceImpl implements PortalPageContentCrudService {
 
-    private String defaultPortalPageContent;
     private final PortalPageContentRepository portalPageContentRepository;
+    private final List<DefaultPortalPageContentProvider> defaultContentProviders;
     private final PortalPageContentAdapter portalPageContentAdapter = PortalPageContentAdapter.INSTANCE;
 
-    public PortalPageContentCrudServiceImpl(@Lazy final PortalPageContentRepository portalPageContentRepository) {
+    public PortalPageContentCrudServiceImpl(
+        @Lazy final PortalPageContentRepository portalPageContentRepository,
+        List<DefaultPortalPageContentProvider> defaultContentProviders
+    ) {
         this.portalPageContentRepository = portalPageContentRepository;
+        this.defaultContentProviders = defaultContentProviders;
     }
 
     @Override
@@ -54,14 +56,13 @@ public class PortalPageContentCrudServiceImpl implements PortalPageContentCrudSe
     }
 
     @Override
-    public PortalPageContent<?> createDefault(String organizationId, String environmentId) {
-        final var pageContentId = PortalPageContentId.random();
-        final var portalPageContent = new GraviteeMarkdownPageContent(
-            pageContentId,
-            organizationId,
-            environmentId,
-            new GraviteeMarkdown(getDefaultPortalPageContent())
-        );
+    public PortalPageContent<?> createDefault(String organizationId, String environmentId, PortalPageContentType contentType) {
+        final var portalPageContent = defaultContentProviders
+            .stream()
+            .filter(provider -> provider.appliesTo(contentType))
+            .findFirst()
+            .map(provider -> provider.provide(organizationId, environmentId))
+            .orElseThrow(() -> new IllegalArgumentException("No default content provider for type: " + contentType));
         return this.create(portalPageContent);
     }
 
@@ -85,17 +86,5 @@ public class PortalPageContentCrudServiceImpl implements PortalPageContentCrudSe
             final var errorMessage = String.format("An error occurred while deleting portal page content with id %s", id);
             throw new TechnicalDomainException(errorMessage, e);
         }
-    }
-
-    private String getDefaultPortalPageContent() {
-        if (defaultPortalPageContent == null) {
-            try {
-                final var resource = new ClassPathResource("templates/default-portal-page-content.md");
-                defaultPortalPageContent = resource.getContentAsString(StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                throw new IllegalStateException("Could not load default portal page template", e);
-            }
-        }
-        return defaultPortalPageContent;
     }
 }

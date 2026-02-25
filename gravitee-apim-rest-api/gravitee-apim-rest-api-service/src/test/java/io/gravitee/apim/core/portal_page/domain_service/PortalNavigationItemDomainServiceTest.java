@@ -27,6 +27,7 @@ import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import java.util.List;
@@ -222,7 +223,8 @@ public class PortalNavigationItemDomainServiceTest {
         void should_delete_page_with_content() {
             var pageContent = portalPageContentCrudService.createDefault(
                 PortalNavigationItemFixtures.ORG_ID,
-                PortalNavigationItemFixtures.ENV_ID
+                PortalNavigationItemFixtures.ENV_ID,
+                PortalPageContentType.GRAVITEE_MARKDOWN
             );
             var toDelete = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "page11", null)
                 .toBuilder()
