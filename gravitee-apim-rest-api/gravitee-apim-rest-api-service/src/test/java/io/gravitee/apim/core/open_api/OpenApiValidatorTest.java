@@ -40,7 +40,7 @@ class OpenApiValidatorTest {
         )
         void should_accept_valid_content(String validContent) {
             // When / Then
-            assertThatCode(() -> validator.validateNotEmpty(validContent)).doesNotThrowAnyException();
+            assertThatCode(() -> validator.validateNotEmpty(new OpenApi(validContent))).doesNotThrowAnyException();
         }
 
         @ParameterizedTest
@@ -48,7 +48,7 @@ class OpenApiValidatorTest {
         @ValueSource(strings = { "   ", "  \n  \t  " })
         void should_throw_exception_when_content_is_invalid(String invalidContent) {
             // When / Then
-            assertThatThrownBy(() -> validator.validateNotEmpty(invalidContent))
+            assertThatThrownBy(() -> validator.validateNotEmpty(new OpenApi(invalidContent)))
                 .isInstanceOf(OpenApiContentEmptyException.class)
                 .hasMessage("Content must not be null or empty");
         }

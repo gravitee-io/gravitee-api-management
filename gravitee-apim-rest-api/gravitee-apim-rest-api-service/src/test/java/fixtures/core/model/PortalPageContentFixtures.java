@@ -15,7 +15,7 @@
  */
 package fixtures.core.model;
 
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContent;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -33,7 +33,7 @@ public class PortalPageContentFixtures {
             PortalPageContentId.of(CONTENT_ID),
             ORGANIZATION_ID,
             ENVIRONMENT_ID,
-            new GraviteeMarkdownContent(CONTENT)
+            new GraviteeMarkdown(CONTENT)
         );
     }
 
@@ -42,7 +42,7 @@ public class PortalPageContentFixtures {
             PortalPageContentId.of(CONTENT_ID),
             ORGANIZATION_ID,
             ENVIRONMENT_ID,
-            new GraviteeMarkdownContent(content)
+            new GraviteeMarkdown(content)
         );
     }
 
@@ -52,7 +52,7 @@ public class PortalPageContentFixtures {
         String environmentId,
         String content
     ) {
-        return new GraviteeMarkdownPageContent(id, organizationId, environmentId, new GraviteeMarkdownContent(content));
+        return new GraviteeMarkdownPageContent(id, organizationId, environmentId, new GraviteeMarkdown(content));
     }
 
     public static List<PortalPageContent<?>> samplePortalPageContents() {

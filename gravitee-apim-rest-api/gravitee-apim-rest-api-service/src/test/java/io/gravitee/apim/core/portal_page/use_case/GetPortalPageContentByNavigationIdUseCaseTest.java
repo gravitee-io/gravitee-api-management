@@ -19,7 +19,6 @@ import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
-import static fixtures.core.model.PortalNavigationItemFixtures.PAGE12_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.SUPPORT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -184,7 +183,7 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         assertThat(output.portalNavigationItem()).isNotNull();
         assertThat(output.portalNavigationItem()).isInstanceOf(PortalNavigationPage.class);
         assertThat(output.portalNavigationItem().getId().toString()).isEqualTo(PAGE11_ID);
-        assertThat(((GraviteeMarkdownPageContent) output.portalPageContent()).getContent().raw()).isEqualTo("Page 11 content");
+        assertThat(((GraviteeMarkdownPageContent) output.portalPageContent()).getContent().value()).isEqualTo("Page 11 content");
     }
 
     @Test

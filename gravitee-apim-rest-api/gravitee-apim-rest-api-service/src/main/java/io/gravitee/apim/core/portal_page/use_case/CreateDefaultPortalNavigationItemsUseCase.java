@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContent;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
@@ -152,7 +152,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
             PortalPageContentId.random(),
             organizationId,
             environmentId,
-            new GraviteeMarkdownContent(loadContent(contentPath))
+            new GraviteeMarkdown(loadContent(contentPath))
         );
         return pageContentCrudService.create(content);
     }

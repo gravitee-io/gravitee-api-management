@@ -16,9 +16,10 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.open_api.OpenApi;
 import io.gravitee.apim.core.open_api.OpenApiValidator;
+import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
-import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 import lombok.RequiredArgsConstructor;
 
@@ -30,11 +31,11 @@ public class OpenApiPortalPageContentValidatorService implements PortalPageConte
 
     @Override
     public boolean appliesTo(PortalPageContent<?> existingContent) {
-        return existingContent.getType() == PortalPageContentType.OPENAPI;
+        return existingContent instanceof OpenApiPageContent;
     }
 
     @Override
     public void validate(UpdatePortalPageContent updateContent) {
-        openApiValidator.validateNotEmpty(updateContent.getContent());
+        openApiValidator.validateNotEmpty(OpenApi.of(updateContent.getContent()));
     }
 }

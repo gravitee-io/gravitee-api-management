@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.infra.adapter.PortalPageContentAdapter;
@@ -78,7 +79,7 @@ class PortalPageContentCrudServiceImplTest {
                 pageContentId,
                 ORGANIZATION_ID,
                 ENVIRONMENT_ID,
-                new io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContent("# Welcome\n\nThis is a sample page content.")
+                new GraviteeMarkdown("# Welcome\n\nThis is a sample page content.")
             );
             final var repoContent = portalPageContentAdapter.toRepository(portalPageContent);
 
@@ -125,7 +126,7 @@ class PortalPageContentCrudServiceImplTest {
                 pageContentId,
                 ORGANIZATION_ID,
                 ENVIRONMENT_ID,
-                new io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContent("# Updated Content\n\nThis is the updated content.")
+                new GraviteeMarkdown("# Updated Content\n\nThis is the updated content.")
             );
             final var repoContent = portalPageContentAdapter.toRepository(portalPageContent);
 

@@ -15,7 +15,7 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownContent;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
@@ -56,7 +56,7 @@ public class PortalPageContentCrudServiceInMemory implements InMemoryAlternative
             pageContentId,
             organizationId,
             environmentId,
-            new GraviteeMarkdownContent("default page content")
+            new GraviteeMarkdown("default page content")
         );
         return this.create(portalPageContent);
     }
