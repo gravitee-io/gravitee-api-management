@@ -51,6 +51,7 @@ export class TopicsComponent {
 
   filterChange = output<string>();
   pageChange = output<{ page: number; pageSize: number }>();
+  topicSelect = output<string>();
 
   displayedColumns = ['name', 'partitionCount', 'replicationFactor', 'underReplicatedCount', 'messageCount', 'size'];
 

@@ -22,7 +22,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { KafkaExplorerComponent } from './kafka-explorer.component';
 import { KafkaExplorerHarness } from './kafka-explorer.harness';
-import { fakeDescribeClusterResponse, fakeListTopicsResponse } from '../models/kafka-cluster.fixture';
+import { fakeDescribeClusterResponse, fakeDescribeTopicResponse, fakeListTopicsResponse } from '../models/kafka-cluster.fixture';
 
 @Component({
   standalone: true,
@@ -145,6 +145,55 @@ describe('KafkaExplorerComponent', () => {
 
     const topicsHarness = await harness.getTopicsHarness();
     expect(topicsHarness).toBeNull();
+  });
+
+  it('should navigate to topic detail when clicking a topic row', async () => {
+    flushCluster();
+    flushTopics();
+
+    await harness.selectSection('Topics');
+    fixture.detectChanges();
+
+    const topicsHarness = await harness.getTopicsHarness();
+    const rows = await topicsHarness!.getRows();
+    await (await rows[0].host()).click();
+    fixture.detectChanges();
+
+    httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/describe-topic').flush(fakeDescribeTopicResponse());
+    fixture.detectChanges();
+
+    const detailHarness = await harness.getTopicDetailHarness();
+    expect(detailHarness).toBeTruthy();
+    expect(await detailHarness!.getTopicName()).toBe('my-topic');
+
+    const topicsAfter = await harness.getTopicsHarness();
+    expect(topicsAfter).toBeNull();
+  });
+
+  it('should navigate back to topics list from topic detail', async () => {
+    flushCluster();
+    flushTopics();
+
+    await harness.selectSection('Topics');
+    fixture.detectChanges();
+
+    const topicsHarness = await harness.getTopicsHarness();
+    const rows = await topicsHarness!.getRows();
+    await (await rows[0].host()).click();
+    fixture.detectChanges();
+
+    httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/describe-topic').flush(fakeDescribeTopicResponse());
+    fixture.detectChanges();
+
+    const detailHarness = await harness.getTopicDetailHarness();
+    await detailHarness!.clickBack();
+    fixture.detectChanges();
+
+    const topicsAfter = await harness.getTopicsHarness();
+    expect(topicsAfter).toBeTruthy();
+
+    const detailAfter = await harness.getTopicDetailHarness();
+    expect(detailAfter).toBeNull();
   });
 
   it('should show error on failure', async () => {

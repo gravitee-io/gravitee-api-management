@@ -62,15 +62,20 @@
             />
           }
           @case ('topics') {
-            <gke-topics
-              [topics]="topicsPage()?.data ?? []"
-              [totalElements]="topicsPage()?.pagination?.totalCount ?? 0"
-              [page]="(topicsPage()?.pagination?.page ?? 1) - 1"
-              [pageSize]="topicsPage()?.pagination?.perPage ?? 10"
-              [loading]="topicsLoading()"
-              (filterChange)="onTopicsFilterChange($event)"
-              (pageChange)="onTopicsPageChange($event)"
-            />
+            @if (selectedTopic()) {
+              <gke-topic-detail [topicDetail]="topicDetail()" [loading]="topicDetailLoading()" (back)="onTopicBack()" />
+            } @else {
+              <gke-topics
+                [topics]="topicsPage()?.data ?? []"
+                [totalElements]="topicsPage()?.pagination?.totalCount ?? 0"
+                [page]="(topicsPage()?.pagination?.page ?? 1) - 1"
+                [pageSize]="topicsPage()?.pagination?.perPage ?? 10"
+                [loading]="topicsLoading()"
+                (filterChange)="onTopicsFilterChange($event)"
+                (pageChange)="onTopicsPageChange($event)"
+                (topicSelect)="onTopicSelect($event)"
+              />
+            }
           }
         }
       </div>

@@ -59,3 +59,26 @@ export interface ListTopicsResponse {
   data: KafkaTopic[];
   pagination: Pagination;
 }
+
+export interface TopicPartitionDetail {
+  id: number;
+  leader: KafkaNode;
+  replicas: KafkaNode[];
+  isr: KafkaNode[];
+  offline: KafkaNode[];
+}
+
+export interface TopicConfig {
+  name: string;
+  value: string;
+  source: string;
+  readOnly: boolean;
+  sensitive: boolean;
+}
+
+export interface DescribeTopicResponse {
+  name: string;
+  internal: boolean;
+  partitions: TopicPartitionDetail[];
+  configs: TopicConfig[];
+}
