@@ -128,7 +128,8 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
     )
   );
 
-  gmd-editor {
+  gmd-editor,
+  portal-openapi-editor {
     flex-grow: 1;
     min-height: 0;
   }

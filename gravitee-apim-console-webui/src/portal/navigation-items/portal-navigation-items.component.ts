@@ -59,6 +59,7 @@ import {
   PortalNavigationItemType,
   PortalNavigationLink,
   PortalNavigationPage,
+  PortalPageContentType,
   UpdatePortalNavigationItem,
 } from '../../entities/management-api-v2';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
@@ -69,6 +70,7 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
 import { PortalNavigationItemIconPipe } from '../icon/portal-navigation-item-icon.pipe';
+import { PortalOpenApiEditorComponent } from '../components/portal-openapi-editor/portal-openapi-editor.component';
 
 @Component({
   selector: 'portal-navigation-items',
@@ -77,6 +79,7 @@ import { PortalNavigationItemIconPipe } from '../icon/portal-navigation-item-ico
   imports: [
     PortalHeaderComponent,
     GraviteeMarkdownEditorModule,
+    PortalOpenApiEditorComponent,
     ReactiveFormsModule,
     EmptyStateComponent,
     GioCardEmptyStateModule,
@@ -181,6 +184,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   panelWidth = signal(350);
   initialContent = signal('');
 
+  readonly currentPageContentType = signal<PortalPageContentType | null>(null);
   readonly contentLoadError = signal(false);
 
   @HostListener('window:beforeunload', ['$event'])
@@ -334,6 +338,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           if (!navItem || navItem.type !== 'PAGE') {
             this.contentControl.reset('');
             this.initialContent.set('');
+            this.currentPageContentType.set(null);
             return of(null);
           }
 
@@ -347,15 +352,16 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         this.isLoadingPageContent.set(false);
 
         if (result.success) {
+          this.currentPageContentType.set(result.type ?? 'GRAVITEE_MARKDOWN');
           this.contentControl.reset(result.content);
           this.initialContent.set(result.content);
         }
       });
   }
 
-  private loadPageContent(contentId: string): Observable<{ success: boolean; content: string }> {
+  private loadPageContent(contentId: string): Observable<{ success: boolean; content: string; type?: PortalPageContentType }> {
     return this.portalPageContentService.getPageContent(contentId).pipe(
-      map(({ content }) => ({ success: true, content })),
+      map(({ content, type }) => ({ success: true, content, type })),
       catchError(() => {
         this.contentLoadError.set(true);
         this.isLoadingPageContent.set(false);
