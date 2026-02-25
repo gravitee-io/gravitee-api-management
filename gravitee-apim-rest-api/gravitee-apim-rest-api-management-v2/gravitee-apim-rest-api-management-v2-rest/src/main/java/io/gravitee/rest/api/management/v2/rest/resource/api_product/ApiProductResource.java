@@ -20,7 +20,9 @@ import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeployApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.UpdateApiProductUseCase;
+import io.gravitee.apim.core.api_product.use_case.VerifyApiProductDeployUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.rest.api.management.v2.rest.model.VerifyApiProductDeploymentResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -59,6 +61,9 @@ public class ApiProductResource extends AbstractResource {
     @Inject
     private UpdateApiProductUseCase updateApiProductUseCase;
 
+    @Inject
+    private VerifyApiProductDeployUseCase verifyApiProductDeployUseCase;
+
     @Context
     private ResourceContext resourceContext;
 
@@ -85,6 +90,17 @@ public class ApiProductResource extends AbstractResource {
         AuditInfo audit = getAuditInfo();
         deleteApiProductUseCase.execute(DeleteApiProductUseCase.Input.of(apiProductId, audit));
         return Response.noContent().build();
+    }
+
+    @GET
+    @Path("/deployments/_verify")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.READ }) })
+    public Response verifyApiProductDeployment(@PathParam("apiProductId") String apiProductId) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        log.debug("Verify deployment for API Product [{}]", apiProductId);
+        var output = verifyApiProductDeployUseCase.execute(new VerifyApiProductDeployUseCase.Input(executionContext.getOrganizationId()));
+        return Response.ok(new VerifyApiProductDeploymentResponse().ok(output.ok()).reason(output.reason())).build();
     }
 
     @POST
@@ -115,6 +131,11 @@ public class ApiProductResource extends AbstractResource {
         var output = updateApiProductUseCase.execute(input);
         log.debug("API Product updated: {} - {}", apiProductId, output.apiProduct().getName());
         return Response.ok(output.apiProduct()).build();
+    }
+
+    @Path("/members")
+    public ApiProductMembersResource getApiProductMembersResource() {
+        return resourceContext.getResource(ApiProductMembersResource.class);
     }
 
     @Path("/plans")

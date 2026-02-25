@@ -86,6 +86,18 @@ $textColor: map.get(gio.$mat-dove-palette, default);
       flex: 1 1 auto;
       height: 100%;
       margin: 12px 24px 0 24px;
+
+      &__section-header {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 24px;
+
+        &__subtitle {
+          color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+          @include mat.m2-typography-level($typography, 'body-2');
+        }
+      }
     }
   }
 }
