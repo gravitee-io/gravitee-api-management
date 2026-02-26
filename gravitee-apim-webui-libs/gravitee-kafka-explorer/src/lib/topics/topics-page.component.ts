@@ -78,7 +78,8 @@ export class TopicsPageComponent implements OnInit {
           this.topicsPage.set(response);
           this.topicsLoading.set(false);
         },
-        error: () => {
+        error: err => {
+          this.store.error.set(err?.error?.message ?? 'Failed to load topics');
           this.topicsLoading.set(false);
         },
       });
