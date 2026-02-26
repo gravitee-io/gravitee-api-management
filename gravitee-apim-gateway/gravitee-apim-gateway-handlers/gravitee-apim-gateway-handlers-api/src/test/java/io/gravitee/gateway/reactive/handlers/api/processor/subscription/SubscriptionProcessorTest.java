@@ -21,6 +21,7 @@ import static io.gravitee.gateway.api.ExecutionContext.ATTR_PLAN;
 import static io.gravitee.gateway.api.ExecutionContext.ATTR_SUBSCRIPTION_ID;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
 import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.APPLICATION_ANONYMOUS;
+import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.ATTR_API_PRODUCT;
 import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.DEFAULT_CLIENT_IDENTIFIER_HEADER;
 import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.PLAN_ANONYMOUS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -158,6 +159,47 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
             var subscriptionVariable = spyCtx.getTemplateEngine().getTemplateContext().lookupVariable("subscription");
             assertThat(subscriptionVariable).isNotNull();
             assertThat(subscriptionVariable).isInstanceOf(SubscriptionVariable.class);
+        }
+    }
+
+    @Nested
+    class ApiProductContextAttribute {
+
+        @Test
+        void should_set_ATTR_API_PRODUCT_when_subscription_metadata_contains_productId() {
+            Subscription subscription = new Subscription();
+            subscription.setId(SUBSCRIPTION_ID);
+            subscription.setMetadata(java.util.Map.of("productId", "product-123"));
+            spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
+
+            cut.execute(spyCtx).test().assertComplete();
+
+            assertThat(spyCtx.<String>getAttribute(ATTR_API_PRODUCT)).isEqualTo("product-123");
+        }
+
+        @Test
+        void should_not_set_ATTR_API_PRODUCT_when_subscription_metadata_is_null() {
+            spyCtx.setAttribute(ATTR_API_PRODUCT, null); // clear so test is independent of execution order
+            Subscription subscription = new Subscription();
+            subscription.setId(SUBSCRIPTION_ID);
+            spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
+
+            cut.execute(spyCtx).test().assertComplete();
+
+            assertThat((String) spyCtx.getAttribute(ATTR_API_PRODUCT)).isNull();
+        }
+
+        @Test
+        void should_not_set_ATTR_API_PRODUCT_when_subscription_metadata_has_no_productId() {
+            spyCtx.setAttribute(ATTR_API_PRODUCT, null); // clear so test is independent of execution order
+            Subscription subscription = new Subscription();
+            subscription.setId(SUBSCRIPTION_ID);
+            subscription.setMetadata(java.util.Map.of("otherKey", "otherValue"));
+            spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
+
+            cut.execute(spyCtx).test().assertComplete();
+
+            assertThat((String) spyCtx.getAttribute(ATTR_API_PRODUCT)).isNull();
         }
     }
 
