@@ -29,6 +29,7 @@ import { DebugApiEntity, DebugApiEntityFromJSON } from '@gravitee/management-web
 import { describeIfV3, succeed } from '@lib/jest-utils';
 import { from, Observable, switchMap, map, retry, Subscription } from 'rxjs';
 import { EventEntity } from '@gravitee/management-webclient-sdk/src/lib/models/EventEntity';
+import { faker } from '@faker-js/faker';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -69,6 +70,7 @@ describe('Call my API (incl. query params, Headers and body) and view debug sess
         orgId,
         envId,
         newApiEntity: ApisFaker.newApi({
+          name: `debug-v2-${faker.commerce.productName()}`,
           gravitee: '2.0.0',
           // With flow on root path
           flows: [
