@@ -15,13 +15,13 @@
     limitations under the License.
 
 -->
-<mat-card class="brokers">
-  <mat-card-header>
-    <mat-card-title>Brokers</mat-card-title>
-  </mat-card-header>
-  <mat-card-content>
-    @if (controller(); as ctrl) {
-      <div class="brokers__cluster-info">
+<div class="brokers">
+  @if (controller(); as ctrl) {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Brokers</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
         <div class="brokers__cluster-info-items">
           <div class="brokers__cluster-info-item">
             <span class="mat-caption">Cluster ID</span>
@@ -44,55 +44,61 @@
             <span class="mat-body-2">{{ totalPartitions() }}</span>
           </div>
         </div>
-      </div>
-    }
+      </mat-card-content>
+    </mat-card>
+  }
 
-    <h5 class="brokers__section-title">Broker Nodes</h5>
-    <table mat-table [dataSource]="nodes()">
-      <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef>Node ID</th>
-        <td mat-cell *matCellDef="let node">
-          <span class="brokers__node-id">
-            {{ node.id }}
-            @if (node.id === controllerId()) {
-              <span class="brokers__controller-badge">Controller</span>
-            }
-          </span>
-        </td>
-      </ng-container>
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Broker Nodes</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <table mat-table [dataSource]="nodes()">
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef>Node ID</th>
+          <td mat-cell *matCellDef="let node">
+            <span class="brokers__node-id">
+              {{ node.id }}
+              @if (node.id === controllerId()) {
+                <span class="brokers__controller-badge">Controller</span>
+              }
+            </span>
+          </td>
+        </ng-container>
 
-      <ng-container matColumnDef="host">
-        <th mat-header-cell *matHeaderCellDef>Host</th>
-        <td mat-cell *matCellDef="let node">{{ node.host }}</td>
-      </ng-container>
+        <ng-container matColumnDef="host">
+          <th mat-header-cell *matHeaderCellDef>Host</th>
+          <td mat-cell *matCellDef="let node">{{ node.host }}</td>
+        </ng-container>
 
-      <ng-container matColumnDef="port">
-        <th mat-header-cell *matHeaderCellDef>Port</th>
-        <td mat-cell *matCellDef="let node">{{ node.port }}</td>
-      </ng-container>
+        <ng-container matColumnDef="port">
+          <th mat-header-cell *matHeaderCellDef>Port</th>
+          <td mat-cell *matCellDef="let node">{{ node.port }}</td>
+        </ng-container>
 
-      <ng-container matColumnDef="rack">
-        <th mat-header-cell *matHeaderCellDef>Rack</th>
-        <td mat-cell *matCellDef="let node">{{ node.rack || '-' }}</td>
-      </ng-container>
+        <ng-container matColumnDef="rack">
+          <th mat-header-cell *matHeaderCellDef>Rack</th>
+          <td mat-cell *matCellDef="let node">{{ node.rack || '-' }}</td>
+        </ng-container>
 
-      <ng-container matColumnDef="leaderPartitions">
-        <th mat-header-cell *matHeaderCellDef>Leader Partitions</th>
-        <td mat-cell *matCellDef="let node">{{ node.leaderPartitions }}</td>
-      </ng-container>
+        <ng-container matColumnDef="leaderPartitions">
+          <th mat-header-cell *matHeaderCellDef>Leader Partitions</th>
+          <td mat-cell *matCellDef="let node">{{ node.leaderPartitions }}</td>
+        </ng-container>
 
-      <ng-container matColumnDef="replicaPartitions">
-        <th mat-header-cell *matHeaderCellDef>Replica Partitions</th>
-        <td mat-cell *matCellDef="let node">{{ node.replicaPartitions }}</td>
-      </ng-container>
+        <ng-container matColumnDef="replicaPartitions">
+          <th mat-header-cell *matHeaderCellDef>Replica Partitions</th>
+          <td mat-cell *matCellDef="let node">{{ node.replicaPartitions }}</td>
+        </ng-container>
 
-      <ng-container matColumnDef="logDirSize">
-        <th mat-header-cell *matHeaderCellDef>Disk Usage</th>
-        <td mat-cell *matCellDef="let node">{{ node.logDirSize | gkeFileSize }}</td>
-      </ng-container>
+        <ng-container matColumnDef="logDirSize">
+          <th mat-header-cell *matHeaderCellDef>Disk Usage</th>
+          <td mat-cell *matCellDef="let node">{{ node.logDirSize | gkeFileSize }}</td>
+        </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns" class="brokers__row" (click)="brokerSelect.emit(row.id)"></tr>
-    </table>
-  </mat-card-content>
-</mat-card>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns" class="brokers__row" (click)="brokerSelect.emit(row.id)"></tr>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>
