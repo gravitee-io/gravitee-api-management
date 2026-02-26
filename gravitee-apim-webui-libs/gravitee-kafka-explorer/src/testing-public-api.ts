@@ -22,4 +22,6 @@ export * from './lib/brokers/brokers.harness';
 export * from './lib/topics/topics.harness';
 export * from './lib/topic-detail/topic-detail.harness';
 export * from './lib/broker-detail/broker-detail.harness';
+export * from './lib/consumer-groups/consumer-groups.harness';
+export * from './lib/consumer-group-detail/consumer-group-detail.harness';
 export * from './lib/models/kafka-cluster.fixture';

@@ -96,7 +96,7 @@ describe('KafkaExplorerComponent', () => {
     flushCluster();
 
     const labels = await harness.getSidebarLabels();
-    expect(labels).toEqual(['Brokers', 'Topics']);
+    expect(labels).toEqual(['Brokers', 'Topics', 'Consumer Groups']);
   });
 
   it('should display brokers section by default', async () => {

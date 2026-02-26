@@ -17,11 +17,17 @@ import {
   BrokerDetail,
   BrokerLogDirEntry,
   DescribeBrokerResponse,
+  ConsumerGroupMember,
+  ConsumerGroupOffset,
+  ConsumerGroupSummary,
   DescribeClusterResponse,
+  DescribeConsumerGroupResponse,
   DescribeTopicResponse,
   KafkaNode,
   KafkaTopic,
+  ListConsumerGroupsResponse,
   ListTopicsResponse,
+  MemberAssignment,
   Pagination,
   TopicConfig,
   TopicPartitionDetail,
@@ -79,7 +85,7 @@ export function fakeKafkaTopic(overrides: Partial<KafkaTopic> = {}): KafkaTopic 
 export function fakePagination(overrides: Partial<Pagination> = {}): Pagination {
   return {
     page: 1,
-    perPage: 10,
+    perPage: 25,
     pageCount: 1,
     pageItemsCount: 3,
     totalCount: 3,
@@ -164,6 +170,81 @@ export function fakeDescribeBrokerResponse(overrides: Partial<DescribeBrokerResp
     configs: [
       fakeTopicConfig({ name: 'log.retention.hours', value: '168', source: 'STATIC_BROKER_CONFIG' }),
       fakeTopicConfig({ name: 'num.partitions', value: '1', source: 'DEFAULT_CONFIG' }),
+    ],
+    ...overrides,
+  };
+}
+
+export function fakeConsumerGroupSummary(overrides: Partial<ConsumerGroupSummary> = {}): ConsumerGroupSummary {
+  return {
+    groupId: 'my-group',
+    state: 'STABLE',
+    membersCount: 2,
+    totalLag: 150,
+    numTopics: 3,
+    coordinator: fakeKafkaNode({ id: 0 }),
+    ...overrides,
+  };
+}
+
+export function fakeListConsumerGroupsResponse(overrides: Partial<ListConsumerGroupsResponse> = {}): ListConsumerGroupsResponse {
+  return {
+    data: [
+      fakeConsumerGroupSummary({ groupId: 'my-group' }),
+      fakeConsumerGroupSummary({ groupId: 'orders-group', state: 'EMPTY', membersCount: 0, totalLag: 0 }),
+      fakeConsumerGroupSummary({ groupId: 'analytics-group', state: 'STABLE', membersCount: 3, totalLag: 500 }),
+    ],
+    pagination: fakePagination(),
+    ...overrides,
+  };
+}
+
+export function fakeMemberAssignment(overrides: Partial<MemberAssignment> = {}): MemberAssignment {
+  return {
+    topicName: 'my-topic',
+    partitions: [0, 1],
+    ...overrides,
+  };
+}
+
+export function fakeConsumerGroupMember(overrides: Partial<ConsumerGroupMember> = {}): ConsumerGroupMember {
+  return {
+    memberId: 'member-1',
+    clientId: 'client-1',
+    host: '/127.0.0.1',
+    assignments: [fakeMemberAssignment()],
+    ...overrides,
+  };
+}
+
+export function fakeConsumerGroupOffset(overrides: Partial<ConsumerGroupOffset> = {}): ConsumerGroupOffset {
+  return {
+    topic: 'my-topic',
+    partition: 0,
+    committedOffset: 50,
+    endOffset: 100,
+    lag: 50,
+    ...overrides,
+  };
+}
+
+export function fakeDescribeConsumerGroupResponse(overrides: Partial<DescribeConsumerGroupResponse> = {}): DescribeConsumerGroupResponse {
+  return {
+    groupId: 'my-group',
+    state: 'STABLE',
+    coordinator: fakeKafkaNode({ id: 0 }),
+    partitionAssignor: 'range',
+    members: [
+      fakeConsumerGroupMember({ memberId: 'member-1', clientId: 'client-1' }),
+      fakeConsumerGroupMember({
+        memberId: 'member-2',
+        clientId: 'client-2',
+        assignments: [fakeMemberAssignment({ topicName: 'my-topic', partitions: [2, 3] })],
+      }),
+    ],
+    offsets: [
+      fakeConsumerGroupOffset({ topic: 'my-topic', partition: 0, committedOffset: 50, endOffset: 100, lag: 50 }),
+      fakeConsumerGroupOffset({ topic: 'my-topic', partition: 1, committedOffset: 80, endOffset: 100, lag: 20 }),
     ],
     ...overrides,
   };

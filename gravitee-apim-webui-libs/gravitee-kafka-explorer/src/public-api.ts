@@ -31,4 +31,8 @@ export * from './lib/topic-detail/topic-detail.component';
 export * from './lib/topic-detail/topic-detail-page.component';
 export * from './lib/broker-detail/broker-detail.component';
 export * from './lib/broker-detail/broker-detail-page.component';
+export * from './lib/consumer-groups/consumer-groups.component';
+export * from './lib/consumer-groups/consumer-groups-page.component';
+export * from './lib/consumer-group-detail/consumer-group-detail.component';
+export * from './lib/consumer-group-detail/consumer-group-detail-page.component';
 export * from './lib/pipes/file-size.pipe';
