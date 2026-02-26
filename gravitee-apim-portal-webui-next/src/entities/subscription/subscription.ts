@@ -70,6 +70,7 @@ export interface CreateSubscription {
   plan: string;
   request?: string;
   configuration?: SubscriptionConsumerConfiguration;
+  metadata?: Record<string, string>;
 }
 
 export interface UpdateSubscription extends Omit<Subscription, 'consumerConfiguration'> {

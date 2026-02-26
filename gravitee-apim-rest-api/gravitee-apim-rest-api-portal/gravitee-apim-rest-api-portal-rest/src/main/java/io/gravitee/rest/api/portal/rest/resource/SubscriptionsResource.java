@@ -18,13 +18,14 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
+import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.model.ApiKeyMode;
-import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PageEntity.PageRevisionId;
-import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
@@ -51,6 +52,7 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -69,6 +71,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -78,6 +81,12 @@ public class SubscriptionsResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
+
+    @Inject
+    private CreateSubscriptionUseCase createSubscriptionUseCase;
+
+    @Inject
+    private PlanSearchService planSearchService;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -104,44 +113,36 @@ public class SubscriptionsResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String applicationId = subscriptionInput.getApplication();
         if (hasPermission(executionContext, RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.CREATE)) {
-            NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
-            newSubscriptionEntity.setApplication(applicationId);
-            newSubscriptionEntity.setPlan(subscriptionInput.getPlan());
-            newSubscriptionEntity.setRequest(subscriptionInput.getRequest());
-            newSubscriptionEntity.setGeneralConditionsAccepted(subscriptionInput.getGeneralConditionsAccepted());
-            if (subscriptionInput.getGeneralConditionsContentRevision() != null) {
-                final PageRevisionId generalConditionsContentRevision = new PageRevisionId(
-                    subscriptionInput.getGeneralConditionsContentRevision().getPageId(),
-                    subscriptionInput.getGeneralConditionsContentRevision().getRevision()
-                );
-                newSubscriptionEntity.setGeneralConditionsContentRevision(generalConditionsContentRevision);
-            }
-            newSubscriptionEntity.setMetadata(subscriptionInput.getMetadata());
-            SubscriptionConfigurationInput inputConfiguration = subscriptionInput.getConfiguration();
-            if (inputConfiguration != null) {
-                SubscriptionConfigurationEntity subscriptionConfigurationEntity = new SubscriptionConfigurationEntity();
-                subscriptionConfigurationEntity.setEntrypointId(inputConfiguration.getEntrypointId());
-                subscriptionConfigurationEntity.setChannel(inputConfiguration.getChannel());
-                if (inputConfiguration.getEntrypointConfiguration() != null) {
-                    subscriptionConfigurationEntity.setEntrypointConfiguration(
-                        graviteeMapper.valueToTree(inputConfiguration.getEntrypointConfiguration())
-                    );
-                }
-                newSubscriptionEntity.setConfiguration(subscriptionConfigurationEntity);
-            }
-            if (subscriptionInput.getApiKeyMode() != null) {
-                newSubscriptionEntity.setApiKeyMode(ApiKeyMode.valueOf(subscriptionInput.getApiKeyMode().name()));
-            }
-            SubscriptionEntity createdSubscription = subscriptionService.create(executionContext, newSubscriptionEntity);
+            GenericPlanEntity plan = planSearchService.findById(executionContext, subscriptionInput.getPlan());
 
-            // For consumer convenience, fetch the keys just after the subscription has been
-            // created.
+            var auditInfo = getAuditInfo();
+
+            CreateSubscriptionUseCase.Output output = createSubscriptionUseCase.execute(
+                CreateSubscriptionUseCase.Input.builder()
+                    .referenceId(plan.getReferenceId())
+                    .referenceType(SubscriptionReferenceType.valueOf(plan.getReferenceType().name()))
+                    .planId(subscriptionInput.getPlan())
+                    .applicationId(applicationId)
+                    .requestMessage(subscriptionInput.getRequest())
+                    .metadata(subscriptionInput.getMetadata())
+                    .configuration(getSubscriptionConfiguration(subscriptionInput))
+                    .apiKeyMode(getApiKeyMode(subscriptionInput))
+                    .generalConditionsAccepted(subscriptionInput.getGeneralConditionsAccepted())
+                    .generalConditionsContentRevision(getPageRevisionId(subscriptionInput))
+                    .auditInfo(auditInfo)
+                    .build()
+            );
+
+            // Fetch legacy subscription entity for response mapping
+            SubscriptionEntity createdSubscription = subscriptionService.findById(output.subscription().getId());
+
+            // For consumer convenience, fetch the keys just after the subscription has been created.
             List<Key> keys = apiKeyService
                 .findBySubscription(executionContext, createdSubscription.getId())
                 .stream()
                 .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
                 .map(keyMapper::convert)
-                .collect(Collectors.toList());
+                .toList();
 
             final Subscription subscription = SubscriptionMapper.INSTANCE.map(createdSubscription);
             subscription.setKeys(keys);
@@ -149,6 +150,39 @@ public class SubscriptionsResource extends AbstractResource {
             return Response.ok(subscription).build();
         }
         throw new ForbiddenAccessException();
+    }
+
+    private SubscriptionConfiguration getSubscriptionConfiguration(SubscriptionInput subscriptionInput) {
+        SubscriptionConfiguration configuration = null;
+        SubscriptionConfigurationInput inputConfiguration = subscriptionInput.getConfiguration();
+        if (inputConfiguration != null) {
+            var entrypointConfigNode = graviteeMapper.valueToTree(inputConfiguration.getEntrypointConfiguration());
+            configuration = SubscriptionConfiguration.builder()
+                .entrypointId(inputConfiguration.getEntrypointId())
+                .channel(inputConfiguration.getChannel())
+                .entrypointConfiguration(
+                    entrypointConfigNode != null && !entrypointConfigNode.isNull() ? entrypointConfigNode.toString() : null
+                )
+                .build();
+        }
+        return configuration;
+    }
+
+    private static ApiKeyMode getApiKeyMode(SubscriptionInput subscriptionInput) {
+        return subscriptionInput.getApiKeyMode() != null ? ApiKeyMode.valueOf(subscriptionInput.getApiKeyMode().name()) : null;
+    }
+
+    private static PageRevisionId getPageRevisionId(SubscriptionInput subscriptionInput) {
+        PageRevisionId generalConditionsContentRevision = null;
+        if (subscriptionInput.getGeneralConditionsContentRevision() != null) {
+            var pageId = subscriptionInput.getGeneralConditionsContentRevision().getPageId();
+            var revision = subscriptionInput.getGeneralConditionsContentRevision().getRevision();
+            if (pageId == null || revision == null) {
+                throw new IllegalArgumentException("generalConditionsContentRevision must contain pageId and revision fields");
+            }
+            generalConditionsContentRevision = new PageRevisionId(pageId, revision);
+        }
+        return generalConditionsContentRevision;
     }
 
     @GET

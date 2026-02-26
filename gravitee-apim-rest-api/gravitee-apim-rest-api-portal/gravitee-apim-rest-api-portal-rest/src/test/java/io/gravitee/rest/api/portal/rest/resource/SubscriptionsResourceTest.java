@@ -23,24 +23,29 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
+import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
-import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.portal.rest.model.ApiKeyModeEnum;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Links;
@@ -49,12 +54,14 @@ import io.gravitee.rest.api.portal.rest.model.SubscriptionConfigurationInput;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionsResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.exception.SubscriptionMetadataInvalidException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -81,29 +88,40 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
     public void init() {
         resetAllMocks();
 
-        SubscriptionEntity subscriptionEntity1 = new SubscriptionEntity();
+        io.gravitee.rest.api.model.SubscriptionEntity subscriptionEntity1 = new io.gravitee.rest.api.model.SubscriptionEntity();
         subscriptionEntity1.setId(SUBSCRIPTION);
         subscriptionEntity1.setStatus(SubscriptionStatus.ACCEPTED);
-        SubscriptionEntity subscriptionEntity2 = new SubscriptionEntity();
+        io.gravitee.rest.api.model.SubscriptionEntity subscriptionEntity2 = new io.gravitee.rest.api.model.SubscriptionEntity();
         subscriptionEntity2.setId(ANOTHER_SUBSCRIPTION);
         subscriptionEntity2.setStatus(SubscriptionStatus.ACCEPTED);
-        final Page<SubscriptionEntity> subscriptionPage = new Page<>(asList(subscriptionEntity1, subscriptionEntity2), 0, 1, 2);
+        final Page<io.gravitee.rest.api.model.SubscriptionEntity> subscriptionPage = new Page<>(
+            asList(subscriptionEntity1, subscriptionEntity2),
+            0,
+            1,
+            2
+        );
         doReturn(subscriptionPage.getContent()).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
         doReturn(subscriptionPage).when(subscriptionService).search(any(), any(), any());
 
-        SubscriptionEntity createdSubscription = new SubscriptionEntity();
-        createdSubscription.setId(SUBSCRIPTION);
-        createdSubscription.setStatus(SubscriptionStatus.ACCEPTED);
-        doReturn(createdSubscription).when(subscriptionService).create(eq(GraviteeContext.getExecutionContext()), any());
+        // Core subscription entity returned by UseCase
+        SubscriptionEntity coreSubscriptionEntity = SubscriptionEntity.builder().id(SUBSCRIPTION).build();
+        doReturn(new CreateSubscriptionUseCase.Output(coreSubscriptionEntity))
+            .when(createSubscriptionUseCase)
+            .execute(any(CreateSubscriptionUseCase.Input.class));
 
-        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
-        subscriptionEntity.setApi(API);
+        io.gravitee.rest.api.model.SubscriptionEntity subscriptionEntity = new io.gravitee.rest.api.model.SubscriptionEntity();
+        subscriptionEntity.setId(SUBSCRIPTION);
+        subscriptionEntity.setStatus(SubscriptionStatus.ACCEPTED);
+        subscriptionEntity.setReferenceId(API);
+        subscriptionEntity.setReferenceType("API");
         subscriptionEntity.setApplication(APPLICATION);
         doReturn(subscriptionEntity).when(subscriptionService).findById(eq(SUBSCRIPTION));
         doReturn(true).when(permissionService).hasPermission(any(), any(), any(), any());
 
         PlanEntity planEntity = new PlanEntity();
         planEntity.setApi(API);
+        planEntity.setReferenceId(API);
+        planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
         doReturn(planEntity).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN);
     }
 
@@ -136,7 +154,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoPublishedApiAndNoLink() {
-        final Page<SubscriptionEntity> subscriptionPage = new Page<>(emptyList(), 0, 1, 2);
+        final Page<io.gravitee.rest.api.model.SubscriptionEntity> subscriptionPage = new Page<>(emptyList(), 0, 1, 2);
         doReturn(subscriptionPage).when(subscriptionService).search(any(), any(), any());
 
         //Test with default limit
@@ -182,15 +200,16 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         final Response response = target().request().post(Entity.json(subscriptionInput));
         assertEquals(OK_200, response.getStatus());
 
-        ArgumentCaptor<NewSubscriptionEntity> argument = ArgumentCaptor.forClass(NewSubscriptionEntity.class);
-        Mockito.verify(subscriptionService).create(eq(GraviteeContext.getExecutionContext()), argument.capture());
-        NewSubscriptionEntity newSubscriptionEntity = argument.getValue();
-        assertEquals(APPLICATION, newSubscriptionEntity.getApplication());
-        assertEquals(PLAN, newSubscriptionEntity.getPlan());
-        assertEquals("request", newSubscriptionEntity.getRequest());
-        assertEquals(Map.of("my-metadata", "my-value"), newSubscriptionEntity.getMetadata());
-        assertEquals("{\"url\":\"my-url\"}", newSubscriptionEntity.getConfiguration().getEntrypointConfiguration());
-        assertEquals(ApiKeyMode.EXCLUSIVE, argument.getValue().getApiKeyMode());
+        ArgumentCaptor<CreateSubscriptionUseCase.Input> argument = ArgumentCaptor.forClass(CreateSubscriptionUseCase.Input.class);
+        verify(createSubscriptionUseCase).execute(argument.capture());
+        CreateSubscriptionUseCase.Input useCaseInput = argument.getValue();
+        assertEquals(APPLICATION, useCaseInput.applicationId());
+        assertEquals(PLAN, useCaseInput.planId());
+        assertEquals("request", useCaseInput.requestMessage());
+        assertEquals(Map.of("my-metadata", "my-value"), useCaseInput.metadata());
+        assertEquals("{\"url\":\"my-url\"}", useCaseInput.configuration().getEntrypointConfiguration());
+        assertEquals(ApiKeyMode.EXCLUSIVE, useCaseInput.apiKeyMode());
+        assertEquals(API, useCaseInput.referenceId());
 
         final Subscription subscriptionResponse = response.readEntity(Subscription.class);
         assertNotNull(subscriptionResponse);
@@ -198,6 +217,22 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         assertNotNull(subscriptionResponse.getKeys());
         assertEquals(1, subscriptionResponse.getKeys().size());
         assertEquals(key, subscriptionResponse.getKeys().get(0));
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenMetadataKeyIsInvalid() {
+        doThrow(new SubscriptionMetadataInvalidException("Invalid metadata key."))
+            .when(createSubscriptionUseCase)
+            .execute(argThat(input -> input.metadata() != null && input.metadata().containsKey("bad key")));
+
+        SubscriptionInput subscriptionInput = new SubscriptionInput()
+            .application(APPLICATION)
+            .plan(PLAN)
+            .metadata(Map.of("bad key", "value"));
+
+        final Response response = target().request().post(Entity.json(subscriptionInput));
+        Assertions.assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        verify(createSubscriptionUseCase, times(1)).execute(any());
     }
 
     @Test

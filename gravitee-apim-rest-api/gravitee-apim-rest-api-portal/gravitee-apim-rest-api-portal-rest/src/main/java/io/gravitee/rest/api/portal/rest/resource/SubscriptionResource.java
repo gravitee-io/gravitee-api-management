@@ -18,8 +18,6 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_SUBSCRIPTION;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
-import io.gravitee.apim.core.audit.model.AuditActor;
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -115,24 +113,7 @@ public class SubscriptionResource extends AbstractResource {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (hasPermission(executionContext, APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), RolePermissionAction.DELETE)) {
-            final var user = getAuthenticatedUserDetails();
-
-            closeSubscriptionUsecase.execute(
-                new CloseSubscriptionUseCase.Input(
-                    subscriptionId,
-                    AuditInfo.builder()
-                        .organizationId(executionContext.getOrganizationId())
-                        .environmentId(executionContext.getEnvironmentId())
-                        .actor(
-                            AuditActor.builder()
-                                .userId(user.getUsername())
-                                .userSource(user.getSource())
-                                .userSourceId(user.getSourceId())
-                                .build()
-                        )
-                        .build()
-                )
-            );
+            closeSubscriptionUsecase.execute(new CloseSubscriptionUseCase.Input(subscriptionId, getAuditInfo()));
             return Response.noContent().build();
         }
         throw new ForbiddenAccessException();
@@ -155,8 +136,11 @@ public class SubscriptionResource extends AbstractResource {
 
         UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
         updateSubscriptionConfigurationEntity.setSubscriptionId(subscriptionId);
-        updateSubscriptionConfigurationEntity.setMetadata(updateSubscriptionInput.getMetadata());
         SubscriptionConfigurationInput subscriptionConfigurationInput = updateSubscriptionInput.getConfiguration();
+
+        if (updateSubscriptionInput.getMetadata() != null) {
+            updateSubscriptionConfigurationEntity.setMetadata(updateSubscriptionInput.getMetadata());
+        }
         if (subscriptionConfigurationInput != null) {
             SubscriptionConfigurationEntity subscriptionConfigurationEntity = new SubscriptionConfigurationEntity();
             subscriptionConfigurationEntity.setChannel(subscriptionConfigurationInput.getChannel());

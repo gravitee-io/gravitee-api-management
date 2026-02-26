@@ -915,7 +915,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setMetadata(subscriptionConfigEntity.getMetadata());
 
             subscription = subscriptionRepository.update(subscription);
-
             String referenceId = planEntity.getReferenceId();
             createAudit(
                 executionContext,
