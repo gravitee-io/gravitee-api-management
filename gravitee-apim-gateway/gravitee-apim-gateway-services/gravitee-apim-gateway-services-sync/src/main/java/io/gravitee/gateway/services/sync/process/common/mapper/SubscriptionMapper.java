@@ -92,6 +92,7 @@ public class SubscriptionMapper {
                 }
                 metadata.put("productId", productId);
                 metadata.put("exploded", "true");
+                sub.setApiProductId(productId);
 
                 return sub;
             })
@@ -155,6 +156,7 @@ public class SubscriptionMapper {
         }
         if (subscriptionModel.getReferenceId() != null) {
             metadata.put("productId", subscriptionModel.getReferenceId());
+            sub.setApiProductId(subscriptionModel.getReferenceId());
         }
         metadata.put("exploded", "true");
         return sub;
