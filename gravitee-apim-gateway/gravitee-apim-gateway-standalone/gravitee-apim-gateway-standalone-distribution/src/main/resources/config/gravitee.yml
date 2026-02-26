@@ -849,6 +849,8 @@ api:
   # change), this timeout will be the maximum time (in milliseconds) to wait for all pending requests to terminate
 #  pending_requests_timeout: 10000
   validateSubscription: true  # set to false if you want to skip validating the subscription, default value is true
+#  security:
+#    verbose401: false  # set to true to return detailed error messages in 401 responses
   # PUSH plan Subscription retry strategy
 #  subscriptionEndpointRetry:
 #    backoffStrategy: EXPONENTIAL # LINEAR or EXPONENTIAL
