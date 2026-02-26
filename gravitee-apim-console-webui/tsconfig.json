@@ -8,6 +8,7 @@
       "@gravitee/gravitee-markdown": ["../gravitee-apim-webui-libs/gravitee-markdown/src/public-api.ts"],
       "@gravitee/gravitee-dashboard": ["../gravitee-apim-webui-libs/gravitee-dashboard/src/public-api.ts"],
       "@gravitee/gravitee-kafka-explorer": ["../gravitee-apim-webui-libs/gravitee-kafka-explorer/src/public-api.ts"],
+      "@gravitee/gravitee-kafka-explorer/testing": ["../gravitee-apim-webui-libs/gravitee-kafka-explorer/src/testing-public-api.ts"],
       /* Used in v2 API markdown editor */
       "@toast-ui/editor": ["../node_modules/@toast-ui/editor/types/index.d.ts"],
       "@toast-ui/editor/types/ui": ["../node_modules/@toast-ui/editor/types/ui.d.ts"],
