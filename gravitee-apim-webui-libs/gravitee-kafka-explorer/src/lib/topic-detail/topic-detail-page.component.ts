@@ -49,7 +49,8 @@ export class TopicDetailPageComponent implements OnInit {
           this.topicDetail.set(detail);
           this.loading.set(false);
         },
-        error: () => {
+        error: err => {
+          this.store.error.set(err?.error?.message ?? 'Failed to load topic details');
           this.loading.set(false);
         },
       });
