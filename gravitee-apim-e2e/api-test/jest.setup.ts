@@ -28,7 +28,6 @@ beforeAll(async () => {
   const currentUserResourceAsApiUser = new CurrentUserApi(forManagementAsApiUser());
   const currentUserResourceAsAppUser = new CurrentUserApi(forManagementAsAppUser());
 
-  console.log('Initializing API and App users for tests.');
   // Ensure that API user and App User are properly initialized before using them in tests.
   // APIM should create these two users automatically
   const apiResponse = await currentUserResourceAsApiUser.getCurrentUserRaw({
