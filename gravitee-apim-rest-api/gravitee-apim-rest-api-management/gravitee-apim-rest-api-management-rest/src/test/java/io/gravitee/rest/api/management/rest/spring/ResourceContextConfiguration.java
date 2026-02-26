@@ -91,6 +91,7 @@ import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.json.JsonSchemaChecker;
+import io.gravitee.apim.core.logs_engine.domain_service.LogNamesPostProcessor;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
@@ -148,6 +149,7 @@ import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceIm
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.logs_engine.LogNamesPostProcessorImpl;
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
@@ -1202,6 +1204,11 @@ public class ResourceContextConfiguration {
     @Bean
     public BucketNamesPostProcessor namesPostprocessor() {
         return mock(BucketNamesPostProcessor.class);
+    }
+
+    @Bean
+    public LogNamesPostProcessor logNamesPostProcessor() {
+        return new LogNamesPostProcessorImpl();
     }
 
     @Bean
