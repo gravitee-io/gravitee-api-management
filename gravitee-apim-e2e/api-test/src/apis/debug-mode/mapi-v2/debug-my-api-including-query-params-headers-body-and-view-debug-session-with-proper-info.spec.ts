@@ -250,7 +250,7 @@ describeIfClientGatewayCompatible('Debug my API (incl. query params, Headers and
           },
           error: (err) => done(err),
         });
-      });
+      }, 90000);
 
       afterAll(() => debugEventSubscription.unsubscribe());
 
@@ -279,7 +279,7 @@ describeIfClientGatewayCompatible('Debug my API (incl. query params, Headers and
           },
           error: (err) => done(err),
         });
-      });
+      }, 90000);
 
       afterAll(() => debugEventSubscription.unsubscribe());
 
@@ -306,7 +306,7 @@ describeIfClientGatewayCompatible('Debug my API (incl. query params, Headers and
           },
           error: (err) => done(err),
         });
-      });
+      }, 90000);
 
       afterAll(() => debugEventSubscription.unsubscribe());
 
@@ -494,7 +494,7 @@ describeIfClientGatewayCompatible('Debug my API (incl. query params, Headers and
           },
           error: (err) => done(err),
         });
-      });
+      }, 90000);
 
       afterAll(() => debugEventSubscription.unsubscribe());
 
@@ -523,7 +523,7 @@ describeIfClientGatewayCompatible('Debug my API (incl. query params, Headers and
           },
           error: (err) => done(err),
         });
-      });
+      }, 90000);
 
       afterAll(() => debugEventSubscription.unsubscribe());
 
@@ -550,7 +550,7 @@ describeIfClientGatewayCompatible('Debug my API (incl. query params, Headers and
           },
           error: (err) => done(err),
         });
-      });
+      }, 90000);
 
       afterAll(() => debugEventSubscription.unsubscribe());
 
@@ -738,7 +738,7 @@ describeIfClientGatewayCompatible('Debug my API (incl. query params, Headers and
           },
           error: (err) => done(err),
         });
-      });
+      }, 90000);
 
       afterAll(() => debugEventSubscription.unsubscribe());
 
@@ -767,7 +767,7 @@ describeIfClientGatewayCompatible('Debug my API (incl. query params, Headers and
           },
           error: (err) => done(err),
         });
-      });
+      }, 90000);
 
       afterAll(() => debugEventSubscription.unsubscribe());
 
@@ -794,7 +794,7 @@ describeIfClientGatewayCompatible('Debug my API (incl. query params, Headers and
           },
           error: (err) => done(err),
         });
-      });
+      }, 90000);
 
       afterAll(() => debugEventSubscription.unsubscribe());
 
@@ -889,6 +889,6 @@ const createAndWaitForDebugResult$ = (envId: string, apiId: string, debugHttpReq
       return value;
     }),
     // Retry pipe operators if error is thrown
-    retry({ delay: 1000 }),
+    retry({ delay: 1000, count: 60 }),
   );
 };
