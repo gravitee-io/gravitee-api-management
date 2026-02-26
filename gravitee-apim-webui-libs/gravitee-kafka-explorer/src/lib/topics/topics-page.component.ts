@@ -41,7 +41,7 @@ export class TopicsPageComponent implements OnInit {
 
   private currentFilter = '';
   private currentPage = 0;
-  private currentPageSize = 10;
+  private currentPageSize = 25;
   private readonly filterSubject = new Subject<string>();
 
   ngOnInit() {

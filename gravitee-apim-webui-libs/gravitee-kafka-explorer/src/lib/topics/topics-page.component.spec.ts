@@ -72,7 +72,7 @@ describe('TopicsPageComponent', () => {
     const req = httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/list-topics');
     expect(req.request.body).toEqual({ clusterId: 'test-cluster-id' });
     expect(req.request.params.get('page')).toBe('1');
-    expect(req.request.params.get('perPage')).toBe('10');
+    expect(req.request.params.get('perPage')).toBe('25');
     req.flush(fakeListTopicsResponse());
   });
 
