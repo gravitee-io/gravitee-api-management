@@ -19,6 +19,9 @@ import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
 import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.KafkaClusterDomainService;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerInfo;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroup;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupDetail;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupsPage;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaTopic;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicDetail;
@@ -32,6 +35,8 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
     private List<KafkaTopic> topics;
     private TopicDetail topicDetail;
     private BrokerInfo brokerInfo;
+    private List<ConsumerGroup> consumerGroups;
+    private ConsumerGroupDetail consumerGroupDetail;
     private KafkaExplorerException exception;
 
     public void givenClusterInfo(KafkaClusterInfo info) {
@@ -54,12 +59,24 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
         this.exception = null;
     }
 
+    public void givenConsumerGroups(List<ConsumerGroup> consumerGroups) {
+        this.consumerGroups = consumerGroups;
+        this.exception = null;
+    }
+
+    public void givenConsumerGroupDetail(ConsumerGroupDetail detail) {
+        this.consumerGroupDetail = detail;
+        this.exception = null;
+    }
+
     public void givenException(KafkaExplorerException exception) {
         this.exception = exception;
         this.result = null;
         this.topics = null;
         this.topicDetail = null;
         this.brokerInfo = null;
+        this.consumerGroups = null;
+        this.consumerGroupDetail = null;
     }
 
     @Override
@@ -103,5 +120,32 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
             throw exception;
         }
         return brokerInfo;
+    }
+
+    @Override
+    public ConsumerGroupsPage listConsumerGroups(KafkaClusterConfiguration config, String nameFilter, int page, int perPage) {
+        if (exception != null) {
+            throw exception;
+        }
+
+        List<ConsumerGroup> filtered = consumerGroups
+            .stream()
+            .filter(g -> nameFilter == null || nameFilter.isBlank() || g.groupId().toLowerCase().contains(nameFilter.toLowerCase()))
+            .sorted(Comparator.comparing(ConsumerGroup::groupId))
+            .toList();
+
+        int totalCount = filtered.size();
+        int fromIndex = Math.min(page * perPage, totalCount);
+        int toIndex = Math.min(fromIndex + perPage, totalCount);
+
+        return new ConsumerGroupsPage(filtered.subList(fromIndex, toIndex), totalCount, page, perPage);
+    }
+
+    @Override
+    public ConsumerGroupDetail describeConsumerGroup(KafkaClusterConfiguration config, String groupId) {
+        if (exception != null) {
+            throw exception;
+        }
+        return consumerGroupDetail;
     }
 }

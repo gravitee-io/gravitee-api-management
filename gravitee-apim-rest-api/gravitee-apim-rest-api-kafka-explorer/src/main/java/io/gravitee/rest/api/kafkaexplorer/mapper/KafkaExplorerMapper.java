@@ -18,6 +18,9 @@ package io.gravitee.rest.api.kafkaexplorer.mapper;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerLogDirEntry;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroup;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupDetail;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupsPage;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaNode;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaTopic;
@@ -25,9 +28,12 @@ import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicConfigEntry;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicPartitionDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicsPage;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.ConsumerGroupSummary;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeBrokerResponse;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterResponse;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeConsumerGroupResponse;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeTopicResponse;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.ListConsumerGroupsResponse;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.ListTopicsResponse;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.Pagination;
 import java.util.List;
@@ -70,4 +76,35 @@ public interface KafkaExplorerMapper {
                     .totalCount(topicsPage.totalCount())
             );
     }
+
+    ConsumerGroupSummary map(ConsumerGroup consumerGroup);
+
+    List<ConsumerGroupSummary> mapConsumerGroups(List<ConsumerGroup> consumerGroups);
+
+    default ListConsumerGroupsResponse map(ConsumerGroupsPage consumerGroupsPage, int page, int perPage) {
+        return new ListConsumerGroupsResponse()
+            .data(mapConsumerGroups(consumerGroupsPage.data()))
+            .pagination(
+                new Pagination()
+                    .page(page)
+                    .perPage(perPage)
+                    .pageCount((int) Math.ceil((double) consumerGroupsPage.totalCount() / perPage))
+                    .pageItemsCount(consumerGroupsPage.data().size())
+                    .totalCount(consumerGroupsPage.totalCount())
+            );
+    }
+
+    DescribeConsumerGroupResponse map(ConsumerGroupDetail consumerGroupDetail);
+
+    io.gravitee.rest.api.kafkaexplorer.rest.model.ConsumerGroupMember map(
+        io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupMember member
+    );
+
+    io.gravitee.rest.api.kafkaexplorer.rest.model.MemberAssignment map(
+        io.gravitee.rest.api.kafkaexplorer.domain.model.MemberAssignment assignment
+    );
+
+    io.gravitee.rest.api.kafkaexplorer.rest.model.ConsumerGroupOffset map(
+        io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupOffset offset
+    );
 }
