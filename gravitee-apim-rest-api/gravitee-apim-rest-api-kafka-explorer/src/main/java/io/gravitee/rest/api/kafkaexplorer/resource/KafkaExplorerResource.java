@@ -17,10 +17,12 @@ package io.gravitee.rest.api.kafkaexplorer.resource;
 
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
+import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeBrokerUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeKafkaClusterUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeTopicUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.ListTopicsUseCase;
 import io.gravitee.rest.api.kafkaexplorer.mapper.KafkaExplorerMapper;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeBrokerRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeTopicRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaExplorerError;
@@ -43,6 +45,9 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 public class KafkaExplorerResource {
+
+    @Inject
+    private DescribeBrokerUseCase describeBrokerUseCase;
 
     @Inject
     private DescribeKafkaClusterUseCase describeKafkaClusterUseCase;
@@ -139,6 +144,38 @@ public class KafkaExplorerResource {
                 new DescribeTopicUseCase.Input(request.getClusterId(), environmentId, request.getTopicName())
             );
             return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.topicDetail())).build();
+        } catch (KafkaExplorerException e) {
+            return Response.status(Response.Status.BAD_GATEWAY)
+                .entity(new KafkaExplorerError().message(e.getMessage()).technicalCode(e.getTechnicalCode().name()))
+                .build();
+        }
+    }
+
+    @POST
+    @Path("/describe-broker")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @GraviteeLicenseFeature("apim-native-kafka-explorer")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ) })
+    public Response describeBroker(DescribeBrokerRequest request) {
+        if (request == null || request.getClusterId() == null || request.getClusterId().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                .build();
+        }
+
+        if (request.getBrokerId() == null || request.getBrokerId() < 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new KafkaExplorerError().message("brokerId must be >= 0").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                .build();
+        }
+
+        try {
+            var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
+            var result = describeBrokerUseCase.execute(
+                new DescribeBrokerUseCase.Input(request.getClusterId(), environmentId, request.getBrokerId())
+            );
+            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.brokerInfo())).build();
         } catch (KafkaExplorerException e) {
             return Response.status(Response.Status.BAD_GATEWAY)
                 .entity(new KafkaExplorerError().message(e.getMessage()).technicalCode(e.getTechnicalCode().name()))

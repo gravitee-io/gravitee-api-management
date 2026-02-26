@@ -20,10 +20,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.ClusterCrudServiceInMemory;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeBrokerUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeKafkaClusterUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeTopicUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.ListTopicsUseCase;
 import io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service.KafkaClusterDomainServiceImpl;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeBrokerRequest;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeBrokerResponse;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterResponse;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeTopicRequest;
@@ -95,6 +98,8 @@ class KafkaExplorerResourceIntegrationTest {
         var describeUseCase = new DescribeKafkaClusterUseCase(clusterCrudService, clusterService, objectMapper);
         var listTopicsUseCase = new ListTopicsUseCase(clusterCrudService, clusterService, objectMapper);
         var describeTopicUseCase = new DescribeTopicUseCase(clusterCrudService, clusterService, objectMapper);
+        var describeBrokerUseCase = new DescribeBrokerUseCase(clusterCrudService, clusterService, objectMapper);
+        injectField(resource, "describeBrokerUseCase", describeBrokerUseCase);
         injectField(resource, "describeKafkaClusterUseCase", describeUseCase);
         injectField(resource, "listTopicsUseCase", listTopicsUseCase);
         injectField(resource, "describeTopicUseCase", describeTopicUseCase);
@@ -494,6 +499,69 @@ class KafkaExplorerResourceIntegrationTest {
             var request = new DescribeTopicRequest().clusterId(CLUSTER_ID).topicName(DESCRIBE_TOPIC);
 
             var response = resource.describeTopic(request);
+
+            assertThat(response.getStatus()).isEqualTo(502);
+            var error = (KafkaExplorerError) response.getEntity();
+            assertThat(error.getTechnicalCode()).isEqualTo("CONNECTION_FAILED");
+        }
+    }
+
+    @Nested
+    class DescribeBroker {
+
+        @Test
+        void should_return_200_with_broker_detail() {
+            givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+
+            var request = new DescribeBrokerRequest().clusterId(CLUSTER_ID).brokerId(0);
+
+            var response = resource.describeBroker(request);
+
+            assertThat(response.getStatus()).isEqualTo(200);
+            var body = (DescribeBrokerResponse) response.getEntity();
+            assertThat(body.getId()).isEqualTo(0);
+            assertThat(body.getHost()).isNotBlank();
+            assertThat(body.getPort()).isGreaterThan(0);
+            assertThat(body.getIsController()).isNotNull();
+            assertThat(body.getLeaderPartitions()).isGreaterThanOrEqualTo(0);
+            assertThat(body.getReplicaPartitions()).isGreaterThanOrEqualTo(0);
+            assertThat(body.getLogDirEntries()).isNotNull();
+            assertThat(body.getConfigs()).isNotNull().isNotEmpty();
+        }
+
+        @Test
+        void should_return_400_when_broker_id_is_null() {
+            givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+
+            var request = new DescribeBrokerRequest().clusterId(CLUSTER_ID);
+
+            var response = resource.describeBroker(request);
+
+            assertThat(response.getStatus()).isEqualTo(400);
+            var error = (KafkaExplorerError) response.getEntity();
+            assertThat(error.getTechnicalCode()).isEqualTo("INVALID_PARAMETERS");
+        }
+
+        @Test
+        void should_return_400_when_broker_id_is_negative() {
+            givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+
+            var request = new DescribeBrokerRequest().clusterId(CLUSTER_ID).brokerId(-1);
+
+            var response = resource.describeBroker(request);
+
+            assertThat(response.getStatus()).isEqualTo(400);
+            var error = (KafkaExplorerError) response.getEntity();
+            assertThat(error.getTechnicalCode()).isEqualTo("INVALID_PARAMETERS");
+        }
+
+        @Test
+        void should_return_502_when_broker_unreachable() {
+            givenClusterWithConfig(Map.of("bootstrapServers", "localhost:19092", "security", Map.of("protocol", "PLAINTEXT")));
+
+            var request = new DescribeBrokerRequest().clusterId(CLUSTER_ID).brokerId(0);
+
+            var response = resource.describeBroker(request);
 
             assertThat(response.getStatus()).isEqualTo(502);
             var error = (KafkaExplorerError) response.getEntity();
