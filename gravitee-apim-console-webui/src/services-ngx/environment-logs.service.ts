@@ -24,6 +24,7 @@ import { Constants } from '../entities/Constants';
  */
 export interface EnvironmentApiLog {
   apiId: string;
+  apiName?: string;
   timestamp: string;
   id: string;
   requestId: string;

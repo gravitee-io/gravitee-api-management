@@ -20,8 +20,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
-import { EMPTY, forkJoin, Observable, of } from 'rxjs';
-import { catchError, debounceTime, map, switchMap, tap } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
+import { catchError, debounceTime, switchMap, tap } from 'rxjs/operators';
 
 import type { EnvLog } from './models/env-log.model';
 
@@ -29,24 +29,13 @@ import { EnvLogsFilterBarComponent } from './components/env-logs-filter-bar/env-
 import { EnvLogsTableComponent } from './components/env-logs-table/env-logs-table.component';
 
 import { EnvironmentLogsService, EnvironmentApiLog } from '../../../services-ngx/environment-logs.service';
-import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { ApplicationService } from '../../../services-ngx/application.service';
-import { ApiPlanV2Service } from '../../../services-ngx/api-plan-v2.service';
-import { InstanceService } from '../../../services-ngx/instance.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTableWrapperPagination } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { Pagination } from '../../../entities/management-api-v2';
 
 /** Gravitee's built-in sentinel ID for unauthenticated / Keyless traffic. */
 const UNKNOWN_APPLICATION_ID = '1';
-const UNKNOWN_APPLICATION_LABEL = 'Unknown application (keyless)';
-
-type ResolvedNames = {
-  api: Record<string, string>;
-  app: Record<string, string>;
-  plan: Record<string, string>;
-  gateway: Record<string, string>;
-};
+const UNKNOWN_APPLICATION_LABEL = 'Default application';
 
 @Component({
   selector: 'env-logs',
@@ -58,10 +47,6 @@ type ResolvedNames = {
 })
 export class EnvLogsComponent {
   private readonly environmentLogsService = inject(EnvironmentLogsService);
-  private readonly apiV2Service = inject(ApiV2Service);
-  private readonly applicationService = inject(ApplicationService);
-  private readonly planService = inject(ApiPlanV2Service);
-  private readonly instanceService = inject(InstanceService);
   private readonly snackBarService = inject(SnackBarService);
   private readonly datePipe = inject(DatePipe);
 
@@ -77,35 +62,6 @@ export class EnvLogsComponent {
     }),
     switchMap(({ page, perPage }) =>
       this.environmentLogsService.searchLogs({ page, perPage }).pipe(
-        switchMap(response => {
-          const apiIds = [...new Set(response.data.map(log => log.apiId).filter(Boolean))];
-          const appIds = [
-            ...new Set(response.data.map(log => log.application?.id).filter(id => Boolean(id) && id !== UNKNOWN_APPLICATION_ID)),
-          ];
-          const gatewayIds = [...new Set(response.data.map(log => log.gateway).filter(Boolean))];
-          const planEntries = [
-            ...new Map(
-              response.data
-                .filter(log => log.plan?.id && log.apiId)
-                .map(log => [`${log.apiId}|${log.plan.id}`, { apiId: log.apiId, planId: log.plan.id }]),
-            ).values(),
-          ];
-
-          const planCompositeKeys = planEntries.map(e => `${e.apiId}|${e.planId}`);
-
-          // TODO: Move name resolution to the backend (SearchEnvironmentLogsUseCase) to match proxy logs pattern.
-          // Currently resolving names via N+1 frontend calls; the backend should return enriched objects
-          // with names (like ConnectionLog does for API runtime logs). See ApplicationMetadataProvider for reference.
-          return forkJoin({
-            api: this.resolveNames(apiIds, id => this.apiV2Service.get(id).pipe(map(a => a.name))),
-            app: this.resolveNames(appIds, id => this.applicationService.getById(id).pipe(map(a => a.name))),
-            plan: this.resolveNames(planCompositeKeys, compositeKey => {
-              const [apiId, planId] = compositeKey.split('|');
-              return this.planService.get(apiId, planId).pipe(map(p => p.name));
-            }),
-            gateway: this.resolveNames(gatewayIds, id => this.instanceService.getByGatewayId(id).pipe(map(i => i.hostname ?? id))),
-          }).pipe(map((resolved: ResolvedNames) => ({ response, resolved })));
-        }),
         tap(() => this.loading.set(false)),
         catchError(err => {
           this.loading.set(false);
@@ -125,12 +81,12 @@ export class EnvLogsComponent {
 
   logs = computed(() => {
     const result = this.logsResult();
-    return result?.response.data.map(log => this.mapToEnvLog(log, result.resolved)) ?? [];
+    return result?.data.map(log => this.mapToEnvLog(log)) ?? [];
   });
   /** Merges backend totalCount into the pagination signal for the table wrapper. */
   paginationWithTotal = computed(() => ({
     ...this.pagination(),
-    totalCount: this.logsResult()?.response.pagination.totalCount ?? 0,
+    totalCount: this.logsResult()?.pagination.totalCount ?? 0,
   }));
 
   onRefresh() {
@@ -141,47 +97,25 @@ export class EnvLogsComponent {
     this.pagination.update(prev => ({ ...prev, page: event.index, perPage: event.size }));
   }
 
-  private resolveNames(ids: string[], fetcher: (id: string) => Observable<string>): Observable<Record<string, string>> {
-    if (ids.length === 0) return of({});
-
-    return forkJoin(
-      Object.fromEntries(
-        ids.map(id => [
-          id,
-          fetcher(id).pipe(
-            catchError(err => {
-              if (err instanceof HttpErrorResponse && (err.status === 401 || err.status === 403)) {
-                throw err;
-              }
-              return of(id);
-            }),
-          ),
-        ]),
-      ),
-    );
-  }
-
-  private mapToEnvLog(log: EnvironmentApiLog, names: ResolvedNames): EnvLog {
-    const planKey = log.plan?.id && log.apiId ? `${log.apiId}|${log.plan.id}` : undefined;
-    const planName = planKey ? names.plan[planKey] : undefined;
+  private mapToEnvLog(log: EnvironmentApiLog): EnvLog {
     const appName = log.application?.id
       ? log.application.id === UNKNOWN_APPLICATION_ID
         ? UNKNOWN_APPLICATION_LABEL
-        : names.app[log.application.id]
+        : (log.application.name ?? log.application.id)
       : undefined;
 
     return {
       id: log.id,
       timestamp: this.datePipe.transform(log.timestamp, 'medium') ?? log.timestamp,
-      api: names.api[log.apiId] ?? log.apiId,
+      api: log.apiName ?? log.apiId,
       apiId: log.apiId,
       application: appName ?? '—',
       method: log.method ?? '—',
       path: log.uri ?? '—',
       status: log.status,
       responseTime: log.gatewayResponseTime != null ? `${log.gatewayResponseTime} ms` : '—',
-      gateway: log.gateway ? (names.gateway[log.gateway] ?? log.gateway) : undefined,
-      plan: planName ? { name: planName } : undefined,
+      gateway: log.gateway ?? undefined,
+      plan: log.plan?.name ? { name: log.plan.name } : undefined,
       requestEnded: log.requestEnded,
       errorKey: log.errorKey,
       warnings: log.warnings?.map(w => ({ key: w.key ?? '' })),
