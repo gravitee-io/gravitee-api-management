@@ -37,6 +37,7 @@ import {
   GioFormTagsInputModule,
   GioIconsModule,
   GioLoaderModule,
+  GioMonacoEditorModule,
 } from '@gravitee/ui-particles-angular';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
@@ -102,6 +103,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioAvatarModule,
     GioClipboardModule,
     GioFormJsonSchemaModule,
+    GioMonacoEditorModule,
     GioFormTagsInputModule,
     GioIconsModule,
     GioLoaderModule,

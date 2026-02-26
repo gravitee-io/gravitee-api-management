@@ -32,6 +32,17 @@
     }
   }
 
+  &__metadata-cell {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  &__metadata-editor {
+    border: 1px solid mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter60');
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
   &__api-keys {
     &__subtitle {
       padding-bottom: 24px;

@@ -124,6 +124,23 @@
           <dd data-testId="subscription-domain">
             {{ subscription.domain || '-' }}
           </dd>
+
+          <dt>Metadata</dt>
+          <dd class="subscription__metadata-cell" data-testId="subscription-metadata">
+            @if (metadataJson) {
+              <div class="subscription__metadata-editor" gioMonacoClipboardCopy>
+                <gio-monaco-editor
+                  disabled
+                  [options]="monacoEditorOptions"
+                  [languageConfig]="metadataLanguageConfig"
+                  [ngModel]="metadataJson"
+                  [disableMiniMap]="true"
+                ></gio-monaco-editor>
+              </div>
+            } @else {
+              -
+            }
+          </dd>
         </dl>
       </mat-card-content>
       <mat-card-actions>

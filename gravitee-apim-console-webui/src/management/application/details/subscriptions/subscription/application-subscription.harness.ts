@@ -33,6 +33,15 @@ export class ApplicationSubscriptionHarness extends ComponentHarness {
     return chunk(subscriptionDetailsToChunk, 2);
   }
 
+  async getMetadata(): Promise<string> {
+    const el = await this.locatorFor('[data-testid="subscription-metadata"]')();
+    return (await el.text()).trim();
+  }
+
+  async metadataEditorIsVisible(): Promise<boolean> {
+    return this.locatorForOptional('.subscription__metadata-editor')().then(el => el !== null);
+  }
+
   async closeSubscription(): Promise<void> {
     const button = await this.locatorFor(MatButtonHarness.with({ text: /Close/ }))();
     return button.click();

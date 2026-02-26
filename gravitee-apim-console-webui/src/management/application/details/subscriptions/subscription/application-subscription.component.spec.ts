@@ -116,6 +116,7 @@ describe('ApplicationSubscriptionComponent', () => {
       ['Paused at', '-'],
       ['Ending at', '-'],
       ['Closed at', '-'],
+      ['Metadata', '-'],
     ]);
 
     const subscriptionApiKeysHarness = await componentHarness.getSubscriptionApiKeysHarness();
@@ -128,6 +129,31 @@ describe('ApplicationSubscriptionComponent', () => {
         actions: 'hasRevokeButton',
       },
     ]);
+  });
+
+  describe('metadata display', () => {
+    it('should show dash when subscription has no metadata', async () => {
+      expect(await componentHarness.getMetadata()).toEqual('-');
+      expect(await componentHarness.metadataEditorIsVisible()).toEqual(false);
+    });
+
+    it('should show monaco editor when subscription has metadata', async () => {
+      const subscriptionWithMetadata = fakeSubscription({
+        id: subscriptionId,
+        plan: { id: 'planId', name: 'Free Spaceshuttle', security: 'API_KEY' },
+        metadata: { env: 'prod', version: '1' },
+      });
+
+      fixture = TestBed.createComponent(ApplicationSubscriptionComponent);
+      httpTestingController = TestBed.inject(HttpTestingController);
+      componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApplicationSubscriptionHarness);
+      fixture.autoDetectChanges();
+      expectApplicationSubscriptionGet(applicationId, subscriptionWithMetadata);
+      fixture.detectChanges();
+      expectApplicationApiKeysGetRequest();
+
+      expect(await componentHarness.metadataEditorIsVisible()).toEqual(true);
+    });
   });
 
   it('should update consumer subscription configuration', async () => {
