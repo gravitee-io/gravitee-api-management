@@ -18,15 +18,20 @@ package io.gravitee.apim.core.logs_engine.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.repository.ConnectionLogFixtures;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.gateway.model.BaseInstance;
+import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
+import io.gravitee.apim.core.logs_engine.domain_service.LogNamesPostProcessor;
 import io.gravitee.apim.core.logs_engine.model.ApiLogDiagnostic;
 import io.gravitee.apim.core.logs_engine.model.ArrayFilter;
 import io.gravitee.apim.core.logs_engine.model.Filter;
@@ -38,6 +43,8 @@ import io.gravitee.apim.core.logs_engine.model.SearchLogsRequest;
 import io.gravitee.apim.core.logs_engine.model.StringFilter;
 import io.gravitee.apim.core.logs_engine.model.TimeRange;
 import io.gravitee.apim.core.logs_engine.use_case.SearchEnvironmentLogsUseCase.Input;
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.common.http.HttpMethod;
@@ -79,13 +86,28 @@ class SearchEnvironmentLogsUseCaseTest {
 
     private ConnectionLogsCrudService connectionLogsCrudService;
     private UserContextLoader userContextLoader;
+    private LogNamesPostProcessor logNamesPostProcessor;
+    private PlanCrudService planCrudService;
+    private ApplicationCrudService applicationCrudService;
+    private InstanceQueryService instanceQueryService;
     private SearchEnvironmentLogsUseCase useCase;
 
     @BeforeEach
     void setUp() {
         connectionLogsCrudService = mock(ConnectionLogsCrudService.class);
         userContextLoader = mock(UserContextLoader.class);
-        useCase = new SearchEnvironmentLogsUseCase(connectionLogsCrudService, userContextLoader);
+        logNamesPostProcessor = mock(LogNamesPostProcessor.class);
+        planCrudService = mock(PlanCrudService.class);
+        applicationCrudService = mock(ApplicationCrudService.class);
+        instanceQueryService = mock(InstanceQueryService.class);
+        useCase = new SearchEnvironmentLogsUseCase(
+            connectionLogsCrudService,
+            userContextLoader,
+            logNamesPostProcessor,
+            planCrudService,
+            applicationCrudService,
+            instanceQueryService
+        );
     }
 
     @Nested
@@ -695,7 +717,14 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_throw_validation_exception_when_response_time_filter_value_is_null() {
             when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
             );
 
             var request = new SearchLogsRequest(
@@ -713,7 +742,14 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_throw_validation_exception_when_time_range_from_is_after_to() {
             when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
             );
 
             var timeRange = new TimeRange(
@@ -745,7 +781,14 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_throw_validation_exception_when_response_time_gte_is_negative() {
             when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
             );
 
             var request = new SearchLogsRequest(
@@ -763,7 +806,14 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_throw_validation_exception_when_response_time_lte_is_negative() {
             when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
             );
 
             var request = new SearchLogsRequest(
@@ -781,7 +831,14 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_throw_validation_exception_when_response_time_gte_is_greater_than_lte() {
             when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
             );
 
             var request = new SearchLogsRequest(
@@ -873,11 +930,19 @@ class SearchEnvironmentLogsUseCaseTest {
         @Test
         void should_return_empty_response_when_service_returns_no_logs() {
             when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
             );
             when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
                 new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(0, List.of())
             );
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
             var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10))).response();
 
@@ -919,11 +984,21 @@ class SearchEnvironmentLogsUseCaseTest {
                 .build();
 
             when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
             );
             when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
                 new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
             );
+            when(planCrudService.findByIds(any())).thenReturn(List.of());
+            when(applicationCrudService.findByIds(any(), any())).thenReturn(List.of());
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
             var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10))).response();
 
@@ -960,11 +1035,21 @@ class SearchEnvironmentLogsUseCaseTest {
             var log = BaseConnectionLog.builder().timestamp(OffsetDateTime.now().toString()).gatewayResponseTime(Long.MAX_VALUE).build();
 
             when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
             );
             when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
                 new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(log))
             );
+            when(planCrudService.findByIds(any())).thenReturn(List.of());
+            when(applicationCrudService.findByIds(any(), any())).thenReturn(List.of());
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
             var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10))).response();
 
@@ -984,11 +1069,19 @@ class SearchEnvironmentLogsUseCaseTest {
                 .build();
 
             when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
             );
             when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
                 new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(log))
             );
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
             var response = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10))).response();
 
@@ -1005,11 +1098,19 @@ class SearchEnvironmentLogsUseCaseTest {
         void should_calculate_pagination_metadata_correctly() {
             // Case 1: Total 11, PerPage 10 -> 2 pages
             when(userContextLoader.loadApis(any())).thenReturn(
-                new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
             );
             when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
                 new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(11, Collections.emptyList())
             );
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
             var result = useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10))).response();
 
@@ -1026,13 +1127,215 @@ class SearchEnvironmentLogsUseCaseTest {
         }
     }
 
+    @Nested
+    class NameEnrichment {
+
+        @Test
+        void should_batch_load_plan_and_application_names() {
+            var connectionLog = BaseConnectionLog.builder()
+                .apiId(API1.getId())
+                .timestamp(OffsetDateTime.now().toString())
+                .requestId("req-id")
+                .planId("plan-1")
+                .applicationId("app-1")
+                .build();
+
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
+                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
+            );
+            when(planCrudService.findByIds(List.of("plan-1"))).thenReturn(List.of(Plan.builder().id("plan-1").name("Gold Plan").build()));
+            when(applicationCrudService.findByIds(List.of("app-1"), "env-id")).thenReturn(
+                List.of(io.gravitee.rest.api.model.BaseApplicationEntity.builder().id("app-1").name("My App").build())
+            );
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+
+            useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)));
+
+            var contextCaptor = ArgumentCaptor.forClass(UserContext.class);
+            verify(logNamesPostProcessor).mapLogNames(contextCaptor.capture(), any());
+
+            var enrichedContext = contextCaptor.getValue();
+            assertThat(enrichedContext.planNameById()).isPresent();
+            assertThat(enrichedContext.planNameById().get()).containsEntry("plan-1", "Gold Plan");
+            assertThat(enrichedContext.applicationNameById()).isPresent();
+            assertThat(enrichedContext.applicationNameById().get()).containsEntry("app-1", "My App");
+        }
+
+        @Test
+        void should_not_load_names_when_plan_and_application_are_null() {
+            var connectionLog = BaseConnectionLog.builder()
+                .apiId(API1.getId())
+                .timestamp(OffsetDateTime.now().toString())
+                .requestId("req-id")
+                .planId(null)
+                .applicationId(null)
+                .build();
+
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
+                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
+            );
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+
+            useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)));
+
+            verify(planCrudService, never()).findByIds(any());
+            verify(applicationCrudService, never()).findByIds(any(), any());
+        }
+
+        @Test
+        void should_batch_load_gateway_hostnames() {
+            var connectionLog = BaseConnectionLog.builder()
+                .apiId(API1.getId())
+                .timestamp(OffsetDateTime.now().toString())
+                .requestId("req-id")
+                .gateway("gw-1")
+                .build();
+
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
+                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
+            );
+            when(instanceQueryService.findByIds(any(), eq(List.of("gw-1")))).thenReturn(
+                List.of(BaseInstance.builder().id("gw-1").hostname("gateway-host-1").build())
+            );
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+
+            useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)));
+
+            var contextCaptor = ArgumentCaptor.forClass(UserContext.class);
+            verify(logNamesPostProcessor).mapLogNames(contextCaptor.capture(), any());
+
+            var enrichedContext = contextCaptor.getValue();
+            assertThat(enrichedContext.gatewayHostnameById()).isPresent();
+            assertThat(enrichedContext.gatewayHostnameById().get()).containsEntry("gw-1", "gateway-host-1");
+        }
+
+        @Test
+        void should_not_load_gateway_hostnames_when_gateway_is_null() {
+            var connectionLog = BaseConnectionLog.builder()
+                .apiId(API1.getId())
+                .timestamp(OffsetDateTime.now().toString())
+                .requestId("req-id")
+                .gateway(null)
+                .build();
+
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
+                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
+            );
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+
+            useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)));
+
+            verify(instanceQueryService, never()).findByIds(any(), any());
+        }
+
+        @Test
+        void should_gracefully_handle_instance_not_found() {
+            var connectionLog = BaseConnectionLog.builder()
+                .apiId(API1.getId())
+                .timestamp(OffsetDateTime.now().toString())
+                .requestId("req-id")
+                .gateway("gw-unknown")
+                .build();
+
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
+                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(connectionLog))
+            );
+            when(instanceQueryService.findByIds(any(), eq(List.of("gw-unknown")))).thenReturn(List.of());
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+
+            useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)));
+
+            var contextCaptor = ArgumentCaptor.forClass(UserContext.class);
+            verify(logNamesPostProcessor).mapLogNames(contextCaptor.capture(), any());
+
+            var enrichedContext = contextCaptor.getValue();
+            assertThat(enrichedContext.gatewayHostnameById()).isPresent();
+            assertThat(enrichedContext.gatewayHostnameById().get()).doesNotContainKey("gw-unknown");
+        }
+
+        @Test
+        void should_delegate_to_log_names_post_processor() {
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
+                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(0, List.of())
+            );
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+
+            useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, null, 1, 10)));
+
+            verify(logNamesPostProcessor).mapLogNames(any(), any());
+        }
+    }
+
     private SearchEnvironmentLogsUseCase.Output when_searching(SearchLogsRequest request) {
         when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
             new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(LOG1))
         );
         when(userContextLoader.loadApis(any())).thenReturn(
-            new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
+            new UserContext(AUDIT_INFO, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(List.of(API1)))
         );
+        when(planCrudService.findByIds(any())).thenReturn(List.of());
+        when(applicationCrudService.findByIds(any(), any())).thenReturn(List.of());
+        when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         return useCase.execute(new Input(AUDIT_INFO, request));
     }
 }
