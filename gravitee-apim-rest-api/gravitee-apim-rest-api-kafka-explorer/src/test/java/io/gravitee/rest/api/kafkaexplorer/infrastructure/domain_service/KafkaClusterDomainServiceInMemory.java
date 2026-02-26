@@ -18,6 +18,7 @@ package io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service;
 import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
 import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.KafkaClusterDomainService;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaTopic;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicDetail;
@@ -30,6 +31,7 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
     private KafkaClusterInfo result;
     private List<KafkaTopic> topics;
     private TopicDetail topicDetail;
+    private BrokerInfo brokerInfo;
     private KafkaExplorerException exception;
 
     public void givenClusterInfo(KafkaClusterInfo info) {
@@ -47,11 +49,17 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
         this.exception = null;
     }
 
+    public void givenBrokerInfo(BrokerInfo info) {
+        this.brokerInfo = info;
+        this.exception = null;
+    }
+
     public void givenException(KafkaExplorerException exception) {
         this.exception = exception;
         this.result = null;
         this.topics = null;
         this.topicDetail = null;
+        this.brokerInfo = null;
     }
 
     @Override
@@ -87,5 +95,13 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
             throw exception;
         }
         return topicDetail;
+    }
+
+    @Override
+    public BrokerInfo describeBroker(KafkaClusterConfiguration config, int brokerId) {
+        if (exception != null) {
+            throw exception;
+        }
+        return brokerInfo;
     }
 }

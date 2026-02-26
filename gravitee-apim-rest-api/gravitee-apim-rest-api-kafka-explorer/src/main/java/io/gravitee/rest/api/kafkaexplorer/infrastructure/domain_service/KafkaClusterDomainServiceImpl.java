@@ -31,6 +31,8 @@ import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.KafkaClusterDoma
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerDetail;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerInfo;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerLogDirEntry;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaNode;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaTopic;
@@ -47,6 +49,7 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -226,6 +229,94 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 .toList();
 
             return new TopicDetail(topicName, internal, partitions, configs);
+        });
+    }
+
+    @Override
+    public BrokerInfo describeBroker(KafkaClusterConfiguration config, int brokerId) {
+        return withAdminClient(config, adminClient -> {
+            // Step 1: describeCluster to find the node and detect controller
+            DescribeClusterResult clusterResult = adminClient.describeCluster();
+            Node controller = clusterResult.controller().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            var nodes = clusterResult.nodes().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            Node targetNode = nodes
+                .stream()
+                .filter(n -> n.id() == brokerId)
+                .findFirst()
+                .orElseThrow(() -> new KafkaExplorerException("Broker " + brokerId + " not found", TechnicalCode.INVALID_PARAMETERS));
+
+            boolean isController = controller != null && controller.id() == brokerId;
+
+            // Step 2: fetchTopicStats for leaderPartitions and replicaPartitions
+            var topicStats = fetchTopicStats(adminClient);
+            int leaderPartitions = topicStats.leaderCounts().getOrDefault(brokerId, 0);
+            int replicaPartitions = topicStats.replicaCounts().getOrDefault(brokerId, 0);
+
+            // Step 3: describeLogDirs to build BrokerLogDirEntry list (one per directory) and total logDirSize
+            List<BrokerLogDirEntry> logDirEntries = new ArrayList<>();
+            Long logDirSize = null;
+            try {
+                var logDirsResult = adminClient
+                    .describeLogDirs(List.of(brokerId))
+                    .allDescriptions()
+                    .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+                long totalSize = 0;
+                var brokerLogDirs = logDirsResult.get(brokerId);
+                if (brokerLogDirs != null) {
+                    for (var dirEntry : brokerLogDirs.entrySet()) {
+                        String path = dirEntry.getKey();
+                        var logDir = dirEntry.getValue();
+                        String error = logDir.error() != null ? logDir.error().getMessage() : null;
+                        long dirSize = 0;
+                        Set<String> topicNames = new HashSet<>();
+                        int partitionCount = 0;
+                        for (var replicaEntry : logDir.replicaInfos().entrySet()) {
+                            long replicaSize = replicaEntry.getValue().size();
+                            if (replicaSize >= 0) {
+                                dirSize += replicaSize;
+                                topicNames.add(replicaEntry.getKey().topic());
+                                partitionCount++;
+                            }
+                        }
+                        logDirEntries.add(new BrokerLogDirEntry(path, error, topicNames.size(), partitionCount, dirSize));
+                        totalSize += dirSize;
+                    }
+                    logDirSize = totalSize;
+                }
+            } catch (Exception e) {
+                // Log dir info is best-effort
+            }
+
+            // Step 4: describeConfigs for BROKER resource
+            ConfigResource configResource = new ConfigResource(ConfigResource.Type.BROKER, String.valueOf(brokerId));
+            var configResult = adminClient
+                .describeConfigs(Collections.singleton(configResource))
+                .all()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            List<TopicConfigEntry> configs = configResult
+                .get(configResource)
+                .entries()
+                .stream()
+                .map(entry ->
+                    new TopicConfigEntry(entry.name(), entry.value(), entry.source().name(), entry.isReadOnly(), entry.isSensitive())
+                )
+                .toList();
+
+            return new BrokerInfo(
+                targetNode.id(),
+                targetNode.host(),
+                targetNode.port(),
+                targetNode.rack(),
+                isController,
+                leaderPartitions,
+                replicaPartitions,
+                logDirSize,
+                logDirEntries,
+                configs
+            );
         });
     }
 

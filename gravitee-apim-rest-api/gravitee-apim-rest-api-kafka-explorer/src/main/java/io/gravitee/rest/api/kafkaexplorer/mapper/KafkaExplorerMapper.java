@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.kafkaexplorer.mapper;
 
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerDetail;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerInfo;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerLogDirEntry;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaNode;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaTopic;
@@ -23,6 +25,7 @@ import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicConfigEntry;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicPartitionDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicsPage;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeBrokerResponse;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterResponse;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeTopicResponse;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.ListTopicsResponse;
@@ -50,6 +53,10 @@ public interface KafkaExplorerMapper {
     io.gravitee.rest.api.kafkaexplorer.rest.model.TopicPartition map(TopicPartitionDetail partition);
 
     io.gravitee.rest.api.kafkaexplorer.rest.model.TopicConfig map(TopicConfigEntry config);
+
+    DescribeBrokerResponse map(BrokerInfo brokerInfo);
+
+    io.gravitee.rest.api.kafkaexplorer.rest.model.BrokerLogDirEntry map(BrokerLogDirEntry entry);
 
     default ListTopicsResponse map(TopicsPage topicsPage, int page, int perPage) {
         return new ListTopicsResponse()
