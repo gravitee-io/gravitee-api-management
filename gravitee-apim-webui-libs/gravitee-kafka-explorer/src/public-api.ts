@@ -29,4 +29,6 @@ export * from './lib/topics/topics.component';
 export * from './lib/topics/topics-page.component';
 export * from './lib/topic-detail/topic-detail.component';
 export * from './lib/topic-detail/topic-detail-page.component';
+export * from './lib/broker-detail/broker-detail.component';
+export * from './lib/broker-detail/broker-detail-page.component';
 export * from './lib/pipes/file-size.pipe';

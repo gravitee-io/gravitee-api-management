@@ -15,28 +15,28 @@
  */
 import { CommonModule } from '@angular/common';
 import { Component, input, output } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
 
-import { BrokerDetail, KafkaNode } from '../models/kafka-cluster.model';
+import { DescribeBrokerResponse } from '../models/kafka-cluster.model';
 import { FileSizePipe } from '../pipes/file-size.pipe';
 
 @Component({
-  selector: 'gke-brokers',
+  selector: 'gke-broker-detail',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatTableModule, FileSizePipe],
-  templateUrl: './brokers.component.html',
-  styleUrls: ['./brokers.component.scss'],
+  imports: [CommonModule, MatCardModule, MatTableModule, MatIconModule, MatButtonModule, MatProgressBarModule, FileSizePipe],
+  templateUrl: './broker-detail.component.html',
+  styleUrls: ['./broker-detail.component.scss'],
 })
-export class BrokersComponent {
-  nodes = input<BrokerDetail[]>([]);
-  controllerId = input<number>(-1);
-  clusterId = input<string>('');
-  controller = input<KafkaNode | undefined>(undefined);
-  totalTopics = input<number>(0);
-  totalPartitions = input<number>(0);
+export class BrokerDetailComponent {
+  brokerDetail = input<DescribeBrokerResponse | undefined>();
+  loading = input(false);
 
-  brokerSelect = output<number>();
+  back = output<void>();
 
-  displayedColumns = ['id', 'host', 'port', 'rack', 'leaderPartitions', 'replicaPartitions', 'logDirSize'];
+  logDirColumns = ['path', 'error', 'topics', 'partitions', 'size'];
+  configColumns = ['name', 'value', 'source', 'readOnly', 'sensitive'];
 }

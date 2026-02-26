@@ -17,6 +17,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { BrokersPageComponent } from './brokers-page.component';
 import { BrokersHarness } from './brokers.harness';
@@ -28,10 +29,20 @@ describe('BrokersPageComponent', () => {
   let store: KafkaExplorerStore;
   let loader: HarnessLoader;
 
+  const router = { navigate: jest.fn() };
+  const route = {};
+
   beforeEach(async () => {
+    router.navigate.mockClear();
+
     await TestBed.configureTestingModule({
       imports: [BrokersPageComponent],
-      providers: [KafkaExplorerStore, provideNoopAnimations()],
+      providers: [
+        KafkaExplorerStore,
+        provideNoopAnimations(),
+        { provide: Router, useValue: router },
+        { provide: ActivatedRoute, useValue: route },
+      ],
     }).compileComponents();
 
     store = TestBed.inject(KafkaExplorerStore);
@@ -105,5 +116,16 @@ describe('BrokersPageComponent', () => {
 
     const harness = await loader.getHarnessOrNull(BrokersHarness);
     expect(harness).toBeNull();
+  });
+
+  it('should navigate to broker detail on broker select', async () => {
+    store.clusterInfo.set(fakeDescribeClusterResponse());
+    fixture.detectChanges();
+
+    const harness = await loader.getHarness(BrokersHarness);
+    const rows = await harness.getRows();
+    await rows[0].host().then(host => host.click());
+
+    expect(router.navigate).toHaveBeenCalledWith([0], { relativeTo: route });
   });
 });
