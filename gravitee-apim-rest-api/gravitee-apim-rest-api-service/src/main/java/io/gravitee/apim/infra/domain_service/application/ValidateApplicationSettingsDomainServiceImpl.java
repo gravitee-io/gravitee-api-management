@@ -75,7 +75,7 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
     @Override
     public Result<Input> validateAndSanitize(Input input) {
         if (input.settings() == null) {
-            // default to empty simple app
+            // treat missing settings as a valid simple application to allow creation without explicit configuration
             return Result.ofValue(input.sanitized(ApplicationSettings.builder().app(new SimpleApplicationSettings()).build()));
         }
 

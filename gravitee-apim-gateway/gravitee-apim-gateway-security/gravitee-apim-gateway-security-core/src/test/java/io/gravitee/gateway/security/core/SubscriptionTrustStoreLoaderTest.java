@@ -17,15 +17,17 @@ package io.gravitee.gateway.security.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.common.security.PKCS7Utils;
+import io.gravitee.common.security.CertificateUtils;
+import io.gravitee.common.util.KeyStoreUtils;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.node.api.certificate.KeyStoreEvent;
-import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Enumeration;
+import java.util.Collections;
 import java.util.List;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -37,30 +39,68 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class SubscriptionTrustStoreLoaderTest {
 
+    static Certificate certificate;
+    static String fingerprint;
+    private static final String CERTIFICATE = """
+        -----BEGIN CERTIFICATE-----
+        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
+        cKhxaqcpye8zKJ8+IDsJC2+lMQ==
+        -----END CERTIFICATE-----
+        """;
+
     @SneakyThrows
-    @Test
-    void should_build_id_based_on_subscription_id() {
-        final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(
-            Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE).build()
-        );
-        assertThat(loader.id()).isEqualTo("subscription_cert_subscriptionId");
+    @BeforeAll
+    static void setUp() {
+        certificate = KeyStoreUtils.loadPemCertificates(CERTIFICATE)[0];
+        fingerprint = CertificateUtils.generateThumbprint((X509Certificate) certificate, "SHA-256");
     }
 
     @SneakyThrows
     @Test
-    void should_build_compute_digest_based_on_subscription_certificate() {
+    void should_build_id_based_on_subscription_id() {
         final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(
-            Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE).build()
+            new SubscriptionCertificate(Subscription.builder().id("subscriptionId").build(), certificate, fingerprint)
         );
-        assertThat(loader.certificateDigests()).isNotEmpty();
+        assertThat(loader.id()).isGreaterThan("sub_subscriptionId_cert_");
     }
 
     @SneakyThrows
     @Test
     void should_start_a_loader() {
         final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(
-            Subscription.builder().clientCertificate(BASE_64_CERTIFICATE).id("subscriptionId").build()
+            new SubscriptionCertificate(Subscription.builder().id("subscriptionId").build(), certificate, fingerprint)
         );
+
         final List<KeyStoreEvent> keyStoreEvents = new ArrayList<>();
         loader.setEventHandler(keyStoreEvents::add);
 
@@ -71,6 +111,10 @@ class SubscriptionTrustStoreLoaderTest {
             .satisfies(event -> {
                 assertThat(event.loaderId()).isEqualTo(loader.id());
                 assertThat(event).isInstanceOf(KeyStoreEvent.LoadEvent.class);
+                assertThat(((KeyStoreEvent.LoadEvent) event).keyStore()).satisfies(keyStore -> {
+                    assertThat(Collections.list(keyStore.aliases())).containsExactly("cert");
+                    assertThat(keyStore.getCertificate("cert")).isEqualTo(certificate);
+                });
             });
     }
 
@@ -78,7 +122,7 @@ class SubscriptionTrustStoreLoaderTest {
     @Test
     void should_not_start_a_loader_already_started() {
         final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(
-            Subscription.builder().clientCertificate(BASE_64_CERTIFICATE).id("subscriptionId").build()
+            new SubscriptionCertificate(Subscription.builder().id("subscriptionId").build(), certificate, fingerprint)
         );
         final List<KeyStoreEvent> keyStoreEvents = new ArrayList<>();
         loader.setEventHandler(keyStoreEvents::add);
@@ -93,107 +137,7 @@ class SubscriptionTrustStoreLoaderTest {
             });
 
         // Try to start again
-        keyStoreEvents.clear();
         loader.start();
-        assertThat(keyStoreEvents).isEmpty();
-    }
-
-    @SneakyThrows
-    @Test
-    void should_create_keystore_with_multiple_certificates_from_pkcs7_bundle() {
-        // Given: a PKCS7 bundle containing two certificates
-        String pkcs7Base64 = createPkcs7Bundle(PEM_CERTIFICATE_1, PEM_CERTIFICATE_2);
-
-        // When: creating a loader with the PKCS7 bundle
-        final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(
-            Subscription.builder().id("subscriptionId").clientCertificate(pkcs7Base64).build()
-        );
-
-        // Then: the keystore should contain both certificates
-        final List<KeyStoreEvent> keyStoreEvents = new ArrayList<>();
-        loader.setEventHandler(keyStoreEvents::add);
-        loader.start();
-
         assertThat(keyStoreEvents).hasSize(1);
-        KeyStoreEvent.LoadEvent loadEvent = (KeyStoreEvent.LoadEvent) keyStoreEvents.get(0);
-        KeyStore keyStore = loadEvent.keyStore();
-
-        // Count certificates in keystore
-        int certCount = 0;
-        Enumeration<String> aliases = keyStore.aliases();
-        while (aliases.hasMoreElements()) {
-            String alias = aliases.nextElement();
-            if (keyStore.isCertificateEntry(alias)) {
-                certCount++;
-            }
-        }
-        assertThat(certCount).isEqualTo(2);
     }
-
-    @SneakyThrows
-    @Test
-    void should_compute_digests_from_all_certificates_in_pkcs7_bundle() {
-        // Given: a PKCS7 bundle containing two certificates
-        String pkcs7Base64 = createPkcs7Bundle(PEM_CERTIFICATE_1, PEM_CERTIFICATE_2);
-
-        // When: creating a loader with the PKCS7 bundle
-        final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(
-            Subscription.builder().id("subscriptionId").clientCertificate(pkcs7Base64).build()
-        );
-
-        // Then: the digest should be computed (not null or empty)
-        assertThat(loader.certificateDigests()).isNotNull().isNotEmpty();
-    }
-
-    @SneakyThrows
-    private String createPkcs7Bundle(String... pemCertificates) {
-        return Base64.getEncoder().encodeToString(PKCS7Utils.createBundle(List.of(pemCertificates)));
-    }
-
-    private static final String PEM_CERTIFICATE_1 = """
-        -----BEGIN CERTIFICATE-----
-        MIIDCTCCAfGgAwIBAgIUdh1NFpteTomLlWoO7O5HKI7fg10wDQYJKoZIhvcNAQEL
-        BQAwFDESMBAGA1UEAwwJbG9jYWxob3N0MB4XDTI2MDEyOTE0MTYyMVoXDTI3MDEy
-        OTE0MTYyMVowFDESMBAGA1UEAwwJbG9jYWxob3N0MIIBIjANBgkqhkiG9w0BAQEF
-        AAOCAQ8AMIIBCgKCAQEAwquFLM7wi+EBt5JL1Q6c/qzqickBKhlymOf1a18jYsWO
-        UrRRqANMvEub5zks44qdYbdm7Kj9EruDD3hfrS6YemQhIMeT+SgY3MU5cY12yB1e
-        fn+0bkEg6CJdIfgvcuccqY9pu0hgFdlgK9YXEXYZzb+ai7b4qPHN2BR6toBdjf56
-        ReNygcrT0igPQC9P/MsmpFuJzD69i5Z8fJcLU2V7RwXW9MKyej8CN/zrcqftG+ck
-        egt5cpB2OyIt6ajQBeXarGYvOlm975RKWOD5mHpt87GgcEvMEnhFTSs47iA7X91o
-        01+rhFDfPxgvhur2AG6oiB7/zS4lqHWQHRTBwurVJQIDAQABo1MwUTAdBgNVHQ4E
-        FgQUHP3c1CNhl6RZHn3g/HkbSssfPhMwHwYDVR0jBBgwFoAUHP3c1CNhl6RZHn3g
-        /HkbSssfPhMwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAgTa/
-        lgY6fEbt88yQcLxQDseam2lox0sK6sYOwpIQV7/RiXbeM6KrXmCy59HBrJMjSpZY
-        LEp9RPDf8Awg50iv6oFXXn+ZJ5Cmq2WXMpCvKxAjQWnmNs99SGfXyQsiLMxe3HlL
-        CKqM8O7LZrVdOxWbNW/0ZMJl4d4vCf0LhVrbfMGLeQfqtKVmygjJM1rycKiFazM4
-        cTHphvWA9/5XRFC+yD3V3ZTFE9LDeMoSF0soigR0NnCqFc5E7S9OQvuB5h5eBu9s
-        T1dLBVOY8zcIYu6LDjeMr6MpiZyk+/O7ewue2kQURmDBuVrwiSSQF4AhsmbMDUuB
-        iyr26LfMYtituDZy7w==
-        -----END CERTIFICATE-----
-        """;
-
-    private static final String PEM_CERTIFICATE_2 = """
-        -----BEGIN CERTIFICATE-----
-        MIIDCTCCAfGgAwIBAgIUYh2NFpteTomLlWoO7O5HKI7fg10wDQYJKoZIhvcNAQEL
-        BQAwFDESMBAGA1UEAwwJbG9jYWxob3N0MB4XDTI2MDEyOTE0MTYyMVoXDTI3MDEy
-        OTE0MTYyMVowFDESMBAGA1UEAwwJbG9jYWxob3N0MIIBIjANBgkqhkiG9w0BAQEF
-        AAOCAQ8AMIIBCgKCAQEAwquFLM7wi+EBt5JL1Q6c/qzqickBKhlymOf1a18jYsWO
-        UrRRqANMvEub5zks44qdYbdm7Kj9EruDD3hfrS6YemQhIMeT+SgY3MU5cY12yB1e
-        fn+0bkEg6CJdIfgvcuccqY9pu0hgFdlgK9YXEXYZzb+ai7b4qPHN2BR6toBdjf56
-        ReNygcrT0igPQC9P/MsmpFuJzD69i5Z8fJcLU2V7RwXW9MKyej8CN/zrcqftG+ck
-        egt5cpB2OyIt6ajQBeXarGYvOlm975RKWOD5mHpt87GgcEvMEnhFTSs47iA7X91o
-        01+rhFDfPxgvhur2AG6oiB7/zS4lqHWQHRTBwurVJQIDAQABo1MwUTAdBgNVHQ4E
-        FgQUHP3c1CNhl6RZHn3g/HkbSssfPhMwHwYDVR0jBBgwFoAUHP3c1CNhl6RZHn3g
-        /HkbSssfPhMwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAgTa/
-        lgY6fEbt88yQcLxQDseam2lox0sK6sYOwpIQV7/RiXbeM6KrXmCy59HBrJMjSpZY
-        LEp9RPDf8Awg50iv6oFXXn+ZJ5Cmq2WXMpCvKxAjQWnmNs99SGfXyQsiLMxe3HlL
-        CKqM8O7LZrVdOxWbNW/0ZMJl4d4vCf0LhVrbfMGLeQfqtKVmygjJM1rycKiFazM4
-        cTHphvWA9/5XRFC+yD3V3ZTFE9LDeMoSF0soigR0NnCqFc5E7S9OQvuB5h5eBu9s
-        T1dLBVOY8zcIYu6LDjeMr6MpiZyk+/O7ewue2kQURmDBuVrwiSSQF4AhsmbMDUuB
-        iyr26LfMYtituDZy7w==
-        -----END CERTIFICATE-----
-        """;
-
-    private static final String BASE_64_CERTIFICATE =
-        "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUYzekNDQThlZ0F3SUJBZ0lCWlRBTkJna3Foa2lHOXcwQkFRc0ZBRENCa0RFcE1DY0dDU3FHU0liM0RRRUoKQVJZYVkyOXVkR0ZqZEVCbmNtRjJhWFJsWlhOdmRYSmpaUzVqYjIweEVEQU9CZ05WQkFNTUIwRlFTVTFmUTA0eApEVEFMQmdOVkJBc01CRUZRU1UweEZEQVNCZ05WQkFvTUMwRlFTVTFmVkdWemRHVnlNUTR3REFZRFZRUUhEQVZNCmFXeHNaVEVQTUEwR0ExVUVDQXdHUm5KaGJtTmxNUXN3Q1FZRFZRUUdFd0pHVWpBZUZ3MHlOREE0TWpnd05qVTAKTkRWYUZ3MHlOVEE0TWpnd05qVTBORFZhTUlHUU1Ta3dKd1lKS29aSWh2Y05BUWtCRmhwamIyNTBZV04wUUdkeQpZWFpwZEdWbGMyOTFjbU5sTG1OdmJURVFNQTRHQTFVRUF3d0hRVkJKVFY5RFRqRU5NQXNHQTFVRUN3d0VRVkJKClRURVVNQklHQTFVRUNnd0xRVkJKVFY5VVpYTjBaWEl4RGpBTUJnTlZCQWNNQlV4cGJHeGxNUTh3RFFZRFZRUUkKREFaR2NtRnVZMlV4Q3pBSkJnTlZCQVlUQWtaU01JSUNJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBZzhBTUlJQwpDZ0tDQWdFQStncWxkMnkvRlhiUHRDY1pnREl6cGlsQVpJc3FIcEJwREZBeCthYkRNUTVlV1ozUTNBYXhSeGh5ClFCeE1maFhsMkZvZEJmNzZtQVQ4UVpvVHUwdHdTSnIrTGx2eVQ3NTE1RnZiYUxYNGg2bEZSbWs2dXExeE5DdHgKU0FzMC93dkttNVc1QmtHeHJFQ3JYcUV1dWtPSkw2dW5VK3RqRXFBdUtuRFhrQ2QxVXA0WlVWalJJV0RnR0lYVwozQXViazVLeDBPdUZTWlhNWmkvOGFDcTBJc3FyZnk5amVLWjllZjRkMkJ1aENjcVFQQXo2dDFpTTVWVGtvUGNmCnVOQzJYQlVCOEI4YUNpd1FRWm0yTVVsWFo0aGE1V2xnYzZzb3VGVVFyM2kzN2hlaVhiQVJUb2xnVmhPMU9oQ3AKN1VtMDBEbEdtQmFsaXNkODhCdjU4MFplbFNGNldSamkvb2RpVUwrcnZyOElOY1Z5MDVQb04rb1ljckQ1TWZtdQpUZUdUUFdFNmpIMXVXb1llZDAyV0t6LzV4VC9Xc3psMEZ2QVc5MExLUklhWnZveWpvdVdnWGExSFFFM1hrdnlIClZXeXc4eEZHTEIxN09aRGs4LzRMN2NqeDZMVTErZnpvak56WlBhcnJ6UTRSaFNFWE1KYUdZQitZOEVuYUhDWUoKbHVBeVVWMkNVOVdpc0tvaTZaWW9IR3lvUnJVa3JXT3U0MFlkNkJzUmhlQWI3anNqalV6Rjc0UWQ3UVY1enlNagpZZHF4M1dtTzVKdzFyZXNoei9LY1RGYS9SM2VhK1BPTTZ3bEtHWTVNdFlpWThJbWlodms1VVBPamJyR2RpU3BvCmZoSng5RHNWYmY3eTI0OFFROGZZd052TFlUMVVLVmRQaXR0eEhKTml4SEhYS0RIWEdhc0NBd0VBQWFOQ01FQXcKSFFZRFZSME9CQllFRkF3SjNWWlBzYXlsSUMrUkxUeXhqaWd6TWsxa01COEdBMVVkSXdRWU1CYUFGRGNnaUVNMwo3WVdLRk9Wc09NTWc5MWVNZ1RNWU1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQ0FRQkNLczRSUklPZmhhTWt5QmdBCmlmUmZKdU04NFVXSFJqQ0ZzSTVFRElqY3BJaVE1LzVGcm9CNjRPUDBnNUhFNDc0UEtqTVdSQzVMZDhTUDVWY20KK1l6VllUVDJJOGEycDVvbG1iWnhPeElZU0Q0NWF6NDhXRUtLRXNxR091TUw2M29CcUVYeWhCN2hCQjZTaUphcApuOXFLWTZNWXB0RFNER3h1dGxrZC94YnU1VGxXSzBMTEhNZTBCKzdOR2U1UDdaN1AvblpraURiVlg3VG05MVBICi9PUDgwUGluVTJJZHJmUWVCUDZKdVpYem5XU3dVd3NKWlJrNDNTNVBBYkkrQW81M0lCbVR4aGhvbkNSWFF2WGsKbW1kcmsrK2doODVEWTFUazdVQ2xGbEsyNDZvTFNjeEF6aHoxWWxuZktxRm1CK2pLZVVRdXNsNytZc01VMVRBSgoxakxGNUtNU2xBaHRXdG8rMTN0cHBWbFBaYlFYaGZTV0I3bEZBWFpDTkMycjlzNWs0S1RnQU1OQ3E1VEpUUFNyCngvRnQ3UTJSV3F5RnZ3WHErR3VxOEpLYjQyUXpJTkFTVmhsQkJzYVgvNmYyU1h6OWZja2F0cW16ZVh0MHpwMUoKWWFRUmxSUTI2ZWgyUWdyRjN2ejVOaVFNV3pmRzlleWdZY2xEUE1rMlhqWDZVSkhWY2ZUMjcrMElhY251QzhlYQp5Rjl0bCtjRnMyRmpJVENVaFlTWTJRdjNjVDFRUnA0Q3JNUTVYMHdlcFFGVnp1QmZyYW1xMVZKdkRDemFuMlNmClZpMVl1MmdqOGJHVGYzamhzK3k5RW5yYWRxbzZSWHh1T2NzMTNHVWVYMFVHZG41aFREOE03aEtNUzN2V0hOUjkKY0toeGFxY3B5ZTh6S0o4K0lEc0pDMitsTVE9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0t";
 }
