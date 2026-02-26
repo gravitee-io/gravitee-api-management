@@ -87,6 +87,12 @@ public class ClientRegistrationProvider {
 
     private String softwareId;
 
+    /**
+     * HTTP bridge endpoint for custom IdPs that don't support OIDC DCR natively.
+     * When set, the bridge endpoint is used instead of the OIDC discovery endpoint.
+     */
+    private String httpBridgeEndpoint;
+
     private String trustStoreType;
 
     private String trustStorePath;
@@ -243,6 +249,14 @@ public class ClientRegistrationProvider {
 
     public void setSoftwareId(String softwareId) {
         this.softwareId = softwareId;
+    }
+
+    public String getHttpBridgeEndpoint() {
+        return httpBridgeEndpoint;
+    }
+
+    public void setHttpBridgeEndpoint(String httpBridgeEndpoint) {
+        this.httpBridgeEndpoint = httpBridgeEndpoint;
     }
 
     public String getTrustStoreType() {

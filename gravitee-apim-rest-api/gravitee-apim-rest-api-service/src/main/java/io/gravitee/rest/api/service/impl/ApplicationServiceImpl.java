@@ -21,6 +21,7 @@ import static io.gravitee.repository.management.model.Application.AuditEvent.APP
 import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_UPDATED;
 import static io.gravitee.repository.management.model.Application.METADATA_ADDITIONAL_CLIENT_METADATA;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
+import static io.gravitee.repository.management.model.Application.METADATA_AUTH_STRATEGY_ID;
 import static io.gravitee.repository.management.model.Application.METADATA_REGISTRATION_PAYLOAD;
 import static io.gravitee.repository.management.model.Application.METADATA_TYPE;
 import static java.util.Collections.emptySet;
@@ -199,6 +200,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Autowired
     private ClientRegistrationService clientRegistrationService;
+
+    @Autowired
+    private io.gravitee.rest.api.service.configuration.application.AuthenticationStrategyService authenticationStrategyService;
 
     @Autowired
     private ParameterService parameterService;
@@ -431,8 +435,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
             checkAndSanitizeOAuthClientSettings(newApplicationEntity.getSettings().getOauth());
 
-            // Create an OAuth client
-            ClientRegistrationResponse registrationResponse = clientRegistrationService.register(executionContext, newApplicationEntity);
+            // Resolve DCR provider via authentication strategy if specified
+            String providerId = resolveProviderIdFromStrategy(executionContext, newApplicationEntity.getAuthenticationStrategyId());
+
+            ClientRegistrationResponse registrationResponse = clientRegistrationService.register(
+                executionContext, newApplicationEntity, providerId
+            );
             try {
                 metadata.put(METADATA_CLIENT_ID, registrationResponse.getClientId());
                 metadata.put(METADATA_REGISTRATION_PAYLOAD, mapper.writeValueAsString(registrationResponse));
@@ -440,6 +448,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     METADATA_ADDITIONAL_CLIENT_METADATA,
                     mapper.writeValueAsString(newApplicationEntity.getSettings().getOauth().getAdditionalClientMetadata())
                 );
+                if (newApplicationEntity.getAuthenticationStrategyId() != null) {
+                    metadata.put(METADATA_AUTH_STRATEGY_ID, newApplicationEntity.getAuthenticationStrategyId());
+                }
             } catch (JsonProcessingException e) {
                 log.error("An error has occurred while serializing registration response", e);
             }
@@ -476,6 +487,18 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         application.setUpdatedAt(application.getCreatedAt());
 
         return createApplicationForEnvironment(executionContext, userId, application, clientCertificate);
+    }
+
+    /**
+     * Resolves the DCR provider ID from an authentication strategy.
+     * If no strategy ID is provided, returns null (legacy behavior -- use first provider).
+     */
+    private String resolveProviderIdFromStrategy(ExecutionContext executionContext, String strategyId) {
+        if (strategyId == null || strategyId.isEmpty()) {
+            return null;
+        }
+        var strategy = authenticationStrategyService.findById(executionContext.getEnvironmentId(), strategyId);
+        return strategy.getClientRegistrationProviderId();
     }
 
     private static String getClientCertificate(ApplicationSettings settings) {
@@ -875,10 +898,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         Application applicationToUpdate
     ) {
         try {
+            String storedStrategyId = applicationToUpdate.getMetadata().get(METADATA_AUTH_STRATEGY_ID);
+            String providerId = resolveProviderIdFromStrategy(executionContext, storedStrategyId);
+
             ClientRegistrationResponse registrationResponse = clientRegistrationService.update(
                 executionContext,
                 registrationPayload,
-                updateApplicationEntity
+                updateApplicationEntity,
+                providerId
             );
             metadata.put(METADATA_CLIENT_ID, registrationResponse.getClientId());
             metadata.put(METADATA_REGISTRATION_PAYLOAD, mapper.writeValueAsString(registrationResponse));
@@ -1012,9 +1039,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 applicationEntity.getSettings().getOauth() != null &&
                 applicationEntity.getSettings().getOauth().isRenewClientSecretSupported()
             ) {
+                String storedStrategyId = applicationToUpdate.getMetadata().get(METADATA_AUTH_STRATEGY_ID);
+                String providerId = resolveProviderIdFromStrategy(executionContext, storedStrategyId);
+
                 ClientRegistrationResponse registrationResponse = clientRegistrationService.renewClientSecret(
                     executionContext,
-                    applicationToUpdate.getMetadata().get(METADATA_REGISTRATION_PAYLOAD)
+                    applicationToUpdate.getMetadata().get(METADATA_REGISTRATION_PAYLOAD),
+                    providerId
                 );
 
                 // Update application metadata

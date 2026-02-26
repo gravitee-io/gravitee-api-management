@@ -1,0 +1,135 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="title">
+  <h2>Authentication Strategies</h2>
+</div>
+
+<mat-card class="authentication-strategies__card">
+  <mat-card-content>
+    <div class="authentication-strategies__card__title">
+      <h3>Manage Authentication Strategies</h3>
+      <span>
+        Authentication strategies define how applications authenticate with your APIs.
+        You can create multiple strategies referencing different DCR providers with different scopes,
+        auth methods, and configurations. Strategies are applied per API or per plan.
+      </span>
+    </div>
+
+    <div class="authentication-strategies__card__add-btn">
+      <div *gioPermission="{ anyOf: ['environment-client_registration_provider-c'] }">
+        <button type="button" mat-raised-button color="primary" (click)="onAddStrategy()">
+          <mat-icon svgIcon="gio:plus"></mat-icon>Add a strategy
+        </button>
+      </div>
+    </div>
+
+    <table
+      mat-table
+      matSort
+      [dataSource]="strategiesTableDS"
+      class="authentication-strategies__card__table"
+      id="strategiesTable"
+      aria-label="Authentication strategies table"
+    >
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+        <td mat-cell *matCellDef="let element">
+          <span>{{ element.name }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Display Name Column -->
+      <ng-container matColumnDef="displayName">
+        <th mat-header-cell *matHeaderCellDef id="displayName">Display Name</th>
+        <td mat-cell *matCellDef="let element">
+          <span>{{ element.displayName }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Type Column -->
+      <ng-container matColumnDef="type">
+        <th mat-header-cell *matHeaderCellDef id="type">Type</th>
+        <td mat-cell *matCellDef="let element">
+          <span class="authentication-strategies__type-badge" [attr.data-type]="element.type">
+            {{ element.type }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Description Column -->
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef id="description">Description</th>
+        <td mat-cell *matCellDef="let element">
+          <span>{{ element.description }}</span>
+        </td>
+      </ng-container>
+
+      <!-- updatedAt Column -->
+      <ng-container matColumnDef="updatedAt">
+        <th mat-header-cell *matHeaderCellDef id="updatedAt">Last updated at</th>
+        <td mat-cell *matCellDef="let element">
+          <span>{{ element.updatedAt | date: 'medium' }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef id="actions"></th>
+        <td mat-cell *matCellDef="let element">
+          <div class="actions">
+            <button
+              (click)="onEditActionClicked(element)"
+              mat-icon-button
+              aria-label="Button to edit a strategy"
+              matTooltip="Edit strategy"
+            >
+              <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+            </button>
+            <button
+              *gioPermission="{ anyOf: ['environment-client_registration_provider-d'] }"
+              (click)="onRemoveActionClicked(element)"
+              mat-icon-button
+              aria-label="Button to remove a strategy"
+              matTooltip="Remove strategy"
+            >
+              <mat-icon svgIcon="gio:trash"></mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+      <!-- Row shown when there is no data -->
+      <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+        <td
+          *ngIf="!isLoadingData && strategiesTableDS.length === 0"
+          class="mat-mdc-cell mdc-data-table__cell"
+          [attr.colspan]="displayedColumns.length"
+        >
+          {{ 'No authentication strategies configured.' }}
+        </td>
+        <td *ngIf="isLoadingData" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+          {{ 'Loading...' }}
+        </td>
+      </tr>
+    </table>
+  </mat-card-content>
+</mat-card>

@@ -24,6 +24,8 @@ import { CategoryComponent } from './categories/category/category.component';
 import { GroupsComponent } from './groups/groups.component';
 import { GroupComponent } from './groups/group/group.component';
 import { ApiPortalHeaderComponent as ApiPortalHeaderComponentMigrated } from './api-portal-header/api-portal-header.component';
+import { AuthenticationStrategiesComponent } from './authentication-strategies/authentication-strategies.component';
+import { AuthenticationStrategyComponent } from './authentication-strategies/authentication-strategy/authentication-strategy.component';
 import { ClientRegistrationProvidersComponent } from './client-registration-providers/client-registration-providers.component';
 import { ClientRegistrationProviderComponent } from './client-registration-providers/client-registration-provider/client-registration-provider.component';
 import { EnvironmentMetadataComponent } from './metadata/environment-metadata.component';
@@ -197,6 +199,38 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-client-registration-provider',
           },
+          permissions: {
+            anyOf: [
+              'environment-client_registration_provider-r',
+              'environment-client_registration_provider-u',
+              'environment-client_registration_provider-d',
+            ],
+          },
+        },
+      },
+      {
+        path: 'authentication-strategies',
+        component: AuthenticationStrategiesComponent,
+        data: {
+          permissions: {
+            anyOf: ['environment-client_registration_provider-r'],
+            unauthorizedFallbackTo: '../client-registration-providers',
+          },
+        },
+      },
+      {
+        path: 'authentication-strategies/new',
+        component: AuthenticationStrategyComponent,
+        data: {
+          permissions: {
+            anyOf: ['environment-client_registration_provider-c'],
+          },
+        },
+      },
+      {
+        path: 'authentication-strategies/:strategyId',
+        component: AuthenticationStrategyComponent,
+        data: {
           permissions: {
             anyOf: [
               'environment-client_registration_provider-r',

@@ -139,4 +139,5 @@ export interface ApplicationInput {
   settings: ApplicationSettings;
   background?: string;
   api_key_mode?: string;
+  authentication_strategy_id?: string;
 }

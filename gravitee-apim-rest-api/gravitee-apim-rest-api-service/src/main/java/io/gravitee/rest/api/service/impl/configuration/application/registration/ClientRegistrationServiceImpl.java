@@ -47,6 +47,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.DiscoveryBasedDynamicClientRegistrationProviderClient;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.DynamicClientRegistrationProviderClient;
+import io.gravitee.rest.api.service.impl.configuration.application.registration.client.HttpBridgeDynamicClientRegistrationProviderClient;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationRequest;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.token.ClientCredentialsInitialAccessTokenProvider;
@@ -106,16 +107,6 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     ) {
         try {
             log.debug("Create client registration provider {}", newClientRegistrationProvider);
-
-            Set<ClientRegistrationProviderEntity> clientRegistrationProviders = this.findAll(executionContext);
-            // For now, we are supporting only a single client registration provider.
-            if (clientRegistrationProviders.size() == 1) {
-                throw new IllegalStateException(
-                    "Until now, supports only a single client registration provider. " +
-                        "Please update the existing one: " +
-                        clientRegistrationProviders.iterator().next().getName()
-                );
-            }
 
             if (
                 newClientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.INITIAL_ACCESS_TOKEN &&
@@ -311,16 +302,13 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
     @Override
     public ClientRegistrationResponse register(ExecutionContext executionContext, NewApplicationEntity application) {
-        // Create an OAuth client
-        Set<ClientRegistrationProviderEntity> providers = findAll(executionContext);
-        if (providers == null || providers.isEmpty()) {
-            throw new MissingDynamicClientRegistrationProviderException();
-        }
+        return register(executionContext, application, null);
+    }
 
-        // For now, took the first provider
-        ClientRegistrationProviderEntity provider = providers.iterator().next();
+    @Override
+    public ClientRegistrationResponse register(ExecutionContext executionContext, NewApplicationEntity application, String providerId) {
+        ClientRegistrationProviderEntity provider = resolveProvider(executionContext, providerId);
 
-        // Get provider client
         DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(false, provider);
 
         ClientRegistrationRequest clientRegistrationRequest = convert(application);
@@ -330,6 +318,18 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         }
 
         return registrationProviderClient.register(clientRegistrationRequest, provider.getTrustStore(), provider.getKeyStore());
+    }
+
+    private ClientRegistrationProviderEntity resolveProvider(ExecutionContext executionContext, String providerId) {
+        if (providerId != null && !providerId.isEmpty()) {
+            return findById(executionContext.getEnvironmentId(), providerId);
+        }
+
+        Set<ClientRegistrationProviderEntity> providers = findAll(executionContext);
+        if (providers == null || providers.isEmpty()) {
+            throw new MissingDynamicClientRegistrationProviderException();
+        }
+        return providers.iterator().next();
     }
 
     private ClientRegistrationRequest convert(NewApplicationEntity application) {
@@ -346,7 +346,6 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         final boolean forceRefresh,
         final ClientRegistrationProviderEntity clientRegistrationProvider
     ) {
-        // Get provider client
         try {
             InitialAccessTokenProvider atProvider;
 
@@ -360,29 +359,49 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 atProvider = new PlainInitialAccessTokenProvider(clientRegistrationProvider.getInitialAccessToken());
             }
 
+            boolean useHttpBridge = clientRegistrationProvider.getHttpBridgeEndpoint() != null
+                && !clientRegistrationProvider.getHttpBridgeEndpoint().isEmpty();
+
             if (forceRefresh) {
-                DiscoveryBasedDynamicClientRegistrationProviderClient registrationProviderClient =
-                    new DiscoveryBasedDynamicClientRegistrationProviderClient(
+                DynamicClientRegistrationProviderClient registrationProviderClient;
+                if (useHttpBridge) {
+                    registrationProviderClient = new HttpBridgeDynamicClientRegistrationProviderClient(
+                        clientRegistrationProvider.getHttpBridgeEndpoint(),
+                        atProvider,
+                        clientRegistrationProvider.getTrustStore(),
+                        clientRegistrationProvider.getKeyStore()
+                    );
+                } else {
+                    registrationProviderClient = new DiscoveryBasedDynamicClientRegistrationProviderClient(
                         clientRegistrationProvider.getDiscoveryEndpoint(),
                         atProvider,
                         clientRegistrationProvider.getTrustStore(),
                         clientRegistrationProvider.getKeyStore()
                     );
+                }
 
-                // Provider ID may be null when we are trying to test a client registration provider
                 if (clientRegistrationProvider.getId() != null) {
                     clients.put(clientRegistrationProvider.getId(), registrationProviderClient);
                 }
 
                 return registrationProviderClient;
             } else {
-                return clients.get(clientRegistrationProvider.getId(), () ->
-                    new DiscoveryBasedDynamicClientRegistrationProviderClient(
+                return clients.get(clientRegistrationProvider.getId(), () -> {
+                    if (useHttpBridge) {
+                        return new HttpBridgeDynamicClientRegistrationProviderClient(
+                            clientRegistrationProvider.getHttpBridgeEndpoint(),
+                            atProvider,
+                            clientRegistrationProvider.getTrustStore(),
+                            clientRegistrationProvider.getKeyStore()
+                        );
+                    }
+                    return new DiscoveryBasedDynamicClientRegistrationProviderClient(
                         clientRegistrationProvider.getDiscoveryEndpoint(),
                         atProvider,
                         clientRegistrationProvider.getTrustStore(),
                         clientRegistrationProvider.getKeyStore()
-                    )
+                    );
+                }
                 );
             }
         } catch (Exception ex) {
@@ -396,6 +415,16 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         ExecutionContext executionContext,
         String previousRegistrationResponse,
         UpdateApplicationEntity application
+    ) {
+        return update(executionContext, previousRegistrationResponse, application, null);
+    }
+
+    @Override
+    public ClientRegistrationResponse update(
+        ExecutionContext executionContext,
+        String previousRegistrationResponse,
+        UpdateApplicationEntity application,
+        String providerId
     ) {
         try {
             ClientRegistrationResponse registrationResponse = mapper.readValue(
@@ -411,16 +440,9 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             ) {
                 throw new RegisteredClientNotUpdatableException();
             }
-            // Update an OAuth client
-            Set<ClientRegistrationProviderEntity> providers = findAll(executionContext);
-            if (providers == null || providers.isEmpty()) {
-                throw new MissingDynamicClientRegistrationProviderException();
-            }
 
-            // For now, took the first provider
-            ClientRegistrationProviderEntity provider = providers.iterator().next();
+            ClientRegistrationProviderEntity provider = resolveProvider(executionContext, providerId);
 
-            // Get provider client
             DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(false, provider);
 
             ClientRegistrationRequest registrationRequest = mapper.readValue(previousRegistrationResponse, ClientRegistrationRequest.class);
@@ -441,6 +463,15 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
     @Override
     public ClientRegistrationResponse renewClientSecret(ExecutionContext executionContext, String previousRegistrationResponse) {
+        return renewClientSecret(executionContext, previousRegistrationResponse, null);
+    }
+
+    @Override
+    public ClientRegistrationResponse renewClientSecret(
+        ExecutionContext executionContext,
+        String previousRegistrationResponse,
+        String providerId
+    ) {
         try {
             ClientRegistrationResponse registrationResponse = mapper.readValue(
                 previousRegistrationResponse,
@@ -456,15 +487,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 throw new RegisteredClientNotUpdatableException();
             }
 
-            Set<ClientRegistrationProviderEntity> providers = findAll(executionContext);
-            if (providers == null || providers.isEmpty()) {
-                throw new MissingDynamicClientRegistrationProviderException();
-            }
+            ClientRegistrationProviderEntity provider = resolveProvider(executionContext, providerId);
 
-            // For now, take the first provider
-            ClientRegistrationProviderEntity provider = providers.iterator().next();
-
-            // Get provider client
             DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(false, provider);
 
             String renewClientSecretEndpoint = provider.getRenewClientSecretEndpoint();
@@ -512,6 +536,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         entity.setRenewClientSecretMethod(clientRegistrationProvider.getRenewClientSecretMethod());
         entity.setRenewClientSecretEndpoint(clientRegistrationProvider.getRenewClientSecretEndpoint());
         entity.setSoftwareId(clientRegistrationProvider.getSoftwareId());
+        entity.setHttpBridgeEndpoint(clientRegistrationProvider.getHttpBridgeEndpoint());
 
         if (
             clientRegistrationProvider.getInitialAccessTokenType() == null ||

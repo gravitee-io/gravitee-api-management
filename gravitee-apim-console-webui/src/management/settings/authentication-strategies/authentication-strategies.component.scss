@@ -1,0 +1,72 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use 'sass:map';
+@use '@angular/material' as mat;
+
+.title {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.authentication-strategies {
+  &__card {
+    margin-bottom: 16px;
+
+    &__title {
+      margin-bottom: 16px;
+    }
+
+    &__add-btn {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 16px;
+    }
+
+    &__table {
+      width: 100%;
+    }
+  }
+
+  &__type-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+
+    &[data-type='KEY_AUTH'] {
+      background-color: #e3f2fd;
+      color: #1565c0;
+    }
+
+    &[data-type='DCR'] {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    &[data-type='SELF_MANAGED_OIDC'] {
+      background-color: #fff3e0;
+      color: #e65100;
+    }
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}

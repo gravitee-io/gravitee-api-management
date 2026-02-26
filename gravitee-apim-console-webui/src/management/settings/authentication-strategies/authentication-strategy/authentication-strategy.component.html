@@ -1,0 +1,92 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="title">
+  <gio-go-back-button></gio-go-back-button>
+  <h2>{{ updateMode ? 'Edit' : 'Create' }} Authentication Strategy</h2>
+</div>
+
+<form [formGroup]="strategyForm" autocomplete="off" (ngSubmit)="onSubmit()">
+  <mat-card class="strategy-form__card">
+    <mat-card-content>
+      <h3>General</h3>
+
+      <mat-form-field appearance="outline" class="strategy-form__field">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" placeholder="e.g. okta-external" />
+        <mat-hint>Internal identifier for this strategy</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="strategy-form__field">
+        <mat-label>Display Name</mat-label>
+        <input matInput formControlName="display_name" placeholder="e.g. Okta - External APIs" />
+        <mat-hint>Developer-facing name shown in the portal</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="strategy-form__field">
+        <mat-label>Description</mat-label>
+        <textarea matInput formControlName="description" rows="3"></textarea>
+      </mat-form-field>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="strategy-form__card">
+    <mat-card-content>
+      <h3>Strategy Type</h3>
+
+      <mat-form-field appearance="outline" class="strategy-form__field">
+        <mat-label>Type</mat-label>
+        <mat-select formControlName="type">
+          <mat-option *ngFor="let t of strategyTypes" [value]="t.value">{{ t.label }}</mat-option>
+        </mat-select>
+        <mat-hint>
+          <span *ngIf="strategyForm.get('type')?.value === 'DCR'">Automatic client registration with an identity provider</span>
+          <span *ngIf="strategyForm.get('type')?.value === 'KEY_AUTH'">Built-in API key authentication (no DCR)</span>
+          <span *ngIf="strategyForm.get('type')?.value === 'SELF_MANAGED_OIDC'">Developer brings their own pre-registered client</span>
+        </mat-hint>
+      </mat-form-field>
+
+      <mat-form-field *ngIf="requiresProvider" appearance="outline" class="strategy-form__field">
+        <mat-label>DCR Provider</mat-label>
+        <mat-select formControlName="client_registration_provider_id">
+          <mat-option *ngFor="let p of providers" [value]="p.id">{{ p.name }}</mat-option>
+        </mat-select>
+        <mat-hint>The identity provider to use for dynamic client registration</mat-hint>
+      </mat-form-field>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="strategy-form__card">
+    <mat-card-content>
+      <h3>Settings</h3>
+
+      <gio-form-slide-toggle class="strategy-form__toggle">
+        <gio-form-label>Auto-approve</gio-form-label>
+        Automatically approve subscription requests using this strategy
+        <mat-slide-toggle gioFormSlideToggle formControlName="auto_approve"></mat-slide-toggle>
+      </gio-form-slide-toggle>
+
+      <gio-form-slide-toggle class="strategy-form__toggle">
+        <gio-form-label>Hide credentials</gio-form-label>
+        Hide client credentials from API consumers
+        <mat-slide-toggle gioFormSlideToggle formControlName="hide_credentials"></mat-slide-toggle>
+      </gio-form-slide-toggle>
+    </mat-card-content>
+  </mat-card>
+
+  <gio-save-bar [form]="strategyForm" [formInitialValues]="formInitialValues"></gio-save-bar>
+</form>

@@ -67,6 +67,9 @@ public class ClientRegistrationProviderEntity {
     @JsonProperty("software_id")
     private String softwareId;
 
+    @JsonProperty("http_bridge_endpoint")
+    private String httpBridgeEndpoint;
+
     @JsonProperty("trust_store")
     private TrustStoreEntity trustStore = new TrustStoreEntity();
 
@@ -191,6 +194,14 @@ public class ClientRegistrationProviderEntity {
 
     public void setSoftwareId(String softwareId) {
         this.softwareId = softwareId;
+    }
+
+    public String getHttpBridgeEndpoint() {
+        return httpBridgeEndpoint;
+    }
+
+    public void setHttpBridgeEndpoint(String httpBridgeEndpoint) {
+        this.httpBridgeEndpoint = httpBridgeEndpoint;
     }
 
     public TrustStoreEntity getTrustStore() {

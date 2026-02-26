@@ -149,6 +149,12 @@ public class Plan {
 
     private String generalConditionsHrid;
 
+    /**
+     * Optional authentication strategy for this plan.
+     * When set, applications subscribing must use the same strategy.
+     */
+    private String authenticationStrategyId;
+
     @Builder.Default
     private Set<String> tags = new HashSet<>();
 

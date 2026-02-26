@@ -149,10 +149,8 @@
       <div
         *gioPermission="{ anyOf: ['environment-client_registration_provider-c'] }"
         [gioLicense]="dcrRegistrationLicenseOptions"
-        matTooltip="Only one DCR provider is allowed."
-        [matTooltipDisabled]="providersTableDS.length < 1"
       >
-        <button type="button" mat-raised-button color="primary" (click)="onAddProvider()" [disabled]="providersTableDS.length >= 1">
+        <button type="button" mat-raised-button color="primary" (click)="onAddProvider()">
           <mat-icon svgIcon="gio:plus"></mat-icon>Add a provider
           <mat-icon *ngIf="hasDcrRegistrationLock$ | async" iconPositionEnd svgIcon="gio:lock"></mat-icon>
         </button>

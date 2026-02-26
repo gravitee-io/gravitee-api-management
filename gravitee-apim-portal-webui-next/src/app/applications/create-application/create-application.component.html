@@ -91,6 +91,22 @@
                     </mat-form-field>
                   }
 
+                  @if (!isSimpleType() && hasMultipleStrategies()) {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label i18n="@@createApplicationAuthStrategy">Authentication Strategy</mat-label>
+                      <mat-select [formControl]="strategyControl">
+                        @for (strategy of dcrStrategies(); track strategy.id) {
+                          <mat-option [value]="strategy.id">
+                            {{ strategy.display_name || strategy.name }}
+                          </mat-option>
+                        }
+                      </mat-select>
+                      <mat-hint i18n="@@createApplicationAuthStrategyHint">
+                        Select the authentication strategy that determines which identity provider to register with.
+                      </mat-hint>
+                    </mat-form-field>
+                  }
+
                   @if (grantTypesList().length > 0) {
                     <div class="grant-types-container">
                       <div>

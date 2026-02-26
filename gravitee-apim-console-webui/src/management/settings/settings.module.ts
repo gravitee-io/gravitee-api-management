@@ -24,6 +24,7 @@ import { SettingsAnalyticsComponent } from './analytics/settings-analytics.compo
 import { SettingsNavigationComponent } from './settings-navigation/settings-navigation.component';
 import { SettingsAnalyticsDashboardComponent } from './analytics/dashboard/settings-analytics-dashboard.component';
 import { EnvironmentMetadataModule } from './metadata/environment-metadata.module';
+import { AuthenticationStrategiesModule } from './authentication-strategies/authentication-strategies.module';
 import { ClientRegistrationProvidersModule } from './client-registration-providers/client-registration-providers.module';
 import { PortalThemeComponent } from './portal-theme/portalTheme.component';
 import { ApiLoggingModule } from './api-logging/api-logging.module';
@@ -53,6 +54,7 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     CommonModule,
     DocumentationModule,
     EnvironmentMetadataModule,
+    AuthenticationStrategiesModule,
     ClientRegistrationProvidersModule,
     ApiLoggingModule,
     IdentityProvidersModule,

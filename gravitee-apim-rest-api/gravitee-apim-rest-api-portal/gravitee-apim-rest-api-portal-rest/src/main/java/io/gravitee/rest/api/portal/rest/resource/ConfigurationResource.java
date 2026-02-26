@@ -34,7 +34,9 @@ import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.model.configuration.application.registration.AuthenticationStrategyEntity;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
+import io.gravitee.rest.api.service.configuration.application.AuthenticationStrategyService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -69,6 +71,9 @@ public class ConfigurationResource extends AbstractResource {
 
     @Autowired
     private ApplicationTypeService applicationTypeService;
+
+    @Autowired
+    private AuthenticationStrategyService authenticationStrategyService;
 
     @Inject
     private CustomUserFieldService customUserFieldService;
@@ -217,6 +222,16 @@ public class ConfigurationResource extends AbstractResource {
         } else {
             return new Link().name(p.getName()).resourceRef(p.getId()).resourceType(ResourceTypeEnum.PAGE);
         }
+    }
+
+    @GET
+    @Path("applications/authentication-strategies")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAuthenticationStrategies() {
+        java.util.Set<AuthenticationStrategyEntity> strategies = authenticationStrategyService.findAll(
+            GraviteeContext.getExecutionContext()
+        );
+        return Response.ok(strategies).build();
     }
 
     @GET

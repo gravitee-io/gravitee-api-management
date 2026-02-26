@@ -48,11 +48,31 @@ public interface ClientRegistrationService {
 
     ClientRegistrationResponse register(ExecutionContext executionContext, NewApplicationEntity application);
 
+    /**
+     * Register an application with a specific DCR provider (identified by ID).
+     */
+    ClientRegistrationResponse register(ExecutionContext executionContext, NewApplicationEntity application, String providerId);
+
     ClientRegistrationResponse update(
         ExecutionContext executionContext,
         String previousRegistrationResponse,
         UpdateApplicationEntity application
     );
 
+    /**
+     * Update an application's DCR registration using a specific provider.
+     */
+    ClientRegistrationResponse update(
+        ExecutionContext executionContext,
+        String previousRegistrationResponse,
+        UpdateApplicationEntity application,
+        String providerId
+    );
+
     ClientRegistrationResponse renewClientSecret(ExecutionContext executionContext, String previousRegistrationResponse);
+
+    /**
+     * Renew client secret using a specific provider.
+     */
+    ClientRegistrationResponse renewClientSecret(ExecutionContext executionContext, String previousRegistrationResponse, String providerId);
 }

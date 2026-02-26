@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.resource.configuration.application.registration.AuthenticationStrategiesResource;
 import io.gravitee.rest.api.management.rest.resource.configuration.application.registration.ClientRegistrationProvidersResource;
 import io.gravitee.rest.api.management.rest.resource.configuration.dictionary.DictionariesResource;
 import io.gravitee.rest.api.management.rest.resource.configuration.identity.IdentityProvidersResource;
@@ -169,6 +170,11 @@ public class EnvironmentConfigurationResource {
     @Path("applications/registration/providers")
     public ClientRegistrationProvidersResource getClientRegistrationProvidersResource() {
         return resourceContext.getResource(ClientRegistrationProvidersResource.class);
+    }
+
+    @Path("applications/authentication-strategies")
+    public AuthenticationStrategiesResource getAuthenticationStrategiesResource() {
+        return resourceContext.getResource(AuthenticationStrategiesResource.class);
     }
 
     @GET

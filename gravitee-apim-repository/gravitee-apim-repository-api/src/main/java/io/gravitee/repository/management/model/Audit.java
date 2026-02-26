@@ -70,6 +70,7 @@ public class Audit {
         ENTRYPOINT,
         REQUEST_ID,
         CLIENT_REGISTRATION_PROVIDER,
+        AUTHENTICATION_STRATEGY,
         QUALITY_RULE,
         API_QUALITY_RULE,
         DASHBOARD,

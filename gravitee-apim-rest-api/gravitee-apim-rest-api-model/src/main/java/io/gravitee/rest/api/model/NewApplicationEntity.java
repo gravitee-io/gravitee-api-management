@@ -84,6 +84,10 @@ public class NewApplicationEntity {
     @JsonProperty("disable_membership_notifications")
     private boolean disableMembershipNotifications;
 
+    @JsonProperty("authentication_strategy_id")
+    @Schema(description = "The authentication strategy to use for DCR registration.")
+    private String authenticationStrategyId;
+
     public String getId() {
         return id;
     }
@@ -194,6 +198,14 @@ public class NewApplicationEntity {
 
     public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
         this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
+    public String getAuthenticationStrategyId() {
+        return authenticationStrategyId;
+    }
+
+    public void setAuthenticationStrategyId(String authenticationStrategyId) {
+        this.authenticationStrategyId = authenticationStrategyId;
     }
 
     @Override

@@ -92,6 +92,13 @@ public interface GraviteeMapper {
 
     Set<ApiCategoryOrder> map(Collection<ApiCategoryOrderMongo> toMap);
 
+    // AuthenticationStrategy mapping
+    AuthenticationStrategy map(AuthenticationStrategyMongo toMap);
+
+    AuthenticationStrategyMongo map(AuthenticationStrategy toMap);
+
+    Set<AuthenticationStrategy> mapAuthenticationStrategies(Collection<AuthenticationStrategyMongo> toMap);
+
     // Category mapping
     Category map(CategoryMongo toMap);
 

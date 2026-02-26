@@ -71,6 +71,11 @@ export class SettingsNavigationService {
             permissions: ['environment-client_registration_provider-r'],
           },
           {
+            displayName: 'Authentication Strategies',
+            routerLink: './authentication-strategies',
+            permissions: ['environment-client_registration_provider-r'],
+          },
+          {
             displayName: 'Documentation',
             routerLink: './documentation',
             permissions: ['environment-documentation-r'],

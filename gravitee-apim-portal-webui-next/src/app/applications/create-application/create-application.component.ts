@@ -36,6 +36,7 @@ import { MobileClassDirective } from '../../../directives/mobile-class.directive
 import { ApplicationInput, ApplicationSettings, ApplicationType } from '../../../entities/application/application';
 import { ApplicationTypeTranslatePipe } from '../../../pipe/application-type-translate.pipe';
 import { ApplicationService } from '../../../services/application.service';
+import { AuthenticationStrategy, AuthenticationStrategyService } from '../../../services/authentication-strategy.service';
 import { ObservabilityBreakpointService } from '../../../services/observability-breakpoint.service';
 
 type BaseControls = {
@@ -84,11 +85,17 @@ interface GrantTypeVM {
 })
 export class CreateApplicationComponent {
   readonly applicationService = inject(ApplicationService);
+  readonly authenticationStrategyService = inject(AuthenticationStrategyService);
   readonly router = inject(Router);
   readonly destroyRef = inject(DestroyRef);
   readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
 
   readonly typeIdControl = new FormControl<string | null>(null, { nonNullable: false });
+  readonly strategyControl = new FormControl<string | null>(null, { nonNullable: false });
+
+  readonly authenticationStrategies = toSignal(this.authenticationStrategyService.list(), { initialValue: [] });
+  readonly dcrStrategies = computed(() => (this.authenticationStrategies() || []).filter(s => s.type === 'DCR'));
+  readonly hasMultipleStrategies = computed(() => this.dcrStrategies().length > 1);
 
   readonly form = new FormGroup<BaseControls>({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -333,10 +340,16 @@ export class CreateApplicationComponent {
       };
     }
 
-    return {
+    const input: ApplicationInput = {
       name: formValue.name.trim(),
       description: formValue.description?.trim() || undefined,
       settings,
     };
+
+    if (!isSimple && this.strategyControl.value) {
+      input.authentication_strategy_id = this.strategyControl.value;
+    }
+
+    return input;
   }
 }
