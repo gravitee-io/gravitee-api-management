@@ -17,5 +17,10 @@ package io.gravitee.apim.core.portal_page.model;
 
 /**
  * Marker interface for PortalNavigationItem subtypes that can contain children.
+ * Provides access to the fields needed to resolve parent and rootId relationships.
  */
-public interface PortalNavigationItemContainer {}
+public interface PortalNavigationItemContainer {
+    PortalNavigationItemId getId();
+
+    PortalNavigationItemId getRootId();
+}

@@ -55,15 +55,18 @@ public interface PortalNavigationItemAdapter {
     }
 
     @Mapping(target = "url", expression = "java(parseUrl(portalNavigationItem.getConfiguration()))")
+    @Mapping(target = "rootId", expression = "java(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.ZERO)")
     PortalNavigationLink portalNavigationLinkFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
+    @Mapping(target = "rootId", expression = "java(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.ZERO)")
     PortalNavigationApi portalNavigationApiFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
     @Mapping(target = "portalPageContentId", expression = "java(parsePortalPageContentId(portalNavigationItem.getConfiguration()))")
+    @Mapping(target = "rootId", expression = "java(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.ZERO)")
     PortalNavigationPage portalNavigationPageFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
@@ -149,6 +152,7 @@ public interface PortalNavigationItemAdapter {
         }
     }
 
+    @Mapping(target = "rootId", expression = "java(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.ZERO)")
     PortalNavigationFolder portalNavigationFolderFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );

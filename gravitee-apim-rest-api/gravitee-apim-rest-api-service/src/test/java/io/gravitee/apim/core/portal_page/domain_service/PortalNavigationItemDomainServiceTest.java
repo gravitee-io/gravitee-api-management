@@ -22,7 +22,10 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
+import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
@@ -59,6 +62,74 @@ public class PortalNavigationItemDomainServiceTest {
             portalPageContentCrudService,
             apiCrudService
         );
+    }
+
+    @Nested
+    class Create {
+
+        @Test
+        void should_set_root_id_equal_to_item_id_for_root_item() {
+            // When
+            var toCreate = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Root Folder")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .build();
+
+            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+
+            // Then
+            assertThat(created.getRootId()).isEqualTo(created.getId());
+        }
+
+        @Test
+        void should_set_root_id_to_parent_id_for_direct_child_of_root() {
+            // Given — a root parent with rootId set to itself
+            var parent = PortalNavigationItemFixtures.aFolder("parent-folder");
+            parent.markAsRoot();
+            portalNavigationItemsCrudService.initWith(List.of(parent));
+            portalNavigationItemsQueryService.initWith(List.of(parent));
+
+            // When
+            var toCreate = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Child Folder")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .build();
+            toCreate.setParentId(parent.getId());
+
+            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+
+            // Then
+            assertThat(created.getRootId()).isEqualTo(parent.getId());
+        }
+
+        @Test
+        void should_set_root_id_to_grandparent_id_for_nested_child() {
+            // Given — root → child (no rootId yet) → grandchild
+            var root = PortalNavigationItemFixtures.aFolder("root-folder");
+            root.markAsRoot();
+            var child = PortalNavigationItemFixtures.aFolder("child-folder", root.getId());
+            // child has rootId = ZERO (simulates items loaded from DB before Stage 2)
+            portalNavigationItemsCrudService.initWith(List.of(root, child));
+            portalNavigationItemsQueryService.initWith(List.of(root, child));
+
+            // When
+            var toCreate = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Grandchild Folder")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .build();
+            toCreate.setParentId(child.getId());
+
+            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+
+            // Then: resolveRootId walked up to the root (which has rootId set) and returned root.getId()
+            assertThat(created.getRootId()).isEqualTo(root.getId());
+        }
     }
 
     @Nested
@@ -234,8 +305,8 @@ public class PortalNavigationItemDomainServiceTest {
         @Test
         void should_update_parent_id_and_recalculate_orders() {
             // Given
-            PortalNavigationPage parent1 = PortalNavigationItemFixtures.aPage("parent1", null).toBuilder().order(0).build();
-            PortalNavigationPage parent2 = PortalNavigationItemFixtures.aPage("parent2", null).toBuilder().order(1).build();
+            PortalNavigationFolder parent1 = PortalNavigationItemFixtures.aFolder("parent1").toBuilder().order(0).build();
+            PortalNavigationFolder parent2 = PortalNavigationItemFixtures.aFolder("parent2").toBuilder().order(1).build();
             PortalNavigationPage child1 = PortalNavigationItemFixtures.aPage("child1", parent1.getId()).toBuilder().order(0).build();
             PortalNavigationPage child2 = PortalNavigationItemFixtures.aPage("child2", parent1.getId()).toBuilder().order(1).build();
             PortalNavigationPage child3 = PortalNavigationItemFixtures.aPage("child3", parent2.getId()).toBuilder().order(0).build();
@@ -291,6 +362,101 @@ public class PortalNavigationItemDomainServiceTest {
             )
                 .containsOnlyKeys(expectedParent2.keySet())
                 .containsAllEntriesOf(expectedParent2);
+        }
+
+        @Test
+        void should_update_root_id_when_child_is_moved_to_root() {
+            // Given — root → child (has rootId = root.getId())
+            PortalNavigationFolder root = PortalNavigationItemFixtures.aFolder("root1");
+            root.markAsRoot();
+            PortalNavigationPage child = PortalNavigationItemFixtures.aPage("child1", root.getId());
+            child.updateParent(root);
+            portalNavigationItemsCrudService.initWith(List.of(root, child));
+            portalNavigationItemsQueryService.initWith(List.of(root, child));
+
+            // When — move child to root level (parentId = null)
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .title(child.getTitle())
+                .visibility(child.getVisibility())
+                .type(child.getType())
+                .order(0)
+                .parentId(null)
+                .published(child.getPublished())
+                .build();
+
+            var updated = domainService.update(toUpdate, child);
+
+            // Then — rootId changes to the item's own id (it is now a root item)
+            assertThat(updated.getRootId()).isEqualTo(updated.getId());
+        }
+
+        @Test
+        void should_update_root_id_and_propagate_when_root_item_moves_under_another_root() {
+            // Given — two roots, root1 has a child with a grandchild
+            PortalNavigationFolder root1 = PortalNavigationItemFixtures.aFolder("root1-folder");
+            root1.markAsRoot();
+            PortalNavigationFolder root2 = PortalNavigationItemFixtures.aFolder("root2-folder");
+            root2.markAsRoot();
+            PortalNavigationFolder child = PortalNavigationItemFixtures.aFolder("child-of-root1", root1.getId());
+            child.updateParent(root1);
+            PortalNavigationPage grandchild = PortalNavigationItemFixtures.aPage("grandchild", child.getId());
+            grandchild.updateParent(child);
+            portalNavigationItemsCrudService.initWith(List.of(root1, root2, child, grandchild));
+            portalNavigationItemsQueryService.initWith(List.of(root1, root2, child, grandchild));
+
+            // When — move child under root2
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .title(child.getTitle())
+                .visibility(child.getVisibility())
+                .type(child.getType())
+                .order(0)
+                .parentId(root2.getId())
+                .published(child.getPublished())
+                .build();
+
+            var updated = domainService.update(toUpdate, child);
+
+            // Then — child rootId = root2.getId()
+            assertThat(updated.getRootId()).isEqualTo(root2.getId());
+
+            // And grandchild rootId propagated to root2.getId()
+            var grandchildInStorage = portalNavigationItemsCrudService
+                .storage()
+                .stream()
+                .filter(item -> item.getId().equals(grandchild.getId()))
+                .findFirst()
+                .orElseThrow();
+            assertThat(grandchildInStorage.getRootId()).isEqualTo(root2.getId());
+        }
+
+        @Test
+        void should_not_change_root_id_when_reordering_within_same_parent() {
+            // Given
+            PortalNavigationFolder root = PortalNavigationItemFixtures.aFolder("stable-root");
+            root.markAsRoot();
+            PortalNavigationPage child = PortalNavigationItemFixtures.aPage("stable-child", root.getId());
+            child.updateParent(root);
+            child.setOrder(0);
+            PortalNavigationPage sibling = PortalNavigationItemFixtures.aPage("stable-sibling", root.getId());
+            sibling.updateParent(root);
+            sibling.setOrder(1);
+            portalNavigationItemsCrudService.initWith(List.of(root, child, sibling));
+            portalNavigationItemsQueryService.initWith(List.of(root, child, sibling));
+
+            // When — change order within same parent
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .title(child.getTitle())
+                .visibility(child.getVisibility())
+                .type(child.getType())
+                .order(1)
+                .parentId(root.getId())
+                .published(child.getPublished())
+                .build();
+
+            var updated = domainService.update(toUpdate, child);
+
+            // Then — rootId unchanged
+            assertThat(updated.getRootId()).isEqualTo(root.getId());
         }
 
         @Test

@@ -15,6 +15,14 @@
  */
 package fixtures;
 
+import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
@@ -104,5 +112,79 @@ public class PortalNavigationItemsFixtures {
             .order(1)
             .parentId(parentId)
             .visibility(PortalVisibility.PRIVATE);
+    }
+
+    public static PortalNavigationItem aPortalNavigationPage(String organizationId, String environmentId) {
+        return PortalNavigationPage.builder()
+            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001"))
+            .organizationId(organizationId)
+            .environmentId(environmentId)
+            .title("My Page")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-000000000003"))
+            .parentId(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000002"))
+            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .published(false)
+            .build();
+    }
+
+    public static PortalNavigationItem aPortalNavigationFolder(String organizationId, String environmentId) {
+        return PortalNavigationFolder.builder()
+            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001"))
+            .organizationId(organizationId)
+            .environmentId(environmentId)
+            .title("My Folder")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(2)
+            .parentId(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000002"))
+            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .published(false)
+            .build();
+    }
+
+    public static PortalNavigationItem aPortalNavigationLink(String organizationId, String environmentId) {
+        return PortalNavigationLink.builder()
+            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001"))
+            .organizationId(organizationId)
+            .environmentId(environmentId)
+            .title("My Link")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(3)
+            .url("http://example.com")
+            .parentId(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000002"))
+            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .published(false)
+            .build();
+    }
+
+    public static PortalNavigationItem aPortalNavigationApi(String organizationId, String environmentId) {
+        return PortalNavigationApi.builder()
+            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001"))
+            .organizationId(organizationId)
+            .environmentId(environmentId)
+            .title("My Link")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(3)
+            .apiId("apiId")
+            .parentId(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000002"))
+            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .published(false)
+            .build();
+    }
+
+    public static PortalNavigationItem aPrivatePortalNavigationPage(String organizationId, String environmentId) {
+        return PortalNavigationPage.builder()
+            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001"))
+            .organizationId(organizationId)
+            .environmentId(environmentId)
+            .title("My Page")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-000000000003"))
+            .parentId(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000002"))
+            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE)
+            .published(false)
+            .build();
     }
 }

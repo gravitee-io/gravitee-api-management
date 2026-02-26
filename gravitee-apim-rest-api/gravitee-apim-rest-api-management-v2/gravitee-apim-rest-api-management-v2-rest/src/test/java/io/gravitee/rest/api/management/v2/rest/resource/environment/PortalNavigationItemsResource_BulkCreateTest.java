@@ -27,7 +27,6 @@ import static org.mockito.Mockito.when;
 
 import fixtures.PortalNavigationItemsFixtures;
 import io.gravitee.apim.core.portal_page.use_case.BulkCreatePortalNavigationItemUseCase;
-import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItems;
 import io.gravitee.rest.api.management.v2.rest.model.BasePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
@@ -131,21 +130,9 @@ class PortalNavigationItemsResource_BulkCreateTest extends AbstractResourceTest 
         final var request = new BaseCreatePortalNavigationItems().items(List.of(page, folder, link));
 
         final var output = List.of(
-            io.gravitee.apim.core.portal_page.model.PortalNavigationItem.from(
-                PortalNavigationItemsMapper.INSTANCE.map(page),
-                ENVIRONMENT,
-                ORGANIZATION
-            ),
-            io.gravitee.apim.core.portal_page.model.PortalNavigationItem.from(
-                PortalNavigationItemsMapper.INSTANCE.map(folder),
-                ENVIRONMENT,
-                ORGANIZATION
-            ),
-            io.gravitee.apim.core.portal_page.model.PortalNavigationItem.from(
-                PortalNavigationItemsMapper.INSTANCE.map(link),
-                ENVIRONMENT,
-                ORGANIZATION
-            )
+            PortalNavigationItemsFixtures.aPortalNavigationPage(ORGANIZATION, ENVIRONMENT),
+            PortalNavigationItemsFixtures.aPortalNavigationFolder(ORGANIZATION, ENVIRONMENT),
+            PortalNavigationItemsFixtures.aPortalNavigationLink(ORGANIZATION, ENVIRONMENT)
         );
         when(bulkCreatePortalNavigationItemUseCase.execute(any())).thenReturn(new BulkCreatePortalNavigationItemUseCase.Output(output));
 

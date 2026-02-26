@@ -23,6 +23,7 @@ import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudServi
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
@@ -67,9 +68,10 @@ public class PortalNavigationItemDomainService {
             createPortalNavigationItem.setTitle(api.getName());
         }
 
-        final var portalNavigationItem = this.crudService.create(
-            PortalNavigationItem.from(createPortalNavigationItem, organizationId, environmentId)
-        );
+        var parentId = createPortalNavigationItem.getParentId();
+        var parent = parentId != null ? resolveParentContainer(parentId, environmentId) : null;
+        var itemToCreate = PortalNavigationItem.from(createPortalNavigationItem, organizationId, environmentId, parent);
+        final var portalNavigationItem = this.crudService.create(itemToCreate);
 
         // Update orders of all following sibling items
         this.retrieveSiblingItems(
@@ -147,6 +149,14 @@ public class PortalNavigationItemDomainService {
 
         originalItem.update(toUpdate);
 
+        if (isMoveToNewParent) {
+            if (toUpdate.getParentId() != null) {
+                originalItem.updateParent(resolveParentContainer(toUpdate.getParentId(), originalItem.getEnvironmentId()));
+            } else {
+                originalItem.markAsRoot();
+            }
+        }
+
         var updatedItem = crudService.update(originalItem);
         if (PortalVisibility.PRIVATE.equals(changedVisibility) || Boolean.FALSE.equals(changedPublished)) {
             propagateAttributesToDescendants(
@@ -155,6 +165,9 @@ public class PortalNavigationItemDomainService {
                 PortalVisibility.PRIVATE.equals(changedVisibility) ? PortalVisibility.PRIVATE : null,
                 Boolean.FALSE.equals(changedPublished) ? Boolean.FALSE : null
             );
+        }
+        if (isMoveToNewParent) {
+            propagateRootIdToDescendants(updatedItem.getId(), updatedItem.getEnvironmentId());
         }
 
         List<PortalNavigationItem> siblingsToUpdate = new ArrayList<>();
@@ -167,6 +180,47 @@ public class PortalNavigationItemDomainService {
         siblingsToUpdate.forEach(crudService::update);
 
         return updatedItem;
+    }
+
+    private PortalNavigationItemContainer resolveParentContainer(PortalNavigationItemId parentId, String environmentId) {
+        var parent = queryService.findByIdAndEnvironmentId(environmentId, parentId);
+        if (!(parent instanceof PortalNavigationItemContainer container)) {
+            throw new IllegalStateException("Parent must be a container type (folder or api): " + parentId);
+        }
+        if (PortalNavigationItemId.ZERO.equals(parent.getRootId())) {
+            parent.setRootId(resolveRootId(parentId, environmentId));
+        }
+        return container;
+    }
+
+    private PortalNavigationItemId resolveRootId(PortalNavigationItemId parentId, String environmentId) {
+        var parent = queryService.findByIdAndEnvironmentId(environmentId, parentId);
+        if (!PortalNavigationItemId.ZERO.equals(parent.getRootId())) return parent.getRootId();
+        if (parent.getParentId() == null) return parent.getId();
+        return resolveRootId(parent.getParentId(), environmentId);
+    }
+
+    private void propagateRootIdToDescendants(PortalNavigationItemId parentId, String environmentId) {
+        propagateRootIdToDescendants(parentId, environmentId, 0);
+    }
+
+    private void propagateRootIdToDescendants(PortalNavigationItemId parentId, String environmentId, int currentNestingLevel) {
+        if (currentNestingLevel > MAX_PROPAGATION_NESTING_LEVEL) {
+            throw new IllegalStateException(
+                "Maximum portal navigation nesting level of %d exceeded while propagating rootId".formatted(MAX_PROPAGATION_NESTING_LEVEL)
+            );
+        }
+        var children = queryService.findByParentIdAndEnvironmentId(environmentId, parentId);
+        if (children.isEmpty()) return;
+        // Parent was already saved with the correct rootId; look it up to use as the container for children.
+        if (!(queryService.findByIdAndEnvironmentId(environmentId, parentId) instanceof PortalNavigationItemContainer parentContainer)) {
+            return;
+        }
+        for (PortalNavigationItem child : children) {
+            child.updateParent(parentContainer);
+            crudService.update(child);
+            propagateRootIdToDescendants(child.getId(), environmentId, currentNestingLevel + 1);
+        }
     }
 
     private void propagateAttributesToDescendants(

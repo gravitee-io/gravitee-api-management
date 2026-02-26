@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static fixtures.core.model.PortalNavigationItemFixtures.API1_FOLDER_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.API1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.API2_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.LINK1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
@@ -409,10 +410,13 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(result).isNotNull();
         assertThat(result.updatedItem()).isNotNull();
         assertThat(result.updatedItem().getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+        // LINK1 was a root item (rootId = LINK1_ID), moving under API1 (rootId = APIS_ID) changes rootId
+        assertThat(result.updatedItem().getRootId()).isEqualTo(PortalNavigationItemId.of(APIS_ID));
 
         var updated = queryService.findByIdAndEnvironmentId(ENV_ID, existing.getId());
         assertThat(updated).isNotNull();
         assertThat(updated.getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+        assertThat(updated.getRootId()).isEqualTo(PortalNavigationItemId.of(APIS_ID));
     }
 
     @Test

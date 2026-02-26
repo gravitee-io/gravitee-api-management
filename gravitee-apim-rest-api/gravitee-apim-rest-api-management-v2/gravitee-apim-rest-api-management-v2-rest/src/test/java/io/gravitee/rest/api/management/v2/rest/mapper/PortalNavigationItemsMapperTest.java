@@ -16,19 +16,12 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.PortalNavigationItemsFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.rest.api.management.v2.rest.model.BasePortalNavigationItem;
-import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
-import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
@@ -57,14 +50,13 @@ class PortalNavigationItemsMapperTest {
 
         @Test
         void should_map_portal_navigation_page() {
-            UUID pageId = UUID.fromString("12345678-1234-1234-1234-123456789abc");
-            var page = PortalNavigationItemFixtures.aPage(pageId.toString(), "My Page", null);
+            var page = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE_ID, "My Page", null);
             page.setOrder(1);
 
             var result = mapper.map(page);
 
             assertThat(result).isInstanceOf(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage.class);
-            assertThat(result.getId()).isEqualTo(pageId);
+            assertThat(result.getId()).isEqualTo(UUID.fromString(PortalNavigationItemFixtures.PAGE_ID));
             assertThat(result.getOrganizationId()).isEqualTo("org-id");
             assertThat(result.getEnvironmentId()).isEqualTo("env-id");
             assertThat(result.getTitle()).isEqualTo("My Page");
@@ -77,14 +69,13 @@ class PortalNavigationItemsMapperTest {
 
         @Test
         void should_map_portal_navigation_folder() {
-            UUID folderId = UUID.fromString("87654321-4321-4321-4321-cba987654321");
-            var folder = PortalNavigationItemFixtures.aFolder(folderId.toString(), "My Folder");
+            var folder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemFixtures.FOLDER_ID, "My Folder");
             folder.setOrder(2);
 
             var result = mapper.map(folder);
 
             assertThat(result).isInstanceOf(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder.class);
-            assertThat(result.getId()).isEqualTo(folderId);
+            assertThat(result.getId()).isEqualTo(UUID.fromString(PortalNavigationItemFixtures.FOLDER_ID));
             assertThat(result.getOrganizationId()).isEqualTo("org-id");
             assertThat(result.getEnvironmentId()).isEqualTo("env-id");
             assertThat(result.getTitle()).isEqualTo("My Folder");
@@ -96,23 +87,12 @@ class PortalNavigationItemsMapperTest {
 
         @Test
         void should_map_portal_navigation_link() {
-            UUID linkId = UUID.fromString("abcd1234-5678-9012-3456-789012345678");
-            var link = new PortalNavigationLink(
-                PortalNavigationItemId.of(linkId.toString()),
-                "org-id",
-                "env-id",
-                "My Link",
-                PortalArea.TOP_NAVBAR,
-                3,
-                "https://example.com",
-                true,
-                PortalVisibility.PUBLIC
-            );
+            var link = PortalNavigationItemFixtures.aLink();
 
             var result = mapper.map(link);
 
             assertThat(result).isInstanceOf(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLink.class);
-            assertThat(result.getId()).isEqualTo(linkId);
+            assertThat(result.getId()).isEqualTo(UUID.fromString(PortalNavigationItemFixtures.LINK_ID));
             assertThat(result.getOrganizationId()).isEqualTo("org-id");
             assertThat(result.getEnvironmentId()).isEqualTo("env-id");
             assertThat(result.getTitle()).isEqualTo("My Link");
@@ -125,23 +105,12 @@ class PortalNavigationItemsMapperTest {
 
         @Test
         void should_map_portal_navigation_api() {
-            UUID linkId = UUID.fromString("abcd1234-5678-9012-3456-789012345678");
-            var link = new PortalNavigationApi(
-                PortalNavigationItemId.of(linkId.toString()),
-                "org-id",
-                "env-id",
-                "My Api",
-                PortalArea.TOP_NAVBAR,
-                3,
-                "apiId",
-                true,
-                PortalVisibility.PUBLIC
-            );
+            var api = PortalNavigationItemFixtures.anApi();
 
-            var result = mapper.map(link);
+            var result = mapper.map(api);
 
             assertThat(result).isInstanceOf(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApi.class);
-            assertThat(result.getId()).isEqualTo(linkId);
+            assertThat(result.getId()).isEqualTo(UUID.fromString(PortalNavigationItemFixtures.API_ID));
             assertThat(result.getOrganizationId()).isEqualTo("org-id");
             assertThat(result.getEnvironmentId()).isEqualTo("env-id");
             assertThat(result.getTitle()).isEqualTo("My Api");
@@ -166,19 +135,7 @@ class PortalNavigationItemsMapperTest {
                     .map(i -> (BasePortalNavigationItem) i.getActualInstance())
                     .map(BasePortalNavigationItem::getId)
             ).containsExactlyInAnyOrder(
-                UUID.fromString("00000000-0000-0000-0000-000000000001"),
-                UUID.fromString("00000000-0000-0000-0000-000000000002"),
-                UUID.fromString("00000000-0000-0000-0000-000000000003"),
-                UUID.fromString("00000000-0000-0000-0000-000000000004"),
-                UUID.fromString("00000000-0000-0000-0000-000000000005"),
-                UUID.fromString("00000000-0000-0000-0000-000000000006"),
-                UUID.fromString("00000000-0000-0000-0000-000000000007"),
-                UUID.fromString("00000000-0000-0000-0000-000000000008"),
-                UUID.fromString("00000000-0000-0000-0000-000000000009"),
-                UUID.fromString("00000000-0000-0000-0000-000000000010"),
-                UUID.fromString("00000000-0000-0000-0000-000000000011"),
-                UUID.fromString("00000000-0000-0000-0000-000000000012"),
-                UUID.fromString("00000000-0000-0000-0000-000000000013")
+                PortalNavigationItemFixtures.SAMPLE_NAVIGATION_ITEMS_IDS.stream().map(UUID::fromString).toArray(UUID[]::new)
             );
         }
     }
