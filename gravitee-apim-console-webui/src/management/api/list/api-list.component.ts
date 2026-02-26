@@ -430,6 +430,9 @@ export class ApiListComponent implements OnInit, OnDestroy {
     if (api.type === 'LLM_PROXY') {
       return 'LLM Proxy';
     }
+    if (api.type === 'A2A_PROXY') {
+      return 'A2A Proxy';
+    }
 
     return api.listeners.map((listener: Listener): ListenerType => listener.type).includes('TCP') ? 'TCP Proxy' : 'HTTP Proxy';
   }
