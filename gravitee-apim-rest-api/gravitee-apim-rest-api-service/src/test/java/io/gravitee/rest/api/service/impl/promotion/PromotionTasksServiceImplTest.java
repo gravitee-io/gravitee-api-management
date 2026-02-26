@@ -28,7 +28,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.TaskEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntityAuthor;
@@ -65,8 +64,7 @@ public class PromotionTasksServiceImplTest {
     @Mock
     private ApiSearchService apiSearchService;
 
-    @Mock
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     private PromotionTasksService cut;
 
@@ -125,6 +123,95 @@ public class PromotionTasksServiceImplTest {
     }
 
     @Test
+    public void shouldNotGetPromotionTasksIfMalformed() throws JsonProcessingException {
+        PromotionEntity aPromotionEntity = getAMalformedPromotionEntity();
+        when(
+            promotionService.search(
+                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.TO_BE_VALIDATED),
+                any(),
+                any()
+            )
+        ).thenReturn(new Page<>(singletonList(aPromotionEntity), 0, 0, 0));
+        when(environmentService.findByOrganization(any())).thenReturn(singletonList(getAnEnvironmentEntity()));
+
+        PromotionEntity previousPromotionEntity = getAMalformedPromotionEntity();
+        previousPromotionEntity.setTargetApiId("api#target");
+        when(
+            promotionService.search(
+                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.ACCEPTED),
+                any(),
+                any()
+            )
+        ).thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq("env#1"),
+                eq(UPDATE)
+            )
+        ).thenReturn(true);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq("env#1"),
+                eq(CREATE)
+            )
+        ).thenReturn(false);
+
+        final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    /*
+     * Promotion of V4 APIs coming from more recent version of APIM should be ignored
+     */
+    public void shouldNotGetPromotionTasksIfTooRecent() throws JsonProcessingException {
+        PromotionEntity aPromotionEntity = getAV4ApiPromotionEntity();
+        when(
+            promotionService.search(
+                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.TO_BE_VALIDATED),
+                any(),
+                any()
+            )
+        ).thenReturn(new Page<>(singletonList(aPromotionEntity), 0, 0, 0));
+        when(environmentService.findByOrganization(any())).thenReturn(singletonList(getAnEnvironmentEntity()));
+
+        PromotionEntity previousPromotionEntity = getAV4ApiPromotionEntity();
+        previousPromotionEntity.setTargetApiId("api#target");
+        when(
+            promotionService.search(
+                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.ACCEPTED),
+                any(),
+                any()
+            )
+        ).thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq("env#1"),
+                eq(UPDATE)
+            )
+        ).thenReturn(true);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq("env#1"),
+                eq(CREATE)
+            )
+        ).thenReturn(false);
+
+        when(apiSearchService.exists("api#target")).thenReturn(true);
+
+        final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     public void shouldGetPromotionTasks_withApiUpdate() throws JsonProcessingException {
         PromotionEntity aPromotionEntity = getAPromotionEntity();
         when(
@@ -161,8 +248,6 @@ public class PromotionTasksServiceImplTest {
                 eq(CREATE)
             )
         ).thenReturn(false);
-
-        when(objectMapper.readValue(aPromotionEntity.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
 
         when(apiSearchService.exists("api#target")).thenReturn(true);
 
@@ -215,8 +300,6 @@ public class PromotionTasksServiceImplTest {
             )
         ).thenReturn(false);
 
-        when(objectMapper.readValue(aPromotionEntity.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
-
         final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
         assertThat(result).hasSize(1);
         Map<String, Object> taskData = (Map<String, Object>) result.get(0).getData();
@@ -267,7 +350,6 @@ public class PromotionTasksServiceImplTest {
                 eq(UPDATE)
             )
         ).thenReturn(false);
-        when(objectMapper.readValue(aPromotionEntity.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
 
         when(apiSearchService.exists("api#target")).thenReturn(false);
 
@@ -322,9 +404,6 @@ public class PromotionTasksServiceImplTest {
             )
         ).thenReturn(false);
 
-        when(objectMapper.readValue(promotionEntity1.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
-        when(objectMapper.readValue(promotionEntity2.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
-
         when(apiSearchService.exists("api#target")).thenReturn(true);
 
         final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
@@ -334,8 +413,49 @@ public class PromotionTasksServiceImplTest {
     private PromotionEntity getAPromotionEntity() {
         final PromotionEntity promotion = new PromotionEntity();
         promotion.setApiDefinition(
-            "{\"id\" : \"api#1\",\"name\" : \"API Name\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAliveTimeout\" : 30000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}"
+            """
+                {
+                    "id": "api#1",
+                    "name": "API Name",
+                    "version": "1",
+                    "proxy": {
+                        "virtual_hosts" : [ {
+                          "path" : "/product"
+                        } ],
+                        "groups" : [ {
+                          "name" : "default",
+                          "endpoints" : [ {
+                            "name" : "Default",
+                            "target" : "https://api.gravitee.io/echo",
+                            "tenants" : [ ],
+                            "weight" : 1,
+                            "backup" : false,
+                            "type" : "http"
+                          } ],
+                          "load_balancing" : {
+                            "type" : "ROUND_ROBIN"
+                          },
+                          "http" : {
+                            "connectTimeout" : 5000,
+                            "idleTimeout" : 60000,
+                            "keepAliveTimeout" : 30000,
+                            "keepAlive" : true,
+                            "readTimeout" : 10000,
+                            "pipelining" : false,
+                            "maxConcurrentConnections" : 100,
+                            "useCompression" : true,
+                            "followRedirects" : false,
+                            "maxHeaderSize" : 8192,
+                            "maxChunkSize" : 8192
+                          }
+                        } ],
+                        "strip_context_path": false
+                    },
+                    "tags": []
+                }
+            """
         );
+        promotion.setId("promotion#1");
         promotion.setTargetEnvCockpitId("env#1-cockpit-id");
         promotion.setTargetEnvName("Target Env");
         promotion.setSourceEnvCockpitId("env#2-cockpit-id");
@@ -350,14 +470,6 @@ public class PromotionTasksServiceImplTest {
         return promotion;
     }
 
-    private ApiEntity getAnApiEntity() {
-        final ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId("api#1");
-        apiEntity.setName("API Name");
-
-        return apiEntity;
-    }
-
     private EnvironmentEntity getAnEnvironmentEntity() {
         final EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setId("env#1");
@@ -365,5 +477,87 @@ public class PromotionTasksServiceImplTest {
         environmentEntity.setName("Env 1");
 
         return environmentEntity;
+    }
+
+    private PromotionEntity getAMalformedPromotionEntity() {
+        final PromotionEntity promotion = new PromotionEntity();
+        promotion.setApiDefinition("malformed api definition");
+        promotion.setId("promotion#1");
+        promotion.setTargetEnvCockpitId("env#1-cockpit-id");
+        promotion.setTargetEnvName("Target Env");
+        promotion.setSourceEnvCockpitId("env#2-cockpit-id");
+        promotion.setSourceEnvName("Source Env");
+        promotion.setApiId("api id");
+        promotion.setTargetApiId("target api id");
+
+        PromotionEntityAuthor author = new PromotionEntityAuthor();
+        author.setDisplayName("Author");
+        author.setEmail("author@gv.io");
+        promotion.setAuthor(author);
+        return promotion;
+    }
+
+    private PromotionEntity getAV4ApiPromotionEntity() {
+        final PromotionEntity promotion = new PromotionEntity();
+        promotion.setApiDefinition(
+            """
+              "export": {
+                "date": "2026-02-26T15:40:00.714152891Z",
+                "apimVersion": "4.10.7-SNAPSHOT"
+              },
+              "api": {
+                    "id": "api#1",
+                    "name": "API Name",
+                    "version": "1",
+                    "proxy": {
+                        "virtual_hosts" : [ {
+                          "path" : "/product"
+                        } ],
+                        "groups" : [ {
+                          "name" : "default",
+                          "endpoints" : [ {
+                            "name" : "Default",
+                            "target" : "https://api.gravitee.io/echo",
+                            "tenants" : [ ],
+                            "weight" : 1,
+                            "backup" : false,
+                            "type" : "http"
+                          } ],
+                          "load_balancing" : {
+                            "type" : "ROUND_ROBIN"
+                          },
+                          "http" : {
+                            "connectTimeout" : 5000,
+                            "idleTimeout" : 60000,
+                            "keepAliveTimeout" : 30000,
+                            "keepAlive" : true,
+                            "readTimeout" : 10000,
+                            "pipelining" : false,
+                            "maxConcurrentConnections" : 100,
+                            "useCompression" : true,
+                            "followRedirects" : false,
+                            "maxHeaderSize" : 8192,
+                            "maxChunkSize" : 8192
+                          }
+                        } ],
+                        "strip_context_path": false
+                    },
+                    "tags": []
+                }
+            """
+        );
+        promotion.setId("promotion#1");
+        promotion.setTargetEnvCockpitId("env#1-cockpit-id");
+        promotion.setTargetEnvName("Target Env");
+        promotion.setSourceEnvCockpitId("env#2-cockpit-id");
+        promotion.setSourceEnvName("Source Env");
+        promotion.setApiId("api id");
+        promotion.setTargetApiId("target api id");
+
+        PromotionEntityAuthor author = new PromotionEntityAuthor();
+        author.setDisplayName("Author");
+        author.setEmail("author@gv.io");
+        promotion.setAuthor(author);
+        return promotion;
     }
 }
