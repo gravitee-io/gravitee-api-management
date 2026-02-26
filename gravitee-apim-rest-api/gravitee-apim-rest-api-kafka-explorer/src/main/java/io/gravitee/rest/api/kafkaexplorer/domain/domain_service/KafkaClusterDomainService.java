@@ -17,6 +17,8 @@ package io.gravitee.rest.api.kafkaexplorer.domain.domain_service;
 
 import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerInfo;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupDetail;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupsPage;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicsPage;
@@ -26,4 +28,6 @@ public interface KafkaClusterDomainService {
     TopicsPage listTopics(KafkaClusterConfiguration config, String nameFilter, int page, int perPage);
     TopicDetail describeTopic(KafkaClusterConfiguration config, String topicName);
     BrokerInfo describeBroker(KafkaClusterConfiguration config, int brokerId);
+    ConsumerGroupsPage listConsumerGroups(KafkaClusterConfiguration config, String nameFilter, int page, int perPage);
+    ConsumerGroupDetail describeConsumerGroup(KafkaClusterConfiguration config, String groupId);
 }

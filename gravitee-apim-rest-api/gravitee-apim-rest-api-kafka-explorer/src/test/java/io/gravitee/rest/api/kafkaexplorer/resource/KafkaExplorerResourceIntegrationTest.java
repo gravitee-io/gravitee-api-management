@@ -17,14 +17,6 @@ package io.gravitee.rest.api.kafkaexplorer.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import inmemory.ClusterCrudServiceInMemory;
-import io.gravitee.apim.core.cluster.model.Cluster;
-import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeBrokerUseCase;
-import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeKafkaClusterUseCase;
-import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeTopicUseCase;
-import io.gravitee.rest.api.kafkaexplorer.domain.use_case.ListTopicsUseCase;
-import io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service.KafkaClusterDomainServiceImpl;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeBrokerRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeBrokerResponse;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterRequest;
@@ -34,13 +26,9 @@ import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeTopicResponse;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaExplorerError;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.ListTopicsRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.ListTopicsResponse;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -55,76 +43,16 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.DockerComposeContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Testcontainers
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class KafkaExplorerResourceIntegrationTest {
+class KafkaExplorerResourceIntegrationTest extends AbstractKafkaExplorerResourceIntegrationTest {
 
     private static final String SASL_USERNAME = "admin";
     private static final String SASL_PASSWORD = "admin-secret";
-    private static final String BROKER_SERVICE = "broker";
-    private static final int PLAINTEXT_PORT = 9092;
-    private static final int SSL_PORT = 9094;
-    private static final int SASL_PLAINTEXT_PORT = 9095;
-    private static final String CLUSTER_ID = "test-cluster";
-    private static final String ENVIRONMENT_ID = "test-env";
-
-    @Container
-    static final DockerComposeContainer<?> kafka = new DockerComposeContainer<>(new File("src/test/resources/docker/docker-compose.yml"))
-        .withExposedService(BROKER_SERVICE, PLAINTEXT_PORT, Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(60)))
-        .withExposedService(BROKER_SERVICE, SSL_PORT)
-        .withExposedService(BROKER_SERVICE, SASL_PLAINTEXT_PORT);
-
-    private static KafkaExplorerResource resource;
-    private static ClusterCrudServiceInMemory clusterCrudService;
-
-    @BeforeAll
-    static void setUp() throws Exception {
-        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
-
-        resource = new KafkaExplorerResource();
-        clusterCrudService = new ClusterCrudServiceInMemory();
-        var clusterService = new KafkaClusterDomainServiceImpl();
-        var objectMapper = new ObjectMapper();
-        var describeUseCase = new DescribeKafkaClusterUseCase(clusterCrudService, clusterService, objectMapper);
-        var listTopicsUseCase = new ListTopicsUseCase(clusterCrudService, clusterService, objectMapper);
-        var describeTopicUseCase = new DescribeTopicUseCase(clusterCrudService, clusterService, objectMapper);
-        var describeBrokerUseCase = new DescribeBrokerUseCase(clusterCrudService, clusterService, objectMapper);
-        injectField(resource, "describeBrokerUseCase", describeBrokerUseCase);
-        injectField(resource, "describeKafkaClusterUseCase", describeUseCase);
-        injectField(resource, "listTopicsUseCase", listTopicsUseCase);
-        injectField(resource, "describeTopicUseCase", describeTopicUseCase);
-    }
-
-    @BeforeEach
-    void resetClusterCrudService() {
-        clusterCrudService.reset();
-    }
-
-    private static String plaintextBootstrapServers() {
-        return kafka.getServiceHost(BROKER_SERVICE, PLAINTEXT_PORT) + ":" + kafka.getServicePort(BROKER_SERVICE, PLAINTEXT_PORT);
-    }
-
-    private static String sslBootstrapServers() {
-        return kafka.getServiceHost(BROKER_SERVICE, SSL_PORT) + ":" + kafka.getServicePort(BROKER_SERVICE, SSL_PORT);
-    }
-
-    private static String saslBootstrapServers() {
-        return kafka.getServiceHost(BROKER_SERVICE, SASL_PLAINTEXT_PORT) + ":" + kafka.getServicePort(BROKER_SERVICE, SASL_PLAINTEXT_PORT);
-    }
-
-    private static void givenClusterWithConfig(Map<String, Object> config) {
-        clusterCrudService.create(Cluster.builder().id(CLUSTER_ID).environmentId(ENVIRONMENT_ID).configuration(config).build());
-    }
 
     @Nested
     class Plaintext {
@@ -567,11 +495,5 @@ class KafkaExplorerResourceIntegrationTest {
             var error = (KafkaExplorerError) response.getEntity();
             assertThat(error.getTechnicalCode()).isEqualTo("CONNECTION_FAILED");
         }
-    }
-
-    private static void injectField(Object target, String fieldName, Object value) throws Exception {
-        Field field = target.getClass().getDeclaredField(fieldName);
-        field.setAccessible(true);
-        field.set(target, value);
     }
 }
