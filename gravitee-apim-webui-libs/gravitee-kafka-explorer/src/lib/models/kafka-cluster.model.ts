@@ -103,3 +103,46 @@ export interface DescribeBrokerResponse {
   logDirEntries: BrokerLogDirEntry[];
   configs: TopicConfig[];
 }
+
+export interface ConsumerGroupSummary {
+  groupId: string;
+  state: string;
+  membersCount: number;
+  totalLag: number;
+  numTopics: number;
+  coordinator: KafkaNode;
+}
+
+export interface ListConsumerGroupsResponse {
+  data: ConsumerGroupSummary[];
+  pagination: Pagination;
+}
+
+export interface ConsumerGroupMember {
+  memberId: string;
+  clientId: string;
+  host: string;
+  assignments: MemberAssignment[];
+}
+
+export interface MemberAssignment {
+  topicName: string;
+  partitions: number[];
+}
+
+export interface ConsumerGroupOffset {
+  topic: string;
+  partition: number;
+  committedOffset: number;
+  endOffset: number;
+  lag: number;
+}
+
+export interface DescribeConsumerGroupResponse {
+  groupId: string;
+  state: string;
+  coordinator: KafkaNode;
+  partitionAssignor: string;
+  members: ConsumerGroupMember[];
+  offsets: ConsumerGroupOffset[];
+}

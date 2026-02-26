@@ -18,6 +18,8 @@ import { Routes } from '@angular/router';
 import { KafkaExplorerComponent } from './kafka-explorer.component';
 import { BrokerDetailPageComponent } from '../broker-detail/broker-detail-page.component';
 import { BrokersPageComponent } from '../brokers/brokers-page.component';
+import { ConsumerGroupDetailPageComponent } from '../consumer-group-detail/consumer-group-detail-page.component';
+import { ConsumerGroupsPageComponent } from '../consumer-groups/consumer-groups-page.component';
 import { TopicDetailPageComponent } from '../topic-detail/topic-detail-page.component';
 import { TopicsPageComponent } from '../topics/topics-page.component';
 
@@ -31,6 +33,8 @@ export const KAFKA_EXPLORER_ROUTES: Routes = [
       { path: 'brokers/:brokerId', component: BrokerDetailPageComponent },
       { path: 'topics', component: TopicsPageComponent },
       { path: 'topics/:topicName', component: TopicDetailPageComponent },
+      { path: 'consumer-groups', component: ConsumerGroupsPageComponent },
+      { path: 'consumer-groups/:groupId', component: ConsumerGroupDetailPageComponent },
     ],
   },
 ];

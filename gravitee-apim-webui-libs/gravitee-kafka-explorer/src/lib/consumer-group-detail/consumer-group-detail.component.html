@@ -1,0 +1,151 @@
+<!--
+
+    Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="consumer-group-detail">
+  <div class="consumer-group-detail__header">
+    <button mat-icon-button (click)="back.emit()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h3 class="consumer-group-detail__title">{{ groupDetail()?.groupId }}</h3>
+    @if (groupDetail()?.state; as state) {
+      <span class="consumer-group-detail__state-badge consumer-group-detail__state-badge--{{ state | lowercase }}">{{ state }}</span>
+    }
+  </div>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  @if (groupDetail(); as detail) {
+    <mat-card>
+      <mat-card-content>
+        <div class="consumer-group-detail__info-items">
+          <div class="consumer-group-detail__info-item">
+            <span class="mat-caption">Coordinator</span>
+            <span class="mat-body-2">{{ detail.coordinator.host }}:{{ detail.coordinator.port }} (node {{ detail.coordinator.id }})</span>
+          </div>
+          <div class="consumer-group-detail__info-item">
+            <span class="mat-caption">Partition Assignor</span>
+            <span class="mat-body-2">{{ detail.partitionAssignor }}</span>
+          </div>
+          <div class="consumer-group-detail__info-item">
+            <span class="mat-caption">Members</span>
+            <span class="mat-body-2">{{ detail.members.length }}</span>
+          </div>
+          <div class="consumer-group-detail__info-item">
+            <span class="mat-caption">Topics</span>
+            <span class="mat-body-2">{{ countDistinctTopics(detail.offsets) }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Members</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <table mat-table [dataSource]="detail.members">
+          <ng-container matColumnDef="memberId">
+            <th mat-header-cell *matHeaderCellDef>Member ID</th>
+            <td mat-cell *matCellDef="let m">{{ m.memberId }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="clientId">
+            <th mat-header-cell *matHeaderCellDef>Client ID</th>
+            <td mat-cell *matCellDef="let m">{{ m.clientId }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="host">
+            <th mat-header-cell *matHeaderCellDef>Host</th>
+            <td mat-cell *matCellDef="let m">{{ m.host }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="assignments">
+            <th mat-header-cell *matHeaderCellDef>Assignments</th>
+            <td mat-cell *matCellDef="let m">
+              @for (a of m.assignments; track a.topicName) {
+                <span
+                  ><a
+                    class="consumer-group-detail__topic-link"
+                    tabindex="0"
+                    (click)="topicSelect.emit(a.topicName); $event.stopPropagation()"
+                    (keydown.enter)="topicSelect.emit(a.topicName); $event.stopPropagation()"
+                    >{{ a.topicName }}</a
+                  >[{{ a.partitions.join(', ') }}]</span
+                >
+              }
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="memberColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: memberColumns"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Offsets</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <table mat-table [dataSource]="detail.offsets">
+          <ng-container matColumnDef="topic">
+            <th mat-header-cell *matHeaderCellDef>Topic</th>
+            <td mat-cell *matCellDef="let o">
+              <a
+                class="consumer-group-detail__topic-link"
+                tabindex="0"
+                (click)="topicSelect.emit(o.topic); $event.stopPropagation()"
+                (keydown.enter)="topicSelect.emit(o.topic); $event.stopPropagation()"
+                >{{ o.topic }}</a
+              >
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="partition">
+            <th mat-header-cell *matHeaderCellDef>Partition</th>
+            <td mat-cell *matCellDef="let o">{{ o.partition }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="committedOffset">
+            <th mat-header-cell *matHeaderCellDef>Committed Offset</th>
+            <td mat-cell *matCellDef="let o">{{ o.committedOffset }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="endOffset">
+            <th mat-header-cell *matHeaderCellDef>End Offset</th>
+            <td mat-cell *matCellDef="let o">{{ o.endOffset }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="lag">
+            <th mat-header-cell *matHeaderCellDef>Lag</th>
+            <td mat-cell *matCellDef="let o">
+              {{ o.lag }}
+              @if (o.lag > 0) {
+                <span class="consumer-group-detail__lag-warning">behind</span>
+              }
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="offsetColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: offsetColumns"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>
