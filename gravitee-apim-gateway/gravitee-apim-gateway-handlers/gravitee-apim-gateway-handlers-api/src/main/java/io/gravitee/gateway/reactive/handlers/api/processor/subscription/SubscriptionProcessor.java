@@ -23,6 +23,7 @@ import static io.gravitee.gateway.api.ExecutionContext.ATTR_SUBSCRIPTION_ID;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
 import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
 
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
@@ -43,6 +44,7 @@ import org.bouncycastle.util.encoders.Hex;
 public class SubscriptionProcessor implements Processor {
 
     public static final String ID = "processor-subscription";
+    public static final String ATTR_API_PRODUCT = ExecutionContext.ATTR_PREFIX + "apiProduct";
     public static final String DEFAULT_CLIENT_IDENTIFIER_HEADER = "X-Gravitee-Client-Identifier";
     static final String APPLICATION_ANONYMOUS = "1";
     static final String PLAN_ANONYMOUS = "1";
@@ -130,6 +132,9 @@ public class SubscriptionProcessor implements Processor {
                 subscription.setApplication(applicationId);
                 subscription.setStatus(ACCEPTED.name());
                 ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
+            }
+            if (subscription.getApiProductId() != null) {
+                ctx.setAttribute(ATTR_API_PRODUCT, subscription.getApiProductId());
             }
             ctx
                 .getTemplateEngine()
