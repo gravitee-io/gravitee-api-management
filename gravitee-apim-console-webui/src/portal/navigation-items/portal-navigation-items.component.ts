@@ -428,7 +428,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     const data: SectionEditorDialogData =
       mode === 'create'
         ? { mode: 'create', type: type as SectionEditorDialogItemType, parentItem }
-        : { mode: 'edit', type, existingItem: existingItem!, parentItem};
+        : { mode: 'edit', type, existingItem: existingItem!, parentItem };
     this.matDialog
       .open<SectionEditorDialogComponent, SectionEditorDialogData>(SectionEditorDialogComponent, {
         width: GIO_DIALOG_WIDTH.SMALL,
