@@ -21,6 +21,7 @@ import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class InstanceQueryServiceInMemory implements InstanceQueryService, InMemoryAlternative<Instance> {
@@ -45,6 +46,15 @@ public class InstanceQueryServiceInMemory implements InstanceQueryService, InMem
             .findFirst()
             .map(instance -> BaseInstance.builder().ip(instance.getIp()).id(instance.getId()).hostname(instance.getHostname()).build())
             .orElseThrow(() -> new InstanceNotFoundException(instanceId));
+    }
+
+    @Override
+    public List<BaseInstance> findByIds(ExecutionContext executionContext, Collection<String> instanceIds) {
+        return storage
+            .stream()
+            .filter(i -> instanceIds.contains(i.getId()) && i.getEnvironments().contains(executionContext.getEnvironmentId()))
+            .map(i -> BaseInstance.builder().id(i.getId()).hostname(i.getHostname()).ip(i.getIp()).build())
+            .toList();
     }
 
     @Override
