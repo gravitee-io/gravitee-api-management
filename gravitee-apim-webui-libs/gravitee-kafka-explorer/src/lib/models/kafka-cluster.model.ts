@@ -82,3 +82,24 @@ export interface DescribeTopicResponse {
   partitions: TopicPartitionDetail[];
   configs: TopicConfig[];
 }
+
+export interface BrokerLogDirEntry {
+  path: string;
+  error?: string;
+  topics: number;
+  partitions: number;
+  size: number;
+}
+
+export interface DescribeBrokerResponse {
+  id: number;
+  host: string;
+  port: number;
+  rack?: string;
+  isController: boolean;
+  leaderPartitions: number;
+  replicaPartitions: number;
+  logDirSize?: number;
+  logDirEntries: BrokerLogDirEntry[];
+  configs: TopicConfig[];
+}

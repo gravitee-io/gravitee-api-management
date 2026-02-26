@@ -14,58 +14,56 @@
  * limitations under the License.
  */
 
-.brokers {
+.broker-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__title {
+    margin: 0;
+  }
+
+  &__host {
+    color: var(--mat-sys-on-surface-variant, #49454f);
+    font-size: 14px;
+  }
+
+  &__rack-badge,
+  &__controller-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  &__rack-badge {
+    background-color: var(--mat-sys-surface-variant, #e7e0ec);
+    color: var(--mat-sys-on-surface-variant, #49454f);
+  }
+
+  &__controller-badge {
+    background-color: var(--mat-sys-primary-container, #e8def8);
+    color: var(--mat-sys-on-primary-container, #1d192b);
+  }
+
+  &__empty-message {
+    color: var(--mat-sys-on-surface-variant, #49454f);
+    font-style: italic;
+    margin: 8px 0;
+  }
+
   mat-card-content {
     overflow-x: auto;
   }
 
   table {
     width: 100%;
-  }
-
-  &__node-id {
-    white-space: nowrap;
-  }
-
-  &__controller-badge {
-    display: inline-block;
-    margin-left: 8px;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 500;
-    background-color: var(--mat-sys-primary-container, #e8def8);
-    color: var(--mat-sys-on-primary-container, #1d192b);
-  }
-
-  &__cluster-info {
-    margin-top: 4px;
-    margin-bottom: 16px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--mat-sys-outline-variant, #cac4d0);
-  }
-
-  &__cluster-info-items {
-    display: flex;
-    gap: 32px;
-    flex-wrap: wrap;
-  }
-
-  &__cluster-info-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  &__section-title {
-    margin: 0 0 8px;
-  }
-
-  &__row {
-    cursor: pointer;
-
-    &:hover {
-      background-color: var(--mat-sys-surface-variant, rgba(0, 0, 0, 0.04));
-    }
   }
 }

@@ -15,6 +15,8 @@
  */
 import {
   BrokerDetail,
+  BrokerLogDirEntry,
+  DescribeBrokerResponse,
   DescribeClusterResponse,
   DescribeTopicResponse,
   KafkaNode,
@@ -134,6 +136,34 @@ export function fakeDescribeTopicResponse(overrides: Partial<DescribeTopicRespon
     configs: [
       fakeTopicConfig({ name: 'retention.ms', value: '604800000' }),
       fakeTopicConfig({ name: 'cleanup.policy', value: 'delete', source: 'DEFAULT_CONFIG' }),
+    ],
+    ...overrides,
+  };
+}
+
+export function fakeBrokerLogDirEntry(overrides: Partial<BrokerLogDirEntry> = {}): BrokerLogDirEntry {
+  return {
+    path: '/bitnami/kafka/data',
+    topics: 5,
+    partitions: 12,
+    size: 524288,
+    ...overrides,
+  };
+}
+
+export function fakeDescribeBrokerResponse(overrides: Partial<DescribeBrokerResponse> = {}): DescribeBrokerResponse {
+  return {
+    id: 0,
+    host: 'kafka-broker-0.example.com',
+    port: 9092,
+    isController: true,
+    leaderPartitions: 10,
+    replicaPartitions: 20,
+    logDirSize: 1073741824,
+    logDirEntries: [fakeBrokerLogDirEntry()],
+    configs: [
+      fakeTopicConfig({ name: 'log.retention.hours', value: '168', source: 'STATIC_BROKER_CONFIG' }),
+      fakeTopicConfig({ name: 'num.partitions', value: '1', source: 'DEFAULT_CONFIG' }),
     ],
     ...overrides,
   };

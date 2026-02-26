@@ -17,7 +17,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { DescribeClusterResponse, DescribeTopicResponse, ListTopicsResponse } from '../models/kafka-cluster.model';
+import { DescribeBrokerResponse, DescribeClusterResponse, DescribeTopicResponse, ListTopicsResponse } from '../models/kafka-cluster.model';
 
 @Injectable({
   providedIn: 'root',
@@ -41,5 +41,9 @@ export class KafkaExplorerService {
 
   describeTopic(baseURL: string, clusterId: string, topicName: string): Observable<DescribeTopicResponse> {
     return this.http.post<DescribeTopicResponse>(`${baseURL}/kafka-explorer/describe-topic`, { clusterId, topicName });
+  }
+
+  describeBroker(baseURL: string, clusterId: string, brokerId: number): Observable<DescribeBrokerResponse> {
+    return this.http.post<DescribeBrokerResponse>(`${baseURL}/kafka-explorer/describe-broker`, { clusterId, brokerId });
   }
 }

@@ -1,0 +1,118 @@
+<!--
+
+    Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="broker-detail">
+  <div class="broker-detail__header">
+    <button mat-icon-button (click)="back.emit()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h3 class="broker-detail__title">Broker {{ brokerDetail()?.id }}</h3>
+    @if (brokerDetail(); as detail) {
+      <span class="broker-detail__host">{{ detail.host }}:{{ detail.port }}</span>
+      @if (detail.rack) {
+        <span class="broker-detail__rack-badge">{{ detail.rack }}</span>
+      }
+      @if (detail.isController) {
+        <span class="broker-detail__controller-badge">Controller</span>
+      }
+    }
+  </div>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  @if (brokerDetail(); as detail) {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Log Directories</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (detail.logDirEntries.length === 0) {
+          <p class="broker-detail__empty-message">Log dir data not available</p>
+        } @else {
+          <table id="log-dir-table" mat-table [dataSource]="detail.logDirEntries">
+            <ng-container matColumnDef="path">
+              <th mat-header-cell *matHeaderCellDef>Path</th>
+              <td mat-cell *matCellDef="let e">{{ e.path }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="error">
+              <th mat-header-cell *matHeaderCellDef>Error</th>
+              <td mat-cell *matCellDef="let e">{{ e.error ?? '—' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="topics">
+              <th mat-header-cell *matHeaderCellDef>Topics</th>
+              <td mat-cell *matCellDef="let e">{{ e.topics }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="partitions">
+              <th mat-header-cell *matHeaderCellDef>Partitions</th>
+              <td mat-cell *matCellDef="let e">{{ e.partitions }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="size">
+              <th mat-header-cell *matHeaderCellDef>Size</th>
+              <td mat-cell *matCellDef="let e">{{ e.size | gkeFileSize }}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="logDirColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: logDirColumns"></tr>
+          </table>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Configuration</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <table id="config-table" mat-table [dataSource]="detail.configs">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let c">{{ c.name }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="value">
+            <th mat-header-cell *matHeaderCellDef>Value</th>
+            <td mat-cell *matCellDef="let c">{{ c.sensitive ? '******' : c.value }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="source">
+            <th mat-header-cell *matHeaderCellDef>Source</th>
+            <td mat-cell *matCellDef="let c">{{ c.source }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="readOnly">
+            <th mat-header-cell *matHeaderCellDef>Read Only</th>
+            <td mat-cell *matCellDef="let c">{{ c.readOnly ? 'Yes' : 'No' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="sensitive">
+            <th mat-header-cell *matHeaderCellDef>Sensitive</th>
+            <td mat-cell *matCellDef="let c">{{ c.sensitive ? 'Yes' : 'No' }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="configColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: configColumns"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

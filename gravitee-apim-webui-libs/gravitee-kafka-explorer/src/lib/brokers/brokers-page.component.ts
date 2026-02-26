@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Component, inject } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { BrokersComponent } from './brokers.component';
 import { KafkaExplorerStore } from '../services/kafka-explorer-store.service';
@@ -31,10 +32,17 @@ import { KafkaExplorerStore } from '../services/kafka-explorer-store.service';
         [controller]="info.controller"
         [totalTopics]="info.totalTopics"
         [totalPartitions]="info.totalPartitions"
+        (brokerSelect)="onBrokerSelect($event)"
       />
     }
   `,
 })
 export class BrokersPageComponent {
   store = inject(KafkaExplorerStore);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
+  onBrokerSelect(brokerId: number) {
+    this.router.navigate([brokerId], { relativeTo: this.route });
+  }
 }
