@@ -82,8 +82,8 @@ export const SingleNode: Story = {
 export const NoRack: Story = {
   args: {
     nodes: [
-      fakeBrokerDetail({ id: 0, host: 'kafka-broker-0.example.com', rack: null, logDirSize: null }),
-      fakeBrokerDetail({ id: 1, host: 'kafka-broker-1.example.com', rack: null, logDirSize: null }),
+      fakeBrokerDetail({ id: 0, host: 'kafka-broker-0.example.com', rack: undefined, logDirSize: undefined }),
+      fakeBrokerDetail({ id: 1, host: 'kafka-broker-1.example.com', rack: undefined, logDirSize: undefined }),
     ],
     controllerId: 1,
   },
