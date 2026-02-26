@@ -22,6 +22,7 @@ import io.gravitee.node.vertx.verticle.factory.SpringVerticleFactory;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.impl.cpu.CpuCoreSensor;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,8 +65,8 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
 
     @Override
     protected void doStart() {
-        httpInstances = (httpInstances < 1) ? VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE : httpInstances;
-        tcpInstances = (tcpInstances < 1) ? VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE : tcpInstances;
+        httpInstances = (httpInstances < 1) ? CpuCoreSensor.availableProcessors() : httpInstances;
+        tcpInstances = (tcpInstances < 1) ? CpuCoreSensor.availableProcessors() : tcpInstances;
         startHttpInstances();
         startTcpInstances();
     }
