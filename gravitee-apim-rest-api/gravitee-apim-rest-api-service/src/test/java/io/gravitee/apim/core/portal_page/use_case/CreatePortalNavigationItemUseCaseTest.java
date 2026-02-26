@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.API1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.CATEGORY1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -319,6 +320,70 @@ class CreatePortalNavigationItemUseCaseTest {
             // Then
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
             assertThat(exception.getMessage()).isEqualTo("Parent hierarchy cannot include API items.");
+        }
+    }
+
+    @Nested
+    class RootId {
+
+        @Test
+        void should_set_root_id_to_self_when_creating_root_item() {
+            // Given — no parentId → root item
+            var toCreate = CreatePortalNavigationItem.builder()
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.FOLDER)
+                .title("New Root Folder")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .build();
+
+            // When
+            var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, toCreate));
+
+            // Then — rootId must equal the item's own id
+            assertThat(output.item().getRootId()).isEqualTo(output.item().getId());
+            assertThat(output.item().getParentId()).isNull();
+        }
+
+        @Test
+        void should_set_parentId_and_rootId_correctly_when_creating_child_under_non_root_parent() {
+            // Given — APIS (root) → CATEGORY1 (child, rootId = APIS_ID) in sampleNavigationItems
+            // Create a new item under CATEGORY1
+            var toCreate = CreatePortalNavigationItem.builder()
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.FOLDER)
+                .title("New Sub Folder")
+                .area(PortalArea.TOP_NAVBAR)
+                .parentId(PortalNavigationItemId.of(CATEGORY1_ID))
+                .order(0)
+                .build();
+
+            // When
+            var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, toCreate));
+
+            // Then — parentId = CATEGORY1_ID, rootId = APIS_ID (inherited from parent's rootId)
+            assertThat(output.item().getParentId()).isEqualTo(PortalNavigationItemId.of(CATEGORY1_ID));
+            assertThat(output.item().getRootId()).isEqualTo(PortalNavigationItemId.of(APIS_ID));
+        }
+
+        @Test
+        void should_create_homepage_item_as_root_element_with_root_id_equal_to_self() {
+            // HOMEPAGE items are always root elements — the validator rejects a second one,
+            // but each individual creation must produce rootId = self.id
+            var toCreate = CreatePortalNavigationItem.builder()
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Homepage")
+                .area(PortalArea.HOMEPAGE)
+                .order(0)
+                .build(); // no parentId — homepages are always root
+
+            // When
+            var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, toCreate));
+
+            // Then — item is a root element
+            assertThat(output.item().getParentId()).isNull();
+            assertThat(output.item().getRootId()).isEqualTo(output.item().getId());
         }
     }
 
