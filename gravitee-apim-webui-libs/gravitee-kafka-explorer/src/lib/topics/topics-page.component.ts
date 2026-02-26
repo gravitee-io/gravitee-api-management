@@ -18,10 +18,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
+import { TopicsComponent } from './topics.component';
 import { ListTopicsResponse } from '../models/kafka-cluster.model';
 import { KafkaExplorerStore } from '../services/kafka-explorer-store.service';
 import { KafkaExplorerService } from '../services/kafka-explorer.service';
-import { TopicsComponent } from '../topics/topics.component';
 
 @Component({
   selector: 'gke-topics-page',

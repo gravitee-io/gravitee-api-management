@@ -16,9 +16,9 @@
 import { Routes } from '@angular/router';
 
 import { KafkaExplorerComponent } from './kafka-explorer.component';
-import { BrokersPageComponent } from '../brokers-page/brokers-page.component';
-import { TopicDetailPageComponent } from '../topic-detail-page/topic-detail-page.component';
-import { TopicsPageComponent } from '../topics-page/topics-page.component';
+import { BrokersPageComponent } from '../brokers/brokers-page.component';
+import { TopicDetailPageComponent } from '../topic-detail/topic-detail-page.component';
+import { TopicsPageComponent } from '../topics/topics-page.component';
 
 export const KAFKA_EXPLORER_ROUTES: Routes = [
   {

@@ -18,7 +18,6 @@ import { KAFKA_EXPLORER_BASE_URL } from '@gravitee/gravitee-kafka-explorer';
 import { inject, NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-
 import { ClusterNavigationComponent } from './cluster-navigation/cluster-navigation.component';
 import { ClusterGeneralComponent } from './details/general/cluster-general.component';
 import { ClusterConfigurationComponent } from './details/configuration/cluster-configuration.component';
