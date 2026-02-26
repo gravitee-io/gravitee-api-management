@@ -177,6 +177,9 @@ describe('ClustersListPageComponent', () => {
         description: 'A test cluster created by automated test',
         configuration: {
           bootstrapServers: 'kafka-test-new.example.com:9092',
+          security: {
+            protocol: 'PLAINTEXT',
+          },
         },
       }),
     );
