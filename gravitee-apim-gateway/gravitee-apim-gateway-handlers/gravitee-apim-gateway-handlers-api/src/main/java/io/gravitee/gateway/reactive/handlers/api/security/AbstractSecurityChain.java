@@ -31,6 +31,7 @@ import io.gravitee.gateway.reactive.api.policy.base.BaseSecurityPolicy;
 import io.gravitee.gateway.reactive.core.context.ComponentScope;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.AbstractSecurityPlan;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
+import io.gravitee.node.api.configuration.Configuration;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
@@ -57,6 +58,7 @@ public abstract class AbstractSecurityChain<
     protected static final String UNAUTHORIZED_MESSAGE = "Unauthorized";
     protected static final String TEMPORARILY_UNAVAILABLE_MESSAGE = "Temporarily Unavailable";
     protected static final String ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE = "httpSecurityChain.planResolutionFailure";
+    protected static final String SECURITY_VERBOSE_401 = "api.security.verbose401";
 
     protected static final Single<Boolean> TRUE = Single.just(true);
     protected static final Single<Boolean> FALSE = Single.just(false);
@@ -85,7 +87,9 @@ public abstract class AbstractSecurityChain<
         return defer(() -> {
             if (!Objects.equals(true, ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP))) {
                 ComponentScope.push(ctx, ComponentType.SYSTEM, "security");
-                SecurityChainDiagnostic securityChainDiagnostic = new SecurityChainDiagnostic();
+                Configuration configuration = ctx.getComponent(Configuration.class);
+                Boolean verbose401 = configuration.getProperty(SECURITY_VERBOSE_401, Boolean.class, false);
+                SecurityChainDiagnostic securityChainDiagnostic = new SecurityChainDiagnostic(verbose401);
                 ctx.setInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC, securityChainDiagnostic);
                 return chain
                     .concatMapSingle(securityPlan -> continueChain(ctx, securityPlan))
@@ -117,7 +121,7 @@ public abstract class AbstractSecurityChain<
                                         ctx,
                                         new ExecutionFailure(UNAUTHORIZED_401)
                                             .key(PLAN_UNRESOLVABLE)
-                                            .message(UNAUTHORIZED_MESSAGE)
+                                            .message(securityChainDiagnostic.message())
                                             .cause(securityChainDiagnostic.cause())
                                     )
                                 );

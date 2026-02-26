@@ -31,12 +31,16 @@ import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.SecurityPolicy;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
+import io.gravitee.node.api.configuration.Configuration;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -61,6 +65,15 @@ class HttpSecurityChainTest {
 
     @Mock
     private HttpExecutionContext ctx;
+
+    @Mock
+    private Configuration configuration;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(configuration.getProperty("api.security.verbose401", Boolean.class, false)).thenReturn(false);
+        lenient().when(ctx.getComponent(Configuration.class)).thenReturn(configuration);
+    }
 
     @Test
     void shouldExecuteSecurityPolicyWhenHasRelevantSecurityToken() {
@@ -198,6 +211,79 @@ class HttpSecurityChainTest {
         obs.assertError(Throwable.class);
         verifyUnauthorized();
         verify(ctx, times(1)).removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
+    }
+
+    @Test
+    void shouldReturnGenericMessageWhenVerbose401Disabled() {
+        setupInternalAttributesMock();
+
+        final Plan plan1 = mockPlan("plan1");
+        final SecurityPolicy policy1 = mockSecurityPolicy("plan1", false, false);
+
+        final ArrayList<Plan> plans = new ArrayList<>();
+        plans.add(plan1);
+
+        when(api.getPlans()).thenReturn(plans);
+        lenient().when(policy1.order()).thenReturn(0);
+        when(policy1.wwwAuthenticate(any())).thenReturn(Single.just(false));
+        when(ctx.interruptWith(any())).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
+
+        final HttpSecurityChain cut = new HttpSecurityChain(api, policyManager, ExecutionPhase.REQUEST);
+        cut.execute(ctx).test();
+
+        verify(ctx).interruptWith(
+            argThat(failure -> {
+                assertEquals(HttpStatusCode.UNAUTHORIZED_401, failure.statusCode());
+                assertEquals(HttpSecurityChain.UNAUTHORIZED_MESSAGE, failure.message());
+                return true;
+            })
+        );
+    }
+
+    @Test
+    void shouldReturnDetailedMessageWhenVerbose401Enabled() {
+        setupInternalAttributesMock();
+
+        when(configuration.getProperty("api.security.verbose401", Boolean.class, false)).thenReturn(true);
+
+        final Plan plan1 = mockPlan("plan1");
+        final SecurityPolicy policy1 = mockSecurityPolicy("plan1", false, false);
+
+        final ArrayList<Plan> plans = new ArrayList<>();
+        plans.add(plan1);
+
+        when(api.getPlans()).thenReturn(plans);
+        lenient().when(policy1.order()).thenReturn(0);
+        when(policy1.wwwAuthenticate(any())).thenReturn(Single.just(false));
+        when(ctx.interruptWith(any())).thenReturn(Completable.error(new RuntimeException(MOCK_EXCEPTION)));
+
+        final HttpSecurityChain cut = new HttpSecurityChain(api, policyManager, ExecutionPhase.REQUEST);
+        cut.execute(ctx).test();
+
+        verify(ctx).interruptWith(
+            argThat(failure -> {
+                assertEquals(HttpStatusCode.UNAUTHORIZED_401, failure.statusCode());
+                assertEquals("The request did not include an authentication token", failure.message());
+                return true;
+            })
+        );
+    }
+
+    private void setupInternalAttributesMock() {
+        Map<String, Object> internalAttributes = new HashMap<>();
+        doAnswer(inv -> {
+            internalAttributes.put(inv.getArgument(0), inv.getArgument(1));
+            return null;
+        })
+            .when(ctx)
+            .setInternalAttribute(anyString(), any());
+        when(ctx.getInternalAttribute(anyString())).thenAnswer(inv -> internalAttributes.get(inv.<String>getArgument(0)));
+        doAnswer(inv -> {
+            internalAttributes.remove(inv.<String>getArgument(0));
+            return null;
+        })
+            .when(ctx)
+            .removeInternalAttribute(anyString());
     }
 
     private void verifyUnauthorized() {
