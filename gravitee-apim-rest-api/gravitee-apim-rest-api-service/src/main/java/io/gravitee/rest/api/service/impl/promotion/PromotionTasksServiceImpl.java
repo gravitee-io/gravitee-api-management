@@ -35,12 +35,10 @@ import io.gravitee.rest.api.model.promotion.PromotionQuery;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.promotion.PromotionTasksService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -138,8 +136,10 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
                 boolean isUpdate = foundTargetApiId.isPresent() && apiSearchService.exists(foundTargetApiId.get());
                 return convert(promotionEntity, isUpdate, foundTargetApiId);
             })
-            .filter(taskEntity ->
-                ((Boolean) ((Map<String, Object>) taskEntity.getData()).getOrDefault("isApiUpdate", false) == selectUpdatePromotion)
+            .filter(
+                taskEntity ->
+                    taskEntity != null &&
+                    ((Boolean) ((Map<String, Object>) taskEntity.getData()).getOrDefault("isApiUpdate", false) == selectUpdatePromotion)
             )
             .collect(toList());
     }
@@ -153,8 +153,8 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
         try {
             apiEntity = objectMapper.readValue(promotionEntity.getApiDefinition(), ApiEntity.class);
         } catch (JsonProcessingException e) {
-            logger.warn("Problem while deserializing api definition for promotion {}", promotionEntity.getId());
-            throw new TechnicalManagementException();
+            logger.warn("Problem while deserializing api definition for promotion {}: {}", promotionEntity.getId(), e.getMessage());
+            return null;
         }
 
         Map<String, Object> data = new HashMap<>();
