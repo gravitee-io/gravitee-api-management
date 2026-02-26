@@ -17,10 +17,10 @@ import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import { TopicDetailComponent } from './topic-detail.component';
 import { DescribeTopicResponse } from '../models/kafka-cluster.model';
 import { KafkaExplorerStore } from '../services/kafka-explorer-store.service';
 import { KafkaExplorerService } from '../services/kafka-explorer.service';
-import { TopicDetailComponent } from '../topic-detail/topic-detail.component';
 
 @Component({
   selector: 'gke-topic-detail-page',

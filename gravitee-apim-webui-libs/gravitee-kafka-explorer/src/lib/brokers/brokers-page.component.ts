@@ -15,7 +15,7 @@
  */
 import { Component, inject } from '@angular/core';
 
-import { BrokersComponent } from '../brokers/brokers.component';
+import { BrokersComponent } from './brokers.component';
 import { KafkaExplorerStore } from '../services/kafka-explorer-store.service';
 
 @Component({
