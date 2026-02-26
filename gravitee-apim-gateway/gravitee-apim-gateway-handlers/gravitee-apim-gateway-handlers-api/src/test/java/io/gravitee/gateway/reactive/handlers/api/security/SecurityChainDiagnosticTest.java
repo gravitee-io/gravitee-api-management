@@ -35,6 +35,92 @@ class SecurityChainDiagnosticTest {
     }
 
     @Nested
+    @DisplayName("message")
+    class MessageTests {
+
+        @Test
+        @DisplayName("Should return Unauthorized when verbose401 is false regardless of diagnostics")
+        void shouldReturnUnauthorizedWhenVerboseDisabled() {
+            diagnostic.markPlanHasInvalidToken("plan1");
+
+            assertThat(diagnostic.message()).isEqualTo("Unauthorized");
+        }
+
+        @Test
+        @DisplayName("Should return Unauthorized when no issues are recorded")
+        void shouldReturnUnauthorizedWhenEmpty() {
+            assertThat(diagnostic.message()).isEqualTo("Unauthorized");
+        }
+
+        @Test
+        @DisplayName("Should return invalid token message when verbose401 is true")
+        void shouldReturnInvalidTokenMessage() {
+            var verbose = new SecurityChainDiagnostic(true);
+            verbose.markPlanHasInvalidToken("plan1");
+
+            assertThat(verbose.message()).isEqualTo("The provided authentication token is invalid");
+        }
+
+        @Test
+        @DisplayName("Should return not authorized message when verbose401 is true")
+        void shouldReturnNotAuthorizedMessage() {
+            var verbose = new SecurityChainDiagnostic(true);
+            verbose.markPlanHasNoSubscription("plan1", "API_KEY", "1234567890abcdef");
+
+            assertThat(verbose.message()).isEqualTo("The provided credentials are not authorized");
+        }
+
+        @Test
+        @DisplayName("Should return expired message when verbose401 is true")
+        void shouldReturnExpiredMessage() {
+            var verbose = new SecurityChainDiagnostic(true);
+            verbose.markPlanHasExpiredSubscription("plan1", "app1");
+
+            assertThat(verbose.message()).isEqualTo("Access has expired for the provided credentials");
+        }
+
+        @Test
+        @DisplayName("Should return no plan matched message when verbose401 is true")
+        void shouldReturnNoMatchingRuleMessage() {
+            var verbose = new SecurityChainDiagnostic(true);
+            verbose.markPlanHasNoMachingRule("plan1");
+
+            assertThat(verbose.message()).isEqualTo("No plan matched the request");
+        }
+
+        @Test
+        @DisplayName("Should return no token message when verbose401 is true")
+        void shouldReturnNoTokenMessage() {
+            var verbose = new SecurityChainDiagnostic(true);
+            verbose.markPlanHasNoToken("plan1");
+
+            assertThat(verbose.message()).isEqualTo("The request did not include an authentication token");
+        }
+
+        @Test
+        @DisplayName("Should prioritize invalid token over all other issues when verbose401 is true")
+        void shouldPrioritizeInvalidTokenOverAll() {
+            var verbose = new SecurityChainDiagnostic(true);
+            verbose.markPlanHasNoToken("plan1");
+            verbose.markPlanHasNoSubscription("plan2", "CLIENT_ID", "my-client-id");
+            verbose.markPlanHasExpiredSubscription("plan3", "app1");
+            verbose.markPlanHasInvalidToken("plan4");
+
+            assertThat(verbose.message()).isEqualTo("The provided authentication token is invalid");
+        }
+
+        @Test
+        @DisplayName("Should prioritize no subscription over expired subscription when verbose401 is true")
+        void shouldPrioritizeNoSubscriptionOverExpired() {
+            var verbose = new SecurityChainDiagnostic(true);
+            verbose.markPlanHasExpiredSubscription("plan1", "app1");
+            verbose.markPlanHasNoSubscription("plan2", "API_KEY", "short");
+
+            assertThat(verbose.message()).isEqualTo("The provided credentials are not authorized");
+        }
+    }
+
+    @Nested
     @DisplayName("cause")
     class CauseTests {
 
