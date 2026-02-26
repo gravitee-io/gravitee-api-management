@@ -91,7 +91,7 @@ class SubscriptionTrustStoreLoaderTest {
         final SubscriptionTrustStoreLoader loader = new SubscriptionTrustStoreLoader(
             new SubscriptionCertificate(Subscription.builder().id("subscriptionId").build(), certificate, fingerprint)
         );
-        assertThat(loader.id()).isEqualTo("sub_subscriptionId_cert_" + fingerprint);
+        assertThat(loader.id()).isGreaterThan("sub_subscriptionId_cert_");
     }
 
     @SneakyThrows

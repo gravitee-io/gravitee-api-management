@@ -486,6 +486,7 @@ class SubscriptionCacheServiceTest {
     }
 
     @Nested
+    //@Disabled
     class ConcurrentUpdateTest {
 
         private static final int READER_COUNT = 10;

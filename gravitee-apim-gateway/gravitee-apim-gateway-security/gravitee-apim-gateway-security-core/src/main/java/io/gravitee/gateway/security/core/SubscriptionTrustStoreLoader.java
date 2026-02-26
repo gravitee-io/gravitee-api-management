@@ -33,6 +33,7 @@ import lombok.CustomLog;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import org.bouncycastle.util.encoders.Hex;
 
 @CustomLog
 public class SubscriptionTrustStoreLoader extends AbstractKeyStoreLoader<SubscriptionTrustStoreLoader.SubscriptionTrustStoreLoaderOption> {
@@ -44,7 +45,8 @@ public class SubscriptionTrustStoreLoader extends AbstractKeyStoreLoader<Subscri
     public SubscriptionTrustStoreLoader(SubscriptionCertificate subscriptionCertificate) throws MalformedCertificateException {
         super(SubscriptionTrustStoreLoaderOption.empty());
         try {
-            this.id = "sub_%s_cert_%s".formatted(subscriptionCertificate.subscription().getId(), subscriptionCertificate.fingerprint());
+            // using hex for fingerprint, as uppercase letters found in base64 are lower cased in KeyStore aliases, cause unregistering issues
+            this.id = formatLoaderId(subscriptionCertificate);
             keystore = KeyStore.getInstance("PKCS12");
             keystore.load(null, getPassword().toCharArray());
             keystore.setCertificateEntry("cert", subscriptionCertificate.certificate());
@@ -91,6 +93,16 @@ public class SubscriptionTrustStoreLoader extends AbstractKeyStoreLoader<Subscri
     @Override
     public void stop() {
         // nothing to do
+    }
+
+    public static String formatLoaderId(SubscriptionCertificate subscriptionCertificate) {
+        // Base64 => hex (lowercase) and id in lower (just in case)
+        // keystore aliases are made lowercase...
+        // need to be compliant with it to avoid issue when removing the loader
+        return "sub_%s_cert_%s".formatted(
+            subscriptionCertificate.subscription().getId().toLowerCase(),
+            Hex.toHexString(Base64.getMimeDecoder().decode(subscriptionCertificate.fingerprint()))
+        );
     }
 
     @Getter

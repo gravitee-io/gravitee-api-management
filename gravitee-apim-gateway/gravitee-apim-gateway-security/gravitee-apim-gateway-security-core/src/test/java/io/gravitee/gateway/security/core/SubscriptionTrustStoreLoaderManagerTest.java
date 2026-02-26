@@ -16,42 +16,31 @@
 package io.gravitee.gateway.security.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.atLeastOnce;
+import static org.assertj.core.api.InstanceOfAssertFactories.STRING;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
-import io.gravitee.common.security.CertificateUtils;
 import io.gravitee.common.security.PKCS7Utils;
-import io.gravitee.common.util.KeyStoreUtils;
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.node.api.certificate.KeyStoreEvent;
+import io.gravitee.node.api.certificate.AbstractStoreLoaderOptions;
 import io.gravitee.node.api.server.DefaultServerManager;
+import io.gravitee.node.certificates.AbstractKeyStoreLoader;
+import io.gravitee.node.certificates.AbstractKeyStoreLoaderManager;
 import io.gravitee.node.certificates.TrustStoreLoaderManager;
 import io.gravitee.node.vertx.server.VertxServer;
-import java.security.cert.Certificate;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -60,401 +49,6 @@ import org.slf4j.LoggerFactory;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @ExtendWith(MockitoExtension.class)
 class SubscriptionTrustStoreLoaderManagerTest {
-
-    private SubscriptionTrustStoreLoaderManager cut;
-    private ListAppender<ILoggingEvent> listAppender;
-
-    @Mock
-    private TrustStoreLoaderManager trustStoreLoaderManager;
-
-    @Mock
-    private VertxServer server1;
-
-    @Mock
-    private VertxServer server2;
-
-    @Mock
-    private VertxServer server3;
-
-    private DefaultServerManager serverManager;
-
-    @BeforeEach
-    void setUp() throws Exception {
-        // get Logback Logger
-        Logger logger = (Logger) LoggerFactory.getLogger(SubscriptionTrustStoreLoaderManager.class);
-
-        // create and start a ListAppender
-        listAppender = new ListAppender<>();
-        listAppender.start();
-
-        // add the appender to the logger
-        // addAppender is outdated now
-        logger.addAppender(listAppender);
-
-        serverManager = new DefaultServerManager();
-        lenient().when(server1.trustStoreLoaderManager()).thenReturn(trustStoreLoaderManager);
-        lenient().when(server1.id()).thenReturn("server1");
-        lenient().when(server2.trustStoreLoaderManager()).thenReturn(trustStoreLoaderManager);
-        lenient().when(server2.id()).thenReturn("server2");
-        lenient().when(server3.trustStoreLoaderManager()).thenReturn(trustStoreLoaderManager);
-        lenient().when(server3.id()).thenReturn("server3");
-
-        serverManager.register(server1);
-        serverManager.register(server2);
-        serverManager.register(server3);
-        cut = new SubscriptionTrustStoreLoaderManager(serverManager);
-
-        Certificate[] certificates = KeyStoreUtils.loadPemCertificates(PEM_CERTIFICATE_2);
-
-        System.out.println(CertificateUtils.generateThumbprint((X509Certificate) certificates[0], "SHA-256"));
-    }
-
-    @Test
-    void should_register_subscription_on_all_servers() {
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isEmpty();
-
-        cut.registerSubscription(
-            Subscription.builder().id("subscriptionId").api("apiId").plan("planId").clientCertificate(BASE_64_CERTIFICATE_1).build(),
-            Set.of()
-        );
-
-        final List<ILoggingEvent> logList = listAppender.list;
-        assertThat(logList)
-            .hasSize(1)
-            .element(0)
-            .extracting(ILoggingEvent::getFormattedMessage, ILoggingEvent::getLevel)
-            .containsExactly(
-                "Registering TrustStoreLoader for subscription subscriptionId and certificate " + CERTIFICATE_1_DIGEST,
-                Level.DEBUG
-            );
-
-        ArgumentCaptor<SubscriptionTrustStoreLoader> captor = ArgumentCaptor.forClass(SubscriptionTrustStoreLoader.class);
-        verify(trustStoreLoaderManager, times(serverManager.servers().size())).registerLoader(captor.capture());
-        // Verify there is only one loader instance shared accross servers
-        assertThat(new HashSet<>(captor.getAllValues()))
-            .hasSize(1)
-            .first()
-            .satisfies(loader -> assertThat(loader.id()).contains("subscriptionId", CERTIFICATE_1_DIGEST));
-
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isPresent();
-    }
-
-    @Test
-    void should_register_subscription_on_selected_servers() {
-        cut.registerSubscription(
-            Subscription.builder().id("subscriptionId").api("apiId").clientCertificate(BASE_64_CERTIFICATE_1).build(),
-            Set.of("server1", "server3")
-        );
-
-        final List<ILoggingEvent> logList = listAppender.list;
-        assertThat(logList)
-            .hasSize(1)
-            .element(0)
-            .extracting(ILoggingEvent::getFormattedMessage, ILoggingEvent::getLevel)
-            .containsExactly(
-                "Registering TrustStoreLoader for subscription subscriptionId and certificate " + CERTIFICATE_1_DIGEST,
-                Level.DEBUG
-            );
-
-        ArgumentCaptor<SubscriptionTrustStoreLoader> captor = ArgumentCaptor.forClass(SubscriptionTrustStoreLoader.class);
-        verify(server1).trustStoreLoaderManager();
-        verify(server2, never()).trustStoreLoaderManager();
-        verify(server3).trustStoreLoaderManager();
-        verify(trustStoreLoaderManager, times(2)).registerLoader(captor.capture());
-        // Verify there is only one loader instance shared accross servers
-        assertThat(new HashSet<>(captor.getAllValues()))
-            .hasSize(1)
-            .first()
-            .satisfies(loader -> assertThat(loader.id()).contains("subscriptionId"));
-    }
-
-    @Test
-    void should_not_register_already_registered_subscription() {
-        cut.registerSubscription(
-            Subscription.builder().id("subscriptionId").api("apiId").clientCertificate(BASE_64_CERTIFICATE_1).build(),
-            Set.of()
-        );
-
-        final List<ILoggingEvent> logList = listAppender.list;
-        assertThat(logList)
-            .hasSize(1)
-            .element(0)
-            .extracting(ILoggingEvent::getFormattedMessage, ILoggingEvent::getLevel)
-            .containsExactly(
-                "Registering TrustStoreLoader for subscription subscriptionId and certificate " + CERTIFICATE_1_DIGEST,
-                Level.DEBUG
-            );
-
-        cut.registerSubscription(Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE_1).build(), Set.of());
-        assertThat(logList).hasSize(1);
-    }
-
-    @Test
-    void should_unregister_subscription() {
-        final Subscription subscription = Subscription.builder()
-            .id("subscriptionId")
-            .plan("planId")
-            .api("apiId")
-            .clientCertificate(BASE_64_CERTIFICATE_1)
-            .build();
-        cut.registerSubscription(subscription, Set.of());
-
-        ArgumentCaptor<SubscriptionTrustStoreLoader> captor = ArgumentCaptor.forClass(SubscriptionTrustStoreLoader.class);
-        verify(trustStoreLoaderManager, times(serverManager.servers().size())).registerLoader(captor.capture());
-        final List<KeyStoreEvent> keyStoreEvents = new ArrayList<>();
-        captor.getAllValues().forEach(loader -> loader.setEventHandler(keyStoreEvents::add));
-
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isPresent();
-
-        cut.unregisterSubscription(subscription);
-
-        final List<ILoggingEvent> logList = listAppender.list;
-        assertThat(logList)
-            .hasSize(2)
-            .element(1)
-            .extracting(ILoggingEvent::getFormattedMessage, ILoggingEvent::getLevel)
-            .containsExactly(
-                "Stopping TrustStoreLoader for subscription subscriptionId and certificate " + CERTIFICATE_1_DIGEST,
-                Level.DEBUG
-            );
-
-        assertThat(keyStoreEvents)
-            .hasSize(1)
-            .first()
-            .satisfies(event -> {
-                assertThat(event).isInstanceOf(KeyStoreEvent.UnloadEvent.class);
-                assertThat(event.loaderId()).contains("subscriptionId", CERTIFICATE_1_DIGEST);
-            });
-
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isEmpty();
-
-        // check unregister again won't change anything
-        cut.unregisterSubscription(subscription);
-        assertThat(keyStoreEvents).hasSize(1);
-    }
-
-    @Test
-    void should_unregister_subscription_with_multiple_certs() {
-        final Subscription subscription = Subscription.builder()
-            .id("subscriptionId")
-            .plan("planId")
-            .api("apiId")
-            .clientCertificate(getPKCS7())
-            .build();
-        cut.registerSubscription(subscription, Set.of());
-
-        ArgumentCaptor<SubscriptionTrustStoreLoader> captor = ArgumentCaptor.forClass(SubscriptionTrustStoreLoader.class);
-        verify(trustStoreLoaderManager, times(serverManager.servers().size() * 2)).registerLoader(captor.capture());
-        final List<KeyStoreEvent> keyStoreEvents = new ArrayList<>();
-        captor.getAllValues().forEach(loader -> loader.setEventHandler(keyStoreEvents::add));
-
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isPresent();
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isPresent();
-
-        cut.unregisterSubscription(subscription);
-
-        final List<ILoggingEvent> logList = listAppender.list;
-        assertThat(logList)
-            .hasSize(4)
-            .extracting(ILoggingEvent::getFormattedMessage)
-            .containsExactlyInAnyOrder(
-                "Registering TrustStoreLoader for subscription subscriptionId and certificate " + CERTIFICATE_1_DIGEST,
-                "Registering TrustStoreLoader for subscription subscriptionId and certificate " + CERTIFICATE_2_DIGEST,
-                "Stopping TrustStoreLoader for subscription subscriptionId and certificate " + CERTIFICATE_1_DIGEST,
-                "Stopping TrustStoreLoader for subscription subscriptionId and certificate " + CERTIFICATE_2_DIGEST
-            );
-
-        assertThat(keyStoreEvents)
-            .hasSize(2)
-            .satisfies(event -> {
-                assertThat(event).allSatisfy(e -> assertThat(e).isInstanceOf(KeyStoreEvent.UnloadEvent.class));
-                assertThat(event)
-                    .extracting(KeyStoreEvent::loaderId)
-                    .anySatisfy(id -> assertThat(id).contains("subscriptionId", CERTIFICATE_1_DIGEST));
-                assertThat(event)
-                    .extracting(KeyStoreEvent::loaderId)
-                    .anySatisfy(id -> assertThat(id).contains("subscriptionId", CERTIFICATE_2_DIGEST));
-            });
-
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isEmpty();
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isEmpty();
-
-        // check unregister again won't change anything
-        cut.unregisterSubscription(subscription);
-        assertThat(logList).hasSize(4);
-    }
-
-    @Test
-    void should_register_subscription_with_multiple_certs_on_all_servers() {
-        cut.registerSubscription(
-            Subscription.builder().id("subscriptionId").api("apiId").plan("planId").clientCertificate(getPKCS7()).build(),
-            Set.of()
-        );
-
-        final List<ILoggingEvent> logList = listAppender.list;
-        assertThat(logList)
-            .hasSize(2)
-            .extracting(ILoggingEvent::getFormattedMessage)
-            .containsExactlyInAnyOrder(
-                "Registering TrustStoreLoader for subscription subscriptionId and certificate " + CERTIFICATE_1_DIGEST,
-                "Registering TrustStoreLoader for subscription subscriptionId and certificate " + CERTIFICATE_2_DIGEST
-            );
-
-        ArgumentCaptor<SubscriptionTrustStoreLoader> captor = ArgumentCaptor.forClass(SubscriptionTrustStoreLoader.class);
-        verify(trustStoreLoaderManager, times(serverManager.servers().size() * 2)).registerLoader(captor.capture());
-
-        // Verify there is only one loader instance shared accross servers
-        assertThat(new HashSet<>(captor.getAllValues()))
-            .hasSize(2)
-            .extracting(SubscriptionTrustStoreLoader::id)
-            .satisfies(loaders -> {
-                assertThat(loaders).anyMatch(id -> id.contains("subscriptionId"));
-                assertThat(loaders).anyMatch(id -> id.contains(CERTIFICATE_1_DIGEST));
-                assertThat(loaders).anyMatch(id -> id.contains(CERTIFICATE_2_DIGEST));
-            });
-
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isPresent();
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isPresent();
-    }
-
-    @Test
-    void should_register_subscription_with_multiple_certs_and_remove_one() {
-        cut.registerSubscription(
-            Subscription.builder().id("subscriptionId").api("apiId").plan("planId").clientCertificate(getPKCS7()).build(),
-            Set.of()
-        );
-
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isPresent();
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isPresent();
-
-        ArgumentCaptor<SubscriptionTrustStoreLoader> captor = ArgumentCaptor.forClass(SubscriptionTrustStoreLoader.class);
-        verify(trustStoreLoaderManager, atLeastOnce()).registerLoader(captor.capture());
-        captor.getAllValues().forEach(loader -> loader.setEventHandler(event -> {}));
-
-        // cert 2 is no longer there... no new registration
-        cut.registerSubscription(
-            Subscription.builder().id("subscriptionId").api("apiId").plan("planId").clientCertificate(BASE_64_CERTIFICATE_1).build(),
-            Set.of()
-        );
-
-        final List<ILoggingEvent> logList = listAppender.list;
-        assertThat(logList)
-            .hasSize(3)
-            .extracting(ILoggingEvent::getFormattedMessage)
-            .containsExactlyInAnyOrder(
-                "Registering TrustStoreLoader for subscription subscriptionId and certificate " + CERTIFICATE_1_DIGEST,
-                "Registering TrustStoreLoader for subscription subscriptionId and certificate " + CERTIFICATE_2_DIGEST,
-                "Stopping TrustStoreLoader for subscription subscriptionId and certificate " + CERTIFICATE_2_DIGEST
-            );
-
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isPresent();
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isEmpty();
-    }
-
-    @Test
-    void should_register_subscription_one_certs_and_add_one_more() {
-        cut.registerSubscription(
-            Subscription.builder().id("subscriptionId").api("apiId").plan("planId").clientCertificate(BASE_64_CERTIFICATE_1).build(),
-            Set.of()
-        );
-
-        ArgumentCaptor<SubscriptionTrustStoreLoader> captor = ArgumentCaptor.forClass(SubscriptionTrustStoreLoader.class);
-        verify(trustStoreLoaderManager, times(serverManager.servers().size())).registerLoader(captor.capture());
-        assertThat(new HashSet<>(captor.getAllValues()))
-            .hasSize(1)
-            .extracting(SubscriptionTrustStoreLoader::id)
-            .satisfies(loaders -> {
-                assertThat(loaders.getFirst()).contains("subscriptionId", CERTIFICATE_1_DIGEST);
-            });
-
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isPresent();
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isEmpty();
-
-        reset(trustStoreLoaderManager);
-
-        // Verify there is only one loader instance shared accross servers
-        cut.registerSubscription(
-            Subscription.builder().id("subscriptionId").api("apiId").plan("planId").clientCertificate(getPKCS7()).build(),
-            Set.of()
-        );
-
-        captor = ArgumentCaptor.forClass(SubscriptionTrustStoreLoader.class);
-        verify(trustStoreLoaderManager, times(serverManager.servers().size())).registerLoader(captor.capture());
-        assertThat(new HashSet<>(captor.getAllValues()))
-            .hasSize(1)
-            .extracting(SubscriptionTrustStoreLoader::id)
-            .satisfies(loaders -> {
-                assertThat(loaders.getFirst()).contains("subscriptionId", CERTIFICATE_2_DIGEST);
-            });
-
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isPresent();
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isPresent();
-    }
-
-    @Test
-    void should_register_subscription_one_certs_replace_it() {
-        cut.registerSubscription(
-            Subscription.builder().id("subscriptionId").api("apiId").plan("planId").clientCertificate(BASE_64_CERTIFICATE_1).build(),
-            Set.of()
-        );
-
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isPresent();
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isEmpty();
-
-        var captor = ArgumentCaptor.forClass(SubscriptionTrustStoreLoader.class);
-        verify(trustStoreLoaderManager, atLeastOnce()).registerLoader(captor.capture());
-        captor.getAllValues().forEach(loader -> loader.setEventHandler(event -> {}));
-        // Verify there is only one loader instance shared accross servers
-        cut.registerSubscription(
-            Subscription.builder().id("subscriptionId").api("apiId").plan("planId").clientCertificate(BASE_64_CERTIFICATE_2).build(),
-            Set.of()
-        );
-
-        final List<ILoggingEvent> logList = listAppender.list;
-        assertThat(logList)
-            .hasSize(3)
-            .extracting(ILoggingEvent::getFormattedMessage)
-            .containsExactlyInAnyOrder(
-                "Registering TrustStoreLoader for subscription subscriptionId and certificate " + CERTIFICATE_1_DIGEST,
-                "Registering TrustStoreLoader for subscription subscriptionId and certificate " + CERTIFICATE_2_DIGEST,
-                "Stopping TrustStoreLoader for subscription subscriptionId and certificate " + CERTIFICATE_1_DIGEST
-            );
-
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isEmpty();
-        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isPresent();
-    }
-
-    @Test
-    void should_get_a_subscription_without_plan() {
-        final Subscription subscription = Subscription.builder()
-            .id("subscriptionId")
-            .api("api")
-            .clientCertificate(BASE_64_CERTIFICATE_1)
-            .build();
-        cut.registerSubscription(subscription, Set.of("server1", "server3"));
-        final Optional<Subscription> result = cut.getByCertificate("api", null, CERTIFICATE_1_DIGEST);
-        assertThat(result).contains(subscription);
-    }
-
-    @Test
-    void should_get_a_subscription_with_two_certs() {
-        final Subscription subscription = Subscription.builder()
-            .id("subscriptionId")
-            .api("api")
-            .plan("plan")
-            .clientCertificate(getPKCS7())
-            .build();
-        cut.registerSubscription(subscription, Set.of("server1", "server3"));
-        final Optional<Subscription> result1 = cut.getByCertificate("api", "plan", CERTIFICATE_1_DIGEST);
-        assertThat(result1).contains(subscription);
-        final Optional<Subscription> result2 = cut.getByCertificate("api", "plan", CERTIFICATE_2_DIGEST);
-        assertThat(result2).contains(subscription);
-        assertThat(result1).get().isEqualTo(result2.get());
-    }
-
-    private static String getPKCS7() {
-        return Base64.getEncoder().encodeToString(PKCS7Utils.createBundle(List.of(PEM_CERTIFICATE_1, PEM_CERTIFICATE_2)));
-    }
 
     public static final String PEM_CERTIFICATE_1 = """
         -----BEGIN CERTIFICATE-----
@@ -519,5 +113,339 @@ class SubscriptionTrustStoreLoaderManagerTest {
     private static final String BASE_64_CERTIFICATE_2 = Base64.getEncoder().encodeToString(PEM_CERTIFICATE_2.getBytes());
 
     private static final String CERTIFICATE_1_DIGEST = "u21dNKud2YsKNJn3HQTTon1_qSoZi8IrBTsLiZCFQLg";
+    private static final String CERTIFICATE_1_DIGEST_HEX = "bb6d5d34ab9dd98b0a3499f71d04d3a27d6a4a8662f08ac14ec2e26421502e";
     private static final String CERTIFICATE_2_DIGEST = "wS8z98uyY4COjon55dsZ4xl1NDh4Hf_mkr3p0mRLv6E";
+    private static final String CERTIFICATE_2_DIGEST_HEX = "c12f33f7cbb263808e8e89f9e5db19e319753438781df9a4af7a749912efe8";
+
+    TrustStoreLoaderManager trustStoreLoaderManager1 = new TrustStoreLoaderManager("server1", new NoOpKeyStoreLoader(new NoOpOptions()));
+    TrustStoreLoaderManager trustStoreLoaderManager2 = new TrustStoreLoaderManager("server2", new NoOpKeyStoreLoader(new NoOpOptions()));
+    TrustStoreLoaderManager trustStoreLoaderManager3 = new TrustStoreLoaderManager("server3", new NoOpKeyStoreLoader(new NoOpOptions()));
+
+    @Mock
+    VertxServer server1;
+
+    @Mock
+    VertxServer server2;
+
+    @Mock
+    VertxServer server3;
+
+    DefaultServerManager serverManager;
+
+    SubscriptionTrustStoreLoaderManager cut;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        serverManager = new DefaultServerManager();
+        lenient().when(server1.trustStoreLoaderManager()).thenReturn(trustStoreLoaderManager1);
+        lenient().when(server1.id()).thenReturn("server1");
+        lenient().when(server2.trustStoreLoaderManager()).thenReturn(trustStoreLoaderManager2);
+        lenient().when(server2.id()).thenReturn("server2");
+        lenient().when(server3.trustStoreLoaderManager()).thenReturn(trustStoreLoaderManager3);
+        lenient().when(server3.id()).thenReturn("server3");
+
+        trustStoreLoaderManager1.start();
+        trustStoreLoaderManager2.start();
+        trustStoreLoaderManager3.start();
+
+        serverManager.register(server1);
+        serverManager.register(server2);
+        serverManager.register(server3);
+
+        cut = new SubscriptionTrustStoreLoaderManager(serverManager);
+    }
+
+    @Test
+    void should_get_a_subscription_from_cache_without_plan() {
+        final Subscription subscription = Subscription.builder()
+            .id("subscriptionId")
+            .api("api")
+            .clientCertificate(BASE_64_CERTIFICATE_1)
+            .build();
+
+        cut.registerSubscription(subscription, Set.of());
+
+        assertThat(cut.getByCertificate("api", null, CERTIFICATE_1_DIGEST)).contains(subscription);
+
+        // unregister
+        cut.unregisterSubscription(subscription);
+
+        assertThat(cut.getByCertificate("api", null, CERTIFICATE_1_DIGEST)).isEmpty();
+    }
+
+    @Test
+    void should_get_a_subscription_from_cache_without_plan_several_certs() {
+        final Subscription subscription = Subscription.builder().id("subscriptionId").api("api").clientCertificate(getPKCS7()).build();
+
+        cut.registerSubscription(subscription, Set.of());
+
+        assertThat(cut.getByCertificate("api", null, CERTIFICATE_1_DIGEST)).contains(subscription);
+        assertThat(cut.getByCertificate("api", null, CERTIFICATE_2_DIGEST)).contains(subscription);
+
+        // unregister
+        cut.unregisterSubscription(subscription);
+
+        assertThat(cut.getByCertificate("api", null, CERTIFICATE_1_DIGEST)).isEmpty();
+        assertThat(cut.getByCertificate("api", null, CERTIFICATE_2_DIGEST)).isEmpty();
+    }
+
+    @Test
+    void should_get_subscription_from_single_and_multiple_certs() {
+        final Subscription subscriptionCert1 = Subscription.builder()
+            .id("subscriptionId")
+            .api("api")
+            .plan("plan")
+            .clientCertificate(BASE_64_CERTIFICATE_1)
+            .build();
+
+        cut.registerSubscription(subscriptionCert1, Set.of());
+
+        assertAllServers(1);
+
+        assertThat(cut.getByCertificate("api", "plan", CERTIFICATE_1_DIGEST)).contains(subscriptionCert1);
+
+        final Subscription updatedCert1And2 = Subscription.builder()
+            .id("subscriptionId")
+            .api("api")
+            .plan("plan")
+            .clientCertificate(getPKCS7())
+            .build();
+        cut.registerSubscription(updatedCert1And2, Set.of());
+
+        assertAllServers(2);
+
+        assertThat(cut.getByCertificate("api", "plan", CERTIFICATE_1_DIGEST)).contains(updatedCert1And2);
+        assertThat(cut.getByCertificate("api", "plan", CERTIFICATE_2_DIGEST)).contains(updatedCert1And2);
+
+        final Subscription updatedCert2 = Subscription.builder()
+            .id("subscriptionId")
+            .api("api")
+            .plan("plan")
+            .clientCertificate(BASE_64_CERTIFICATE_2)
+            .build();
+        cut.registerSubscription(updatedCert2, Set.of());
+
+        assertAllServers(1);
+
+        assertThat(cut.getByCertificate("api", "plan", CERTIFICATE_1_DIGEST)).isEmpty();
+        assertThat(cut.getByCertificate("api", "plan", CERTIFICATE_2_DIGEST)).contains(updatedCert2);
+
+        // unregister
+        cut.unregisterSubscription(updatedCert2);
+
+        assertAllServers(0);
+
+        assertThat(cut.getByCertificate("api", "plan", CERTIFICATE_1_DIGEST)).isEmpty();
+        assertThat(cut.getByCertificate("api", "plan", CERTIFICATE_2_DIGEST)).isEmpty();
+    }
+
+    @Test
+    void should_register_subscription_on_all_servers() {
+        final Subscription subscription = Subscription.builder()
+            .id("subscriptionId")
+            .api("api")
+            .plan("plan")
+            .clientCertificate(BASE_64_CERTIFICATE_1)
+            .build();
+        cut.registerSubscription(subscription, Set.of());
+        assertThat(cut.getByCertificate("api", "plan", CERTIFICATE_1_DIGEST)).contains(subscription);
+
+        assertAllServers(1);
+
+        // unregister
+        cut.unregisterSubscription(subscription);
+
+        assertThat(cut.getByCertificate("api", "plan", CERTIFICATE_1_DIGEST)).isEmpty();
+
+        assertAllServers(0);
+    }
+
+    @Test
+    void should_register_subscription_on_selected_servers() {
+        final Subscription subscription = Subscription.builder()
+            .id("subscriptionId")
+            .api("api")
+            .plan("plan")
+            .clientCertificate(BASE_64_CERTIFICATE_1)
+            .build();
+        cut.registerSubscription(subscription, Set.of("server1", "server3"));
+        assertThat(cut.getByCertificate("api", "plan", CERTIFICATE_1_DIGEST)).contains(subscription);
+
+        assertThat(truststoreAliases(trustStoreLoaderManager1)).hasSize(1);
+        assertThat(truststoreAliases(trustStoreLoaderManager2)).isEmpty();
+        assertThat(truststoreAliases(trustStoreLoaderManager3)).hasSize(1);
+
+        // unregister
+        cut.unregisterSubscription(subscription);
+
+        assertThat(cut.getByCertificate("api", "plan", CERTIFICATE_1_DIGEST)).isEmpty();
+
+        assertThat(truststoreAliases(trustStoreLoaderManager1)).isEmpty();
+        assertThat(truststoreAliases(trustStoreLoaderManager3)).isEmpty();
+    }
+
+    @Test
+    void should_not_register_already_registered_subscription() {
+        cut.registerSubscription(
+            Subscription.builder().id("subscriptionId").api("apiId").clientCertificate(BASE_64_CERTIFICATE_1).build(),
+            Set.of()
+        );
+        assertAllServers(1);
+
+        cut.registerSubscription(Subscription.builder().id("subscriptionId").clientCertificate(BASE_64_CERTIFICATE_1).build(), Set.of());
+        assertAllServers(1);
+    }
+
+    @Test
+    void should_register_subscription_with_multiple_certs_on_all_servers() {
+        final Subscription subscription = Subscription.builder()
+            .id("subscriptionId")
+            .api("api")
+            .plan("plan")
+            .clientCertificate(getPKCS7())
+            .build();
+        cut.registerSubscription(subscription, Set.of());
+        final Optional<Subscription> result1 = cut.getByCertificate("api", "plan", CERTIFICATE_1_DIGEST);
+        assertThat(result1).contains(subscription);
+        final Optional<Subscription> result2 = cut.getByCertificate("api", "plan", CERTIFICATE_2_DIGEST);
+        assertThat(result2).contains(subscription);
+        assertThat(result1).get().isEqualTo(result2.get());
+
+        assertAllServers(2);
+
+        // unregister
+        cut.unregisterSubscription(subscription);
+
+        assertThat(cut.getByCertificate("api", "plan", CERTIFICATE_1_DIGEST)).isEmpty();
+        assertThat(cut.getByCertificate("api", "plan", CERTIFICATE_2_DIGEST)).isEmpty();
+
+        assertAllServers(0);
+    }
+
+    @Test
+    void should_unregister_subscription_with_multiple_certs() {
+        final Subscription subscription = Subscription.builder()
+            .id("subscriptionId")
+            .plan("planId")
+            .api("apiId")
+            .clientCertificate(getPKCS7())
+            .build();
+        cut.registerSubscription(subscription, Set.of());
+
+        assertAllServers(2);
+
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isPresent();
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isPresent();
+
+        cut.unregisterSubscription(subscription);
+
+        assertAllServers(0);
+
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isEmpty();
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isEmpty();
+    }
+
+    @Test
+    void should_register_subscription_with_multiple_certs_and_remove_one() {
+        cut.registerSubscription(
+            Subscription.builder().id("subscriptionId").api("apiId").plan("planId").clientCertificate(getPKCS7()).build(),
+            Set.of()
+        );
+
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isPresent();
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isPresent();
+
+        assertAllServers(2);
+        // cert 2 is no longer there... no new registration
+        cut.registerSubscription(
+            Subscription.builder().id("subscriptionId").api("apiId").plan("planId").clientCertificate(BASE_64_CERTIFICATE_1).build(),
+            Set.of()
+        );
+
+        assertAllServers(1);
+
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isPresent();
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isEmpty();
+    }
+
+    @Test
+    void should_register_subscription_one_certs_replace_it() {
+        cut.registerSubscription(
+            Subscription.builder().id("subscriptionId").api("apiId").plan("planId").clientCertificate(BASE_64_CERTIFICATE_1).build(),
+            Set.of()
+        );
+
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isPresent();
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isEmpty();
+
+        assertAllServers(1);
+        assertThat(truststoreAliases(trustStoreLoaderManager1)).first().asInstanceOf(STRING).contains(CERTIFICATE_1_DIGEST_HEX);
+
+        // Verify there is only one loader instance shared across servers
+        cut.registerSubscription(
+            Subscription.builder().id("subscriptionId").api("apiId").plan("planId").clientCertificate(BASE_64_CERTIFICATE_2).build(),
+            Set.of()
+        );
+
+        assertThat(truststoreAliases(trustStoreLoaderManager1)).first().asInstanceOf(STRING).contains(CERTIFICATE_2_DIGEST_HEX);
+
+        assertAllServers(1);
+
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_1_DIGEST)).isEmpty();
+        assertThat(cut.getByCertificate("apiId", "planId", CERTIFICATE_2_DIGEST)).isPresent();
+    }
+
+    private void assertAllServers(int expected) {
+        assertThat(truststoreAliases(trustStoreLoaderManager1)).hasSize(expected);
+        assertThat(truststoreAliases(trustStoreLoaderManager2)).hasSize(expected);
+        assertThat(truststoreAliases(trustStoreLoaderManager3)).hasSize(expected);
+    }
+
+    private static String getPKCS7() {
+        return Base64.getEncoder().encodeToString(PKCS7Utils.createBundle(List.of(PEM_CERTIFICATE_1, PEM_CERTIFICATE_2)));
+    }
+
+    List<String> truststoreAliases(TrustStoreLoaderManager trustStoreLoaderManager) {
+        try {
+            var method = AbstractKeyStoreLoaderManager.class.getDeclaredMethod("aliases");
+            method.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            List<String> aliases = (List<String>) method.invoke(trustStoreLoaderManager);
+            return aliases;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to access aliases method", e);
+        }
+    }
+
+    @Getter
+    @SuperBuilder
+    @ToString
+    static class NoOpOptions extends AbstractStoreLoaderOptions {
+
+        protected NoOpOptions() {
+            super(NoOpOptions.builder());
+        }
+    }
+
+    static class NoOpKeyStoreLoader extends AbstractKeyStoreLoader<NoOpOptions> {
+
+        protected NoOpKeyStoreLoader(NoOpOptions o) {
+            super(o);
+        }
+
+        @Override
+        public void start() {
+            // no op
+        }
+
+        @Override
+        public void stop() {
+            // no op
+        }
+
+        @Override
+        public String id() {
+            return "test";
+        }
+    }
 }

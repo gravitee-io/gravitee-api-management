@@ -56,7 +56,6 @@ public class SubscriptionCacheService implements SubscriptionService {
     private final Map<String, Subscription> cacheBySubscriptionId = new ConcurrentHashMap<>();
     private final Map<String, Set<Subscription>> cacheBySubscriptionIdAll = new ConcurrentHashMap<>(); // exploded subscriptions
     private final Map<String, Set<String>> cacheKeysByApiId = new ConcurrentHashMap<>();
-    private final Map<Integer, Subscription> processed = new ConcurrentHashMap<>();
 
     @Override
     public Optional<Subscription> getByApiAndSecurityToken(String api, SecurityToken securityToken, String plan) {
@@ -96,16 +95,13 @@ public class SubscriptionCacheService implements SubscriptionService {
         // only once per synchronization window
         // take all fields (including "updatedAt" in metadata) into account
         if (ACCEPTED.name().equals(subscription.getStatus())) {
-            processed.computeIfAbsent(subscription.hashCode(), h -> {
-                if (subscription.getClientCertificate() != null) {
-                    registerFromClientCertificate(subscription);
-                } else if (subscription.getClientId() != null) {
-                    registerFromClientId(subscription);
-                } else {
-                    registerFromId(subscription);
-                }
-                return subscription;
-            });
+            if (subscription.getClientCertificate() != null) {
+                registerFromClientCertificate(subscription);
+            } else if (subscription.getClientId() != null) {
+                registerFromClientId(subscription);
+            } else {
+                registerFromId(subscription);
+            }
         } else {
             unregister(subscription);
         }
@@ -115,8 +111,7 @@ public class SubscriptionCacheService implements SubscriptionService {
     public void unregister(final Subscription candidate) {
         // only once per synchronization window
         // take all fields (including "updatedAt" in metadata) into account
-        processed.computeIfPresent(candidate.hashCode(), (h, existing) -> {
-            Subscription removeSubscription = cacheBySubscriptionId.remove(existing.getId());
+        cacheBySubscriptionId.computeIfPresent(candidate.getId(), (h, existing) -> {
             // Remove from exploded subscriptions cache
             Set<Subscription> allSubscriptions = cacheBySubscriptionIdAll.get(existing.getId());
             if (allSubscriptions != null) {
@@ -125,22 +120,18 @@ public class SubscriptionCacheService implements SubscriptionService {
                     cacheBySubscriptionIdAll.remove(existing.getId());
                 }
             }
-            if (removeSubscription != null) {
-                log.warn("Found a subscription to remove {} ", existing.getId());
-                evictKeyForApi(existing.getApi(), existing.getId());
-                unregisterFromClientId(removeSubscription);
-                unregisterFromClientCertificate(removeSubscription);
-            }
+            evictKeyForApi(existing.getApi(), existing.getId());
+            unregisterFromClientId(existing);
+            unregisterFromClientCertificate(existing);
 
             // In case new ones have different client id than the one in cache
             if (!Objects.equals(candidate.getClientId(), existing.getClientId())) {
-                unregisterFromClientId(existing);
+                unregisterFromClientId(candidate);
             }
             if (!Objects.equals(candidate.getClientCertificate(), existing.getClientCertificate())) {
-                unregisterFromClientCertificate(existing);
+                unregisterFromClientCertificate(candidate);
             }
 
-            // remove from processed
             return null;
         });
     }
