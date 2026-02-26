@@ -147,6 +147,7 @@ export function fakeNewPagePortalNavigationItem(overrides?: Partial<NewPagePorta
     type: 'PAGE',
     area: 'HOMEPAGE',
     visibility: 'PUBLIC',
+    contentType: 'GRAVITEE_MARKDOWN',
   };
 
   if (isFunction(overrides)) {
