@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.security.core;
 
-import io.gravitee.common.security.CertificateUtils;
 import io.gravitee.common.security.PKCS7Utils;
 import io.gravitee.common.util.KeyStoreUtils;
 import io.gravitee.gateway.api.service.Subscription;
@@ -24,18 +23,16 @@ import io.gravitee.node.api.certificate.AbstractStoreLoaderOptions;
 import io.gravitee.node.api.certificate.KeyStoreEvent;
 import io.gravitee.node.certificates.AbstractKeyStoreLoader;
 import java.security.KeyStore;
-import java.security.MessageDigest;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
+import java.security.cert.Certificate;
 import java.util.Base64;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.CustomLog;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import org.bouncycastle.util.encoders.Hex;
-import org.springframework.util.DigestUtils;
 
 @CustomLog
 public class SubscriptionTrustStoreLoader extends AbstractKeyStoreLoader<SubscriptionTrustStoreLoader.SubscriptionTrustStoreLoaderOption> {
@@ -43,33 +40,33 @@ public class SubscriptionTrustStoreLoader extends AbstractKeyStoreLoader<Subscri
     private final String id;
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final KeyStore keystore;
-    private final List<String> digests;
 
-    public SubscriptionTrustStoreLoader(Subscription subscription) throws MalformedCertificateException {
+    public SubscriptionTrustStoreLoader(SubscriptionCertificate subscriptionCertificate) throws MalformedCertificateException {
         super(SubscriptionTrustStoreLoaderOption.empty());
-        this.id = "subscription_cert_%s".formatted(subscription.getId());
-        digests = new ArrayList<>();
+        try {
+            this.id = "sub_%s_cert_%s".formatted(subscriptionCertificate.subscription().getId(), subscriptionCertificate.fingerprint());
+            keystore = KeyStore.getInstance("PKCS12");
+            keystore.load(null, getPassword().toCharArray());
+            keystore.setCertificateEntry("cert", subscriptionCertificate.certificate());
+        } catch (Exception e) {
+            throw new MalformedCertificateException("An error occurred while processing certificate for loader %s".formatted(this.id()), e);
+        }
+    }
+
+    public static Set<SubscriptionCertificate> readSubscriptionCertificate(Subscription subscription) throws MalformedCertificateException {
         try {
             final byte[] decodedData = Base64.getDecoder().decode(subscription.getClientCertificate());
-            List<String> aliases = new ArrayList<>();
-            keystore = PKCS7Utils.pkcs7ToTruststore(
-                decodedData,
-                getPassword(),
-                i -> {
-                    String alias = "%s_%d".formatted(subscription.getId(), i);
-                    aliases.add(alias);
-                    return alias;
-                },
-                false
-            ).orElseGet(() -> {
-                aliases.add(subscription.getId());
-                return KeyStoreUtils.initFromPemCertificate(new String(decodedData), getPassword(), subscription.getId());
-            });
+            var keystore = PKCS7Utils.pkcs7ToTruststore(decodedData, null, i -> "pkcs7-" + i, false).orElseGet(() ->
+                KeyStoreUtils.initFromPemCertificate(new String(decodedData), null, "solo")
+            );
 
+            Set<SubscriptionCertificate> subscriptionCertificates = new HashSet<>();
             // compute digests from all certificates to be able to find them later
-            for (String alias : aliases) {
-                digests.add(CertificateUtils.generateThumbprint((X509Certificate) keystore.getCertificate(alias), "SHA-256"));
+            for (String alias : Collections.list(keystore.aliases())) {
+                Certificate certificate = keystore.getCertificate(alias);
+                subscriptionCertificates.add(new SubscriptionCertificate(subscription, certificate));
             }
+            return subscriptionCertificates;
         } catch (Exception e) {
             throw new MalformedCertificateException(
                 "An error occurred while processing certificate for Subscription %s".formatted(subscription.getId()),
@@ -94,10 +91,6 @@ public class SubscriptionTrustStoreLoader extends AbstractKeyStoreLoader<Subscri
     @Override
     public void stop() {
         // nothing to do
-    }
-
-    public List<String> certificateDigests() {
-        return digests;
     }
 
     @Getter
