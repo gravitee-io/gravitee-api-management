@@ -775,7 +775,7 @@ describe('PortalNavigationItemsComponent', () => {
         });
 
         expectCreateNavigationItem(
-          fakeNewPagePortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'PAGE', parentId: api.id }),
+          fakeNewPagePortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'PAGE', parentId: api.id, contentType: 'GRAVITEE_MARKDOWN' }),
           createdItem,
         );
         await expectGetNavigationItems(fakeResponse);
