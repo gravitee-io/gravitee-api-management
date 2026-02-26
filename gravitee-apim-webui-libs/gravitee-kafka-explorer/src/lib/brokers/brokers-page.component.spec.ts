@@ -13,54 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
-import { BrokersComponent } from './brokers.component';
+import { BrokersPageComponent } from './brokers-page.component';
 import { BrokersHarness } from './brokers.harness';
-import { fakeBrokerDetail } from '../models/kafka-cluster.fixture';
-import { BrokerDetail } from '../models/kafka-cluster.model';
+import { fakeBrokerDetail, fakeDescribeClusterResponse } from '../models/kafka-cluster.fixture';
+import { KafkaExplorerStore } from '../services/kafka-explorer-store.service';
 
-@Component({
-  standalone: true,
-  imports: [BrokersComponent],
-  template: `<gke-brokers [nodes]="nodes" [controllerId]="controllerId" />`,
-})
-class TestHostComponent {
-  nodes: BrokerDetail[] = [];
-  controllerId = -1;
-}
-
-describe('BrokersComponent', () => {
-  let fixture: ComponentFixture<TestHostComponent>;
-  let host: TestHostComponent;
-  let harness: BrokersHarness;
+describe('BrokersPageComponent', () => {
+  let fixture: ComponentFixture<BrokersPageComponent>;
+  let store: KafkaExplorerStore;
+  let loader: HarnessLoader;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TestHostComponent],
-      providers: [provideNoopAnimations()],
+      imports: [BrokersPageComponent],
+      providers: [KafkaExplorerStore, provideNoopAnimations()],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(TestHostComponent);
-    host = fixture.componentInstance;
+    store = TestBed.inject(KafkaExplorerStore);
+    fixture = TestBed.createComponent(BrokersPageComponent);
+    loader = TestbedHarnessEnvironment.loader(fixture);
   });
 
   it('should render broker nodes in the table with enriched columns', async () => {
-    host.nodes = [
-      fakeBrokerDetail({ id: 0, host: 'kafka-broker-0.example.com' }),
-      fakeBrokerDetail({ id: 1, host: 'kafka-broker-1.example.com' }),
-      fakeBrokerDetail({ id: 2, host: 'kafka-broker-2.example.com' }),
-    ];
+    store.clusterInfo.set(fakeDescribeClusterResponse());
     fixture.detectChanges();
-    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, BrokersHarness);
 
+    const harness = await loader.getHarness(BrokersHarness);
     const rows = await harness.getRowsData();
     expect(rows.length).toBe(3);
     expect(rows[0]).toEqual({
-      id: '0',
+      id: '0 Controller',
       host: 'kafka-broker-0.example.com',
       port: '9092',
       rack: '-',
@@ -71,42 +58,52 @@ describe('BrokersComponent', () => {
   });
 
   it('should show controller badge for the controller node', async () => {
-    host.nodes = [
-      fakeBrokerDetail({ id: 0, host: 'kafka-broker-0.example.com' }),
-      fakeBrokerDetail({ id: 1, host: 'kafka-broker-1.example.com' }),
-    ];
-    host.controllerId = 0;
+    store.clusterInfo.set(
+      fakeDescribeClusterResponse({
+        nodes: [
+          fakeBrokerDetail({ id: 0, host: 'kafka-broker-0.example.com' }),
+          fakeBrokerDetail({ id: 1, host: 'kafka-broker-1.example.com' }),
+        ],
+      }),
+    );
     fixture.detectChanges();
-    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, BrokersHarness);
 
+    const harness = await loader.getHarness(BrokersHarness);
     const rows = await harness.getRowsData();
     expect(rows[0]['id']).toContain('Controller');
     expect(rows[1]['id']).not.toContain('Controller');
   });
 
   it('should display rack when available', async () => {
-    host.nodes = [fakeBrokerDetail({ id: 0, rack: 'us-east-1a' })];
+    store.clusterInfo.set(
+      fakeDescribeClusterResponse({
+        nodes: [fakeBrokerDetail({ id: 0, rack: 'us-east-1a' })],
+      }),
+    );
     fixture.detectChanges();
-    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, BrokersHarness);
 
+    const harness = await loader.getHarness(BrokersHarness);
     const rows = await harness.getRowsData();
     expect(rows[0]['rack']).toBe('us-east-1a');
   });
 
   it('should display dash for null logDirSize', async () => {
-    host.nodes = [fakeBrokerDetail({ id: 0, logDirSize: null })];
+    store.clusterInfo.set(
+      fakeDescribeClusterResponse({
+        nodes: [fakeBrokerDetail({ id: 0, logDirSize: null })],
+      }),
+    );
     fixture.detectChanges();
-    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, BrokersHarness);
 
+    const harness = await loader.getHarness(BrokersHarness);
     const rows = await harness.getRowsData();
     expect(rows[0]['logDirSize']).toBe('-');
   });
 
-  it('should render an empty table when no nodes', async () => {
-    host.nodes = [];
+  it('should not render when cluster info is not available', async () => {
     fixture.detectChanges();
-    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, BrokersHarness);
 
-    expect(await harness.getRowCount()).toBe(0);
+    const harness = await loader.getHarnessOrNull(BrokersHarness);
+    expect(harness).toBeNull();
   });
 });
