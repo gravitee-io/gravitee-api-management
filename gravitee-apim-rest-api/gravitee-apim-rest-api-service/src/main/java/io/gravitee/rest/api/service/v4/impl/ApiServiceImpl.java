@@ -257,12 +257,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, userId, apiEntity.getPrimaryOwner());
         apiValidationService.validateAndSanitizeImportApiForCreation(executionContext, apiEntity, primaryOwner);
 
-        if (apiEntity.getDefinitionVersion() == DefinitionVersion.V4) {
-            if (apiEntity.getType() == ApiType.PROXY) {
-                apiEntity.setAllowedInApiProducts(true);
-            } else {
-                apiEntity.setAllowedInApiProducts(null);
-            }
+        if (apiEntity.getDefinitionVersion() == DefinitionVersion.V4 && apiEntity.getType() != ApiType.PROXY) {
+            apiEntity.setAllowedInApiProducts(null);
         }
 
         Api repositoryApi = apiMapper.toRepository(executionContext, apiEntity);

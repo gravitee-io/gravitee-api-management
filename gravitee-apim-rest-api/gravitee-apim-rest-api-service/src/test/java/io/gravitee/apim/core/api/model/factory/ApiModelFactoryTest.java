@@ -31,7 +31,7 @@ class ApiModelFactoryTest {
     private static final String ENVIRONMENT_ID = "environment-id";
 
     @Test
-    void fromApiExport_should_default_allowedInApiProducts_true_for_v4_http_proxy_export_when_flag_missing() {
+    void fromApiExport_should_leave_allowedInApiProducts_null_for_v4_http_proxy_export_when_flag_missing() {
         ApiExport apiExport = ApiExport.builder()
             .name("my-api")
             .apiVersion("1.0.0")
@@ -45,7 +45,7 @@ class ApiModelFactoryTest {
         var definition = api.getApiDefinitionHttpV4();
         assertThat(definition.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
         assertThat(definition.getType()).isEqualTo(ApiType.PROXY);
-        assertThat(definition.getAllowedInApiProducts()).isTrue();
+        assertThat(definition.getAllowedInApiProducts()).isNull();
     }
 
     @Test
