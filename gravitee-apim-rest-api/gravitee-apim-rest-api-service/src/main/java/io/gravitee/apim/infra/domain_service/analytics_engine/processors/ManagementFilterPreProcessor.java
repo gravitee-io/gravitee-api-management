@@ -46,7 +46,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class ManagementFilterPreProcessor implements FilterPreProcessor {
 
     private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
-
+    protected static final String UNKNOWN_SERVICE = "1";
     private final ApiAuthorizationService apiAuthorizationService;
     private final ApiRepository apiRepository;
 
@@ -59,7 +59,7 @@ public class ManagementFilterPreProcessor implements FilterPreProcessor {
         );
 
         var userApisIds = userApis.keySet();
-
+        userApis.put(UNKNOWN_SERVICE, UNKNOWN_SERVICE);
         var permissionsFilter = new Filter(API, IN, userApisIds);
 
         return context.withFilters(List.of(permissionsFilter)).withApiNamesById(userApis);

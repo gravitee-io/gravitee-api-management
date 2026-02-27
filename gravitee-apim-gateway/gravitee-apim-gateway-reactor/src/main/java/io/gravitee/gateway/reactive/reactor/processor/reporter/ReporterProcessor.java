@@ -58,7 +58,9 @@ public class ReporterProcessor implements Processor {
             Metrics metrics = ctx.metrics();
             if (metrics != null && metrics.isEnabled()) {
                 metrics.setRequestEnded(true);
-                setEntrypointId(ctx, metrics);
+                if (metrics.getEntrypointId() == null) {
+                    setEntrypointId(ctx, metrics);
+                }
                 setQuota(ctx, metrics);
 
                 executeReportActions(metrics);
@@ -94,6 +96,13 @@ public class ReporterProcessor implements Processor {
                 } else {
                     // No api found report only metrics
                     reporterService.report(metrics);
+                    Log log = metrics.getLog();
+                    if (log != null) {
+                        log.setApiId(metrics.getApiId());
+                        log.setApiName(metrics.getApiName());
+                        log.setRequestEnded(metrics.isRequestEnded());
+                        reporterService.report(log);
+                    }
                 }
             }
         })
