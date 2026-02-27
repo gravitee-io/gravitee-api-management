@@ -13,209 +13,142 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, Input, OnChanges } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import {
-  GIO_DIALOG_WIDTH,
-  GioClipboardModule,
-  GioConfirmDialogComponent,
-  GioConfirmDialogData,
-  GioIconsModule,
-  GioLoaderModule,
-} from '@gravitee/ui-particles-angular';
-import { MatCardModule } from '@angular/material/card';
-import { filter, map, startWith, switchMap } from 'rxjs/operators';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSortModule } from '@angular/material/sort';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { isEqual } from 'lodash';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { filter, switchMap, tap } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
 
-import { gioTableFilterCollection } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
-import { ApplicationSubscriptionService } from '../../../../../../services-ngx/application-subscription.service';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
-import { GioPermissionModule } from '../../../../../../shared/components/gio-permission/gio-permission.module';
-import { GioTableWrapperFilters } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { GioTableWrapperModule } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
-import { ApplicationService } from '../../../../../../services-ngx/application.service';
+import { ApiKeyMode } from '../../../../../../entities/application/Application';
+import {
+  ApiPortalSubscriptionRenewApiKeyDialogComponent,
+  ApiPortalSubscriptionRenewApiKeyDialogData,
+  ApiPortalSubscriptionRenewApiKeyDialogResult,
+} from '../../../../../api/subscriptions/components/dialogs/renew-api-key/api-portal-subscription-renew-api-key-dialog.component';
+import {
+  ApiPortalSubscriptionExpireApiKeyDialogComponent,
+  ApiPortalSubscriptionExpireApiKeyDialogData,
+  ApiPortalSubscriptionExpireApiKeyDialogResult,
+} from '../../../../../api/subscriptions/components/dialogs/expire-api-key/api-portal-subscription-expire-api-key-dialog.component';
 
-type ApiKeyVM = {
+export interface SubscriptionApiKeysApiKey {
   id: string;
   key: string;
-  createdAt: number;
-  endDate: number;
-  isValid: boolean;
-};
+  createdAt: Date;
+  endDate?: Date;
+  isRevoked: boolean;
+  isExpired: boolean;
+}
+
 @Component({
   selector: 'subscription-api-keys',
   templateUrl: './subscription-api-keys.component.html',
   styleUrls: ['./subscription-api-keys.component.scss'],
-  imports: [
-    CommonModule,
-    GioIconsModule,
-    GioLoaderModule,
-    MatButtonModule,
-    MatTableModule,
-    MatTooltipModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSortModule,
-    GioIconsModule,
-    GioTableWrapperModule,
-    GioClipboardModule,
-    GioPermissionModule,
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SubscriptionApiKeysComponent implements OnChanges {
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly matDialog = inject(MatDialog);
-  private readonly snackBarService = inject(SnackBarService);
-  private readonly applicationSubscriptionService = inject(ApplicationSubscriptionService);
-  private readonly applicationService = inject(ApplicationService);
+export class SubscriptionApiKeysComponent implements OnInit, OnChanges {
+  @Input() apiKeys: SubscriptionApiKeysApiKey[] = [];
+  @Input() apiKeyMode: ApiKeyMode;
+  @Input() canRenew: boolean = true;
+  @Input() canRevoke: boolean = true;
+  @Input() canExpire: boolean = true;
+  @Input() customApiKeyAllowed: boolean = false;
+  @Output() renewApiKey = new EventEmitter<{ customApiKey?: string }>();
+  @Output() revokeApiKey = new EventEmitter<string>();
+  @Output() expireApiKey = new EventEmitter<{ apiKeyId: string; expireAt: Date }>();
 
-  @Input({ required: true })
-  applicationId!: string;
+  displayedColumns = ['key', 'createdAt', 'endDate', 'actions'];
+  apiKeysDataSource: SubscriptionApiKeysApiKey[] = [];
+  private apiKeysSubject = new BehaviorSubject<SubscriptionApiKeysApiKey[]>([]);
 
-  @Input({ required: false })
-  subscriptionId: string;
+  constructor(
+    private readonly matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
-  @Input()
-  public subtitleText?: string = undefined;
+  ngOnInit() {
+    this.apiKeysSubject.subscribe((apiKeys) => {
+      this.apiKeysDataSource = apiKeys;
+    });
+  }
 
-  @Input()
-  public readonly = false;
-
-  public displayedColumns = ['active-icon', 'key', 'createdAt', 'endDate', 'actions'];
-
-  public defaultFilters: GioTableWrapperFilters = {
-    searchTerm: '',
-    sort: {
-      active: 'isValid',
-      direction: 'desc',
-    },
-    pagination: {
-      index: 1,
-      size: 25,
-    },
-  };
-
-  public filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.defaultFilters);
-
-  public pageVM$: Observable<{
-    apiKeys: ApiKeyVM[];
-    totalLength: number;
-    filters: GioTableWrapperFilters;
-    loading: boolean;
-  }>;
-
-  public onFiltersChanged(filters: GioTableWrapperFilters) {
-    if (!isEqual(filters, this.filters$.value)) {
-      this.filters$.next(filters);
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.apiKeys) {
+      this.apiKeysSubject.next(this.apiKeys);
     }
   }
 
-  ngOnChanges() {
-    const defaultColumns = ['active-icon', 'key', 'createdAt', 'endDate'];
-    this.displayedColumns = this.readonly ? defaultColumns : [...defaultColumns, 'actions'];
-
-    const getApiKeys$ = this.subscriptionId
-      ? this.applicationSubscriptionService.getApiKeys(this.applicationId, this.subscriptionId)
-      : this.applicationService.getApiKeys(this.applicationId);
-
-    this.pageVM$ = this.filters$.pipe(
-      switchMap(filters => getApiKeys$.pipe(map(apiKeys => ({ apiKeys, filters })))),
-      map(({ apiKeys, filters }) => {
-        const filtered = gioTableFilterCollection(
-          apiKeys.map(apiKey => ({
-            id: apiKey.id,
-            key: apiKey.key,
-            createdAt: apiKey.created_at,
-            endDate: apiKey.revoked ? apiKey.revoked_at : apiKey.expire_at,
-            isValid: !apiKey.revoked && !apiKey.expired,
-          })),
-          filters,
-        );
-        return {
-          apiKeys: filtered.filteredCollection,
-          totalLength: filtered.unpaginatedLength,
-          filters,
-          loading: false,
-        };
-      }),
-      startWith({
-        apiKeys: [],
-        totalLength: 0,
-        filters: this.defaultFilters,
-        loading: true,
-      }),
-    );
+  onRenewApiKey() {
+    this.matDialog
+      .open<
+        ApiPortalSubscriptionRenewApiKeyDialogComponent,
+        ApiPortalSubscriptionRenewApiKeyDialogData,
+        ApiPortalSubscriptionRenewApiKeyDialogResult
+      >(ApiPortalSubscriptionRenewApiKeyDialogComponent, {
+        width: '500px',
+        data: {
+          customApiKeyAllowed: this.customApiKeyAllowed,
+        },
+        role: 'alertdialog',
+        id: 'renewApiKeyDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((result) => !!result),
+        tap((result) => {
+          this.renewApiKey.emit({ customApiKey: result.customApiKey });
+        }),
+      )
+      .subscribe();
   }
 
-  revokeApiKey(apiKeyVM: ApiKeyVM) {
-    const revokeApiKey$ = this.subscriptionId
-      ? this.applicationSubscriptionService.revokeApiKey(this.applicationId, this.subscriptionId, apiKeyVM.id)
-      : this.applicationService.revokeApiKey(this.applicationId, apiKeyVM.id);
-
+  onRevokeApiKey(apiKeyId: string) {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-        width: GIO_DIALOG_WIDTH.MEDIUM,
+        width: '500px',
         data: {
           title: 'Revoke API Key',
-          content: `Are you sure you want to revoke API Key <code>${apiKeyVM.key}</code>?`,
+          content: `Are you sure you want to revoke this API Key?`,
+          confirmButton: 'Revoke',
         },
         role: 'alertdialog',
-        id: 'revokeApiKeysDialog',
+        id: 'revokeApiKeyDialog',
       })
       .afterClosed()
       .pipe(
-        filter(result => !!result),
-        switchMap(() => revokeApiKey$),
-        takeUntilDestroyed(this.destroyRef),
+        filter((confirm) => confirm === 'confirmed'),
+        tap(() => {
+          this.revokeApiKey.emit(apiKeyId);
+        }),
       )
-      .subscribe({
-        next: () => {
-          this.snackBarService.success(`API Key revoked`);
-          this.filters$.next(this.filters$.value);
-        },
-        error: err => this.snackBarService.error(err.message),
-      });
+      .subscribe();
   }
 
-  renewApiKey() {
-    const renewApiKey$ = this.subscriptionId
-      ? this.applicationSubscriptionService.renewApiKey(this.applicationId, this.subscriptionId)
-      : this.applicationService.renewApiKey(this.applicationId);
-
+  onExpireApiKey(apiKey: SubscriptionApiKeysApiKey) {
     this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-        width: GIO_DIALOG_WIDTH.MEDIUM,
+      .open<
+        ApiPortalSubscriptionExpireApiKeyDialogComponent,
+        ApiPortalSubscriptionExpireApiKeyDialogData,
+        ApiPortalSubscriptionExpireApiKeyDialogResult
+      >(ApiPortalSubscriptionExpireApiKeyDialogComponent, {
+        width: '500px',
         data: {
-          title: 'Renew API Key',
-          content: `Are you sure you want to renew API Key ?`,
+          expirationDate: apiKey.endDate,
         },
         role: 'alertdialog',
-        id: 'renewApiKeysDialog',
+        id: 'expireApiKeyDialog',
       })
       .afterClosed()
       .pipe(
-        filter(result => !!result),
-        switchMap(() => renewApiKey$),
-        takeUntilDestroyed(this.destroyRef),
+        filter((result) => !!result),
+        tap((result) => {
+          this.expireApiKey.emit({ apiKeyId: apiKey.id, expireAt: result.expirationDate });
+        }),
       )
+      .subscribe();
+  }
 
-      .subscribe({
-        next: () => {
-          this.snackBarService.success(`API Key renewed`);
-          this.filters$.next(this.filters$.value);
-        },
-        error: err => this.snackBarService.error(err.message),
-      });
+  isSharedApiKeyMode() {
+    return this.apiKeyMode === 'SHARED';
   }
 }
