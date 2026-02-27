@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.10.7
-appVersion: 4.10.7
+version: 4.10.8
+appVersion: 4.10.8
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -29,6 +29,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: added
-      description: 'Allow configuration of ECS logging'
+  artifacthub.io/changes: 
