@@ -29,8 +29,55 @@ servers:
 tags:
   - name: logs
     description: Operations related to querying API connection logs
+  - name: definition
+    description: Operations related to querying logs filter definitions
 
 paths:
+  /environments/{envId}/logs/definition/filters:
+    get:
+      operationId: queryLogFilterDefinitions
+      summary: Query available filters for log search
+      description: |
+        Returns a list of available filters that can be applied to log searches, including their operators and value constraints.
+      tags:
+        - definition
+      parameters:
+        - $ref: "./openapi-analytics.yaml#/components/parameters/EnvId"
+      responses:
+        "200":
+          description: |
+            The response contains a list of available filters for log searches, including their supported operators, types, and optional enum values or ranges.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogsFilterSpecsResponse"
+              examples:
+                log-filters:
+                  summary: Log Search Filters
+                  value:
+                    data:
+                      - name: "API"
+                        label: "API"
+                        type: "KEYWORD"
+                        operators: ["EQ", "IN"]
+                      - name: "HTTP_STATUS"
+                        label: "Status Code"
+                        type: "NUMBER"
+                        operators: ["EQ", "IN", "LTE", "GTE"]
+                        range:
+                          min: 100
+                          max: 599
+                      - name: "RESPONSE_TIME"
+                        label: "Response Time"
+                        type: "NUMBER"
+                        operators: ["GTE", "LTE"]
+        "500":
+          description: Internal server error while getting filter definitions.
+          content:
+            application/json:
+              schema:
+                $ref: "./openapi-analytics.yaml#/components/schemas/Error"
+
   /environments/{envId}/logs/search:
     post:
       operationId: searchApiLogs
@@ -381,3 +428,78 @@ components:
         - LTE
         - IN
       description: Filter operator
+
+    LogsFilterSpecsResponse:
+      type: object
+      description: The response contains a list of available filters for log searches.
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/LogsFilterSpec"
+      example:
+        data:
+          - name: "API"
+            label: "API"
+            type: "KEYWORD"
+            operators: ["EQ", "IN"]
+          - name: "HTTP_STATUS"
+            label: "Status Code"
+            type: "NUMBER"
+            operators: ["EQ", "IN", "LTE", "GTE"]
+            range:
+              min: 100
+              max: 599
+
+    LogsFilterSpec:
+      type: object
+      required:
+        - name
+        - label
+        - type
+        - operators
+      description: Filter specification for filtering log searches. Describes a filter's name, type, supported operators, and optional constraints.
+      properties:
+        name:
+          $ref: "#/components/schemas/FilterName"
+        label:
+          type: string
+          description: Human-readable label for the filter
+          example: "API"
+        type:
+          type: string
+          enum:
+            - KEYWORD
+            - STRING
+            - NUMBER
+            - ENUM
+          description: Data type of the filter
+          example: "KEYWORD"
+        operators:
+          type: array
+          items:
+            $ref: "#/components/schemas/Operator"
+          description: List of supported operators for this filter
+          example: ["EQ", "IN"]
+        enumValues:
+          type: array
+          items:
+            type: string
+          description: Enum values (only applicable for enum type)
+        range:
+          type: object
+          properties:
+            min:
+              type: number
+              description: Minimum value
+              example: 100
+            max:
+              type: number
+              description: Maximum value
+              example: 599
+          description: Value range (only applicable for numeric types)
+      example:
+        name: "API"
+        label: "API"
+        type: "KEYWORD"
+        operators: ["EQ", "IN"]

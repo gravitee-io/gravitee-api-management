@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
+import io.gravitee.rest.api.management.v2.rest.resource.logs.LogsDefinitionResource;
 import io.gravitee.rest.api.management.v2.rest.resource.logs.LogsSearchResource;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.ResourceContext;
@@ -28,5 +29,10 @@ public class EnvironmentLogsResource {
     @Path("/search")
     public LogsSearchResource getLogsSearchResource() {
         return resourceContext.getResource(LogsSearchResource.class);
+    }
+
+    @Path("/definition")
+    public LogsDefinitionResource getLogsDefinitionResource() {
+        return resourceContext.getResource(LogsDefinitionResource.class);
     }
 }
