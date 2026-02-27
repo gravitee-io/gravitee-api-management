@@ -18,12 +18,14 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import {
+  BrowseMessagesResponse,
   DescribeBrokerResponse,
   DescribeClusterResponse,
   DescribeTopicResponse,
   ListTopicsResponse,
   DescribeConsumerGroupResponse,
   ListConsumerGroupsResponse,
+  OffsetMode,
 } from '../models/kafka-cluster.model';
 
 @Injectable({
@@ -71,5 +73,22 @@ export class KafkaExplorerService {
 
   describeConsumerGroup(baseURL: string, clusterId: string, groupId: string): Observable<DescribeConsumerGroupResponse> {
     return this.http.post<DescribeConsumerGroupResponse>(`${baseURL}/kafka-explorer/describe-consumer-group`, { clusterId, groupId });
+  }
+
+  browseMessages(
+    baseURL: string,
+    clusterId: string,
+    topicName: string,
+    options?: { partition?: number; offsetMode?: OffsetMode; offsetValue?: number; keyFilter?: string; limit?: number },
+  ): Observable<BrowseMessagesResponse> {
+    const limit = options?.limit ?? 50;
+    const body: Record<string, unknown> = { clusterId, topicName };
+    if (options?.partition != null) body['partition'] = options.partition;
+    if (options?.offsetMode) body['offsetMode'] = options.offsetMode;
+    if (options?.offsetValue != null) body['offsetValue'] = options.offsetValue;
+    if (options?.keyFilter) body['keyFilter'] = options.keyFilter;
+    return this.http.post<BrowseMessagesResponse>(`${baseURL}/kafka-explorer/browse-messages`, body, {
+      params: { limit: limit.toString() },
+    });
   }
 }

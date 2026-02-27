@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-.topic-detail {
+.messages-browser {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -29,31 +29,63 @@
     margin: 0;
   }
 
-  &__spacer {
-    flex: 1;
+  &__controls-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
   }
 
-  &__browse-btn {
-    mat-icon {
-      margin-right: 4px;
+  &__control {
+    min-width: 140px;
+
+    &--small {
+      max-width: 80px;
     }
+  }
+
+  &__fetch-btn {
+    align-self: center;
+  }
+
+  &__table {
+    width: 100%;
+  }
+
+  &__row {
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--mat-sys-surface-variant, rgba(0, 0, 0, 0.04));
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    color: var(--mat-sys-on-surface-variant, #49454f);
+    padding: 24px;
+  }
+
+  &__detail-section {
+    margin-bottom: 16px;
+  }
+
+  &__pre {
+    background-color: var(--mat-sys-surface-variant, #f5f5f5);
+    padding: 12px;
+    border-radius: 4px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: monospace;
+    font-size: 13px;
+  }
+
+  &__headers-table {
+    width: 100%;
   }
 
   mat-card-content {
     overflow-x: auto;
-  }
-
-  &__link {
-    cursor: pointer;
-  }
-
-  &__empty {
-    color: var(--mat-sys-on-surface-variant, #49454f);
-    padding: 16px 0;
-    margin: 0;
-  }
-
-  table {
-    width: 100%;
   }
 }
