@@ -18,16 +18,20 @@ package io.gravitee.rest.api.kafkaexplorer.mapper;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerLogDirEntry;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.BrowseMessagesResult;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroup;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupsPage;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaHeader;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaMessage;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaNode;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaTopic;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicConfigEntry;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicPartitionDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicsPage;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.BrowseMessagesResponse;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.ConsumerGroupSummary;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeBrokerResponse;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterResponse;
@@ -107,4 +111,14 @@ public interface KafkaExplorerMapper {
     io.gravitee.rest.api.kafkaexplorer.rest.model.ConsumerGroupOffset map(
         io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupOffset offset
     );
+
+    io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaMessage map(KafkaMessage message);
+
+    List<io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaMessage> mapMessages(List<KafkaMessage> messages);
+
+    io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaHeader map(KafkaHeader header);
+
+    default BrowseMessagesResponse map(BrowseMessagesResult result) {
+        return new BrowseMessagesResponse().data(mapMessages(result.messages())).totalFetched(result.totalFetched());
+    }
 }

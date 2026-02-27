@@ -19,6 +19,7 @@ import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
 import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.KafkaClusterDomainService;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerInfo;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.BrowseMessagesResult;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroup;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupsPage;
@@ -37,7 +38,13 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
     private BrokerInfo brokerInfo;
     private List<ConsumerGroup> consumerGroups;
     private ConsumerGroupDetail consumerGroupDetail;
+    private BrowseMessagesResult browseMessagesResult;
     private KafkaExplorerException exception;
+
+    public void givenBrowseMessagesResult(BrowseMessagesResult result) {
+        this.browseMessagesResult = result;
+        this.exception = null;
+    }
 
     public void givenClusterInfo(KafkaClusterInfo info) {
         this.result = info;
@@ -77,6 +84,7 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
         this.brokerInfo = null;
         this.consumerGroups = null;
         this.consumerGroupDetail = null;
+        this.browseMessagesResult = null;
     }
 
     @Override
@@ -153,5 +161,21 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
             throw exception;
         }
         return consumerGroupDetail;
+    }
+
+    @Override
+    public BrowseMessagesResult browseMessages(
+        KafkaClusterConfiguration config,
+        String topicName,
+        Integer partition,
+        String offsetMode,
+        Long offsetValue,
+        String keyFilter,
+        int limit
+    ) {
+        if (exception != null) {
+            throw exception;
+        }
+        return browseMessagesResult;
     }
 }

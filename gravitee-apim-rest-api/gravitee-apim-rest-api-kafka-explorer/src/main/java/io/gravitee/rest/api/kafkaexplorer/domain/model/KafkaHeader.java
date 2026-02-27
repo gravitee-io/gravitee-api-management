@@ -13,13 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.kafkaexplorer.domain.exception;
+package io.gravitee.rest.api.kafkaexplorer.domain.model;
 
-public enum TechnicalCode {
-    INVALID_PARAMETERS,
-    CONNECTION_FAILED,
-    AUTHENTICATION_FAILED,
-    TIMEOUT,
-    INTERRUPTED,
-    TOPIC_NOT_FOUND,
-}
+public record KafkaHeader(String key, String value) {}

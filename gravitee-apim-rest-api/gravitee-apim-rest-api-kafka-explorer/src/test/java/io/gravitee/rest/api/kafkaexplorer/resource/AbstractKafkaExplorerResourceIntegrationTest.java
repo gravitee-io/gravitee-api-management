@@ -18,6 +18,7 @@ package io.gravitee.rest.api.kafkaexplorer.resource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.ClusterCrudServiceInMemory;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.rest.api.kafkaexplorer.domain.use_case.BrowseMessagesUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeBrokerUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeConsumerGroupUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeKafkaClusterUseCase;
@@ -82,6 +83,7 @@ abstract class AbstractKafkaExplorerResourceIntegrationTest {
                 "describeConsumerGroupUseCase",
                 new DescribeConsumerGroupUseCase(clusterCrudService, clusterService, objectMapper)
             );
+            injectField(resource, "browseMessagesUseCase", new BrowseMessagesUseCase(clusterCrudService, clusterService, objectMapper));
         } catch (Exception e) {
             throw new RuntimeException("Failed to set up integration test", e);
         }
