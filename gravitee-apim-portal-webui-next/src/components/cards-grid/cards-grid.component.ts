@@ -17,13 +17,13 @@ import { Component, Input, inject } from '@angular/core';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
 
 @Component({
-  selector: 'app-cards-grid',
+  selector: 'cards-grid',
   templateUrl: './cards-grid.component.html',
   styleUrls: ['./cards-grid.component.scss'],
   standalone: true,
 })
 export class CardsGridComponent {
-  @Input() cards?: any[];
+  @Input() cards?: unknown[];
 
   protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
   protected readonly isNarrow = inject(ObservabilityBreakpointService).isNarrow;

@@ -1,5 +1,22 @@
+<!--
+
+    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
 <div class="content">
-  <!-- Header with inline create button -->
   <div class="apps-list__header">
     <div class="title next-gen-h1" i18n="@@applicationsTitle">Applications</div>
 
@@ -11,8 +28,7 @@
     }
   </div>
 
-  <!-- GRID VIEW -->
-  <app-cards-grid [cards]="applicationPaginator()?.data">
+  <cards-grid [cards]="applicationPaginator()?.data">
     <ng-container slot="cards">
       @for (app of applicationPaginator()?.data ?? []; track app.id) {
         <app-application-card
@@ -24,14 +40,13 @@
       }
     </ng-container>
 
-    <div slot="empty-state">
+    <ng-container slot="empty-state">
       <span class="material-icons icon-with-background m3-headline-large" aria-hidden="true">search</span>
       <h2 class="m3-title-large" i18n="@@noAppsAvailable">No applications available yet</h2>
       <p i18n="@@noAppsDescription">You haven't created any applications yet.</p>
-    </div>
-  </app-cards-grid>
+    </ng-container>
+  </cards-grid>
 
-  <!-- SHARED PAGINATION -->
   @if (applicationPaginator()?.totalResults ?? 0 > 0) {
     <div class="list-page__pagination" [class.list-page__pagination--mobile]="isMobile()">
       <app-pagination

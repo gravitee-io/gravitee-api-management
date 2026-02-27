@@ -28,7 +28,7 @@ import { PaginationComponent } from '../../components/pagination/pagination.comp
 import { ApplicationService } from '../../services/application.service';
 import { CurrentUserService } from '../../services/current-user.service';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
-import { CardsGridComponent } from 'src/components/list-page/cards-grid.component';
+import { CardsGridComponent } from 'src/components/cards-grid/cards-grid.component';
 
 export interface ApplicationPaginatorVM {
   data: {
@@ -42,7 +42,16 @@ export interface ApplicationPaginatorVM {
 
 @Component({
   selector: 'app-applications',
-  imports: [ApplicationCardComponent, CardsGridComponent, MatButton, MatFormFieldModule, MatIcon, MatSelectModule, PaginationComponent, RouterLink],
+  imports: [
+    ApplicationCardComponent,
+    CardsGridComponent,
+    MatButton,
+    MatFormFieldModule,
+    MatIcon,
+    MatSelectModule,
+    PaginationComponent,
+    RouterLink,
+  ],
   templateUrl: './applications.component.html',
   styleUrl: './applications.component.scss',
 })

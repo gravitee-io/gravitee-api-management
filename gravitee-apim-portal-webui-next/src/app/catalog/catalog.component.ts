@@ -36,7 +36,7 @@ import { SearchBarComponent } from '../../components/search-bar/search-bar.compo
 import { ApisResponse } from '../../entities/api/apis-response';
 import { ApiService } from '../../services/api.service';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
-import { CardsGridComponent } from 'src/components/list-page/cards-grid.component';
+import { CardsGridComponent } from 'src/components/cards-grid/cards-grid.component';
 
 interface ApiVM {
   id: string;
@@ -128,7 +128,6 @@ export class CatalogComponent {
   navigateToApi(id: string) {
     this.router.navigate(['api', id], { relativeTo: this.route });
   }
-
 
   private loadApis$(): Observable<ApiPaginatorVM> {
     return this.page$.pipe(
