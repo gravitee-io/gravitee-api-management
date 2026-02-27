@@ -27,13 +27,11 @@
     </div>
   </div>
 
-  @if (apiPaginator$ | async; as apis) {
-    @if (apis.data.length > 0) {
-      @if (viewMode() === 'grid') {
-        <div class="api-list__container"
-          [class.api-list__container--narrow]="isNarrow() && !isMobile()"
-          [class.api-list__container--mobile]="isMobile()">
-          @for (api of apis.data; track api.id) {
+  @if (apiPaginator().data.length > 0) {
+    @if (viewMode() === 'grid') {
+      <app-cards-grid [cards]="apiPaginator().data">
+        <ng-container slot="cards">
+          @for (api of apiPaginator().data; track api.id) {
             <app-api-card
               [apiId]="api.id"
               [title]="api.title"
@@ -41,86 +39,85 @@
               [content]="api.content"
               [picture]="api.picture"
               [isEnabledMcpServer]="api.isEnabledMcpServer"
-              (select)="navigateToApi($event)" />
+              (select)="navigateToApi($event)"
+            />
           }
-        </div>
-      } @else {
-        <div class="api-list__table-container">
-          <table mat-table [dataSource]="apis.data" class="api-list__table">
+        </ng-container>
+      </app-cards-grid>
+    } @else {
+      <div class="api-list__table-container">
+        <table mat-table [dataSource]="apiPaginator().data" class="api-list__table">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef i18n="@@tableHeaderApiName">API Name</th>
+            <td mat-cell *matCellDef="let api">
+              <span class="api-list__table__name-text">{{ api.title }}</span>
+              @if (api.content) {
+                <button class="api-list__table__info-button" [matTooltip]="api.content">
+                  <span class="api-list__table__info-button__text next-gen-caption">i</span>
+                </button>
+              }
+            </td>
+          </ng-container>
 
-            <ng-container matColumnDef="name">
-              <th mat-header-cell *matHeaderCellDef i18n="@@tableHeaderApiName">API Name</th>
-              <td mat-cell *matCellDef="let api">
-                <span class="api-list__table__name-text">{{ api.title }}</span>
-                @if (api.content) {
-                  <button class="api-list__table__info-button" [matTooltip]="api.content">
-                    <span class="api-list__table__info-button__text next-gen-caption">i</span>
-                  </button>
+          <ng-container matColumnDef="labels">
+            <th mat-header-cell *matHeaderCellDef i18n="@@tableHeaderLabels">Labels</th>
+            <td mat-cell *matCellDef="let api">
+              @if (api.labels) {
+                @for (label of api.labels; track label) {
+                  <mat-chip class="label-chip"># {{ label }}</mat-chip>
                 }
-              </td>
-            </ng-container>
+              }
+            </td>
+          </ng-container>
 
-            <ng-container matColumnDef="labels">
-              <th mat-header-cell *matHeaderCellDef i18n="@@tableHeaderLabels">Labels</th>
-              <td mat-cell *matCellDef="let api">
-                @if (api.labels) {
-                  @for (label of api.labels; track label) {
-                    <mat-chip class="label-chip"># {{ label }}</mat-chip>
-                  }
-                }
-              </td>
-            </ng-container>
+          <ng-container matColumnDef="version">
+            <th mat-header-cell *matHeaderCellDef i18n="@@tableHeaderVersion">Version</th>
+            <td mat-cell *matCellDef="let api">{{ api.version }}</td>
+          </ng-container>
 
-            <ng-container matColumnDef="version">
-              <th mat-header-cell *matHeaderCellDef i18n="@@tableHeaderVersion">Version</th>
-              <td mat-cell *matCellDef="let api">{{ api.version }}</td>
-            </ng-container>
+          <ng-container matColumnDef="mcp">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let api" class="api-list__table__mcp-cell">
+              @if (api.isEnabledMcpServer) {
+                <app-badge i18n-label label="MCP" i18n-matTooltip matTooltip="MCP available for this API" />
+              }
+            </td>
+          </ng-container>
 
-            <ng-container matColumnDef="mcp">
-              <th mat-header-cell *matHeaderCellDef></th>
-              <td mat-cell *matCellDef="let api" class="api-list__table__mcp-cell">
-                @if (api.isEnabledMcpServer) {
-                  <app-badge i18n-label label="MCP" i18n-matTooltip matTooltip="MCP available for this API" />
-                }
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="tableColumns()"></tr>
-            <tr mat-row class="api-list__table__row"
-                *matRowDef="let row; columns: tableColumns()"
-                (click)="navigateToApi(row.id)"></tr>
-          </table>
-        </div>
-      }
-        <div class="api-list__pagination" [class.api-list__pagination--mobile]="isMobile()">
-          <app-pagination
-            [totalResults]="apis.totalResults"
-            [currentPage]="apis.page"
-            [pageSize]="pageSize"
-            (selectPage)="onPageChange($event)" />
-          <div class="api-list__pagination__page-size">
-            <span class="m3-body-medium" i18n="@@showPerPage">Show per page:</span>
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-select [value]="pageSize" (selectionChange)="onPageSizeChange($event.value)">
-                @for (size of pageSizeOptions; track size) {
-                  <mat-option [value]="size">{{ size }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-          </div>
-        </div>
-    } @else if (!loadingPage) {
-      <div class="api-list__empty-state">
-        <span class="material-icons icon-with-background m3-headline-large" aria-hidden="true">search</span>
-        @if (query()) {
-          <h2 class="m3-title-large" i18n="@@noFilteredApisAvailable">No APIs found</h2>
-          <p i18n="@@noFilteredApisDescription">Your search didn't return any APIs. Please try again with different keywords.</p>
-        } @else {
-          <h2 class="m3-title-large" i18n="@@noApisAvailable">No APIs available yet</h2>
-          <p i18n="@@noApisDescription">Our API catalog is currently being updated. More APIs will be available soon.</p>
-        }
+          <tr mat-header-row *matHeaderRowDef="tableColumns()"></tr>
+          <tr mat-row class="api-list__table__row" *matRowDef="let row; columns: tableColumns()" (click)="navigateToApi(row.id)"></tr>
+        </table>
       </div>
     }
+    <div class="api-list__pagination" [class.api-list__pagination--mobile]="isMobile()">
+      <app-pagination
+        [totalResults]="apiPaginator().totalResults"
+        [currentPage]="apiPaginator().page"
+        [pageSize]="pageSize"
+        (selectPage)="onPageChange($event)"
+      />
+      <div class="api-list__pagination__page-size">
+        <span class="m3-body-medium" i18n="@@showPerPage">Show per page:</span>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-select [value]="pageSize" (selectionChange)="onPageSizeChange($event.value)">
+            @for (size of pageSizeOptions; track size) {
+              <mat-option [value]="size">{{ size }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+  } @else if (!loadingPage) {
+    <div class="api-list__empty-state">
+      <span class="material-icons icon-with-background m3-headline-large" aria-hidden="true">search</span>
+      @if (query()) {
+        <h2 class="m3-title-large" i18n="@@noFilteredApisAvailable">No APIs found</h2>
+        <p i18n="@@noFilteredApisDescription">Your search didn't return any APIs. Please try again with different keywords.</p>
+      } @else {
+        <h2 class="m3-title-large" i18n="@@noApisAvailable">No APIs available yet</h2>
+        <p i18n="@@noApisDescription">Our API catalog is currently being updated. More APIs will be available soon.</p>
+      }
+    </div>
   }
 
   @if (loadingPage) {

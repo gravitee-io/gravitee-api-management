@@ -19,38 +19,42 @@
   @include layout.large-container-legacy();
 }
 
-mat-card {
-  width: 100%;
-}
-
-.tile {
-  display: flex;
-  flex-flow: column;
-  gap: 16px;
-}
-
-.app-list-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-
-  &__title {
-    display: flex;
-    flex-direction: column;
-  }
-}
-
-.app-list__container {
-  display: grid;
+.content {
+  flex-direction: column;
   gap: 32px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.apps-list__header {
+  display: flex;
+  align-items: center; 
+  justify-content: space-between; 
+  gap: 16px; 
+  margin-bottom: 16px; 
+}
+
+.create-button {
+  width: auto;
+  padding: 0 16px; 
+}
+
+.list-page__pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
 
   &--mobile {
-    grid-template-columns: 1fr !important;
+    flex-direction: column;
+    gap: 16px;
   }
 
-  > * {
-    height: 256px;
+  &__page-size {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    mat-form-field {
+      width: 80px;
+    }
   }
 }

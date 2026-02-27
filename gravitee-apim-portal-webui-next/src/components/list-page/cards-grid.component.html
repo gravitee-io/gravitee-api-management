@@ -1,6 +1,6 @@
 <!--
 
-    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,19 +15,16 @@
     limitations under the License.
 
 -->
-<gmd-card class="app-card" (click)="select.emit(applicationId)">
-  <div class="app-card__content">
-    <div class="app-card__header">
-      <div class="app-card__header__content">
-        <div class="m3-title-medium">{{ title }}</div>
-      </div>
-    </div>
-    <div class="app-card__description m3-body-medium">
-      @if (description) {
-        {{ description }}
-      } @else {
-        <span i18n="@@appDescriptionMissing">Description for this application is missing.</span>
-      }
-    </div>
+@if (cards && cards.length > 0) {
+  <div
+    class="cards-grid"
+    [class.cards-grid--narrow]="isNarrow() && !isMobile()"
+    [class.cards-grid--mobile]="isMobile()"
+  >
+    <ng-content select="[slot=cards]"></ng-content>
   </div>
-</gmd-card>
+} @else {
+  <div class="cards-grid__empty-state">
+    <ng-content select="[slot=empty-state]"></ng-content>
+  </div>
+}
