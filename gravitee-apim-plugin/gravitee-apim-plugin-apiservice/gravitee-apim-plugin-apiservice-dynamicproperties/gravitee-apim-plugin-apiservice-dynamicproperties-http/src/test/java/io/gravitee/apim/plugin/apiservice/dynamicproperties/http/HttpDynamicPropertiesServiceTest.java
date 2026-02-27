@@ -866,6 +866,15 @@ class HttpDynamicPropertiesServiceTest {
      * @param configuration the configuration needed to build the {@link CronTrigger}
      */
     private void advanceTimeBy(final int delay, HttpDynamicPropertiesService cut, HttpDynamicPropertiesServiceConfiguration configuration) {
+        // Allow I/O threads to complete any pending repeat re-subscriptions and schedule
+        // the next timer on the test scheduler before advancing virtual time.
+        // Without this, a race condition exists: the test scheduler can advance past the
+        // next timer's scheduled time before the I/O thread has had a chance to schedule it.
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         TimeProvider.overrideClock(
             Clock.fixed(Instant.ofEpochMilli(testScheduler.now(TimeUnit.MILLISECONDS) + delay), ZoneId.systemDefault())
         );
