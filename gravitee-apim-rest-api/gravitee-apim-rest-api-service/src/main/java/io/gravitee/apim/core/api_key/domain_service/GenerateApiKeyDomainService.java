@@ -50,12 +50,12 @@ public class GenerateApiKeyDomainService {
 
     private final ApiKeyCrudService apiKeyCrudService;
     private final ApiKeyQueryService apiKeyQueryService;
-    private final ApplicationCrudService applicationCrudService;
+    public ApiKeyEntity generate(SubscriptionEntity subscription, AuditInfo auditInfo, String customApiKey) {
     private final AuditDomainService auditService;
 
     public ApiKeyEntity generate(SubscriptionEntity subscription, AuditInfo auditInfo, String customApiKey) {
         var app = applicationCrudService.findById(subscription.getApplicationId(), auditInfo.environmentId());
-        return generate(subscription, app, auditInfo, customApiKey, false);
+    public ApiKeyEntity generateForFederated(SubscriptionEntity subscription, AuditInfo auditInfo, String customApiKey) {
     }
 
     public ApiKeyEntity generateForFederated(SubscriptionEntity subscription, AuditInfo auditInfo, String customApiKey) {
