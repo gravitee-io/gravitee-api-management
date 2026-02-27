@@ -43,7 +43,7 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcMetadataRepository.class);
 
-    JdbcMetadataRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcMetadataRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "metadata");
     }
 

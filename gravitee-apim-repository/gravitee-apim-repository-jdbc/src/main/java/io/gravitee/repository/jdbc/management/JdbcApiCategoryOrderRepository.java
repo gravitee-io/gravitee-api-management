@@ -40,7 +40,7 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiCategoryOrderRepository.class);
 
-    JdbcApiCategoryOrderRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcApiCategoryOrderRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "api_category_orders");
     }
 

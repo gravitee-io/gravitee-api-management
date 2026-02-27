@@ -37,7 +37,7 @@ public class JdbcUpgraderRepository extends JdbcAbstractRepository<UpgradeRecord
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcUpgraderRepository.class);
 
-    JdbcUpgraderRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcUpgraderRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "upgraders");
     }
 

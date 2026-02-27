@@ -42,7 +42,7 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcInstallationRepository.class);
     private final String INSTALLATION_INFORMATIONS;
 
-    JdbcInstallationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcInstallationRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "installation");
         INSTALLATION_INFORMATIONS = getTableNameFor("installation_informations");
     }

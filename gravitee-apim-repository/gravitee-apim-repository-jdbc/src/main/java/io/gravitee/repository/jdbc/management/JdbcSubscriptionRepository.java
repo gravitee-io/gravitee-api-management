@@ -74,7 +74,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     private final String plansTableName;
     private final String metadataTableName;
 
-    JdbcSubscriptionRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcSubscriptionRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "subscriptions");
         plansTableName = getTableNameFor("plans");
         metadataTableName = getTableNameFor("subscriptions_metadata");

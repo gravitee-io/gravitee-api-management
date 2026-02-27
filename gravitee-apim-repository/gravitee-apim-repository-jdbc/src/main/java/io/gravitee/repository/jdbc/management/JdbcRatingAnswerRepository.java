@@ -36,7 +36,7 @@ public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<Ratin
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcRatingAnswerRepository.class);
 
-    JdbcRatingAnswerRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcRatingAnswerRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "rating_answers");
     }
 

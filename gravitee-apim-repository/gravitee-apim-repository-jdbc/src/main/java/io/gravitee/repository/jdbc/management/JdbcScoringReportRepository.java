@@ -69,7 +69,7 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
         }
     };
 
-    JdbcScoringReportRepository(@Value("${management.jdbc.prefix:}") String prefix) {
+    JdbcScoringReportRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String prefix) {
         super(prefix, "scoring_reports");
         SCORING_REPORT_SUMMARY = getTableNameFor("scoring_report_summary");
     }

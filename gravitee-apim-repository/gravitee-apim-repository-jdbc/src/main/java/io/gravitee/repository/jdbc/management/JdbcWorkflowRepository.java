@@ -40,7 +40,7 @@ public class JdbcWorkflowRepository extends JdbcAbstractCrudRepository<Workflow,
 
     private final Logger LOGGER = LoggerFactory.getLogger(JdbcWorkflowRepository.class);
 
-    JdbcWorkflowRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcWorkflowRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "workflows");
     }
 

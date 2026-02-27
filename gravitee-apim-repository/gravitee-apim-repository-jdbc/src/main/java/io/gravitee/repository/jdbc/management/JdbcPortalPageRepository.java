@@ -39,7 +39,7 @@ public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalP
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPortalPageRepository.class);
 
-    JdbcPortalPageRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcPortalPageRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "portal_pages");
     }
 

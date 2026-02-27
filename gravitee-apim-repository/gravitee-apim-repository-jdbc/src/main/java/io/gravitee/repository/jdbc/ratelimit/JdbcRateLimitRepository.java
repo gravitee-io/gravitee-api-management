@@ -106,7 +106,7 @@ public class JdbcRateLimitRepository implements RateLimitRepository<RateLimit> {
 
     public JdbcRateLimitRepository(
         @Lazy @Autowired @Qualifier("graviteeTransactionManager") PlatformTransactionManager transactionManager,
-        @Value("${ratelimit.jdbc.prefix:}") String tablePrefix
+        @Value("${repositories.ratelimit.jdbc.prefix:${ratelimit.jdbc.prefix:}}") String tablePrefix
     ) {
         this.transactionTemplate = new TransactionTemplate(transactionManager);
 

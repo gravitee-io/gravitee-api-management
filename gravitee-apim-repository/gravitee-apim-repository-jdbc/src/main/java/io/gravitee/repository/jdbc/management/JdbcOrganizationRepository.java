@@ -37,7 +37,7 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcOrganizationRepository.class);
     private final String ORGANIZATION_HRIDS;
 
-    JdbcOrganizationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcOrganizationRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "organizations");
         ORGANIZATION_HRIDS = getTableNameFor("organization_hrids");
     }

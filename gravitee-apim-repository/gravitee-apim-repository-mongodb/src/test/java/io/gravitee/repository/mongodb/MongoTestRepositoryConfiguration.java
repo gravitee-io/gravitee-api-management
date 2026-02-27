@@ -180,4 +180,9 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
 
         return clientEncryption;
     }
+
+    @Override
+    public String getScope() {
+        return "management";
+    }
 }

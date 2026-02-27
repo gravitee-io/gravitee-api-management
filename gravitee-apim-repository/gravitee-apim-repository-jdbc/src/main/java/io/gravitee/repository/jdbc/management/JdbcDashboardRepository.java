@@ -40,7 +40,7 @@ public class JdbcDashboardRepository extends JdbcAbstractCrudRepository<Dashboar
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcDashboardRepository.class);
 
-    JdbcDashboardRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcDashboardRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "dashboards");
     }
 

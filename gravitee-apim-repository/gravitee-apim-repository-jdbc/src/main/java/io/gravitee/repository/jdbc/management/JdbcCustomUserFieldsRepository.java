@@ -49,7 +49,7 @@ public class JdbcCustomUserFieldsRepository extends JdbcAbstractFindAllRepositor
 
     private final String CUSTOM_USER_FIELDS_VALUES;
 
-    JdbcCustomUserFieldsRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcCustomUserFieldsRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "custom_user_fields");
         CUSTOM_USER_FIELDS_VALUES = getTableNameFor("custom_user_fields_values");
     }

@@ -47,7 +47,7 @@ public class JdbcParameterRepository extends JdbcAbstractFindAllRepository<Param
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcParameterRepository.class);
 
-    JdbcParameterRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcParameterRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "parameters");
     }
 

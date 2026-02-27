@@ -43,7 +43,7 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPromotionRepository.class);
 
-    JdbcPromotionRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+    JdbcPromotionRepository(@Value("${repositories.management.jdbc.prefix:${management.jdbc.prefix:}}") String tablePrefix) {
         super(tablePrefix, "promotions");
     }
 
