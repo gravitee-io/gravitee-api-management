@@ -15,10 +15,12 @@
  */
 package io.gravitee.apim.core.api_product.use_case;
 
+import static io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService.oneShotIndexation;
 import static java.util.Map.entry;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.CreateApiProduct;
@@ -58,6 +60,7 @@ public class CreateApiProductUseCase {
     private final EventCrudService eventCrudService;
     private final EventLatestCrudService eventLatestCrudService;
     private final LicenseDomainService licenseDomainService;
+    private final ApiProductIndexerDomainService apiProductIndexerDomainService;
 
     public record Input(CreateApiProduct createApiProduct, AuditInfo auditInfo) {}
 
@@ -108,6 +111,8 @@ public class CreateApiProductUseCase {
             auditInfo.actor().userId()
         );
         apiProductPrimaryOwnerDomainService.createApiProductPrimaryOwnerMembership(created.getId(), primaryOwner, auditInfo);
+
+        apiProductIndexerDomainService.index(oneShotIndexation(auditInfo), created, primaryOwner);
 
         publishDeployEvent(auditInfo, created);
         createAuditLog(created, auditInfo);

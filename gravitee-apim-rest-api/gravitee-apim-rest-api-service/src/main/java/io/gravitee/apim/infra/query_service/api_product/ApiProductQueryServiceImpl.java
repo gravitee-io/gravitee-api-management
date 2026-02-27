@@ -75,6 +75,24 @@ public class ApiProductQueryServiceImpl implements ApiProductQueryService {
     }
 
     @Override
+    public Set<ApiProduct> findByEnvironmentIdAndIdIn(String environmentId, Set<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Set.of();
+        }
+        try {
+            log.debug("Finding API Products for environment: {} and ids: {}", environmentId, ids);
+            Set<io.gravitee.repository.management.model.ApiProduct> repoApiProducts = apiProductRepository.findByIds(ids);
+            return repoApiProducts
+                .stream()
+                .filter(repoApiProduct -> environmentId.equals(repoApiProduct.getEnvironmentId()))
+                .map(ApiProductAdapter.INSTANCE::toModel)
+                .collect(Collectors.toSet());
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("Failed to find API Products by ids", e);
+        }
+    }
+
+    @Override
     public Optional<ApiProduct> findById(String apiProductId) {
         try {
             log.debug("Finding API Product by apiProductId: {}", apiProductId);

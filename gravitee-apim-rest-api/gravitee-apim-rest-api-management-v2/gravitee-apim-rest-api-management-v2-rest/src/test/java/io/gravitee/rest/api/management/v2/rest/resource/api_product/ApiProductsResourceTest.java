@@ -23,16 +23,21 @@ import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import assertions.MAPIAssertions;
 import fixtures.core.model.LicenseFixtures;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.use_case.CreateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
+import io.gravitee.apim.core.api_product.use_case.SearchApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductNameUseCase;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.rest.api.management.v2.rest.model.ApiProductSearchQuery;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiProductResponse;
@@ -45,6 +50,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,6 +69,9 @@ class ApiProductsResourceTest extends AbstractResourceTest {
 
     @Inject
     private VerifyApiProductNameUseCase verifyApiProductNameUseCase;
+
+    @Inject
+    private SearchApiProductsUseCase searchApiProductsUseCase;
 
     @Inject
     private LicenseManager licenseManager;
@@ -92,7 +101,7 @@ class ApiProductsResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(createApiProductUseCase, getApiProductsUseCase, verifyApiProductNameUseCase);
+        reset(createApiProductUseCase, getApiProductsUseCase, verifyApiProductNameUseCase, searchApiProductsUseCase);
     }
 
     @Nested
@@ -137,9 +146,24 @@ class ApiProductsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCT, ENV_ID, RolePermissionAction.CREATE, () ->
-                rootTarget().path("_verify").request().post(json(new VerifyApiProduct()))
-            );
+            reset(permissionService);
+            when(
+                permissionService.hasPermission(
+                    any(),
+                    eq(RolePermission.ENVIRONMENT_API_PRODUCT),
+                    eq(ENV_ID),
+                    eq(RolePermissionAction.CREATE),
+                    eq(RolePermissionAction.UPDATE)
+                )
+            ).thenReturn(false);
+            VerifyApiProduct verifyApiProduct = new VerifyApiProduct();
+            verifyApiProduct.setName("My API Product");
+            Response response = rootTarget().path("_verify").request().post(json(verifyApiProduct));
+            MAPIAssertions.assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
         }
     }
 
@@ -272,6 +296,113 @@ class ApiProductsResourceTest extends AbstractResourceTest {
         @Test
         public void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCT, ENV_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
+        }
+    }
+
+    @Nested
+    class SearchApiProductsTest {
+
+        @Test
+        void should_return_full_list_when_no_query_and_no_ids() {
+            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class))).thenReturn(true);
+            ApiProductSearchQuery searchQuery = new ApiProductSearchQuery();
+            List<ApiProduct> apiProductsList = List.of(
+                ApiProduct.builder()
+                    .id("api-product-1")
+                    .environmentId(ENV_ID)
+                    .name("Product One")
+                    .version("1.0.0")
+                    .createdAt(ZonedDateTime.now())
+                    .updatedAt(ZonedDateTime.now())
+                    .apiIds(new HashSet<>())
+                    .build()
+            );
+            when(searchApiProductsUseCase.execute(any())).thenReturn(
+                new SearchApiProductsUseCase.Output(new Page<>(apiProductsList, 1, apiProductsList.size(), apiProductsList.size()))
+            );
+
+            final Response response = rootTarget().path("_search").request().post(json(searchQuery));
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var responseMap = response.readEntity(java.util.Map.class);
+            assertThat(responseMap).containsKeys("data", "pagination", "links");
+            assertThat((java.util.List<?>) responseMap.get("data")).hasSize(1);
+        }
+
+        @Test
+        void should_search_by_query() {
+            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class))).thenReturn(true);
+            ApiProductSearchQuery searchQuery = new ApiProductSearchQuery();
+            searchQuery.setQuery("My Product");
+
+            List<ApiProduct> apiProductsList = List.of(
+                ApiProduct.builder()
+                    .id("api-product-1")
+                    .environmentId(ENV_ID)
+                    .name("My Product One")
+                    .version("1.0.0")
+                    .createdAt(ZonedDateTime.now())
+                    .updatedAt(ZonedDateTime.now())
+                    .apiIds(new HashSet<>())
+                    .build()
+            );
+            when(searchApiProductsUseCase.execute(any())).thenReturn(
+                new SearchApiProductsUseCase.Output(new Page<>(apiProductsList, 1, apiProductsList.size(), apiProductsList.size()))
+            );
+
+            final Response response = rootTarget().path("_search").request().post(json(searchQuery));
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var responseMap = response.readEntity(java.util.Map.class);
+            assertThat(responseMap).containsKeys("data", "pagination", "links");
+        }
+
+        @Test
+        void should_search_by_ids() {
+            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class))).thenReturn(true);
+            ApiProductSearchQuery searchQuery = new ApiProductSearchQuery();
+            searchQuery.setIds(java.util.List.of("api-product-1", "api-product-2"));
+
+            List<ApiProduct> apiProductsList = List.of(
+                ApiProduct.builder()
+                    .id("api-product-1")
+                    .environmentId(ENV_ID)
+                    .name("Product 1")
+                    .version("1.0.0")
+                    .createdAt(ZonedDateTime.now())
+                    .updatedAt(ZonedDateTime.now())
+                    .apiIds(new HashSet<>())
+                    .build()
+            );
+            when(searchApiProductsUseCase.execute(any())).thenReturn(
+                new SearchApiProductsUseCase.Output(new Page<>(apiProductsList, 1, apiProductsList.size(), apiProductsList.size()))
+            );
+
+            final Response response = rootTarget().path("_search").request().post(json(searchQuery));
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var responseMap = response.readEntity(java.util.Map.class);
+            assertThat(responseMap).containsKeys("data", "pagination", "links");
+        }
+
+        @Test
+        void should_return_400_when_invalid_sortBy() {
+            when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class))).thenReturn(true);
+            ApiProductSearchQuery searchQuery = new ApiProductSearchQuery();
+            searchQuery.setQuery("test");
+
+            final Response response = rootTarget().path("_search").queryParam("sortBy", "invalid_sort").request().post(json(searchQuery));
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            ApiProductSearchQuery searchQuery = new ApiProductSearchQuery();
+            searchQuery.setQuery("test");
+            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCT, ENV_ID, RolePermissionAction.READ, () ->
+                rootTarget().path("_search").request().post(json(searchQuery))
+            );
         }
     }
 }

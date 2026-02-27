@@ -37,6 +37,7 @@ import inmemory.LicenseCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -46,6 +47,7 @@ import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
@@ -67,6 +69,8 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
     private final LicenseManager licenseManager = mock(LicenseManager.class);
     private final ApiStateDomainService apiStateDomainService = mock(ApiStateDomainService.class);
+    private final ApiProductIndexerDomainService apiProductIndexerDomainService = mock(ApiProductIndexerDomainService.class);
+    private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService = mock(ApiProductPrimaryOwnerDomainService.class);
 
     private UpdateApiProductUseCase updateApiProductUseCase;
 
@@ -88,7 +92,9 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
             apiStateDomainService,
             eventCrudService,
             eventLatestCrudService,
-            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager)
+            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+            apiProductIndexerDomainService,
+            apiProductPrimaryOwnerDomainService
         );
     }
 
@@ -124,6 +130,7 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         // Verify DEPLOY event was published
         verify(eventCrudService).createEvent(eq(ORG_ID), eq(ENV_ID), any(), any(), any(), any());
         verify(eventLatestCrudService).createOrPatchLatestEvent(eq(ORG_ID), eq("api-product-id"), any());
+        verify(apiProductIndexerDomainService).index(any(), eq(output.apiProduct()), any());
     }
 
     @Test
@@ -222,6 +229,7 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
         var output = updateApiProductUseCase.execute(input);
         assertThat(output.apiProduct().getApiIds()).containsExactlyInAnyOrder("api-1", "api-2", "api-3");
+        verify(apiProductIndexerDomainService).index(any(), eq(output.apiProduct()), any());
     }
 
     @Test
@@ -243,6 +251,7 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
 
         // Empty apiIds should clear the entire list (replace, not merge)
         assertThat(output.apiProduct().getApiIds()).isEmpty();
+        verify(apiProductIndexerDomainService).index(any(), eq(output.apiProduct()), any());
     }
 
     @Test
@@ -269,6 +278,7 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
 
         assertThat(output.apiProduct().getApiIds()).containsExactly("api-2");
         verify(apiStateDomainService).stop(argThat(api -> "api-deployed-no-plans".equals(api.getId())), eq(AUDIT_INFO));
+        verify(apiProductIndexerDomainService).index(any(), eq(output.apiProduct()), any());
     }
 
     @Test
@@ -288,9 +298,10 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         var toUpdate = UpdateApiProduct.builder().name("New Name").apiIds(Set.of("api-1")).build();
         var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
 
-        updateApiProductUseCase.execute(input);
+        var output = updateApiProductUseCase.execute(input);
 
         verify(apiStateDomainService, never()).stop(any(), any());
+        verify(apiProductIndexerDomainService).index(any(), eq(output.apiProduct()), any());
     }
 
     @Test
@@ -319,6 +330,7 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         verify(apiStateDomainService, times(2)).stop(any(), eq(AUDIT_INFO));
         verify(apiStateDomainService).stop(argThat(api -> "api-1".equals(api.getId())), eq(AUDIT_INFO));
         verify(apiStateDomainService).stop(argThat(api -> "api-2".equals(api.getId())), eq(AUDIT_INFO));
+        verify(apiProductIndexerDomainService).index(any(), eq(output.apiProduct()), any());
     }
 
     @Test

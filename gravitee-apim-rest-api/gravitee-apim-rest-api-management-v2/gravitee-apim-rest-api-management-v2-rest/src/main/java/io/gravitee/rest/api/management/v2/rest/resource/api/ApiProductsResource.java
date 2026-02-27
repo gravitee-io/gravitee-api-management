@@ -31,7 +31,8 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ApiProductsResource extends AbstractResource {
@@ -51,19 +52,17 @@ public class ApiProductsResource extends AbstractResource {
             .stream()
             .map(ApiProductMapper.INSTANCE::map)
             .collect(Collectors.toList());
-        List<ApiProduct> paginationData = computePaginationData(restApiProducts, paginationParam);
+        List<ApiProduct> paginationApiProducts = computePaginationData(restApiProducts, paginationParam);
         return Response.ok()
             .entity(
-                new HashMap<String, Object>() {
-                    {
-                        put("data", paginationData);
-                        put(
-                            "pagination",
-                            PaginationInfo.computePaginationInfo(restApiProducts.size(), paginationData.size(), paginationParam)
-                        );
-                        put("links", computePaginationLinks(restApiProducts.size(), paginationParam));
-                    }
-                }
+                Map.of(
+                    "data",
+                    paginationApiProducts,
+                    "pagination",
+                    PaginationInfo.computePaginationInfo(restApiProducts.size(), paginationApiProducts.size(), paginationParam),
+                    "links",
+                    computePaginationLinks(restApiProducts.size(), paginationParam)
+                )
             )
             .build();
     }

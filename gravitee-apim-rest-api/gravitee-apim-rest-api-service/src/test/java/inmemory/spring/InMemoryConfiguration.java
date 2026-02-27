@@ -537,6 +537,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public ApiProductSearchQueryServiceInMemory apiProductSearchQueryService() {
+        return new ApiProductSearchQueryServiceInMemory();
+    }
+
+    @Bean
     public ClientCertificateCrudServiceInMemory clientCertificateCrudService() {
         return new ClientCertificateCrudServiceInMemory();
     }

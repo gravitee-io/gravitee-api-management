@@ -28,10 +28,13 @@ import static org.mockito.Mockito.when;
 
 import fixtures.repository.ApiFixtures;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.search.model.IndexableApi;
+import io.gravitee.apim.core.search.model.IndexableApiProduct;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.UserRepository;
@@ -101,6 +104,12 @@ public class SearchIndexInitializerTest {
     private ApiIndexerDomainService apiIndexerDomainService;
 
     @Mock
+    private ApiProductIndexerDomainService apiProductIndexerDomainService;
+
+    @Mock
+    private ApiProductsRepository apiProductsRepository;
+
+    @Mock
     private UserMetadataService userMetadataService;
 
     private final PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
@@ -120,6 +129,8 @@ public class SearchIndexInitializerTest {
             new UserConverter(),
             primaryOwnerService,
             apiIndexerDomainService,
+            apiProductIndexerDomainService,
+            apiProductsRepository,
             userMetadataService
         );
 
@@ -187,6 +198,60 @@ public class SearchIndexInitializerTest {
     }
 
     @Nested
+    class RunApiProductsIndexation {
+
+        @Test
+        public void runApiProductsIndexationAsync_should_index_every_api_product() throws Exception {
+            givenExistingApiProducts(
+                io.gravitee.repository.management.model.ApiProduct.builder()
+                    .id("product-1")
+                    .environmentId("env1")
+                    .name("Product 1")
+                    .build(),
+                io.gravitee.repository.management.model.ApiProduct.builder()
+                    .id("product-2")
+                    .environmentId("env2")
+                    .name("Product 2")
+                    .build(),
+                io.gravitee.repository.management.model.ApiProduct.builder().id("product-3").environmentId("env1").name("Product 3").build()
+            );
+
+            initializer.runApiProductsIndexationAsync(Executors.newSingleThreadExecutor()).forEach(CompletableFuture::join);
+
+            verify(searchEngineService, times(1)).index(
+                argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")),
+                argThat(
+                    indexable ->
+                        indexable instanceof IndexableApiProduct &&
+                        "product-1".equals(((IndexableApiProduct) indexable).getApiProduct().getId())
+                ),
+                eq(true),
+                eq(false)
+            );
+            verify(searchEngineService, times(1)).index(
+                argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env2") && e.getOrganizationId().equals("org2")),
+                argThat(
+                    indexable ->
+                        indexable instanceof IndexableApiProduct &&
+                        "product-2".equals(((IndexableApiProduct) indexable).getApiProduct().getId())
+                ),
+                eq(true),
+                eq(false)
+            );
+            verify(searchEngineService, times(1)).index(
+                argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")),
+                argThat(
+                    indexable ->
+                        indexable instanceof IndexableApiProduct &&
+                        "product-3".equals(((IndexableApiProduct) indexable).getApiProduct().getId())
+                ),
+                eq(true),
+                eq(false)
+            );
+        }
+    }
+
+    @Nested
     class RunUsersIndexationAsync {
 
         @Test
@@ -230,6 +295,21 @@ public class SearchIndexInitializerTest {
     @Test
     public void testOrder() {
         assertThat(initializer.getOrder()).isEqualTo(InitializerOrder.SEARCH_INDEX_INITIALIZER);
+    }
+
+    private void givenExistingApiProducts(io.gravitee.repository.management.model.ApiProduct... products) throws Exception {
+        when(apiProductsRepository.findAll()).thenReturn(java.util.Set.of(products));
+        lenient()
+            .when(
+                apiProductIndexerDomainService.toIndexableApiProduct(
+                    any(Indexer.IndexationContext.class),
+                    any(io.gravitee.apim.core.api_product.model.ApiProduct.class)
+                )
+            )
+            .thenAnswer(invocation -> {
+                io.gravitee.apim.core.api_product.model.ApiProduct core = invocation.getArgument(1);
+                return IndexableApiProduct.builder().apiProduct(core).build();
+            });
     }
 
     private void givenExistingApis(Api... apis) {
