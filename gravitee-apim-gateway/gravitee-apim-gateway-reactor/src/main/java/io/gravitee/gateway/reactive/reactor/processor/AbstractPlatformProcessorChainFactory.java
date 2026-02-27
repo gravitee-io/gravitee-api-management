@@ -26,6 +26,7 @@ import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPre
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +41,7 @@ public abstract class AbstractPlatformProcessorChainFactory {
     private final AlertEventProducer eventProducer;
     private final Node node;
     private final String port;
+    private final MeterRegistry meterRegistry;
     private final List<ProcessorHook> processorHooks = new ArrayList<>();
     private ProcessorChain preProcessorChain;
     private ProcessorChain postProcessorChain;
@@ -51,13 +53,15 @@ public abstract class AbstractPlatformProcessorChainFactory {
         ReporterService reporterService,
         AlertEventProducer eventProducer,
         Node node,
-        String port
+        String port,
+        MeterRegistry meterRegistry
     ) {
         this.transactionHandlerFactory = transactionHandlerFactory;
         this.reporterService = reporterService;
         this.eventProducer = eventProducer;
         this.node = node;
         this.port = port;
+        this.meterRegistry = meterRegistry;
     }
 
     public ProcessorChain preProcessorChain() {
@@ -89,7 +93,7 @@ public abstract class AbstractPlatformProcessorChainFactory {
 
     protected List<Processor> buildPostProcessorList() {
         List<Processor> postProcessorList = new ArrayList<>();
-        postProcessorList.add(new ResponseTimeProcessor());
+        postProcessorList.add(new ResponseTimeProcessor(meterRegistry));
         postProcessorList.add(new ReporterProcessor(reporterService));
 
         if (!eventProducer.isEmpty()) {

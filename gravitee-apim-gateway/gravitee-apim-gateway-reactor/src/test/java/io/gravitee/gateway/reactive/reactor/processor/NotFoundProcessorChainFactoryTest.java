@@ -97,7 +97,8 @@ class NotFoundProcessorChainFactoryTest {
             new StandardEnvironment(),
             reporterService,
             false,
-            gatewayConfiguration
+            gatewayConfiguration,
+            null
         );
         List<Processor> processors = notFoundProcessorChainFactory.buildProcessorChain();
 
@@ -121,7 +122,8 @@ class NotFoundProcessorChainFactoryTest {
             new StandardEnvironment(),
             reporterService,
             true,
-            gatewayConfiguration
+            gatewayConfiguration,
+            null
         );
         ProcessorChain processorChain = notFoundProcessorChainFactory.processorChain();
 

@@ -22,6 +22,7 @@ import io.gravitee.gateway.reactor.processor.notfound.NotFoundProcessor;
 import io.gravitee.gateway.reactor.processor.notfound.NotFoundReporter;
 import io.gravitee.gateway.reactor.processor.responsetime.ResponseTimeProcessor;
 import io.gravitee.gateway.report.ReporterService;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +36,9 @@ public class NotFoundProcessorChainFactory {
     @Autowired
     private Environment environment;
 
+    @Autowired(required = false)
+    private MeterRegistry meterRegistry;
+
     @Value("${handlers.notfound.log.enabled:false}")
     private boolean logEnabled;
 
@@ -42,7 +46,7 @@ public class NotFoundProcessorChainFactory {
         return new DefaultProcessorChain<>(
             Arrays.asList(
                 new NotFoundProcessor(environment),
-                new ResponseTimeProcessor(),
+                new ResponseTimeProcessor(meterRegistry),
                 new NotFoundReporter(reporterService, logEnabled)
             )
         );
