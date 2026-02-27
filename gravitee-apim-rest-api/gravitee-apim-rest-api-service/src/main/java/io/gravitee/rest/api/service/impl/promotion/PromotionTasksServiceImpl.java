@@ -153,7 +153,7 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
         try {
             apiEntity = objectMapper.readValue(promotionEntity.getApiDefinition(), ApiEntity.class);
         } catch (JsonProcessingException e) {
-            logger.warn("Problem while deserializing api definition for promotion {}: {}", promotionEntity.getId(), e.getMessage());
+            logger.debug("Problem while deserializing api definition for promotion {}: {}", promotionEntity.getId(), e.getMessage());
             return null;
         }
 
