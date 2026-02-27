@@ -15,91 +15,62 @@
     limitations under the License.
 
 -->
+<div class="subscription-api-keys">
+  <div class="subscription-api-keys__header">
+    <h3>API Keys</h3>
+    <button *ngIf="canRenew" mat-raised-button color="primary" (click)="onRenewApiKey()" data-testid="renew-api-key-btn">
+      <mat-icon>autorenew</mat-icon> Renew
+    </button>
+  </div>
 
-@if (pageVM$ | async; as pageVM) {
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>API Keys</mat-card-title>
-      <mat-card-subtitle *ngIf="subtitleText">{{ subtitleText }}</mat-card-subtitle>
-    </mat-card-header>
+  <table mat-table [dataSource]="apiKeysDataSource" class="subscription-api-keys__table">
+    <ng-container matColumnDef="key">
+      <th mat-header-cell *matHeaderCellDef>Key</th>
+      <td mat-cell *matCellDef="let apiKey">
+        <span>{{ apiKey.key }}</span>
+        <span *ngIf="apiKey.isRevoked" class="gio-badge-neutral">Revoked</span>
+        <span *ngIf="apiKey.isExpired" class="gio-badge-neutral">Expired</span>
+        <span *ngIf="isSharedApiKeyMode()" class="gio-badge-neutral">Shared</span>
+      </td>
+    </ng-container>
 
-    <div class="subscription__api-keys__table-wrapper">
-      <gio-table-wrapper
-        [disableSearchInput]="true"
-        [length]="pageVM.totalLength"
-        [filters]="defaultFilters"
-        (filtersChange)="onFiltersChanged($event)"
-        [paginationPageSizeOptions]="[10, 25, 50, 100]"
-      >
-        <table mat-table [dataSource]="pageVM.apiKeys" matSort [matSortDisabled]="pageVM.apiKeys.length < 1" aria-label="API Keys Table">
-          <ng-container matColumnDef="active-icon">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header="isValid"></th>
-            <td mat-cell *matCellDef="let apiKey">
-              <mat-icon
-                [matTooltip]="apiKey.isValid ? 'Valid' : 'Revoked or Expired'"
-                [ngClass]="{
-                  activeIcon: apiKey.isValid,
-                  revokedIcon: !apiKey.isValid,
-                }"
-                [svgIcon]="apiKey.isValid ? 'gio:check-circled-outline' : 'gio:x-circle'"
-              ></mat-icon>
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="key">
-            <th mat-header-cell *matHeaderCellDef>Key</th>
-            <td mat-cell *matCellDef="let apiKey">
-              <mat-form-field class="apiKeyCell">
-                <input matInput [value]="apiKey.key" readonly />
-                <gio-clipboard-copy-icon matSuffix [contentToCopy]="apiKey.key"></gio-clipboard-copy-icon>
-              </mat-form-field>
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="createdAt">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header="createdAt">Created at</th>
-            <td mat-cell *matCellDef="let apiKey">
-              {{ (apiKey.createdAt | date: 'medium') || '-' }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="endDate">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header="endDate">Revoked/Expired at</th>
-            <td mat-cell *matCellDef="let apiKey">
-              {{ (apiKey.endDate | date: 'medium') || '-' }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let apiKey">
-              @if (!readonly && apiKey.isValid) {
-                <div *gioPermission="{ anyOf: ['application-subscription-u'] }">
-                  <button (click)="revokeApiKey(apiKey)" mat-button aria-label="Button to revoke an API Key" matTooltip="Revoke">
-                    <mat-icon svgIcon="gio:x-circle"></mat-icon>
-                  </button>
-                </div>
-              }
-            </td>
-          </ng-container>
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    <ng-container matColumnDef="createdAt">
+      <th mat-header-cell *matHeaderCellDef>Created at</th>
+      <td mat-cell *matCellDef="let apiKey">{{ apiKey.createdAt | date: 'medium' }}</td>
+    </ng-container>
 
-          <!-- Row shown when there is no data -->
-          <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-            <td *ngIf="!pageVM.loading" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No API keys!</td>
-            <td *ngIf="pageVM.loading" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
-              <gio-loader></gio-loader>
-            </td>
-          </tr>
-        </table>
-      </gio-table-wrapper>
-    </div>
-    @if (!readonly) {
-      <mat-card-actions>
-        <div class="subscription__api-keys__footer" *gioPermission="{ anyOf: ['application-subscription-u'] }">
-          <button mat-stroked-button (click)="renewApiKey()">
-            <mat-icon svgIcon="gio:refresh-cw"></mat-icon>
-            Renew
+    <ng-container matColumnDef="endDate">
+      <th mat-header-cell *matHeaderCellDef>End date</th>
+      <td mat-cell *matCellDef="let apiKey">{{ apiKey.endDate ? (apiKey.endDate | date: 'medium') : '-' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let apiKey">
+        <div class="subscription-api-keys__table__actions">
+          <button
+            *ngIf="canRevoke && !apiKey.isRevoked && !apiKey.isExpired"
+            mat-icon-button
+            matTooltip="Revoke API Key"
+            (click)="onRevokeApiKey(apiKey.id)"
+            data-testid="revoke-api-key-btn"
+          >
+            <mat-icon>block</mat-icon>
+          </button>
+          <button
+            *ngIf="canExpire && !apiKey.isRevoked && !apiKey.isExpired"
+            mat-icon-button
+            matTooltip="Set expiration date"
+            (click)="onExpireApiKey(apiKey)"
+            data-testid="expire-api-key-btn"
+          >
+            <mat-icon>schedule</mat-icon>
           </button>
         </div>
-      </mat-card-actions>
-    }
-  </mat-card>
-}
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+</div>
