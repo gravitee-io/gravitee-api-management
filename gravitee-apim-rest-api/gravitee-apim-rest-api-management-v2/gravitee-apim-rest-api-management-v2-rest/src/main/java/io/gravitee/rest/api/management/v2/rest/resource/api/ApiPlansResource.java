@@ -270,22 +270,24 @@ public class ApiPlansResource extends AbstractResource {
                     updatePlanEntity.setId(planId);
 
                     var output = updatePlanUseCase.execute(
-                        new UpdatePlanUseCase.Input(
-                            updatePlanEntity,
-                            api -> flowMapper.map(updatePlanV4.getFlows(), api),
-                            apiId,
-                            AuditInfo.builder()
-                                .organizationId(executionContext.getOrganizationId())
-                                .environmentId(executionContext.getEnvironmentId())
-                                .actor(
-                                    AuditActor.builder()
-                                        .userId(userDetails.getUsername())
-                                        .userSource(userDetails.getSource())
-                                        .userSourceId(userDetails.getSourceId())
-                                        .build()
-                                )
-                                .build()
-                        )
+                        UpdatePlanUseCase.Input.builder()
+                            .planToUpdate(updatePlanEntity)
+                            .flowProvider(api -> flowMapper.map(updatePlanV4.getFlows(), api))
+                            .apiId(apiId)
+                            .auditInfo(
+                                AuditInfo.builder()
+                                    .organizationId(executionContext.getOrganizationId())
+                                    .environmentId(executionContext.getEnvironmentId())
+                                    .actor(
+                                        AuditActor.builder()
+                                            .userId(userDetails.getUsername())
+                                            .userSource(userDetails.getSource())
+                                            .userSourceId(userDetails.getSourceId())
+                                            .build()
+                                    )
+                                    .build()
+                            )
+                            .build()
                     );
 
                     yield Response.ok(planMapper.map(output.updated())).build();

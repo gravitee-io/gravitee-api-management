@@ -129,7 +129,6 @@ public class PublishPlanDomainServiceImpl implements PublishPlanDomainService {
 
             return PlanAdapter.INSTANCE.fromRepository(plan);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to publish plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to publish plan: %s", planId), ex);
         }
     }

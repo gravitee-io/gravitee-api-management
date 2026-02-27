@@ -38,6 +38,7 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.domain_service.DeleteSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -106,7 +107,7 @@ public class DeleteIngestedApisUseCase {
         var apiId = api.getId();
 
         planQueryService
-            .findAllByApiId(apiId)
+            .findAllByReferenceIdAndReferenceType(apiId, GenericPlanEntity.ReferenceType.API.name())
             .forEach(plan -> {
                 //Close active Subscriptions
                 subscriptionQueryService

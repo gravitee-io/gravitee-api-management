@@ -683,7 +683,12 @@ public class EventServiceTest {
         api.setType(ApiType.NATIVE);
         api.setDefinition("{ \"type\": \"native\" }");
 
-        when(planQueryService.findAllByApiId(API_ID)).thenReturn(
+        when(
+            planQueryService.findAllByReferenceIdAndReferenceType(
+                eq(API_ID),
+                eq(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API.name())
+            )
+        ).thenReturn(
             List.of(
                 buildCorePlan("plan-id", ApiType.NATIVE, io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED),
                 buildCorePlan("plan-id", ApiType.MESSAGE, io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)

@@ -32,6 +32,7 @@ import io.gravitee.apim.core.plan.domain_service.DeprecatePlanDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.Collections;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
@@ -97,7 +98,7 @@ public class UpdateNativeApiDomainService {
 
     private void handleDeprecatedApi(Api api, AuditInfo auditInfo) {
         planQueryService
-            .findAllByApiId(api.getId())
+            .findAllByReferenceIdAndReferenceType(api.getId(), GenericPlanEntity.ReferenceType.API.name())
             .stream()
             .filter(plan -> PlanStatus.PUBLISHED == plan.getPlanStatus() || PlanStatus.STAGING == plan.getPlanStatus())
             .forEach(plan -> deprecatePlanDomainService.deprecate(plan.getId(), auditInfo, true));

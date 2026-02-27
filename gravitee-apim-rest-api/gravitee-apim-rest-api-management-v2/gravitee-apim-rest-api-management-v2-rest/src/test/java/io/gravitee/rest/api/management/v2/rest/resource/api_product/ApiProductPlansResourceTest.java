@@ -28,8 +28,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.apim.core.plan.use_case.api_product.CreateApiProductPlanUseCase;
-import io.gravitee.apim.core.plan.use_case.api_product.GetApiProductPlansUseCase;
+import io.gravitee.apim.core.plan.use_case.CreateApiProductPlanUseCase;
+import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -60,7 +60,7 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
     private static final String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
 
     @Inject
-    private GetApiProductPlansUseCase getApiProductPlansUseCase;
+    private GetPlansUseCase getPlansUseCase;
 
     @Inject
     private CreateApiProductPlanUseCase createApiProductPlanUseCase;
@@ -89,7 +89,7 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(getApiProductPlansUseCase, createApiProductPlanUseCase);
+        reset(getPlansUseCase, createApiProductPlanUseCase);
     }
 
     @Nested
@@ -133,7 +133,7 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
                 )
                 .build();
 
-            when(getApiProductPlansUseCase.execute(any())).thenReturn(GetApiProductPlansUseCase.Output.multiple(List.of(plan1, plan2)));
+            when(getPlansUseCase.execute(any())).thenReturn(GetPlansUseCase.Output.multiple(List.of(plan1, plan2)));
 
             final Response response = rootTarget().queryParam("securities", "API_KEY").request().get();
 
@@ -149,7 +149,7 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_empty_list_when_no_plans() {
-            when(getApiProductPlansUseCase.execute(any())).thenReturn(GetApiProductPlansUseCase.Output.multiple(List.of()));
+            when(getPlansUseCase.execute(any())).thenReturn(GetPlansUseCase.Output.multiple(List.of()));
 
             final Response response = rootTarget().queryParam("securities", "API_KEY").request().get();
 
@@ -167,7 +167,7 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
 
         @Test
         void should_pass_query_params_to_use_case() {
-            when(getApiProductPlansUseCase.execute(any())).thenReturn(GetApiProductPlansUseCase.Output.multiple(List.of()));
+            when(getPlansUseCase.execute(any())).thenReturn(GetPlansUseCase.Output.multiple(List.of()));
 
             rootTarget()
                 .queryParam("securities", "API_KEY")
@@ -176,10 +176,11 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
                 .request()
                 .get();
 
-            ArgumentCaptor<GetApiProductPlansUseCase.Input> captor = ArgumentCaptor.forClass(GetApiProductPlansUseCase.Input.class);
-            verify(getApiProductPlansUseCase).execute(captor.capture());
+            ArgumentCaptor<GetPlansUseCase.Input> captor = ArgumentCaptor.forClass(GetPlansUseCase.Input.class);
+            verify(getPlansUseCase).execute(captor.capture());
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(captor.getValue().apiProductId()).isEqualTo(API_PRODUCT_ID);
+                soft.assertThat(captor.getValue().referenceId()).isEqualTo(API_PRODUCT_ID);
+                soft.assertThat(captor.getValue().referenceType()).isEqualTo("API_PRODUCT");
                 soft.assertThat(captor.getValue().query()).isNotNull();
             });
         }
