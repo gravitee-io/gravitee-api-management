@@ -22,7 +22,15 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
 
+import { BadgeColor, BadgeComponent } from '../components/badge/badge.component';
 import { ConsumerGroupSummary } from '../models/kafka-cluster.model';
+
+const STATE_COLORS: Record<string, BadgeColor> = {
+  stable: 'success',
+  empty: 'default',
+  rebalancing: 'warning',
+  dead: 'error',
+};
 
 @Component({
   selector: 'gke-consumer-groups',
@@ -36,6 +44,7 @@ import { ConsumerGroupSummary } from '../models/kafka-cluster.model';
     MatPaginatorModule,
     MatProgressBarModule,
     DecimalPipe,
+    BadgeComponent,
   ],
   templateUrl: './consumer-groups.component.html',
   styleUrls: ['./consumer-groups.component.scss'],
@@ -60,5 +69,9 @@ export class ConsumerGroupsComponent {
 
   onPageEvent(event: PageEvent) {
     this.pageChange.emit({ page: event.pageIndex, pageSize: event.pageSize });
+  }
+
+  stateColor(state: string | undefined): BadgeColor {
+    return STATE_COLORS[state?.toLowerCase() ?? ''] ?? 'default';
   }
 }

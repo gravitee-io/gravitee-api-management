@@ -21,12 +21,20 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
 
+import { BadgeColor, BadgeComponent } from '../components/badge/badge.component';
 import { ConsumerGroupOffset, DescribeConsumerGroupResponse } from '../models/kafka-cluster.model';
+
+const STATE_COLORS: Record<string, BadgeColor> = {
+  stable: 'success',
+  empty: 'default',
+  rebalancing: 'warning',
+  dead: 'error',
+};
 
 @Component({
   selector: 'gke-consumer-group-detail',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatTableModule, MatIconModule, MatButtonModule, MatProgressBarModule],
+  imports: [CommonModule, MatCardModule, MatTableModule, MatIconModule, MatButtonModule, MatProgressBarModule, BadgeComponent],
   templateUrl: './consumer-group-detail.component.html',
   styleUrls: ['./consumer-group-detail.component.scss'],
 })
@@ -42,5 +50,9 @@ export class ConsumerGroupDetailComponent {
 
   countDistinctTopics(offsets: ConsumerGroupOffset[]): number {
     return new Set(offsets.map(o => o.topic)).size;
+  }
+
+  stateColor(state: string | undefined): BadgeColor {
+    return STATE_COLORS[state?.toLowerCase() ?? ''] ?? 'default';
   }
 }

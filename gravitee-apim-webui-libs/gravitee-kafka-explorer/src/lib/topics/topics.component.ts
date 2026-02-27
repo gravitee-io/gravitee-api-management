@@ -22,6 +22,7 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
 
+import { BadgeComponent } from '../components/badge/badge.component';
 import { KafkaTopic } from '../models/kafka-cluster.model';
 import { FileSizePipe } from '../pipes/file-size.pipe';
 
@@ -38,6 +39,7 @@ import { FileSizePipe } from '../pipes/file-size.pipe';
     MatProgressBarModule,
     FileSizePipe,
     DecimalPipe,
+    BadgeComponent,
   ],
   templateUrl: './topics.component.html',
   styleUrls: ['./topics.component.scss'],

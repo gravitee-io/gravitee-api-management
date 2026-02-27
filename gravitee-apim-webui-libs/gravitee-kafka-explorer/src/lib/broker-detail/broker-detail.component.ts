@@ -21,13 +21,23 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
 
+import { BadgeComponent } from '../components/badge/badge.component';
 import { DescribeBrokerResponse } from '../models/kafka-cluster.model';
 import { FileSizePipe } from '../pipes/file-size.pipe';
 
 @Component({
   selector: 'gke-broker-detail',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatTableModule, MatIconModule, MatButtonModule, MatProgressBarModule, FileSizePipe],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatTableModule,
+    MatIconModule,
+    MatButtonModule,
+    MatProgressBarModule,
+    FileSizePipe,
+    BadgeComponent,
+  ],
   templateUrl: './broker-detail.component.html',
   styleUrls: ['./broker-detail.component.scss'],
 })

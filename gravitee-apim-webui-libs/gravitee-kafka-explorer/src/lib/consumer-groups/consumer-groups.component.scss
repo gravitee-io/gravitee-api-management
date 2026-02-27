@@ -28,46 +28,6 @@
     margin-bottom: 8px;
   }
 
-  &__state-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 500;
-    background-color: var(--mat-sys-surface-variant, #e7e0ec);
-    color: var(--mat-sys-on-surface-variant, #49454f);
-
-    &--stable {
-      background-color: var(--mat-sys-tertiary-container, #e8f5e9);
-      color: var(--mat-sys-on-tertiary-container, #2e7d32);
-    }
-
-    &--empty {
-      background-color: var(--mat-sys-surface-variant, #e0e0e0);
-      color: var(--mat-sys-on-surface-variant, #616161);
-    }
-
-    &--rebalancing {
-      background-color: var(--mat-sys-error-container, #fff3e0);
-      color: var(--mat-sys-on-error-container, #e65100);
-    }
-
-    &--dead {
-      background-color: var(--mat-sys-error, #ffebee);
-      color: var(--mat-sys-on-error, #c62828);
-    }
-  }
-
-  &__lag-warning {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 500;
-    background-color: var(--mat-sys-error-container, #fff3e0);
-    color: var(--mat-sys-on-error-container, #e65100);
-  }
-
   &__row {
     cursor: pointer;
 

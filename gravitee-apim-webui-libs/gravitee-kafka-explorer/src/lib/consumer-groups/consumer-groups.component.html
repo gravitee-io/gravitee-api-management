@@ -38,9 +38,7 @@
       <ng-container matColumnDef="state">
         <th mat-header-cell *matHeaderCellDef>State</th>
         <td mat-cell *matCellDef="let group">
-          <span class="consumer-groups__state-badge consumer-groups__state-badge--{{ group.state?.toLowerCase() }}">
-            {{ group.state }}
-          </span>
+          <gke-badge [color]="stateColor(group.state)">{{ group.state }}</gke-badge>
         </td>
       </ng-container>
 
@@ -63,7 +61,7 @@
         <th mat-header-cell *matHeaderCellDef>Total Lag</th>
         <td mat-cell *matCellDef="let group">
           @if (group.totalLag > 0) {
-            <span class="consumer-groups__lag-warning">{{ group.totalLag | number }}</span>
+            <gke-badge color="warning">{{ group.totalLag | number }}</gke-badge>
           } @else {
             {{ group.totalLag | number }}
           }

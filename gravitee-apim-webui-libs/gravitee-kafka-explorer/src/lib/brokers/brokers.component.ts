@@ -18,13 +18,14 @@ import { Component, input, output } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 
+import { BadgeComponent } from '../components/badge/badge.component';
 import { BrokerDetail, KafkaNode } from '../models/kafka-cluster.model';
 import { FileSizePipe } from '../pipes/file-size.pipe';
 
 @Component({
   selector: 'gke-brokers',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatTableModule, FileSizePipe],
+  imports: [CommonModule, MatCardModule, MatTableModule, FileSizePipe, BadgeComponent],
   templateUrl: './brokers.component.html',
   styleUrls: ['./brokers.component.scss'],
 })

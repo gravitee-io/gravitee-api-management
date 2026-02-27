@@ -21,12 +21,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
 
+import { BadgeComponent } from '../components/badge/badge.component';
 import { DescribeTopicResponse } from '../models/kafka-cluster.model';
 
 @Component({
   selector: 'gke-topic-detail',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatTableModule, MatIconModule, MatButtonModule, MatProgressBarModule],
+  imports: [CommonModule, MatCardModule, MatTableModule, MatIconModule, MatButtonModule, MatProgressBarModule, BadgeComponent],
   templateUrl: './topic-detail.component.html',
   styleUrls: ['./topic-detail.component.scss'],
 })
