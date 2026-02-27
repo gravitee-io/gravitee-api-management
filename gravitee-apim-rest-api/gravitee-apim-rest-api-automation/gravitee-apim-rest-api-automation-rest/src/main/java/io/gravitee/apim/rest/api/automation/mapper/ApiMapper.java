@@ -28,6 +28,7 @@ import io.gravitee.apim.rest.api.automation.model.FlowV4;
 import io.gravitee.apim.rest.api.automation.model.HttpListener;
 import io.gravitee.apim.rest.api.automation.model.HttpSelector;
 import io.gravitee.apim.rest.api.automation.model.KafkaListener;
+import io.gravitee.apim.rest.api.automation.model.LegacyAPIV4Spec;
 import io.gravitee.apim.rest.api.automation.model.Listener;
 import io.gravitee.apim.rest.api.automation.model.McpSelector;
 import io.gravitee.apim.rest.api.automation.model.PageV4;
@@ -61,7 +62,7 @@ public interface ApiMapper {
     @Mapping(target = "listeners", expression = "java(mapApiV4SpecListeners(apiV4Spec))")
     @Mapping(target = "plans", expression = "java(mapApiV4SpecPlans(apiV4Spec))")
     @Mapping(target = "pages", expression = "java(mapApiV4SpecPages(apiV4Spec))")
-    ApiCRDSpec apiV4SpecToApiCRDSpec(ApiV4Spec apiV4Spec);
+    ApiCRDSpec apiV4SpecToApiCRDSpec(LegacyAPIV4Spec apiV4Spec);
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "crossId", source = "crossId")

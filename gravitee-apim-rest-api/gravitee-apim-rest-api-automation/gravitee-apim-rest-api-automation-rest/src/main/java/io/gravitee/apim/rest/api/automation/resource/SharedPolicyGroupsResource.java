@@ -15,9 +15,6 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
-
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateSharedPolicyGroupCRDDomainService;
@@ -42,6 +39,9 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
+
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
@@ -64,7 +64,7 @@ public class SharedPolicyGroupsResource extends AbstractResource {
     public Response createOrUpdate(
         @Valid @NotNull LegacySharedPolicyGroupSpec spec,
         @QueryParam("dryRun") boolean dryRun,
-        @QueryParam("legacy") boolean legacy
+        @QueryParam("legacyID") boolean legacyID
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -83,9 +83,13 @@ public class SharedPolicyGroupsResource extends AbstractResource {
 
         var sharedPolicyGroupCRD = SharedPolicyGroupMapper.INSTANCE.map(spec);
 
-        // Just for backward compatibility with old code
-        if (legacy) {
+        if (legacyID) {
+            // As Automation API does not have any ID field,
+            // GKO upgraded resources send the HRID as ID
             sharedPolicyGroupCRD.setSharedPolicyGroupId(spec.getHrid());
+            // HRID is removed as it does not make sense here, besides
+            // it avoids confusion in the database
+            sharedPolicyGroupCRD.setHrid(null);
         }
 
         if (dryRun) {

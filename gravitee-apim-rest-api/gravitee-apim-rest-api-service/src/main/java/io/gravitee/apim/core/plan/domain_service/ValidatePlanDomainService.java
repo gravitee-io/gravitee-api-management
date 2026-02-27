@@ -68,8 +68,6 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
                 if (planCRD.getId() == null) {
                     planCRD.setId(IdBuilder.builder(input.auditInfo, input.apiCRDSpec.getHrid()).withExtraId(k).buildId());
                 }
-
-                plan.setHrid(k);
                 if (
                     (planCRD.getGeneralConditions() == null || planCRD.getGeneralConditions().isEmpty()) &&
                     (planCRD.getGeneralConditionsHrid() != null && !planCRD.getGeneralConditionsHrid().isEmpty())

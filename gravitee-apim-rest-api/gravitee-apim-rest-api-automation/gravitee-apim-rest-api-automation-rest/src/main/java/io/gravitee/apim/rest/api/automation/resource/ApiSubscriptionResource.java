@@ -107,14 +107,15 @@ public class ApiSubscriptionResource extends AbstractResource {
     public Response deleteSubscriptionByHrid(
         @PathParam("apiHrid") String apiHrid,
         @PathParam("hrid") String hrid,
-        @QueryParam("legacy") boolean legacy
+        @QueryParam("legacyID") boolean legacyID,
+        @QueryParam("legacyApiID") boolean legacyApiID
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
-            String subscriptionId = legacy ? hrid : IdBuilder.builder(executionContext, apiHrid).withExtraId(hrid).buildId();
+            String subscriptionId = legacyID ? hrid : IdBuilder.builder(executionContext, apiHrid).withExtraId(hrid).buildId();
             SubscriptionEntity subscriptionEntity = subscriptionCrudService.get(subscriptionId);
 
-            if (legacy && !subscriptionEntity.getApiId().equals(apiHrid)) {
+            if (legacyApiID && !subscriptionEntity.getApiId().equals(apiHrid)) {
                 throw new SubscriptionNotFoundException(apiHrid);
             }
 

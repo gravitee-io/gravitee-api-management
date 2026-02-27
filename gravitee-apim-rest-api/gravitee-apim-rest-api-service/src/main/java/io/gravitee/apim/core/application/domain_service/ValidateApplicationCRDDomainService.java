@@ -48,15 +48,8 @@ public class ValidateApplicationCRDDomainService implements Validator<ValidateAp
         var errors = new ArrayList<Error>();
         var sanitizedBuilder = input.spec().toBuilder();
 
-        if (input.spec.getId() == null && input.spec.getHrid() == null) {
-            errors.add(Error.severe("when no hrid is set in the payload an ID should be passed to identify the resource"));
-            return Result.ofErrors(errors);
-        }
-
-        if (input.spec.getId() == null) {
+        if (input.spec.getHrid() != null) {
             sanitizedBuilder.id(IdBuilder.builder(input.auditInfo, input.spec.getHrid()).buildId());
-        } else {
-            sanitizedBuilder.hrid(input.spec.getId());
         }
 
         groupsValidator
