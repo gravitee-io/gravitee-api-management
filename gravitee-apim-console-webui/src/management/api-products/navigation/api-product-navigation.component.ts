@@ -52,6 +52,8 @@ export interface MenuItem {
   displayName: string;
   routerLink: string;
   icon?: string;
+  tabs?: ApiProductTabMenuItem[];
+  header?: { title: string; subtitle?: string };
 }
 
 type TopBanner = {
@@ -160,6 +162,7 @@ export class ApiProductNavigationComponent {
     }
 
     const banners: TopBanner[] = [];
+    const canUpdateApiProduct = this.permissionService.hasAnyMatching(['api_product-definition-u']);
 
     if (apiProduct.deploymentState === 'NEED_REDEPLOY' && verifyDeployResponse.ok) {
       banners.push(
@@ -217,13 +220,21 @@ export class ApiProductNavigationComponent {
       { displayName: 'Configuration', routerLink: 'configuration', icon: 'gio:settings' },
       { displayName: 'APIs', routerLink: 'apis', icon: 'gio:cloud-settings' },
     ];
-    if (this.permissionService.hasAnyMatching(['api_product-plan-r'])) {
+    if (this.permissionService.hasAnyMatching(['api_product-plan-r', 'api_product-subscription-r'])) {
+      const tabs: ApiProductTabMenuItem[] = [];
+      if (this.permissionService.hasAnyMatching(['api_product-plan-r'])) {
+        tabs.push({ displayName: 'Plans', routerLink: 'consumers/plans' });
+      }
+      if (this.permissionService.hasAnyMatching(['api_product-subscription-r'])) {
+        tabs.push({ displayName: 'Subscriptions', routerLink: 'consumers/subscriptions' });
+      }
+      const defaultRouterLink = tabs.length > 0 ? tabs[0].routerLink : 'consumers/plans';
       items.push({
         displayName: 'Consumers',
-        routerLink: 'consumers/plans',
+        routerLink: defaultRouterLink,
         icon: 'gio:cloud-consumers',
         header: { title: 'Consumers', subtitle: 'Manage how your API Product is consumed' },
-        tabs: [{ displayName: 'Plans', routerLink: 'consumers/plans' }],
+        tabs,
       });
     }
 
@@ -234,11 +245,22 @@ export class ApiProductNavigationComponent {
     if (!item.routerLink) {
       return false;
     }
-    return this.router.isActive(this.router.createUrlTree([item.routerLink], { relativeTo: this.activatedRoute }), {
-      paths: 'subset',
-      queryParams: 'subset',
-      fragment: 'ignored',
-      matrixParams: 'ignored',
-    });
+    const routingOptions = {
+      paths: 'subset' as const,
+      queryParams: 'subset' as const,
+      fragment: 'ignored' as const,
+      matrixParams: 'ignored' as const,
+    };
+    const baseActive = this.router.isActive(
+      this.router.createUrlTree([item.routerLink], { relativeTo: this.activatedRoute }),
+      routingOptions,
+    );
+    if (item.tabs?.length) {
+      const anyTabActive = item.tabs.some(tab =>
+        this.router.isActive(this.router.createUrlTree([tab.routerLink], { relativeTo: this.activatedRoute }), routingOptions),
+      );
+      return baseActive || anyTabActive;
+    }
+    return baseActive;
   }
 }

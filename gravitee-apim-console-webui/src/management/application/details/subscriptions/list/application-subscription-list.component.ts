@@ -229,9 +229,10 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
 
   public closeSubscription(subscription: SubscriptionsTableDS) {
     const applicationId = this.activatedRoute.snapshot.params.applicationId;
+    const referenceLabel = subscription.referenceTypeLabel === 'API Product' ? 'API product' : 'API';
 
     let content =
-      'Are you sure you want to close this subscription? <br> <br> The application will not be able to consume this API anymore.';
+      `Are you sure you want to close this subscription? <br> <br> The application will not be able to consume this ${referenceLabel} anymore.`;
     if (subscription.securityType === PlanSecurityType.API_KEY && subscription.isSharedApiKey) {
       content += '<br/>All Api-keys associated to this subscription will be closed and could not be used.';
     }

@@ -97,9 +97,10 @@ export class ApplicationSubscriptionComponent {
 
   public closeSubscription(application: Application, subscription: Subscription) {
     const applicationId = this.activatedRoute.snapshot.params.applicationId;
+    const referenceLabel = subscription.referenceType === 'API_PRODUCT' ? 'API product' : 'API';
 
     let content =
-      'Are you sure you want to close this subscription? <br> <br> The application will not be able to consume this API anymore.';
+      `Are you sure you want to close this subscription? <br> <br> The application will not be able to consume this ${referenceLabel} anymore.`;
     if (subscription.plan.security === PlanSecurityType.API_KEY && application.api_key_mode !== ApiKeyMode.SHARED) {
       content += '<br/>All Api-keys associated to this subscription will be closed and could not be used.';
     }
