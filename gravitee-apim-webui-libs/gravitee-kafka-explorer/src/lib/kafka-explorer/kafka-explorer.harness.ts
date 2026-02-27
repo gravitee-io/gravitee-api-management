@@ -17,9 +17,9 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatProgressSpinnerHarness } from '@angular/material/progress-spinner/testing';
 
-import { BrokersHarness } from '../brokers/brokers.harness';
-import { TopicDetailHarness } from '../topic-detail/topic-detail.harness';
-import { TopicsHarness } from '../topics/topics.harness';
+import { BrokersHarness } from '../features/brokers/brokers/brokers.harness';
+import { TopicDetailHarness } from '../features/topics/topic-detail/topic-detail.harness';
+import { TopicsHarness } from '../features/topics/topics/topics.harness';
 
 export class KafkaExplorerHarness extends ComponentHarness {
   static hostSelector = 'gke-kafka-explorer';

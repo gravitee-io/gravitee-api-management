@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness } from '@angular/cdk/testing';
+import { BaseHarnessFilters, ComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
 
 import { BadgeColor } from './badge.component';
 
 export class BadgeHarness extends ComponentHarness {
   static hostSelector = 'gke-badge';
+
+  static with(options: BaseHarnessFilters = {}): HarnessPredicate<BadgeHarness> {
+    return new HarnessPredicate(BadgeHarness, options);
+  }
 
   async getText(): Promise<string> {
     const host = await this.host();
