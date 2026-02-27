@@ -1,0 +1,276 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div id="subscription-edit" class="subscription">
+  <div class="subscription__nav">
+    <button mat-button aria-label="Go back to your subscriptions" [routerLink]="'../'">
+      <mat-icon svgIcon="gio:nav-arrow-left"></mat-icon> Go back to your subscriptions
+    </button>
+  </div>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Subscription details</mat-card-title>
+    </mat-card-header>
+
+    @if (subscription(); as sub) {
+      <mat-card-content>
+        <dl class="gio-description-list">
+          <dt>ID</dt>
+          <dd gioClipboardCopyWrapper [contentToCopy]="sub.id" data-testid="subscription-id">
+            {{ sub.id || '-' }}
+          </dd>
+
+          <dt>Plan</dt>
+          <dd gioClipboardCopyWrapper [contentToCopy]="sub.plan.label" data-testid="subscription-plan">
+            {{ sub.plan.label || '-' }}
+          </dd>
+
+          <dt>Status</dt>
+          <dd gioClipboardCopyWrapper [contentToCopy]="sub.status" data-testid="subscription-status">
+            {{ sub.status || '-' }}
+          </dd>
+
+          @if (sub.consumerStatus) {
+            <dt>Consumer status</dt>
+            <dd gioClipboardCopyWrapper [contentToCopy]="sub.consumerStatus" data-testid="subscription-consumer-status">
+              {{ sub.consumerStatus }}
+            </dd>
+          }
+
+          @if (sub.failureCause) {
+            <dt>Failure Cause</dt>
+            <dd gioClipboardCopyWrapper [contentToCopy]="sub.failureCause" data-testid="subscription-failure-cause">
+              {{ sub.failureCause }}
+            </dd>
+          }
+
+          <dt>Subscribed by</dt>
+          <dd gioClipboardCopyWrapper [contentToCopy]="sub.subscribedBy" data-testid="subscription-subscribed-by">
+            {{ sub.subscribedBy || '-' }}
+          </dd>
+
+          <dt>Application</dt>
+          <dd data-testid="subscription-application">
+            <div class="subtitle-2">{{ sub.application?.label || '-' }}</div>
+            <div class="mat-body-2">{{ sub.application?.description }}</div>
+          </dd>
+
+          <dt>Publisher message to subscriber</dt>
+          <dd data-testid="subscription-publisher-message">
+            {{ sub.publisherMessage || '-' }}
+          </dd>
+
+          <dt>Subscriber message to publisher</dt>
+          <dd data-testid="subscription-subscriber-message">
+            {{ sub.subscriberMessage || '-' }}
+          </dd>
+
+          <dt>Created at</dt>
+          <dd data-testid="subscription-created-at">
+            {{ (sub.createdAt | date: 'medium') || '-' }}
+          </dd>
+
+          <dt>Updated at</dt>
+          <dd data-testid="subscription-updated-at">
+            {{ (sub.updatedAt | date: 'medium') || '-' }}
+          </dd>
+
+          <dt>Processed at</dt>
+          <dd data-testid="subscription-processed-at">
+            {{ (sub.processedAt | date: 'medium') || '-' }}
+          </dd>
+
+          @if (sub.status !== 'REJECTED') {
+            <dt>Starting at</dt>
+            <dd data-testid="subscription-starting-at">
+              {{ (sub.startingAt | date: 'medium') || '-' }}
+            </dd>
+            <dt>Paused at</dt>
+            <dd data-testid="subscription-paused-at">
+              {{ (sub.pausedAt | date: 'medium') || '-' }}
+            </dd>
+            <dt>Ending at</dt>
+            <dd data-testid="subscription-ending-at">
+              {{ (sub.endingAt | date: 'medium') || '-' }}
+            </dd>
+          }
+
+          <dt>Closed at</dt>
+          <dd data-testid="subscription-closed-at">
+            {{ (sub.closedAt | date: 'medium') || '-' }}
+          </dd>
+
+          <dt>Domain</dt>
+          <dd data-testid="subscription-domain">
+            {{ sub.domain || '-' }}
+          </dd>
+        </dl>
+      </mat-card-content>
+
+      <mat-card-actions>
+        @if (sub.status === 'PAUSED' || sub.status === 'ACCEPTED' || sub.status === 'PENDING') {
+          <div class="subscription__footer" *gioPermission="{ anyOf: ['api_product-subscription-u'] }">
+            @if (sub.status === 'PAUSED' || sub.status === 'ACCEPTED') {
+              <button mat-stroked-button (click)="transferSubscription()">
+                <mat-icon svgIcon="gio:data-transfer-both"></mat-icon>
+                Transfer
+              </button>
+              @if (sub.status === 'ACCEPTED') {
+                <button mat-stroked-button (click)="pauseSubscription()">
+                  <mat-icon svgIcon="gio:pause-circle"></mat-icon>
+                  Pause
+                </button>
+              }
+              @if (sub.status === 'PAUSED') {
+                <button mat-stroked-button (click)="resumeSubscription()">
+                  <mat-icon svgIcon="gio:play-circle"></mat-icon>
+                  Resume
+                </button>
+              }
+              <button mat-stroked-button (click)="changeEndDate()">
+                <mat-icon svgIcon="gio:calendar"></mat-icon>
+                Change end date
+              </button>
+              @if (sub.consumerStatus === 'FAILURE') {
+                <button mat-stroked-button (click)="resumeFailureSubscription()">
+                  <mat-icon svgIcon="gio:play-circle"></mat-icon>
+                  Resume from failure
+                </button>
+              }
+              <button mat-raised-button color="warn" (click)="closeSubscription()">
+                <mat-icon svgIcon="gio:x-circle"></mat-icon>
+                Close subscription
+              </button>
+            } @else {
+              <button mat-raised-button color="primary" (click)="validateSubscription()">Validate subscription</button>
+              <button mat-stroked-button (click)="rejectSubscription()">Reject subscription</button>
+            }
+          </div>
+        }
+      </mat-card-actions>
+    }
+  </mat-card>
+
+  @if (
+    apiKeys().length > 0 &&
+    (subscription()?.status === 'PENDING' || (subscription()?.status !== 'REJECTED' && subscription()?.plan?.securityType === 'API_KEY'))
+  ) {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>{{ hasSharedApiKeyMode() ? 'Shared API Keys' : 'API Keys' }}</mat-card-title>
+        @if (hasSharedApiKeyMode()) {
+          <mat-card-subtitle>
+            This subscription uses a shared API Key. You can renew or revoke the shared API Key at the application level.
+          </mat-card-subtitle>
+        }
+      </mat-card-header>
+
+      <div class="subscription__api-keys__table-wrapper">
+        <gio-table-wrapper
+          [disableSearchInput]="true"
+          [length]="apiKeys().length"
+          [filters]="filters()"
+          (filtersChange)="onFiltersChanged($event)"
+          [paginationPageSizeOptions]="[25, 50, 100]"
+        >
+          <table mat-table [dataSource]="apiKeys()" matSort class="card__table" aria-label="API Keys Table">
+            <ng-container matColumnDef="active-icon">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="isValid"></th>
+              <td mat-cell *matCellDef="let apiKey">
+                <mat-icon
+                  [matTooltip]="apiKey.isValid ? 'Valid' : 'Revoked or Expired'"
+                  [ngClass]="{
+                    activeIcon: apiKey.isValid,
+                    revokedIcon: !apiKey.isValid,
+                  }"
+                  [svgIcon]="apiKey.isValid ? 'gio:check-circled-outline' : 'gio:x-circle'"
+                ></mat-icon>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="key">
+              <th mat-header-cell *matHeaderCellDef>Key</th>
+              <td mat-cell *matCellDef="let apiKey">
+                <mat-form-field class="apiKeyCell">
+                  <input matInput [value]="apiKey.key" readonly />
+                  <gio-clipboard-copy-icon matSuffix [contentToCopy]="apiKey.key"></gio-clipboard-copy-icon>
+                </mat-form-field>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="createdAt">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="createdAt">Created at</th>
+              <td mat-cell *matCellDef="let apiKey">{{ apiKey.createdAt | date: 'medium' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="endDate">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="endDate">Revoked/Expired at</th>
+              <td mat-cell *matCellDef="let apiKey">{{ (apiKey.endDate | date: 'medium') || '-' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let apiKey">
+                @if (!hasSharedApiKeyMode() && (subscription()?.status === 'ACCEPTED' || subscription()?.status === 'PENDING')) {
+                  <div *gioPermission="{ anyOf: ['api_product-subscription-u'] }" class="subscription__api-keys__actions">
+                    @if (apiKey.isValid && subscription()?.status === 'ACCEPTED') {
+                      <button (click)="revokeApiKey(apiKey)" mat-button aria-label="Button to revoke an API Key" matTooltip="Revoke">
+                        <mat-icon svgIcon="gio:x-circle"></mat-icon>
+                      </button>
+                      <button (click)="expireApiKey(apiKey)" mat-button aria-label="Button to expire an API Key" matTooltip="Expire">
+                        <mat-icon svgIcon="gio:clock-outline"></mat-icon>
+                      </button>
+                    }
+                    @if (!apiKey.isValid) {
+                      <button
+                        (click)="reactivateApiKey(apiKey)"
+                        mat-button
+                        aria-label="Button to reactivate an API Key"
+                        matTooltip="Reactivate"
+                      >
+                        <mat-icon svgIcon="gio:rotate-cw"></mat-icon>
+                      </button>
+                    }
+                  </div>
+                }
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+            <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+              <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No API keys!</td>
+            </tr>
+          </table>
+        </gio-table-wrapper>
+      </div>
+
+      @if (!hasSharedApiKeyMode() && subscription()?.status === 'ACCEPTED') {
+        <mat-card-actions>
+          <div class="subscription__api-keys__footer" *gioPermission="{ anyOf: ['api_product-subscription-u'] }">
+            <button mat-stroked-button (click)="renewApiKey()">
+              <mat-icon svgIcon="gio:refresh-cw"></mat-icon>
+              Renew
+            </button>
+          </div>
+        </mat-card-actions>
+      }
+    </mat-card>
+  }
+</div>

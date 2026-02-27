@@ -85,6 +85,26 @@ export const API_PRODUCTS_ROUTES: Routes = [
           },
         },
       },
+      {
+        path: 'consumers/subscriptions',
+        loadComponent: () =>
+          import('./subscriptions/list/api-product-subscription-list.component').then(m => m.ApiProductSubscriptionListComponent),
+        data: {
+          permissions: {
+            anyOf: ['api_product-subscription-r'],
+          },
+        },
+      },
+      {
+        path: 'consumers/subscriptions/:subscriptionId',
+        loadComponent: () =>
+          import('./subscriptions/edit/api-product-subscription-edit.component').then(m => m.ApiProductSubscriptionEditComponent),
+        data: {
+          permissions: {
+            anyOf: ['api_product-subscription-r'],
+          },
+        },
+      },
     ],
   },
 ];
