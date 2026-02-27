@@ -16,16 +16,18 @@
 package io.gravitee.apim.core.api_product.query_service;
 
 import io.gravitee.apim.core.api_product.model.ApiProduct;
-import java.util.Map;
-import java.util.Optional;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.Sortable;
 import java.util.Set;
 
-public interface ApiProductQueryService {
-    Optional<ApiProduct> findByEnvironmentIdAndName(String environmentId, String name);
-    Set<ApiProduct> findByEnvironmentId(String environmentId);
-    Set<ApiProduct> findByEnvironmentIdAndIdIn(String environmentId, Set<String> ids);
-    Optional<ApiProduct> findById(String apiProductId);
-    Set<ApiProduct> findByApiId(String apiId);
-
-    Map<String, Set<ApiProduct>> findProductsByApiIds(Set<String> apiIds);
+public interface ApiProductSearchQueryService {
+    Page<ApiProduct> search(
+        String environmentId,
+        String organizationId,
+        String query,
+        Set<String> ids,
+        Pageable pageable,
+        Sortable sortable
+    );
 }

@@ -19,9 +19,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
+import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
+import io.gravitee.apim.core.exception.NotFoundDomainException;
 import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.search.model.IndexableApi;
+import io.gravitee.apim.core.search.model.IndexableApiProduct;
 import io.gravitee.apim.core.search.model.IndexablePage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.MessageRecipient;
@@ -112,6 +116,12 @@ public class SearchEngineServiceImpl implements SearchEngineService {
 
     @Autowired
     private ApiIndexerDomainService apiIndexerDomainService;
+
+    @Autowired
+    private ApiProductIndexerDomainService apiProductIndexerDomainService;
+
+    @Autowired
+    private ApiProductCrudService apiProductCrudService;
 
     @Async("indexerThreadPoolTaskExecutor")
     @Override
@@ -215,9 +225,17 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                     new Indexer.IndexationContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
                     api
                 );
+            } else if (IndexableApiProduct.class.getName().equals(clazz)) {
+                var apiProduct = apiProductCrudService.get(id);
+                return apiProductIndexerDomainService.toIndexableApiProduct(
+                    new Indexer.IndexationContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                    apiProduct
+                );
             }
         } catch (final AbstractNotFoundException nfe) {
             // ignore not found exception because may be due to synchronization not yet processed by DBs
+        } catch (final NotFoundDomainException nfe) {
+            // ignore not found (e.g. ApiProductNotFoundException) for same reason
         }
         return null;
     }
@@ -227,13 +245,16 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             .stream()
             .filter(transformer -> transformer.handle(source.getClass()))
             .findFirst()
-            .ifPresent(transformer -> {
-                try {
-                    indexer.index(transformer.transform(source), commit);
-                } catch (TechnicalException te) {
-                    log.error("Unexpected error while indexing a document", te);
-                }
-            });
+            .ifPresentOrElse(
+                transformer -> {
+                    try {
+                        indexer.index(transformer.transform(source), commit);
+                    } catch (TechnicalException te) {
+                        log.error("Unexpected error while indexing a document", te);
+                    }
+                },
+                () -> log.warn("No document transformer found for type [{}], document will not be indexed", source.getClass().getName())
+            );
     }
 
     private void deleteLocally(Indexable source) {
@@ -241,13 +262,20 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             .stream()
             .filter(transformer -> transformer.handle(source.getClass()))
             .findFirst()
-            .ifPresent(transformer -> {
-                try {
-                    indexer.remove(transformer.transform(source));
-                } catch (TechnicalException te) {
-                    log.error("Unexpected error while deleting a document", te);
-                }
-            });
+            .ifPresentOrElse(
+                transformer -> {
+                    try {
+                        indexer.remove(transformer.transform(source));
+                    } catch (TechnicalException te) {
+                        log.error("Unexpected error while deleting a document", te);
+                    }
+                },
+                () ->
+                    log.warn(
+                        "No document transformer found for type [{}], document will not be removed from index",
+                        source.getClass().getName()
+                    )
+            );
     }
 
     private Indexable createInstance(String className) throws Exception {

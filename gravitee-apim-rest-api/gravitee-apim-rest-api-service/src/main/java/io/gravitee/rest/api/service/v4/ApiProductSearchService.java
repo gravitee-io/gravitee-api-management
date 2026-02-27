@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api_product.query_service;
+package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.apim.core.api_product.model.ApiProduct;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import io.gravitee.apim.core.search.model.IndexableApiProduct;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.search.query.QueryBuilder;
 
-public interface ApiProductQueryService {
-    Optional<ApiProduct> findByEnvironmentIdAndName(String environmentId, String name);
-    Set<ApiProduct> findByEnvironmentId(String environmentId);
-    Set<ApiProduct> findByEnvironmentIdAndIdIn(String environmentId, Set<String> ids);
-    Optional<ApiProduct> findById(String apiProductId);
-    Set<ApiProduct> findByApiId(String apiId);
-
-    Map<String, Set<ApiProduct>> findProductsByApiIds(Set<String> apiIds);
+public interface ApiProductSearchService {
+    Page<ApiProduct> search(ExecutionContext executionContext, QueryBuilder<IndexableApiProduct> queryBuilder, Pageable pageable);
 }

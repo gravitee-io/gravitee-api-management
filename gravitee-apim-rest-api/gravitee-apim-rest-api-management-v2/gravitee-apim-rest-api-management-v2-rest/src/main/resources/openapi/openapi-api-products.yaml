@@ -222,6 +222,99 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /environments/{envId}/api-products/_search:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+    post:
+      tags:
+        - API Product
+      summary: Search API Products by name or ID
+      description: |-
+        Search API Products in the environment by name (substring match) and/or by a list of IDs.
+        Optionally filter by text `query` (name, description and owner name) and/or `ids`. If none are provided, all API Products in the environment are returned (paginated).
+        Results are paginated.
+      operationId: searchApiProducts
+      parameters:
+        - name: page
+          in: query
+          description: Page number (starting from 1)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: perPage
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: sortBy
+          in: query
+          description: Sort by name. Use "name" for ascending, "-name" for descending. Default is name ascending.
+          required: false
+          schema:
+            type: string
+            enum:
+              - name
+              - "-name"
+            default: name
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiProductSearchQuery"
+      responses:
+        '200':
+          description: Paginated list of API Products matching the search
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ApiProduct'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                        example: 1
+                      perPage:
+                        type: integer
+                        example: 10
+                      pageCount:
+                        type: integer
+                        example: 1
+                      totalCount:
+                        type: integer
+                        example: 1
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                      next:
+                        type: string
+                        nullable: true
+                      prev:
+                        type: string
+                        nullable: true
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /environments/{envId}/api-products/{apiProductId}:
     parameters:
       - $ref: "#/components/parameters/envIdParam"
@@ -1511,6 +1604,23 @@ components:
           description: An optional reason giving details about the result. Present when ok is false.
           example: "API Product name already exists"
 
+    ApiProductSearchQuery:
+      type: object
+      title: "ApiProductSearchQuery"
+      description: Search criteria for API Products. Optionally provide query (text search on name, description and owner name) and/or ids. If none are provided, all API Products in the environment are returned (paginated).
+      properties:
+        query:
+          type: string
+          description: Filter by name (case-insensitive substring match).
+          example: "My Product"
+        ids:
+          type: array
+          description: Filter by exact API Product IDs.
+          items:
+            type: string
+          example:
+            - "api-product-1"
+            - "api-product-2"
     CreateApiProduct:
       type: object
       title: "CreateApiProduct"

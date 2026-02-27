@@ -8484,6 +8484,14 @@ components:
               type: string
               description: The API Product version
               example: "1.0.0"
+            apiIds:
+              type: array
+              description: List of API IDs included in the product
+              items:
+                type: string
+              example:
+                - "api-1"
+                - "api-2"
             createdAt:
               type: string
               format: date-time
@@ -8494,6 +8502,9 @@ components:
               format: date-time
               description: API Product last update date
               example: "2025-01-01T10:15:30Z"
+            primaryOwner:
+              $ref: "#/components/schemas/PrimaryOwner"
+              description: The primary owner of the API Product
 
     parameters:
         #############
