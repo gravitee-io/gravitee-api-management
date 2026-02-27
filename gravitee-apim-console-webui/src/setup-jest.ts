@@ -120,3 +120,8 @@ beforeAll(() => {
     originalError.call(console, ...args);
   });
 });
+// Mock window.open for Jest environment. Used to prevent jsdom errors when tests trigger external links
+Object.defineProperty(window, 'open', {
+  writable: true,
+  value: jest.fn(),
+});
