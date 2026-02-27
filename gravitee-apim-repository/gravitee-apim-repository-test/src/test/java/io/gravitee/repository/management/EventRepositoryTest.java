@@ -18,11 +18,6 @@ package io.gravitee.repository.management;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import io.gravitee.common.data.domain.Page;
@@ -38,7 +33,6 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -150,7 +144,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void searchByMissingType() {
         Page<Event> eventPage = eventRepository.search(
-            EventCriteria.builder().type(EventType.DEBUG_API).build(),
+            EventCriteria.builder().type(EventType.DEPLOY_SHARED_POLICY_GROUP).build(),
             new PageableBuilder().pageNumber(0).pageSize(10).build()
         );
 
@@ -253,6 +247,35 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void search_by_multiple_properties() {
+        Page<Event> eventPage = eventRepository.search(
+            EventCriteria.builder()
+                .from(1451606400000L)
+                .to(1470157767000L)
+                .property(Event.EventProperties.GATEWAY_ID.getValue(), "gateway-1")
+                .property(Event.EventProperties.API_DEBUG_STATUS.getValue(), "TO_DEBUG")
+                .types(Set.of(EventType.DEBUG_API))
+                .environments(Set.of("env1"))
+                .build(),
+            new PageableBuilder().pageNumber(0).pageSize(10).build()
+        );
+
+        assertThat(eventPage.getTotalElements()).isOne();
+        assertThat(eventPage.getContent()).contains(
+            Event.builder()
+                .id("event21")
+                .organizations(Set.of("org1"))
+                .environments(Set.of("env1"))
+                .type(EventType.DEBUG_API)
+                .payload("{}")
+                .properties(Map.ofEntries(Map.entry("api_debug_status", "TO_DEBUG"), Map.entry("gateway_id", "gateway-1")))
+                .createdAt(new Date(1459468800000L))
+                .updatedAt(new Date(1459468800000L))
+                .build()
+        );
+    }
+
+    @Test
     public void searchByEnvironmentDefault() {
         List<Event> events = eventRepository.search(EventCriteria.builder().environments(singletonList("DEFAULT")).build());
 
@@ -330,7 +353,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         List<Event> events = eventRepository.search(EventCriteria.builder().build());
 
         // All events.
-        assertThat(events).hasSize(20);
+        assertThat(events).hasSize(22);
     }
 
     @Test
