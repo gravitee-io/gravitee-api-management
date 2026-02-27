@@ -34,6 +34,7 @@ $error-main-color: var(--gio-app-error-main-color);
 
 // -- Shapes --
 $container-shape: 8px;
+$element-shape: 4px;
 
 // Dimensions
 $inner-content-width: 1440px;
@@ -78,7 +79,7 @@ $banner-error-text-color: $error-main-color;
 
 // -- User Avatar --
 $user-avatar-height: var(--gio-app-user-avatar-height);
-$user-avatar-container-shape: var(--gio-app-user-avatar-container-shape, $container-shape);
+$user-avatar-container-shape: var(--gio-app-user-avatar-container-shape, $element-shape);
 $user-avatar-border-color: var(--gio-app-user-avatar-outline-color, $border-color);
 $user-avatar-text-color: var(--gio-app-user-avatar-text-color, $banner-text-color);
 $user-avatar-text-transform: var(--gio-app-user-avatar-text-transform, uppercase);
@@ -89,21 +90,21 @@ $button-outlined-text-transform: var(--gio-app-button-outlined-text-transform);
 $button-outlined-text-color: var(--gio-app-button-outlined-text-color, $banner-text-color);
 $button-outlined-border-width: var(--gio-app-button-outlined-outline-width, 1px);
 $button-outlined-border-color: var(--gio-app-button-outlined-outline-color, $border-color);
-$button-outlined-container-shape: var(--gio-app-button-outlined-container-shape, $container-shape);
+$button-outlined-container-shape: var(--gio-app-button-outlined-container-shape, $element-shape);
 
 // Filled Button
 $button-filled-container-color: var(--gio-app-button-filled-container-color, $banner-text-color);
 $button-filled-text-transform: var(--gio-app-button-filled-text-transform);
 $button-filled-text-color: var(--gio-app-button-filled-text-color, $default-text-contrast-color);
-$button-filled-container-shape: var(--gio-app-button-filled-container-shape, $container-shape);
+$button-filled-container-shape: var(--gio-app-button-filled-container-shape, $element-shape);
 
 // Text Button
 $button-text-text-transform: var(--gio-app-button-text-text-transform);
 $button-text-text-color: var(--gio-app-button-text-text-color);
-$button-text-container-shape: var(--gio-app-button-text-container-shape, $container-shape);
+$button-text-container-shape: var(--gio-app-button-text-container-shape, $element-shape);
 
 // -- Search Bar --
-$search-bar-container-shape: var(--gio-app-search-bar-container-shape, $container-shape);
+$search-bar-container-shape: var(--gio-app-search-bar-container-shape, $element-shape);
 $search-bar-border-color: var(--gio-app-search-bar-outline-color, $border-color);
 $search-bar-icon-color: var(--gio-app-search-bar-icon-color, $primary-main-color);
 $search-bar-input-text-color: var(--gio-app-search-bar-input-text-color);

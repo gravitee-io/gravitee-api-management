@@ -19,7 +19,7 @@
   <div sidenavContent class="dashboard__sidenav__content">
     @for (menuItem of menuItems(); track menuItem.path) {
       <button class="nav-button" mat-stroked-button [routerLink]="menuItem.path" routerLinkActive="m3-selected-nav-item">
-        {{ menuItem.title }}
+        <span class="next-gen-small-bold">{{ menuItem.title }}</span>
       </button>
     }
   </div>
