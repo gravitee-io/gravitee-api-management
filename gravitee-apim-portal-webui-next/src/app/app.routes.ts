@@ -45,7 +45,9 @@ import { RegistrationConfirmationComponent } from './registration/registration-c
 import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
 import { NavigationPageFullWidthComponent } from '../components/navigation-page-full-width/navigation-page-full-width.component';
 import { catalogTabsViewGuard } from '../guards/catalog-tabs-view.guard';
+import { permissionGuard } from '../guards/permission.guard';
 import { redirectGuard } from '../guards/redirect.guard';
+import { requireAuthGuard } from '../guards/require-auth.guard';
 import { apiResolver } from '../resolvers/api.resolver';
 import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
 import { categoriesResolver } from '../resolvers/categories.resolver';
@@ -207,13 +209,20 @@ export const routes: Routes = [
   },
   {
     path: 'applications',
-    canActivateChild: [redirectGuard, authGuard],
+    canActivateChild: [redirectGuard, requireAuthGuard],
     children: [
       { path: '', component: ApplicationsComponent, data: { breadcrumb: 'Applications' } },
       {
         path: 'create',
         component: CreateApplicationComponent,
-        data: { breadcrumb: 'Create Application' },
+        canActivate: [permissionGuard],
+        data: {
+          breadcrumb: 'Create Application',
+          permissions: {
+            anyOf: ['APPLICATION-C'],
+            unauthorizedFallbackTo: '/applications',
+          },
+        },
       },
       {
         path: ':applicationId',
