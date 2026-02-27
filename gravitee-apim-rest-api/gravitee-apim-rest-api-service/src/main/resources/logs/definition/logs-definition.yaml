@@ -1,0 +1,72 @@
+spec:
+    filters:
+        - name: API
+          label: API
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+        - name: APPLICATION
+          label: Application
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+        - name: ENTRYPOINT
+          label: Entrypoint
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+        - name: PLAN
+          label: Plan
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+        - name: HTTP_METHOD
+          label: HTTP Method
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+        - name: HTTP_STATUS
+          label: Status Code
+          type: NUMBER
+          operators:
+              - EQ
+              - IN
+              - GTE
+              - LTE
+          range:
+              from: 100
+              to: 599
+        - name: MCP_METHOD
+          label: MCP Method
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+        - name: TRANSACTION_ID
+          label: Transaction ID
+          type: STRING
+          operators:
+              - EQ
+              - IN
+        - name: REQUEST_ID
+          label: Request ID
+          type: STRING
+          operators:
+              - EQ
+              - IN
+        - name: URI
+          label: URI
+          type: STRING
+          operators:
+              - EQ
+        - name: RESPONSE_TIME
+          label: Response Time
+          type: NUMBER
+          operators:
+              - GTE
+              - LTE
