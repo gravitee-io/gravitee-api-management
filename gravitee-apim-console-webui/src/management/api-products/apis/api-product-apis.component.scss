@@ -85,6 +85,7 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .mat-column-version {
+  white-space: nowrap;
   .version__badge {
     cursor: default;
     margin-right: 8px;
