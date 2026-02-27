@@ -115,6 +115,16 @@ public class KafkaExplorerResource {
                 .build();
         }
 
+        if (perPage < 1 || perPage > 100) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(
+                    new KafkaExplorerError()
+                        .message("perPage must be between 1 and 100")
+                        .technicalCode(TechnicalCode.INVALID_PARAMETERS.name())
+                )
+                .build();
+        }
+
         try {
             var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
             int page0Based = page - 1;
@@ -213,6 +223,16 @@ public class KafkaExplorerResource {
         if (page < 1) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new KafkaExplorerError().message("page must be >= 1").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                .build();
+        }
+
+        if (perPage < 1 || perPage > 100) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(
+                    new KafkaExplorerError()
+                        .message("perPage must be between 1 and 100")
+                        .technicalCode(TechnicalCode.INVALID_PARAMETERS.name())
+                )
                 .build();
         }
 
