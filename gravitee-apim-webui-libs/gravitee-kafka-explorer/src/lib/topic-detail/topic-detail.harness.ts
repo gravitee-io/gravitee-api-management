@@ -18,6 +18,8 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatProgressBarHarness } from '@angular/material/progress-bar/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
+import { BadgeHarness } from '../components/badge/badge.harness';
+
 export class TopicDetailHarness extends ComponentHarness {
   static hostSelector = 'gke-topic-detail';
 
@@ -25,7 +27,7 @@ export class TopicDetailHarness extends ComponentHarness {
   private readonly getBackButton = this.locatorFor(MatButtonHarness.with({ selector: '[mat-icon-button]' }));
   private readonly getProgressBar = this.locatorForOptional(MatProgressBarHarness);
   private readonly getTitle = this.locatorFor('.topic-detail__title');
-  private readonly getInternalBadge = this.locatorForOptional('.topic-detail__internal-badge');
+  private readonly getInternalBadge = this.locatorForOptional(BadgeHarness);
 
   async getTopicName() {
     const title = await this.getTitle();

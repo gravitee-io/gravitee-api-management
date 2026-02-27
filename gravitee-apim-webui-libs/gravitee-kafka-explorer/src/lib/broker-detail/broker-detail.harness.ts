@@ -18,6 +18,8 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatProgressBarHarness } from '@angular/material/progress-bar/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
+import { BadgeHarness } from '../components/badge/badge.harness';
+
 export class BrokerDetailHarness extends ComponentHarness {
   static hostSelector = 'gke-broker-detail';
 
@@ -26,7 +28,7 @@ export class BrokerDetailHarness extends ComponentHarness {
   private readonly getBackButton = this.locatorFor(MatButtonHarness.with({ selector: '[mat-icon-button]' }));
   private readonly getProgressBar = this.locatorForOptional(MatProgressBarHarness);
   private readonly getTitle = this.locatorFor('.broker-detail__title');
-  private readonly getControllerBadge = this.locatorForOptional('.broker-detail__controller-badge');
+  private readonly getControllerBadge = this.locatorForOptional(BadgeHarness.with({ selector: 'gke-badge[color="primary"]' }));
   private readonly getEmptyMessage = this.locatorForOptional('.broker-detail__empty-message');
 
   async getBrokerTitle() {

@@ -22,7 +22,7 @@
     </button>
     <h3 class="consumer-group-detail__title">{{ groupDetail()?.groupId }}</h3>
     @if (groupDetail()?.state; as state) {
-      <span class="consumer-group-detail__state-badge consumer-group-detail__state-badge--{{ state | lowercase }}">{{ state }}</span>
+      <gke-badge [color]="stateColor(state)">{{ state }}</gke-badge>
     }
   </div>
 
@@ -137,7 +137,7 @@
             <td mat-cell *matCellDef="let o">
               {{ o.lag }}
               @if (o.lag > 0) {
-                <span class="consumer-group-detail__lag-warning">behind</span>
+                <gke-badge class="consumer-group-detail__lag-warning" color="warning">behind</gke-badge>
               }
             </td>
           </ng-container>

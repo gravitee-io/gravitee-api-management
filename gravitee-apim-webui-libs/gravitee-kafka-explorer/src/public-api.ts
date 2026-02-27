@@ -17,6 +17,7 @@
  * Public API Surface of gravitee-kafka-explorer
  */
 
+export * from './lib/components/badge/badge.component';
 export * from './lib/models/kafka-cluster.model';
 export * from './lib/kafka-explorer/kafka-explorer.component';
 export * from './lib/kafka-explorer/kafka-explorer.routes';

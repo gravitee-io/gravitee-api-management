@@ -28,16 +28,6 @@
     margin-bottom: 8px;
   }
 
-  &__warning-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 500;
-    background-color: var(--mat-sys-error-container, #fff3e0);
-    color: var(--mat-sys-on-error-container, #e65100);
-  }
-
   &__row {
     cursor: pointer;
 
@@ -47,13 +37,6 @@
   }
 
   &__internal-badge {
-    display: inline-block;
     margin-left: 8px;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 500;
-    background-color: var(--mat-sys-surface-variant, #e7e0ec);
-    color: var(--mat-sys-on-surface-variant, #49454f);
   }
 }

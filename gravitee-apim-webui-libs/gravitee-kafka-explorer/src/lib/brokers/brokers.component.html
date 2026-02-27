@@ -60,7 +60,7 @@
             <span class="brokers__node-id">
               {{ node.id }}
               @if (node.id === controllerId()) {
-                <span class="brokers__controller-badge">Controller</span>
+                <gke-badge class="brokers__controller-badge" color="primary">Controller</gke-badge>
               }
             </span>
           </td>

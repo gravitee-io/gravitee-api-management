@@ -24,10 +24,10 @@
     @if (brokerDetail(); as detail) {
       <span class="broker-detail__host">{{ detail.host }}:{{ detail.port }}</span>
       @if (detail.rack) {
-        <span class="broker-detail__rack-badge">{{ detail.rack }}</span>
+        <gke-badge>{{ detail.rack }}</gke-badge>
       }
       @if (detail.isController) {
-        <span class="broker-detail__controller-badge">Controller</span>
+        <gke-badge color="primary">Controller</gke-badge>
       }
     }
   </div>
