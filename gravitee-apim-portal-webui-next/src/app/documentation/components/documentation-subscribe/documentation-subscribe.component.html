@@ -16,7 +16,11 @@
 
 -->
 <div class="content">
-  <a [routerLink]="['/documentation', navId()]" [queryParams]="{ pageId: pageId() }" class="documentation-subscribe__back-link internal-link">
+  <a
+    [routerLink]="['/documentation', navId()]"
+    [queryParams]="{ pageId: pageId() }"
+    class="documentation-subscribe__back-link internal-link"
+  >
     <mat-icon>arrow_backward</mat-icon>
     <span i18n="@@documentationSubscribeBack">Back to API</span>
   </a>

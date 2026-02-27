@@ -20,7 +20,9 @@
     @if (currentStep() === SubscribeStep.PLAN_SELECTION) {
       <app-subscribe-to-api-step-header [stepNumber]="stepNumberOf(SubscribeStep.PLAN_SELECTION)">
         <div class="next-gen-h5" i18n="@@subscribeChoosePlan">Choose a plan</div>
-        <div class="next-gen-body" i18n="@@subscribeChoosePlanDescription">A plan lets an application access an API. Once subscribed and approved, the application gets credentials to use it.</div>
+        <div class="next-gen-body" i18n="@@subscribeChoosePlanDescription">
+          A plan lets an application access an API. Once subscribed and approved, the application gets credentials to use it.
+        </div>
       </app-subscribe-to-api-step-header>
       <mat-card-content>
         @if (plans$ | async; as plans) {
@@ -40,8 +42,8 @@
       <app-subscribe-to-api-step-header [stepNumber]="stepNumberOf(SubscribeStep.APP_SELECTION)">
         <div class="next-gen-h5" i18n="@@subscribeChooseApplication">Choose an application</div>
         <div class="next-gen-body" i18n="@@subscribeChooseApplicationDescription">
-          An application represents a developer's project that interacts with the API. It acts as a means to manage access control to APIs via
-          subscriptions.
+          An application represents a developer's project that interacts with the API. It acts as a means to manage access control to APIs
+          via subscriptions.
         </div>
       </app-subscribe-to-api-step-header>
       <mat-card-content>
@@ -94,8 +96,8 @@
         }
         @if (hasSubscriptionError) {
           <div class="m3-title-medium error-message" i18n="@@subscribeToApiGeneralErrorMessage">
-            There was an error with your subscription and it could not be processed. Try again, and if the issue persists, contact your portal
-            administrator.
+            There was an error with your subscription and it could not be processed. Try again, and if the issue persists, contact your
+            portal administrator.
           </div>
         }
       </mat-card-content>
@@ -131,13 +133,7 @@
               </mat-chip>
             </div>
           }
-          <button
-            (click)="goToNextStep()"
-            mat-flat-button
-            color="primary"
-            [disabled]="stepIsInvalid()"
-            i18n="@@subscribeToApiNext"
-          >
+          <button (click)="goToNextStep()" mat-flat-button color="primary" [disabled]="stepIsInvalid()" i18n="@@subscribeToApiNext">
             Next
           </button>
         </div>

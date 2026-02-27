@@ -16,8 +16,7 @@
 @use '../../../scss/theme';
 
 .subscribe-to-api {
-
-&__review {
+  &__review {
     display: flex;
     flex-flow: column;
     gap: 32px;
