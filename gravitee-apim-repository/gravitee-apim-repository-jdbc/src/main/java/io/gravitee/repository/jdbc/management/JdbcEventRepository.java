@@ -17,7 +17,6 @@ package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.management.JdbcHelper.AND_CLAUSE;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
-import static io.gravitee.repository.jdbc.management.JdbcHelper.addCondition;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.addStringsWhereClause;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -588,25 +587,69 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         String tableAlias
     ) {
         if (!isEmpty(filter.getProperties())) {
-            builder
-                .append(" left join ")
-                .append(propertiesTableName)
-                .append(" prop on prop.event_id = ")
-                .append(tableAlias)
-                .append(".id ")
-                .append(WHERE_CLAUSE)
-                .append("(");
-            boolean first = true;
+            builder.append(WHERE_CLAUSE);
+            int propertyIndex = 0;
             for (Map.Entry<String, Object> property : filter.getProperties().entrySet()) {
-                if (property.getValue() instanceof Collection) {
-                    for (Object value : (Collection) property.getValue()) {
-                        first = addCondition(first, builder, property.getKey(), value, args);
-                    }
-                } else {
-                    first = addCondition(first, builder, property.getKey(), property.getValue(), args);
+                if (propertyIndex > 0) {
+                    builder.append(AND_CLAUSE);
                 }
+
+                final String propertyAlias = "prop_filter_" + propertyIndex;
+                builder
+                    .append("exists (select 1 from ")
+                    .append(propertiesTableName)
+                    .append(" ")
+                    .append(propertyAlias)
+                    .append(" where ")
+                    .append(propertyAlias)
+                    .append(".event_id = ")
+                    .append(tableAlias)
+                    .append(".id and ")
+                    .append(propertyAlias)
+                    .append(".property_key = ?");
+                args.add(property.getKey());
+
+                if (property.getValue() instanceof Collection<?> collection) {
+                    boolean hasNull = false;
+                    List<Object> nonNullValues = new ArrayList<>();
+                    for (Object value : collection) {
+                        if (value == null) {
+                            hasNull = true;
+                        } else {
+                            nonNullValues.add(value);
+                        }
+                    }
+
+                    builder.append(" and (");
+                    boolean appendOr = false;
+                    if (!nonNullValues.isEmpty()) {
+                        builder.append(propertyAlias).append(".property_value in (");
+                        for (int i = 0; i < nonNullValues.size(); i++) {
+                            if (i > 0) {
+                                builder.append(", ");
+                            }
+                            builder.append("?");
+                            args.add(nonNullValues.get(i));
+                        }
+                        builder.append(")");
+                        appendOr = true;
+                    }
+                    if (hasNull) {
+                        if (appendOr) {
+                            builder.append(" or ");
+                        }
+                        builder.append(propertyAlias).append(".property_value is null");
+                    }
+                    builder.append(")");
+                } else if (property.getValue() == null) {
+                    builder.append(" and ").append(propertyAlias).append(".property_value is null");
+                } else {
+                    builder.append(" and ").append(propertyAlias).append(".property_value = ?");
+                    args.add(property.getValue());
+                }
+                builder.append(")");
+                propertyIndex++;
             }
-            builder.append(")");
             return true;
         }
         return false;
