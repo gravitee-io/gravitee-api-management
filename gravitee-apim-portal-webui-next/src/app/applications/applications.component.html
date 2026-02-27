@@ -1,6 +1,6 @@
 <!--
 
-    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,46 +15,57 @@
     limitations under the License.
 
 -->
-<div class="content">
-  <mat-card appearance="outlined">
-    <mat-card-content class="tile">
-      <div class="app-list-header">
-        <div class="app-list-header__title">
-          <h2 i18n="@@applicationsGridTitle">Applications</h2>
-          <div class="description" i18n="@@applicationsGridDescription">
-            An application represents a developer's project that interacts with the API. It acts as a means to manage access control to APIs
-            via subscriptions.
-          </div>
-        </div>
-        @if (canCreate()) {
-          <div>
-            <button mat-stroked-button class="secondary-button" [routerLink]="['create']">
-              <mat-icon>add</mat-icon>
-              <span i18n="@@applicationsCreateButton">Create</span>
-            </button>
-          </div>
-        }
-      </div>
 
-      @if (applicationPaginator$ | async; as applications) {
-        @if (applications.data.length === 0) {
-          <p i18n="@@noAppsAvailable">Sorry, there are no applications yet.</p>
-        } @else {
-          <div
-            class="app-list__container"
-            [ngClass]="appListContainerClasses()"
-            infiniteScroll
-            (scrolled)="loadMoreApplications(applications)"
-          >
-            @for (application of applications.data; track application.id) {
-              <app-application-card [application]="application" />
+<div class="content">
+  <div class="apps-list__header">
+    <div class="title next-gen-h1" i18n="@@applicationsTitle">Applications</div>
+
+    @if (canCreate()) {
+      <button mat-stroked-button class="secondary-button create-button" [routerLink]="['/applications/create']">
+        <mat-icon>add</mat-icon>
+        <span i18n="@@applicationsCreateButton">Create</span>
+      </button>
+    }
+  </div>
+
+  <cards-grid [cards]="applicationPaginator()?.data">
+    <ng-container slot="cards">
+      @for (app of applicationPaginator()?.data ?? []; track app.id) {
+        <app-application-card
+          [applicationId]="app.id"
+          [title]="app.name"
+          [description]="app.description"
+          (select)="navigateToApplication($event)"
+        />
+      }
+    </ng-container>
+
+    <ng-container slot="empty-state">
+      <span class="material-icons icon-with-background m3-headline-large" aria-hidden="true">search</span>
+      <h2 class="m3-title-large" i18n="@@noAppsAvailable">No applications available yet</h2>
+      <p i18n="@@noAppsDescription">You haven't created any applications yet.</p>
+    </ng-container>
+  </cards-grid>
+
+  @if (applicationPaginator()?.totalResults ?? 0 > 0) {
+    <div class="list-page__pagination" [class.list-page__pagination--mobile]="isMobile()">
+      <app-pagination
+        [totalResults]="applicationPaginator()?.totalResults ?? 0"
+        [currentPage]="applicationPaginator()?.page ?? 1"
+        [pageSize]="pageSize"
+        (selectPage)="onPageChange($event)"
+      ></app-pagination>
+
+      <div class="list-page__pagination__page-size">
+        <span class="m3-body-medium" i18n="@@showPerPage">Show per page:</span>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-select [value]="pageSize" (selectionChange)="onPageSizeChange($event.value)">
+            @for (size of pageSizeOptions; track size) {
+              <mat-option [value]="size">{{ size }}</mat-option>
             }
-          </div>
-        }
-      }
-      @if (loadingPage$ | async) {
-        <app-loader />
-      }
-    </mat-card-content>
-  </mat-card>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+  }
 </div>

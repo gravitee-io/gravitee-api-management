@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AsyncPipe } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatChipsModule } from '@angular/material/chips';
@@ -37,6 +36,7 @@ import { SearchBarComponent } from '../../components/search-bar/search-bar.compo
 import { ApisResponse } from '../../entities/api/apis-response';
 import { ApiService } from '../../services/api.service';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
+import { CardsGridComponent } from 'src/components/cards-grid/cards-grid.component';
 
 interface ApiVM {
   id: string;
@@ -58,14 +58,14 @@ interface ApiPaginatorVM {
   selector: 'app-catalog',
   standalone: true,
   imports: [
-    AsyncPipe,
     ApiCardComponent,
     BadgeComponent,
     ButtonToggleGroupComponent,
     ButtonToggleOptionComponent,
+    CardsGridComponent,
     LoaderComponent,
-    SearchBarComponent,
     PaginationComponent,
+    SearchBarComponent,
     MatChipsModule,
     MatFormFieldModule,
     MatIconModule,
@@ -77,7 +77,6 @@ interface ApiPaginatorVM {
   styleUrl: './catalog.component.scss',
 })
 export class CatalogComponent {
-  apiPaginator$: Observable<ApiPaginatorVM> = of();
   loadingPage: boolean = true;
   pageSize = 20;
   pageSizeOptions = [8, 20, 40, 80];
@@ -93,6 +92,7 @@ export class CatalogComponent {
   private readonly page$ = new BehaviorSubject<number>(1);
   protected readonly query = toSignal(this.route.queryParams.pipe(map(p => p['query'] ?? '')), { initialValue: '' });
   protected readonly tableColumns = computed(() => (this.isMobile() ? ['name', 'version', 'mcp'] : ['name', 'labels', 'version', 'mcp']));
+  protected apiPaginator: ReturnType<typeof toSignal<ApiPaginatorVM, ApiPaginatorVM>>;
 
   constructor() {
     effect(() => {
@@ -100,7 +100,7 @@ export class CatalogComponent {
         this.page$.next(1);
       }
     });
-    this.apiPaginator$ = this.loadApis$();
+    this.apiPaginator = toSignal(this.loadApis$(), { initialValue: { data: [], page: 1, totalResults: 0 } });
   }
 
   onPageChange(page: number) {

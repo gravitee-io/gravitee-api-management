@@ -13,41 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AsyncPipe, NgClass } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
-import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
-import { InfiniteScrollModule } from 'ngx-infinite-scroll';
-import { BehaviorSubject, EMPTY, map, Observable, scan, switchMap, tap } from 'rxjs';
+import { MatSelectModule } from '@angular/material/select';
+import { Router, RouterLink } from '@angular/router';
+import { BehaviorSubject, catchError, distinctUntilChanged, map, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ApplicationCardComponent } from '../../components/application-card/application-card.component';
-import { LoaderComponent } from '../../components/loader/loader.component';
-import { Application } from '../../entities/application/application';
+import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { ApplicationService } from '../../services/application.service';
 import { CurrentUserService } from '../../services/current-user.service';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
+import { CardsGridComponent } from 'src/components/cards-grid/cards-grid.component';
 
 export interface ApplicationPaginatorVM {
-  data: Application[];
+  data: {
+    id: string;
+    name: string;
+    description?: string;
+  }[];
   page: number;
-  hasNextPage: boolean;
+  totalResults: number;
 }
 
 @Component({
   selector: 'app-applications',
   imports: [
-    AsyncPipe,
-    InfiniteScrollModule,
-    LoaderComponent,
-    MatCard,
-    MatCardContent,
     ApplicationCardComponent,
-    NgClass,
+    CardsGridComponent,
     MatButton,
+    MatFormFieldModule,
     MatIcon,
+    MatSelectModule,
+    PaginationComponent,
     RouterLink,
   ],
   templateUrl: './applications.component.html',
@@ -56,77 +58,55 @@ export interface ApplicationPaginatorVM {
 export class ApplicationsComponent {
   currentUser = inject(CurrentUserService).user;
 
-  applicationPaginator$: Observable<ApplicationPaginatorVM>;
-  loadingPage$ = new BehaviorSubject(true);
+  loadingPage: boolean = true;
+  pageSize = 20;
+  pageSizeOptions = [8, 20, 40, 80];
 
   canCreate = computed(() => this.currentUser().permissions?.APPLICATION?.includes('C') || false);
-
-  appListContainerClasses = computed(() => ({
-    'app-list__container--mobile': this.isMobile(),
-  }));
   protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
-  private applicationService = inject(ApplicationService);
-  private page$ = new BehaviorSubject(1);
+
+  protected readonly applicationPaginator: ReturnType<typeof toSignal<ApplicationPaginatorVM, ApplicationPaginatorVM>>;
+  private readonly applicationService = inject(ApplicationService);
+  private readonly router = inject(Router);
+  private readonly page$ = new BehaviorSubject<number>(1);
 
   constructor() {
-    this.applicationPaginator$ = this.loadApplications$();
+    this.applicationPaginator = toSignal(this.loadApplications$(), { initialValue: { data: [], page: 1, totalResults: 0 } });
   }
 
-  loadMoreApplications(paginator: ApplicationPaginatorVM) {
-    if (!paginator.hasNextPage) {
-      return;
-    }
-
-    this.page$.next(paginator.page + 1);
+  onPageChange(page: number) {
+    this.page$.next(page);
   }
 
-  private loadApplications$(): Observable<ApplicationPaginatorVM> {
+  onPageSizeChange(newPageSize: number) {
+    this.pageSize = newPageSize;
+    this.page$.next(1);
+  }
+
+  navigateToApplication(id: string) {
+    this.router.navigate(['/applications', id]);
+  }
+
+  private loadApplications$() {
     return this.page$.pipe(
-      tap(_ => this.loadingPage$.next(true)),
-      switchMap(currentPage => {
-        if (currentPage === 1) {
-          return of({ page: currentPage, size: 18 });
-        } else if (currentPage === 2) {
-          this.page$.next(3);
-          return EMPTY;
-        } else {
-          return of({ page: currentPage, size: 9 });
-        }
-      }),
-      switchMap(({ page, size }) => this.applicationService.list(page, size)),
+      map(currentPage => ({ currentPage, pageSize: this.pageSize })),
+      distinctUntilChanged((prev, curr) => prev.currentPage === curr.currentPage && prev.pageSize === curr.pageSize),
+      tap(_ => (this.loadingPage = true)),
+      switchMap(({ currentPage, pageSize }) => this.applicationService.list(currentPage, pageSize)),
       map(resp => {
         const data = resp.data
           ? resp.data.map(application => ({
               id: application.id,
-              description: application.description,
               name: application.name,
-              owner: application.owner,
-              picture: application._links?.picture,
-              settings: application.settings,
+              description: application.description,
             }))
           : [];
         const page = resp.metadata?.pagination?.current_page ?? 1;
-        const hasNextPage = resp.metadata?.pagination?.total_pages ? page < resp.metadata.pagination.total_pages : false;
-        return {
-          data,
-          page,
-          hasNextPage,
-        };
+        const totalResults = resp.metadata?.pagination?.total ?? 0;
+        return { data, page, totalResults };
       }),
-      scan(this.updatePaginator, { data: [], page: 1, hasNextPage: true }),
-      tap(_ => this.loadingPage$.next(false)),
+      catchError(_ => of({ data: [], page: 1, totalResults: 0 })),
+      tap(_ => (this.loadingPage = false)),
     );
-  }
-
-  private updatePaginator(accumulator: ApplicationPaginatorVM, value: ApplicationPaginatorVM): ApplicationPaginatorVM {
-    if (value.page === 1) {
-      return value;
-    }
-
-    accumulator.data.push(...value.data);
-    accumulator.page = value.page;
-    accumulator.hasNextPage = value.hasNextPage;
-
-    return accumulator;
   }
 }

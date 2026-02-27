@@ -167,6 +167,10 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'subscriptions', pathMatch: 'full' },
       {
+        path: 'applications',
+        component: ApplicationsComponent,
+      },
+      {
         path: 'subscriptions',
         loadComponent: () => import('./dashboard/subscriptions/subscriptions.component'),
       },
@@ -180,7 +184,7 @@ export const routes: Routes = [
     path: 'applications',
     canActivateChild: [redirectGuard, authGuard],
     children: [
-      { path: '', component: ApplicationsComponent, data: { breadcrumb: 'Applications' } },
+      { path: '', redirectTo: '/dashboard/applications', pathMatch: 'full' },
       {
         path: 'create',
         component: CreateApplicationComponent,

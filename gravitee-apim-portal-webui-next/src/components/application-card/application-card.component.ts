@@ -13,38 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, ViewChild } from '@angular/core';
-import { MatButton } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatTooltip } from '@angular/material/tooltip';
-import { RouterLink } from '@angular/router';
-
-import { Application } from '../../entities/application/application';
-import { PictureComponent } from '../picture/picture.component';
+import { Component, Input, output } from '@angular/core';
+import { GmdCardModule } from '@gravitee/gravitee-markdown';
+import { PaginationComponent } from '../pagination/pagination.component';
 
 @Component({
   selector: 'app-application-card',
-  imports: [MatButton, MatCardModule, PictureComponent, RouterLink, MatTooltip],
+  imports: [GmdCardModule, PaginationComponent],
   templateUrl: './application-card.component.html',
   styleUrl: './application-card.component.scss',
 })
-export class ApplicationCardComponent implements AfterViewInit {
+export class ApplicationCardComponent {
   @Input({ required: true })
-  application!: Application;
+  applicationId!: string;
 
-  @ViewChild('appName', { static: true }) appNameElement!: ElementRef;
+  @Input({ required: true })
+  title!: string;
 
-  isOverflowing: boolean = false;
+  @Input()
+  description: string | undefined;
 
-  constructor(private cdr: ChangeDetectorRef) {}
-
-  ngAfterViewInit() {
-    this.checkOverflow();
-    this.cdr.detectChanges();
-  }
-
-  checkOverflow() {
-    const el = this.appNameElement.nativeElement;
-    this.isOverflowing = el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight;
-  }
+  select = output<string>();
 }

@@ -21,7 +21,7 @@
 }
 
 .content {
-  flex-flow: column;
+  flex-direction: column;
   gap: 32px;
 }
 
@@ -71,19 +71,6 @@
     }
   }
 
-  &__container {
-    display: grid;
-    gap: 16px;
-    grid-template-columns: repeat(4, 1fr);
-
-    &--narrow {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-    &--mobile {
-      grid-template-columns: 1fr;
-    }
-  }
 
   &__table-container {
     overflow-x: auto;
