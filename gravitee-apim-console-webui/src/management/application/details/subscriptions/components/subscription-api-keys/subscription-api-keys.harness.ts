@@ -13,62 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness, parallel } from '@angular/cdk/testing';
+import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
-import { MatIconHarness } from '@angular/material/icon/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
 
 export class SubscriptionApiKeysHarness extends ComponentHarness {
-  static readonly hostSelector = 'subscription-api-keys';
+  static hostSelector = 'subscription-api-keys';
 
-  private getTable = this.locatorFor(MatTableHarness);
-  private revokeButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[aria-label="Button to revoke an API Key"]' }));
-  private renewButton = this.locatorForOptional(MatButtonHarness.with({ text: /Renew/ }));
+  protected getRenewButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="renew-api-key-btn"]' }));
+  protected getRevokeButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[data-testid="revoke-api-key-btn"]' }));
+  protected getExpireButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[data-testid="expire-api-key-btn"]' }));
+  protected getTable = this.locatorFor(MatTableHarness);
 
-  async computeTableCells() {
+  public async isRenewButtonDisplayed() {
+    return (await this.getRenewButton()) !== null;
+  }
+
+  public async clickRenew() {
+    const btn = await this.getRenewButton();
+    return btn?.click();
+  }
+
+  public async getTableRows() {
     const table = await this.getTable();
-
-    const headerRows = await table.getHeaderRows();
-    const headerCells = await parallel(() => headerRows.map(row => row.getCellTextByColumnName()));
-
-    const rows = await table.getRows();
-    const rowCells = await parallel(() =>
-      rows.map(async row => {
-        const activeIconCell = (await row.getCells({ columnName: 'active-icon' }))[0];
-        const activeIconCellIconName = await (await activeIconCell.getHarness(MatIconHarness)).getName();
-
-        const keyCell = (await row.getCells({ columnName: 'key' }))[0];
-        const keyCellText = await (await keyCell.getHarness(MatInputHarness)).getValue();
-
-        const createdAtCell = (await row.getCells({ columnName: 'createdAt' }))[0];
-        const createdAtCellText = await createdAtCell.getText();
-
-        const endDateCell = (await row.getCells({ columnName: 'endDate' }))[0];
-        const endDateCellText = await endDateCell.getText();
-
-        const actionsCell = (await row.getCells({ columnName: 'actions' }))[0];
-        const actionsCellText = (await actionsCell.getHarnessOrNull(MatButtonHarness)) === null ? undefined : 'hasRevokeButton';
-
-        return {
-          activeIcon: activeIconCellIconName,
-          key: keyCellText,
-          createdAt: createdAtCellText,
-          endDate: endDateCellText,
-          actions: actionsCellText,
-        };
-      }),
-    );
-    return { headerCells, rowCells };
-  }
-
-  public async renewApiKey(): Promise<void> {
-    const button = await this.renewButton();
-    return await button.click();
-  }
-
-  public async revokeApiKey(): Promise<void> {
-    const button = await this.revokeButton();
-    return await button.click();
+    return table.getRows();
   }
 }
