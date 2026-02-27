@@ -23,7 +23,7 @@
   box-shadow: 0 4px 12px rgb(0 0 0 / 12%);
 
   &__search {
-    padding: 12px 16px;
+    padding: 12px 16px 0;
   }
 
   &__search-field {
@@ -40,7 +40,7 @@
   &__option {
     display: flex;
     align-items: center;
-    padding: 8px 4px;
+    padding: 4px 8px;
     border-radius: app-theme.$container-shape;
     margin-top: 4px;
     color: app-theme.$default-text-color;
@@ -57,6 +57,10 @@
       opacity: 0.6;
     }
 
+    &-checkbox {
+      --mat-checkbox-state-layer-size: 32px;
+    }
+    
     &-label {
       flex: 1;
     }
@@ -80,7 +84,7 @@
   &__clear {
     display: flex;
     align-items: center;
-    padding: 12px 16px;
+    padding: 2px 10px;
     border-top: app-theme.$border-width solid app-theme.$border-color;
 
     button {

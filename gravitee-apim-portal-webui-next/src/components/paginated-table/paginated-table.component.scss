@@ -65,6 +65,11 @@
     gap: 8px;
   }
 
+  .paginated-table__page-size-panel .mat-mdc-option {
+    min-height: 36px;
+    font-size: 0.875rem;
+  }
+
   &__page-size-select {
     width: 70px;
   }

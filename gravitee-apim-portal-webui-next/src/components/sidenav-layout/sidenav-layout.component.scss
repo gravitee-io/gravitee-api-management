@@ -15,7 +15,7 @@
  */
 @use '../../scss/theme' as app-theme;
 
-$sidenav-min-width: 330px;
+$sidenav-min-width: 275px;
 $sidenav-horizontal-padding: 40px;
 $sidenav-vertical-padding: 25px;
 $sidenav-content-width: calc($sidenav-min-width - $sidenav-horizontal-padding * 2);

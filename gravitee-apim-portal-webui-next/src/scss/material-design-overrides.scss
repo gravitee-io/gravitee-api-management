@@ -28,6 +28,10 @@ mat-dialog-container {
 }
 
 mat-form-field {
+  --mat-form-field-container-height: 40px;
+  --mat-form-field-container-vertical-padding: 8px;
+  --mat-form-field-subscript-text-line-height: 0;
+  --mat-form-field-subscript-text-size: 0;
   --mat-form-field-filled-container-color: #{m3-adapter.$surface-variant};
   --mat-form-field-filled-disabled-container-color: #{m3-adapter.$surface-variant};
   --mat-form-field-filled-disabled-input-text-color: var(--mat-form-field-filled-input-text-color);
@@ -40,6 +44,11 @@ mat-expansion-panel {
 
 .mat-mdc-select-panel {
   --mat-select-panel-background-color: #{theme.$select-panel-background-color};
+}
+
+.mat-mdc-select-panel .mat-mdc-option {
+  --mat-option-label-text-size: 0.875rem;
+  min-height: 36px;
 }
 
 mat-datepicker-content.mat-datepicker-content.mat-primary {
