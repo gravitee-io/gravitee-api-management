@@ -35,6 +35,7 @@ export enum ApimFeature {
   APIM_API_PRODUCTS = 'apim-api-products',
   ALERT_ENGINE = 'alert-engine',
   FEDERATION = 'federation',
+  APIM_MCP_TOOL_SERVER = 'apim-mcp-tool-server',
 }
 
 export enum UTMTags {
@@ -197,6 +198,13 @@ export const getFeatureInfoData = (ctaConfig: CTAConfiguration): Record<ApimFeat
       title,
       image: 'assets/gio-ee-unlock-dialog/policies-a2a.svg',
       description: `Request the Agent Mesh pack to unlock the A2A proxy APIs.`,
+      trialButtonLabel,
+      hideDays,
+    },
+    [ApimFeature.APIM_MCP_TOOL_SERVER]: {
+      title,
+      image: 'assets/gio-ee-unlock-dialog/policies.svg',
+      description: `Request the MCP Proxy pack to unlock the message proxy APIs.`,
       trialButtonLabel,
       hideDays,
     },
