@@ -972,6 +972,7 @@ class ImportApiDefinitionUseCaseTest {
             .id(null)
             .apiVersion("1.0.0")
             .analytics(Analytics.builder().enabled(false).build())
+            .allowedInApiProducts(true)
             .background(null)
             .categories(null)
             .crossId(API_CROSS_ID)

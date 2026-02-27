@@ -129,10 +129,6 @@ public class ApiModelFactory {
             return apiExport.apiDefinitionNativeV4(api.toNativeApiDefinitionBuilder().id(id).build()).build();
         }
 
-        if (api.getDefinitionVersion() == DefinitionVersion.V4 && api.getType() == ApiType.PROXY && api.getAllowedInApiProducts() == null) {
-            api.setAllowedInApiProducts(true);
-        }
-
         return apiExport.apiDefinitionHttpV4(api.toApiDefinitionBuilder().id(id).build()).build();
     }
 
