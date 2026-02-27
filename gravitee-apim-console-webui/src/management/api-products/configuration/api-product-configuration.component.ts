@@ -21,6 +21,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { EMPTY, merge, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { MatCardModule } from '@angular/material/card';
+import { ErrorStateMatcher, ShowOnDirtyErrorStateMatcher } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
@@ -55,6 +56,7 @@ interface ConfigForm {
   templateUrl: './api-product-configuration.component.html',
   styleUrls: ['./api-product-configuration.component.scss'],
   standalone: true,
+  providers: [{ provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }],
   imports: [
     ReactiveFormsModule,
     MatCardModule,
@@ -265,7 +267,6 @@ export class ApiProductConfigurationComponent {
         nonNullable: true,
         validators: [Validators.required, Validators.maxLength(this.nameMaxLength), Validators.minLength(1)],
         asyncValidators: [apiProductNameUniqueAsyncValidator(this.apiProductV2Service, () => this.currentApiProduct?.name)],
-        updateOn: 'blur',
       }),
       version: new FormControl('', {
         nonNullable: true,

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -98,12 +99,19 @@ describe('ApiProductAddApiDialogComponent', () => {
   });
 
   it('should show validation error when API already in product', async () => {
-    fixture.componentInstance.selectedApis.set([fakeProxyApiV4({ id: 'api-1', name: 'Existing API' }) as any]);
+    const existingApi = fakeProxyApiV4({
+      id: 'api-1',
+      name: 'Existing API',
+      apiVersion: '1.0',
+      listeners: [{ type: 'HTTP', paths: [{ path: '/existing-api' }], entrypoints: [{ type: 'http-proxy' }] }] as any,
+    });
+    fixture.componentInstance.selectedApis.set([existingApi]);
     fixture.detectChanges();
 
     const submitButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="submit-button"]' }));
     await submitButton.click();
     fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(fixture.componentInstance.validationError()).toContain('already in this API Product');
     expect(dialogRef.close).not.toHaveBeenCalled();

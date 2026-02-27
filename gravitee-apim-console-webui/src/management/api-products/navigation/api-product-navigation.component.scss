@@ -49,6 +49,9 @@ $textColor: map.get(gio.$mat-dove-palette, default);
         @include mat.m2-typography-level($typography, subtitle-1);
         margin: 0;
         padding: 16px 20px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
 
