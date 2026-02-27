@@ -28,6 +28,12 @@ public class PortalNavigationItemId implements Comparable<PortalNavigationItemId
         this.id = id;
     }
 
+    public static final PortalNavigationItemId ZERO = new PortalNavigationItemId(new UUID(0L, 0L));
+
+    public static PortalNavigationItemId zero() {
+        return ZERO;
+    }
+
     public static PortalNavigationItemId random() {
         return new PortalNavigationItemId(UUID.randomUUID());
     }

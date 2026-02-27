@@ -15,11 +15,8 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
-import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
-import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
-import static fixtures.core.model.PortalNavigationItemFixtures.SUPPORT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -31,14 +28,9 @@ import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDa
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -49,8 +41,8 @@ import org.junit.jupiter.api.Test;
 class GetPortalPageContentByNavigationIdUseCaseTest {
 
     private static final String ENVIRONMENT_ID = ENV_ID;
-    private static final String UNPUBLISHED_ID = "00000000-0000-0000-0000-000000000012";
-    private static final String PRIVATE_ID = "00000000-0000-0000-0000-000000000013";
+    private static final String UNPUBLISHED_ID = PortalNavigationItemFixtures.UNPUBLISHED_ID;
+    private static final String PRIVATE_ID = PortalNavigationItemFixtures.PRIVATE_ID;
 
     private GetPortalPageContentByNavigationIdUseCase useCase;
     private PortalPageContentQueryServiceInMemory pageContentQueryService;
@@ -62,8 +54,8 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         useCase = new GetPortalPageContentByNavigationIdUseCase(navigationItemsQueryService, pageContentQueryService);
 
         // Create page contents first with known IDs
-        var supportContentId = PortalPageContentId.of("00000000-0000-0000-0000-000000000010");
-        var page11ContentId = PortalPageContentId.of("00000000-0000-0000-0000-000000000011");
+        var supportContentId = PortalPageContentId.of(PortalNavigationItemFixtures.SUPPORT_CONTENT_ID);
+        var page11ContentId = PortalPageContentId.of(PortalNavigationItemFixtures.PAGE11_CONTENT_ID);
 
         var supportContent = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
             supportContentId,
@@ -80,89 +72,7 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         );
 
         pageContentQueryService.initWith(List.of(supportContent, page11Content));
-
-        // Create navigation items directly with known content IDs
-        var apisFolder = new PortalNavigationFolder(
-            PortalNavigationItemId.of(APIS_ID),
-            ORG_ID,
-            ENVIRONMENT_ID,
-            "APIs",
-            PortalArea.TOP_NAVBAR,
-            0,
-            true,
-            PortalVisibility.PUBLIC
-        );
-
-        var category1Folder = new PortalNavigationFolder(
-            PortalNavigationItemId.of("00000000-0000-0000-0000-000000000006"),
-            ORG_ID,
-            ENVIRONMENT_ID,
-            "Category1",
-            PortalArea.TOP_NAVBAR,
-            2,
-            true,
-            PortalVisibility.PUBLIC
-        );
-        category1Folder.setParentId(apisFolder.getId());
-
-        var supportPage = new PortalNavigationPage(
-            PortalNavigationItemId.of(SUPPORT_ID),
-            ORG_ID,
-            ENVIRONMENT_ID,
-            "Support",
-            PortalArea.TOP_NAVBAR,
-            2,
-            supportContentId,
-            true,
-            PortalVisibility.PUBLIC
-        );
-
-        var page11 = new PortalNavigationPage(
-            PortalNavigationItemId.of(PAGE11_ID),
-            ORG_ID,
-            ENVIRONMENT_ID,
-            "page11",
-            PortalArea.TOP_NAVBAR,
-            0,
-            page11ContentId,
-            true,
-            PortalVisibility.PUBLIC
-        );
-        page11.setParentId(category1Folder.getId());
-
-        var unpublishedPage = new PortalNavigationPage(
-            PortalNavigationItemId.of(UNPUBLISHED_ID),
-            ORG_ID,
-            ENVIRONMENT_ID,
-            "Unpublished Page",
-            PortalArea.TOP_NAVBAR,
-            3,
-            PortalPageContentId.random(),
-            false,
-            PortalVisibility.PUBLIC
-        );
-
-        var privatePage = new PortalNavigationPage(
-            PortalNavigationItemId.of(PRIVATE_ID),
-            ORG_ID,
-            ENVIRONMENT_ID,
-            "Private Page",
-            PortalArea.TOP_NAVBAR,
-            4,
-            PortalPageContentId.random(),
-            true,
-            PortalVisibility.PRIVATE
-        );
-
-        List<PortalNavigationItem> navigationItems = List.of(
-            apisFolder,
-            category1Folder,
-            supportPage,
-            page11,
-            unpublishedPage,
-            privatePage
-        );
-        navigationItemsQueryService.initWith(navigationItems);
+        navigationItemsQueryService.initWith(PortalNavigationItemFixtures.navigationItemsForContentTest());
     }
 
     @Test

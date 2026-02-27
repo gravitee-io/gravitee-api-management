@@ -72,16 +72,16 @@ class PortalNavigationItemsCrudServiceImplTest {
         @Test
         void should_create_a_folder() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
-            final var item = new PortalNavigationFolder(
-                itemId,
-                "organizationId",
-                "environmentId",
-                "title",
-                PortalArea.TOP_NAVBAR,
-                0,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            final var item = PortalNavigationFolder.builder()
+                .id(itemId)
+                .organizationId("organizationId")
+                .environmentId("environmentId")
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
 
             service.create(item);
 
@@ -107,17 +107,17 @@ class PortalNavigationItemsCrudServiceImplTest {
         void should_create_a_page() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
             final var contentId = PortalPageContentId.random();
-            final var item = new PortalNavigationPage(
-                itemId,
-                "organizationId",
-                "environmentId",
-                "title",
-                PortalArea.TOP_NAVBAR,
-                0,
-                contentId,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            final var item = PortalNavigationPage.builder()
+                .id(itemId)
+                .organizationId("organizationId")
+                .environmentId("environmentId")
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(contentId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
 
             service.create(item);
 
@@ -143,17 +143,17 @@ class PortalNavigationItemsCrudServiceImplTest {
         void should_create_a_link() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
             final var url = "http://example.com";
-            final var item = new PortalNavigationLink(
-                itemId,
-                "organizationId",
-                "environmentId",
-                "title",
-                PortalArea.TOP_NAVBAR,
-                0,
-                url,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            final var item = PortalNavigationLink.builder()
+                .id(itemId)
+                .organizationId("organizationId")
+                .environmentId("environmentId")
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .url(url)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
 
             service.create(item);
 
@@ -180,17 +180,17 @@ class PortalNavigationItemsCrudServiceImplTest {
             // Given
             final var itemId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001");
             final var contentId = PortalPageContentId.random();
-            final var item = new PortalNavigationPage(
-                itemId,
-                "organizationId",
-                "environmentId",
-                "title",
-                PortalArea.TOP_NAVBAR,
-                0,
-                contentId,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            final var item = PortalNavigationPage.builder()
+                .id(itemId)
+                .organizationId("organizationId")
+                .environmentId("environmentId")
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(contentId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
             when(repository.create(any())).thenThrow(new TechnicalException("Database error"));
 
             // When & Then
@@ -214,16 +214,16 @@ class PortalNavigationItemsCrudServiceImplTest {
         @Test
         void should_update_a_folder() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
-            final var item = new PortalNavigationFolder(
-                itemId,
-                "organizationId",
-                "environmentId",
-                "title",
-                PortalArea.TOP_NAVBAR,
-                0,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            final var item = PortalNavigationFolder.builder()
+                .id(itemId)
+                .organizationId("organizationId")
+                .environmentId("environmentId")
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
 
             service.update(item);
 
@@ -249,17 +249,17 @@ class PortalNavigationItemsCrudServiceImplTest {
         void should_update_a_page() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
             final var contentId = PortalPageContentId.random();
-            final var item = new PortalNavigationPage(
-                itemId,
-                "organizationId",
-                "environmentId",
-                "title",
-                PortalArea.TOP_NAVBAR,
-                0,
-                contentId,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            final var item = PortalNavigationPage.builder()
+                .id(itemId)
+                .organizationId("organizationId")
+                .environmentId("environmentId")
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(contentId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
 
             service.update(item);
 
@@ -285,17 +285,17 @@ class PortalNavigationItemsCrudServiceImplTest {
         void should_update_a_link() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
             final var url = "http://example.com";
-            final var item = new PortalNavigationLink(
-                itemId,
-                "organizationId",
-                "environmentId",
-                "title",
-                PortalArea.TOP_NAVBAR,
-                0,
-                url,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            final var item = PortalNavigationLink.builder()
+                .id(itemId)
+                .organizationId("organizationId")
+                .environmentId("environmentId")
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .url(url)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
 
             service.update(item);
 
@@ -322,17 +322,17 @@ class PortalNavigationItemsCrudServiceImplTest {
             // Given
             final var itemId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001");
             final var contentId = PortalPageContentId.random();
-            final var item = new PortalNavigationPage(
-                itemId,
-                "organizationId",
-                "environmentId",
-                "title",
-                PortalArea.TOP_NAVBAR,
-                0,
-                contentId,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            final var item = PortalNavigationPage.builder()
+                .id(itemId)
+                .organizationId("organizationId")
+                .environmentId("environmentId")
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(contentId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
             when(repository.update(any())).thenThrow(new TechnicalException("Database error"));
 
             // When & Then

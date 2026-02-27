@@ -101,7 +101,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 .area(PortalArea.HOMEPAGE)
                 .order(0)
                 .build();
-            navigationItemsQueryService.storage().add(PortalNavigationItem.from(createPortalNavigationItem, ORG_ID, ENV_ID));
+            navigationItemsQueryService.storage().add(PortalNavigationItem.from(createPortalNavigationItem, ORG_ID, ENV_ID, null));
 
             // When
             final ThrowingRunnable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
