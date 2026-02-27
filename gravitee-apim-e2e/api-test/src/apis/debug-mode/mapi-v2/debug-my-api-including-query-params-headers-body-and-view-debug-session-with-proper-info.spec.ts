@@ -329,6 +329,7 @@ describeIfClientGatewayCompatible('Debug my API (incl. query params, Headers and
         envId,
         orgId,
         body: ApisFaker.apiImport({
+          name: `debug-v2-${faker.lorem.words(10)}`,
           execution_mode: 'v3',
           plans: [
             PlansFaker.plan({
