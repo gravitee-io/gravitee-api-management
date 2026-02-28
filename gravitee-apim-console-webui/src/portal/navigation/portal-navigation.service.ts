@@ -78,7 +78,7 @@ export class PortalNavigationService {
       displayName: 'Subscription Form',
       routerLink: 'subscription-form',
       icon: 'gio:list-check',
-      permissions: ['environment-settings-r', 'environment-settings-u'],
+      permissions: ['environment-metadata-r', 'environment-metadata-u'],
     },
   ];
 
