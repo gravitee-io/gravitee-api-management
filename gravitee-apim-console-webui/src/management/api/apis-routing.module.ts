@@ -78,7 +78,6 @@ import { ApiDeploymentConfigurationComponent } from './deployment-configuration-
 import { ApiDynamicPropertiesComponent } from './properties/components/dynamic-properties-v2/api-dynamic-properties.component';
 import { ApiPropertiesComponent } from './properties/properties/api-properties.component';
 import { ApiNotificationComponent } from './api-notification/api-notification.component';
-import { ApiRuntimeAlertsComponent } from './runtime-alerts';
 import { ApiDocumentationV4MetadataTabComponent } from './documentation-v4/metadata-tab/api-documentation-v4-metadata-tab.component';
 import { ApiHistoryV4Component } from './history-v4/api-history-v4.component';
 import { ApiFailoverV4Component } from './failover-v4/api-failover-v4.component';
@@ -106,7 +105,6 @@ import { MessagesComponent } from '../messages/messages.component';
 import { ApimFeature } from '../../shared/components/gio-license/gio-license-data';
 import { HasLicenseGuard } from '../../shared/components/gio-license/has-license.guard';
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
-import { RuntimeAlertCreateComponent } from '../../components/runtime-alerts';
 import { ApiScoringGuard } from '../../shared/guards/api-scoring.guard';
 
 const apisRoutes: Routes = [
@@ -548,48 +546,6 @@ const apisRoutes: Routes = [
             license: { feature: ApimFeature.ALERT_ENGINE },
             redirect: '/',
           },
-        },
-      },
-
-      {
-        path: 'ng/alerts',
-        component: ApiRuntimeAlertsComponent,
-        data: {
-          requireLicense: {
-            license: { feature: ApimFeature.ALERT_ENGINE },
-            redirect: '/',
-          },
-          permissions: {
-            anyOf: ['api-alert-r'],
-          },
-        },
-      },
-      {
-        path: 'ng/alerts/new',
-        component: RuntimeAlertCreateComponent,
-        data: {
-          requireLicense: {
-            license: { feature: ApimFeature.ALERT_ENGINE },
-            redirect: '/',
-          },
-          apiPermissions: {
-            only: ['api-alert-c'],
-          },
-          referenceType: 'API',
-        },
-      },
-      {
-        path: 'ng/alerts/:alertId',
-        component: RuntimeAlertCreateComponent,
-        data: {
-          requireLicense: {
-            license: { feature: ApimFeature.ALERT_ENGINE },
-            redirect: '/',
-          },
-          apiPermissions: {
-            only: ['api-alert-c'],
-          },
-          referenceType: 'API',
         },
       },
       {

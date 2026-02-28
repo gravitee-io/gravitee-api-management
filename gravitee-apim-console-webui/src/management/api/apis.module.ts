@@ -50,7 +50,6 @@ import { ApiNotificationModule } from './api-notification/api-notification.modul
 import { ApiCorsModule } from './cors/api-cors.module';
 import { ApiPropertiesModule } from './properties/properties/api-properties.module';
 import { ApiProxyHealthCheckDashboardModule } from './health-check-dashboard/api-proxy-health-check-dashboard.module';
-import { ApiRuntimeAlertsModule } from './runtime-alerts';
 import { ApiHistoryV4Module } from './history-v4/api-history-v4.module';
 import { ApiFailoverV4Module } from './failover-v4/api-failover-v4.module';
 import { ApiResourcesComponent } from './resources/api-resources.component';
@@ -99,7 +98,6 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiResourcesComponent,
     ApiResponseTemplatesModule,
     ApiTrafficV4Module,
-    ApiRuntimeAlertsModule,
     ApiSubscriptionsModule,
     ApiV4PolicyStudioModule,
     ApiUserGroupModule,
