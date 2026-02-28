@@ -110,6 +110,18 @@
             <artifactId>gravitee-plugin-common-configurations</artifactId>
         </dependency>
 
+		<!-- Zee Mode: LLM structured output -->
+		<dependency>
+			<groupId>com.jsonschema.llm</groupId>
+			<artifactId>json-schema-llm-java</artifactId>
+			<version>0.1.0-ALPHA</version>
+		</dependency>
+		<dependency>
+			<groupId>io.gravitee.apim.definition.llm.v4</groupId>
+			<artifactId>v4</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+
 		<!-- Gravitee Dependencies -->
 		<dependency>
 			<groupId>io.gravitee.apim.definition</groupId>

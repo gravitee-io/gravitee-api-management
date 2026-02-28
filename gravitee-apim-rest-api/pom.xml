@@ -89,4 +89,12 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <!-- Vendored dependencies not yet published to Maven Central -->
+    <repositories>
+        <repository>
+            <id>project-lib</id>
+            <url>file://${maven.multiModuleProjectDirectory}/lib</url>
+        </repository>
+    </repositories>
 </project>

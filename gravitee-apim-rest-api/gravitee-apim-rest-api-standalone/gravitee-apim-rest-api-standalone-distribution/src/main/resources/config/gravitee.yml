@@ -761,3 +761,13 @@ api:
 # Scoring
 scoring:
   enabled: false
+
+# Zee Mode - AI-assisted resource creation
+#ai:
+#  zee:
+#    enabled: false
+#    azure:
+#      url: ${OPENAI_API_URL:}
+#      apiKey: ${OPENAI_API_KEY:}
+#    rateLimiting:
+#      maxRequestsPerMinute: 10
