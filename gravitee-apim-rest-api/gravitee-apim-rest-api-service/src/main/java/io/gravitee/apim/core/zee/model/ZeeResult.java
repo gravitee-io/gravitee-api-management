@@ -25,5 +25,4 @@ import com.fasterxml.jackson.databind.JsonNode;
  *                     JsonNode
  * @param metadata     generation metadata (model, tokens, RAG usage)
  */
-public record ZeeResult(ZeeResourceType resourceType, JsonNode generated, ZeeMetadata metadata) {
-}
+public record ZeeResult(ZeeResourceType resourceType, JsonNode generated, ZeeMetadata metadata) {}

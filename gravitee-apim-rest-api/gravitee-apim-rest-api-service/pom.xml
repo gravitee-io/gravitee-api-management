@@ -113,12 +113,17 @@
 		<!-- Zee Mode: LLM structured output -->
 		<dependency>
 			<groupId>com.jsonschema.llm</groupId>
-			<artifactId>json-schema-llm-java</artifactId>
+			<artifactId>json-schema-llm-engine</artifactId>
 			<version>0.1.0-ALPHA</version>
 		</dependency>
 		<dependency>
 			<groupId>io.gravitee.apim.definition.llm.v4</groupId>
 			<artifactId>v4</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>io.gravitee.apim.definition.llm.v2</groupId>
+			<artifactId>v2</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 

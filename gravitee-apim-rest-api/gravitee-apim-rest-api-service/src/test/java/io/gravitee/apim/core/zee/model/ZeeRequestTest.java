@@ -35,29 +35,29 @@ class ZeeRequestTest {
         @Test
         void rejects_null_resource_type() {
             assertThatNullPointerException()
-                    .isThrownBy(() -> new ZeeRequest(null, "create a flow", null, null))
-                    .withMessage("resourceType is required");
+                .isThrownBy(() -> new ZeeRequest(null, "create a flow", null, null))
+                .withMessage("resourceType is required");
         }
 
         @Test
         void rejects_null_prompt() {
             assertThatNullPointerException()
-                    .isThrownBy(() -> new ZeeRequest(ZeeResourceType.FLOW, null, null, null))
-                    .withMessage("prompt is required");
+                .isThrownBy(() -> new ZeeRequest(ZeeResourceType.FLOW, null, null, null))
+                .withMessage("prompt is required");
         }
 
         @Test
         void rejects_blank_prompt() {
             assertThatThrownBy(() -> new ZeeRequest(ZeeResourceType.FLOW, "   ", null, null))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage("prompt cannot be blank");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("prompt cannot be blank");
         }
 
         @Test
         void rejects_empty_prompt() {
             assertThatThrownBy(() -> new ZeeRequest(ZeeResourceType.FLOW, "", null, null))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage("prompt cannot be blank");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("prompt cannot be blank");
         }
     }
 
@@ -85,8 +85,9 @@ class ZeeRequestTest {
             var files = new java.util.ArrayList<>(List.of(new FileContent("spec.yaml", "content", "text/yaml")));
             var request = new ZeeRequest(ZeeResourceType.API, "create an API", files, null);
 
-            assertThatThrownBy(() -> request.files().add(new FileContent("extra.json", "{}", "application/json")))
-                    .isInstanceOf(UnsupportedOperationException.class);
+            assertThatThrownBy(() -> request.files().add(new FileContent("extra.json", "{}", "application/json"))).isInstanceOf(
+                UnsupportedOperationException.class
+            );
         }
 
         @Test
@@ -94,8 +95,7 @@ class ZeeRequestTest {
             var context = new java.util.HashMap<>(Map.of("apiId", (Object) "abc-123"));
             var request = new ZeeRequest(ZeeResourceType.API, "create an API", null, context);
 
-            assertThatThrownBy(() -> request.contextData().put("extra", "value"))
-                    .isInstanceOf(UnsupportedOperationException.class);
+            assertThatThrownBy(() -> request.contextData().put("extra", "value")).isInstanceOf(UnsupportedOperationException.class);
         }
     }
 

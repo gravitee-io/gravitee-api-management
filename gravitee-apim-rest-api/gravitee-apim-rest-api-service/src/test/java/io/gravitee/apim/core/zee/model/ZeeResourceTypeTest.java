@@ -27,7 +27,8 @@ import org.junit.jupiter.params.provider.CsvSource;
 class ZeeResourceTypeTest {
 
     @ParameterizedTest
-    @CsvSource({
+    @CsvSource(
+        {
             "FLOW,Flow",
             "PLAN,Plan",
             "API,Api",
@@ -37,7 +38,8 @@ class ZeeResourceTypeTest {
             "ENDPOINT_GROUP,EndpointGroup",
             "HTTP_LISTENER,HttpListener",
             "SUBSCRIPTION_LISTENER,SubscriptionListener",
-    })
+        }
+    )
     void component_name_maps_correctly(ZeeResourceType type, String expectedName) {
         assertThat(type.componentName()).isEqualTo(expectedName);
     }

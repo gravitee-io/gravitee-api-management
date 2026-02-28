@@ -22,5 +22,4 @@ package io.gravitee.apim.core.zee.model;
  * @param tokensUsed     total tokens consumed in the round-trip
  * @param ragContextUsed whether RAG context was injected into the prompt
  */
-public record ZeeMetadata(String model, int tokensUsed, boolean ragContextUsed) {
-}
+public record ZeeMetadata(String model, int tokensUsed, boolean ragContextUsed) {}

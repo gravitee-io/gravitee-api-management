@@ -28,8 +28,7 @@ import java.util.Objects;
  * @param files        optional uploaded file contents for prompt enrichment
  * @param contextData  optional context (apiId, envId, orgId, etc.)
  */
-public record ZeeRequest(ZeeResourceType resourceType, String prompt, List<FileContent> files,
-        Map<String, Object> contextData) {
+public record ZeeRequest(ZeeResourceType resourceType, String prompt, List<FileContent> files, Map<String, Object> contextData) {
     public ZeeRequest {
         Objects.requireNonNull(resourceType, "resourceType is required");
         Objects.requireNonNull(prompt, "prompt is required");

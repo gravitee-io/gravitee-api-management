@@ -22,5 +22,4 @@ package io.gravitee.apim.core.zee.model;
  * @param content   text content of the file
  * @param mediaType MIME type (e.g. "application/json", "text/yaml")
  */
-public record FileContent(String filename, String content, String mediaType) {
-}
+public record FileContent(String filename, String content, String mediaType) {}
