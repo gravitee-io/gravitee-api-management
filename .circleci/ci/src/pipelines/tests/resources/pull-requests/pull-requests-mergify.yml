@@ -606,7 +606,7 @@ jobs:
           root: .
           paths:
             - gravitee-apim-console-webui/dist
-  job-console-webui-build-storybook:
+  job-build-all-storybooks:
     docker:
       - image: cimg/node:22.12.0
     resource_class: large
@@ -615,13 +615,13 @@ jobs:
       - cmd-install-yarn
       - cmd-workspace-install
       - run:
-          name: Build Storybook Console
-          command: NODE_OPTIONS=--max_old_space_size=8192 yarn nx run console:build-storybook
+          name: Build all Storybooks
+          command: NODE_OPTIONS=--max_old_space_size=8192 yarn nx run storybook-all:build-storybook --parallel=2
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
           paths:
-            - gravitee-apim-console-webui/storybook-static
+            - storybook-all/storybook-static
             - gravitee-apim-console-webui/dist-lib
   job-console-webui-chromatic-deployment:
     docker:
@@ -642,7 +642,7 @@ jobs:
       - run:
           name: Running Chromatic
           command: |-
-            SB_URL=$(cd gravitee-apim-console-webui && npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --exit-once-uploaded -d=storybook-static | grep -o "View your Storybook at https:\/\/[0-9a-z-]*\.chromatic\.com" | grep -o "https:.*")
+            SB_URL=$(npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --exit-once-uploaded -d=storybook-all/storybook-static | grep -o "View your Storybook at https:\/\/[0-9a-z-]*\.chromatic\.com" | grep -o "https:.*")
             echo "export SB_URL=$SB_URL" >> $BASH_ENV
       - gh/setup
       - run:
@@ -907,16 +907,6 @@ workflows:
           name: Build APIM Console
           context:
             - cicd-orchestrator
-      - job-console-webui-build-storybook:
-          name: Build Console Storybook
-          context:
-            - cicd-orchestrator
-      - job-console-webui-chromatic-deployment:
-          name: Deploy console in chromatic
-          context:
-            - cicd-orchestrator
-          requires:
-            - Build Console Storybook
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-console-webui
           context:
@@ -925,6 +915,16 @@ workflows:
             - Lint & test APIM Console
           working_directory: gravitee-apim-console-webui
           cache_type: frontend
+      - job-build-all-storybooks:
+          name: Build all Storybooks
+          context:
+            - cicd-orchestrator
+      - job-console-webui-chromatic-deployment:
+          name: Deploy Storybook to Chromatic
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build all Storybooks
       - job-nx-webui-lint-test:
           name: Lint & test APIM Portal Next
           context:

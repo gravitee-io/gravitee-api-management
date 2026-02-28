@@ -1,0 +1,53 @@
+{
+  "name": "storybook-all",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "targets": {
+    "serve-storybook": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build-storybook"],
+      "options": {
+        "command": "npx http-server storybook-all/storybook-static -p 9009 -c-1"
+      }
+    },
+    "build-storybook-shell": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx storybook build -c storybook-all/.storybook -o storybook-all/storybook-static --preview-url /iframe.html"
+      }
+    },
+    "build-storybook": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        {
+          "projects": ["console"],
+          "target": "build-storybook"
+        },
+        {
+          "projects": ["portal-next"],
+          "target": "build-storybook"
+        },
+        {
+          "projects": ["markdown"],
+          "target": "build-storybook"
+        },
+        {
+          "projects": ["dashboard"],
+          "target": "build-storybook"
+        },
+        {
+          "projects": ["kafka-explorer"],
+          "target": "build-storybook"
+        },
+        {
+          "target": "build-storybook-shell"
+        }
+      ],
+      "options": {
+        "commands": [
+          "node storybook-all/assemble.mjs"
+        ]
+      }
+    }
+  }
+}

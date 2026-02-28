@@ -136,6 +136,74 @@ jobs:
           name: Check prettier formatting for nx projects
           command: yarn prettier
       - cmd-notify-on-failure
+  job-build-all-storybooks:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: large
+    steps:
+      - checkout
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - run:
+          name: Build all Storybooks
+          command: NODE_OPTIONS=--max_old_space_size=8192 yarn nx run storybook-all:build-storybook --parallel=2
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - storybook-all/storybook-static
+            - gravitee-apim-console-webui/dist-lib
+  job-console-webui-chromatic-deployment:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: small
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: GITHUB_TOKEN
+      - keeper/env-export:
+          secret-url: keeper://Hp1bFl5s0doxnQgqkMdCdg/field/password
+          var-name: CHROMATIC_PROJECT_TOKEN
+      - run:
+          name: Running Chromatic
+          command: |-
+            SB_URL=$(npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --exit-once-uploaded -d=storybook-all/storybook-static | grep -o "View your Storybook at https:\/\/[0-9a-z-]*\.chromatic\.com" | grep -o "https:.*")
+            echo "export SB_URL=$SB_URL" >> $BASH_ENV
+      - gh/setup
+      - run:
+          name: Edit Pull Request Description
+          command: |-
+            # First check there is an associated pull request, otherwise just stop the job here
+            if ! gh pr view --json title;
+            then
+              echo "No PR found for this branch, stopping the job here."
+              exit 0
+            fi
+
+            # If PR state is different from OPEN
+            if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
+            then
+              echo "PR is not opened, stopping the job here."
+              exit 0
+            fi
+
+            export PR_BODY_STORYBOOK_SECTION="
+            <!-- Storybook placeholder -->
+            ---
+
+            📚&nbsp;&nbsp;View the storybook of this branch [here](${SB_URL})
+            <!-- Storybook placeholder end -->
+            "
+
+            export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/Storybook placeholder -->/,/Storybook placeholder end -->/d')
+
+            gh pr edit --body "$CLEAN_BODY$PR_BODY_STORYBOOK_SECTION"
+      - cmd-notify-on-failure
   job-nx-webui-lint-test:
     parameters:
       apim-ui-project:
@@ -284,6 +352,16 @@ workflows:
           name: Check prettier formatting for nx projects
           context:
             - cicd-orchestrator
+      - job-build-all-storybooks:
+          name: Build all Storybooks
+          context:
+            - cicd-orchestrator
+      - job-console-webui-chromatic-deployment:
+          name: Deploy Storybook to Chromatic
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build all Storybooks
       - job-nx-webui-lint-test:
           name: Lint & test APIM Portal Next
           context:
@@ -313,3 +391,4 @@ orbs:
   keeper: gravitee-io/keeper@0.7.0
   aquasec: gravitee-io/aquasec@1.0.5
   slack: circleci/slack@4.12.5
+  gh: circleci/github-cli@1.0.5
