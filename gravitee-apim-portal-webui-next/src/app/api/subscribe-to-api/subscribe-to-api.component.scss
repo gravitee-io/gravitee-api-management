@@ -16,15 +16,7 @@
 @use '../../../scss/theme';
 
 .subscribe-to-api {
-  margin-top: 34px;
-
-  &__header {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  &__checkout {
+  &__review {
     display: flex;
     flex-flow: column;
     gap: 32px;

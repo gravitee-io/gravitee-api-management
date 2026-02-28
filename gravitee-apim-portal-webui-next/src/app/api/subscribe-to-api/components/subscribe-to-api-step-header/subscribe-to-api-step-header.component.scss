@@ -14,42 +14,30 @@
  * limitations under the License.
  */
 
+@use '../../../../../scss/theme';
+
 :host {
   display: flex;
-  flex-flow: column;
-  gap: 24px;
-}
-
-.no-applications {
-  display: flex;
-  flex-flow: column;
   align-items: center;
-  padding: 56px 0;
-  gap: 8px;
+  gap: 16px;
+  padding: 16px;
+
+  background: #{theme.$card-background-color}; // TODO: confirm - in figma its #f4f7fd while this resolves to transparent
+  border-bottom: #{theme.$border-width} solid #{theme.$border-color};
 }
 
-.applications {
-  display: grid;
-  margin-top: 30px;
-  gap: 32px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.step-header__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  border: #{theme.$border-width} solid #{theme.$border-color};
+}
 
-  &--narrow {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  &--mobile {
-    grid-template-columns: 1fr;
-  }
-
-  &__description {
-    display: -webkit-box;
-    overflow: hidden;
-    max-height: 98px;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 4;
-    line-clamp: 4;
-    text-overflow: ellipsis;
-    word-wrap: break-word;
-  }
+.step-header__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }

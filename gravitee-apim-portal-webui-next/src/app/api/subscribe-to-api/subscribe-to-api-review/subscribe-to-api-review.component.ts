@@ -27,13 +27,13 @@ import { Plan } from '../../../../entities/plan/plan';
 import { Subscription } from '../../../../entities/subscription/subscription';
 
 @Component({
-  selector: 'app-subscribe-to-api-checkout',
+  selector: 'app-subscribe-to-api-review',
   imports: [SubscriptionInfoComponent, ApiAccessComponent, MatCard, MatCardContent, MatFormField, MatInput, MatLabel, RadioCardComponent],
-  templateUrl: './subscribe-to-api-checkout.component.html',
-  styleUrl: './subscribe-to-api-checkout.component.scss',
+  templateUrl: './subscribe-to-api-review.component.html',
+  styleUrl: './subscribe-to-api-review.component.scss',
   providers: [],
 })
-export class SubscribeToApiCheckoutComponent implements OnInit {
+export class SubscribeToApiReviewComponent implements OnInit {
   @Input()
   api!: Api;
 

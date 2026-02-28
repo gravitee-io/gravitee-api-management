@@ -48,8 +48,8 @@
 
     &__subsections {
       display: flex;
-      flex-wrap: wrap;
-      gap: 15px 100px;
+      flex-direction: column;
+      gap: 15px;
     }
 
     &__grid {

@@ -15,14 +15,7 @@
     limitations under the License.
 
 -->
-<div class="plan-list__container" [ngClass]="{ 'plan-list__container--narrow': isNarrow(), 'plan-list__container--mobile': isMobile() }">
-  @for (plan of plans; track plan.id) {
-    <app-plan-card
-      [id]="plan.id"
-      [plan]="plan"
-      [selected]="selectedPlanId() === plan.id"
-      [apiType]="api.type"
-      (selectPlan)="selectPlan.emit(plan)"
-    />
-  }
+<div class="step-header__badge">{{ stepNumber() }}</div>
+<div class="step-header__content">
+  <ng-content />
 </div>

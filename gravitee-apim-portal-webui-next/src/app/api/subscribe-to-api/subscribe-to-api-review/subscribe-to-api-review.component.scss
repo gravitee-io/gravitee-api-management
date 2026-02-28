@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.subscribe-to-api-checkout {
+.subscribe-to-api-review {
   &__container {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     padding-top: 32px;
-    gap: 32px;
+    gap: 16px;
 
-    @media (width <= 768px) {
-      flex-direction: column;
+    &__top {
+      display: flex;
+      flex-direction: row;
+      gap: 32px;
+
+      @media (width <= 768px) {
+        flex-direction: column;
+      }
     }
 
     &__subscription-info {
@@ -49,17 +55,11 @@
 
   &__leave-a-comment {
     width: 100%;
-    height: 100%;
 
     &__container {
       display: flex;
-      height: 100%;
       flex-flow: column;
       gap: 16px;
-    }
-
-    &__field {
-      height: 100%;
     }
   }
 }

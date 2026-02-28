@@ -116,7 +116,7 @@ $table-body-background-color: var(--gio-app-table-body-container-color, $card-ba
 $table-header-headline-color: var(--gio-app-table-header-headline-color, $default-text-color);
 
 // -- Other Components --
-$chip-background: var(--gio-app-chip-container-color, $card-background-color);
+$chip-background: var(--gio-app-chip-container-color, #e1e5ed);
 $select-panel-background-color: color-mix(in srgb, $banner-background-color 12%, $card-background-color);
 $calendar-background-color: color-mix(in srgb, $banner-background-color 50%, $card-background-color);
 $primary-highlight-color: color-mix(in srgb, $primary-main-color 8%, white 92%);

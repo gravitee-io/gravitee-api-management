@@ -37,14 +37,34 @@
   &__content {
     min-height: 80px;
   }
+
+  &__badges {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 16px;
+
+    ::ng-deep .mdc-evolution-chip-set__chips {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    mat-chip {
+      --mat-chip-elevated-container-color: #{theme.$chip-background};
+      --mat-chip-container-shape-radius: 16px; // TODO: confirm if var is needed here
+      --mat-chip-outline-width: 0;
+    }
+  }
 }
 
-.plan-card.selected {
-  border: 1px solid #{theme.$tertiary-main-color};
-  background-color: #{theme.$banner-background-color};
-}
-
-.plan-card.disabled {
-  cursor: not-allowed;
-  opacity: 0.2;
+// TODO: confirm - figma defines #f4f7fd while this resolves to transparent;
+// moreover: it should be probably defined globally in radio-card.component.scss
+:host ::ng-deep .radio-card {
+  &.selected {
+    background-color: #{theme.$card-background-color};
+  }
+  &.disabled {
+    background-color: #{theme.$card-background-color};
+  }
 }
