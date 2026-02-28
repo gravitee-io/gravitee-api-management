@@ -26,6 +26,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.category.CategoriesResou
 import io.gravitee.rest.api.management.v2.rest.resource.cluster.ClustersResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentAnalyticsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentNewtAIResource;
+import io.gravitee.rest.api.management.v2.rest.resource.environment.ZeeResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentScoringResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalNavigationItemsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalPageContentsResource;
@@ -111,6 +112,11 @@ public class EnvironmentResource extends AbstractResource {
         return resourceContext.getResource(EnvironmentNewtAIResource.class);
     }
 
+    @Path("/ai")
+    public ZeeResource getZeeResource() {
+        return resourceContext.getResource(ZeeResource.class);
+    }
+
     @Path("/instances")
     public InstancesResource getInstancesResource() {
         return resourceContext.getResource(InstancesResource.class);
@@ -129,7 +135,8 @@ public class EnvironmentResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Environment getEnvironment(@PathParam("envId") String envId) {
-        return EnvironmentMapper.INSTANCE.map(environmentService.findByOrgAndIdOrHrid(GraviteeContext.getCurrentOrganization(), envId));
+        return EnvironmentMapper.INSTANCE
+                .map(environmentService.findByOrgAndIdOrHrid(GraviteeContext.getCurrentOrganization(), envId));
     }
 
     @Path("/proxy-kafka-console")
