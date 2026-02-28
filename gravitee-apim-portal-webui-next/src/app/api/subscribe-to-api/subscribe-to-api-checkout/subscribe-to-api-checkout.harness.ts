@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
 
 import { RadioCardHarness } from '../../../../components/radio-card/radio-card.harness';
 
 export class SubscribeToApiCheckoutHarness extends ComponentHarness {
-  public static hostSelector = 'app-subscribe-to-api-checkout';
-  protected locateInput = this.locatorFor(MatInputHarness);
-  protected locateApiKeyMode = this.locatorForOptional('.subscribe-to-api-checkout__container__api-key-mode');
-
-  public async getMessageInput(): Promise<MatInputHarness> {
-    return await this.locateInput();
-  }
+  public static readonly hostSelector = 'app-subscribe-to-api-checkout';
+  protected locateApiKeyMode = this.locatorForOptional('.subscribe-to-api-checkout__api-key-mode');
+  protected locateSubscriptionForm = this.locatorForOptional('.subscribe-to-api-checkout__form');
 
   public async getGeneratedApiKeyRadio(): Promise<RadioCardHarness> {
     return await this.locateRadioCard('Generated API Key');
@@ -37,6 +32,10 @@ export class SubscribeToApiCheckoutHarness extends ComponentHarness {
 
   public async isChooseApiKeyModeVisible(): Promise<boolean> {
     return await this.locateApiKeyMode().then(res => !!res);
+  }
+
+  public async isSubscriptionFormVisible(): Promise<boolean> {
+    return await this.locateSubscriptionForm().then(res => !!res);
   }
 
   protected locateRadioCard = (title: string) => this.locatorFor(RadioCardHarness.with({ title }))();

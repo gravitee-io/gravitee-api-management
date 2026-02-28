@@ -13,46 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.subscribe-to-api-checkout {
-  &__container {
-    display: flex;
-    flex-direction: column;
-    padding-top: 32px;
-    gap: 32px;
-  }
 
-  &__top-row {
-    display: flex;
-    flex-direction: row;
-    gap: 32px;
-
-    @media (width <= 768px) {
-      flex-direction: column;
-    }
-  }
-
-  &__subscription-info {
-    min-width: 38%;
-  }
-
-  &__api-key-card {
-    flex: 1 1 100%;
-    min-width: 0;
-  }
-
-  &__api-key-mode {
-    display: flex;
-    flex-flow: column;
-    gap: 16px;
-
-    &__radio-cards {
-      display: flex;
-      gap: 16px;
-    }
-  }
-
-  &__form {
-    padding-top: 16px;
-    width: 100%;
-  }
+/**
+ * Subscription form from Portal API.
+ * Returned only when the form exists and is enabled (404 otherwise).
+ * Portal does not expose id or enabled flag to consumers.
+ */
+export interface SubscriptionForm {
+  gmdContent: string;
 }

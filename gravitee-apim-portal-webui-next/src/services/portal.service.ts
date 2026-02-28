@@ -27,11 +27,12 @@
 
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, catchError, map, of } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { ApiInformation } from '../entities/api/api-information';
 import { PortalPage } from '../entities/portal/portal-page';
+import { SubscriptionForm } from '../entities/portal/subscription-form';
 
 @Injectable({
   providedIn: 'root',
@@ -39,7 +40,7 @@ import { PortalPage } from '../entities/portal/portal-page';
 export class PortalService {
   constructor(
     private readonly http: HttpClient,
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
   ) {}
 
   public getApiInformations(apiId: string): Observable<ApiInformation[]> {
@@ -56,5 +57,16 @@ export class PortalService {
     return this.http
       .get<{ pages: PortalPage[] }>(`${this.configService.baseURL}/portal-pages`, { params })
       .pipe(map(resp => resp?.pages ?? []));
+  }
+
+  public getSubscriptionForm(): Observable<SubscriptionForm | null> {
+    return this.http.get<SubscriptionForm>(`${this.configService.baseURL}/subscription-form`).pipe(
+      catchError(err => {
+        if (err.status === 404) {
+          return of(null);
+        }
+        throw err;
+      }),
+    );
   }
 }
