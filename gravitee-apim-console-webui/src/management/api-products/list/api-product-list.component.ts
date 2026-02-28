@@ -26,17 +26,17 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { GioAvatarModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { of } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 import { isObject } from 'angular';
 import { isEqual } from 'lodash';
 
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
-import { filtersToQueryParams, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { filtersToQueryParams, toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { ApiProduct, ApiProductsResponse } from '../../../entities/management-api-v2/api-product';
+import { ApiProduct, ApiProductsResponse, ApiProductSearchQuery } from '../../../entities/management-api-v2/api-product';
 
 const FILTERS_DEBOUNCE_MS = 100;
 const DEFAULT_FILTERS: ApiProductListTableWrapperFilters = {
@@ -48,11 +48,13 @@ const EMPTY_API_PRODUCTS_RESPONSE: ApiProductsResponse = {
   pagination: { totalCount: 0 },
 };
 
+const DEFAULT_SORT = { active: 'name', direction: 'asc' as const };
+
 function queryParamsToFilters(queryParams: Record<string, string>): ApiProductListTableWrapperFilters {
   const searchTerm = queryParams.q ?? DEFAULT_FILTERS.searchTerm;
   const index = queryParams.page ? Number(queryParams.page) : DEFAULT_FILTERS.pagination.index;
   const size = queryParams.size ? Number(queryParams.size) : DEFAULT_FILTERS.pagination.size;
-  const sort = queryParams.order ? toSort(queryParams.order, { active: 'name', direction: 'asc' }) : undefined;
+  const sort = queryParams.order ? toSort(queryParams.order, DEFAULT_SORT) : undefined;
   return {
     searchTerm,
     sort,
@@ -127,10 +129,27 @@ export class ApiProductListComponent {
       switchMap((filters: ApiProductListTableWrapperFilters) => {
         const page = filters.pagination?.index || 1;
         const perPage = filters.pagination?.size || 10;
-        return this.apiProductV2Service.list(page, perPage).pipe(
+        const sortBy = filters.sort ? toOrder(filters.sort) : 'name';
+        const searchQuery: ApiProductSearchQuery = {};
+        const query = filters.searchTerm?.trim();
+        if (query) {
+          searchQuery.query = query;
+        }
+        return this.apiProductV2Service.search(searchQuery, sortBy, page, perPage).pipe(
           catchError(error => {
             this.snackBarService.error(this.getErrorMessage(error, 'An error occurred while loading API Products'));
             return of(EMPTY_API_PRODUCTS_RESPONSE);
+          }),
+          tap(() => {
+            const q = this.activatedRoute.snapshot.queryParams as Record<string, string>;
+            if (q['order'] == null || q['order'] === '') {
+              this.router.navigate([], {
+                relativeTo: this.activatedRoute,
+                queryParams: { ...q, order: 'name' },
+                queryParamsHandling: 'merge',
+                replaceUrl: true,
+              });
+            }
           }),
           map((response: ApiProductsResponse) => ({
             tableDS: this.toApiProductsTableDS(response.data || []),
@@ -188,10 +207,13 @@ export class ApiProductListComponent {
       ...this.filters(),
       ...filters,
     };
+    const queryParams = filtersToQueryParams(mergedFilters);
+    if (queryParams.order == null || queryParams.order === '') {
+      queryParams.order = 'name';
+    }
     this.router.navigate([], {
       relativeTo: this.activatedRoute,
-      queryParams: filtersToQueryParams(mergedFilters),
-      queryParamsHandling: 'merge',
+      queryParams,
     });
   }
 

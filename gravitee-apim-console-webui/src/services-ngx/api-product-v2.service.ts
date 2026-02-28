@@ -18,7 +18,14 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { ApiProduct, ApiProductsResponse, CreateApiProduct, UpdateApiProduct } from '../entities/management-api-v2/api-product';
+import {
+  ApiProduct,
+  ApiProductSearchQuery,
+  ApiProductsResponse,
+  CreateApiProduct,
+  toApiProductSortByParam,
+  UpdateApiProduct,
+} from '../entities/management-api-v2/api-product';
 
 @Injectable({
   providedIn: 'root',
@@ -49,6 +56,26 @@ export class ApiProductV2Service {
   list(page = 1, perPage = 10): Observable<ApiProductsResponse> {
     const params = new HttpParams().set('page', page.toString()).set('perPage', perPage.toString());
     return this.http.get<ApiProductsResponse>(`${this.constants.env.v2BaseURL}/api-products`, { params });
+  }
+
+  /**
+   * Search API Products by name or IDs (same as APIs list)
+   * Calls POST /environments/{envId}/api-products/_search
+   * @param searchQuery - Optional query (text search on name/description/owner) and/or ids
+   * @param sortBy - Sort by name, version, apis, or owner; prefix "-" for desc. Invalid values are ignored.
+   * @param page - Page number (starting from 1)
+   * @param perPage - Number of items per page (1-100)
+   * @returns Observable of ApiProductsResponse with paginated data
+   */
+  search(searchQuery: ApiProductSearchQuery = {}, sortBy?: string, page = 1, perPage = 10): Observable<ApiProductsResponse> {
+    let params = new HttpParams().set('page', page.toString()).set('perPage', perPage.toString());
+    const validSortBy = toApiProductSortByParam(sortBy);
+    if (validSortBy) {
+      params = params.set('sortBy', validSortBy);
+    }
+    return this.http.post<ApiProductsResponse>(`${this.constants.env.v2BaseURL}/api-products/_search`, searchQuery, {
+      params,
+    });
   }
 
   /**
