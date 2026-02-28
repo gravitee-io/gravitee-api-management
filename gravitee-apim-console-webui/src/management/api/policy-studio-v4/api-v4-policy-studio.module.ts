@@ -19,9 +19,10 @@ import { GioPolicyStudioComponent } from '@gravitee/ui-policy-studio-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiV4PolicyStudioDesignComponent } from './design/api-v4-policy-studio-design.component';
+import { ZeeModule } from '../../../shared/components/zee/zee.module';
 
 @NgModule({
-  imports: [CommonModule, GioPolicyStudioComponent, MatSnackBarModule],
+  imports: [CommonModule, GioPolicyStudioComponent, MatSnackBarModule, ZeeModule],
   declarations: [ApiV4PolicyStudioDesignComponent],
 })
 export class ApiV4PolicyStudioModule {}

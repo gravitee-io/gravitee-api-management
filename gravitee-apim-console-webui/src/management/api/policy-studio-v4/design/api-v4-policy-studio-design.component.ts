@@ -43,6 +43,7 @@ import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/
 import { SharedPolicyGroupsService } from '../../../../services-ngx/shared-policy-groups.service';
 import { getApiProtocolTypeFromApi } from '../../../../entities/management-api-v2/plugin/apiProtocolType';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { FLOW_ADAPTER } from '../../../../shared/components/zee/adapters/flow-adapter';
 
 export type FlowSelection = { planIndex: number; flowIndex: number };
 
@@ -57,6 +58,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
 
   public apiType: ApiType;
   public flowExecution: FlowExecution;
+  public flowAdapter = FLOW_ADAPTER;
   public entrypointsInfo: ConnectorInfo[];
   public endpointsInfo: ConnectorInfo[];
   public commonFlows: PSFlow[];
@@ -89,6 +91,10 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly permissionsService: GioPermissionService,
   ) {}
+
+  get apiId() {
+    return this.activatedRoute.snapshot.params.apiId;
+  }
 
   ngOnInit(): void {
     this.activatedRoute.params
@@ -202,6 +208,30 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.router.navigateByUrl(this.location.path(), { skipLocationChange: true }));
+  }
+
+  onFlowGenerated(generatedFlowPayload: any) {
+    // Determine where to add the new flow based on the current selection.
+    const isCommonFlow = this.selectedFlowIndexes.planIndex >= this.plans.length;
+    
+    let commonFlowsToSave = this.commonFlows;
+    let plansToUpdate = undefined;
+
+    if (isCommonFlow) {
+      commonFlowsToSave = [generatedFlowPayload, ...this.commonFlows];
+    } else {
+      const planToUpdate = this.plans[this.selectedFlowIndexes.planIndex];
+      const updatedPlan = {
+        ...planToUpdate,
+        flows: [generatedFlowPayload, ...planToUpdate.flows],
+      };
+      plansToUpdate = [updatedPlan];
+    }
+
+    this.onSave({ 
+      commonFlows: commonFlowsToSave, 
+      plansToUpdate: plansToUpdate 
+    });
   }
 
   onFlowSelectionChange(flowSelection: FlowSelection) {
