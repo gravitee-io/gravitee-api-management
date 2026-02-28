@@ -83,6 +83,8 @@ import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainS
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.json.JsonSchemaChecker;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
+import io.gravitee.apim.core.logs_engine.query_service.LogsDefinitionQueryService;
+import io.gravitee.apim.core.logs_engine.use_case.GetLogsFilterDefinitionsUseCase;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.PublishPlanDomainService;
@@ -138,6 +140,7 @@ import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceIm
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.logs_engine.definition.LogsDefinitionYAMLQueryService;
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
@@ -1074,6 +1077,16 @@ public class ResourceContextConfiguration {
     @Bean
     public GetMetricFacetSpecUseCase getMetricFacetSpecUseCase(AnalyticsDefinitionQueryService analyticsDefinitionQueryService) {
         return new GetMetricFacetSpecUseCase(analyticsDefinitionQueryService);
+    }
+
+    @Bean
+    public LogsDefinitionQueryService logsDefinitionQueryService() {
+        return new LogsDefinitionYAMLQueryService();
+    }
+
+    @Bean
+    public GetLogsFilterDefinitionsUseCase getLogsFilterDefinitionsUseCase(LogsDefinitionQueryService logsDefinitionQueryService) {
+        return new GetLogsFilterDefinitionsUseCase(logsDefinitionQueryService);
     }
 
     @Bean
