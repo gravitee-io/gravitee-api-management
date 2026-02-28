@@ -1,0 +1,97 @@
+<!--
+  ~ Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~         http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<div class="zee-widget" [ngSwitch]="state">
+  <!-- IDLE -->
+  <div *ngSwitchCase="'idle'" class="zee-idle">
+    <mat-form-field appearance="outline" class="zee-prompt-field">
+      <mat-label>Describe what you want Zee to create...</mat-label>
+      <textarea
+        matInput
+        [(ngModel)]="prompt"
+        rows="4"
+        placeholder="e.g. Generate a flow that rate-limits requests to 100 per minute"
+      ></textarea>
+    </mat-form-field>
+
+    <div
+      class="zee-dropzone"
+      (drop)="onFileDrop($event)"
+      (dragover)="$event.preventDefault()"
+      (click)="fileInput.click()"
+      role="button"
+      tabindex="0"
+      aria-label="Upload context files"
+    >
+      <mat-icon>upload_file</mat-icon>
+      <span>Drag files or click to upload context</span>
+      <span class="zee-dropzone__hint">(.json, .yaml, .yml, .md, .txt)</span>
+      <input #fileInput type="file" (change)="onFileSelect($event)" multiple accept=".json,.yaml,.yml,.md,.txt" style="display: none" />
+    </div>
+
+    <div *ngIf="files.length > 0" class="zee-files">
+      <div *ngFor="let file of files; let i = index" class="zee-files__item">
+        <mat-icon class="zee-files__icon">insert_drive_file</mat-icon>
+        <span class="zee-files__name">{{ file.name }}</span>
+        <button mat-icon-button (click)="removeFile(i)" aria-label="Remove file">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="zee-actions">
+      <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!prompt.trim()">
+        <mat-icon>auto_awesome</mat-icon>
+        Generate with Zee
+      </button>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngSwitchCase="'loading'" class="zee-loading">
+    <mat-spinner diameter="48"></mat-spinner>
+    <span class="zee-loading__label">Zee is thinking...</span>
+  </div>
+
+  <!-- PREVIEW -->
+  <div *ngSwitchCase="'preview'" class="zee-preview">
+    <div class="zee-preview__header">
+      <mat-icon color="primary">auto_awesome</mat-icon>
+      <h3 class="zee-preview__title">{{ adapter?.previewLabel }}</h3>
+    </div>
+    <pre class="zee-preview__json">{{ generatedResource | json }}</pre>
+    <div class="zee-actions">
+      <button mat-raised-button color="primary" (click)="onAccept()">
+        <mat-icon>check</mat-icon>
+        Accept
+      </button>
+      <button mat-button (click)="onReject()">
+        <mat-icon>close</mat-icon>
+        Reject
+      </button>
+    </div>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngSwitchCase="'error'" class="zee-error">
+    <mat-icon class="zee-error__icon" color="warn">error_outline</mat-icon>
+    <p class="zee-error__message">{{ errorMessage }}</p>
+    <button mat-button (click)="reset()">
+      <mat-icon>refresh</mat-icon>
+      Try Again
+    </button>
+  </div>
+</div>
