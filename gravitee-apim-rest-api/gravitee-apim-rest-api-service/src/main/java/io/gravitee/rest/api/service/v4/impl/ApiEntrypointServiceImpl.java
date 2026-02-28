@@ -50,6 +50,7 @@ import org.springframework.stereotype.Component;
 public class ApiEntrypointServiceImpl implements ApiEntrypointService {
 
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
+    private static final Pattern PROTOCOL_REMOVER = Pattern.compile("^[a-zA-Z]+://");
     // RFC 6454 section-7.1, serialized-origin regex from RFC 3986
     private static final String URI_PATH_SEPARATOR = "/";
     public static final Set<DefinitionVersion> APIS_WITHOUT_ENTRYPOINT = EnumSet.of(
@@ -249,8 +250,15 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
 
         if (host == null || !isOverride) {
             List<AccessPoint> accessPoints = this.accessPointQueryService.getGatewayAccessPoints(environmentId);
-            if (accessPoints.isEmpty() || (tags != null && !tags.isEmpty())) {
+            if (accessPoints.isEmpty()) {
                 entrypoints.add(createHttpApiEntrypointEntity(defaultScheme, entrypointHost, path, tags, host));
+            } else if (tags != null && !tags.isEmpty()) {
+                // Extract hostname from entrypoint URL for secure domain matching
+                String hostname = extractHostname(entrypointHost);
+                boolean matchesEnvironmentAccessPoint = accessPoints.stream().anyMatch(ap -> isSubdomainOrEqual(hostname, ap.getHost()));
+                if (matchesEnvironmentAccessPoint) {
+                    entrypoints.add(createHttpApiEntrypointEntity(defaultScheme, entrypointHost, path, tags, host));
+                }
             } else {
                 for (AccessPoint accessPoint : accessPoints) {
                     String targetHost = accessPoint.getHost();
@@ -304,8 +312,19 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         List<ApiEntrypointEntity> entrypoints = new ArrayList<>();
         List<AccessPoint> accessPoints = this.accessPointQueryService.getKafkaGatewayAccessPoints(environmentId);
 
-        if (accessPoints.isEmpty() || (tags != null && !tags.isEmpty())) {
+        if (accessPoints.isEmpty()) {
             entrypoints.add(createKafkaNativeApiEntrypointEntity(host, domain, port, tags));
+        } else if (tags != null && !tags.isEmpty()) {
+            boolean matchesEnvironmentAccessPoint = accessPoints
+                .stream()
+                .anyMatch(ap -> {
+                    String accessPointDomain = extractHostname(ap.getHost());
+                    // Bidirectional subdomain check for Kafka
+                    return isSubdomainOrEqual(domain, accessPointDomain) || isSubdomainOrEqual(accessPointDomain, domain);
+                });
+            if (matchesEnvironmentAccessPoint) {
+                entrypoints.add(createKafkaNativeApiEntrypointEntity(host, domain, port, tags));
+            }
         } else {
             for (AccessPoint accessPoint : accessPoints) {
                 String accessPointDomain = accessPoint.getHost();
@@ -350,6 +369,38 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
             }
         }
         return scheme;
+    }
+
+    private String extractHostname(String urlOrHost) {
+        if (urlOrHost == null || urlOrHost.isBlank()) {
+            return null;
+        }
+
+        try {
+            String urlWithoutProtocol = PROTOCOL_REMOVER.matcher(urlOrHost).replaceFirst("");
+            int portIndex = urlWithoutProtocol.indexOf(':');
+            if (portIndex > 0) {
+                urlWithoutProtocol = urlWithoutProtocol.substring(0, portIndex);
+            }
+            return urlWithoutProtocol.toLowerCase();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private boolean isSubdomainOrEqual(String hostname, String accessPointHost) {
+        if (hostname == null || accessPointHost == null) {
+            return false;
+        }
+
+        String normalizedHostname = hostname.toLowerCase();
+        String normalizedAccessPoint = accessPointHost.toLowerCase();
+
+        if (normalizedHostname.equals(normalizedAccessPoint)) {
+            return true;
+        }
+
+        return normalizedHostname.endsWith("." + normalizedAccessPoint);
     }
 
     public String getApiEntrypointsListenerType(GenericApiEntity genericApiEntity) {
