@@ -15,16 +15,19 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.analytics_engine.model.NumberRange;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ApiSpec;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ApiSpecsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetSpec;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetSpecsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpec;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpecRange;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpecsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricSpec;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricSpecsResponse;
 import java.util.List;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -54,6 +57,10 @@ public interface AnalyticsDefinitionMapper {
     default FacetSpecsResponse toFacetSpecsResponse(List<io.gravitee.apim.core.analytics_engine.model.FacetSpec> facetSpecs) {
         return new FacetSpecsResponse().data(mapFacetSpecs(facetSpecs));
     }
+
+    @Mapping(source = "from", target = "min")
+    @Mapping(source = "to", target = "max")
+    FilterSpecRange mapRange(NumberRange range);
 
     FilterSpec mapFilterSpec(io.gravitee.apim.core.analytics_engine.model.FilterSpec filterSpec);
 
