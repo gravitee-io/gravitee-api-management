@@ -59,9 +59,11 @@
     }
 
     <div class="form-field-title">Authentication</div>
-    <mat-slide-toggle formControlName="isPrivate" aria-label="Require authentication to view this API"
-      >Authentication is required to view this {{ type | lowercase }}.</mat-slide-toggle
-    >
+    <span [matTooltip]="publicDisabledTooltip()" [matTooltipDisabled]="!publicDisabled()" [matTooltipShowDelay]="0">
+      <mat-slide-toggle formControlName="isPrivate" aria-label="Require authentication to view this AP"
+        >Authentication is required to view this {{ type | lowercase }}.</mat-slide-toggle
+      >
+    </span>
 
     <gio-banner-info type="info">
       This change will not be visible in the Developer Portal until you publish the {{ type | lowercase }}.

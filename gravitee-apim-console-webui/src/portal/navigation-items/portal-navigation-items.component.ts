@@ -32,6 +32,7 @@ import { catchError, exhaustMap, filter, map, shareReplay, switchMap, tap } from
 import { MatMenuItem, MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
 import { AsyncPipe, NgTemplateOutlet, TitleCasePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -88,6 +89,7 @@ import { PortalNavigationItemIconPipe } from '../icon/portal-navigation-item-ico
     MatMenuItem,
     AsyncPipe,
     MatCardModule,
+    MatTooltipModule,
     NgTemplateOutlet,
     TitleCasePipe,
     PortalNavigationItemIconPipe,
@@ -140,6 +142,37 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     const menuLinks = this.menuLinks();
     return this.mapSelectedNavItemToNode(navId, menuLinks);
   });
+  readonly selectedNavigationItemParent: Signal<SectionNode | null> = computed(() => {
+    const selectedNavigationItem = this.selectedNavigationItem();
+    const parentId = selectedNavigationItem?.data?.parentId;
+
+    if (!parentId) {
+      return null;
+    }
+
+    return this.mapSelectedNavItemToNode(parentId, this.menuLinks());
+  });
+  readonly publishDisabled: Signal<boolean> = computed(() => {
+    const selectedNavigationItem = this.selectedNavigationItem();
+    const selectedNavigationItemParent = this.selectedNavigationItemParent();
+
+    if (!selectedNavigationItem?.data?.parentId) {
+      return false;
+    }
+
+    return !selectedNavigationItemParent?.data?.published;
+  });
+  readonly publishDisabledTooltip: Signal<string> = computed(() => {
+    if (!this.publishDisabled()) {
+      return '';
+    }
+
+    const parentType = this.selectedNavigationItemParent()?.data?.type?.toLocaleLowerCase();
+    return parentType
+      ? `A navigation item cannot be published within an unpublished ${parentType}`
+      : 'A navigation item cannot be published within an unpublished parent';
+  });
+  readonly publishActionDisabled: Signal<boolean> = computed(() => this.actionsDisabled() || this.publishDisabled());
   readonly selectedNavigationItemIsPublished: Signal<boolean> = computed(() => {
     return this.selectedNavigationItem()?.data?.published ?? false;
   });
@@ -210,7 +243,14 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
             this.createApiSection(event.node.data);
             return;
           }
-          this.manageSection(event.itemType, event.action, 'TOP_NAVBAR', event.node.data);
+
+          this.manageSection(
+            event.itemType,
+            event.action,
+            'TOP_NAVBAR',
+            this.mapSelectedNavItemToNode(event.node.data.parentId, this.menuLinks())?.data || null,
+            event.node.data,
+          );
           break;
       }
     });
@@ -328,7 +368,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     );
   }
 
-  private mapSelectedNavItemToNode(navId: string, menuLinks: PortalNavigationItem[]): SectionNode | null {
+  private mapSelectedNavItemToNode(navId: string | null | undefined, menuLinks: PortalNavigationItem[]): SectionNode | null {
     if (!navId) {
       return null;
     }
@@ -382,12 +422,13 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     type: PortalNavigationItemType,
     mode: SectionEditorDialogMode,
     area: PortalArea,
+    parentItem?: PortalNavigationItem,
     existingItem?: PortalNavigationItem,
   ): void {
     const data: SectionEditorDialogData =
       mode === 'create'
-        ? { mode: 'create', type: type as SectionEditorDialogItemType }
-        : { mode: 'edit', type, existingItem: existingItem! };
+        ? { mode: 'create', type: type as SectionEditorDialogItemType, parentItem }
+        : { mode: 'edit', type, existingItem: existingItem!, parentItem };
     this.matDialog
       .open<SectionEditorDialogComponent, SectionEditorDialogData>(SectionEditorDialogComponent, {
         width: GIO_DIALOG_WIDTH.SMALL,
@@ -488,7 +529,8 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         return;
       }
       const navItem = selectedItem.data;
-      this.manageSection(navItem.type, 'edit', navItem.area, navItem);
+      const parentItem = this.mapSelectedNavItemToNode(navItem.parentId, this.menuLinks())?.data || null;
+      this.manageSection(navItem.type, 'edit', navItem.area, parentItem, navItem);
     });
   }
 
@@ -556,12 +598,15 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
     const action = isPublished ? 'Unpublish' : 'Publish';
     const pastAction = `${action.toLowerCase()}ed`;
+    const warning = isPublished
+      ? `Unpublishing this ${typeLabel} will also unpublish all nested documentation and APIs. This action cannot be undone automatically. Do you want to proceed?`
+      : '';
 
     const contentScope = navItem.type === 'FOLDER' || navItem.type === 'API' ? ' and its content ' : ' ';
 
     return {
       title: `${action} "${navItem.title}" ${typeLabel}?`,
-      content: `This ${typeLabel}${contentScope}will be ${pastAction}. This change will be visible in the Developer Portal.`,
+      content: `This ${typeLabel}${contentScope}will be ${pastAction}. This change will be visible in the Developer Portal. ${warning}`,
       confirmButton: action,
     };
   }

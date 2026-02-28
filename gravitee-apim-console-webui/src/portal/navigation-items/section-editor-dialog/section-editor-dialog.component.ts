@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, inject, OnInit } from '@angular/core';
+import { Component, computed, HostListener, inject, OnInit, Signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,6 +23,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { LowerCasePipe, TitleCasePipe } from '@angular/common';
 import { GioBannerModule, GioFormSelectionInlineModule } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import {
   PortalNavigationItem,
@@ -40,12 +41,14 @@ export type SectionEditorDialogItemType = Exclude<PortalNavigationItemType, 'API
 interface SectionEditorDialogCreateData {
   mode: 'create';
   type: SectionEditorDialogItemType;
+  parentItem?: PortalNavigationItem;
 }
 
 interface SectionEditorDialogEditData {
   mode: 'edit';
   type: PortalNavigationItemType;
   existingItem: PortalNavigationItem;
+  parentItem?: PortalNavigationItem;
 }
 
 export type SectionEditorDialogData = SectionEditorDialogCreateData | SectionEditorDialogEditData;
@@ -98,6 +101,7 @@ type SectionForm = FormGroup<SectionFormControls>;
     GioBannerModule,
     GioFormSelectionInlineModule,
     LowerCasePipe,
+    MatTooltipModule,
   ],
   templateUrl: './section-editor-dialog.component.html',
   styleUrls: ['./section-editor-dialog.component.scss'],
@@ -120,6 +124,19 @@ export class SectionEditorDialogComponent implements OnInit {
 
   private readonly dialogRef = inject(MatDialogRef<SectionEditorDialogComponent, SectionEditorDialogResult>);
   private readonly data: SectionEditorDialogData = inject(MAT_DIALOG_DATA);
+  readonly publicDisabled: Signal<boolean> = computed(() => {
+    return this.data.parentItem ? this.data.parentItem.visibility !== 'PUBLIC' : false;
+  });
+  readonly publicDisabledTooltip: Signal<string> = computed(() => {
+    if (!this.publicDisabled()) {
+      return '';
+    }
+
+    const parentType = this.data.parentItem?.type?.toLocaleLowerCase();
+    return parentType
+      ? `This navigation item is in ${parentType} requiring authentication`
+      : 'This navigation item is in container requiring authentication';
+  });
   public buttonTitle: string;
 
   constructor() {
@@ -146,8 +163,21 @@ export class SectionEditorDialogComponent implements OnInit {
   ngOnInit(): void {
     this.addTypeSpecificControls();
     this.prefillExistingItem();
+    this.syncVisibilityControlState();
 
     this.initialFormValues = this.form.getRawValue();
+  }
+
+  private syncVisibilityControlState(): void {
+    const isPrivateControl = this.form.controls.isPrivate;
+
+    if (this.publicDisabled()) {
+      isPrivateControl.setValue(true, { emitEvent: false });
+      isPrivateControl.disable({ emitEvent: false });
+      return;
+    }
+
+    isPrivateControl.enable({ emitEvent: false });
   }
 
   private addTypeSpecificControls(): void {
