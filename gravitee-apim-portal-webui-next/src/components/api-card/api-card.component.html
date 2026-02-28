@@ -15,18 +15,14 @@
     limitations under the License.
 
 -->
-<mat-card class="api-card" appearance="outlined">
-  <mat-card-content class="api-card__content">
+<gmd-card class="api-card" (click)="select.emit(apiId)">
+  <div class="api-card__content">
     <div class="api-card__header">
-      <app-picture [picture]="picture" [hashValue]="title + ' ' + version" [size]="40" />
       <div class="api-card__header__content">
         <div class="m3-title-medium">{{ title }}</div>
-        <div class="m3-body-medium"><span i18n="@@apiVersion">Version: </span>{{ version }}</div>
       </div>
       @if (isEnabledMcpServer) {
-        <mat-chip i18n="@@apiCardMcpEnabled" i18n-matTooltip matTooltip="MCP available for this API">
-          <img matChipAvatar alt="" [src]="'assets/images/mcp.svg'" />MCP</mat-chip
-        >
+        <app-badge i18n-label label="MCP" i18n-matTooltip matTooltip="MCP available for this API" />
       }
     </div>
     <div class="api-card__description m3-body-medium">
@@ -36,8 +32,5 @@
         <span i18n="@@apiDescriptionMissing">Description for this API is missing.</span>
       }
     </div>
-  </mat-card-content>
-  <mat-card-actions class="api-card__actions">
-    <button i18n="@@apiCardButton" mat-stroked-button color="primary" [routerLink]="['.', 'api', id]">Learn more</button>
-  </mat-card-actions>
-</mat-card>
+  </div>
+</gmd-card>

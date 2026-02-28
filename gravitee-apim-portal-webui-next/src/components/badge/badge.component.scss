@@ -13,35 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  display: flex;
-  flex-flow: column;
-  gap: 32px;
-}
+@use '../../scss/theme';
 
-.api-list {
-  &__header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-
-    &__category-info {
-      display: flex;
-      flex-flow: column;
-      justify-content: center;
-      gap: 8px;
-    }
-  }
-
-  &__container {
-    display: grid;
-    gap: 32px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-
-    &--mobile {
-      grid-template-columns: 1fr !important;
-    }
-  }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 27px;
+  padding: 0 10px;
+  border-radius: 4px;
+  background-color: theme.$badge-container-color;
+  color: theme.$badge-label-text-color;
 }

@@ -13,39 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../../scss/layout' as layout;
+import { Component, model } from '@angular/core';
 
-:host {
-  @include layout.large-container-legacy();
-}
-
-.content {
-  flex-flow: column;
-  gap: 32px;
-}
-
-.api-list__container {
-  display: grid;
-  gap: 32px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.catalog {
-  &__filters {
-    display: flex;
-    flex-flow: column;
-    gap: 32px;
-
-    &__bottom-row {
-      display: flex;
-      justify-content: space-between;
-
-      &__filter-labels {
-        display: flex;
-        flex-flow: column;
-        justify-content: center;
-        gap: 8px;
-      }
-    }
-  }
+@Component({
+  selector: 'app-button-toggle-group',
+  standalone: true,
+  templateUrl: './button-toggle-group.component.html',
+  styleUrl: './button-toggle-group.component.scss',
+})
+export class ButtonToggleGroupComponent {
+  value = model.required<string>();
 }

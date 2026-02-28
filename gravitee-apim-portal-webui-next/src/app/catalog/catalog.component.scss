@@ -1,0 +1,193 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../scss/layout' as layout;
+@use '../../scss/theme' as theme;
+
+:host {
+  @include layout.large-container-legacy();
+}
+
+.content {
+  flex-flow: column;
+  gap: 32px;
+}
+
+.api-list {
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    .next-gen-h1 {
+      color: theme.$default-text-color;
+    }
+
+    &--mobile {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto auto;
+      gap: 16px;
+
+      .next-gen-h1 {
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
+      }
+
+      .api-list__header__controls {
+        display: contents;
+      }
+
+      app-button-toggle-group {
+        grid-column: 2 / 3;
+        grid-row: 1 / 2;
+      }
+
+      app-search-bar {
+        grid-column: 1 / 3;
+        grid-row: 2 / 3;
+        width: 100%;
+      }
+    }
+
+    &__controls {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 16px;
+    }
+  }
+
+  &__container {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(4, 1fr);
+
+    &--narrow {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    &--mobile {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__table-container {
+    overflow-x: auto;
+  }
+
+  &__table {
+    width: 100%;
+
+    .mat-column-name {
+      width: 25%;
+      font-weight: 500;
+      color: theme.$default-text-color;
+    }
+
+    .mat-column-labels {
+      width: 50%;
+    }
+
+    .mat-column-version {
+      width: 12%;
+    }
+
+    .mat-column-mcp {
+      width: 80px;
+      text-align: right;
+    }
+
+    &__row {
+      cursor: pointer;
+    }
+
+    &__name-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &__info-button {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      margin-left: 6px;
+      background-color: theme.$card-background-color;
+      border: 1px solid theme.$default-text-color;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      vertical-align: middle;
+
+      &__text {
+        font-family: 'Times New Roman', serif;
+        font-style: italic;
+        color: theme.$default-text-color;
+        line-height: 1;
+      }
+
+      &:hover {
+        background-color: var(--mat-sys-surface-container-low);
+      }
+    }
+
+    &__mcp-cell {
+      text-align: right;
+    }
+  }
+
+  &__empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 100px;
+
+    h2 {
+      margin-bottom: 0;
+    }
+
+    p {
+      text-align: center;
+    }
+  }
+
+  &__pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+
+    &--mobile {
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    &__page-size {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      mat-form-field {
+        width: 80px;
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+@use '../../scss/theme';
 
-import { ConfigService } from '../services/config.service';
-
-export const catalogTabsViewGuard: CanActivateFn = (_r, _s) => {
-  const viewMode = inject(ConfigService).configuration?.portalNext?.catalog?.viewMode;
-  const router = inject(Router);
-
-  if (viewMode === 'CATEGORIES') {
-    router.navigate(['catalog', 'categories']);
-    return false;
-  }
-
-  return true;
-};
+.button-toggle-group {
+  display: flex;
+  border: 1px solid theme.$border-color;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: theme.$card-background-color;
+  height: 40px;
+}

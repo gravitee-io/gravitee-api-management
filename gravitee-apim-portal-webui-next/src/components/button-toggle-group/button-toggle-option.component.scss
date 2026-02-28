@@ -13,28 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../../../scss/theme';
+@use '../../scss/theme';
 
-.welcome-banner {
-  display: flex;
-  flex-flow: column;
-  padding: 16px;
-  gap: 36px;
+:host {
+  display: contents;
+}
 
-  &__content {
-    display: flex;
-    flex-flow: column;
-    gap: 24px;
+.button-toggle-option {
+  --mdc-text-button-container-height: 40px;
+  border-radius: 0;
+  min-width: unset;
+  color: theme.$paragraph-color;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
   }
 
-  &__actions {
-    display: flex;
-    align-items: center;
-    gap: 20px;
+  &--active {
+    background-color: theme.$button-toggle-active-background-color;
+    color: theme.$button-toggle-active-text-color;
 
-    &__secondary-button {
-      color: theme.$banner-text-color;
-      text-decoration: none;
+    mat-icon {
+      color: theme.$button-toggle-active-text-color;
+      font-variation-settings:
+        'FILL' 1,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 20;
     }
   }
 }

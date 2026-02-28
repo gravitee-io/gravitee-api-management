@@ -13,26 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../../../scss/layout' as layout;
+import { Component, Input } from '@angular/core';
 
-:host {
-  @include layout.large-container-legacy();
-}
-
-.content {
-  flex-flow: column;
-  gap: 32px;
-}
-
-.categories-view {
-  &__header {
-    display: flex;
-    place-content: center space-between;
-  }
-
-  &__container {
-    display: grid;
-    gap: 32px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+@Component({
+  selector: 'app-badge',
+  standalone: true,
+  templateUrl: './badge.component.html',
+  styleUrl: './badge.component.scss',
+})
+export class BadgeComponent {
+  @Input({ required: true })
+  label!: string;
 }
