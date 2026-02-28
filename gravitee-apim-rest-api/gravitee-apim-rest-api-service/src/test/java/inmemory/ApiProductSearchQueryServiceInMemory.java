@@ -98,6 +98,18 @@ public class ApiProductSearchQueryServiceInMemory extends AbstractQueryServiceIn
                 apiProduct -> apiProduct.getName() != null ? apiProduct.getName() : "",
                 String.CASE_INSENSITIVE_ORDER
             );
+            case "version" -> Comparator.comparing(
+                apiProduct -> apiProduct.getVersion() != null ? apiProduct.getVersion() : "",
+                String.CASE_INSENSITIVE_ORDER
+            );
+            case "apiCount" -> Comparator.comparingInt(apiProduct -> apiProduct.getApiIds() != null ? apiProduct.getApiIds().size() : 0);
+            case "ownerName" -> Comparator.comparing(
+                apiProduct ->
+                    apiProduct.getPrimaryOwner() != null && apiProduct.getPrimaryOwner().displayName() != null
+                        ? apiProduct.getPrimaryOwner().displayName()
+                        : "",
+                String.CASE_INSENSITIVE_ORDER
+            );
             case "createdAt" -> Comparator.comparing(
                 apiProduct -> apiProduct.getCreatedAt() != null ? apiProduct.getCreatedAt() : ZonedDateTime.now().minusYears(100),
                 Comparator.naturalOrder()

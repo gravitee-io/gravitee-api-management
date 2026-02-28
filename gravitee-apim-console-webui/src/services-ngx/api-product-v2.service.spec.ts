@@ -112,6 +112,88 @@ describe('ApiProductV2Service', () => {
     });
   });
 
+  describe('search', () => {
+    it('should call the API with default params and empty body', done => {
+      const response = { data: [fakeApiProduct()], pagination: { totalCount: 1 } };
+
+      apiProductV2Service.search().subscribe(result => {
+        expect(result.data).toHaveLength(1);
+        expect(result.data?.[0].name).toEqual('Payments API Product');
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${baseURL}/api-products/_search?page=1&perPage=10`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({});
+      req.flush(response);
+    });
+
+    it('should call the API with query and sortBy', done => {
+      const response = { data: [fakeApiProduct()], pagination: { totalCount: 1 } };
+
+      apiProductV2Service.search({ query: 'Payments' }, '-name', 2, 25).subscribe(result => {
+        expect(result.data).toHaveLength(1);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${baseURL}/api-products/_search?page=2&perPage=25&sortBy=-name`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({ query: 'Payments' });
+      req.flush(response);
+    });
+
+    it('should call the API with ids filter', done => {
+      const response = { data: [fakeApiProduct()], pagination: { totalCount: 1 } };
+
+      apiProductV2Service.search({ ids: ['product-1', 'product-2'] }, 'name', 1, 10).subscribe(result => {
+        expect(result.data).toHaveLength(1);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${baseURL}/api-products/_search?page=1&perPage=10&sortBy=name`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({ ids: ['product-1', 'product-2'] });
+      req.flush(response);
+    });
+
+    it('should call the API with sortBy version', done => {
+      const response = { data: [fakeApiProduct()], pagination: { totalCount: 1 } };
+
+      apiProductV2Service.search({}, 'version', 1, 10).subscribe(result => {
+        expect(result.data).toHaveLength(1);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${baseURL}/api-products/_search?page=1&perPage=10&sortBy=version`,
+        method: 'POST',
+      });
+      req.flush(response);
+    });
+
+    it('should not send invalid sortBy to the backend', done => {
+      const response = { data: [fakeApiProduct()], pagination: { totalCount: 1 } };
+
+      apiProductV2Service.search({}, 'invalidSort' as any, 1, 10).subscribe(result => {
+        expect(result.data).toHaveLength(1);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${baseURL}/api-products/_search?page=1&perPage=10`,
+        method: 'POST',
+      });
+      expect(req.request.params.has('sortBy')).toBe(false);
+      req.flush(response);
+    });
+  });
+
   describe('get', () => {
     it('should call the API', done => {
       const fakeProduct = fakeApiProduct({ id: 'product-123' });

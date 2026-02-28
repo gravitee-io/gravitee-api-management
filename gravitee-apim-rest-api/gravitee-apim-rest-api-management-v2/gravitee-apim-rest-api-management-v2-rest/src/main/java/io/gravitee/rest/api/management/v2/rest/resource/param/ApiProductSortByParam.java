@@ -27,7 +27,13 @@ public class ApiProductSortByParam {
 
     public enum ApiProductSortByEnum {
         NAME_ASC("name", "name", true),
-        NAME_DESC("-name", "name", false);
+        NAME_DESC("-name", "name", false),
+        VERSION_ASC("version", "version", true),
+        VERSION_DESC("-version", "version", false),
+        APIS_ASC("apis", "apiCount", true),
+        APIS_DESC("-apis", "apiCount", false),
+        OWNER_ASC("owner", "ownerName", true),
+        OWNER_DESC("-owner", "ownerName", false);
 
         private final String paramValue;
         private final String fieldName;
