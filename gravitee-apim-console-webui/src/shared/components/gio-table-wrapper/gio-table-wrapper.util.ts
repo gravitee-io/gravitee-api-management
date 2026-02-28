@@ -73,3 +73,12 @@ export const toOrder = (sort: Sort): string => {
   }
   return 'desc' === sort.direction ? `-${sort.active}` : sort.active;
 };
+
+export function filtersToQueryParams(filters: Partial<GioTableWrapperFilters>): Record<string, string | number | null> {
+  return {
+    q: filters.searchTerm || null,
+    page: filters.pagination?.index ?? 1,
+    size: filters.pagination?.size ?? 10,
+    order: filters.sort ? toOrder(filters.sort) : null,
+  };
+}

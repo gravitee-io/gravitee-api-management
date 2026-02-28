@@ -21,6 +21,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { EMPTY, merge, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { MatCardModule } from '@angular/material/card';
+import { ErrorStateMatcher, ShowOnDirtyErrorStateMatcher } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
@@ -55,6 +56,7 @@ interface ConfigForm {
   templateUrl: './api-product-configuration.component.html',
   styleUrls: ['./api-product-configuration.component.scss'],
   standalone: true,
+  providers: [{ provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }],
   imports: [
     ReactiveFormsModule,
     MatCardModule,
@@ -178,7 +180,7 @@ export class ApiProductConfigurationComponent {
       .afterClosed()
       .pipe(
         filter((confirm): confirm is true => confirm === true),
-        switchMap(() => this.apiProductV2Service.deleteAllApisFromApiProduct(apiProductId)),
+        switchMap(() => this.apiProductV2Service.updateApiProductApis(apiProductId, [])),
         tap(() => {
           this.snackBarService.success('All APIs have been removed from the API Product.');
           this.onReloadDetails();
@@ -204,7 +206,7 @@ export class ApiProductConfigurationComponent {
           title: 'Delete API Product',
           content: 'Are you sure you want to delete this API Product?',
           confirmButton: 'Yes, delete it',
-          validationMessage: `Please, type in the name of the API Product ${product.name} to confirm.`,
+          validationMessage: `Please, type in the name of the API Product <code>${product.name}</code> to confirm.`,
           validationValue: product.name,
           warning: 'This operation is irreversible.',
         },
@@ -265,7 +267,6 @@ export class ApiProductConfigurationComponent {
         nonNullable: true,
         validators: [Validators.required, Validators.maxLength(this.nameMaxLength), Validators.minLength(1)],
         asyncValidators: [apiProductNameUniqueAsyncValidator(this.apiProductV2Service, () => this.currentApiProduct?.name)],
-        updateOn: 'blur',
       }),
       version: new FormControl('', {
         nonNullable: true,

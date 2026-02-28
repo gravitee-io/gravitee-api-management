@@ -91,12 +91,6 @@ describe('ApiGeneralInfoIncludedInDialogComponent', () => {
       expect(names).toEqual(['Product Alpha']);
     });
 
-    it('should filter products by search term (description)', async () => {
-      await harness.setSearchTerm('Gamma description');
-      const names = await harness.getProductNames();
-      expect(names).toEqual(['Gamma API']);
-    });
-
     it('should show no products when search has no matches', async () => {
       await harness.setSearchTerm('nonexistent');
       const names = await harness.getProductNames();

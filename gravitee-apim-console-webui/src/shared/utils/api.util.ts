@@ -14,6 +14,16 @@
  * limitations under the License.
  */
 
+import { getApiAccess } from './api-access.util';
+
+import { Api, ApiV2, ApiV4 } from '../../entities/management-api-v2';
+
+export function getApiContextPath(api: Api | null | undefined): string | null {
+  if (!api || (api.definitionVersion !== 'V2' && api.definitionVersion !== 'V4')) return null;
+  const access = getApiAccess(api as ApiV4 | ApiV2);
+  return access?.[0] ?? null;
+}
+
 export const mapDefinitionVersionToLabel = (definitionVersion: string): string => {
   switch (definitionVersion) {
     case 'V1':
