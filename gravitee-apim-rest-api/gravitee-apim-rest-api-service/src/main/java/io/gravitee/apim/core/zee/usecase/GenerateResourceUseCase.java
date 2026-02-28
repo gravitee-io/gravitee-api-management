@@ -72,19 +72,18 @@ public class GenerateResourceUseCase {
     public GenerateResourceUseCase(LlmEngineService llmEngineService, List<RagContextStrategy> strategies) {
         this.llmEngineService = llmEngineService;
         this.ragStrategies = strategies
-                .stream()
-                .filter(s -> s.resourceType() != null)
-                .collect(
-                        Collectors.toUnmodifiableMap(
-                                RagContextStrategy::resourceType,
-                                Function.identity(),
-                                (first, second) -> {
-                                    log.warn(
-                                            "Duplicate RagContextStrategy for resourceType={}; keeping first ({})",
-                                            first.resourceType(),
-                                            first.getClass().getSimpleName());
-                                    return first;
-                                }));
+            .stream()
+            .filter(s -> s.resourceType() != null)
+            .collect(
+                Collectors.toUnmodifiableMap(RagContextStrategy::resourceType, Function.identity(), (first, second) -> {
+                    log.warn(
+                        "Duplicate RagContextStrategy for resourceType={}; keeping first ({})",
+                        first.resourceType(),
+                        first.getClass().getSimpleName()
+                    );
+                    return first;
+                })
+            );
     }
 
     /**
@@ -110,9 +109,10 @@ public class GenerateResourceUseCase {
 
         // 5. Return domain result
         return new ZeeResult(
-                request.resourceType(),
-                llmResult.data(),
-                new ZeeMetadata(MODEL_IDENTIFIER, llmResult.tokensUsed(), !ragContext.isBlank()));
+            request.resourceType(),
+            llmResult.data(),
+            new ZeeMetadata(MODEL_IDENTIFIER, llmResult.tokensUsed(), !ragContext.isBlank())
+        );
     }
 
     // ── private helpers ──────────────────────────────────────────────────────
@@ -124,10 +124,11 @@ public class GenerateResourceUseCase {
             return ctx != null ? ctx : "";
         } catch (Exception e) {
             log.warn(
-                    "RAG context retrieval failed for resourceType={} envId={}; continuing without RAG context",
-                    request.resourceType(),
-                    envId,
-                    e);
+                "RAG context retrieval failed for resourceType={} envId={}; continuing without RAG context",
+                request.resourceType(),
+                envId,
+                e
+            );
             return "";
         }
     }

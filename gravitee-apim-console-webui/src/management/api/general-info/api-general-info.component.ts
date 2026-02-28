@@ -52,6 +52,7 @@ import { Api, ApiType, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from 
 import { MigrateToV4State } from '../../../entities/management-api-v2/api/v2/migrateToV4Response';
 import { Integration } from '../../integrations/integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
+import { API_ADAPTER } from '../../../shared/components/zee/adapters/api-adapter';
 
 export interface MigrateDialogResult {
   confirmed: boolean;
@@ -103,6 +104,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
   public integrationName = '';
   public integrationId = '';
+  public apiAdapter = API_ADAPTER;
 
   constructor(
     private readonly router: Router,
@@ -465,6 +467,36 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
     } else {
       return api.lifecycleState === 'CREATED' || api.lifecycleState === 'PUBLISHED' || api.lifecycleState === 'UNPUBLISHED';
     }
+  }
+
+  onApiGenerated(generatedData: unknown) {
+    const data = generatedData as Record<string, unknown>;
+
+    this.apiService
+      .get(this.apiId)
+      .pipe(
+        switchMap((api: Api) => {
+          const apiToUpdate: UpdateApiV4 = {
+            ...(api as ApiV4),
+            ...(typeof data.name === 'string' ? { name: data.name } : {}),
+            ...(typeof data.apiVersion === 'string' ? { apiVersion: data.apiVersion } : {}),
+            ...(typeof data.description === 'string' ? { description: data.description } : {}),
+            ...(Array.isArray(data.tags) ? { labels: data.tags } : {}),
+          };
+          return this.apiService.update(this.apiId, apiToUpdate);
+        }),
+        tap(() => this.snackBarService.success('API updated by Zee!')),
+        catchError((err) => {
+          this.snackBarService.error(err.error?.message ?? 'Failed to update API');
+          return EMPTY;
+        }),
+        tap(() => {
+          this.apiId = undefined;
+          this.ngOnInit();
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 }
 

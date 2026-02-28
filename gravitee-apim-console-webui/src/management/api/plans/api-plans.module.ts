@@ -35,6 +35,7 @@ import { ApiPlanEditComponent } from './edit/api-plan-edit.component';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { ApiPlanFormModule } from '../component/plan/api-plan-form.module';
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { ZeeModule } from '../../../shared/components/zee/zee.module';
 
 @NgModule({
   declarations: [ApiPlanListComponent, ApiPlanEditComponent],
@@ -61,6 +62,7 @@ import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-bu
 
     ApiPlanFormModule,
     MatMenuModule,
+    ZeeModule,
   ],
 })
 export class ApiPlansModule {}

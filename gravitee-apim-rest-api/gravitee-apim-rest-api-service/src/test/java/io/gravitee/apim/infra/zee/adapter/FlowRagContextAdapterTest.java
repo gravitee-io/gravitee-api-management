@@ -73,9 +73,12 @@ class FlowRagContextAdapterTest {
         @Test
         void returns_available_policies_section_when_policies_present() {
             when(flowCrudService.getApiV4Flows("api-123")).thenReturn(List.of());
-            when(policyPluginQueryService.findAll()).thenReturn(Set.of(
+            when(policyPluginQueryService.findAll()).thenReturn(
+                Set.of(
                     policyPlugin("rate-limit", "Rate limiting and quota management"),
-                    policyPlugin("transform-headers", "Add/remove HTTP headers")));
+                    policyPlugin("transform-headers", "Add/remove HTTP headers")
+                )
+            );
 
             var context = adapter.retrieveContext("env-1", "org-1", Map.of("apiId", "api-123"));
 
@@ -101,17 +104,18 @@ class FlowRagContextAdapterTest {
         @Test
         void limits_flows_to_max_five() {
             var flows = IntStream.range(0, 10)
-                    .mapToObj(i -> namedFlow("Flow " + i, 0))
-                    .collect(Collectors.toList());
+                .mapToObj(i -> namedFlow("Flow " + i, 0))
+                .collect(Collectors.toList());
             when(flowCrudService.getApiV4Flows("api-123")).thenReturn(flows);
             when(policyPluginQueryService.findAll()).thenReturn(Set.of());
 
             var context = adapter.retrieveContext("env-1", "org-1", Map.of("apiId", "api-123"));
 
             // Count occurrences of "- Flow"
-            long flowLines = context.lines()
-                    .filter(line -> line.startsWith("- Flow "))
-                    .count();
+            long flowLines = context
+                .lines()
+                .filter(line -> line.startsWith("- Flow "))
+                .count();
             assertThat(flowLines).isEqualTo(FlowRagContextAdapter.MAX_FLOWS);
         }
 
@@ -119,15 +123,16 @@ class FlowRagContextAdapterTest {
         void limits_policies_to_max_twenty() {
             when(flowCrudService.getApiV4Flows("api-123")).thenReturn(List.of());
             var policies = IntStream.range(0, 30)
-                    .mapToObj(i -> policyPlugin("policy-" + i, "Description " + i))
-                    .collect(Collectors.toSet());
+                .mapToObj(i -> policyPlugin("policy-" + i, "Description " + i))
+                .collect(Collectors.toSet());
             when(policyPluginQueryService.findAll()).thenReturn(policies);
 
             var context = adapter.retrieveContext("env-1", "org-1", Map.of("apiId", "api-123"));
 
-            long policyLines = context.lines()
-                    .filter(line -> line.startsWith("- policy-"))
-                    .count();
+            long policyLines = context
+                .lines()
+                .filter(line -> line.startsWith("- policy-"))
+                .count();
             assertThat(policyLines).isEqualTo(FlowRagContextAdapter.MAX_POLICIES);
         }
 
@@ -205,9 +210,6 @@ class FlowRagContextAdapterTest {
     }
 
     private static PolicyPlugin policyPlugin(String id, String description) {
-        return PolicyPlugin.builder()
-                .id(id)
-                .description(description)
-                .build();
+        return PolicyPlugin.builder().id(id).description(description).build();
     }
 }

@@ -1,0 +1,60 @@
+<!--
+  ~ Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~         http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<mat-card class="endpoint-card">
+  <mat-card-header>
+    <mat-card-title class="endpoint-card__title">
+      <mat-icon class="endpoint-card__icon">cloud</mat-icon>
+      <span>{{ endpoint?.name || 'Unnamed Endpoint' }}</span>
+    </mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content class="endpoint-card__content">
+    <!-- Type -->
+    <div class="endpoint-card__detail" *ngIf="endpoint?.type">
+      <h4 class="endpoint-card__section-title">Type</h4>
+      <mat-chip-set>
+        <mat-chip highlighted>{{ endpoint.type }}</mat-chip>
+      </mat-chip-set>
+    </div>
+
+    <!-- Weight -->
+    <div class="endpoint-card__detail" *ngIf="endpoint?.weight != null">
+      <h4 class="endpoint-card__section-title">Weight</h4>
+      <span class="endpoint-card__value">{{ endpoint.weight }}</span>
+    </div>
+
+    <!-- Flags -->
+    <div class="endpoint-card__detail">
+      <mat-chip-set class="endpoint-card__chips">
+        <mat-chip *ngIf="endpoint?.inheritConfiguration">
+          <mat-icon matChipAvatar>link</mat-icon>
+          Inherits Config
+        </mat-chip>
+        <mat-chip *ngIf="endpoint?.secondary" color="warn" highlighted>
+          <mat-icon matChipAvatar>swap_horiz</mat-icon>
+          Secondary
+        </mat-chip>
+      </mat-chip-set>
+    </div>
+
+    <!-- Empty state -->
+    <p *ngIf="!endpoint?.type && endpoint?.weight == null"
+       class="endpoint-card__empty">
+      No endpoint details to display.
+    </p>
+  </mat-card-content>
+</mat-card>

@@ -60,18 +60,15 @@ public class ZeeResource extends AbstractResource {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response generate(
-            @FormDataParam("request") ZeeRequestDto requestDto,
-            @FormDataParam("files") List<FormDataBodyPart> files) {
+    public Response generate(@FormDataParam("request") ZeeRequestDto requestDto, @FormDataParam("files") List<FormDataBodyPart> files) {
         var envId = GraviteeContext.getCurrentEnvironment();
         var orgId = GraviteeContext.getCurrentOrganization();
 
         // Basic in-memory rate limiting per environment
         if (isRateLimited(envId)) {
             return Response.status(Response.Status.TOO_MANY_REQUESTS)
-                    .entity("{\"message\":\"Rate limit exceeded. Max " + MAX_REQUESTS_PER_MINUTE
-                            + " requests per minute.\"}")
-                    .build();
+                .entity("{\"message\":\"Rate limit exceeded. Max " + MAX_REQUESTS_PER_MINUTE + " requests per minute.\"}")
+                .build();
         }
 
         var request = requestDto.toDomain(files);

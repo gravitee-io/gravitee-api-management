@@ -13,31 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component, Input } from '@angular/core';
 
-export enum ZeeResourceType {
-  FLOW = 'FLOW',
-  PLAN = 'PLAN',
-  API = 'API',
-  ENDPOINT = 'ENDPOINT',
-  ENTRYPOINT = 'ENTRYPOINT',
+export interface GeneratedApi {
+  name?: string;
+  apiVersion?: string;
+  version?: string;
+  description?: string;
+  type?: string;
+  listeners?: any[];
+  endpointGroups?: any[];
+  flows?: any[];
+  properties?: any[];
+  tags?: string[];
 }
 
-export interface ZeeResourceAdapter<TSavePayload = unknown> {
-  transform(generated: unknown, context?: Record<string, unknown>): TSavePayload;
-  previewLabel: string;
-}
+@Component({
+  selector: 'zee-api-card',
+  templateUrl: './api-card.component.html',
+  styleUrls: ['./api-card.component.scss'],
+  standalone: false,
+})
+export class ApiCardComponent {
+  @Input() api: GeneratedApi | null | undefined;
 
-export interface ZeeGenerateRequest {
-  resourceType: ZeeResourceType;
-  prompt: string;
-  contextData?: Record<string, unknown>;
-}
-
-export interface ZeeGenerateResponse {
-  resourceType: string;
-  generated: unknown;
-  metadata: {
-    model: string;
-    tokensUsed: number;
-  };
+  get displayVersion(): string {
+    return this.api?.apiVersion ?? this.api?.version ?? '';
+  }
 }

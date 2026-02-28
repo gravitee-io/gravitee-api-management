@@ -22,6 +22,14 @@
   </span>
 </div>
 <form *ngIf="planForm && planMenuItem" autocomplete="off" gioFormFocusInvalid [formGroup]="planForm" (ngSubmit)="onSubmit()">
+  <div class="zee-widget-container" *ngIf="!isReadOnly && mode === 'create'">
+    <zee-widget
+      [resourceType]="'PLAN'"
+      [adapter]="planAdapter"
+      [contextData]="{ apiId: api?.id }"
+      (accepted)="onPlanGenerated($event)"
+    ></zee-widget>
+  </div>
   <mat-card>
     <api-plan-form
       #apiPlanForm

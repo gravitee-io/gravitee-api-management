@@ -23,6 +23,14 @@
   ></api-general-info-agent-card>
 }
 <form *ngIf="apiDetailsForm" [formGroup]="parentForm" autocomplete="off" gioFormFocusInvalid>
+  <div class="zee-widget-container" *ngIf="!isReadOnly && api?.definitionVersion === 'V4'">
+    <zee-widget
+      [resourceType]="'API'"
+      [adapter]="apiAdapter"
+      [contextData]="{ apiId: apiId }"
+      (accepted)="onApiGenerated($event)"
+    ></zee-widget>
+  </div>
   <mat-card class="details-card" [formGroup]="apiDetailsForm">
     @if (api.definitionVersion !== 'FEDERATED_AGENT') {
       <mat-card-content>

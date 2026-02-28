@@ -33,6 +33,7 @@ import { ApiHealthCheckV4FormComponent } from '../../component/health-check-v4-f
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { Tenant } from '../../../../entities/tenant/tenant';
 import { TenantService } from '../../../../services-ngx/tenant.service';
+import { ENDPOINT_ADAPTER } from '../../../../shared/components/zee/adapters/endpoint-adapter';
 
 export type EndpointHealthCheckFormType = FormGroup<{
   enabled: FormControl<boolean>;
@@ -64,6 +65,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
   public isNativeKafkaApi: boolean;
   public healthCheckForm: EndpointHealthCheckFormType;
   public tenants: Tenant[];
+  public endpointAdapter = ENDPOINT_ADAPTER;
 
   constructor(
     private readonly router: Router,
@@ -342,5 +344,39 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
   private resetHealthCheckToGroup() {
     this.healthCheckForm.controls.enabled.patchValue(this.endpointGroup.services?.healthCheck?.enabled ?? false);
     this.healthCheckForm.controls.configuration.patchValue(this.endpointGroup.services?.healthCheck?.configuration ?? {});
+  }
+
+  onEndpointGenerated(generatedData: unknown) {
+    const data = generatedData as Record<string, unknown>;
+    const apiId = this.activatedRoute.snapshot.params.apiId;
+
+    const newEndpoint: EndpointV4 = {
+      type: this.endpointGroup?.type ?? 'http-proxy',
+      name: (data.name as string) ?? '',
+      weight: (data.weight as number) ?? 1,
+      inheritConfiguration: (data.inheritConfiguration as boolean) ?? true,
+      configuration: (data.configuration as Record<string, unknown>) ?? {},
+      sharedConfigurationOverride: (data.sharedConfigurationOverride as Record<string, unknown>) ?? {},
+    };
+
+    this.apiService
+      .get(apiId)
+      .pipe(
+        switchMap((api: ApiV4) => {
+          const endpointGroups = api.endpointGroups.map((group, i) =>
+            i === this.groupIndex ? { ...group, endpoints: [...group.endpoints, newEndpoint] } : group,
+          );
+          return this.apiService.update(api.id, { ...api, endpointGroups });
+        }),
+        tap(() => this.snackBarService.success('Endpoint created by Zee!')),
+        catchError(({ error }) => {
+          this.snackBarService.error(error?.message ?? 'Failed to create endpoint');
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => {
+        this.router.navigate(['../../'], { relativeTo: this.activatedRoute });
+      });
   }
 }

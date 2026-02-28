@@ -32,8 +32,7 @@ public final class NoOpRagStrategy implements RagContextStrategy {
     /** Shared singleton — stateless and thread-safe. */
     public static final NoOpRagStrategy INSTANCE = new NoOpRagStrategy();
 
-    private NoOpRagStrategy() {
-    }
+    private NoOpRagStrategy() {}
 
     /**
      * Not registered for any specific resource type.

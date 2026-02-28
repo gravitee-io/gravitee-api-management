@@ -56,6 +56,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
 import { GioCircularPercentageModule } from '../../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
 import { GioApiImportDialogModule } from '../component/gio-api-import-dialog/gio-api-import-dialog.module';
 import { GioLicenseBannerModule } from '../../../shared/components/gio-license-banner/gio-license-banner.module';
+import { ZeeModule } from '../../../shared/components/zee/zee.module';
 
 @NgModule({
   declarations: [
@@ -101,6 +102,7 @@ import { GioLicenseBannerModule } from '../../../shared/components/gio-license-b
     GioBannerModule,
     GioLicenseBannerModule,
     ApiGeneralInfoAgentCardComponent,
+    ZeeModule,
   ],
 })
 export class ApiGeneralInfoModule {}

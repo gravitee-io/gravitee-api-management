@@ -25,6 +25,7 @@ import { ApiV4, ConnectorPlugin, Entrypoint, Listener, Qos, UpdateApiV4 } from '
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { IconService } from '../../../../services-ngx/icon.service';
+import { ENTRYPOINT_ADAPTER } from '../../../../shared/components/zee/adapters/entrypoint-adapter';
 
 type DlqElement = { name: string; type: string; icon: string };
 @Component({
@@ -50,6 +51,7 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
   public supportDlq: boolean;
   public enabledDlq: boolean;
   public dlqElements: { name: string; elements: DlqElement[] }[] = [];
+  public entrypointAdapter = ENTRYPOINT_ADAPTER;
 
   constructor(
     private readonly router: Router,
@@ -258,5 +260,53 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
       }
     });
     return selectedElement;
+  }
+
+  onEntrypointGenerated(generatedData: unknown) {
+    const data = generatedData as Record<string, unknown>;
+    if (!this.entrypoint) return;
+
+    this.apiService
+      .get(this.apiId)
+      .pipe(
+        switchMap((api: ApiV4) => {
+          const listenerToUpdate = api.listeners.find((listener) =>
+            listener.entrypoints.some((ep) => ep.type === this.entrypointId),
+          );
+          if (!listenerToUpdate) return EMPTY;
+
+          const updatedEntrypoint: Entrypoint = {
+            ...this.entrypoint,
+            configuration: (data.configuration as Record<string, unknown>) ?? this.entrypoint.configuration,
+          };
+
+          // Map DLQ if present in generated data
+          if (data.dlq && typeof data.dlq === 'object') {
+            const dlq = data.dlq as Record<string, unknown>;
+            if (typeof dlq.endpoint === 'string') {
+              updatedEntrypoint.dlq = { endpoint: dlq.endpoint };
+            }
+          }
+
+          const updatedListener: Listener = {
+            ...listenerToUpdate,
+            entrypoints: [...listenerToUpdate.entrypoints.filter((ep) => ep.type !== this.entrypointId), updatedEntrypoint],
+          };
+          const updateApi: UpdateApiV4 = {
+            ...api,
+            listeners: [...api.listeners.filter((l) => l.type !== listenerToUpdate.type), updatedListener],
+          };
+          return this.apiService.update(this.apiId, updateApi);
+        }),
+        tap(() => this.snackBarService.success('Entrypoint updated by Zee!')),
+        catchError((err) => {
+          this.snackBarService.error(err.error?.message ?? 'Failed to update entrypoint');
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => {
+        this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+      });
   }
 }

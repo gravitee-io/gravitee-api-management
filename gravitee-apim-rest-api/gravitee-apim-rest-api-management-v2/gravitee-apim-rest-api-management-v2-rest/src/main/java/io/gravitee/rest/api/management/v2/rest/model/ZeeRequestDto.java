@@ -43,13 +43,11 @@ public class ZeeRequestDto {
      */
     public ZeeRequest toDomain(List<FormDataBodyPart> files) {
         var fileContents = files == null
-                ? List.<FileContent>of()
-                : files.stream()
-                        .map(f -> new FileContent(
-                                f.getContentDisposition().getFileName(),
-                                f.getValueAs(String.class),
-                                f.getMediaType().toString()))
-                        .toList();
+            ? List.<FileContent>of()
+            : files
+                .stream()
+                .map(f -> new FileContent(f.getContentDisposition().getFileName(), f.getValueAs(String.class), f.getMediaType().toString()))
+                .toList();
 
         return new ZeeRequest(ZeeResourceType.valueOf(resourceType), prompt, fileContents, contextData);
     }

@@ -30,10 +30,14 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { ZeeWidgetComponent } from './zee-widget/zee-widget.component';
 import { ZeePreviewComponent } from './zee-preview/zee-preview.component';
 import { FlowCardComponent } from './zee-structured-view/flow-card.component';
+import { PlanCardComponent } from './zee-structured-view/plan-card.component';
+import { EndpointCardComponent } from './zee-structured-view/endpoint-card.component';
+import { EntrypointCardComponent } from './zee-structured-view/entrypoint-card.component';
+import { ApiCardComponent } from './zee-structured-view/api-card.component';
 
 @NgModule({
-  declarations: [ZeeWidgetComponent, ZeePreviewComponent, FlowCardComponent],
-  exports: [ZeeWidgetComponent, ZeePreviewComponent, FlowCardComponent],
+  declarations: [ZeeWidgetComponent, ZeePreviewComponent, FlowCardComponent, PlanCardComponent, EndpointCardComponent, EntrypointCardComponent, ApiCardComponent],
+  exports: [ZeeWidgetComponent, ZeePreviewComponent, FlowCardComponent, PlanCardComponent, EndpointCardComponent, EntrypointCardComponent, ApiCardComponent],
   imports: [
     CommonModule,
     FormsModule,

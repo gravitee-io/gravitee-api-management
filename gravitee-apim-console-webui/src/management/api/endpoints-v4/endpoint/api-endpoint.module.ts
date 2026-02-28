@@ -36,6 +36,7 @@ import { ApiEndpointComponent } from './api-endpoint.component';
 
 import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { ApiHealthCheckV4FormModule } from '../../component/health-check-v4-form/api-health-check-v4-form.module';
+import { ZeeModule } from '../../../../shared/components/zee/zee.module';
 
 @NgModule({
   declarations: [ApiEndpointComponent],
@@ -62,6 +63,7 @@ import { ApiHealthCheckV4FormModule } from '../../component/health-check-v4-form
     GioGoBackButtonModule,
     MatTabsModule,
     ApiHealthCheckV4FormModule,
+    ZeeModule,
   ],
 })
 export class ApiEndpointModule {}

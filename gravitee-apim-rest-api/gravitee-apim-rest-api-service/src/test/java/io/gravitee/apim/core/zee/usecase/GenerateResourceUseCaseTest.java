@@ -44,11 +44,12 @@ class GenerateResourceUseCaseTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final JsonNode FAKE_JSON = MAPPER.createObjectNode().put("name", "my-flow");
     private static final LlmEngineService.LlmGenerationResult FAKE_RESULT = new LlmEngineService.LlmGenerationResult(
-            FAKE_JSON,
-            true,
-            100,
-            List.of(),
-            List.of());
+        FAKE_JSON,
+        true,
+        100,
+        List.of(),
+        List.of()
+    );
 
     LlmEngineService mockLlm = mock(LlmEngineService.class);
     RagContextStrategy mockRag = mock(RagContextStrategy.class);
@@ -103,8 +104,7 @@ class GenerateResourceUseCaseTest {
 
     @Test
     void should_continue_when_rag_throws() {
-        when(mockRag.retrieveContext(any(), any(), any()))
-                .thenThrow(new RuntimeException("RAG service unavailable"));
+        when(mockRag.retrieveContext(any(), any(), any())).thenThrow(new RuntimeException("RAG service unavailable"));
 
         var request = new ZeeRequest(ZeeResourceType.FLOW, "create a flow", List.of(), Map.of());
         // Should not throw — graceful degradation
@@ -117,7 +117,6 @@ class GenerateResourceUseCaseTest {
 
     @Test
     void should_include_file_contents_in_prompt() {
-
         var file = new FileContent("spec.json", "{\"openapi\":\"3.0\"}", "application/json");
         var request = new ZeeRequest(ZeeResourceType.FLOW, "create from spec", List.of(file), Map.of());
         useCase.execute(request, "env-1", "org-1");
@@ -132,7 +131,6 @@ class GenerateResourceUseCaseTest {
 
     @Test
     void should_map_component_name_from_resource_type() {
-
         var request = new ZeeRequest(ZeeResourceType.FLOW, "create flow", List.of(), Map.of());
         useCase.execute(request, "env-1", "org-1");
 
@@ -141,7 +139,6 @@ class GenerateResourceUseCaseTest {
 
     @Test
     void should_include_user_prompt_in_generated_prompt() {
-
         var request = new ZeeRequest(ZeeResourceType.FLOW, "my specific user request", List.of(), Map.of());
         useCase.execute(request, "env-1", "org-1");
 
@@ -153,7 +150,6 @@ class GenerateResourceUseCaseTest {
 
     @Test
     void should_propagate_tokens_used_from_llm_result() {
-
         var request = new ZeeRequest(ZeeResourceType.FLOW, "create flow", List.of(), Map.of());
         var result = useCase.execute(request, "env-1", "org-1");
 
@@ -162,7 +158,6 @@ class GenerateResourceUseCaseTest {
 
     @Test
     void should_pass_env_and_org_to_rag_strategy() {
-
         var request = new ZeeRequest(ZeeResourceType.FLOW, "create flow", List.of(), Map.of("apiId", "api-123"));
         useCase.execute(request, "env-abc", "org-xyz");
 

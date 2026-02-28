@@ -34,9 +34,6 @@ public class ZeeResultDto {
     private ZeeMetadataDto metadata;
 
     public static ZeeResultDto from(ZeeResult result) {
-        return new ZeeResultDto(
-                result.resourceType().name(),
-                result.generated(),
-                ZeeMetadataDto.from(result.metadata()));
+        return new ZeeResultDto(result.resourceType().name(), result.generated(), ZeeMetadataDto.from(result.metadata()));
     }
 }

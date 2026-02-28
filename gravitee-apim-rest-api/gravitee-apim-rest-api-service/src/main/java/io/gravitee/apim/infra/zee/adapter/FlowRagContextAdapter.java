@@ -99,13 +99,14 @@ public class FlowRagContextAdapter implements RagContextStrategy {
             }
 
             sb.append("### Existing Flows\n");
-            flows.stream()
-                    .limit(MAX_FLOWS)
-                    .forEach(flow -> {
-                        var name = flow.getName() != null ? flow.getName() : "(unnamed)";
-                        var stepCount = countSteps(flow);
-                        sb.append("- ").append(name).append(": ").append(stepCount).append(" step(s)\n");
-                    });
+            flows
+                .stream()
+                .limit(MAX_FLOWS)
+                .forEach(flow -> {
+                    var name = flow.getName() != null ? flow.getName() : "(unnamed)";
+                    var stepCount = countSteps(flow);
+                    sb.append("- ").append(name).append(": ").append(stepCount).append(" step(s)\n");
+                });
         } catch (Exception e) {
             LOG.warn("Failed to retrieve existing flows for RAG context: {}", e.getMessage());
         }
@@ -122,13 +123,14 @@ public class FlowRagContextAdapter implements RagContextStrategy {
                 sb.append("\n");
             }
             sb.append("### Available Policies\n");
-            policies.stream()
-                    .limit(MAX_POLICIES)
-                    .forEach(policy -> {
-                        var id = policy.getId() != null ? policy.getId() : "(unknown)";
-                        var description = policy.getDescription() != null ? policy.getDescription() : "";
-                        sb.append("- ").append(id).append(": ").append(description).append("\n");
-                    });
+            policies
+                .stream()
+                .limit(MAX_POLICIES)
+                .forEach(policy -> {
+                    var id = policy.getId() != null ? policy.getId() : "(unknown)";
+                    var description = policy.getDescription() != null ? policy.getDescription() : "";
+                    sb.append("- ").append(id).append(": ").append(description).append("\n");
+                });
         } catch (Exception e) {
             LOG.warn("Failed to retrieve available policies for RAG context: {}", e.getMessage());
         }
@@ -136,14 +138,10 @@ public class FlowRagContextAdapter implements RagContextStrategy {
 
     private static int countSteps(io.gravitee.definition.model.v4.flow.Flow flow) {
         int count = 0;
-        if (flow.getRequest() != null)
-            count += flow.getRequest().size();
-        if (flow.getResponse() != null)
-            count += flow.getResponse().size();
-        if (flow.getPublish() != null)
-            count += flow.getPublish().size();
-        if (flow.getSubscribe() != null)
-            count += flow.getSubscribe().size();
+        if (flow.getRequest() != null) count += flow.getRequest().size();
+        if (flow.getResponse() != null) count += flow.getResponse().size();
+        if (flow.getPublish() != null) count += flow.getPublish().size();
+        if (flow.getSubscribe() != null) count += flow.getSubscribe().size();
         return count;
     }
 }

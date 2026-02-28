@@ -27,6 +27,7 @@ import { Api, ApiV4, CreatePlanV2, CreatePlanV4, Plan, PlanStatus } from '../../
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 import { isApiV4 } from '../../../../util';
+import { PLAN_ADAPTER } from '../../../../shared/components/zee/adapters/plan-adapter';
 
 @Component({
   selector: 'api-plan-edit',
@@ -50,6 +51,7 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
   public currentPlanStatus: PlanStatus;
   public hasTcpListeners;
   public isNative: boolean = false;
+  public planAdapter = PLAN_ADAPTER;
 
   constructor(
     private readonly router: Router,
@@ -153,6 +155,32 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
         } else {
           this.router.navigate(['../'], { relativeTo: this.activatedRoute, queryParams: { status: 'STAGING' } });
         }
+      });
+  }
+
+  onPlanGenerated(generatedData: unknown) {
+    const data = generatedData as Record<string, unknown>;
+    if (!this.api) return;
+
+    const mode = typeof data.mode === 'string' && data.mode === 'PUSH' ? 'PUSH' : 'STANDARD';
+    const plan = {
+      ...data,
+      definitionVersion: 'V4' as const,
+      mode: mode as 'PUSH' | 'STANDARD',
+    };
+
+    this.planService
+      .create(this.api.id, plan as CreatePlanV4)
+      .pipe(
+        tap(() => this.snackBarService.success('Plan created by Zee!')),
+        catchError((error) => {
+          this.snackBarService.error(error.error?.message ?? 'Failed to create plan');
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => {
+        this.router.navigate(['../'], { relativeTo: this.activatedRoute, queryParams: { status: 'STAGING' } });
       });
   }
 }

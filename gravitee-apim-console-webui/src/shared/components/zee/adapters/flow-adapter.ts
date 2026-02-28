@@ -16,58 +16,122 @@
 
 import { ZeeResourceAdapter } from '../zee.model';
 
-export const FLOW_ADAPTER: ZeeResourceAdapter = {
+interface FlowStep {
+  name: string;
+  policy: string;
+  enabled: boolean;
+  description?: string;
+  condition?: string;
+  configuration: Record<string, unknown>;
+  messageCondition?: string;
+}
+
+interface FlowSelector {
+  type: string;
+  path?: string;
+  pathOperator?: string;
+  methods?: string[];
+  channel?: string;
+  channelOperator?: string;
+  operations?: string[];
+  entrypoints?: string[];
+  condition?: string;
+}
+
+interface FlowPayload {
+  name: string;
+  enabled: boolean;
+  selectors: FlowSelector[];
+  request: FlowStep[];
+  response: FlowStep[];
+  subscribe: FlowStep[];
+  publish: FlowStep[];
+  tags: string[];
+}
+
+export const FLOW_ADAPTER: ZeeResourceAdapter<FlowPayload> = {
   previewLabel: 'Generated Flow',
-  transform: (generated: any): any => {
-    // Map rehydrated Gravitee API Definition Flow shape
-    // to the REST API save payload format
+  transform: (generated: unknown): FlowPayload => {
+    const g = generated as Record<string, unknown>;
     return {
-      name: generated.name,
-      enabled: generated.enabled ?? true,
-      selectors: generated.selectors?.map(mapSelector) ?? [],
-      request: generated.request?.map(mapStep) ?? [],
-      response: generated.response?.map(mapStep) ?? [],
-      subscribe: generated.subscribe?.map(mapStep) ?? [],
-      publish: generated.publish?.map(mapStep) ?? [],
-      tags: generated.tags ?? [],
+      name: asString(g.name, ''),
+      enabled: asBoolean(g.enabled, true),
+      selectors: asArray(g.selectors).map(mapSelector),
+      request: asArray(g.request).map(mapStep),
+      response: asArray(g.response).map(mapStep),
+      subscribe: asArray(g.subscribe).map(mapStep),
+      publish: asArray(g.publish).map(mapStep),
+      tags: asStringArray(g.tags),
     };
   },
 };
 
-function mapStep(step: any) {
-  let configuration = {};
-  if (step.configuration) {
-    try {
-      configuration = typeof step.configuration === 'string' ? JSON.parse(step.configuration) : step.configuration;
-    } catch (e) {
-      console.warn('Zee FLOW_ADAPTER: Failed to parse step configuration json', step.configuration, e);
-    }
-  }
-
+function mapStep(raw: unknown): FlowStep {
+  const s = raw as Record<string, unknown>;
   return {
-    name: step.name,
-    policy: step.policy,
-    enabled: step.enabled ?? true,
-    description: step.description,
-    condition: step.condition,
-    configuration,
-    messageCondition: step.messageCondition,
+    name: asString(s.name, ''),
+    policy: asString(s.policy, ''),
+    enabled: asBoolean(s.enabled, true),
+    description: asOptionalString(s.description),
+    condition: asOptionalString(s.condition),
+    configuration: parseConfig(s.configuration),
+    messageCondition: asOptionalString(s.messageCondition),
   };
 }
 
-function mapSelector(sel: any) {
-  // Map based on discriminator type
-  switch (sel.type) {
-    case 'http':
+function mapSelector(raw: unknown): FlowSelector {
+  const sel = raw as Record<string, unknown>;
+  const type = asString(sel.type, '').toUpperCase();
+  switch (type) {
     case 'HTTP':
-      return { type: 'HTTP', path: sel.path, pathOperator: sel.pathOperator, methods: sel.methods };
-    case 'channel':
+      return { type: 'HTTP', path: asOptionalString(sel.path), pathOperator: asOptionalString(sel.pathOperator), methods: asStringArray(sel.methods) };
     case 'CHANNEL':
-      return { type: 'CHANNEL', channel: sel.channel, channelOperator: sel.channelOperator, operations: sel.operations, entrypoints: sel.entrypoints };
-    case 'condition':
+      return {
+        type: 'CHANNEL',
+        channel: asOptionalString(sel.channel),
+        channelOperator: asOptionalString(sel.channelOperator),
+        operations: asStringArray(sel.operations),
+        entrypoints: asStringArray(sel.entrypoints),
+      };
     case 'CONDITION':
-      return { type: 'CONDITION', condition: sel.condition };
+      return { type: 'CONDITION', condition: asOptionalString(sel.condition) };
     default:
-      return sel;
+      return { type };
   }
+}
+
+// ── Type-safe helpers ──
+
+function asString(v: unknown, fallback: string): string {
+  return typeof v === 'string' ? v : fallback;
+}
+
+function asOptionalString(v: unknown): string | undefined {
+  return typeof v === 'string' ? v : undefined;
+}
+
+function asBoolean(v: unknown, fallback: boolean): boolean {
+  return typeof v === 'boolean' ? v : fallback;
+}
+
+function asStringArray(v: unknown): string[] {
+  return Array.isArray(v) ? v.filter((item): item is string => typeof item === 'string') : [];
+}
+
+function asArray(v: unknown): unknown[] {
+  return Array.isArray(v) ? v : [];
+}
+
+function parseConfig(config: unknown): Record<string, unknown> {
+  if (!config) return {};
+  if (typeof config === 'string') {
+    try {
+      const parsed: unknown = JSON.parse(config);
+      return typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : {};
+    } catch {
+      console.warn('Zee FLOW_ADAPTER: Failed to parse configuration JSON', config);
+      return {};
+    }
+  }
+  return typeof config === 'object' && config !== null ? (config as Record<string, unknown>) : {};
 }

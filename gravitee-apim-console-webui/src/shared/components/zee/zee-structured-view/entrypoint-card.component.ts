@@ -13,31 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component, Input } from '@angular/core';
 
-export enum ZeeResourceType {
-  FLOW = 'FLOW',
-  PLAN = 'PLAN',
-  API = 'API',
-  ENDPOINT = 'ENDPOINT',
-  ENTRYPOINT = 'ENTRYPOINT',
+export interface GeneratedEntrypoint {
+  type?: string;
+  configuration?: any;
+  dlq?: any;
 }
 
-export interface ZeeResourceAdapter<TSavePayload = unknown> {
-  transform(generated: unknown, context?: Record<string, unknown>): TSavePayload;
-  previewLabel: string;
-}
+@Component({
+  selector: 'zee-entrypoint-card',
+  templateUrl: './entrypoint-card.component.html',
+  styleUrls: ['./entrypoint-card.component.scss'],
+  standalone: false,
+})
+export class EntrypointCardComponent {
+  @Input() entrypoint: GeneratedEntrypoint | null | undefined;
 
-export interface ZeeGenerateRequest {
-  resourceType: ZeeResourceType;
-  prompt: string;
-  contextData?: Record<string, unknown>;
-}
-
-export interface ZeeGenerateResponse {
-  resourceType: string;
-  generated: unknown;
-  metadata: {
-    model: string;
-    tokensUsed: number;
-  };
+  get hasDlq(): boolean {
+    return this.entrypoint?.dlq != null;
+  }
 }

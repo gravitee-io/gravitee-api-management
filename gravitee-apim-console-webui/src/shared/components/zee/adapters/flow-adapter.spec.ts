@@ -131,7 +131,6 @@ describe('FLOW_ADAPTER', () => {
       expect(result.selectors).toEqual([
         {
           type: 'UNKNOWN',
-          customValue: 123,
         },
       ]);
     });
