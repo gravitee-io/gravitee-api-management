@@ -17,8 +17,9 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { Constants } from '../../../entities/Constants';
 import { ZeeGenerateRequest, ZeeGenerateResponse } from './zee.model';
+
+import { Constants } from '../../../entities/Constants';
 
 @Injectable({
   providedIn: 'root',

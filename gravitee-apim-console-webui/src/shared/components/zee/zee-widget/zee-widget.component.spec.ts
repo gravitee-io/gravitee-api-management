@@ -19,10 +19,10 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { of, throwError } from 'rxjs';
 
 import { ZeeWidgetComponent } from './zee-widget.component';
+
 import { ZeeModule } from '../zee.module';
 import { ZeeService } from '../zee.service';
 import { ZeeGenerateResponse, ZeeResourceAdapter, ZeeResourceType } from '../zee.model';
-
 import { GioTestingModule } from '../../../testing';
 
 /** JSDOM lacks DataTransfer — create a minimal FileList-shaped stub for unit tests. */

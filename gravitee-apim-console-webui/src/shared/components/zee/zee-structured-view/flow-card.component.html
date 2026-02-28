@@ -1,0 +1,76 @@
+<!--
+  ~ Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~         http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<mat-card class="flow-card">
+  <mat-card-header>
+    <mat-card-title class="flow-card__title">
+      <mat-icon class="flow-card__icon">account_tree</mat-icon>
+      <span>{{ flow?.name || 'Unnamed Flow' }}</span>
+    </mat-card-title>
+    <mat-chip-set class="flow-card__status">
+      <mat-chip [color]="flow?.enabled ? 'primary' : 'warn'" highlighted>
+        {{ flow?.enabled ? 'Enabled' : 'Disabled' }}
+      </mat-chip>
+    </mat-chip-set>
+  </mat-card-header>
+
+  <mat-card-content class="flow-card__content">
+
+    <!-- Step sections: request, response, subscribe, publish -->
+    <ng-container *ngFor="let section of stepSections">
+      <ng-container *ngIf="flow?.[section.key]?.length">
+        <h4 class="flow-card__section-title">{{ section.label }}</h4>
+        <mat-list dense class="flow-card__step-list">
+          <mat-list-item *ngFor="let step of flow[section.key]" class="flow-card__step-item">
+            <mat-icon matListItemIcon>policy</mat-icon>
+            <span matListItemTitle>{{ step.name || step.policy || 'Step' }}</span>
+            <span matListItemLine *ngIf="step.policy">Policy: <strong>{{ step.policy }}</strong></span>
+            <span matListItemLine *ngIf="step.description">{{ step.description }}</span>
+          </mat-list-item>
+        </mat-list>
+      </ng-container>
+    </ng-container>
+
+    <!-- Selectors -->
+    <ng-container *ngIf="flow?.selectors?.length">
+      <h4 class="flow-card__section-title">Selectors</h4>
+      <mat-chip-set class="flow-card__chips">
+        <mat-chip *ngFor="let sel of flow.selectors" class="flow-card__selector-chip">
+          <mat-icon matChipAvatar>filter_alt</mat-icon>
+          {{ sel.type }}<span *ngIf="sel.path || sel.channel">: {{ sel.path || sel.channel }}</span>
+        </mat-chip>
+      </mat-chip-set>
+    </ng-container>
+
+    <!-- Tags -->
+    <ng-container *ngIf="flow?.tags?.length">
+      <h4 class="flow-card__section-title">Tags</h4>
+      <mat-chip-set class="flow-card__chips">
+        <mat-chip *ngFor="let tag of flow.tags">
+          <mat-icon matChipAvatar>label</mat-icon>
+          {{ tag }}
+        </mat-chip>
+      </mat-chip-set>
+    </ng-container>
+
+    <!-- Empty state -->
+    <p *ngIf="!flow?.request?.length && !flow?.response?.length && !flow?.subscribe?.length && !flow?.publish?.length && !flow?.selectors?.length && !flow?.tags?.length"
+       class="flow-card__empty">
+      No flow details to display.
+    </p>
+
+  </mat-card-content>
+</mat-card>

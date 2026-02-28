@@ -73,7 +73,7 @@
       <mat-icon color="primary">auto_awesome</mat-icon>
       <h3 class="zee-preview__title">{{ adapter?.previewLabel }}</h3>
     </div>
-    <pre class="zee-preview__json">{{ generatedResource | json }}</pre>
+    <zee-preview [data]="generatedResource" [resourceType]="resourceType"></zee-preview>
     <div class="zee-actions">
       <button mat-raised-button color="primary" (click)="onAccept()">
         <mat-icon>check</mat-icon>
