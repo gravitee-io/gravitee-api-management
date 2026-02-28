@@ -97,7 +97,7 @@ describe('ApiProductPlanEditComponent', () => {
       fixture.detectChanges();
 
       // ApiPlanFormComponent adds validators that require fields; bypass form validity for this test
-      jest.spyOn(fixture.componentInstance['planForm']()!, 'invalid', 'get').mockReturnValue(false);
+      jest.spyOn(fixture.componentInstance['planForm'], 'invalid', 'get').mockReturnValue(false);
       fixture.componentInstance['onSubmit']();
       tick();
       fixture.detectChanges();
@@ -145,7 +145,7 @@ describe('ApiProductPlanEditComponent', () => {
       tick();
       fixture.detectChanges();
 
-      jest.spyOn(fixture.componentInstance['planForm']()!, 'invalid', 'get').mockReturnValue(false);
+      jest.spyOn(fixture.componentInstance['planForm'], 'invalid', 'get').mockReturnValue(false);
       fixture.componentInstance['onSubmit']();
       tick();
       fixture.detectChanges();
@@ -189,7 +189,7 @@ describe('ApiProductPlanEditComponent', () => {
       tick();
       fixture.detectChanges();
 
-      jest.spyOn(fixture.componentInstance['planForm']()!, 'invalid', 'get').mockReturnValue(false);
+      jest.spyOn(fixture.componentInstance['planForm'], 'invalid', 'get').mockReturnValue(false);
       fixture.componentInstance['onSubmit']();
       tick();
       fixture.detectChanges();
@@ -236,7 +236,7 @@ describe('ApiProductPlanEditComponent', () => {
       tick();
       fixture.detectChanges();
 
-      jest.spyOn(fixture.componentInstance['planForm']()!, 'invalid', 'get').mockReturnValue(false);
+      jest.spyOn(fixture.componentInstance['planForm'], 'invalid', 'get').mockReturnValue(false);
       fixture.componentInstance['onSubmit']();
       tick();
       fixture.detectChanges();
