@@ -59,6 +59,7 @@ public record FilterSpec(Name name, String label, Type type, List<String> enumVa
         MCP_PROXY_TOOL,
         MCP_PROXY_RESOURCE,
         MCP_PROXY_PROMPT,
+        API_TYPE,
     }
 
     public enum Type {

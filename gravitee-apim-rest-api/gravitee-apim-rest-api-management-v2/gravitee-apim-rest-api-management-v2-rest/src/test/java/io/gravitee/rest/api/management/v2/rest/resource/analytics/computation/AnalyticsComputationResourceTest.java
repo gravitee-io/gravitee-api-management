@@ -18,13 +18,18 @@ package io.gravitee.rest.api.management.v2.rest.resource.analytics.computation;
 import static assertions.MAPIAssertions.assertThat;
 import static fixtures.AnalyticsEngineFixtures.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
-import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
-import io.gravitee.apim.core.user.model.UserContext;
+import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
+import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.Filter;
+import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.result.FacetBucketResult;
 import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
 import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
@@ -51,16 +56,22 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeries
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesResponseMetricsInner;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import jakarta.ws.rs.client.Entity;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -74,10 +85,13 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
     AnalyticsRepository analyticsRepository;
 
     @Autowired
-    FilterPreProcessor filterPreProcessor;
+    QueryFilterTransformer queryFilterTransformer;
 
     @Autowired
     BucketNamesPostProcessor bucketNamesPostprocessor;
+
+    @Autowired
+    AnalyticsQueryContextLoader analyticsQueryContextLoader;
 
     @Override
     protected String contextPath() {
@@ -122,7 +136,10 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             );
 
-            when(filterPreProcessor.buildFilters(any(UserContext.class))).thenAnswer(caller -> caller.getArgument(0));
+            when(analyticsQueryContextLoader.load(any())).thenReturn(
+                new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
+            );
+            when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
         }
 
         @Test
@@ -203,7 +220,10 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             ).thenAnswer(invocation -> invocation.getArgument(2));
 
-            when(filterPreProcessor.buildFilters(any(UserContext.class))).thenAnswer(caller -> caller.getArgument(0));
+            when(analyticsQueryContextLoader.load(any())).thenReturn(
+                new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
+            );
+            when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
         }
 
         @Test
@@ -321,7 +341,10 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             ).thenAnswer(invocation -> invocation.getArgument(2));
 
-            when(filterPreProcessor.buildFilters(any(UserContext.class))).thenAnswer(caller -> caller.getArgument(0));
+            when(analyticsQueryContextLoader.load(any())).thenReturn(
+                new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
+            );
+            when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
         }
 
         @Test
@@ -400,6 +423,115 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
             leaf.setMeasures(List.of(new Measure().name(MeasureName.COUNT).value(count)));
             bucket.setActualInstance(leaf);
             return bucket;
+        }
+    }
+
+    @Nested
+    class FilterTransformation {
+
+        @BeforeEach
+        void setUp() {
+            Mockito.reset(analyticsRepository, queryFilterTransformer);
+            when(analyticsQueryContextLoader.load(any())).thenReturn(
+                new AnalyticsQueryContext(
+                    null,
+                    new ExecutionContext(ORGANIZATION, ENVIRONMENT),
+                    Set.of("api-1", "api-2"),
+                    Map.of(),
+                    Map.of(),
+                    Map.of()
+                )
+            );
+        }
+
+        @Test
+        void should_forward_transformer_api_filter_to_es_query() {
+            var apiFilter = new io.gravitee.apim.core.analytics_engine.model.Filter(
+                FilterSpec.Name.API,
+                FilterSpec.Operator.IN,
+                Set.of("api-1")
+            );
+            when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenReturn(List.of(apiFilter));
+
+            var queryContext = new QueryContext(ORGANIZATION, ENVIRONMENT);
+            when(analyticsRepository.searchHTTPMeasures(eq(queryContext), any())).thenReturn(
+                new MeasuresResult(
+                    List.of(
+                        new MetricMeasuresResult(
+                            Metric.HTTP_REQUESTS,
+                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 10)
+                        )
+                    )
+                )
+            );
+            when(analyticsRepository.searchMessageMeasures(eq(queryContext), any())).thenReturn(
+                new MeasuresResult(
+                    List.of(
+                        new MetricMeasuresResult(
+                            Metric.MESSAGES,
+                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 5)
+                        )
+                    )
+                )
+            );
+
+            rootTarget().path("measures").request().post(Entity.json(aCountMeasureRequest()));
+
+            var queryCaptor = ArgumentCaptor.forClass(MeasuresQuery.class);
+            verify(analyticsRepository).searchHTTPMeasures(eq(queryContext), queryCaptor.capture());
+
+            var esFilters = queryCaptor.getValue().filters();
+            Assertions.assertThat(esFilters).anyMatch(f -> f.name() == Filter.Name.API);
+            Assertions.assertThat(esFilters).noneMatch(f -> f.name().name().equals("API_TYPE"));
+        }
+
+        @SuppressWarnings("unchecked")
+        @Test
+        void should_scope_api_filter_to_authorized_ids() {
+            var authorizedIds = Set.of("api-1", "api-2");
+            var apiFilter = new io.gravitee.apim.core.analytics_engine.model.Filter(
+                FilterSpec.Name.API,
+                FilterSpec.Operator.IN,
+                authorizedIds
+            );
+            when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenReturn(List.of(apiFilter));
+
+            var queryContext = new QueryContext(ORGANIZATION, ENVIRONMENT);
+            when(analyticsRepository.searchHTTPMeasures(eq(queryContext), any())).thenReturn(
+                new MeasuresResult(
+                    List.of(
+                        new MetricMeasuresResult(
+                            Metric.HTTP_REQUESTS,
+                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 10)
+                        )
+                    )
+                )
+            );
+            when(analyticsRepository.searchMessageMeasures(eq(queryContext), any())).thenReturn(
+                new MeasuresResult(
+                    List.of(
+                        new MetricMeasuresResult(
+                            Metric.MESSAGES,
+                            Map.of(io.gravitee.repository.analytics.engine.api.metric.Measure.COUNT, 5)
+                        )
+                    )
+                )
+            );
+
+            rootTarget().path("measures").request().post(Entity.json(aCountMeasureRequest()));
+
+            var queryCaptor = ArgumentCaptor.forClass(MeasuresQuery.class);
+            verify(analyticsRepository).searchHTTPMeasures(eq(queryContext), queryCaptor.capture());
+
+            var apiFilterInQuery = queryCaptor
+                .getValue()
+                .filters()
+                .stream()
+                .filter(f -> f.name() == Filter.Name.API)
+                .findFirst()
+                .orElseThrow();
+
+            Assertions.assertThat((Collection<String>) apiFilterInQuery.value()).containsExactlyInAnyOrderElementsOf(authorizedIds);
         }
     }
 }

@@ -58,4 +58,8 @@ public class InvalidQueryException extends ValidationDomainException {
     public static InvalidQueryException forInvalidMeasure(String metric, String measure) {
         return new InvalidQueryException("Measure " + measure + " is not supported for metric " + metric);
     }
+
+    public static InvalidQueryException forUnknownAPIType(String apiType) {
+        return new InvalidQueryException("Unknown API type " + apiType);
+    }
 }

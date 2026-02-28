@@ -15,11 +15,13 @@
  */
 package io.gravitee.rest.api.management.v2.rest.spring;
 
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
-import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
+import io.gravitee.apim.infra.domain_service.analytics_engine.ManagementContextLoader;
+import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ApiTypeFilterTransformer;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.BucketNamesPostProcessorImpl;
-import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ManagementFilterPreProcessor;
 import io.gravitee.apim.infra.domain_service.user.UserContextLoaderImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
@@ -52,13 +54,16 @@ public class RestManagementConfiguration {
     }
 
     @Bean
-    public BucketNamesPostProcessor bucketNamesPostProcessor(ApplicationService applicationSearchService) {
-        return new BucketNamesPostProcessorImpl(applicationSearchService);
+    public BucketNamesPostProcessor bucketNamesPostProcessor(
+        @Lazy ApiRepository apiRepository,
+        ApplicationService applicationSearchService
+    ) {
+        return new BucketNamesPostProcessorImpl(apiRepository, applicationSearchService);
     }
 
     @Bean
-    public FilterPreProcessor managementFilterPreProcessor() {
-        return new ManagementFilterPreProcessor();
+    public QueryFilterTransformer apiTypeFilterTransformer() {
+        return new ApiTypeFilterTransformer();
     }
 
     @Bean
@@ -73,5 +78,13 @@ public class RestManagementConfiguration {
         UserService userService
     ) {
         return new SubscriptionExpandHelper(planSearchService, applicationService, userService);
+    }
+
+    @Bean
+    public AnalyticsQueryContextLoader analyticsQueryContextLoader(
+        ApiAuthorizationService apiAuthorizationService,
+        @Lazy ApiRepository apiRepository
+    ) {
+        return new ManagementContextLoader(apiAuthorizationService, apiRepository);
     }
 }

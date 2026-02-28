@@ -15,10 +15,10 @@
  */
 package io.gravitee.apim.core.analytics_engine.domain_service;
 
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
-import io.gravitee.apim.core.user.model.UserContext;
 import java.util.List;
 
 /**
@@ -26,7 +26,7 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface BucketNamesPostProcessor {
-    FacetsResponse mapBucketNames(UserContext context, List<FacetSpec.Name> facets, FacetsResponse response);
+    FacetsResponse mapBucketNames(AnalyticsQueryContext context, List<FacetSpec.Name> facets, FacetsResponse response);
 
-    TimeSeriesResponse mapBucketNames(UserContext context, List<FacetSpec.Name> facets, TimeSeriesResponse response);
+    TimeSeriesResponse mapBucketNames(AnalyticsQueryContext context, List<FacetSpec.Name> facets, TimeSeriesResponse response);
 }
