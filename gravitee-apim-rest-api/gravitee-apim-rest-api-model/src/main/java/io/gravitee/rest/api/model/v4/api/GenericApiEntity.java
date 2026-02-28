@@ -50,6 +50,8 @@ public interface GenericApiEntity extends Serializable, Indexable {
 
     boolean isDisableMembershipNotifications();
 
+    boolean isAllowMultiJwtOauth2Subscriptions();
+
     Map<String, Object> getMetadata();
 
     void setMetadata(Map<String, Object> metadata);

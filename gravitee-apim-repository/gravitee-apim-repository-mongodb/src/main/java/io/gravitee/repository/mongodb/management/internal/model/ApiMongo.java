@@ -107,6 +107,8 @@ public class ApiMongo extends DeprecatedAuditable {
 
     private boolean disableMembershipNotifications;
 
+    private boolean allowMultiJwtOauth2Subscriptions;
+
     private String background;
 
     public ApiMongo setIntegrationId(String integrationId) {

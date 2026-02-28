@@ -74,6 +74,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         api.setCreatedAt(parse("11/02/2016"));
         api.setUpdatedAt(parse("12/02/2016"));
         api.setDisableMembershipNotifications(true);
+        api.setAllowMultiJwtOauth2Subscriptions(true);
 
         apiRepository.create(api);
 
@@ -94,6 +95,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue("Invalid api updateAt.", compareDate(api.getUpdatedAt(), apiSaved.getUpdatedAt()));
         assertEquals("Invalid api lifecycle.", api.getApiLifecycleState(), apiSaved.getApiLifecycleState());
         assertTrue("Invalid api disable membership notifications", apiSaved.isDisableMembershipNotifications());
+        assertTrue("Invalid api allow multi JwtOauth2 subscriptions", apiSaved.isAllowMultiJwtOauth2Subscriptions());
 
         // test delete
         int nbApplicationBefore = apiRepository.search(null, ApiFieldFilter.allFields()).size();
@@ -162,6 +164,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         api.setVisibility(Visibility.PRIVATE);
         api.setApiLifecycleState(ApiLifecycleState.UNPUBLISHED);
         api.setDisableMembershipNotifications(false);
+        api.setAllowMultiJwtOauth2Subscriptions(true);
 
         int nbAPIsBeforeUpdate = apiRepository.search(null, ApiFieldFilter.allFields()).size();
         apiRepository.update(api);
@@ -189,6 +192,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("Invalid API visibility.", Visibility.PRIVATE, apiUpdated.getVisibility());
         assertEquals("Invalid API lifecycle state.", ApiLifecycleState.UNPUBLISHED, apiUpdated.getApiLifecycleState());
         assertFalse("Invalid API disable membership notifications", apiUpdated.isDisableMembershipNotifications());
+        assertTrue("Invalid api disable membership notifications", api.isDisableMembershipNotifications());
     }
 
     @Test
@@ -208,6 +212,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("Invalid api label at position 0", "label 1", api.getLabels().iterator().next());
         assertEquals("Invalid api lifecycle state", ApiLifecycleState.DEPRECATED, api.getApiLifecycleState());
         assertTrue("Invalid api disable membership notifications", api.isDisableMembershipNotifications());
+        assertTrue("Invalid api allow multi JwtOauth2 subscriptions", api.isAllowMultiJwtOauth2Subscriptions());
     }
 
     @Test

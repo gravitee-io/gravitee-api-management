@@ -78,5 +78,10 @@ export interface UpdateBaseApi {
    * Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.
    */
   allowedInApiProducts?: boolean;
+  /**
+   * @description Allow an application to subscribe to more than one JWT/OAuth2 plan. Selection rules or sharding tags should be configured on plans (V4 only).
+   * @default false
+   */
+  allowMultiJwtOauth2Subscriptions?: boolean;
   properties?: Property[];
 }

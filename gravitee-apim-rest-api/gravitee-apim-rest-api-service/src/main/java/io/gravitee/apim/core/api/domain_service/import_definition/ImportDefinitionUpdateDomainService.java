@@ -136,6 +136,7 @@ public class ImportDefinitionUpdateDomainService {
                 )
                 .labels(apiExport.getLabels())
                 .disableMembershipNotifications(apiExport.isDisableMembershipNotifications())
+                .allowMultiJwtOauth2Subscriptions(apiExport.isAllowMultiJwtOauth2Subscriptions())
                 .apiDefinitionValue(
                     currentApi.getApiDefinitionValue() instanceof NativeApi nativeApi
                         ? nativeApi
