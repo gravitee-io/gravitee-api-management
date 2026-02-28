@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-export * from './apiProduct';
-export * from './apiProductSearchQuery';
-export * from './apiProductSortByParam';
-export * from './apiProductsResponse';
-export * from './createApiProduct';
-export * from './updateApiProduct';
+export interface ApiProductSearchQuery {
+  /**
+   * Filter by name (case-insensitive substring match).
+   */
+  query?: string;
+  /**
+   * Filter by exact API Product IDs.
+   */
+  ids?: string[];
+}

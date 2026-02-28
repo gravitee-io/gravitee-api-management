@@ -26,6 +26,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { ErrorStateMatcher, ShowOnDirtyErrorStateMatcher } from '@angular/material/core';
 
 import { CreateApiProduct } from '../../../entities/management-api-v2/api-product';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
@@ -43,6 +44,7 @@ interface CreateApiProductForm {
   templateUrl: './api-product-create.component.html',
   styleUrls: ['./api-product-create.component.scss'],
   standalone: true,
+  providers: [{ provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -67,7 +69,6 @@ export class ApiProductCreateComponent {
       nonNullable: true,
       validators: [Validators.required, Validators.maxLength(512), Validators.minLength(1)],
       asyncValidators: [apiProductNameUniqueAsyncValidator(this.apiProductV2Service)],
-      updateOn: 'blur',
     }),
     version: new FormControl('', {
       nonNullable: true,

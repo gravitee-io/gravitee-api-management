@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { isObject } from 'angular';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -31,7 +32,6 @@ import { ApiProduct } from '../../../entities/management-api-v2/api-product';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
 describe('ApiProductListComponent', () => {
   let fixture: ComponentFixture<ApiProductListComponent>;
@@ -39,6 +39,7 @@ describe('ApiProductListComponent', () => {
   let httpTestingController: HttpTestingController;
   let _router: Router;
   let queryParams$: BehaviorSubject<Record<string, string>>;
+  let navigateSpy: jest.SpyInstance;
 
   const fakeSnackBarService = {
     error: jest.fn(),
@@ -57,7 +58,9 @@ describe('ApiProductListComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            snapshot: { queryParams: {} },
+            get snapshot() {
+              return { queryParams: queryParams$.value };
+            },
             queryParams: queryParams$.asObservable(),
           },
         },
@@ -68,6 +71,19 @@ describe('ApiProductListComponent', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     _router = TestBed.inject(Router);
+
+    // When router.navigate is called with queryParams, sync them to our mock so the component receives the update
+    const originalNavigate = _router.navigate.bind(_router);
+    navigateSpy = jest.spyOn(_router, 'navigate').mockImplementation((commands, extras) => {
+      if (extras?.queryParams && isObject(extras.queryParams)) {
+        const params: Record<string, string> = {};
+        for (const [k, v] of Object.entries(extras.queryParams)) {
+          if (v != null && v !== '') params[k] = String(v);
+        }
+        queryParams$.next({ ...queryParams$.value, ...params });
+      }
+      return originalNavigate(commands, extras);
+    });
   });
 
   afterEach(() => {
@@ -140,12 +156,72 @@ describe('ApiProductListComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products?page=1&perPage=10`);
+    const req = httpTestingController.expectOne(
+      r => r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_search`) && r.method === 'POST',
+    );
     req.flush({ message: 'Error loading products' }, { status: 500, statusText: 'Internal Server Error' });
     fixture.detectChanges();
     await fixture.whenStable();
 
     expect(fakeSnackBarService.error).toHaveBeenCalled();
+  });
+
+  it('should use default sort (sortBy=name) when URL has no order param', async () => {
+    queryParams$.next({});
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const req = httpTestingController.expectOne(
+      r => r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_search`) && r.method === 'POST',
+    );
+    expect(req.request.params.get('sortBy')).toEqual('name');
+    req.flush({ data: [], pagination: { totalCount: 0 } });
+    await fixture.whenStable();
+  });
+
+  it('should add order=name to URL when missing after first load', async () => {
+    queryParams$.next({});
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const req = httpTestingController.expectOne(
+      r => r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_search`) && r.method === 'POST',
+    );
+    req.flush({ data: [], pagination: { totalCount: 0 } });
+    await fixture.whenStable();
+
+    // Router spy syncs queryParams on navigate, which may trigger a second request after debounce (100ms)
+    await new Promise(resolve => setTimeout(resolve, 150));
+
+    const pending = httpTestingController.match(
+      r => r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_search`) && r.method === 'POST',
+    );
+    pending.forEach(r => r.flush({ data: [], pagination: { totalCount: 0 } }));
+    await fixture.whenStable();
+
+    const orderCall = navigateSpy.mock.calls.find(call => call[1]?.queryParams?.order === 'name');
+    expect(orderCall).toBeDefined();
+  });
+
+  it('should propagate sortBy from component sort state to _search request', async () => {
+    // order=-name → queryParamsToFilters → toSort → { active: 'name', direction: 'desc' } → toOrder → '-name'
+    queryParams$.next({ order: '-name' });
+    try {
+      fixture.detectChanges();
+    } catch (e: unknown) {
+      if ((e as Error)?.message?.includes('NG0100') === false) throw e;
+    }
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const req = httpTestingController.expectOne(
+      r => r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_search`) && r.method === 'POST',
+    );
+    expect(req.request.params.get('sortBy')).toEqual('-name');
+    expect(req.request.params.get('page')).toEqual('1');
+    expect(req.request.params.get('perPage')).toEqual('10');
+    req.flush({ data: [], pagination: { totalCount: 0 } });
+    await fixture.whenStable();
   });
 
   it('should update filters and reload data when query params change', async () => {
@@ -158,17 +234,36 @@ describe('ApiProductListComponent', () => {
     };
     await initComponent([apiProduct]);
 
-    const navigateSpy = jest.spyOn(_router, 'navigate');
-    const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
-    await tableWrapper.setSearchValue('test');
+    // Flush any second request from component syncing order: 'name' to URL
+    await new Promise(resolve => setTimeout(resolve, 150));
+    const pendingAfterInit = httpTestingController.match(
+      r => r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_search`) && r.method === 'POST',
+    );
+    pendingAfterInit.forEach(r => r.flush({ data: [apiProduct], pagination: { totalCount: 1 } }));
+    await fixture.whenStable();
+
+    const comp = fixture.componentInstance;
+    comp.onFiltersChanged({
+      searchTerm: 'test',
+      pagination: { index: 1, size: 10 },
+      sort: { active: 'name', direction: 'asc' },
+    });
 
     expect(navigateSpy).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: expect.objectContaining({ q: 'test' }) }));
+    const navigateCallWithSearch = navigateSpy.mock.calls.find(c => c[1]?.queryParams?.q === 'test');
+    expect(navigateCallWithSearch).toBeDefined();
+    const queryParams = navigateCallWithSearch![1].queryParams;
+    expect(['q', 'page', 'size', 'order'].every(k => Object.prototype.hasOwnProperty.call(queryParams, k))).toBe(true);
 
-    // Simulate router having updated query params (router is the source of truth)
-    queryParams$.next({ q: 'test' });
+    // Router spy synced queryParams when navigate was called - wait for debounce (100ms) so the request is sent
     await new Promise(resolve => setTimeout(resolve, 150));
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products?page=1&perPage=10`);
+
+    const req = httpTestingController.expectOne(
+      r => r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_search`) && r.method === 'POST',
+    );
+    expect(req.request.body).toEqual({ query: 'test' });
     req.flush({ data: [], pagination: { totalCount: 0 } });
+    fixture.detectChanges();
     await fixture.whenStable();
   });
 
@@ -215,19 +310,33 @@ describe('ApiProductListComponent', () => {
     };
     await initComponent([apiProduct]);
 
-    const navigateSpy = jest.spyOn(_router, 'navigate');
-    const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
-    await tableWrapper.setSearchValue('nonexistent-search-term');
+    // Flush any second request from component syncing order: 'name' to URL
+    await new Promise(resolve => setTimeout(resolve, 150));
+    const pendingAfterInit = httpTestingController.match(
+      r => r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_search`) && r.method === 'POST',
+    );
+    pendingAfterInit.forEach(r => r.flush({ data: [apiProduct], pagination: { totalCount: 1 } }));
+    await fixture.whenStable();
+
+    const comp = fixture.componentInstance;
+    comp.onFiltersChanged({
+      searchTerm: 'nonexistent-search-term',
+      pagination: { index: 1, size: 10 },
+      sort: { active: 'name', direction: 'asc' },
+    });
 
     expect(navigateSpy).toHaveBeenCalledWith(
       [],
       expect.objectContaining({ queryParams: expect.objectContaining({ q: 'nonexistent-search-term' }) }),
     );
 
-    queryParams$.next({ q: 'nonexistent-search-term' });
+    // Router spy synced queryParams when navigate was called - wait for debounce (100ms) so the request is sent
     await new Promise(resolve => setTimeout(resolve, 150));
 
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products?page=1&perPage=10`);
+    const req = httpTestingController.expectOne(
+      r => r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_search`) && r.method === 'POST',
+    );
+    expect(req.request.body).toEqual({ query: 'nonexistent-search-term' });
     req.flush({ data: [], pagination: { totalCount: 0 } });
     fixture.detectChanges();
     await fixture.whenStable();
@@ -241,8 +350,13 @@ describe('ApiProductListComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products?page=1&perPage=10`);
-    expect(req.request.method).toEqual('GET');
+    const req = httpTestingController.expectOne(
+      r => r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_search`) && r.method === 'POST',
+    );
+    expect(req.request.body).toEqual({});
+    expect(req.request.params.get('page')).toEqual('1');
+    expect(req.request.params.get('perPage')).toEqual('10');
+    expect(req.request.params.get('sortBy')).toEqual('name');
     req.flush({ data: apiProducts, pagination: { totalCount: apiProducts.length } });
     fixture.detectChanges();
     await fixture.whenStable();
