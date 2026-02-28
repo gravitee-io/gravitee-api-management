@@ -17,11 +17,12 @@ package io.gravitee.apim.core.gateway.query_service;
 
 import io.gravitee.apim.core.gateway.model.BaseInstance;
 import io.gravitee.apim.core.gateway.model.Instance;
-import io.gravitee.rest.api.model.InstanceEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Collection;
 import java.util.List;
 
 public interface InstanceQueryService {
     List<Instance> findAllStarted(String organizationId, String environmentId);
     BaseInstance findById(ExecutionContext executionContext, String instanceId);
+    List<BaseInstance> findByIds(ExecutionContext executionContext, Collection<String> instanceIds);
 }

@@ -25,7 +25,9 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.PlanFixtures;
 import fixtures.core.model.RepositoryFixtures;
 import fixtures.repository.ConnectionLogFixtures;
+import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ConnectionLogsCrudServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.model.UserContext;
@@ -71,8 +73,16 @@ class LogsSearchResourceTest extends AbstractResourceTest {
     private static final String API_2 = "api2";
     private static final Plan PLAN_1 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan1").name("1st plan").apiId(API_1).build();
     private static final Plan PLAN_2 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan2").name("2nd plan").apiId(API_1).build();
-    private static final BaseApplicationEntity APPLICATION_1 = BaseApplicationEntity.builder().id("app1").name("Application 1").build();
-    private static final BaseApplicationEntity APPLICATION_2 = BaseApplicationEntity.builder().id("app2").name("Application 2").build();
+    private static final BaseApplicationEntity APPLICATION_1 = BaseApplicationEntity.builder()
+        .id("app1")
+        .name("Application 1")
+        .environmentId(ENVIRONMENT)
+        .build();
+    private static final BaseApplicationEntity APPLICATION_2 = BaseApplicationEntity.builder()
+        .id("app2")
+        .name("Application 2")
+        .environmentId(ENVIRONMENT)
+        .build();
     private static final Api GIO_API_1 = RepositoryFixtures.aProxyApiV4()
         .toBuilder()
         .id(API_1)
@@ -99,6 +109,12 @@ class LogsSearchResourceTest extends AbstractResourceTest {
 
     @Inject
     ConnectionLogsCrudServiceInMemory connectionLogsCrudService;
+
+    @Inject
+    PlanCrudServiceInMemory planCrudService;
+
+    @Inject
+    ApplicationCrudServiceInMemory applicationCrudService;
 
     WebTarget searchTarget;
 
@@ -132,6 +148,8 @@ class LogsSearchResourceTest extends AbstractResourceTest {
         super.tearDown();
         GraviteeContext.cleanContext();
         connectionLogsCrudService.reset();
+        planCrudService.reset();
+        applicationCrudService.reset();
         Mockito.reset(userContextLoader);
     }
 
@@ -167,6 +185,32 @@ class LogsSearchResourceTest extends AbstractResourceTest {
                     assertThat(r.getData().getFirst().getApplication().getId()).isEqualTo(APPLICATION_1.getId());
                     assertThat(r.getData().getFirst().getPlan()).isNotNull();
                     assertThat(r.getData().getFirst().getPlan().getId()).isEqualTo(PLAN_1.getId());
+                });
+        }
+
+        @Test
+        void should_resolve_api_plan_and_application_names() {
+            planCrudService.initWith(List.of(PLAN_1));
+            applicationCrudService.initWith(List.of(APPLICATION_1));
+            connectionLogsCrudService.initWith(List.of(connectionLogFixtures.aConnectionLog("req1")));
+
+            var request = new SearchLogsRequest().timeRange(
+                new TimeRange().from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z")).to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+            );
+
+            var response = searchTarget.request().post(Entity.json(request));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(SearchLogsResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getData()).hasSize(1);
+                    var log = r.getData().getFirst();
+                    assertThat(log.getApiName()).isEqualTo("API1");
+                    assertThat(log.getPlan()).isNotNull();
+                    assertThat(log.getPlan().getName()).isEqualTo("1st plan");
+                    assertThat(log.getApplication()).isNotNull();
+                    assertThat(log.getApplication().getName()).isEqualTo("Application 1");
                 });
         }
 

@@ -21,7 +21,10 @@ import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.infra.adapter.InstanceAdapter;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -39,5 +42,19 @@ public class InstanceQueryServiceLegacyWrapper implements InstanceQueryService {
     @Override
     public BaseInstance findById(ExecutionContext executionContext, String instanceId) {
         return InstanceAdapter.INSTANCE.toBaseInstance(instanceService.findById(executionContext, instanceId));
+    }
+
+    @Override
+    public List<BaseInstance> findByIds(ExecutionContext executionContext, Collection<String> instanceIds) {
+        return instanceIds
+            .stream()
+            .flatMap(id -> {
+                try {
+                    return Stream.of(findById(executionContext, id));
+                } catch (InstanceNotFoundException e) {
+                    return Stream.empty();
+                }
+            })
+            .toList();
     }
 }

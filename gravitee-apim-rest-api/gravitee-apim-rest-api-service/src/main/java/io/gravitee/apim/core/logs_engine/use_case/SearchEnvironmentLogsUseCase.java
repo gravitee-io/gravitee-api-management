@@ -17,10 +17,14 @@ package io.gravitee.apim.core.logs_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.gateway.model.BaseInstance;
+import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.logs_engine.domain_service.FilterContext;
+import io.gravitee.apim.core.logs_engine.domain_service.LogNamesPostProcessor;
 import io.gravitee.apim.core.logs_engine.model.ApiLog;
 import io.gravitee.apim.core.logs_engine.model.ApiLogDiagnostic;
 import io.gravitee.apim.core.logs_engine.model.ArrayFilter;
@@ -36,9 +40,12 @@ import io.gravitee.apim.core.logs_engine.model.SearchLogsRequest;
 import io.gravitee.apim.core.logs_engine.model.SearchLogsResponse;
 import io.gravitee.apim.core.logs_engine.model.StringFilter;
 import io.gravitee.apim.core.logs_engine.model.TimeRange;
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.analytics.Range;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -51,6 +58,7 @@ import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -62,10 +70,25 @@ public class SearchEnvironmentLogsUseCase {
     private static final int DEFAULT_PER_PAGE = 10;
     private final ConnectionLogsCrudService connectionLogsCrudService;
     private final UserContextLoader userContextLoader;
+    private final LogNamesPostProcessor logNamesPostProcessor;
+    private final PlanCrudService planCrudService;
+    private final ApplicationCrudService applicationCrudService;
+    private final InstanceQueryService instanceQueryService;
 
-    public SearchEnvironmentLogsUseCase(ConnectionLogsCrudService connectionLogsCrudService, UserContextLoader userContextLoader) {
+    public SearchEnvironmentLogsUseCase(
+        ConnectionLogsCrudService connectionLogsCrudService,
+        UserContextLoader userContextLoader,
+        LogNamesPostProcessor logNamesPostProcessor,
+        PlanCrudService planCrudService,
+        ApplicationCrudService applicationCrudService,
+        InstanceQueryService instanceQueryService
+    ) {
         this.connectionLogsCrudService = connectionLogsCrudService;
         this.userContextLoader = userContextLoader;
+        this.logNamesPostProcessor = logNamesPostProcessor;
+        this.planCrudService = planCrudService;
+        this.applicationCrudService = applicationCrudService;
+        this.instanceQueryService = instanceQueryService;
     }
 
     public record Input(AuditInfo auditInfo, SearchLogsRequest request) {}
@@ -91,13 +114,70 @@ public class SearchEnvironmentLogsUseCase {
             List.of(DefinitionVersion.V4)
         );
 
-        return new Output(mapResponse(result, pageable));
+        var response = mapResponse(result, pageable);
+
+        var enrichedContext = loadNames(executionContext, userContext, response);
+
+        return new Output(logNamesPostProcessor.mapLogNames(enrichedContext, response));
     }
 
     private Pageable buildPageable(SearchLogsRequest request) {
         var page = Optional.ofNullable(request.page()).orElse(DEFAULT_PAGE);
         var perPage = Optional.ofNullable(request.perPage()).orElse(DEFAULT_PER_PAGE);
         return new PageableImpl(page, perPage);
+    }
+
+    private UserContext loadNames(ExecutionContext executionContext, UserContext userContext, SearchLogsResponse response) {
+        var planIds = response
+            .data()
+            .stream()
+            .map(ApiLog::plan)
+            .filter(Objects::nonNull)
+            .map(BasePlan::id)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+
+        var planNameById = planIds.isEmpty()
+            ? Map.<String, String>of()
+            : planCrudService
+                .findByIds(planIds)
+                .stream()
+                .filter(p -> p.getName() != null)
+                .collect(Collectors.toMap(Plan::getId, Plan::getName, (a, b) -> a));
+
+        var appIds = response
+            .data()
+            .stream()
+            .map(ApiLog::application)
+            .filter(Objects::nonNull)
+            .map(BaseApplication::id)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+
+        var applicationNameById = appIds.isEmpty()
+            ? Map.<String, String>of()
+            : applicationCrudService
+                .findByIds(appIds, executionContext.getEnvironmentId())
+                .stream()
+                .filter(a -> a.getName() != null)
+                .collect(Collectors.toMap(BaseApplicationEntity::getId, BaseApplicationEntity::getName, (a, b) -> a));
+
+        var gatewayIds = response.data().stream().map(ApiLog::gateway).filter(Objects::nonNull).distinct().toList();
+
+        var gatewayHostnameById = gatewayIds.isEmpty()
+            ? Map.<String, String>of()
+            : instanceQueryService
+                .findByIds(executionContext, gatewayIds)
+                .stream()
+                .filter(i -> i.getHostname() != null)
+                .collect(Collectors.toMap(BaseInstance::getId, BaseInstance::getHostname, (a, b) -> a));
+
+        return userContext
+            .withPlanNameById(planNameById)
+            .withApplicationNameById(applicationNameById)
+            .withGatewayHostnameById(gatewayHostnameById);
     }
 
     private SearchLogsFilters buildFilters(UserContext userContext, SearchLogsRequest request) {
@@ -265,6 +345,7 @@ public class SearchEnvironmentLogsUseCase {
     private ApiLog mapApiLog(BaseConnectionLog item) {
         return new ApiLog(
             item.getApiId(),
+            null,
             toOffsetDateTime(item.getTimestamp()),
             item.getRequestId(),
             item.getRequestId(),
