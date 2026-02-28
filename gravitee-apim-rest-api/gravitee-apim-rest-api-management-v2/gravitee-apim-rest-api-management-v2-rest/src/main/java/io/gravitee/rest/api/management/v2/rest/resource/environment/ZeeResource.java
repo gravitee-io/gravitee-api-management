@@ -59,8 +59,11 @@ public class ZeeResource extends AbstractResource {
     @Inject
     private GenerateResourceUseCase generateResourceUseCase;
 
-    /** Per-environment rate-limit state: [windowStart, count]. */
-    private final ConcurrentHashMap<String, long[]> rateLimitState = new ConcurrentHashMap<>();
+    /**
+     * Per-environment rate-limit state: [windowStart, count]. Static — survives
+     * Jersey per-request instantiation.
+     */
+    private static final ConcurrentHashMap<String, long[]> rateLimitState = new ConcurrentHashMap<>();
 
     @Path("/generate")
     @POST
@@ -116,6 +119,9 @@ public class ZeeResource extends AbstractResource {
         }
 
         var request = requestDto.toDomain(files);
+        if (request == null) {
+            return badRequest("Invalid or unknown resourceType.");
+        }
         var result = generateResourceUseCase.execute(request, envId, orgId);
 
         return Response.ok(ZeeResultDto.from(result)).build();

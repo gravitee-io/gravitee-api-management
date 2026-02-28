@@ -39,16 +39,26 @@ public class ZeeRequestDto {
 
     /**
      * Convert this DTO into the domain model, incorporating any uploaded multipart
-     * file parts.
+     * file parts. Returns {@code null} if {@code resourceType} is unrecognised, so
+     * the caller can return a {@code 400 Bad Request} instead of allowing an
+     * {@link IllegalArgumentException} to propagate and produce a {@code 500}.
      */
     public ZeeRequest toDomain(List<FormDataBodyPart> files) {
-        var fileContents = files == null
-            ? List.<FileContent>of()
-            : files
-                .stream()
-                .map(f -> new FileContent(f.getContentDisposition().getFileName(), f.getValueAs(String.class), f.getMediaType().toString()))
-                .toList();
+        ZeeResourceType type;
+        try {
+            type = ZeeResourceType.valueOf(resourceType);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            return null;
+        }
 
-        return new ZeeRequest(ZeeResourceType.valueOf(resourceType), prompt, fileContents, contextData);
+        var fileContents = files == null
+                ? List.<FileContent>of()
+                : files
+                        .stream()
+                        .map(f -> new FileContent(f.getContentDisposition().getFileName(), f.getValueAs(String.class),
+                                f.getMediaType().toString()))
+                        .toList();
+
+        return new ZeeRequest(type, prompt, fileContents, contextData);
     }
 }
