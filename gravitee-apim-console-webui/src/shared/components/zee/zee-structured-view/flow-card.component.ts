@@ -49,7 +49,7 @@ export interface GeneratedFlow {
   standalone: false,
 })
 export class FlowCardComponent {
-  @Input() flow!: GeneratedFlow;
+  @Input() flow: GeneratedFlow | null | undefined;
 
   /** Sections with steps to render (skips empties) */
   readonly stepSections = [
