@@ -17,6 +17,7 @@ import { ConfigureTestingGraviteeMarkdownEditor } from '@gravitee/gravitee-markd
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { By } from '@angular/platform-browser';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
@@ -48,6 +49,7 @@ import {
   NewPortalNavigationItem,
   PortalNavigationItem,
   PortalNavigationItemsResponse,
+  PortalPageContentType,
   UpdateFolderPortalNavigationItem,
   UpdateLinkPortalNavigationItem,
   UpdatePortalNavigationItem,
@@ -775,7 +777,13 @@ describe('PortalNavigationItemsComponent', () => {
         });
 
         expectCreateNavigationItem(
-          fakeNewPagePortalNavigationItem({ title, area: 'TOP_NAVBAR', type: 'PAGE', parentId: api.id }),
+          fakeNewPagePortalNavigationItem({
+            title,
+            area: 'TOP_NAVBAR',
+            type: 'PAGE',
+            parentId: api.id,
+            contentType: 'GRAVITEE_MARKDOWN',
+          }),
           createdItem,
         );
         await expectGetNavigationItems(fakeResponse);
@@ -899,6 +907,25 @@ describe('PortalNavigationItemsComponent', () => {
       expectGetPageContent('nav-item-3-content', 'This is the content of Nav Item 3');
       expect(await harness.getEditorContentText()).toBe('This is the content of Nav Item 3');
       expect(await harness.isSaveButtonDisabled()).toBe(true);
+    });
+
+    it('should show GMD editor when page content type is GRAVITEE_MARKDOWN', async () => {
+      // beforeEach already loaded nav items and page content with default type GRAVITEE_MARKDOWN
+      const gmdEditor = fixture.debugElement.query(By.css('gmd-editor'));
+      expect(gmdEditor).toBeTruthy();
+      expect(await harness.getEditorContentText()).toBe('This is the content of Nav Item 1');
+    });
+
+    it('should show OpenAPI editor when page content type is OPENAPI', async () => {
+      await harness.selectNavigationItemByTitle('Nav Item 3');
+      expectGetPageContent('nav-item-3-content', 'openapi: 3.0.0\ninfo:\n  title: Test', 'OPENAPI');
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const openApiEditor = fixture.debugElement.query(By.css('portal-openapi-editor'));
+      expect(openApiEditor).toBeTruthy();
+      const gmdEditor = fixture.debugElement.query(By.css('gmd-editor'));
+      expect(gmdEditor).toBeFalsy();
     });
 
     it('should show empty message when non-PAGE is selected', async () => {
@@ -1874,10 +1901,10 @@ describe('PortalNavigationItemsComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectGetPageContent(contentId: string, content: string) {
+  function expectGetPageContent(contentId: string, content: string, type: PortalPageContentType = 'GRAVITEE_MARKDOWN') {
     httpTestingController
       .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${contentId}` })
-      .flush({ id: contentId, content });
+      .flush({ id: contentId, content, type });
 
     fixture.detectChanges();
   }
