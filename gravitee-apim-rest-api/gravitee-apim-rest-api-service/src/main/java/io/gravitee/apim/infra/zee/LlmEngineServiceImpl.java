@@ -28,8 +28,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -54,6 +56,7 @@ import org.springframework.stereotype.Component;
 public class LlmEngineServiceImpl implements LlmEngineService {
 
     private static final Logger LOG = LoggerFactory.getLogger(LlmEngineServiceImpl.class);
+    private static final Duration HTTP_TIMEOUT = Duration.ofSeconds(30);
 
     private final LlmRoundtripEngine engine;
     private final Map<String, ComponentInvoker> registry;
@@ -76,6 +79,16 @@ public class LlmEngineServiceImpl implements LlmEngineService {
      * Visible-for-testing constructor that accepts a custom {@link HttpClient}.
      */
     LlmEngineServiceImpl(ZeeConfiguration config, HttpClient httpClient) {
+        if (!config.isEnabled()) {
+            LOG.info("Zee Mode is disabled (ai.zee.enabled=false) — LLM engine will not be initialized");
+            this.engine = null;
+            this.registry = Map.of();
+            return;
+        }
+
+        Objects.requireNonNull(config.getAzureUrl(), "ai.zee.azure.url must be configured when ai.zee.enabled=true");
+        Objects.requireNonNull(config.getAzureApiKey(), "ai.zee.azure.apiKey must be configured when ai.zee.enabled=true");
+
         var providerConfig = new ProviderConfig(config.getAzureUrl(), null, Map.of("api-key", config.getAzureApiKey()));
 
         LlmTransport transport = request -> executeHttp(httpClient, request);
@@ -97,6 +110,10 @@ public class LlmEngineServiceImpl implements LlmEngineService {
 
     @Override
     public LlmGenerationResult generate(String prompt, String componentName) {
+        if (engine == null) {
+            throw new IllegalStateException("Zee Mode is disabled. Set ai.zee.enabled=true with valid Azure credentials.");
+        }
+
         var invoker = registry.get(componentName);
         if (invoker == null) {
             throw new IllegalArgumentException("Unsupported component: " + componentName + ". Registered: " + registry.keySet());
@@ -118,7 +135,10 @@ public class LlmEngineServiceImpl implements LlmEngineService {
 
     private static String executeHttp(HttpClient httpClient, LlmRequest request) throws LlmTransportException {
         try {
-            var builder = HttpRequest.newBuilder().uri(URI.create(request.url())).POST(HttpRequest.BodyPublishers.ofString(request.body()));
+            var builder = HttpRequest.newBuilder()
+                .uri(URI.create(request.url()))
+                .timeout(HTTP_TIMEOUT)
+                .POST(HttpRequest.BodyPublishers.ofString(request.body()));
 
             request.headers().forEach(builder::header);
 
