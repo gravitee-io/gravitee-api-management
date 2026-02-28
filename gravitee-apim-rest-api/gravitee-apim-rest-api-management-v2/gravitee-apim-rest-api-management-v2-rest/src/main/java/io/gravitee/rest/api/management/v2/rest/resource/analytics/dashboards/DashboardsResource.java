@@ -19,7 +19,7 @@ import io.gravitee.apim.core.dashboard.use_case.CreateDashboardUseCase;
 import io.gravitee.apim.core.dashboard.use_case.ListDashboardsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.DashboardMapper;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CreateDashboard;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CreateUpdateDashboard;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.DashboardsResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -81,7 +81,7 @@ public class DashboardsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_DASHBOARD, acls = { RolePermissionAction.CREATE }) })
-    public Response createDashboard(@Valid @NotNull CreateDashboard createDashboard) {
+    public Response createDashboard(@Valid @NotNull CreateUpdateDashboard createDashboard) {
         var auditInfo = getAuditInfo();
 
         var dashboard = DashboardMapper.INSTANCE.map(createDashboard);

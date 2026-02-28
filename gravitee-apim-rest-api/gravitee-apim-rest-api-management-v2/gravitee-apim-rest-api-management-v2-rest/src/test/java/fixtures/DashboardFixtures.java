@@ -17,13 +17,12 @@ package fixtures;
 
 import io.gravitee.apim.core.dashboard.model.Dashboard;
 import io.gravitee.apim.core.dashboard.model.DashboardWidget;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CreateDashboard;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CreateUpdateDashboard;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasureName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeRange;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.UpdateDashboard;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Widget;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetLayout;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetRequest;
@@ -65,8 +64,8 @@ public class DashboardFixtures {
         return request;
     }
 
-    public static CreateDashboard aCreateDashboard() {
-        var createDashboard = new CreateDashboard();
+    public static CreateUpdateDashboard aCreateDashboard() {
+        var createDashboard = new CreateUpdateDashboard();
         createDashboard.setName("My Dashboard");
         createDashboard.setLabels(Map.of("gravitee_io/team", "apim"));
         createDashboard.setWidgets(
@@ -94,8 +93,8 @@ public class DashboardFixtures {
         return createDashboard;
     }
 
-    public static CreateDashboard createDashboardWithOneWidget(WidgetRequest widgetRequest) {
-        var createDashboard = new CreateDashboard();
+    public static CreateUpdateDashboard createDashboardWithOneWidget(WidgetRequest widgetRequest) {
+        var createDashboard = new CreateUpdateDashboard();
         createDashboard.setName("Validation Test Dashboard");
         createDashboard.setWidgets(
             List.of(
@@ -110,8 +109,8 @@ public class DashboardFixtures {
         return createDashboard;
     }
 
-    public static UpdateDashboard anUpdateDashboard() {
-        var updatePayload = new UpdateDashboard();
+    public static CreateUpdateDashboard anUpdateDashboard() {
+        var updatePayload = new CreateUpdateDashboard();
         updatePayload.setName("Updated Dashboard");
         updatePayload.setLabels(Map.of("team", "platform"));
         updatePayload.setWidgets(
@@ -138,8 +137,8 @@ public class DashboardFixtures {
         return updatePayload;
     }
 
-    public static UpdateDashboard anUpdateDashboardMinimal() {
-        var updatePayload = new UpdateDashboard();
+    public static CreateUpdateDashboard anUpdateDashboardMinimal() {
+        var updatePayload = new CreateUpdateDashboard();
         updatePayload.setName("Updated");
         return updatePayload;
     }
