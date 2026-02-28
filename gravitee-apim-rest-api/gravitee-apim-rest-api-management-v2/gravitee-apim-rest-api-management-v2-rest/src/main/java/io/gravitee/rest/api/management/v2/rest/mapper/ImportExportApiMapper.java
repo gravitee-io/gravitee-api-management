@@ -91,10 +91,18 @@ public interface ImportExportApiMapper {
         };
     }
 
+    @Mapping(target = "metadata", ignore = true)
     ApiV4 map(ApiDescriptor.ApiDescriptorV4 src);
 
     @Mapping(target = "type", constant = "NATIVE")
+    @Mapping(target = "metadata", ignore = true)
     ApiV4 map(ApiDescriptor.Native src);
+
+    @AfterMapping
+    default void clearMetadata(@MappingTarget ApiV4 target) {
+        // Explicitly set metadata to null to prevent empty object serialization in export
+        target.setMetadata(null);
+    }
 
     default io.gravitee.rest.api.management.v2.rest.model.Listener map(Listener src) {
         return switch (src) {

@@ -501,6 +501,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                                 )
                                 .visibility(io.gravitee.rest.api.management.v2.rest.model.Visibility.PRIVATE)
                                 .disableMembershipNotifications(false)
+                                .metadata(Collections.emptyMap())
                                 .responseTemplates(Collections.emptyMap())
                                 .links(
                                     new ApiLinks()
