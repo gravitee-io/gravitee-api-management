@@ -37,7 +37,7 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   private getEmptyEditor = this.locatorForOptional(
     EmptyStateComponentHarness.with({
       title: 'Editor',
-      message: 'Use GMD code to customize and edit your page content.',
+      message: 'Select a page from the navigation panel to edit its content.',
     }),
   );
   private getTitle = this.locatorFor(DivHarness.with({ selector: '.panel-header__title' }));
