@@ -58,7 +58,9 @@ export class ApiProductPlanEditComponent {
 
   private readonly apiPlanFormRef = viewChild<ApiPlanFormComponent>('apiPlanForm');
 
-  protected readonly planForm = signal<FormGroup<{ plan: FormControl<Plan | null> }> | null>(null);
+  protected readonly planForm = new FormGroup<{ plan: FormControl<Plan | null> }>({
+    plan: new FormControl<Plan | null>(null),
+  });
   protected readonly initialPlanFormValue = signal<unknown>(null);
   protected readonly planMenuItem = signal<PlanMenuItemVM | undefined>(undefined);
   protected readonly currentPlanStatus = signal<PlanStatus | undefined>(undefined);
@@ -75,12 +77,7 @@ export class ApiProductPlanEditComponent {
     combineLatest([toObservable(this.apiProductId), toObservable(this.planId)]).pipe(
       switchMap(([apiProductId, planId]) => {
         if (!planId) return of(undefined as Plan | undefined);
-        return this.planService.get(apiProductId, planId).pipe(
-          catchError(error => {
-            this.snackBarService.error(error.error?.message ?? 'An error occurred.');
-            return EMPTY;
-          }),
-        );
+        return this.planService.get(apiProductId, planId).pipe(catchError(err => this.handleError(err)));
       }),
     ),
     { initialValue: null as Plan | undefined | null },
@@ -94,22 +91,18 @@ export class ApiProductPlanEditComponent {
       const planFormType = this.mode() === 'edit' ? plan?.security?.type : this.activatedRoute.snapshot.queryParams['selectedPlanMenuItem'];
 
       const planMenuItem = AVAILABLE_PLANS_FOR_MENU.find(vm => vm.planFormType === planFormType);
-      const form = new FormGroup({
-        plan: new FormControl<Plan | null>({ value: plan ?? null, disabled: this.isReadOnly() }),
-      });
-
+      this.planForm.reset({ plan: plan ?? null });
+      this.planForm.get('plan')![this.isReadOnly() ? 'disable' : 'enable']();
       this.planMenuItem.set(planMenuItem);
       this.currentPlanStatus.set(plan?.status);
-      this.planForm.set(form);
-      this.initialPlanFormValue.set(form.getRawValue());
+      this.initialPlanFormValue.set(this.planForm.getRawValue());
     });
   });
 
   protected onSubmit(): void {
-    const form = this.planForm();
-    if (!form || form.invalid) return;
+    if (this.planForm.invalid) return;
 
-    const planFormValue: PlanFormValue = { ...form.get('plan')!.value };
+    const planFormValue: PlanFormValue = { ...this.planForm.get('plan')!.value };
     const apiProductId = this.apiProductId();
     const planId = this.planId();
 
@@ -123,10 +116,7 @@ export class ApiProductPlanEditComponent {
     savePlan$
       .pipe(
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
-        catchError(error => {
-          this.snackBarService.error(error.error?.message ?? 'An error occurred while saving configuration.');
-          return EMPTY;
-        }),
+        catchError(err => this.handleError(err, 'An error occurred while saving configuration.')),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
@@ -139,6 +129,12 @@ export class ApiProductPlanEditComponent {
           this.router.navigate(['../'], { relativeTo: this.activatedRoute, queryParams: { status: 'STAGING' } });
         }
       });
+  }
+
+  private handleError(err: unknown, defaultMessage = 'An error occurred.'): typeof EMPTY {
+    const message = (err as { error?: { message?: string } })?.error?.message ?? defaultMessage;
+    this.snackBarService.error(message);
+    return EMPTY;
   }
 }
 

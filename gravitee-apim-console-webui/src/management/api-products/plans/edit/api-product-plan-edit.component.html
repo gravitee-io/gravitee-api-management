@@ -22,8 +22,8 @@
   </span>
 </div>
 
-@if (planForm() && planMenuItem()) {
-  <form autocomplete="off" gioFormFocusInvalid [formGroup]="planForm()!" (ngSubmit)="onSubmit()">
+@if (planMenuItem()) {
+  <form autocomplete="off" gioFormFocusInvalid [formGroup]="planForm" (ngSubmit)="onSubmit()">
     <mat-card>
       <api-plan-form
         #apiPlanForm
@@ -42,7 +42,7 @@
     @if (!isReadOnly()) {
       <gio-save-bar
         [creationMode]="mode() === 'create'"
-        [form]="planForm()!"
+        [form]="planForm"
         [formInitialValues]="initialPlanFormValue()"
         [hideSubmitButton]="mode() === 'create' && hasNextStep()"
       >
