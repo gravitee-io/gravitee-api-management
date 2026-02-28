@@ -254,13 +254,19 @@ paths:
             default: 10
         - name: sortBy
           in: query
-          description: Sort by name. Use "name" for ascending, "-name" for descending. Default is name ascending.
+          description: Sort by name, version, apis (API count), or owner. Prefix with "-" for descending. Default is name ascending.
           required: false
           schema:
             type: string
             enum:
               - name
               - "-name"
+              - version
+              - "-version"
+              - apis
+              - "-apis"
+              - owner
+              - "-owner"
             default: name
       requestBody:
         required: true

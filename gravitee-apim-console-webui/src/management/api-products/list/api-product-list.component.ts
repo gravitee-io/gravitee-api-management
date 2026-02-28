@@ -48,11 +48,13 @@ const EMPTY_API_PRODUCTS_RESPONSE: ApiProductsResponse = {
   pagination: { totalCount: 0 },
 };
 
+const DEFAULT_SORT = { active: 'name', direction: 'asc' as const };
+
 function queryParamsToFilters(queryParams: Record<string, string>): ApiProductListTableWrapperFilters {
   const searchTerm = queryParams.q ?? DEFAULT_FILTERS.searchTerm;
   const index = queryParams.page ? Number(queryParams.page) : DEFAULT_FILTERS.pagination.index;
   const size = queryParams.size ? Number(queryParams.size) : DEFAULT_FILTERS.pagination.size;
-  const sort = queryParams.order ? toSort(queryParams.order, { active: 'name', direction: 'asc' }) : undefined;
+  const sort = queryParams.order ? toSort(queryParams.order, DEFAULT_SORT) : DEFAULT_SORT;
   return {
     searchTerm,
     sort,
@@ -65,7 +67,7 @@ function filtersToQueryParams(filters: ApiProductListTableWrapperFilters): Recor
     q: filters.searchTerm || null,
     page: filters.pagination?.index ?? 1,
     size: filters.pagination?.size ?? 10,
-    order: filters.sort ? toOrder(filters.sort) : null,
+    order: filters.sort ? toOrder(filters.sort) : 'name',
   };
 }
 
@@ -132,7 +134,9 @@ export class ApiProductListComponent implements OnInit {
         switchMap((filters: ApiProductListTableWrapperFilters) => {
           const page = filters.pagination?.index || 1;
           const perPage = filters.pagination?.size || 10;
-          return this.apiProductV2Service.list(page, perPage).pipe(
+          const searchQuery = { query: filters.searchTerm?.trim() || undefined };
+          const sortBy = filters.sort ? toOrder(filters.sort) : 'name';
+          return this.apiProductV2Service.search(searchQuery, sortBy, page, perPage).pipe(
             catchError(error => {
               this.isLoadingData = false;
               this.snackBarService.error(this.getErrorMessage(error, 'An error occurred while loading API Products'));
@@ -144,6 +148,16 @@ export class ApiProductListComponent implements OnInit {
           this.apiProductsTableDS = this.toApiProductsTableDS(response.data || []);
           this.apiProductsTableDSUnpaginatedLength = response.pagination?.totalCount || 0;
           this.isLoadingData = false;
+        }),
+        tap(() => {
+          if (this.activatedRoute.snapshot.queryParams['order'] == null) {
+            const filters = this.filters();
+            this.router.navigate([], {
+              relativeTo: this.activatedRoute,
+              queryParams: filtersToQueryParams({ ...filters, sort: DEFAULT_SORT }),
+              replaceUrl: true,
+            });
+          }
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -185,7 +199,6 @@ export class ApiProductListComponent implements OnInit {
     this.router.navigate([], {
       relativeTo: this.activatedRoute,
       queryParams: filtersToQueryParams(mergedFilters),
-      queryParamsHandling: 'merge',
     });
   }
 

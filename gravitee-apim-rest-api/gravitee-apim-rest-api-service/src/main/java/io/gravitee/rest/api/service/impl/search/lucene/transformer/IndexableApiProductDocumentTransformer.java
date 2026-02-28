@@ -50,7 +50,12 @@ public class IndexableApiProductDocumentTransformer implements DocumentTransform
     public static final String FIELD_DESCRIPTION_LOWERCASE = "description_lowercase";
     public static final String FIELD_DESCRIPTION_SPLIT = "description_split";
     public static final String FIELD_OWNER = "ownerName";
+    public static final String FIELD_OWNER_SORTED = "ownerName_sorted";
     public static final String FIELD_OWNER_LOWERCASE = "ownerName_lowercase";
+    public static final String FIELD_VERSION = "version";
+    public static final String FIELD_VERSION_SORTED = "version_sorted";
+    public static final String FIELD_API_COUNT = "apiCount";
+    public static final String FIELD_API_COUNT_SORTED = "apiCount_sorted";
     public static final String FIELD_CREATED_AT = "createdAt";
     public static final String FIELD_UPDATED_AT = "updatedAt";
 
@@ -81,6 +86,13 @@ public class IndexableApiProductDocumentTransformer implements DocumentTransform
         doc.add(new StringField(FIELD_NAME_LOWERCASE, apiProduct.getName().toLowerCase(), Field.Store.NO));
         doc.add(new TextField(FIELD_NAME_SPLIT, apiProduct.getName(), Field.Store.NO));
 
+        String version = apiProduct.getVersion() != null ? apiProduct.getVersion() : "";
+        doc.add(new SortedDocValuesField(FIELD_VERSION_SORTED, toSortedValue(version)));
+
+        int apiCount = apiProduct.getApiIds() != null ? apiProduct.getApiIds().size() : 0;
+        String apiCountSorted = String.format("%06d", Math.min(apiCount, 999999));
+        doc.add(new SortedDocValuesField(FIELD_API_COUNT_SORTED, new BytesRef(apiCountSorted)));
+
         if (apiProduct.getDescription() != null) {
             doc.add(new StringField(FIELD_DESCRIPTION, apiProduct.getDescription(), Field.Store.NO));
             doc.add(new StringField(FIELD_DESCRIPTION_LOWERCASE, apiProduct.getDescription().toLowerCase(), Field.Store.NO));
@@ -96,6 +108,7 @@ public class IndexableApiProductDocumentTransformer implements DocumentTransform
 
         if (primaryOwner != null && primaryOwner.displayName() != null) {
             doc.add(new StringField(FIELD_OWNER, primaryOwner.displayName(), Field.Store.NO));
+            doc.add(new SortedDocValuesField(FIELD_OWNER_SORTED, toSortedValue(primaryOwner.displayName())));
             doc.add(new StringField(FIELD_OWNER_LOWERCASE, primaryOwner.displayName().toLowerCase(), Field.Store.NO));
         }
 
