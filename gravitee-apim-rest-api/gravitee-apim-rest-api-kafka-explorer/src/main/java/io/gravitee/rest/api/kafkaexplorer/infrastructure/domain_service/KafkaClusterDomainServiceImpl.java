@@ -33,9 +33,15 @@ import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerLogDirEntry;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroup;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupDetail;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupMember;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupOffset;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupsPage;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaNode;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaTopic;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.MemberAssignment;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicConfigEntry;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicPartitionDetail;
@@ -48,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -60,11 +67,16 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.ConsumerGroupDescription;
+import org.apache.kafka.clients.admin.ConsumerGroupListing;
 import org.apache.kafka.clients.admin.DescribeClusterResult;
+import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsResult;
 import org.apache.kafka.clients.admin.ListTopicsOptions;
+import org.apache.kafka.clients.admin.MemberDescription;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.admin.TopicListing;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
@@ -318,6 +330,171 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 configs
             );
         });
+    }
+
+    @Override
+    public ConsumerGroupsPage listConsumerGroups(KafkaClusterConfiguration config, String nameFilter, int page, int perPage) {
+        return withAdminClient(config, adminClient -> {
+            // Step 1: List all consumer groups (cheap call)
+            Collection<ConsumerGroupListing> listings = adminClient.listConsumerGroups().all().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            // Step 2: Filter by nameFilter (case-insensitive contains)
+            List<String> filteredGroupIds = listings
+                .stream()
+                .map(ConsumerGroupListing::groupId)
+                .filter(id -> nameFilter == null || nameFilter.isBlank() || id.toLowerCase().contains(nameFilter.toLowerCase()))
+                .sorted()
+                .toList();
+
+            int totalCount = filteredGroupIds.size();
+
+            // Step 3: Paginate
+            int fromIndex = Math.min(page * perPage, totalCount);
+            int toIndex = Math.min(fromIndex + perPage, totalCount);
+            List<String> pageGroupIds = filteredGroupIds.subList(fromIndex, toIndex);
+
+            if (pageGroupIds.isEmpty()) {
+                return new ConsumerGroupsPage(List.of(), totalCount, page, perPage);
+            }
+
+            // Step 4: Describe consumer groups for the current page only
+            Map<String, ConsumerGroupDescription> descriptions = adminClient
+                .describeConsumerGroups(pageGroupIds)
+                .all()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            // Step 5: Best-effort lag calculation + topic count
+            List<ConsumerGroup> groups = pageGroupIds
+                .stream()
+                .map(groupId -> {
+                    ConsumerGroupDescription desc = descriptions.get(groupId);
+                    String state = desc.state() != null ? desc.state().name() : "UNKNOWN";
+                    int membersCount = desc.members().size();
+                    LagResult lagResult = computeLagResult(adminClient, groupId);
+                    KafkaNode coordinator = toKafkaNode(desc.coordinator());
+                    return new ConsumerGroup(groupId, state, membersCount, lagResult.totalLag(), lagResult.numTopics(), coordinator);
+                })
+                .toList();
+
+            return new ConsumerGroupsPage(groups, totalCount, page, perPage);
+        });
+    }
+
+    @Override
+    public ConsumerGroupDetail describeConsumerGroup(KafkaClusterConfiguration config, String groupId) {
+        return withAdminClient(config, adminClient -> {
+            // Step 1: Describe the consumer group
+            ConsumerGroupDescription description = adminClient
+                .describeConsumerGroups(List.of(groupId))
+                .all()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .get(groupId);
+
+            String state = description.state() != null ? description.state().name() : "UNKNOWN";
+            KafkaNode coordinator = toKafkaNode(description.coordinator());
+            String partitionAssignor = description.partitionAssignor();
+
+            // Step 2: Map members with assignments grouped by topic
+            List<ConsumerGroupMember> members = description
+                .members()
+                .stream()
+                .map(member -> {
+                    Map<String, List<Integer>> assignmentsByTopic = new HashMap<>();
+                    for (TopicPartition tp : member.assignment().topicPartitions()) {
+                        assignmentsByTopic.computeIfAbsent(tp.topic(), k -> new ArrayList<>()).add(tp.partition());
+                    }
+                    List<MemberAssignment> assignments = assignmentsByTopic
+                        .entrySet()
+                        .stream()
+                        .sorted(Map.Entry.comparingByKey())
+                        .map(e -> new MemberAssignment(e.getKey(), e.getValue().stream().sorted().toList()))
+                        .toList();
+                    return new ConsumerGroupMember(member.consumerId(), member.clientId(), member.host(), assignments);
+                })
+                .toList();
+
+            // Step 3: Compute offsets with lag
+            List<ConsumerGroupOffset> offsets = computeOffsets(adminClient, groupId);
+
+            return new ConsumerGroupDetail(groupId, state, coordinator, partitionAssignor, members, offsets);
+        });
+    }
+
+    private record LagResult(long totalLag, int numTopics) {}
+
+    private LagResult computeLagResult(AdminClient adminClient, String groupId) {
+        try {
+            Map<TopicPartition, OffsetAndMetadata> committedOffsets = adminClient
+                .listConsumerGroupOffsets(groupId)
+                .partitionsToOffsetAndMetadata()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            if (committedOffsets.isEmpty()) {
+                return new LagResult(0, 0);
+            }
+
+            int numTopics = (int) committedOffsets.keySet().stream().map(TopicPartition::topic).distinct().count();
+
+            Map<TopicPartition, OffsetSpec> endOffsetRequests = new HashMap<>();
+            for (TopicPartition tp : committedOffsets.keySet()) {
+                endOffsetRequests.put(tp, OffsetSpec.latest());
+            }
+
+            var endOffsets = adminClient.listOffsets(endOffsetRequests).all().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            long totalLag = 0;
+            for (var entry : committedOffsets.entrySet()) {
+                TopicPartition tp = entry.getKey();
+                long committed = entry.getValue().offset();
+                var endOffsetResult = endOffsets.get(tp);
+                if (endOffsetResult != null) {
+                    totalLag += Math.max(0, endOffsetResult.offset() - committed);
+                }
+            }
+            return new LagResult(totalLag, numTopics);
+        } catch (Exception e) {
+            return new LagResult(0, 0);
+        }
+    }
+
+    private List<ConsumerGroupOffset> computeOffsets(AdminClient adminClient, String groupId) {
+        try {
+            Map<TopicPartition, OffsetAndMetadata> committedOffsets = adminClient
+                .listConsumerGroupOffsets(groupId)
+                .partitionsToOffsetAndMetadata()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            if (committedOffsets.isEmpty()) {
+                return List.of();
+            }
+
+            Map<TopicPartition, OffsetSpec> endOffsetRequests = new HashMap<>();
+            for (TopicPartition tp : committedOffsets.keySet()) {
+                endOffsetRequests.put(tp, OffsetSpec.latest());
+            }
+
+            var endOffsets = adminClient.listOffsets(endOffsetRequests).all().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            return committedOffsets
+                .entrySet()
+                .stream()
+                .sorted(
+                    Comparator.comparing((Map.Entry<TopicPartition, OffsetAndMetadata> e) -> e.getKey().topic()).thenComparingInt(e ->
+                        e.getKey().partition()
+                    )
+                )
+                .map(entry -> {
+                    TopicPartition tp = entry.getKey();
+                    long committed = entry.getValue().offset();
+                    var endOffsetResult = endOffsets.get(tp);
+                    long endOffset = endOffsetResult != null ? endOffsetResult.offset() : 0;
+                    long lag = Math.max(0, endOffset - committed);
+                    return new ConsumerGroupOffset(tp.topic(), tp.partition(), committed, endOffset, lag);
+                })
+                .toList();
+        } catch (Exception e) {
+            return List.of();
+        }
     }
 
     private List<Node> getOfflineNodes(TopicPartitionInfo partitionInfo) {

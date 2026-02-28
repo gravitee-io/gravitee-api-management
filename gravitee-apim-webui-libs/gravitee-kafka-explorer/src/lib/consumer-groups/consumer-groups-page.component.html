@@ -15,13 +15,13 @@
     limitations under the License.
 
 -->
-<gke-topics
-  [topics]="topicsPage()?.data ?? []"
-  [totalElements]="topicsPage()?.pagination?.totalCount ?? 0"
-  [page]="(topicsPage()?.pagination?.page ?? 1) - 1"
-  [pageSize]="topicsPage()?.pagination?.perPage ?? 25"
-  [loading]="topicsLoading()"
-  (filterChange)="onTopicsFilterChange($event)"
-  (pageChange)="onTopicsPageChange($event)"
-  (topicSelect)="onTopicSelect($event)"
+<gke-consumer-groups
+  [consumerGroups]="consumerGroupsPage()?.data ?? []"
+  [totalElements]="consumerGroupsPage()?.pagination?.totalCount ?? 0"
+  [page]="(consumerGroupsPage()?.pagination?.page ?? 1) - 1"
+  [pageSize]="consumerGroupsPage()?.pagination?.perPage ?? 25"
+  [loading]="consumerGroupsLoading()"
+  (filterChange)="onFilterChange($event)"
+  (pageChange)="onPageChange($event)"
+  (groupSelect)="onGroupSelect($event)"
 />

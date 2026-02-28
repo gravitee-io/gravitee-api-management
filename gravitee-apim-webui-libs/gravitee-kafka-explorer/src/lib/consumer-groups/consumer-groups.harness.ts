@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 import { ComponentHarness, parallel } from '@angular/cdk/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { MatPaginatorHarness } from '@angular/material/paginator/testing';
+import { MatProgressBarHarness } from '@angular/material/progress-bar/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
-export class BrokersHarness extends ComponentHarness {
-  static hostSelector = 'gke-brokers';
+export class ConsumerGroupsHarness extends ComponentHarness {
+  static hostSelector = 'gke-consumer-groups';
 
   private readonly getTable = this.locatorFor(MatTableHarness);
-  private readonly getClusterInfo = this.locatorForOptional('.brokers__cluster-info-items');
-
-  async getClusterInfoText() {
-    const info = await this.getClusterInfo();
-    return info ? info.text() : null;
-  }
+  private readonly getFilterInput = this.locatorFor(MatInputHarness);
+  private readonly getPaginator = this.locatorFor(MatPaginatorHarness);
+  private readonly getProgressBar = this.locatorForOptional(MatProgressBarHarness);
 
   async getRows() {
     const table = await this.getTable();
@@ -40,5 +40,25 @@ export class BrokersHarness extends ComponentHarness {
   async getRowCount() {
     const rows = await this.getRows();
     return rows.length;
+  }
+
+  async setFilter(value: string) {
+    const input = await this.getFilterInput();
+    await input.setValue(value);
+  }
+
+  async getRangeLabel() {
+    const paginator = await this.getPaginator();
+    return paginator.getRangeLabel();
+  }
+
+  async goToNextPage() {
+    const paginator = await this.getPaginator();
+    await paginator.goToNextPage();
+  }
+
+  async isLoading() {
+    const progressBar = await this.getProgressBar();
+    return progressBar !== null;
   }
 }

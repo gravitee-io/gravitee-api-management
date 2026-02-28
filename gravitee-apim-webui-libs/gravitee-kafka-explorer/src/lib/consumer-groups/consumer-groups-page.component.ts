@@ -18,26 +18,26 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
-import { TopicsComponent } from './topics.component';
-import { ListTopicsResponse } from '../models/kafka-cluster.model';
+import { ConsumerGroupsComponent } from './consumer-groups.component';
+import { ListConsumerGroupsResponse } from '../models/kafka-cluster.model';
 import { KafkaExplorerStore } from '../services/kafka-explorer-store.service';
 import { KafkaExplorerService } from '../services/kafka-explorer.service';
 
 @Component({
-  selector: 'gke-topics-page',
+  selector: 'gke-consumer-groups-page',
   standalone: true,
-  imports: [TopicsComponent],
-  templateUrl: './topics-page.component.html',
+  imports: [ConsumerGroupsComponent],
+  templateUrl: './consumer-groups-page.component.html',
 })
-export class TopicsPageComponent implements OnInit {
+export class ConsumerGroupsPageComponent implements OnInit {
   store = inject(KafkaExplorerStore);
   private readonly service = inject(KafkaExplorerService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
 
-  topicsPage = signal<ListTopicsResponse | undefined>(undefined);
-  topicsLoading = signal(false);
+  consumerGroupsPage = signal<ListConsumerGroupsResponse | undefined>(undefined);
+  consumerGroupsLoading = signal(false);
 
   private currentFilter = '';
   private currentPage = 0;
@@ -45,42 +45,42 @@ export class TopicsPageComponent implements OnInit {
   private readonly filterSubject = new Subject<string>();
 
   ngOnInit() {
-    this.loadTopics(this.currentFilter, this.currentPage, this.currentPageSize);
+    this.loadConsumerGroups(this.currentFilter, this.currentPage, this.currentPageSize);
 
     this.filterSubject.pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(filter => {
       this.currentFilter = filter;
       this.currentPage = 0;
-      this.loadTopics(filter, 0, this.currentPageSize);
+      this.loadConsumerGroups(filter, 0, this.currentPageSize);
     });
   }
 
-  onTopicsFilterChange(filter: string) {
+  onFilterChange(filter: string) {
     this.filterSubject.next(filter);
   }
 
-  onTopicSelect(topicName: string) {
-    this.router.navigate([topicName], { relativeTo: this.route });
+  onGroupSelect(groupId: string) {
+    this.router.navigate([groupId], { relativeTo: this.route });
   }
 
-  onTopicsPageChange(event: { page: number; pageSize: number }) {
+  onPageChange(event: { page: number; pageSize: number }) {
     this.currentPage = event.page;
     this.currentPageSize = event.pageSize;
-    this.loadTopics(this.currentFilter, event.page, event.pageSize);
+    this.loadConsumerGroups(this.currentFilter, event.page, event.pageSize);
   }
 
-  private loadTopics(nameFilter: string, page: number, pageSize: number) {
-    this.topicsLoading.set(true);
+  private loadConsumerGroups(nameFilter: string, page: number, pageSize: number) {
+    this.consumerGroupsLoading.set(true);
     this.service
-      .listTopics(this.store.baseURL(), this.store.clusterId(), nameFilter || undefined, page + 1, pageSize)
+      .listConsumerGroups(this.store.baseURL(), this.store.clusterId(), nameFilter || undefined, page + 1, pageSize)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: response => {
-          this.topicsPage.set(response);
-          this.topicsLoading.set(false);
+          this.consumerGroupsPage.set(response);
+          this.consumerGroupsLoading.set(false);
         },
         error: err => {
-          this.store.error.set(err?.error?.message ?? 'Failed to load topics');
-          this.topicsLoading.set(false);
+          this.store.error.set(err?.error?.message ?? 'Failed to load consumer groups');
+          this.consumerGroupsLoading.set(false);
         },
       });
   }

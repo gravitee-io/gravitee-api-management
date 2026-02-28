@@ -1,0 +1,78 @@
+/*
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.consumer-groups {
+  mat-card-content {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  &__filter {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  &__state-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    background-color: var(--mat-sys-surface-variant, #e7e0ec);
+    color: var(--mat-sys-on-surface-variant, #49454f);
+
+    &--stable {
+      background-color: var(--mat-sys-tertiary-container, #e8f5e9);
+      color: var(--mat-sys-on-tertiary-container, #2e7d32);
+    }
+
+    &--empty {
+      background-color: var(--mat-sys-surface-variant, #e0e0e0);
+      color: var(--mat-sys-on-surface-variant, #616161);
+    }
+
+    &--rebalancing {
+      background-color: var(--mat-sys-error-container, #fff3e0);
+      color: var(--mat-sys-on-error-container, #e65100);
+    }
+
+    &--dead {
+      background-color: var(--mat-sys-error, #ffebee);
+      color: var(--mat-sys-on-error, #c62828);
+    }
+  }
+
+  &__lag-warning {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    background-color: var(--mat-sys-error-container, #fff3e0);
+    color: var(--mat-sys-on-error-container, #e65100);
+  }
+
+  &__row {
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--mat-sys-surface-variant, #f5f5f5);
+    }
+  }
+}

@@ -164,6 +164,87 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/KafkaExplorerError"
 
+    /kafka-explorer/list-consumer-groups:
+        post:
+            tags:
+                - Kafka Explorer
+            summary: List consumer groups of a Kafka cluster
+            description: |
+                Connects to a Kafka cluster and returns the list of consumer groups with their metadata.
+            operationId: listConsumerGroups
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                      type: integer
+                      default: 1
+                  description: Page number (1-based)
+                - name: perPage
+                  in: query
+                  schema:
+                      type: integer
+                      default: 10
+                  description: Number of consumer groups per page
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ListConsumerGroupsRequest"
+            responses:
+                "200":
+                    description: List of consumer groups
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ListConsumerGroupsResponse"
+                "400":
+                    description: Invalid parameters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+                "502":
+                    description: Connection failure
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+
+    /kafka-explorer/describe-consumer-group:
+        post:
+            tags:
+                - Kafka Explorer
+            summary: Describe a Kafka consumer group
+            description: |
+                Connects to a Kafka cluster and returns detailed information about a specific consumer group including members and offsets.
+            operationId: describeConsumerGroup
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DescribeConsumerGroupRequest"
+            responses:
+                "200":
+                    description: Consumer group detail
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DescribeConsumerGroupResponse"
+                "400":
+                    description: Invalid parameters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+                "502":
+                    description: Connection failure
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+
 components:
     schemas:
         DescribeClusterRequest:
@@ -437,6 +518,126 @@ components:
                     type: integer
                     format: int64
                     description: Total size of this log directory in bytes
+
+        ListConsumerGroupsRequest:
+            type: object
+            required:
+                - clusterId
+            properties:
+                clusterId:
+                    type: string
+                    description: ID of the Cluster to connect to
+                nameFilter:
+                    type: string
+                    description: Optional filter to match consumer group IDs (case-insensitive contains)
+
+        ListConsumerGroupsResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ConsumerGroupSummary"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+        ConsumerGroupSummary:
+            type: object
+            properties:
+                groupId:
+                    type: string
+                state:
+                    type: string
+                    description: Consumer group state (STABLE, EMPTY, REBALANCING, DEAD, etc.)
+                membersCount:
+                    type: integer
+                    format: int32
+                totalLag:
+                    type: integer
+                    format: int64
+                    description: Total lag across all partitions
+                numTopics:
+                    type: integer
+                    format: int32
+                    description: Number of topics the consumer group has committed offsets for
+                coordinator:
+                    $ref: "#/components/schemas/KafkaNode"
+
+        DescribeConsumerGroupRequest:
+            type: object
+            required:
+                - clusterId
+                - groupId
+            properties:
+                clusterId:
+                    type: string
+                    description: ID of the Cluster to connect to
+                groupId:
+                    type: string
+                    description: ID of the consumer group to describe
+
+        DescribeConsumerGroupResponse:
+            type: object
+            properties:
+                groupId:
+                    type: string
+                state:
+                    type: string
+                coordinator:
+                    $ref: "#/components/schemas/KafkaNode"
+                partitionAssignor:
+                    type: string
+                members:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ConsumerGroupMember"
+                offsets:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ConsumerGroupOffset"
+
+        ConsumerGroupMember:
+            type: object
+            properties:
+                memberId:
+                    type: string
+                clientId:
+                    type: string
+                host:
+                    type: string
+                assignments:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/MemberAssignment"
+
+        MemberAssignment:
+            type: object
+            properties:
+                topicName:
+                    type: string
+                partitions:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+
+        ConsumerGroupOffset:
+            type: object
+            properties:
+                topic:
+                    type: string
+                partition:
+                    type: integer
+                    format: int32
+                committedOffset:
+                    type: integer
+                    format: int64
+                endOffset:
+                    type: integer
+                    format: int64
+                lag:
+                    type: integer
+                    format: int64
 
         KafkaExplorerError:
             type: object
