@@ -43,6 +43,7 @@ import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomai
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.security.PKCS7Utils;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
@@ -82,6 +83,7 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
+import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.subscription.ReferenceDisplayInfo;
@@ -138,6 +140,7 @@ import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -815,7 +818,24 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             return Optional.empty();
         }
 
-        return Optional.ofNullable(Base64.getEncoder().encodeToString(settings.getTls().getClientCertificate().getBytes()));
+        List<String> certificates = new ArrayList<>();
+        if (settings.getTls().getClientCertificates() != null) {
+            certificates.addAll(settings.getTls().getClientCertificates().stream().map(CreateClientCertificate::certificate).toList());
+        } else if (settings.getTls().getClientCertificate() != null) {
+            certificates.add(settings.getTls().getClientCertificate());
+        }
+
+        if (certificates.isEmpty()) {
+            return Optional.empty();
+        }
+
+        if (certificates.size() == 1) {
+            String pem = certificates.getFirst();
+            return Optional.of(Base64.getEncoder().encodeToString(pem.getBytes(StandardCharsets.UTF_8)));
+        } else {
+            byte[] pkcs7Bundle = PKCS7Utils.createBundle(certificates);
+            return Optional.of(Base64.getEncoder().encodeToString(pkcs7Bundle));
+        }
     }
 
     private long countSubscriptionMatchingPredicate(

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.ApplicationStatus;
@@ -64,6 +65,9 @@ public class ApplicationsResource extends AbstractResource {
 
     @Inject
     private ApplicationService applicationService;
+
+    @Inject
+    private ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService;
 
     /**
      * @deprecated must be replaced by /applications/_paged in future major release
@@ -234,6 +238,9 @@ public class ApplicationsResource extends AbstractResource {
             getAuthenticatedUser()
         );
         if (newApplication != null) {
+            if (newApplication.getSettings() != null && newApplication.getSettings().getTls() != null) {
+                applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(newApplication.getId());
+            }
             return Response.created(this.getLocationHeader(newApplication.getId())).entity(newApplication).build();
         }
 

@@ -110,7 +110,7 @@ public class ApplicationClientCertificatesResource extends AbstractResource {
                 new CreateClientCertificateUseCase.Input(application, ClientCertificateMapper.INSTANCE.toDomain(createClientCertificate))
             )
             .clientCertificate();
-        return Response.created(this.getLocationHeader(created.getId())).entity(ClientCertificateMapper.INSTANCE.toDto(created)).build();
+        return Response.created(this.getLocationHeader(created.id())).entity(ClientCertificateMapper.INSTANCE.toDto(created)).build();
     }
 
     @Path("{certId}")

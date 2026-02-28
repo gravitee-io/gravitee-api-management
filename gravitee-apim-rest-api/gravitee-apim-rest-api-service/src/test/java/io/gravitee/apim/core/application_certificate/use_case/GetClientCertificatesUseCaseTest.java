@@ -40,40 +40,40 @@ class GetClientCertificatesUseCaseTest {
     @Test
     void should_return_certificates_for_application() {
         var appId = "app-id";
-        var certificate1 = ClientCertificate.builder()
-            .id("cert-1")
-            .crossId("cross-id-1")
-            .applicationId(appId)
-            .name("Certificate 1")
-            .startsAt(new Date())
-            .endsAt(new Date())
-            .createdAt(new Date())
-            .updatedAt(new Date())
-            .certificate("PEM_CONTENT_1")
-            .certificateExpiration(new Date())
-            .subject("CN=Test1")
-            .issuer("CN=Issuer")
-            .fingerprint("fingerprint1")
-            .environmentId("env-id")
-            .status(ClientCertificateStatus.ACTIVE)
-            .build();
-        var certificate2 = ClientCertificate.builder()
-            .id("cert-2")
-            .crossId("cross-id-2")
-            .applicationId(appId)
-            .name("Certificate 2")
-            .startsAt(new Date())
-            .endsAt(new Date())
-            .createdAt(new Date())
-            .updatedAt(new Date())
-            .certificate("PEM_CONTENT_2")
-            .certificateExpiration(new Date())
-            .subject("CN=Test2")
-            .issuer("CN=Issuer")
-            .fingerprint("fingerprint2")
-            .environmentId("env-id")
-            .status(ClientCertificateStatus.ACTIVE)
-            .build();
+        var certificate1 = new ClientCertificate(
+            "cert-1",
+            "cross-id-1",
+            appId,
+            "Certificate 1",
+            new Date(),
+            new Date(),
+            new Date(),
+            new Date(),
+            "PEM_CONTENT_1",
+            new Date(),
+            "CN=Test1",
+            "CN=Issuer",
+            "fingerprint1",
+            "env-id",
+            ClientCertificateStatus.ACTIVE
+        );
+        var certificate2 = new ClientCertificate(
+            "cert-2",
+            "cross-id-2",
+            appId,
+            "Certificate 2",
+            new Date(),
+            new Date(),
+            new Date(),
+            new Date(),
+            "PEM_CONTENT_2",
+            new Date(),
+            "CN=Test2",
+            "CN=Issuer",
+            "fingerprint2",
+            "env-id",
+            ClientCertificateStatus.ACTIVE
+        );
         clientCertificateCrudService.initWith(List.of(certificate1, certificate2));
 
         var result = getClientCertificatesUseCase.execute(new GetClientCertificatesUseCase.Input(appId, new PageableImpl(1, 10)));

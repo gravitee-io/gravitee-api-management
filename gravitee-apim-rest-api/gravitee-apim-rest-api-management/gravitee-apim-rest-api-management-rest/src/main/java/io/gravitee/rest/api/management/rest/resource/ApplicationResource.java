@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -84,6 +85,9 @@ public class ApplicationResource extends AbstractResource {
     @Inject
     private ApplicationTypeService applicationTypeService;
 
+    @Inject
+    private ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService;
+
     @PathParam("application")
     @Parameter(name = "application", required = true)
     private String application;
@@ -146,7 +150,11 @@ public class ApplicationResource extends AbstractResource {
             throw new BadRequestException("Invalid image format : " + e.getMessage());
         }
 
-        return applicationService.update(GraviteeContext.getExecutionContext(), application, updatedApplication);
+        var result = applicationService.update(GraviteeContext.getExecutionContext(), application, updatedApplication);
+        if (updatedApplication.getSettings() != null && updatedApplication.getSettings().getTls() != null) {
+            applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(application);
+        }
+        return result;
     }
 
     @GET

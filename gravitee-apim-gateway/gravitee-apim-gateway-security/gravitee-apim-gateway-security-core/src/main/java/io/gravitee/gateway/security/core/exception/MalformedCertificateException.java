@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.security.core.exception;
 
-public class MalformedCertificateException extends Exception {
+public class MalformedCertificateException extends RuntimeException {
 
     public MalformedCertificateException(String message, Throwable cause) {
         super(message, cause);

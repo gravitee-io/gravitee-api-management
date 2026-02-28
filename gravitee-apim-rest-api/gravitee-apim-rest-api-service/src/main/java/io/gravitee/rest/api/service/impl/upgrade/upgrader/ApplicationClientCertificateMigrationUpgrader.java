@@ -100,7 +100,7 @@ public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
 
             clientCertificateCrudService.create(
                 applicationId,
-                ClientCertificate.builder().name(applicationName).certificate(decodeCert(base64Certificate)).build()
+                new ClientCertificate(applicationName, decodeCert(base64Certificate), null, null)
             );
 
             log.debug("Created ClientCertificate for application {} ({})", applicationName, applicationId);

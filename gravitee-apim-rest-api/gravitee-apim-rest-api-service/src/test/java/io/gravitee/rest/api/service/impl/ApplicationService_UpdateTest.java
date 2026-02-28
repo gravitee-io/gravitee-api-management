@@ -19,10 +19,20 @@ import static io.gravitee.repository.management.model.ApiKeyMode.SHARED;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static io.gravitee.repository.management.model.Application.METADATA_REGISTRATION_PAYLOAD;
 import static io.gravitee.rest.api.model.ApiKeyMode.UNSPECIFIED;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.isNull;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.same;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -33,7 +43,17 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.Subscription;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanSecurityType;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.UpdateApplicationEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
@@ -45,13 +65,21 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.settings.Enabled;
 import io.gravitee.rest.api.model.settings.UserGroup;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.ConfigService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.converter.ApplicationConverter;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.ApplicationClientIdException;
+import io.gravitee.rest.api.service.exceptions.ApplicationGrantTypesNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
@@ -59,15 +87,18 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.ws.rs.BadRequestException;
-import java.util.*;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import joptsimple.internal.Strings;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -184,27 +215,35 @@ public class ApplicationService_UpdateTest {
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
-        MembershipEntity po = new MembershipEntity();
-        po.setMemberId(USER_NAME);
-        po.setMemberType(MembershipMemberType.USER);
-        po.setReferenceId(APPLICATION_ID);
-        po.setReferenceType(MembershipReferenceType.APPLICATION);
-        po.setRoleId("APPLICATION_PRIMARY_OWNER");
-        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(getPrimaryOwner()));
         when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
 
         // Mock the certificate service to return the certificate
         io.gravitee.apim.core.application_certificate.model.ClientCertificate mockCert =
-            io.gravitee.apim.core.application_certificate.model.ClientCertificate.builder()
-                .id("cert-id")
-                .applicationId(APPLICATION_ID)
-                .name("cert-name")
-                .createdAt(new java.util.Date())
-                .updatedAt(new java.util.Date())
-                .certificate(VALID_PEM_1)
-                .status(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE)
-                .build();
-        when(clientCertificateCrudService.findMostRecentActiveByApplicationId(any())).thenReturn(java.util.Optional.of(mockCert));
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "cert-id",
+                null,
+                APPLICATION_ID,
+                "cert-name",
+                null,
+                null,
+                new java.util.Date(),
+                new java.util.Date(),
+                VALID_PEM_1,
+                null,
+                null,
+                null,
+                null,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
+        when(
+            clientCertificateCrudService.findByApplicationIdAndStatuses(
+                any(),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
+            )
+        ).thenReturn(java.util.Set.of(mockCert));
 
         final ApplicationEntity applicationEntity = applicationService.update(
             GraviteeContext.getExecutionContext(),
@@ -218,7 +257,6 @@ public class ApplicationService_UpdateTest {
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
-        Assertions.assertThat(applicationEntity.getSettings().getTls().getClientCertificate()).isEqualTo(VALID_PEM_1);
     }
 
     @Test
@@ -276,12 +314,7 @@ public class ApplicationService_UpdateTest {
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
-        MembershipEntity po = new MembershipEntity();
-        po.setMemberId(USER_NAME);
-        po.setMemberType(MembershipMemberType.USER);
-        po.setReferenceId(APPLICATION_ID);
-        po.setReferenceType(MembershipReferenceType.APPLICATION);
-        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        MembershipEntity po = getPrimaryOwner();
         ConsoleConfigEntity config = getConsoleConfigEntity(false);
 
         when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
@@ -392,12 +425,7 @@ public class ApplicationService_UpdateTest {
         ConsoleConfigEntity config = getConsoleConfigEntity(false);
         when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
 
-        MembershipEntity po = new MembershipEntity();
-        po.setMemberId(USER_NAME);
-        po.setMemberType(MembershipMemberType.USER);
-        po.setReferenceId(APPLICATION_ID);
-        po.setReferenceType(MembershipReferenceType.APPLICATION);
-        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        MembershipEntity po = getPrimaryOwner();
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
 
         final ApplicationEntity applicationEntity = applicationService.update(
@@ -552,12 +580,7 @@ public class ApplicationService_UpdateTest {
         when(applicationRepository.update(any())).thenReturn(existingApplication);
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
-        MembershipEntity po = new MembershipEntity();
-        po.setMemberId(USER_NAME);
-        po.setMemberType(MembershipMemberType.USER);
-        po.setReferenceId(APPLICATION_ID);
-        po.setReferenceType(MembershipReferenceType.APPLICATION);
-        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        MembershipEntity po = getPrimaryOwner();
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
 
         // client registration is enabled
@@ -616,12 +639,7 @@ public class ApplicationService_UpdateTest {
         when(applicationRepository.update(any())).thenReturn(existingApplication);
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
-        MembershipEntity po = new MembershipEntity();
-        po.setMemberId(USER_NAME);
-        po.setMemberType(MembershipMemberType.USER);
-        po.setReferenceId(APPLICATION_ID);
-        po.setReferenceType(MembershipReferenceType.APPLICATION);
-        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        MembershipEntity po = getPrimaryOwner();
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
 
         // client registration is enabled
@@ -681,12 +699,7 @@ public class ApplicationService_UpdateTest {
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
-        MembershipEntity po = new MembershipEntity();
-        po.setMemberId(USER_NAME);
-        po.setMemberType(MembershipMemberType.USER);
-        po.setReferenceId(APPLICATION_ID);
-        po.setReferenceType(MembershipReferenceType.APPLICATION);
-        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        MembershipEntity po = getPrimaryOwner();
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
         when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
 
@@ -747,16 +760,17 @@ public class ApplicationService_UpdateTest {
         when(applicationRepository.update(any())).thenReturn(existingApplication);
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
-        MembershipEntity po = new MembershipEntity();
-        po.setMemberId(USER_NAME);
-        po.setMemberType(MembershipMemberType.USER);
-        po.setReferenceId(APPLICATION_ID);
-        po.setReferenceType(MembershipReferenceType.APPLICATION);
-        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        MembershipEntity po = getPrimaryOwner();
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
 
         // No existing certificate - this is a new certificate
-        when(clientCertificateCrudService.findMostRecentActiveByApplicationId(any())).thenReturn(java.util.Optional.empty());
+        when(
+            clientCertificateCrudService.findByApplicationIdAndStatuses(
+                any(),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
+            )
+        ).thenReturn(java.util.Set.of());
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
@@ -785,32 +799,275 @@ public class ApplicationService_UpdateTest {
         when(applicationRepository.update(any())).thenReturn(existingApplication);
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
+        MembershipEntity po = getPrimaryOwner();
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+
+        // Existing certificate with different content
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate existingCert =
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "old-cert-id",
+                null,
+                APPLICATION_ID,
+                "old-cert-name",
+                null,
+                null,
+                new java.util.Date(),
+                new java.util.Date(),
+                "old certificate content",
+                null,
+                null,
+                null,
+                null,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
+        when(
+            clientCertificateCrudService.findByApplicationIdAndStatuses(
+                any(),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
+            )
+        ).thenReturn(java.util.Set.of(existingCert));
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        // Verify that the old certificate was expired and a new one was created
+        verify(clientCertificateCrudService).delete("old-cert-id");
+        verify(clientCertificateCrudService).create(eq(APPLICATION_ID), any());
+    }
+
+    @Test
+    public void should_create_multiple_certificates_from_list() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setApp(new SimpleApplicationSettings());
+        settings.setTls(
+            TlsSettings.builder()
+                .clientCertificates(
+                    java.util.List.of(
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("cert-1", null, null, VALID_PEM_1),
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate(
+                            "cert-2",
+                            null,
+                            null,
+                            "another-pem-content"
+                        )
+                    )
+                )
+                .build()
+        );
+        ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
+
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updateApplication.getDescription()).thenReturn("My description");
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+        when(applicationRepository.update(any())).thenReturn(existingApplication);
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = getPrimaryOwner();
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+
+        // No existing certificates
+        when(
+            clientCertificateCrudService.findByApplicationIdAndStatuses(
+                any(),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
+            )
+        ).thenReturn(java.util.Set.of());
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        // Verify both certificates were created
+        verify(clientCertificateCrudService, times(2)).create(eq(APPLICATION_ID), any());
+    }
+
+    @Test
+    public void should_keep_existing_cert_and_add_new_one() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setApp(new SimpleApplicationSettings());
+        settings.setTls(
+            TlsSettings.builder()
+                .clientCertificates(
+                    java.util.List.of(
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("existing", null, null, "existing-pem"),
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("new-cert", null, null, "new-pem")
+                    )
+                )
+                .build()
+        );
+        ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
+
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updateApplication.getDescription()).thenReturn("My description");
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+        when(applicationRepository.update(any())).thenReturn(existingApplication);
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = getPrimaryOwner();
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+
+        // One existing cert that matches one of the new ones
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate existingCert =
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "existing-cert-id",
+                null,
+                APPLICATION_ID,
+                "existing",
+                null,
+                null,
+                new java.util.Date(),
+                null,
+                "existing-pem",
+                null,
+                null,
+                null,
+                null,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
+        when(
+            clientCertificateCrudService.findByApplicationIdAndStatuses(
+                any(),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
+            )
+        ).thenReturn(java.util.Set.of(existingCert));
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        // Only the new cert should be created, existing one kept
+        verify(clientCertificateCrudService, times(1)).create(eq(APPLICATION_ID), any());
+        // Existing cert should NOT be expired
+        verify(clientCertificateCrudService, never()).update(eq("existing-cert-id"), any());
+    }
+
+    private static @NonNull MembershipEntity getPrimaryOwner() {
         MembershipEntity po = new MembershipEntity();
         po.setMemberId(USER_NAME);
         po.setMemberType(MembershipMemberType.USER);
         po.setReferenceId(APPLICATION_ID);
         po.setReferenceType(MembershipReferenceType.APPLICATION);
         po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        return po;
+    }
+
+    @Test
+    public void should_update_and_delete_cert() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setApp(new SimpleApplicationSettings());
+        // Only keep one cert out of two
+        settings.setTls(
+            TlsSettings.builder()
+                .clientCertificates(
+                    java.util.List.of(
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("kept", null, null, "kept-pem"),
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("to-update", null, null, "to-update-pem")
+                    )
+                )
+                .build()
+        );
+        ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
+
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updateApplication.getDescription()).thenReturn("My description");
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+        when(applicationRepository.update(any())).thenReturn(existingApplication);
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = getPrimaryOwner();
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
 
-        // Existing certificate with different content
-        io.gravitee.apim.core.application_certificate.model.ClientCertificate existingCert =
-            io.gravitee.apim.core.application_certificate.model.ClientCertificate.builder()
-                .id("old-cert-id")
-                .applicationId(APPLICATION_ID)
-                .name("old-cert-name")
-                .createdAt(new java.util.Date())
-                .updatedAt(new java.util.Date())
-                .certificate("old certificate content")
-                .status(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE)
-                .build();
-        when(clientCertificateCrudService.findMostRecentActiveByApplicationId(any())).thenReturn(java.util.Optional.of(existingCert));
+        // Two existing certs - one will be kept, one removed
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate keptCert =
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "kept-cert-id",
+                null,
+                APPLICATION_ID,
+                "kept",
+                null,
+                null,
+                new java.util.Date(),
+                null,
+                "kept-pem",
+                null,
+                null,
+                null,
+                null,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate removedCert =
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "removed-cert-id",
+                null,
+                APPLICATION_ID,
+                "removed",
+                null,
+                null,
+                new java.util.Date(),
+                null,
+                "removed-pem",
+                null,
+                null,
+                null,
+                null,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate toUpdateCert =
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "update-cert-id",
+                null,
+                APPLICATION_ID,
+                "removed",
+                null,
+                null,
+                new java.util.Date(),
+                null,
+                "to-update-pem",
+                null,
+                null,
+                null,
+                null,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
+        when(
+            clientCertificateCrudService.findByApplicationIdAndStatuses(
+                any(),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
+            )
+        ).thenReturn(java.util.Set.of(keptCert, removedCert, toUpdateCert));
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
-        // Verify that the old certificate was expired and a new one was created
-        verify(clientCertificateCrudService).update(eq("old-cert-id"), any());
-        verify(clientCertificateCrudService).create(eq(APPLICATION_ID), any());
+        // Even if unchanged, the remaining one should be kept
+        verify(clientCertificateCrudService).update(eq("update-cert-id"), any());
+        // No longer part of the list should be removed
+        verify(clientCertificateCrudService).delete("removed-cert-id");
+        // Kept cert should NOT be touched
+        verify(clientCertificateCrudService, never()).update(eq("kept-cert-id"), any());
+        // No new certs to create
+        verify(clientCertificateCrudService, never()).create(any(), any());
     }
 
     private static @NotNull ConsoleConfigEntity getConsoleConfigEntity(boolean enabled) {
@@ -920,12 +1177,7 @@ public class ApplicationService_UpdateTest {
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
-        MembershipEntity po = new MembershipEntity();
-        po.setMemberId(USER_NAME);
-        po.setMemberType(MembershipMemberType.USER);
-        po.setReferenceId(APPLICATION_ID);
-        po.setReferenceType(MembershipReferenceType.APPLICATION);
-        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        MembershipEntity po = getPrimaryOwner();
         ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
 
         when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
@@ -962,12 +1214,7 @@ public class ApplicationService_UpdateTest {
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
-        MembershipEntity po = new MembershipEntity();
-        po.setMemberId(USER_NAME);
-        po.setMemberType(MembershipMemberType.USER);
-        po.setReferenceId(APPLICATION_ID);
-        po.setReferenceType(MembershipReferenceType.APPLICATION);
-        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        MembershipEntity po = getPrimaryOwner();
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
         when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
         SubscriptionEntity subscription1 = new SubscriptionEntity();
@@ -1016,12 +1263,7 @@ public class ApplicationService_UpdateTest {
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
-        MembershipEntity po = new MembershipEntity();
-        po.setMemberId(USER_NAME);
-        po.setMemberType(MembershipMemberType.USER);
-        po.setReferenceId(APPLICATION_ID);
-        po.setReferenceType(MembershipReferenceType.APPLICATION);
-        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        MembershipEntity po = getPrimaryOwner();
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
         when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
 

@@ -23,11 +23,14 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.core.utils.StringUtils;
+import io.gravitee.common.util.KeyStoreUtils;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.application.TlsSettings;
+import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
 import io.gravitee.rest.api.model.configuration.application.ApplicationGrantTypeEntity;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -37,6 +40,8 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -69,32 +74,39 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
 
     @Override
     public Result<Input> validateAndSanitize(Input input) {
-        if (input.settings() != null) {
-            if (input.settings().getApp() != null) {
-                return validateAndSanitizeSimpleSettings(input);
-            }
-            return validateAndSanitizeOAuthSettings(input);
+        if (input.settings() == null) {
+            // default to empty simple app
+            return Result.ofValue(input.sanitized(ApplicationSettings.builder().app(new SimpleApplicationSettings()).build()));
         }
-        // default to empty simple app
-        return Result.ofValue(input.sanitized(ApplicationSettings.builder().app(new SimpleApplicationSettings()).build()));
+
+        var errors = new ArrayList<Error>();
+        var sanitizedBuilder = input.settings().toBuilder();
+
+        if (input.settings().getApp() != null) {
+            validateSimpleSettings(input, sanitizedBuilder, errors);
+        } else if (input.settings().getOauth() != null) {
+            validateOAuthSettings(input, sanitizedBuilder, errors);
+        }
+
+        if (input.settings().getTls() != null) {
+            errors.addAll(validateTlsSettings(input.settings().getTls()));
+        }
+
+        return Result.ofBoth(input.sanitized(sanitizedBuilder.build()), errors);
     }
 
-    private Result<Input> validateAndSanitizeSimpleSettings(Input input) {
-        var sanitizedBuilder = input.settings().toBuilder();
+    private void validateSimpleSettings(Input input, ApplicationSettings.ApplicationSettingsBuilder sanitizedBuilder, List<Error> errors) {
         var simpleSettings = input.settings().getApp().toBuilder().build();
-        var errors = new ArrayList<Error>();
 
         if (StringUtils.isNotEmpty(simpleSettings.getClientId())) {
             errors.addAll(validateClientId(input.auditInfo().environmentId(), input.applicationId(), simpleSettings));
         }
 
-        return Result.ofBoth(input.sanitized(sanitizedBuilder.app(simpleSettings).build()), errors);
+        sanitizedBuilder.app(simpleSettings);
     }
 
-    private Result<Input> validateAndSanitizeOAuthSettings(Input input) {
-        var sanitizedBuilder = input.settings().toBuilder();
+    private void validateOAuthSettings(Input input, ApplicationSettings.ApplicationSettingsBuilder sanitizedBuilder, List<Error> errors) {
         var oauthSettings = input.settings().getOauth().toBuilder().build();
-        var errors = new ArrayList<Error>();
 
         if (!isClientRegistrationEnabled(input.auditInfo())) {
             errors.add(
@@ -109,7 +121,77 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
         errors.addAll(validateGrantTypes(appType, oauthSettings));
         errors.addAll(validateRedirectURIs(appType, oauthSettings));
         oauthSettings.setResponseTypes(getResponseTypes(appType, oauthSettings));
-        return Result.ofBoth(input.sanitized(sanitizedBuilder.oauth(oauthSettings).build()), errors);
+        sanitizedBuilder.oauth(oauthSettings);
+    }
+
+    private List<Error> validateTlsSettings(TlsSettings tls) {
+        var errors = new ArrayList<Error>();
+        boolean hasSingle = StringUtils.isNotEmpty(tls.getClientCertificate());
+        boolean hasList = CollectionUtils.isNotEmpty(tls.getClientCertificates());
+
+        if (hasSingle && hasList) {
+            errors.add(Error.severe("cannot set both clientCertificate and clientCertificates, use clientCertificates only"));
+            return errors;
+        }
+
+        if (hasSingle) {
+            errors.add(Error.warning("clientCertificate is deprecated, use clientCertificates instead"));
+            errors.addAll(validateCertificatePem(tls.getClientCertificate()).errors());
+        } else if (hasList) {
+            for (var cert : tls.getClientCertificates()) {
+                errors.addAll(validateCertificateEntry(cert));
+            }
+        } else {
+            errors.add(Error.severe("tls configuration must contain either clientCertificate or clientCertificates"));
+        }
+
+        return errors;
+    }
+
+    private List<Error> validateCertificateEntry(CreateClientCertificate cert) {
+        var errors = new ArrayList<Error>();
+        var parsed = validateCertificatePem(cert.certificate());
+        errors.addAll(parsed.errors());
+
+        if (cert.startsAt() != null && cert.endsAt() != null && !cert.startsAt().before(cert.endsAt())) {
+            errors.add(Error.severe("certificate [%s]: startsAt must be before endsAt", cert.name()));
+        }
+
+        if (cert.endsAt() != null && parsed.certificate() != null && cert.endsAt().after(parsed.certificate().getNotAfter())) {
+            errors.add(Error.warning("certificate [%s]: endsAt is after certificate expiration date", cert.name()));
+        }
+
+        return errors;
+    }
+
+    private record CertificateParseResult(List<Error> errors, X509Certificate certificate) {
+        static CertificateParseResult ofErrors(List<Error> errors) {
+            return new CertificateParseResult(errors, null);
+        }
+
+        static CertificateParseResult of(X509Certificate cert) {
+            return new CertificateParseResult(List.of(), cert);
+        }
+    }
+
+    private CertificateParseResult validateCertificatePem(String pem) {
+        Certificate[] certificates;
+        try {
+            certificates = KeyStoreUtils.loadPemCertificates(pem);
+        } catch (Exception e) {
+            return CertificateParseResult.ofErrors(List.of(Error.severe("certificate is not a valid PEM")));
+        }
+
+        if (certificates == null || certificates.length == 0) {
+            return CertificateParseResult.ofErrors(List.of(Error.severe("certificate is empty")));
+        }
+
+        var x509 = (X509Certificate) certificates[0];
+        if (x509.getBasicConstraints() != -1) {
+            return CertificateParseResult.ofErrors(List.of(Error.severe("certificate is a CA certificate")));
+        }
+
+        return CertificateParseResult.of(x509);
     }
 
     private List<Error> validateGrantTypes(ApplicationTypeEntity type, OAuthClientSettings settings) {

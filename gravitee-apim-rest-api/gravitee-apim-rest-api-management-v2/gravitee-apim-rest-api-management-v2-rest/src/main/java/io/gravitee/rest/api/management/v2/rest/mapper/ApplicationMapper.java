@@ -16,8 +16,10 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDSpec;
+import io.gravitee.rest.api.management.v2.rest.model.ApplicationCRDSettings;
 import io.gravitee.rest.api.management.v2.rest.model.BaseApplication;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
 import java.util.Collection;
 import java.util.List;
 import org.mapstruct.Mapper;
@@ -38,4 +40,7 @@ public interface ApplicationMapper {
     @Mapping(target = "picture", source = "pictureUrl")
     @Mapping(target = "disableMembershipNotifications", expression = "java(!spec.isNotifyMembers())")
     ApplicationCRDSpec map(io.gravitee.rest.api.management.v2.rest.model.ApplicationCRDSpec spec);
+
+    @Mapping(source = "content", target = "certificate")
+    CreateClientCertificate map(ApplicationCRDSettings.ClientCertificateCRD crd);
 }

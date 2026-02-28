@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -198,6 +199,53 @@ public class ApplicationService_CreateTest {
         assertNotNull(applicationEntity);
         verify(applicationRepository).create(
             argThat(appToCreate -> appToCreate.getGroups().size() == 1 && appToCreate.getGroups().contains("default-group-to-add"))
+        );
+    }
+
+    @Test
+    public void shouldCreateWithMultipleCertificates() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+        settings.setTls(
+            TlsSettings.builder()
+                .clientCertificates(
+                    java.util.List.of(
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("cert-1", null, null, VALID_PEM),
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("cert-2", null, null, "another-pem")
+                    )
+                )
+                .build()
+        );
+        when(newApplication.getSettings()).thenReturn(settings);
+        when(application.getName()).thenReturn(APPLICATION_NAME);
+        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(applicationRepository.create(any())).thenReturn(application);
+        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(newApplication.getDescription()).thenReturn("My description");
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(UserEntity.class));
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+
+        final ApplicationEntity applicationEntity = applicationService.create(
+            GraviteeContext.getExecutionContext(),
+            newApplication,
+            USER_NAME
+        );
+
+        assertNotNull(applicationEntity);
+        // Verify both certificates were created with their names
+        verify(clientCertificateCrudService, times(2)).create(any(), any());
+        verify(clientCertificateCrudService).create(
+            any(),
+            argThat(cert -> "cert-1".equals(cert.name()) && VALID_PEM.equals(cert.certificate()))
+        );
+        verify(clientCertificateCrudService).create(
+            any(),
+            argThat(cert -> "cert-2".equals(cert.name()) && "another-pem".equals(cert.certificate()))
         );
     }
 
