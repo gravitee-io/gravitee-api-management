@@ -18,22 +18,27 @@
   <!-- TAB 1: Structured View (default) -->
   <mat-tab label="Structured View">
     <div class="zee-preview-tab-content">
-      <ng-container [ngSwitch]="resourceType">
-        <zee-flow-card *ngSwitchCase="ZeeResourceType.FLOW" [flow]="data"></zee-flow-card>
-        <zee-plan-card *ngSwitchCase="ZeeResourceType.PLAN" [plan]="data"></zee-plan-card>
-        <zee-endpoint-card *ngSwitchCase="ZeeResourceType.ENDPOINT" [endpoint]="data"></zee-endpoint-card>
-        <zee-entrypoint-card *ngSwitchCase="ZeeResourceType.ENTRYPOINT" [entrypoint]="data"></zee-entrypoint-card>
-        <zee-api-card *ngSwitchCase="ZeeResourceType.API" [api]="data"></zee-api-card>
-        <!-- Fallback for resource types without a dedicated card yet -->
-        <pre *ngSwitchDefault class="zee-preview-json">{{ data | json }}</pre>
+      <ng-container *ngIf="data != null; else noData">
+        <ng-container [ngSwitch]="resourceType">
+          <zee-flow-card *ngSwitchCase="ZeeResourceType.FLOW" [flow]="data"></zee-flow-card>
+          <zee-plan-card *ngSwitchCase="ZeeResourceType.PLAN" [plan]="data"></zee-plan-card>
+          <zee-endpoint-card *ngSwitchCase="ZeeResourceType.ENDPOINT" [endpoint]="data"></zee-endpoint-card>
+          <zee-entrypoint-card *ngSwitchCase="ZeeResourceType.ENTRYPOINT" [entrypoint]="data"></zee-entrypoint-card>
+          <zee-api-card *ngSwitchCase="ZeeResourceType.API" [api]="data"></zee-api-card>
+          <!-- Fallback for resource types without a dedicated card yet -->
+          <pre *ngSwitchDefault class="zee-preview-json">{{ data | json }}</pre>
+        </ng-container>
       </ng-container>
+      <ng-template #noData>
+        <p class="zee-preview-empty">Zee couldn't generate a result. Try rephrasing your prompt.</p>
+      </ng-template>
     </div>
   </mat-tab>
 
   <!-- TAB 2: Raw JSON -->
   <mat-tab label="JSON">
     <div class="zee-preview-tab-content">
-      <pre class="zee-preview-json">{{ data | json }}</pre>
+      <pre class="zee-preview-json">{{ data != null ? (data | json) : 'No result to display.' }}</pre>
     </div>
   </mat-tab>
 </mat-tab-group>

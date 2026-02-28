@@ -25,6 +25,11 @@
         rows="4"
         placeholder="e.g. Generate a flow that rate-limits requests to 100 per minute"
       ></textarea>
+      <!-- Character counter (2000 = UTF-16 code units) -->
+      <mat-hint align="end" [class.zee-prompt__counter--over]="prompt.length > MAX_PROMPT_LENGTH">
+        {{ prompt.length }} / {{ MAX_PROMPT_LENGTH }}
+      </mat-hint>
+      <mat-error *ngIf="prompt.length > MAX_PROMPT_LENGTH">Prompt exceeds {{ MAX_PROMPT_LENGTH }} characters.</mat-error>
     </mat-form-field>
 
     <div
@@ -40,8 +45,20 @@
     >
       <mat-icon>upload_file</mat-icon>
       <span>Drag files or click to upload context</span>
-      <span class="zee-dropzone__hint">(.json, .yaml, .yml, .md, .txt)</span>
+      <span class="zee-dropzone__hint">(.json, .yaml, .yml, .md, .txt) &bull; Max {{ maxFileSizeMb }} MB each &bull; Max {{ 5 }} files</span>
       <input #fileInput type="file" (change)="onFileSelect($event)" multiple accept=".json,.yaml,.yml,.md,.txt" style="display: none" />
+    </div>
+
+    <!-- File validation errors – aria-live so screen-readers announce them -->
+    <div
+      *ngIf="fileValidationErrors.length > 0"
+      aria-live="polite"
+      role="alert"
+      class="zee-file-errors"
+    >
+      <span *ngFor="let err of fileValidationErrors" class="zee-file-errors__item">
+        <mat-icon class="zee-file-errors__icon">warning</mat-icon>{{ err }}
+      </span>
     </div>
 
     <div *ngIf="files.length > 0" class="zee-files">
@@ -55,7 +72,7 @@
     </div>
 
     <div class="zee-actions">
-      <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!prompt.trim()">
+      <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="isSubmitDisabled">
         <span><mat-icon>auto_awesome</mat-icon> Generate with Zee</span>
       </button>
     </div>

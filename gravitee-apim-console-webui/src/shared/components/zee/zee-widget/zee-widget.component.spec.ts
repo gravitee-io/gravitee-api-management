@@ -16,9 +16,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { of, throwError } from 'rxjs';
 
-import { ZeeWidgetComponent } from './zee-widget.component';
+import { ZeeWidgetComponent, MAX_PROMPT_LENGTH } from './zee-widget.component';
 
 import { ZeeModule } from '../zee.module';
 import { ZeeService } from '../zee.service';
@@ -44,6 +45,7 @@ describe('ZeeWidgetComponent', () => {
   let fixture: ComponentFixture<ZeeWidgetComponent>;
   let component: ZeeWidgetComponent;
   let zeeService: ZeeService;
+  let snackBar: MatSnackBar;
 
   const mockAdapter: ZeeResourceAdapter = {
     previewLabel: 'Generated Flow',
@@ -64,6 +66,7 @@ describe('ZeeWidgetComponent', () => {
     fixture = TestBed.createComponent(ZeeWidgetComponent);
     component = fixture.componentInstance;
     zeeService = TestBed.inject(ZeeService);
+    snackBar = TestBed.inject(MatSnackBar);
 
     // Set required inputs
     component.resourceType = ZeeResourceType.FLOW;
@@ -101,6 +104,21 @@ describe('ZeeWidgetComponent', () => {
       expect(component.state).toEqual('idle');
     });
 
+    it('should not submit when prompt exceeds MAX_PROMPT_LENGTH', () => {
+      const spy = jest.spyOn(zeeService, 'generate');
+      component.prompt = 'a'.repeat(MAX_PROMPT_LENGTH + 1);
+      component.onSubmit();
+      expect(spy).not.toHaveBeenCalled();
+      expect(component.state).toEqual('idle');
+    });
+
+    it('should submit when prompt is exactly MAX_PROMPT_LENGTH', () => {
+      jest.spyOn(zeeService, 'generate').mockReturnValue(of(mockResponse));
+      component.prompt = 'a'.repeat(MAX_PROMPT_LENGTH);
+      component.onSubmit();
+      expect(component.state).toEqual('preview');
+    });
+
     it('should pass resourceType and contextData to the service', () => {
       const spy = jest.spyOn(zeeService, 'generate').mockReturnValue(of(mockResponse));
       component.prompt = 'Generate a flow';
@@ -136,6 +154,31 @@ describe('ZeeWidgetComponent', () => {
 
       expect(component.state).toEqual('error');
       expect(component.errorMessage).toEqual('Generation failed');
+    });
+  });
+
+  describe('429 rate limit handling', () => {
+    it('should show snackbar and drop back to idle on 429', () => {
+      const snackSpy = jest.spyOn(snackBar, 'open');
+      jest.spyOn(zeeService, 'generate').mockReturnValue(throwError(() => ({ status: 429 })));
+
+      component.prompt = 'Generate something';
+      component.onSubmit();
+
+      expect(snackSpy).toHaveBeenCalledWith(expect.stringContaining('cooling down'), 'Dismiss', expect.any(Object));
+      expect(component.state).toEqual('idle');
+      expect(component.errorMessage).toEqual('');
+    });
+
+    it('should NOT show snackbar on non-429 errors', () => {
+      const snackSpy = jest.spyOn(snackBar, 'open');
+      jest.spyOn(zeeService, 'generate').mockReturnValue(throwError(() => ({ status: 500, message: 'Server error' })));
+
+      component.prompt = 'Generate something';
+      component.onSubmit();
+
+      expect(snackSpy).not.toHaveBeenCalled();
+      expect(component.state).toEqual('error');
     });
   });
 
@@ -216,7 +259,7 @@ describe('ZeeWidgetComponent', () => {
       component.onFileDrop(event);
 
       expect(component.files).toHaveLength(1);
-      expect(component.files[0].name).toEqual('spec.yaml');
+      expect(component.files[0].name).toEqual('spec.yaml')
     });
 
     it('should remove a file by index', () => {
@@ -239,6 +282,85 @@ describe('ZeeWidgetComponent', () => {
       component.onSubmit();
 
       expect(spy).toHaveBeenCalledWith(expect.any(Object), [file]);
+    });
+  });
+
+  describe('file validation', () => {
+    it('should reject files with disallowed extensions', () => {
+      const badFile = new File(['binary'], 'malware.exe', { type: 'application/octet-stream' });
+      component.addFiles([badFile]);
+
+      expect(component.files).toHaveLength(0);
+      expect(component.fileValidationErrors).toHaveLength(1);
+      expect(component.fileValidationErrors[0]).toContain('"malware.exe"');
+      expect(component.fileValidationErrors[0]).toContain('not an allowed type');
+    });
+
+    it('should accept all whitelisted extensions', () => {
+      const allowed = ['a.json', 'b.yaml', 'c.yml', 'd.txt', 'e.md'].map((name) => new File(['content'], name));
+      component.addFiles(allowed);
+
+      expect(component.files).toHaveLength(5);
+      expect(component.fileValidationErrors).toHaveLength(0);
+    });
+
+    it('should reject files exceeding maxFileSizeMb', () => {
+      component.maxFileSizeMb = 5;
+      // Create a file stub with a size property > 5MB
+      const bigFile = new File(['x'.repeat(10)], 'huge.json');
+      Object.defineProperty(bigFile, 'size', { value: 6 * 1024 * 1024 });
+
+      component.addFiles([bigFile]);
+
+      expect(component.files).toHaveLength(0);
+      expect(component.fileValidationErrors[0]).toContain('huge.json');
+      expect(component.fileValidationErrors[0]).toContain('5 MB limit');
+    });
+
+    it('should reject batch that would exceed MAX_FILES total', () => {
+      // Pre-load 4 files
+      component.files = Array.from({ length: 4 }, (_, i) => new File(['x'], `f${i}.json`));
+      // Attempt to add 2 more (would hit 6 total)
+      const incoming = [new File(['a'], 'extra1.json'), new File(['b'], 'extra2.json')];
+      component.addFiles(incoming);
+
+      // Only the first should have been accepted (slot limit = 1 remaining)
+      expect(component.files).toHaveLength(5);
+      expect(component.fileValidationErrors[0]).toContain('Too many files');
+    });
+
+    it('should clear count errors after removing a file', () => {
+      component.files = Array.from({ length: 5 }, (_, i) => new File(['x'], `f${i}.json`));
+      component.fileValidationErrors = ['Too many files. You can attach at most 5 files (currently have 5).'];
+
+      component.removeFile(0);
+
+      // Count error should be cleared
+      expect(component.fileValidationErrors.filter((e) => e.startsWith('Too many files'))).toHaveLength(0);
+    });
+
+    it('should not set fileValidationErrors when all files are valid', () => {
+      const file = new File(['{}'], 'valid.json');
+      component.addFiles([file]);
+
+      expect(component.fileValidationErrors).toHaveLength(0);
+    });
+  });
+
+  describe('character counter guard', () => {
+    it('isSubmitDisabled should be true when prompt is empty', () => {
+      component.prompt = '';
+      expect(component.isSubmitDisabled).toBe(true);
+    });
+
+    it('isSubmitDisabled should be true when prompt exceeds MAX_PROMPT_LENGTH', () => {
+      component.prompt = 'a'.repeat(MAX_PROMPT_LENGTH + 1);
+      expect(component.isSubmitDisabled).toBe(true);
+    });
+
+    it('isSubmitDisabled should be false when prompt is within limit', () => {
+      component.prompt = 'Hello Zee!';
+      expect(component.isSubmitDisabled).toBe(false);
     });
   });
 });

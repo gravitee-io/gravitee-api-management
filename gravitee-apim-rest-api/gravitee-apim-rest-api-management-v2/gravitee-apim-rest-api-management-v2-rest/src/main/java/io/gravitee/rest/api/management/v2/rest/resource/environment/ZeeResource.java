@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
+import io.gravitee.apim.core.zee.domain_service.LlmEngineService;
 import io.gravitee.apim.core.zee.usecase.GenerateResourceUseCase;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.ZeeRequestDto;
 import io.gravitee.rest.api.management.v2.rest.model.ZeeResultDto;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -28,9 +30,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
@@ -50,6 +51,11 @@ public class ZeeResource extends AbstractResource {
     private static final int MAX_REQUESTS_PER_MINUTE = 10;
     private static final long WINDOW_MS = 60_000L;
 
+    private static final int MAX_PROMPT_LENGTH = 2000;
+    private static final int MAX_FILES = 5;
+    private static final long MAX_FILE_SIZE_BYTES = 5L * 1024 * 1024; // 5 MB
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("json", "yaml", "yml", "txt", "md");
+
     @Inject
     private GenerateResourceUseCase generateResourceUseCase;
 
@@ -60,15 +66,53 @@ public class ZeeResource extends AbstractResource {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response generate(@FormDataParam("request") ZeeRequestDto requestDto, @FormDataParam("files") List<FormDataBodyPart> files) {
+    public Response generate(@FormDataParam("request") ZeeRequestDto requestDto,
+            @FormDataParam("files") List<FormDataBodyPart> files) {
         var envId = GraviteeContext.getCurrentEnvironment();
         var orgId = GraviteeContext.getCurrentOrganization();
 
-        // Basic in-memory rate limiting per environment
+        // Rate limit first — prevents validation probing without consuming quota
         if (isRateLimited(envId)) {
             return Response.status(Response.Status.TOO_MANY_REQUESTS)
-                .entity("{\"message\":\"Rate limit exceeded. Max " + MAX_REQUESTS_PER_MINUTE + " requests per minute.\"}")
-                .build();
+                    .type(jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
+                    .entity(new Error().httpStatus(429)
+                            .message("Rate limit exceeded. Max " + MAX_REQUESTS_PER_MINUTE + " requests per minute."))
+                    .build();
+        }
+
+        // Null / empty prompt guard
+        if (requestDto == null || requestDto.getPrompt() == null || requestDto.getPrompt().trim().isEmpty()) {
+            return badRequest("Prompt is required.");
+        }
+
+        // Prompt length guard
+        if (requestDto.getPrompt().length() > MAX_PROMPT_LENGTH) {
+            return badRequest("Prompt too long. Max " + MAX_PROMPT_LENGTH + " characters.");
+        }
+
+        // File count guard
+        if (files != null && files.size() > MAX_FILES) {
+            return badRequest("Too many files. Max " + MAX_FILES + ".");
+        }
+
+        // Per-file guards (size + type)
+        if (files != null) {
+            for (FormDataBodyPart part : files) {
+                var body = part.getValueAs(String.class);
+                if (body != null
+                        && body.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > MAX_FILE_SIZE_BYTES) {
+                    return badRequest("File too large. Max 5MB per file.");
+                }
+                var filename = part.getContentDisposition() != null ? part.getContentDisposition().getFileName() : null;
+                if (filename != null) {
+                    var ext = filename.contains(".") ? filename.substring(filename.lastIndexOf('.') + 1).toLowerCase()
+                            : "";
+                    if (!ALLOWED_EXTENSIONS.contains(ext)) {
+                        return badRequest(
+                                "Unsupported file type \"" + filename + "\". Allowed: json, yaml, yml, txt, md.");
+                    }
+                }
+            }
         }
 
         var request = requestDto.toDomain(files);
@@ -92,5 +136,16 @@ public class ZeeResource extends AbstractResource {
             return existing;
         });
         return state[1] > MAX_REQUESTS_PER_MINUTE;
+    }
+
+    /**
+     * Builds a 400 Bad Request response using the project's standard {@link Error}
+     * model.
+     */
+    private Response badRequest(String message) {
+        return Response.status(Response.Status.BAD_REQUEST)
+                .type(jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
+                .entity(new Error().httpStatus(Response.Status.BAD_REQUEST.getStatusCode()).message(message))
+                .build();
     }
 }

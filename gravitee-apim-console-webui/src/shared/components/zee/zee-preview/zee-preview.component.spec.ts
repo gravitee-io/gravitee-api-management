@@ -97,5 +97,18 @@ describe('ZeePreviewComponent', () => {
     it('should not throw', () => {
       expect(() => fixture.detectChanges()).not.toThrow();
     });
+
+    it('should show the fallback message in the structured view tab', () => {
+      const empty = fixture.nativeElement.querySelector('.zee-preview-empty');
+      expect(empty).toBeTruthy();
+      expect(empty.textContent).toContain("Zee couldn't generate a result");
+    });
+
+    it('should show fallback text in the JSON tab instead of crashing', () => {
+      const jsonPre = fixture.nativeElement.querySelector('.zee-preview-json');
+      // When data is null the JSON pre should show the fallback string, not '[object Object]'
+      expect(jsonPre?.textContent ?? '').not.toContain('[object Object]');
+    });
   });
 });
+

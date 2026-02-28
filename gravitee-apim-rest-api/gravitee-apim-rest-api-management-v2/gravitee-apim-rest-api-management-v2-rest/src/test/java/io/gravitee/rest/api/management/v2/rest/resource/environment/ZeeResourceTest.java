@@ -94,21 +94,21 @@ class ZeeResourceTest extends AbstractResourceTest {
             when(llmEngineService.generate(any(String.class), eq("Flow"))).thenReturn(llmResult);
 
             String requestJson = """
-                {
-                    "resourceType": "FLOW",
-                    "prompt": "Create a flow that rate-limits to 100 req/s",
-                    "contextData": {"apiId": "api-123"}
-                }
-                """;
+                    {
+                        "resourceType": "FLOW",
+                        "prompt": "Create a flow that rate-limits to 100 req/s",
+                        "contextData": {"apiId": "api-123"}
+                    }
+                    """;
 
             FormDataMultiPart multiPart = new FormDataMultiPart();
             multiPart.field("request", requestJson, jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE);
 
             // When
             final Response response = rootTarget("generate")
-                .register(MultiPartFeature.class)
-                .request()
-                .post(Entity.entity(multiPart, multiPart.getMediaType()));
+                    .register(MultiPartFeature.class)
+                    .request()
+                    .post(Entity.entity(multiPart, multiPart.getMediaType()));
 
             // Then
             assertThat(response.getStatus()).isEqualTo(OK_200);
@@ -124,24 +124,25 @@ class ZeeResourceTest extends AbstractResourceTest {
         @Test
         void should_return_500_when_use_case_throws() {
             // Given
-            when(llmEngineService.generate(any(String.class), eq("Flow"))).thenThrow(new RuntimeException("LLM service unavailable"));
+            when(llmEngineService.generate(any(String.class), eq("Flow")))
+                    .thenThrow(new RuntimeException("LLM service unavailable"));
 
             String requestJson = """
-                {
-                    "resourceType": "FLOW",
-                    "prompt": "Create a flow",
-                    "contextData": {}
-                }
-                """;
+                    {
+                        "resourceType": "FLOW",
+                        "prompt": "Create a flow",
+                        "contextData": {}
+                    }
+                    """;
 
             FormDataMultiPart multiPart = new FormDataMultiPart();
             multiPart.field("request", requestJson, jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE);
 
             // When
             final Response response = rootTarget("generate")
-                .register(MultiPartFeature.class)
-                .request()
-                .post(Entity.entity(multiPart, multiPart.getMediaType()));
+                    .register(MultiPartFeature.class)
+                    .request()
+                    .post(Entity.entity(multiPart, multiPart.getMediaType()));
 
             // Then
             assertThat(response.getStatus()).isEqualTo(INTERNAL_SERVER_ERROR_500);
@@ -157,27 +158,140 @@ class ZeeResourceTest extends AbstractResourceTest {
             when(llmEngineService.generate(any(String.class), eq("Plan"))).thenReturn(llmResult);
 
             String requestJson = """
-                {
-                    "resourceType": "PLAN",
-                    "prompt": "Create a gold tier plan",
-                    "contextData": {}
-                }
-                """;
+                    {
+                        "resourceType": "PLAN",
+                        "prompt": "Create a gold tier plan",
+                        "contextData": {}
+                    }
+                    """;
 
             FormDataMultiPart multiPart = new FormDataMultiPart();
             multiPart.field("request", requestJson, jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE);
 
             // When
             final Response response = rootTarget("generate")
-                .register(MultiPartFeature.class)
-                .request()
-                .post(Entity.entity(multiPart, multiPart.getMediaType()));
+                    .register(MultiPartFeature.class)
+                    .request()
+                    .post(Entity.entity(multiPart, multiPart.getMediaType()));
 
             // Then
             assertThat(response.getStatus()).isEqualTo(OK_200);
             var body = response.readEntity(ZeeResultDto.class);
             assertThat(body.getResourceType()).isEqualTo("PLAN");
             assertThat(body.getGenerated().get("name").asText()).isEqualTo("Gold Plan");
+        }
+    }
+
+    @Nested
+    class InputValidation {
+
+        @Test
+        void should_return_400_when_prompt_too_long() {
+            // Given — prompt of 2001 chars
+            String tooLong = "a".repeat(2001);
+            String requestJson = """
+                    {
+                        "resourceType": "FLOW",
+                        "prompt": "%s",
+                        "contextData": {}
+                    }
+                    """.formatted(tooLong);
+
+            FormDataMultiPart multiPart = new FormDataMultiPart();
+            multiPart.field("request", requestJson, jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE);
+
+            // When
+            final Response response = rootTarget("generate")
+                    .register(MultiPartFeature.class)
+                    .request()
+                    .post(Entity.entity(multiPart, multiPart.getMediaType()));
+
+            // Then
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_when_prompt_is_empty() {
+            // Given
+            String requestJson = """
+                    {
+                        "resourceType": "FLOW",
+                        "prompt": "   ",
+                        "contextData": {}
+                    }
+                    """;
+
+            FormDataMultiPart multiPart = new FormDataMultiPart();
+            multiPart.field("request", requestJson, jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE);
+
+            // When
+            final Response response = rootTarget("generate")
+                    .register(MultiPartFeature.class)
+                    .request()
+                    .post(Entity.entity(multiPart, multiPart.getMediaType()));
+
+            // Then
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_when_too_many_files() {
+            // Given
+            String requestJson = """
+                    {
+                        "resourceType": "FLOW",
+                        "prompt": "Generate a flow",
+                        "contextData": {}
+                    }
+                    """;
+
+            FormDataMultiPart multiPart = new FormDataMultiPart();
+            multiPart.field("request", requestJson, jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE);
+            // Attach 6 files (over the limit of 5)
+            for (int i = 0; i < 6; i++) {
+                multiPart.field("files", "{}", jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE);
+            }
+
+            // When
+            final Response response = rootTarget("generate")
+                    .register(MultiPartFeature.class)
+                    .request()
+                    .post(Entity.entity(multiPart, multiPart.getMediaType()));
+
+            // Then
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_when_file_type_disallowed() {
+            // Given — upload a .exe file
+            String requestJson = """
+                    {
+                        "resourceType": "FLOW",
+                        "prompt": "Generate a flow",
+                        "contextData": {}
+                    }
+                    """;
+
+            FormDataMultiPart multiPart = new FormDataMultiPart();
+            multiPart.field("request", requestJson, jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE);
+            // Attach a file with a disallowed extension
+            multiPart
+                    .bodyPart(
+                            new org.glassfish.jersey.media.multipart.FormDataBodyPart(
+                                    org.glassfish.jersey.media.multipart.FormDataContentDisposition.name("files")
+                                            .fileName("malware.exe").build(),
+                                    "binary content",
+                                    jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE));
+
+            // When
+            final Response response = rootTarget("generate")
+                    .register(MultiPartFeature.class)
+                    .request()
+                    .post(Entity.entity(multiPart, multiPart.getMediaType()));
+
+            // Then
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
         }
     }
 }
