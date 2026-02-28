@@ -74,7 +74,17 @@ public class GenerateResourceUseCase {
         this.ragStrategies = strategies
                 .stream()
                 .filter(s -> s.resourceType() != null)
-                .collect(Collectors.toMap(RagContextStrategy::resourceType, Function.identity()));
+                .collect(
+                        Collectors.toUnmodifiableMap(
+                                RagContextStrategy::resourceType,
+                                Function.identity(),
+                                (first, second) -> {
+                                    log.warn(
+                                            "Duplicate RagContextStrategy for resourceType={}; keeping first ({})",
+                                            first.resourceType(),
+                                            first.getClass().getSimpleName());
+                                    return first;
+                                }));
     }
 
     /**
@@ -110,7 +120,8 @@ public class GenerateResourceUseCase {
     private String retrieveRagContext(ZeeRequest request, String envId, String orgId) {
         var strategy = ragStrategies.getOrDefault(request.resourceType(), NoOpRagStrategy.INSTANCE);
         try {
-            return strategy.retrieveContext(envId, orgId, request.contextData());
+            var ctx = strategy.retrieveContext(envId, orgId, request.contextData());
+            return ctx != null ? ctx : "";
         } catch (Exception e) {
             log.warn(
                     "RAG context retrieval failed for resourceType={} envId={}; continuing without RAG context",
