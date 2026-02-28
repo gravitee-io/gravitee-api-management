@@ -25,6 +25,21 @@ import { ZeeGenerateResponse, ZeeResourceAdapter, ZeeResourceType } from '../zee
 
 import { GioTestingModule } from '../../../testing';
 
+/** JSDOM lacks DataTransfer — create a minimal FileList-shaped stub for unit tests. */
+const createFileList = (...files: File[]): FileList => {
+  const fileList = {
+    length: files.length,
+    item: (i: number) => files[i] ?? null,
+    [Symbol.iterator]: function* () {
+      yield* files;
+    },
+  };
+  files.forEach((f, i) => {
+    (fileList as unknown as Record<number, File>)[i] = f;
+  });
+  return fileList as unknown as FileList;
+};
+
 describe('ZeeWidgetComponent', () => {
   let fixture: ComponentFixture<ZeeWidgetComponent>;
   let component: ZeeWidgetComponent;
@@ -184,15 +199,7 @@ describe('ZeeWidgetComponent', () => {
   describe('file handling', () => {
     it('should add files from file input', () => {
       const file = new File(['content'], 'test.json', { type: 'application/json' });
-      // JSDOM doesn't have DataTransfer; build a FileList-shaped mock
-      const mockFileList = {
-        0: file,
-        length: 1,
-        item: (i: number) => (i === 0 ? file : null),
-        [Symbol.iterator]: function* () { yield file; },
-      } as unknown as FileList;
-
-      const event = { target: { files: mockFileList } } as unknown as Event;
+      const event = { target: { files: createFileList(file) } } as unknown as Event;
       component.onFileSelect(event);
 
       expect(component.files).toHaveLength(1);
@@ -201,16 +208,9 @@ describe('ZeeWidgetComponent', () => {
 
     it('should add files from drag and drop', () => {
       const file = new File(['content'], 'spec.yaml', { type: 'text/yaml' });
-      const mockFileList = {
-        0: file,
-        length: 1,
-        item: (i: number) => (i === 0 ? file : null),
-        [Symbol.iterator]: function* () { yield file; },
-      } as unknown as FileList;
-
       const event = {
         preventDefault: jest.fn(),
-        dataTransfer: { files: mockFileList },
+        dataTransfer: { files: createFileList(file) },
       } as unknown as DragEvent;
 
       component.onFileDrop(event);

@@ -32,6 +32,8 @@
       (drop)="onFileDrop($event)"
       (dragover)="$event.preventDefault()"
       (click)="fileInput.click()"
+      (keydown.enter)="$event.preventDefault(); fileInput.click()"
+      (keydown.space)="$event.preventDefault(); fileInput.click()"
       role="button"
       tabindex="0"
       aria-label="Upload context files"
@@ -54,8 +56,7 @@
 
     <div class="zee-actions">
       <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!prompt.trim()">
-        <mat-icon>auto_awesome</mat-icon>
-        Generate with Zee
+        <span><mat-icon>auto_awesome</mat-icon> Generate with Zee</span>
       </button>
     </div>
   </div>
@@ -67,7 +68,7 @@
   </div>
 
   <!-- PREVIEW -->
-  <div *ngSwitchCase="'preview'" class="zee-preview">
+  <div *ngSwitchCase="'preview'" class="zee-preview" aria-live="polite">
     <div class="zee-preview__header">
       <mat-icon color="primary">auto_awesome</mat-icon>
       <h3 class="zee-preview__title">{{ adapter?.previewLabel }}</h3>

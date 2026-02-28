@@ -57,7 +57,7 @@ export class ZeeWidgetComponent {
         this.state = 'preview';
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message ?? err?.message ?? 'Generation failed';
+        this.errorMessage = err?.message ?? 'Generation failed';
         this.state = 'error';
       },
     });
