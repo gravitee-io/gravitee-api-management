@@ -1,0 +1,76 @@
+<!--
+
+    Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div>
+  <span class="md-headline">
+    <gio-go-back-button [routerLink]="'../'" [queryParams]="{ status: currentPlanStatus() ?? 'PUBLISHED' }"></gio-go-back-button>
+    Plan
+  </span>
+</div>
+
+@if (planMenuItem()) {
+  <form autocomplete="off" gioFormFocusInvalid [formGroup]="planForm" (ngSubmit)="onSubmit()">
+    <mat-card>
+      <api-plan-form
+        #apiPlanForm
+        formControlName="plan"
+        [mode]="mode()"
+        [apiType]="'PROXY'"
+        [isTcpApi]="false"
+        [isFederated]="false"
+        [isNative]="false"
+        [hideAccessControl]="true"
+        [planMenuItem]="planMenuItem()!"
+        [planStatus]="currentPlanStatus()"
+      ></api-plan-form>
+    </mat-card>
+
+    @if (!isReadOnly()) {
+      <gio-save-bar
+        [creationMode]="mode() === 'create'"
+        [form]="planForm"
+        [formInitialValues]="initialPlanFormValue()"
+        [hideSubmitButton]="mode() === 'create' && hasNextStep()"
+      >
+        @if (mode() === 'create' && hasPreviousStep()) {
+          <button
+            mat-button
+            gioFormFocusInvalid
+            color="primary"
+            type="button"
+            data-testid="api_product_plans_previousstep"
+            (click)="apiPlanForm.previousStep()"
+          >
+            Back
+          </button>
+        }
+        @if (mode() === 'create' && hasNextStep()) {
+          <button
+            mat-flat-button
+            gioFormFocusInvalid
+            color="primary"
+            type="button"
+            data-testid="api_product_plans_nextstep"
+            (click)="apiPlanForm.waitForNextStep()"
+          >
+            Next
+          </button>
+        }
+      </gio-save-bar>
+    }
+  </form>
+}
