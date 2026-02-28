@@ -54,6 +54,7 @@ const AlertComponentAjs: ng.IComponentOptions = {
       this.tabs = ['_', 'general', 'notifications', 'history'];
       this.selectedTab = 0;
       this.currentTab = this.tabs[this.selectedTab];
+      this.isScheduledAlert = false;
 
       this.$onInit = () => {
         this.severities = ['INFO', 'WARNING', 'CRITICAL'];
@@ -80,6 +81,7 @@ const AlertComponentAjs: ng.IComponentOptions = {
           this.alerts.push(this.alert);
         } else {
           this.alert = getAlertWithoutMutation(this.alerts, this.activatedRoute.snapshot.params.alertId, this.referenceType);
+          this.isScheduledAlert = this.alert.conditions?.some(c => 'duration' in c && 'timeUnit' in c) ?? false;
         }
 
         this.template = this.alert.template || false;
@@ -113,6 +115,32 @@ const AlertComponentAjs: ng.IComponentOptions = {
       this.$onDestroy = () => {
         if (!this.updateMode) {
           this.alerts.pop();
+        }
+      };
+
+      this.confirmAndSave = (alert: Alert) => {
+        $mdDialog
+          .show(
+            $mdDialog.confirm({
+              title: 'Update scheduled alert',
+              htmlContent: `
+                This alert has a scheduled duration.<br>
+                Saving your changes will reset the evaluation schedule. The next cycle will start from the moment you confirm this update.<br>
+                Are you sure you want to continue?`,
+              ok: 'Update',
+              cancel: 'Cancel',
+            }),
+          )
+          .then(() => {
+            this.save(alert);
+          });
+      };
+
+      this.onUpdate = (alert: Alert) => {
+        if (this.isScheduledAlert) {
+          this.confirmAndSave(alert);
+        } else {
+          this.save(alert);
         }
       };
 
