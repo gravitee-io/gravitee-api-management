@@ -63,7 +63,11 @@ public class RejectSubscriptionDomainService {
         var rejectedSubscriptionEntity = subscriptionEntity.rejectBy(auditInfo.actor().userId(), reason);
 
         subscriptionRepository.update(rejectedSubscriptionEntity);
-        triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), rejectedSubscriptionEntity);
+        boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT.equals(subscriptionEntity.getReferenceType());
+        if (!isApiProduct) {
+            triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), rejectedSubscriptionEntity);
+        }
+        // API Product: notifications not yet supported (TemplateDataFetcher expects API, not API Product).
         createAudit(subscriptionEntity, rejectedSubscriptionEntity, auditInfo);
 
         return rejectedSubscriptionEntity;

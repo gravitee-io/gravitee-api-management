@@ -61,14 +61,18 @@ public class ApiProductPlanOperationsUseCase {
         } else if (input.operation.equals(Operation.CLOSE.name())) {
             log.debug("Plan {} closed for API Product {}", input.planId, input.apiProductId);
             closePlanDomainService.close(input.planId, input.auditInfo);
-            return new Output(plan);
+            // Reload the plan to return the updated status (CLOSED)
+            Plan closedPlan = planCrudService.getById(input.planId);
+            return new Output(closedPlan);
         } else if (input.operation.equals(Operation.PUBLISH.name())) {
             log.debug("Plan {} published for API Product {}", input.planId, input.apiProductId);
             return new Output(publishPlanDomainService.publish(GraviteeContext.getExecutionContext(), input.planId));
         } else if (input.operation.equals(Operation.DEPRECATE.name())) {
             log.debug("Plan {} deprecated for API Product {}", input.planId, input.apiProductId);
             deprecatePlanDomainService.deprecate(input.planId, input.auditInfo, false);
-            return new Output(plan);
+            // Reload the plan to return the updated status (DEPRECATED)
+            Plan deprecatedPlan = planCrudService.getById(input.planId);
+            return new Output(deprecatedPlan);
         } else {
             log.debug("Unsupported operation {} for plan {} on API Product {}", input.operation, input.planId, input.apiProductId);
             return null;
