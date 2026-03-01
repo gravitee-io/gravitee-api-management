@@ -51,21 +51,6 @@
   }
 
   &__pagination {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
     margin-top: 24px;
-    gap: 16px;
-  }
-
-  &__page-size {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  &__page-size-select {
-    width: 70px;
   }
 }

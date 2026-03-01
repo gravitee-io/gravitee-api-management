@@ -15,57 +15,84 @@
     limitations under the License.
 
 -->
-<button
-  mat-button
-  [disabled]="!pagination().hasPreviousPage"
-  (click)="goToPreviousPage()"
-  aria-label="Previous page of results"
-  class="pagination__nav-button"
->
-  <mat-icon class="breadcrumb-icon">chevron_left</mat-icon>
-  <span i18n="@@paginationPrevious">Previous</span>
-</button>
+<nav class="pagination__pages" aria-label="Pagination" i18n-aria-label="@@paginationNav">
+  <button
+    mat-button
+    [disabled]="!pagination().hasPreviousPage"
+    (click)="goToPreviousPage()"
+    aria-label="Previous page of results"
+    class="pagination__nav-button"
+  >
+    <mat-icon class="breadcrumb-icon">chevron_left</mat-icon>
+    <span i18n="@@paginationPrevious">Previous</span>
+  </button>
 
-@if (pagination().hasPreviousPage) {
-  <button mat-button (click)="goToPage(1)" aria-label="First page of results">1</button>
+  @if (pagination().hasPreviousPage) {
+    <button mat-button (click)="goToPage(1)" [attr.aria-label]="'Go to page 1'">1</button>
 
-  @if (pagination().currentPage > 3) {
-    @if (pagination().totalPages > 4) {
-      <div class="m3-body-medium">...</div>
+    @if (pagination().currentPage > 3) {
+      @if (pagination().totalPages > 4) {
+        <span class="m3-body-medium" aria-hidden="true">...</span>
+      }
+      @if (pagination().currentPage === pagination().totalPages) {
+        <button
+          mat-button
+          (click)="goToPage(pagination().currentPage - 2)"
+          [attr.aria-label]="'Go to page ' + (pagination().currentPage - 2)"
+        >
+          {{ pagination().currentPage - 2 }}
+        </button>
+      }
     }
-    @if (pagination().currentPage === pagination().totalPages) {
-      <button mat-button (click)="goToPage(pagination().currentPage - 2)">{{ pagination().currentPage - 2 }}</button>
+
+    @if (pagination().currentPage > 2) {
+      <button mat-button (click)="goToPreviousPage()" [attr.aria-label]="'Go to page ' + (pagination().currentPage - 1)">
+        {{ pagination().currentPage - 1 }}
+      </button>
     }
   }
 
-  @if (pagination().currentPage > 2) {
-    <button mat-button (click)="goToPreviousPage()" aria-label="Previous page of results">{{ pagination().currentPage - 1 }}</button>
+  <button mat-stroked-button aria-label="Current page of results" aria-current="page">{{ pagination().currentPage }}</button>
+
+  @if (pagination().hasNextPage) {
+    @if (pagination().currentPage + 1 < pagination().totalPages) {
+      <button mat-button (click)="goToNextPage()" [attr.aria-label]="'Go to page ' + (pagination().currentPage + 1)">
+        {{ pagination().currentPage + 1 }}
+      </button>
+    }
+    @if (pagination().totalPages > 3 && pagination().currentPage === 1) {
+      <button mat-button (click)="goToPage(3)" aria-label="Go to page 3">{{ 3 }}</button>
+    }
+    @if (pagination().totalPages > 4 && pagination().currentPage <= pagination().totalPages - 3) {
+      <span class="m3-body-medium" aria-hidden="true">...</span>
+    }
+
+    <button mat-button (click)="goToPage(pagination().totalPages)" [attr.aria-label]="'Go to page ' + pagination().totalPages">
+      {{ pagination().totalPages }}
+    </button>
   }
+
+  <button
+    mat-button
+    [disabled]="!pagination().hasNextPage"
+    (click)="goToNextPage()"
+    aria-label="Next page of results"
+    class="pagination__nav-button pagination__nav-button--next"
+  >
+    <span i18n="@@paginationNext">Next</span>
+    <mat-icon class="breadcrumb-icon">chevron_right</mat-icon>
+  </button>
+</nav>
+
+@if (showPageSizeSelection()) {
+  <div class="pagination__page-size">
+    <span class="m3-body-medium" i18n="@@showPerPage">Show per page:</span>
+    <mat-form-field appearance="outline" class="pagination__page-size-select" subscriptSizing="dynamic">
+      <mat-select [value]="pageSize()" (selectionChange)="onPageSizeChange($event.value)" aria-label="Results per page">
+        @for (size of pageSizeOptions(); track size) {
+          <mat-option [value]="size">{{ size }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
 }
-
-<button mat-stroked-button aria-label="Current page of results">{{ pagination().currentPage }}</button>
-
-@if (pagination().hasNextPage) {
-  @if (pagination().currentPage + 1 < pagination().totalPages) {
-    <button mat-button (click)="goToNextPage()" aria-label="Next page of results">{{ pagination().currentPage + 1 }}</button>
-  }
-  @if (pagination().totalPages > 3 && pagination().currentPage === 1) {
-    <button mat-button (click)="goToPage(3)">{{ 3 }}</button>
-  }
-  @if (pagination().totalPages > 4 && pagination().currentPage <= pagination().totalPages - 3) {
-    <div class="m3-body-medium">...</div>
-  }
-
-  <button mat-button (click)="goToPage(pagination().totalPages)" aria-label="Last page of results">{{ pagination().totalPages }}</button>
-}
-
-<button
-  mat-button
-  [disabled]="!pagination().hasNextPage"
-  (click)="goToNextPage()"
-  aria-label="Next page of results"
-  class="pagination__nav-button pagination__nav-button--next"
->
-  <span i18n="@@paginationNext">Next</span>
-  <mat-icon class="breadcrumb-icon">chevron_right</mat-icon>
-</button>
