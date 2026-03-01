@@ -15,6 +15,7 @@
     limitations under the License.
 
 -->
+<!-- Zee widget disabled for Flows until policy config schemas are added to the GAD spec.
 <zee-widget
   *ngIf="!isReadOnly"
   [resourceType]="'FLOW'"
@@ -22,6 +23,7 @@
   [contextData]="{ apiId: apiId }"
   (accepted)="onFlowGenerated($event)"
 ></zee-widget>
+-->
 <gio-policy-studio
   [readOnly]="isReadOnly"
   [loading]="isLoading"
