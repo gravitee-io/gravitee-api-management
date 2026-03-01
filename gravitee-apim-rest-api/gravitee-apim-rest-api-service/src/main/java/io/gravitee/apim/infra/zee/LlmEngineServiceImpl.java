@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -56,7 +57,7 @@ import org.springframework.stereotype.Component;
 public class LlmEngineServiceImpl implements LlmEngineService {
 
     private static final Logger LOG = LoggerFactory.getLogger(LlmEngineServiceImpl.class);
-    private static final Duration HTTP_TIMEOUT = Duration.ofSeconds(30);
+    private static final Duration HTTP_TIMEOUT = Duration.ofSeconds(300);
 
     private final boolean disabled;
     private final LlmRoundtripEngine engine;
@@ -72,6 +73,7 @@ public class LlmEngineServiceImpl implements LlmEngineService {
         RoundtripResult generate(String prompt, LlmRoundtripEngine engine) throws IOException, LlmTransportException;
     }
 
+    @Autowired
     public LlmEngineServiceImpl(ZeeConfiguration config) {
         this(config, HttpClient.newHttpClient());
     }
@@ -90,9 +92,11 @@ public class LlmEngineServiceImpl implements LlmEngineService {
         this.disabled = false;
 
         Objects.requireNonNull(config.getAzureUrl(), "ai.zee.azure.url must be configured when ai.zee.enabled=true");
-        Objects.requireNonNull(config.getAzureApiKey(), "ai.zee.azure.apiKey must be configured when ai.zee.enabled=true");
+        Objects.requireNonNull(config.getAzureApiKey(),
+                "ai.zee.azure.apiKey must be configured when ai.zee.enabled=true");
 
-        var providerConfig = new ProviderConfig(config.getAzureUrl(), null, Map.of("api-key", config.getAzureApiKey()));
+        var providerConfig = new ProviderConfig(config.getAzureUrl(), config.getAzureModel(),
+                Map.of("api-key", config.getAzureApiKey()));
 
         LlmTransport transport = request -> executeHttp(httpClient, request);
 
@@ -100,7 +104,8 @@ public class LlmEngineServiceImpl implements LlmEngineService {
 
         this.registry = buildRegistry();
 
-        LOG.info("Zee LLM engine initialized — {} components registered, endpoint: {}", registry.size(), config.getAzureUrl());
+        LOG.info("Zee LLM engine initialized — {} components registered, endpoint: {}", registry.size(),
+                config.getAzureUrl());
     }
 
     /**
@@ -115,12 +120,14 @@ public class LlmEngineServiceImpl implements LlmEngineService {
     @Override
     public LlmGenerationResult generate(String prompt, String componentName) {
         if (disabled) {
-            throw new IllegalStateException("Zee Mode is disabled. Set ai.zee.enabled=true with valid Azure credentials.");
+            throw new IllegalStateException(
+                    "Zee Mode is disabled. Set ai.zee.enabled=true with valid Azure credentials.");
         }
 
         var invoker = registry.get(componentName);
         if (invoker == null) {
-            throw new IllegalArgumentException("Unsupported component: " + componentName + ". Registered: " + registry.keySet());
+            throw new IllegalArgumentException(
+                    "Unsupported component: " + componentName + ". Registered: " + registry.keySet());
         }
 
         try {
@@ -134,15 +141,16 @@ public class LlmEngineServiceImpl implements LlmEngineService {
     }
 
     private static LlmGenerationResult toGenerationResult(RoundtripResult result) {
-        return new LlmGenerationResult(result.data(), result.isValid(), -1, result.warnings(), result.validationErrors());
+        return new LlmGenerationResult(result.data(), result.isValid(), -1, result.warnings(),
+                result.validationErrors());
     }
 
     private static String executeHttp(HttpClient httpClient, LlmRequest request) throws LlmTransportException {
         try {
             var builder = HttpRequest.newBuilder()
-                .uri(URI.create(request.url()))
-                .timeout(HTTP_TIMEOUT)
-                .POST(HttpRequest.BodyPublishers.ofString(request.body()));
+                    .uri(URI.create(request.url()))
+                    .timeout(HTTP_TIMEOUT)
+                    .POST(HttpRequest.BodyPublishers.ofString(request.body()));
 
             request.headers().forEach(builder::header);
 
@@ -150,11 +158,11 @@ public class LlmEngineServiceImpl implements LlmEngineService {
 
             if (response.statusCode() >= 400) {
                 throw new LlmTransportException(
-                    "Azure OpenAI returned HTTP " + response.statusCode() + ": " + truncate(response.body(), 500),
-                    response.statusCode()
-                );
+                        "Azure OpenAI returned HTTP " + response.statusCode() + ": " + truncate(response.body(), 500),
+                        response.statusCode());
             }
 
+            LOG.info("LLM Response body: {}", truncate(response.body(), 2000));
             return response.body();
         } catch (LlmTransportException e) {
             throw e;

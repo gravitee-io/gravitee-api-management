@@ -59,7 +59,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
   public isLoading = false;
   private api: ApiV4;
   private endpoint: EndpointV4;
-  private mode: 'edit' | 'create';
+  public mode: 'edit' | 'create';
   public healthCheckSchema: unknown;
   public isHttpProxyApi: boolean;
   public isNativeKafkaApi: boolean;
@@ -69,7 +69,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly router: Router,
-    private readonly activatedRoute: ActivatedRoute,
+    public readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly snackBarService: SnackBarService,

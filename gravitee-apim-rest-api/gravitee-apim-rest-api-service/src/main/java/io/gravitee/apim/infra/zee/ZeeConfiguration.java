@@ -39,6 +39,9 @@ public class ZeeConfiguration {
     @Value("${ai.zee.azure.apiKey:#{null}}")
     private String azureApiKey;
 
+    @Value("${ai.zee.azure.model:gpt-4o-mini}")
+    private String azureModel;
+
     @Value("${ai.zee.rateLimiting.maxRequestsPerMinute:10}")
     private int maxRequestsPerMinute;
 
@@ -52,6 +55,10 @@ public class ZeeConfiguration {
 
     public String getAzureApiKey() {
         return azureApiKey;
+    }
+
+    public String getAzureModel() {
+        return azureModel;
     }
 
     public int getMaxRequestsPerMinute() {
