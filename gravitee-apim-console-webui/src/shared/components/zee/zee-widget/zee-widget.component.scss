@@ -40,26 +40,25 @@
   align-items: center;
   justify-content: center;
   color: #fff;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+  background: linear-gradient(135deg, #e84d0e 0%, #f28b1c 50%, #f7a83c 100%);
   box-shadow:
-    0 4px 14px rgba(99, 102, 241, 0.4),
-    0 0 20px rgba(139, 92, 246, 0.25);
+    0 4px 14px rgba(232, 77, 14, 0.4),
+    0 0 20px rgba(242, 139, 28, 0.25);
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
   animation: zee-glow 2.5s ease-in-out infinite;
 
-  mat-icon {
-    font-size: 26px;
-    height: 26px;
+  svg {
     width: 26px;
+    height: 26px;
   }
 
   &:hover {
     transform: scale(1.1);
     box-shadow:
-      0 6px 20px rgba(99, 102, 241, 0.55),
-      0 0 30px rgba(139, 92, 246, 0.35);
+      0 6px 20px rgba(232, 77, 14, 0.55),
+      0 0 30px rgba(242, 139, 28, 0.35);
   }
 
   &--open {
@@ -76,13 +75,13 @@
   0%,
   100% {
     box-shadow:
-      0 4px 14px rgba(99, 102, 241, 0.4),
-      0 0 20px rgba(139, 92, 246, 0.25);
+      0 4px 14px rgba(232, 77, 14, 0.4),
+      0 0 20px rgba(242, 139, 28, 0.25);
   }
   50% {
     box-shadow:
-      0 4px 20px rgba(99, 102, 241, 0.6),
-      0 0 35px rgba(139, 92, 246, 0.4);
+      0 4px 20px rgba(232, 77, 14, 0.6),
+      0 0 35px rgba(242, 139, 28, 0.4);
   }
 }
 
@@ -113,7 +112,7 @@
     font-size: 16px;
     font-weight: 600;
     letter-spacing: 0.3px;
-    background: linear-gradient(135deg, #6366f1, #a855f7);
+    background: linear-gradient(135deg, #e8920f, #f7c948);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -158,7 +157,7 @@
   justify-content: center;
   gap: 4px;
   padding: 12px;
-  border: 2px dashed rgba(99, 102, 241, 0.3);
+  border: 2px dashed rgba(242, 166, 28, 0.3);
   border-radius: 8px;
   color: var(--secondary-text, rgba(0, 0, 0, 0.6));
   cursor: pointer;
@@ -171,13 +170,13 @@
     font-size: 28px;
     height: 28px;
     width: 28px;
-    color: #8b5cf6;
+    color: #f2a61c;
     margin-bottom: 2px;
   }
 
   &:hover {
-    border-color: #6366f1;
-    background-color: rgba(99, 102, 241, 0.04);
+    border-color: #f2a61c;
+    background-color: rgba(242, 166, 28, 0.04);
   }
 
   &__hint {
@@ -218,7 +217,7 @@
     gap: 6px;
     padding: 4px 8px;
     border-radius: 6px;
-    background-color: rgba(99, 102, 241, 0.06);
+    background-color: rgba(242, 166, 28, 0.06);
     font-size: 12px;
   }
 
@@ -226,7 +225,7 @@
     font-size: 16px;
     height: 16px;
     width: 16px;
-    color: #8b5cf6;
+    color: #f2a61c;
   }
 
   &__name {
@@ -313,5 +312,23 @@
 
   button mat-icon {
     margin-right: 4px;
+  }
+}
+
+.zee-go-btn {
+  background: linear-gradient(135deg, #e84d0e 0%, #f28b1c 50%, #f7a83c 100%) !important;
+  color: #fff !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+  }
+
+  &[disabled] {
+    opacity: 0.5;
   }
 }

@@ -24,7 +24,12 @@
     matTooltip="Generate with Zee"
     matTooltipPosition="left"
   >
-    <mat-icon>auto_awesome</mat-icon>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
+      <!-- Top bar + diagonal -->
+      <path d="M3 1 H29 V8 L10 21 H3 L22 8 H3 Z" fill="#fff" />
+      <!-- Bottom bar (separated) -->
+      <path d="M3 24 H29 V31 H3 Z" fill="#fff" />
+    </svg>
   </button>
 
   <!-- Expanding panel -->
@@ -89,8 +94,9 @@
       </div>
 
       <div class="zee-actions">
-        <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="isSubmitDisabled">
-          <span><mat-icon>auto_awesome</mat-icon> Generate</span>
+        <button mat-raised-button class="zee-go-btn" (click)="onSubmit()" [disabled]="isSubmitDisabled">
+          <mat-icon>auto_awesome</mat-icon>
+          <span>Go!</span>
         </button>
       </div>
     </div>
