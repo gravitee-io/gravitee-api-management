@@ -85,7 +85,7 @@ describe('API Product - duplicate API IDs in request are deduplicated', () => {
                   name: 'default',
                   type: 'http-proxy',
                   configuration: {
-                    target: '${process.env.WIREMOCK_BASE_URL}/hello',
+                    target: `${process.env.WIREMOCK_BASE_URL}/hello`,
                   },
                 },
               ],

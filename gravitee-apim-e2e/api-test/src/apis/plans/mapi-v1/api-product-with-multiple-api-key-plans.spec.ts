@@ -88,7 +88,7 @@ describe('API Product with multiple API_KEY plans - each subscription key grants
                 name: 'default',
                 type: 'http-proxy',
                 configuration: {
-                  target: '${process.env.WIREMOCK_BASE_URL}/hello?name=multi-plan',
+                  target: `${process.env.WIREMOCK_BASE_URL}/hello?name=multi-plan`,
                 },
               },
             ],

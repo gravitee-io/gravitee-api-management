@@ -72,7 +72,7 @@ describe('API Product - incremental growth from 1 API to 3 APIs with the same su
                 name: 'default',
                 type: 'http-proxy',
                 configuration: {
-                  target: '${process.env.WIREMOCK_BASE_URL}/hello?name=increment-growth-api',
+                  target: `${process.env.WIREMOCK_BASE_URL}/hello?name=increment-growth-api`,
                 },
               },
             ],

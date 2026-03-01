@@ -76,7 +76,7 @@ describe('API Product - update scenarios (B1–B4)', () => {
                 name: 'default',
                 type: 'http-proxy',
                 configuration: {
-                  target: '${process.env.WIREMOCK_BASE_URL}/hello?name=update-scenario',
+                  target: `${process.env.WIREMOCK_BASE_URL}/hello?name=update-scenario`,
                 },
               },
             ],

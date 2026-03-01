@@ -159,7 +159,7 @@ describe('API Product - same API shared across two products: detaching from one 
                 name: 'default',
                 type: 'http-proxy',
                 configuration: {
-                  target: '${process.env.WIREMOCK_BASE_URL}/hello?name=shared-api',
+                  target: `${process.env.WIREMOCK_BASE_URL}/hello?name=shared-api`,
                 },
               },
             ],

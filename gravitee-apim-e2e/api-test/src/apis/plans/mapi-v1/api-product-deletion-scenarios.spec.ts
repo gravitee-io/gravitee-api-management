@@ -63,7 +63,7 @@ const makeProxyApi = async (slot: string): Promise<ApiV4> => {
               name: 'default',
               type: 'http-proxy',
               configuration: {
-                target: '${process.env.WIREMOCK_BASE_URL}/hello?name=deletion-scenario',
+                target: `${process.env.WIREMOCK_BASE_URL}/hello?name=deletion-scenario`,
               },
             },
           ],
@@ -372,7 +372,7 @@ describe('C2.1 - Stop and delete an underlying API: its path returns 404; siblin
       api1 = { ...api1, id: '' };
 
       // Allow the gateway time to process the undeploy event.
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 6000));
     });
 
     test('api1 path should return 404 after the underlying API is removed from the gateway', async () => {

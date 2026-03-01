@@ -58,7 +58,7 @@ describe('API Product gateway behavior (API Key)', () => {
                 name: 'default',
                 type: 'http-proxy',
                 configuration: {
-                  target: '${process.env.WIREMOCK_BASE_URL}/hello?name=endpoint2',
+                  target: `${process.env.WIREMOCK_BASE_URL}/hello?name=endpoint2`,
                 },
               },
             ],
