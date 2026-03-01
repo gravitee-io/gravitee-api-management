@@ -103,6 +103,7 @@ public class FederatedApiAgentEntity implements GenericApiEntity {
     private Collection<Skill> skills;
     private JsonNode securitySchemes;
     private JsonNode security;
+    private boolean allowMultiJwtOauth2Subscriptions;
 
     public record Provider(String organization, String url) implements Serializable {}
 

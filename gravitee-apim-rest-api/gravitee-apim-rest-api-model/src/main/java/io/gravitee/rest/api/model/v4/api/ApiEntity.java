@@ -208,6 +208,13 @@ public class ApiEntity implements GenericApiEntity {
     )
     private Boolean allowedInApiProducts;
 
+    @Schema(
+        description = "When true, allows an application to subscribe to more than one JWT/OAuth2 plan. Selection rules or sharding tags should be configured on plans.",
+        example = "false"
+    )
+    @Builder.Default
+    private boolean allowMultiJwtOauth2Subscriptions = false;
+
     @Schema(description = "the API background encoded in base64")
     private String background;
 

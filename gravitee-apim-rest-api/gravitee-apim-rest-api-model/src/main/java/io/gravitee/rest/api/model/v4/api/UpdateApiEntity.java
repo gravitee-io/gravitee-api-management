@@ -197,6 +197,12 @@ public class UpdateApiEntity {
     )
     private Boolean allowedInApiProducts;
 
+    @Schema(
+        description = "When true, allows an application to subscribe to more than one JWT/OAuth2 plan. Selection rules or sharding tags should be configured on plans.",
+        example = "false"
+    )
+    private boolean allowMultiJwtOauth2Subscriptions;
+
     @Schema(description = "the API background encoded in base64")
     private String background;
 

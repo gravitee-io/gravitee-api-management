@@ -67,6 +67,10 @@ export interface GenericApi extends BaseApi {
    */
   disableMembershipNotifications?: boolean;
   /**
+   * When true, allows an application to subscribe to more than one JWT/OAuth2 plan (V4 only).
+   */
+  allowMultiJwtOauth2Subscriptions?: boolean;
+  /**
    * API's groups. Used to add team in your API.
    */
   groups?: string[];

@@ -150,6 +150,7 @@ public class ApiMapper {
         }
         apiEntity.setGroups(api.getGroups());
         apiEntity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
+        apiEntity.setAllowMultiJwtOauth2Subscriptions(api.isAllowMultiJwtOauth2Subscriptions());
         apiEntity.setReferenceType(ReferenceContext.Type.ENVIRONMENT.name());
         apiEntity.setReferenceId(api.getEnvironmentId());
         apiEntity.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
@@ -211,6 +212,7 @@ public class ApiMapper {
         }
         apiEntity.setGroups(api.getGroups());
         apiEntity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
+        apiEntity.setAllowMultiJwtOauth2Subscriptions(api.isAllowMultiJwtOauth2Subscriptions());
         apiEntity.setReferenceType(ReferenceContext.Type.ENVIRONMENT.name());
         apiEntity.setReferenceId(api.getEnvironmentId());
         apiEntity.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
@@ -455,6 +457,7 @@ public class ApiMapper {
 
         repoApi.setGroups(updateApiEntity.getGroups());
         repoApi.setDisableMembershipNotifications(updateApiEntity.isDisableMembershipNotifications());
+        repoApi.setAllowMultiJwtOauth2Subscriptions(updateApiEntity.isAllowMultiJwtOauth2Subscriptions());
 
         return repoApi;
     }
@@ -522,6 +525,7 @@ public class ApiMapper {
         repoApi.setDeployedAt(apiEntity.getDeployedAt());
         repoApi.setDescription(apiEntity.getDescription());
         repoApi.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
+        repoApi.setAllowMultiJwtOauth2Subscriptions(apiEntity.isAllowMultiJwtOauth2Subscriptions());
         repoApi.setEnvironmentId(executionContext.getEnvironmentId());
         repoApi.setGroups(apiEntity.getGroups());
         repoApi.setId(apiEntity.getId());
