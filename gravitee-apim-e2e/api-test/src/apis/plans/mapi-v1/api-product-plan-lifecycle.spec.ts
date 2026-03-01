@@ -63,7 +63,7 @@ const makeProxyApi = async (slot: string): Promise<ApiV4> => {
               name: 'default',
               type: 'http-proxy',
               configuration: {
-                target: '${process.env.WIREMOCK_BASE_URL}/hello?name=plan-lifecycle',
+                target: `${process.env.WIREMOCK_BASE_URL}/hello?name=plan-lifecycle`,
               },
             },
           ],
@@ -304,12 +304,15 @@ describe('D2 - Deprecate then close plan: existing key survives deprecation but 
       body: JSON.stringify({}),
     });
     expect([200, 202]).toContain(deployResponse.status);
+    await new Promise((r) => setTimeout(r, 6000));
   });
 
   test('baseline: key should return 200 with an active published plan', async () => {
     await fetchGatewaySuccess({
       contextPath,
       headers: { 'X-Gravitee-Api-Key': apiKey },
+      maxRetries: 10,
+      timeBetweenRetries: 2000,
     });
   });
 
@@ -330,6 +333,8 @@ describe('D2 - Deprecate then close plan: existing key survives deprecation but 
       await fetchGatewaySuccess({
         contextPath,
         headers: { 'X-Gravitee-Api-Key': apiKey },
+        maxRetries: 10,
+        timeBetweenRetries: 2000,
       });
     });
 
@@ -509,12 +514,15 @@ describe('D3.1 - API_KEY security type in API Product context', () => {
       body: JSON.stringify({}),
     });
     expect([200, 202]).toContain(deployResponse.status);
+    await new Promise((r) => setTimeout(r, 6000));
   });
 
   test('valid API key should return 200 on the API Product context path', async () => {
     await fetchGatewaySuccess({
       contextPath: (api.listeners[0] as HttpListener).paths[0].path,
       headers: { 'X-Gravitee-Api-Key': apiKey },
+      maxRetries: 10,
+      timeBetweenRetries: 2000,
     });
   });
 
@@ -871,12 +879,15 @@ describe('D4 - Close plan with active subscriptions: existing keys are revoked i
       body: JSON.stringify({}),
     });
     expect([200, 202]).toContain(deployResponse.status);
+    await new Promise((r) => setTimeout(r, 6000));
   });
 
   test('baseline: key should return 200 before the plan is closed', async () => {
     await fetchGatewaySuccess({
       contextPath,
       headers: { 'X-Gravitee-Api-Key': apiKey },
+      maxRetries: 10,
+      timeBetweenRetries: 2000,
     });
   });
 
