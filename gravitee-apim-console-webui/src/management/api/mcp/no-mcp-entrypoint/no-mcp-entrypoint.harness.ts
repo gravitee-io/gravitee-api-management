@@ -19,8 +19,13 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 export class NoMcpEntrypointHarness extends ComponentHarness {
   static readonly hostSelector = 'no-mcp-entrypoint';
   protected locateEnableMcpEntrypointButton = this.locatorFor(MatButtonHarness.with({ text: 'Enable MCP' }));
+  protected locateLearnMoreMcpEntrypointButton = this.locatorFor(MatButtonHarness.with({ text: 'Learn More' }));
 
   async getEnableMcpButton(): Promise<MatButtonHarness> {
     return this.locateEnableMcpEntrypointButton();
+  }
+
+  async getLearnMoreMcpButton(): Promise<MatButtonHarness> {
+    return this.locateLearnMoreMcpEntrypointButton();
   }
 }

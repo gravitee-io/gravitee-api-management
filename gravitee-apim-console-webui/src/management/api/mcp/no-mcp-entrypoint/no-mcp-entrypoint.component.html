@@ -21,9 +21,11 @@
       <mat-icon svgIcon="gio:folder-plus" />
     </div>
     <div class="no-mcp-entrypoint__text">
-      <div class="mat-h2">Bring your tools to life by enabling MCP</div>
-      <div class="mat-body-2">Once activated, you can configure, manage and integrate tools seamlessly with your environment.</div>
+      <mat-card-title class="mat-h2">{{ title() }}</mat-card-title>
+      <mat-card-subtitle class="mat-body-2">{{ description() }}</mat-card-subtitle>
     </div>
-    <button mat-raised-button color="primary" [disabled]="!canEnableMcp()" (click)="enableMcpEntrypoint.emit(true)">Enable MCP</button>
+    <button mat-raised-button color="primary" (click)="onMcpClick()">
+      {{ canEnableMcp() ? 'Enable MCP' : 'Learn More' }}
+    </button>
   </mat-card-content>
 </mat-card>

@@ -16,7 +16,7 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { combineLatest, Observable, of } from 'rxjs';
 import { filter, map, switchMap, tap } from 'rxjs/operators';
 import {
   GioConfirmDialogComponent,
@@ -24,6 +24,7 @@ import {
   GioFormJsonSchemaModule,
   GioFormSlideToggleModule,
   GioIconsModule,
+  GioLicenseService,
   GioSaveBarModule,
 } from '@gravitee/ui-particles-angular';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -44,6 +45,7 @@ import { ConnectorPluginsV2Service } from '../../../services-ngx/connector-plugi
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { DEFAULT_MCP_ENTRYPOINT_PATH, MCP_ENTRYPOINT_ID, MCPConfiguration } from '../../../entities/entrypoint/mcp';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { ApimFeature } from '../../../shared/components/gio-license/gio-license-data';
 
 interface ApiVM extends ApiV4 {
   hasMCPEntrypoint: boolean;
@@ -73,13 +75,17 @@ export class McpComponent implements OnInit {
   apiId: string;
   api$: Observable<ApiVM> = of();
 
-  canEnableMcp$: Observable<boolean> = this.connectorPluginsV2Service
-    .listEntrypointPlugins()
-    .pipe(
-      map(plugins =>
-        plugins.some(plugin => plugin.id === MCP_ENTRYPOINT_ID && this.gioPermissionService.hasAnyMatching(['api-definition-u'])),
-      ),
-    );
+  canEnableMcp$ = combineLatest([
+    this.connectorPluginsV2Service.listEntrypointPlugins(),
+    this.licenseService.isMissingFeature$(ApimFeature.APIM_MCP_TOOL_SERVER),
+  ]).pipe(
+    map(([plugins, isMissingFeature]) => {
+      const hasPlugin = plugins.some(p => p.id === MCP_ENTRYPOINT_ID);
+      const hasPermission = this.gioPermissionService.hasAnyMatching(['api-definition-u']);
+
+      return hasPlugin && hasPermission && !isMissingFeature;
+    }),
+  );
 
   form = new FormGroup({
     mcpConfig: new FormControl<MCPConfiguration>({
@@ -100,6 +106,7 @@ export class McpComponent implements OnInit {
     private connectorPluginsV2Service: ConnectorPluginsV2Service,
     private snackBarService: SnackBarService,
     private matDialog: MatDialog,
+    private readonly licenseService: GioLicenseService,
   ) {
     this.apiId = this.activatedRoute.snapshot.params['apiId'] || '';
   }

@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, computed } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
+
+const TRIAL_URL =
+  'https://www.gravitee.io/self-hosted-trial?utm_source=oss_apim&utm_medium=apim-mcp-tool-server&utm_campaign=oss_apim_to_ee_apim';
 
 @Component({
   selector: 'no-mcp-entrypoint',
@@ -29,4 +32,21 @@ import { GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
 export class NoMcpEntrypointComponent {
   canEnableMcp = input(false);
   enableMcpEntrypoint = output<boolean>();
+
+  title = computed(() => (this.canEnableMcp() ? 'Bring your tools to life by enabling MCP' : 'MCP Tool Server unavailable'));
+
+  description = computed(() =>
+    this.canEnableMcp()
+      ? 'Once activated, you can configure, manage and integrate tools seamlessly with your environment.'
+      : 'MCP Tool Server is part of Gravitee Enterprise. Accelerate your AI Agent capabilities by letting Gravitee transform your existing Open API Specifications into MCP Tool Servers.',
+  );
+
+  onMcpClick(): void {
+    if (this.canEnableMcp()) {
+      this.enableMcpEntrypoint.emit(true);
+      return;
+    }
+
+    window.open(TRIAL_URL, '_blank', 'noopener,noreferrer');
+  }
 }

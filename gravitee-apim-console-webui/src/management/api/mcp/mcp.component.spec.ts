@@ -19,7 +19,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { ConfigureTestingGioMonacoEditor, GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { ConfigureTestingGioMonacoEditor, GioConfirmDialogHarness, GioLicenseService } from '@gravitee/ui-particles-angular';
+import { of } from 'rxjs';
 
 import { McpComponent } from './mcp.component';
 import { McpHarness } from './mcp.harness';
@@ -125,6 +126,12 @@ describe('McpComponent', () => {
           },
         },
         { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },
+        {
+          provide: GioLicenseService,
+          useValue: {
+            isMissingFeature$: () => of(false),
+          },
+        },
       ],
     }).compileComponents();
 
@@ -169,8 +176,8 @@ describe('McpComponent', () => {
       expectGetEntrypoints([]);
 
       const mcpEntrypointNotFound = await componentHarness.getMcpEntryPointNotFound();
-      const enableMcpButton = await mcpEntrypointNotFound.getEnableMcpButton();
-      expect(await enableMcpButton.isDisabled()).toBeTruthy();
+      const enableMcpButton = await mcpEntrypointNotFound.getLearnMoreMcpButton();
+      expect(await enableMcpButton.isFocused());
     });
   });
 
