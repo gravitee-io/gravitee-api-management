@@ -16,6 +16,8 @@
 
 import { PrimaryOwner } from '../api';
 
+export type ApiProductDeploymentState = 'NEED_REDEPLOY' | 'DEPLOYED';
+
 export interface ApiProduct {
   /**
    * API Product's unique identifier.
@@ -49,5 +51,10 @@ export interface ApiProduct {
    * The primary owner of the API Product.
    */
   primaryOwner?: PrimaryOwner;
+  /**
+   * Indicates whether the API Product is in sync with the latest deployment.
+   */
+  deploymentState?: ApiProductDeploymentState;
+
   _links?: { [key: string]: string };
 }

@@ -28,11 +28,12 @@ import { ApplicationService } from '../../../services-ngx/application.service';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { GroupV2Service } from '../../../services-ngx/group-v2.service';
 import { ClusterService } from '../../../services-ngx/cluster.service';
+import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 
 export type GioTestingPermission = string[];
 
 export type GioTestingRoleScopePermission = {
-  roleScope: 'API' | 'APPLICATION' | 'CLUSTER';
+  roleScope: 'API' | 'APPLICATION' | 'CLUSTER' | 'API_PRODUCT';
   id: string;
   permissions: string[];
 };
@@ -50,6 +51,7 @@ export class GioPermissionService {
   private currentApplicationPermissions: string[] = [];
   private currentIntegrationPermissions: string[] = [];
   private currentClusterPermissions: string[] = [];
+  private currentApiProductPermissions: string[] = [];
   private permissions: string[] = [];
   private roleScopePermissionsCache = new Map<string, Observable<string[]>>();
 
@@ -65,6 +67,7 @@ export class GioPermissionService {
     private readonly integrationService: IntegrationsService,
     private readonly clusterService: ClusterService,
     private readonly groupService: GroupV2Service,
+    private readonly apiProductV2Service: ApiProductV2Service,
   ) {
     if (this.gioTestingPermission) {
       this._setPermissions(this.gioTestingPermission);
@@ -171,6 +174,16 @@ export class GioPermissionService {
     );
   }
 
+  loadApiProductPermissions(apiProductId: string): Observable<void> {
+    return this.apiProductV2Service.getPermissions(apiProductId).pipe(
+      map(apiProductPermissions => {
+        this.currentApiProductPermissions = Object.entries(apiProductPermissions).flatMap(([key, crudValues]) =>
+          crudValues.split('').map(crudValue => toLower(`API_PRODUCT-${key}-${crudValue}`)),
+        );
+      }),
+    );
+  }
+
   public fetchGroupPermissions(groupId: string): Observable<string[]> {
     return this.groupService
       .getPermissions(groupId)
@@ -188,11 +201,11 @@ export class GioPermissionService {
    * A Cache is used to store previously fetched permissions to optimize performance and reduce redundant API calls.
    * The Cache is cleared with scope clear methods in the service.
    *
-   * @param {('API'|'APPLICATON'|'CLUSTER')} roleScope - The scope of the role.
+   * @param {('API'|'APPLICATION'|'CLUSTER'|'API_PRODUCT')} roleScope - The scope of the role.
    * @param {string} id - The unique identifier associated with the role.
    * @return {Observable<string[]>} An observable that emits an array of string permissions corresponding to the specified role and ID.
    */
-  getPermissionsByRoleScope(roleScope: 'API' | 'APPLICATION' | 'CLUSTER', id: string): Observable<string[]> {
+  getPermissionsByRoleScope(roleScope: 'API' | 'APPLICATION' | 'CLUSTER' | 'API_PRODUCT', id: string): Observable<string[]> {
     const cacheKey = `${roleScope}:${id}`;
 
     if (this.roleScopePermissionsCache.has(cacheKey)) {
@@ -216,6 +229,9 @@ export class GioPermissionService {
         break;
       case 'CLUSTER':
         permissions$ = this.clusterService.getPermissions(id).pipe(map(mapToStringPermissions));
+        break;
+      case 'API_PRODUCT':
+        permissions$ = this.apiProductV2Service.getPermissions(id).pipe(map(mapToStringPermissions));
         break;
       default:
         permissions$ = of([]);
@@ -243,6 +259,7 @@ export class GioPermissionService {
       intersection(this.currentApplicationPermissions, permissions).length > 0 ||
       intersection(this.currentIntegrationPermissions, permissions).length > 0 ||
       intersection(this.currentClusterPermissions, permissions).length > 0 ||
+      intersection(this.currentApiProductPermissions, permissions).length > 0 ||
       intersection(this.permissions, permissions).length > 0
     );
   }
@@ -254,6 +271,11 @@ export class GioPermissionService {
   clearApiPermissions() {
     this.currentApiPermissions = [];
     this.clearRoleScopePermissionsCache('API');
+  }
+
+  clearApiProductPermissions() {
+    this.currentApiProductPermissions = [];
+    this.clearRoleScopePermissionsCache('API_PRODUCT');
   }
 
   clearApplicationPermissions() {
@@ -270,7 +292,7 @@ export class GioPermissionService {
     this.clearRoleScopePermissionsCache('CLUSTER');
   }
 
-  clearRoleScopePermissionsCache(scope: 'API' | 'APPLICATION' | 'CLUSTER') {
+  clearRoleScopePermissionsCache(scope: 'API' | 'APPLICATION' | 'CLUSTER' | 'API_PRODUCT') {
     Array.from(this.roleScopePermissionsCache.keys())
       .filter(key => key.startsWith(`${scope}:`))
       .forEach(key => this.roleScopePermissionsCache.delete(key));
@@ -286,6 +308,7 @@ export class GioPermissionService {
       ...this.currentEnvironmentPermissions,
       ...this.currentApiPermissions,
       ...this.currentApplicationPermissions,
+      ...this.currentApiProductPermissions,
       ...this.permissions,
     ];
 
