@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-export enum ZeeResourceType {
-  FLOW = 'FLOW',
-  PLAN = 'PLAN',
-  API = 'API',
-  ENDPOINT = 'ENDPOINT',
-  ENTRYPOINT = 'ENTRYPOINT',
-}
+export const ZeeResourceType = {
+  FLOW: 'FLOW',
+  PLAN: 'PLAN',
+  API: 'API',
+  ENDPOINT: 'ENDPOINT',
+  ENTRYPOINT: 'ENTRYPOINT',
+} as const;
+
+export type ZeeResourceType = (typeof ZeeResourceType)[keyof typeof ZeeResourceType];
 
 export interface ZeeResourceAdapter<TSavePayload = unknown> {
   transform(generated: unknown, context?: Record<string, unknown>): TSavePayload;

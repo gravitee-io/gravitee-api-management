@@ -26,6 +26,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ZeeWidgetComponent } from './zee-widget/zee-widget.component';
 import { ZeePreviewComponent } from './zee-preview/zee-preview.component';
@@ -51,6 +52,7 @@ import { ApiCardComponent } from './zee-structured-view/api-card.component';
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatTabsModule,
+    MatTooltipModule,
   ],
 })
 export class ZeeModule {}

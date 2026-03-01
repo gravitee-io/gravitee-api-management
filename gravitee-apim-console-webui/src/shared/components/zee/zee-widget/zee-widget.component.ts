@@ -47,12 +47,17 @@ export class ZeeWidgetComponent {
   @Output() rejected = new EventEmitter<void>();
 
   readonly MAX_PROMPT_LENGTH = MAX_PROMPT_LENGTH;
+  isOpen = false;
   state: ZeeState = 'idle';
   prompt = '';
   files: File[] = [];
   generatedResource: any = null;
   errorMessage = '';
   fileValidationErrors: string[] = [];
+
+  togglePanel(): void {
+    this.isOpen = !this.isOpen;
+  }
 
   constructor(
     private readonly zeeService: ZeeService,
@@ -110,6 +115,7 @@ export class ZeeWidgetComponent {
     this.generatedResource = null;
     this.errorMessage = '';
     this.fileValidationErrors = [];
+    this.isOpen = false;
   }
 
   onFileSelect(event: Event): void {

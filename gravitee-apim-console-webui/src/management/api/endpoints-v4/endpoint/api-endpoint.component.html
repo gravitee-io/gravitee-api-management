@@ -19,14 +19,13 @@
   <a mat-button [routerLink]="'../../'"><mat-icon svgIcon="gio:arrow-left"></mat-icon>Go back to your endpoints</a>
 </div>
 
-<div class="zee-widget-container" *ngIf="!isReadOnly && mode === 'create'">
-  <zee-widget
-    [resourceType]="'ENDPOINT'"
-    [adapter]="endpointAdapter"
-    [contextData]="{ apiId: activatedRoute.snapshot.params.apiId }"
-    (accepted)="onEndpointGenerated($event)"
-  ></zee-widget>
-</div>
+<zee-widget
+  *ngIf="!isReadOnly && mode === 'create'"
+  [resourceType]="'ENDPOINT'"
+  [adapter]="endpointAdapter"
+  [contextData]="{ apiId: activatedRoute.snapshot.params.apiId }"
+  (accepted)="onEndpointGenerated($event)"
+></zee-widget>
 
 <mat-card class="endpoint-card">
   <mat-card-content>

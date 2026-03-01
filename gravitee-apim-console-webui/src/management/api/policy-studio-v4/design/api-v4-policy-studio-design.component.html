@@ -15,14 +15,13 @@
     limitations under the License.
 
 -->
-<div class="zee-widget-container" *ngIf="!isReadOnly">
-  <zee-widget
-    [resourceType]="'FLOW'"
-    [adapter]="flowAdapter"
-    [contextData]="{ apiId: apiId }"
-    (accepted)="onFlowGenerated($event)"
-  ></zee-widget>
-</div>
+<zee-widget
+  *ngIf="!isReadOnly"
+  [resourceType]="'FLOW'"
+  [adapter]="flowAdapter"
+  [contextData]="{ apiId: apiId }"
+  (accepted)="onFlowGenerated($event)"
+></zee-widget>
 <gio-policy-studio
   [readOnly]="isReadOnly"
   [loading]="isLoading"

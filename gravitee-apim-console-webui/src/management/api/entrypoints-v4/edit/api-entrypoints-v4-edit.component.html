@@ -18,14 +18,13 @@
 <div class="back">
   <a mat-button [routerLink]="'..'"><mat-icon svgIcon="gio:arrow-left"></mat-icon>Go back to your entrypoints</a>
 </div>
-<div class="zee-widget-container" *ngIf="form">
-  <zee-widget
-    [resourceType]="'ENTRYPOINT'"
-    [adapter]="entrypointAdapter"
-    [contextData]="{ apiId: apiId }"
-    (accepted)="onEntrypointGenerated($event)"
-  ></zee-widget>
-</div>
+<zee-widget
+  *ngIf="form"
+  [resourceType]="'ENTRYPOINT'"
+  [adapter]="entrypointAdapter"
+  [contextData]="{ apiId: apiId }"
+  (accepted)="onEntrypointGenerated($event)"
+></zee-widget>
 <mat-card class="api-entrypoints-v4-edit">
   <mat-card-content>
     <form [formGroup]="form" *ngIf="form; else loader" (ngSubmit)="onSaveEntrypointConfig()">
