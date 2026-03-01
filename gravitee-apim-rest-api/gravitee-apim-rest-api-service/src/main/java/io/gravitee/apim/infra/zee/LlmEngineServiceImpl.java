@@ -30,6 +30,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.slf4j.Logger;
@@ -58,6 +59,18 @@ public class LlmEngineServiceImpl implements LlmEngineService {
 
     private static final Logger LOG = LoggerFactory.getLogger(LlmEngineServiceImpl.class);
     private static final Duration HTTP_TIMEOUT = Duration.ofSeconds(300);
+
+    /**
+     * RFC 6902 JSON Patch that adds a {@code description} property to the Api
+     * schema.
+     * Applied at generation time so the LLM can produce a human-readable
+     * description
+     * without polluting the gateway definition model.
+     */
+    private static final List<io.gravitee.apim.definition.llm.v4.JsonPatchOp> API_DESCRIPTION_PATCH = List.of(
+            new io.gravitee.apim.definition.llm.v4.JsonPatchOp.Add(
+                    "/properties/description",
+                    Map.of("type", "string", "description", "Human-readable description of the API.")));
 
     private final boolean disabled;
     private final LlmRoundtripEngine engine;
@@ -181,7 +194,8 @@ public class LlmEngineServiceImpl implements LlmEngineService {
         // V4 components
         map.put("Flow", io.gravitee.apim.definition.llm.v4.Flow::generate);
         map.put("Plan", io.gravitee.apim.definition.llm.v4.Plan::generate);
-        map.put("Api", io.gravitee.apim.definition.llm.v4.Api::generate);
+        map.put("Api", (prompt, engine) -> io.gravitee.apim.definition.llm.v4.Api.generate(prompt, engine,
+                API_DESCRIPTION_PATCH));
         map.put("Endpoint", io.gravitee.apim.definition.llm.v4.Endpoint::generate);
         map.put("Entrypoint", io.gravitee.apim.definition.llm.v4.Entrypoint::generate);
         map.put("Step", io.gravitee.apim.definition.llm.v4.Step::generate);

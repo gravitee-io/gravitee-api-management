@@ -119,12 +119,12 @@
 		<dependency>
 			<groupId>io.gravitee.apim.definition.llm.v4</groupId>
 			<artifactId>v4</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>0.1.0-ALPHA</version>
 		</dependency>
 		<dependency>
 			<groupId>io.gravitee.apim.definition.llm.v2</groupId>
 			<artifactId>v2</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>0.1.0-ALPHA</version>
 		</dependency>
 
 		<!-- Gravitee Dependencies -->
