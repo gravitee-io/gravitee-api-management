@@ -31,7 +31,7 @@ import {
   GioMenuService,
   GioSubmenuModule,
 } from '@gravitee/ui-particles-angular';
-import { catchError, combineLatest, filter, map, of, startWith, switchMap } from 'rxjs';
+import { catchError, combineLatest, filter, map, of, startWith, switchMap, tap } from 'rxjs';
 
 import {
   ApiProductConfirmDeploymentDialogComponent,
@@ -96,7 +96,25 @@ export class ApiProductNavigationComponent {
 
   readonly isActionDisabled = signal(false);
   private readonly reloadCount = signal(0);
-  readonly subMenuItems: MenuItem[] = this.buildSubMenuItems();
+
+  private readonly hasUpdatePermission = signal(this.permissionService.hasAnyMatching(['api_product-definition-u']));
+  private readonly hasPlanReadPermission = signal(this.permissionService.hasAnyMatching(['api_product-plan-r']));
+
+  readonly subMenuItems = computed<MenuItem[]>(() => {
+    const base: MenuItem[] = [{ displayName: 'Configuration', routerLink: 'configuration', icon: 'gio:settings' }];
+    const consumers: MenuItem[] = this.hasPlanReadPermission()
+      ? [
+          {
+            displayName: 'Consumers',
+            routerLink: 'consumers/plans',
+            icon: 'gio:cloud-consumers',
+            header: { title: 'Consumers', subtitle: 'Manage how your API Product is consumed' },
+            tabs: [{ displayName: 'Plans', routerLink: 'consumers/plans' }],
+          },
+        ]
+      : [];
+    return [...base, ...consumers];
+  });
 
   private readonly navTrigger = toSignal(
     this.router.events.pipe(
@@ -136,7 +154,7 @@ export class ApiProductNavigationComponent {
 
   readonly menuItemsWithActive = computed(() => {
     this.navTrigger();
-    return this.subMenuItems.map(item => ({
+    return this.subMenuItems().map(item => ({
       ...item,
       active: this.isItemActive(item),
     }));
@@ -144,12 +162,12 @@ export class ApiProductNavigationComponent {
 
   readonly selectedItemWithTabs = computed(() => {
     this.navTrigger();
-    return this.subMenuItems.find(item => this.isItemActive(item) && (item.tabs?.length ?? 0) > 0) ?? null;
+    return this.subMenuItems().find(item => this.isItemActive(item) && (item.tabs?.length ?? 0) > 0) ?? null;
   });
 
   readonly selectedItemHeader = computed(() => {
     this.navTrigger();
-    return this.subMenuItems.find(item => this.isItemActive(item) && item.header)?.header ?? null;
+    return this.subMenuItems().find(item => this.isItemActive(item) && item.header)?.header ?? null;
   });
 
   readonly currentApiProduct = computed(() => this.apiProductData()[0]);
@@ -161,11 +179,10 @@ export class ApiProductNavigationComponent {
     }
 
     const banners: TopBanner[] = [];
-    const canUpdateApiProduct = this.permissionService.hasAnyMatching(['api_product-definition-u']);
 
     if (apiProduct.deploymentState === 'NEED_REDEPLOY' && verifyDeployResponse.ok) {
       banners.push(
-        canUpdateApiProduct
+        this.hasUpdatePermission()
           ? {
               title: 'This API Product is out of sync.',
               type: 'warning',
@@ -185,11 +202,14 @@ export class ApiProductNavigationComponent {
                       width: GIO_DIALOG_WIDTH.MEDIUM,
                     })
                     .afterClosed()
-                    .pipe(takeUntilDestroyed(this.destroyRef))
-                    .subscribe(() => {
-                      this.isActionDisabled.set(false);
-                      this.reloadCount.update(c => c + 1);
-                    });
+                    .pipe(
+                      tap(() => {
+                        this.isActionDisabled.set(false);
+                        this.reloadCount.update(c => c + 1);
+                      }),
+                      takeUntilDestroyed(this.destroyRef),
+                    )
+                    .subscribe();
                 },
               },
             }
@@ -210,22 +230,6 @@ export class ApiProductNavigationComponent {
 
     return banners;
   });
-
-  private buildSubMenuItems(): MenuItem[] {
-    const items: MenuItem[] = [{ displayName: 'Configuration', routerLink: 'configuration', icon: 'gio:settings' }];
-
-    if (this.permissionService.hasAnyMatching(['api_product-plan-r'])) {
-      items.push({
-        displayName: 'Consumers',
-        routerLink: 'consumers/plans',
-        icon: 'gio:cloud-consumers',
-        header: { title: 'Consumers', subtitle: 'Manage how your API Product is consumed' },
-        tabs: [{ displayName: 'Plans', routerLink: 'consumers/plans' }],
-      });
-    }
-
-    return items;
-  }
 
   private isItemActive(item: MenuItem): boolean {
     if (!item.routerLink) {
