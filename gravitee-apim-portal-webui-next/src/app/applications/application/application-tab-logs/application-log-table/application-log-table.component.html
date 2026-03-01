@@ -207,7 +207,12 @@
         queryParamsHandling="merge"
       ></tr>
     </table>
-    <app-pagination [currentPage]="currentLogsPage()" [totalResults]="totalLogs()" (selectPage)="goToPage($event)" />
+    <app-pagination
+      [currentPage]="currentLogsPage()"
+      [totalResults]="totalLogs()"
+      [showPageSizeSelection]="false"
+      (selectPage)="goToPage($event)"
+    />
   } @else {
     <div class="no-logs">
       <div class="m3-title-medium" i18n="@@applicationLogsNoneFound">We couldn't find any logs</div>

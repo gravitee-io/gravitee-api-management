@@ -62,7 +62,12 @@
         </td>
       </tr>
     </table>
-    <app-pagination [currentPage]="currentPage()" [totalResults]="totalResults()" (selectPage)="goToPage($event)" />
+    <app-pagination
+      [currentPage]="currentPage()"
+      [totalResults]="totalResults()"
+      [showPageSizeSelection]="false"
+      (selectPage)="goToPage($event)"
+    />
   }
 } @else {
   <app-loader />
