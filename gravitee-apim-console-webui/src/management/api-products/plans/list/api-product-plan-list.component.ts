@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Router, ActivatedRoute } from '@angular/router';
-import { catchError, combineLatest, EMPTY, filter, map, merge, of, scan, skip, Subject, switchMap, take, withLatestFrom } from 'rxjs';
+import { catchError, EMPTY, filter, map, of, switchMap } from 'rxjs';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { orderBy } from 'lodash';
 import {
@@ -28,18 +28,13 @@ import {
 import { MatDialog } from '@angular/material/dialog';
 
 import { ApiProductPlanV2Service } from '../../../../services-ngx/api-product-plan-v2.service';
-import { ApiProductV2Service } from '../../../../services-ngx/api-product-v2.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ConstantsService, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
 import { Plan, PLAN_STATUS, PlanStatus } from '../../../../entities/management-api-v2';
-import { PlanListComponent, PlanDS } from '../../../api/component/plan/plan-list/plan-list.component';
+import { PlanActionEvent, PlanListComponent, PlanDS } from '../../../api/component/plan/plan-list/plan-list.component';
 
 const API_PRODUCT_PLAN_TYPES = ['API_KEY', 'JWT', 'MTLS'] as const;
-const INITIAL_API_PLAN_STATUS: { name: PlanStatus; number: number | null }[] = PLAN_STATUS.map(status => ({
-  name: status,
-  number: null,
-}));
 
 @Component({
   selector: 'api-product-plan-list',
@@ -54,14 +49,12 @@ export class ApiProductPlanListComponent {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly plansService = inject(ApiProductPlanV2Service);
-  private readonly apiProductV2Service = inject(ApiProductV2Service);
   private readonly constantsService = inject(ConstantsService);
   private readonly permissionService = inject(GioPermissionService);
   private readonly matDialog = inject(MatDialog);
   private readonly snackBarService = inject(SnackBarService);
 
   private readonly filterOverride = signal<PlanStatus | null>(null);
-  private readonly reloadTrigger$ = new Subject<void>();
 
   private readonly apiProductId = toSignal(this.activatedRoute.paramMap.pipe(map(p => p.get('apiProductId') ?? '')), { initialValue: '' });
   private readonly initialStatusFromRoute = toSignal(
@@ -69,123 +62,76 @@ export class ApiProductPlanListComponent {
     { initialValue: 'PUBLISHED' as PlanStatus },
   );
   protected readonly selectedStatus = computed(() => this.filterOverride() ?? this.initialStatusFromRoute());
+  protected readonly isReadOnly = computed(() => !this.permissionService.hasAnyMatching(['api_product-plan-u']));
 
-  private readonly plansData = toSignal(this.buildPlansStream(), {
-    initialValue: {
-      plans: [] as PlanDS[],
-      apiPlanStatus: INITIAL_API_PLAN_STATUS,
-      loading: true,
+  private readonly plansResource = rxResource({
+    params: () => ({ id: this.apiProductId() }),
+    stream: ({ params }) => {
+      if (!params.id) return of([] as PlanDS[]);
+      return this.plansService.list(params.id, undefined, [...PLAN_STATUS], undefined, ['-flow'], 1, 9999).pipe(
+        map(response =>
+          response.data.map(plan => ({
+            ...plan,
+            securityTypeLabel: this.getSecurityTypeLabel(plan.security?.type),
+          })),
+        ),
+        catchError((err: { error?: { message?: string } }) => {
+          this.snackBarService.error(err?.error?.message ?? 'An error occurred while loading plans.');
+          return of([] as PlanDS[]);
+        }),
+      );
     },
   });
 
-  protected readonly plansTableDS = computed(() => this.plansData()?.plans ?? []);
-  protected readonly isLoadingData = computed(() => this.plansData()?.loading ?? true);
-  protected readonly apiPlanStatus = computed(() => this.plansData()?.apiPlanStatus ?? INITIAL_API_PLAN_STATUS);
-  protected readonly isReadOnly = computed(() => !this.permissionService.hasAnyMatching(['api_product-plan-u']));
+  protected readonly isLoadingData = computed(() => this.plansResource.isLoading());
+
+  protected readonly plansTableDS = computed(() => {
+    const plans = this.plansResource.value() ?? [];
+    const targetStatus = this.selectedStatus();
+    const filtered = plans.filter(plan => plan.status === targetStatus);
+    return orderBy(filtered, 'order', 'asc');
+  });
+
+  protected readonly apiPlanStatus = computed(() => {
+    const plans = this.plansResource.value() ?? [];
+    const counts = plans.reduce(
+      (acc, plan) => {
+        const status = plan.status.toUpperCase();
+        acc[status] = (acc[status] ?? 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+    return PLAN_STATUS.map(status => ({
+      name: status,
+      number: counts[status.toUpperCase()] ?? 0,
+    }));
+  });
 
   protected readonly planMenuItems: PlanMenuItemVM[] = this.constantsService
     .getEnabledPlanMenuItems()
     .filter(p => (API_PRODUCT_PLAN_TYPES as readonly string[]).includes(p.planFormType));
 
-  private buildPlansStream() {
-    const apiProductId$ = toObservable(this.apiProductId);
-    const selectedStatus$ = toObservable(this.selectedStatus);
-    const idAndStatus$ = combineLatest([apiProductId$, selectedStatus$]);
-    const loadTrigger$ = merge(
-      idAndStatus$.pipe(
-        take(1),
-        map(([id, status]) => ({ id, status, fullReload: true })),
-      ),
-      idAndStatus$.pipe(
-        skip(1),
-        map(([id, status]) => ({ id, status, fullReload: false })),
-      ),
-      this.reloadTrigger$.pipe(
-        withLatestFrom(apiProductId$, selectedStatus$),
-        map(([, id, status]) => ({ id, status, fullReload: true })),
-      ),
-    ).pipe(takeUntilDestroyed(this.destroyRef));
-
-    type PlansData = {
-      plans: PlanDS[];
-      apiPlanStatus: { name: PlanStatus; number: number | null }[];
-      loading: boolean;
-    };
-
-    return loadTrigger$.pipe(
-      switchMap(({ id, status, fullReload }) => {
-        if (!id) {
-          return of({
-            plans: [] as PlanDS[],
-            apiPlanStatus: INITIAL_API_PLAN_STATUS,
-            loading: false,
-          });
-        }
-        const list$ = fullReload
-          ? this.plansService.list(id, undefined, [...PLAN_STATUS], undefined, ['-flow'], 1, 9999).pipe(
-              map(response => {
-                const plansNumber = response.data.reduce(
-                  (acc, plan) => {
-                    const status = plan.status.toUpperCase();
-                    acc[status] = (acc[status] ?? 0) + 1;
-                    return acc;
-                  },
-                  {} as Record<string, number>,
-                );
-                const apiPlanStatus = PLAN_STATUS.map(status => ({
-                  name: status,
-                  number: plansNumber[status.toUpperCase()] ?? 0,
-                }));
-                const plans = response.data
-                  .filter(plan => plan.status === status)
-                  .map(plan => ({
-                    ...plan,
-                    securityTypeLabel: this.getSecurityTypeLabel(plan.security?.type),
-                  }));
-                return { plans: orderBy(plans, 'order', 'asc'), apiPlanStatus, loading: false };
-              }),
-            )
-          : this.plansService.list(id, undefined, [status], undefined, ['-flow'], 1, 9999).pipe(
-              map(response => ({
-                plans: orderBy(
-                  response.data.map(plan => ({
-                    ...plan,
-                    securityTypeLabel: this.getSecurityTypeLabel(plan.security?.type),
-                  })),
-                  'order',
-                  'asc',
-                ),
-                apiPlanStatus: null as { name: PlanStatus; number: number | null }[] | null,
-                loading: false,
-              })),
-            );
-        return list$.pipe(
-          catchError(({ error }) => {
-            this.snackBarService.error(error?.message ?? 'An error occurred while loading plans.');
-            return of({
-              plans: [] as PlanDS[],
-              apiPlanStatus: null as { name: PlanStatus; number: number | null }[] | null,
-              loading: false,
-            });
-          }),
-        );
-      }),
-      scan<PlansData & { apiPlanStatus: { name: PlanStatus; number: number | null }[] | null }, PlansData>(
-        (prev, curr) => ({
-          ...curr,
-          apiPlanStatus: curr.apiPlanStatus ?? prev.apiPlanStatus,
-        }),
-        {
-          plans: [] as PlanDS[],
-          apiPlanStatus: INITIAL_API_PLAN_STATUS,
-          loading: true,
-        },
-      ),
-    );
+  protected triggerReload(): void {
+    this.plansResource.reload();
   }
 
   protected onStatusFilterChanged(status: PlanStatus): void {
     this.filterOverride.set(status);
+  }
+
+  protected onActionSelected(event: PlanActionEvent): void {
+    switch (event.action) {
+      case 'PUBLISH':
+        this.onPublishPlan(event.plan);
+        break;
+      case 'DEPRECATE':
+        this.onDeprecatePlan(event.plan);
+        break;
+      case 'CLOSE':
+        this.onClosePlan(event.plan);
+        break;
+    }
   }
 
   protected onPlanTypeSelected(planFormType: string): void {
@@ -216,7 +162,7 @@ export class ApiProductPlanListComponent {
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(() => this.reloadTrigger$.next());
+      .subscribe(() => this.triggerReload());
   }
 
   protected onPublishPlan(plan: Plan): void {
@@ -244,7 +190,7 @@ export class ApiProductPlanListComponent {
       )
       .subscribe(published => {
         this.snackBarService.success(`The plan ${published.name} has been published with success.`);
-        this.reloadTrigger$.next();
+        this.triggerReload();
       });
   }
 
@@ -273,7 +219,7 @@ export class ApiProductPlanListComponent {
       )
       .subscribe(deprecated => {
         this.snackBarService.success(`The plan ${deprecated.name} has been deprecated with success.`);
-        this.reloadTrigger$.next();
+        this.triggerReload();
       });
   }
 
@@ -305,7 +251,7 @@ export class ApiProductPlanListComponent {
       )
       .subscribe(closed => {
         this.snackBarService.success(`The plan ${closed.name} has been closed with success.`);
-        this.reloadTrigger$.next();
+        this.triggerReload();
       });
   }
 

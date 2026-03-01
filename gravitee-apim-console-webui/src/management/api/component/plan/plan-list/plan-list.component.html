@@ -16,7 +16,7 @@
 
 -->
 <div class="plans__header">
-  @if (!isReadOnly() && canAddPlan() && plans() && !isLoadingData()) {
+  @if (!effectiveContext().isReadOnly && effectiveContext().canAddPlan && plans() && !isLoadingData()) {
     <div
       [matTooltip]="'No compatible plan type enabled for entrypoints. This is configured under Settings > Portal > Settings > Console.'"
       [matTooltipDisabled]="planMenuItems()?.length > 0"
@@ -33,8 +33,8 @@
         <mat-icon svgIcon="gio:plus"></mat-icon>Add new plan
       </button>
       <mat-menu #menu="matMenu">
-        @for (planMenuItem of planMenuItems(); track planMenuItem.planFormType) {
-          <button mat-menu-item (click)="planTypeSelected.emit(planMenuItem.planFormType)">
+        @for (planMenuItem of planMenuItems() ?? []; track planMenuItem.planFormType) {
+          <button mat-menu-item (click)="typeSelected.emit(planMenuItem.planFormType)">
             {{ planMenuItem.name }}
           </button>
         }
@@ -43,8 +43,8 @@
   }
 </div>
 
-<mat-button-toggle-group class="plans__filters" aria-label="Plan status filters" [value]="selectedStatus()">
-  @for (planStatus of planStatuses(); track planStatus.name) {
+<mat-button-toggle-group class="plans__filters" aria-label="Plan status filters" [value]="effectiveFilterState().selectedStatus">
+  @for (planStatus of effectiveFilterState().statuses; track planStatus.name) {
     <mat-button-toggle
       [attr.aria-label]="'Filter on ' + planStatus.name + ' plans'"
       [matTooltip]="'Filter on ' + planStatus.name + ' plans'"
@@ -62,11 +62,11 @@
   id="plansTable"
   aria-label="Plans table"
   cdkDropList
-  (cdkDropListDropped)="planReordered.emit($event)"
+  (cdkDropListDropped)="reordered.emit($event)"
   [dataSource]="plans()"
 >
   <!-- Drag icon Column -->
-  @if (!isReadOnly()) {
+  @if (!effectiveContext().isReadOnly) {
     <ng-container matColumnDef="drag-icon">
       <th mat-header-cell *matHeaderCellDef id="drag-icon"></th>
       <td mat-cell *matCellDef="let element" class="plans__table__drag-icon">
@@ -100,20 +100,25 @@
   <ng-container matColumnDef="status">
     <th mat-header-cell *matHeaderCellDef id="status">Status</th>
     <td mat-cell *matCellDef="let element">
-      @if (element.status === 'PUBLISHED') {
-        <span class="gio-badge-neutral">{{ element.status }}</span>
-      }
-      @if (['DEPRECATED', 'CLOSED'].includes(element.status)) {
-        <span class="gio-badge-error">{{ element.status }}</span>
-      }
-      @if (element.status === 'STAGING') {
-        <span class="gio-badge-warning">{{ element.status }}</span>
+      @switch (element.status) {
+        @case ('PUBLISHED') {
+          <span class="gio-badge-neutral">{{ element.status }}</span>
+        }
+        @case ('DEPRECATED') {
+          <span class="gio-badge-error">{{ element.status }}</span>
+        }
+        @case ('CLOSED') {
+          <span class="gio-badge-error">{{ element.status }}</span>
+        }
+        @case ('STAGING') {
+          <span class="gio-badge-warning">{{ element.status }}</span>
+        }
       }
     </td>
   </ng-container>
 
   <!-- Deploy on Column (optional) -->
-  @if (showDeployOnColumn()) {
+  @if (effectiveContext().showDeployOnColumn) {
     <ng-container matColumnDef="deploy-on">
       <th mat-header-cell *matHeaderCellDef id="deploy-on">Deploy on</th>
       <td mat-cell *matCellDef="let element">
@@ -127,7 +132,7 @@
     <th mat-header-cell *matHeaderCellDef id="actions"></th>
     <td mat-cell *matCellDef="let element">
       <div class="plans__table__actions">
-        @if (!isReadOnly()) {
+        @if (!effectiveContext().isReadOnly) {
           @if (element.status !== 'CLOSED') {
             <button
               mat-icon-button
@@ -139,13 +144,13 @@
               <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
             </button>
           }
-          @if (isV2Api() && element.status !== 'CLOSED') {
+          @if (effectiveContext().isV2Api && element.status !== 'CLOSED') {
             <button
               mat-icon-button
               aria-label="Design the plan"
               matTooltip="Design the plan"
               data-testid="plans_design_plan_button"
-              (click)="planDesign.emit(element.id)"
+              (click)="actionSelected.emit({ action: 'DESIGN', plan: element })"
             >
               <mat-icon svgIcon="gio:shield-check"></mat-icon>
             </button>
@@ -156,7 +161,7 @@
               aria-label="Publish the plan"
               matTooltip="Publish the plan"
               data-testid="plans_publish_plan_button"
-              (click)="planPublish.emit(element)"
+              (click)="actionSelected.emit({ action: 'PUBLISH', plan: element })"
             >
               <mat-icon svgIcon="gio:upload-cloud"></mat-icon>
             </button>
@@ -167,7 +172,7 @@
               aria-label="Deprecate the plan"
               matTooltip="Deprecate the plan"
               data-testid="plans_deprecate_plan_button"
-              (click)="planDeprecate.emit(element)"
+              (click)="actionSelected.emit({ action: 'DEPRECATE', plan: element })"
             >
               <mat-icon svgIcon="gio:cloud-unpublished"></mat-icon>
             </button>
@@ -178,7 +183,7 @@
               aria-label="Close the plan"
               matTooltip="Close the plan"
               data-testid="plans_close_plan_button"
-              (click)="planClose.emit(element)"
+              (click)="actionSelected.emit({ action: 'CLOSE', plan: element })"
             >
               <mat-icon svgIcon="gio:cancel"></mat-icon>
             </button>
@@ -195,7 +200,12 @@
   </ng-container>
 
   <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
-  <tr mat-row cdkDrag [cdkDragDisabled]="isReadOnly() || row.status !== 'PUBLISHED'" *matRowDef="let row; columns: displayedColumns()"></tr>
+  <tr
+    mat-row
+    cdkDrag
+    [cdkDragDisabled]="effectiveContext().isReadOnly || row.status !== 'PUBLISHED'"
+    *matRowDef="let row; columns: displayedColumns()"
+  ></tr>
 
   <!-- Row shown when there is no data -->
   <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>

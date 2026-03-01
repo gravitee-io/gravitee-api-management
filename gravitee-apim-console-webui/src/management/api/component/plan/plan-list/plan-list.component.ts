@@ -30,6 +30,25 @@ import { PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
 
 export type PlanDS = Plan & { securityTypeLabel: string };
 
+export interface PlanFilterState {
+  statuses: { name: PlanStatus; number: number | null }[];
+  selectedStatus: PlanStatus;
+}
+
+export type PlanActionType = 'PUBLISH' | 'DEPRECATE' | 'CLOSE' | 'DESIGN';
+
+export interface PlanActionEvent {
+  action: PlanActionType;
+  plan: PlanDS;
+}
+
+export interface PlanListContext {
+  isReadOnly?: boolean;
+  canAddPlan?: boolean;
+  isV2Api?: boolean;
+  showDeployOnColumn?: boolean;
+}
+
 @Component({
   selector: 'plan-list',
   templateUrl: './plan-list.component.html',
@@ -51,29 +70,41 @@ export type PlanDS = Plan & { securityTypeLabel: string };
 export class PlanListComponent {
   readonly plans = input<PlanDS[]>([]);
   readonly planMenuItems = input<PlanMenuItemVM[]>([]);
-  readonly isReadOnly = input(false);
-  readonly canAddPlan = input(true);
-  readonly isV2Api = input(false);
-  readonly showDeployOnColumn = input(true);
-  readonly planStatuses = input<{ name: PlanStatus; number: number | null }[]>([]);
-  readonly selectedStatus = input<PlanStatus>('PUBLISHED');
   readonly isLoadingData = input(false);
+  readonly filterState = input<PlanFilterState>();
+  readonly context = input<PlanListContext>({});
 
-  readonly planTypeSelected = output<string>();
-  readonly planReordered = output<CdkDragDrop<string[]>>();
-  readonly planPublish = output<Plan>();
-  readonly planDeprecate = output<Plan>();
-  readonly planClose = output<Plan>();
-  readonly planDesign = output<string>();
+  readonly actionSelected = output<PlanActionEvent>();
+  readonly typeSelected = output<string>();
+  readonly reordered = output<CdkDragDrop<string[]>>();
   readonly statusFilterChanged = output<PlanStatus>();
 
+  protected readonly effectiveContext = computed(() => {
+    const ctx = this.context();
+    return {
+      isReadOnly: ctx.isReadOnly ?? false,
+      canAddPlan: ctx.canAddPlan ?? true,
+      isV2Api: ctx.isV2Api ?? false,
+      showDeployOnColumn: ctx.showDeployOnColumn ?? true,
+    };
+  });
+
+  protected readonly effectiveFilterState = computed<PlanFilterState>(() => {
+    const fs = this.filterState();
+    return {
+      statuses: fs?.statuses ?? [],
+      selectedStatus: (fs?.selectedStatus ?? 'PUBLISHED') as PlanStatus,
+    };
+  });
+
   readonly displayedColumns = computed(() => {
+    const ctx = this.effectiveContext();
     const cols = ['name', 'type', 'status'];
-    if (this.showDeployOnColumn()) {
+    if (ctx.showDeployOnColumn) {
       cols.push('deploy-on');
     }
     cols.push('actions');
-    if (!this.isReadOnly()) {
+    if (!ctx.isReadOnly) {
       cols.unshift('drag-icon');
     }
     return cols;
