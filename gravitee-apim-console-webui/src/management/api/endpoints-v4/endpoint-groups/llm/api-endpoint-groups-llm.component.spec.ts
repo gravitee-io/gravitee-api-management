@@ -166,6 +166,59 @@ describe('ApiEndpointGroupsLlmComponent', () => {
       expect(await componentHarness.getProviderType(1)).toBe('ANTHROPIC');
     });
 
+    it('should display endpoint plugin name instead of Other when provider is not set', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [
+          {
+            name: 'Custom Engine Provider',
+            type: 'llm-proxy',
+            endpoints: [
+              {
+                name: 'Custom Endpoint',
+                type: 'llm-proxy',
+                configuration: {
+                  models: [{ name: 'custom-model', inputPrice: 0.001, outputPrice: 0.002 }],
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      await initComponent(apiV4);
+
+      // When provider is not set, should show the plugin name instead of "Other"
+      expect(await componentHarness.getProviderType(0)).toBe('LLM Proxy');
+    });
+
+    it('should display provider name when provider is set', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [
+          {
+            name: 'OpenAI Provider',
+            type: 'llm-proxy',
+            endpoints: [
+              {
+                name: 'OpenAI Endpoint',
+                type: 'llm-proxy',
+                configuration: {
+                  provider: 'OPEN_AI_COMPATIBLE',
+                  models: [{ name: 'gpt-3.5-turbo', inputPrice: 0.001, outputPrice: 0.002 }],
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      await initComponent(apiV4);
+
+      // When provider is set, should show the provider display name
+      expect(await componentHarness.getProviderType(0)).toBe('OpenAI Compatible');
+    });
+
     it('should display models table for each provider', async () => {
       const apiV4 = fakeApiV4({
         id: API_ID,

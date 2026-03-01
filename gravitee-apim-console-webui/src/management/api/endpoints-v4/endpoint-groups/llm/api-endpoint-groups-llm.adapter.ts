@@ -17,6 +17,7 @@ import { ApiV4 } from '../../../../../entities/management-api-v2';
 
 export type Provider = {
   name: string;
+  type: string;
   providerConfiguration: ProviderConfiguration;
 };
 
@@ -43,6 +44,7 @@ export const toProviders = (api: ApiV4): Provider[] => {
 
       return {
         name: endpointGroup.name,
+        type: endpointGroup.type,
         providerConfiguration: endpoint.configuration as ProviderConfiguration,
       };
     });

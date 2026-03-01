@@ -40,7 +40,7 @@ export class ApiEndpointGroupsLlmHarness extends ComponentHarness {
 
   public async getProviderType(index: number): Promise<string> {
     const badgeElement = await this.locatorForOptional(`.endpoint-group-card:nth-child(${index + 1}) .gio-badge-primary`)();
-    return badgeElement ? await badgeElement.text() : '';
+    return badgeElement ? (await badgeElement.text()).trim() : '';
   }
 
   public async getModelsTable(index: number): Promise<MatTableHarness | null> {
