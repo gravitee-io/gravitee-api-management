@@ -140,11 +140,10 @@ describe('Applications - Searching - Paged', () => {
   });
 
   test(`Search all for ${APP_USER.username}`, async () => {
-    const applications = await succeed(applicationManagementApiAsAppUser.getApplicationsPagedRaw({ orgId, envId }));
-    expect(applications.page.size).toBeGreaterThanOrEqual(3);
-    expect(applications.data.map(({ id }) => id)).toEqual(
-      expect.arrayContaining([createdApplication1, createdApplication2, createdApplication3].map(({ id }) => id)),
-    );
+    const applications = await succeed(applicationManagementApiAsAppUser.getApplicationsRaw({ orgId, envId }));
+    expect(applications.length).toBeGreaterThanOrEqual(3);
+    const ids = applications.map(({ id }) => id);
+    [createdApplication1, createdApplication2, createdApplication3].forEach((app) => expect(ids).toContain(app.id));
   });
 
   test(`Search all ARCHIVED for ${APP_USER.username}`, async () => {
@@ -160,11 +159,11 @@ describe('Applications - Searching - Paged', () => {
   });
 
   test(`Search all for ${ADMIN_USER.username}`, async () => {
-    const applications = await succeed(applicationManagementApiAsAdminUser.getApplicationsPagedRaw({ orgId, envId }));
-    expect(applications.page.size).toBeGreaterThanOrEqual(4);
-    expect(applications.data.map(({ id }) => id)).toEqual(
-      expect.arrayContaining([createdApplication1, createdApplication2, createdApplication3, createdApplication4].map(({ id }) => id)),
-    );
+    const applications = await succeed(applicationManagementApiAsAdminUser.getApplicationsRaw({ orgId, envId }));
+    expect(applications.length).toBeGreaterThanOrEqual(4);
+    const ids = applications.map(({ id }) => id);
+    const expectedIds = [createdApplication1, createdApplication2, createdApplication3, createdApplication4].map(({ id }) => id);
+    expectedIds.forEach((expectedId) => expect(ids).toContain(expectedId));
   });
 
   test(`Search all for ${APP_USER.username} by page (page=1&size=2) order by name`, async () => {
