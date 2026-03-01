@@ -115,17 +115,19 @@ public class PublishPlanDomainServiceImpl implements PublishPlanDomainService {
             plan = planRepository.update(plan);
 
             // Audit
-            auditService.createApiAuditLog(
-                executionContext,
-                AuditService.AuditLogData.builder()
-                    .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()))
-                    .event(PLAN_PUBLISHED)
-                    .createdAt(plan.getUpdatedAt())
-                    .oldValue(previousPlan)
-                    .newValue(plan)
-                    .build(),
-                plan.getReferenceId()
-            );
+            AuditService.AuditLogData auditLogData = AuditService.AuditLogData.builder()
+                .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()))
+                .event(PLAN_PUBLISHED)
+                .createdAt(plan.getUpdatedAt())
+                .oldValue(previousPlan)
+                .newValue(plan)
+                .build();
+
+            if (plan.getReferenceType() == io.gravitee.repository.management.model.Plan.PlanReferenceType.API_PRODUCT) {
+                auditService.createApiProductAuditLog(executionContext, auditLogData, plan.getReferenceId());
+            } else {
+                auditService.createApiAuditLog(executionContext, auditLogData, plan.getReferenceId());
+            }
 
             return PlanAdapter.INSTANCE.fromRepository(plan);
         } catch (TechnicalException ex) {

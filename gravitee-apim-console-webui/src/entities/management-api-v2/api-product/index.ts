@@ -18,3 +18,4 @@ export * from './apiProduct';
 export * from './createApiProduct';
 export * from './updateApiProduct';
 export * from './apiProductsResponse';
+export * from './verifyApiProductDeploy';

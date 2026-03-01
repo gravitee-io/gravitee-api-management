@@ -205,7 +205,7 @@ class PlanOperationsDomainServiceTest {
 
         assertThat(result.getId()).isEqualTo(PLAN_ID);
         assertThat(result.getOrder()).isEqualTo(1);
-        verify(auditService).createApiAuditLog(eq(executionContext), any(AuditService.AuditLogData.class), eq(API_PRODUCT_ID));
+        verify(auditService).createApiProductAuditLog(eq(executionContext), any(AuditService.AuditLogData.class), eq(API_PRODUCT_ID));
     }
 
     @Test
