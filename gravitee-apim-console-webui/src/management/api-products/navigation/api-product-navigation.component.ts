@@ -160,7 +160,6 @@ export class ApiProductNavigationComponent {
     }
 
     const banners: TopBanner[] = [];
-    const canUpdateApiProduct = this.permissionService.hasAnyMatching(['api_product-definition-u']);
 
     if (apiProduct.deploymentState === 'NEED_REDEPLOY' && verifyDeployResponse.ok) {
       banners.push(
