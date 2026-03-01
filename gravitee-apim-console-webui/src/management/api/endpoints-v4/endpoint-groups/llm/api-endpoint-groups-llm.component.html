@@ -22,9 +22,18 @@
         <div class="endpoint-group-card__header">
           <div class="endpoint-group-card__header__title">
             <h3 class="mat-h3">{{ provider?.name }}</h3>
-            <span class="gio-badge-primary">
-              {{ getProviderTypeDisplayName(provider?.providerConfiguration?.provider) }}
-            </span>
+            @if (provider?.providerConfiguration?.provider) {
+              <span class="gio-badge-primary">
+                {{ getProviderTypeDisplayName(provider.providerConfiguration.provider) }}
+              </span>
+            } @else {
+              @if (plugins().get(provider.type); as plugin) {
+                <span class="gio-badge-primary">
+                  <mat-icon [svgIcon]="plugin.icon"></mat-icon>
+                  {{ plugin.name }}
+                </span>
+              }
+            }
           </div>
           <div class="endpoint-group-card__header__actions">
             <button

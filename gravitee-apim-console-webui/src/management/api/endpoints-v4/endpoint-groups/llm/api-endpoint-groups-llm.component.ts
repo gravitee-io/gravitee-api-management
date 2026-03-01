@@ -16,7 +16,7 @@
 import { Component, computed, DestroyRef, effect, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
-import { catchError, filter, map, switchMap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { remove } from 'lodash';
 import { combineLatest, EMPTY } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
@@ -54,11 +54,15 @@ export class ApiEndpointGroupsLlmComponent {
   private readonly licenseService = inject(GioLicenseService);
 
   public providersTableData = signal<Provider[]>([]);
+  public plugins = signal<Map<string, ConnectorPluginWithIcon>>(new Map());
   public license$ = this.licenseService.getLicense$();
   public isOEM$ = this.licenseService.isOEM$();
   public plugins$ = this.connectorPluginsV2Service
     .listEndpointPlugins()
-    .pipe(map((plugins: ConnectorPlugin[]) => this.transformPluginsToMap(plugins)));
+    .pipe(
+      map((plugins: ConnectorPlugin[]) => this.transformPluginsToMap(plugins)),
+      tap((pluginsMap) => this.plugins.set(pluginsMap)),
+    );
   public shouldUpgrade$ = combineLatest([this.plugins$, toObservable(this.providersTableData)]).pipe(
     map(
       ([plugins, providers]): boolean =>

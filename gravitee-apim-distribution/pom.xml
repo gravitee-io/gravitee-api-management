@@ -429,19 +429,6 @@
         </dependency>
         <dependency>
             <groupId>io.gravitee.policy</groupId>
-            <artifactId>gravitee-policy-groovy</artifactId>
-            <version>${gravitee-policy-groovy.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-html-json</artifactId>
             <version>${gravitee-policy-html-json.version}</version>
             <type>zip</type>
