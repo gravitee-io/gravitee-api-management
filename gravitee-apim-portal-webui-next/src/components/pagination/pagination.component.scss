@@ -18,50 +18,70 @@
 
 :host {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
+  justify-content: space-between;
+  gap: 16px;
 }
 
-button[mat-stroked-button] {
-  @include mat.button-overrides(
-    (
-      outlined-container-shape: #{theme.$container-shape},
-      outlined-horizontal-padding: 12px,
-      outlined-label-text-color: black,
-      outlined-label-text-weight: 700,
-    )
-  );
-  min-width: 40px;
-}
+.pagination {
+  &__pages {
+    display: flex;
+    align-items: center;
+    gap: 4px;
 
-button[mat-button] {
-  @include mat.button-overrides(
-    (
-      text-horizontal-padding: 18px,
-    )
-  );
-  min-width: auto;
-}
-
-button.pagination__nav-button {
-  @include mat.button-overrides(
-    (
-      text-container-shape: 4px,
-      text-horizontal-padding: 8px,
-    )
-  );
-  display: inline-flex;
-  align-items: center;
-  min-width: auto;
-
-  &.pagination__nav-button--next {
-    span {
-      order: 1;
+    button[mat-stroked-button] {
+      @include mat.button-overrides(
+        (
+          outlined-container-shape: #{theme.$container-shape},
+          outlined-horizontal-padding: 12px,
+          outlined-label-text-color: black,
+          outlined-label-text-weight: 700,
+        )
+      );
+      min-width: 40px;
     }
 
-    .breadcrumb-icon {
-      order: 2;
-      margin-left: 8px;
+    button[mat-button] {
+      @include mat.button-overrides(
+        (
+          text-horizontal-padding: 18px,
+        )
+      );
+      min-width: auto;
     }
+  }
+
+  &__nav-button {
+    @include mat.button-overrides(
+      (
+        text-container-shape: 4px,
+        text-horizontal-padding: 8px,
+      )
+    );
+    display: inline-flex;
+    align-items: center;
+    min-width: auto;
+
+    &--next {
+      span {
+        order: 1;
+      }
+
+      .breadcrumb-icon {
+        order: 2;
+        margin-left: 8px;
+      }
+    }
+  }
+
+  &__page-size {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__page-size-select {
+    width: 70px;
   }
 }
