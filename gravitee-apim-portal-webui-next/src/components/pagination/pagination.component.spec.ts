@@ -24,8 +24,9 @@ describe('PaginationComponent', () => {
   let fixture: ComponentFixture<PaginationComponent>;
   let componentHarness: PaginationHarness;
   let selectPageSpy: jest.SpyInstance;
+  let selectPageSizeSpy: jest.SpyInstance;
 
-  const init = async (currentPage: number, totalResults: number) => {
+  const init = async (currentPage: number, totalResults: number, showPageSizeSelection: boolean = true) => {
     await TestBed.configureTestingModule({
       imports: [PaginationComponent],
     }).compileComponents();
@@ -34,10 +35,12 @@ describe('PaginationComponent', () => {
 
     fixture.componentRef.setInput('currentPage', currentPage);
     fixture.componentRef.setInput('totalResults', totalResults);
+    fixture.componentRef.setInput('showPageSizeSelection', showPageSizeSelection);
 
     component = fixture.componentInstance;
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, PaginationHarness);
     selectPageSpy = jest.spyOn(component.selectPage, 'emit');
+    selectPageSizeSpy = jest.spyOn(component.selectPageSize, 'emit');
     fixture.detectChanges();
   };
 
@@ -178,6 +181,32 @@ describe('PaginationComponent', () => {
     it('should enable Next button when not on last page', async () => {
       const nextPageButton = await componentHarness.getNextPageButton();
       expect(await nextPageButton.isDisabled()).toEqual(false);
+    });
+  });
+
+  describe('Page size selection', () => {
+    it('should show page size selector by default', async () => {
+      await init(1, 50);
+      const select = await componentHarness.getPageSizeSelect();
+      expect(select).toBeTruthy();
+    });
+
+    it('should display selected page size value', async () => {
+      await init(1, 50);
+      const selectedSize = await componentHarness.getSelectedPageSize();
+      expect(selectedSize).toEqual('10');
+    });
+
+    it('should emit selectPageSize when a new size is selected', async () => {
+      await init(1, 50);
+      await componentHarness.changePageSize(20);
+      expect(selectPageSizeSpy).toHaveBeenCalledWith(20);
+    });
+
+    it('should hide page size selector when showPageSizeSelection is false', async () => {
+      await init(1, 50, false);
+      const select = await componentHarness.getPageSizeSelect();
+      expect(select).toBeNull();
     });
   });
 });
