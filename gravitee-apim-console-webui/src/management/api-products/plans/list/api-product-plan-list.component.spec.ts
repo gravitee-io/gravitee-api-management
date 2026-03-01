@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
-import { HarnessLoader, parallel } from '@angular/cdk/testing';
+import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { MatTableHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatButtonToggleHarness } from '@angular/material/button-toggle/testing';
-import { MatMenuHarness } from '@angular/material/menu/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
@@ -33,6 +30,7 @@ import { set } from 'lodash';
 
 import { ApiProductPlanListComponent } from './api-product-plan-list.component';
 
+import { PlanListComponentHarness } from '../../../api/component/plan/plan-list/plan-list.component.harness';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiPlansResponse, Plan, PLAN_STATUS, fakePlanV4 } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
@@ -45,6 +43,7 @@ describe('ApiProductPlanListComponent', () => {
   let fixture: ComponentFixture<ApiProductPlanListComponent>;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
+  let planListHarness: PlanListComponentHarness;
   let httpTestingController: HttpTestingController;
   let routerNavigateSpy: jest.SpyInstance;
   const snackBarService = { error: jest.fn(), success: jest.fn() };
@@ -90,6 +89,7 @@ describe('ApiProductPlanListComponent', () => {
     routerNavigateSpy = jest.spyOn(router, 'navigate');
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+    planListHarness = await loader.getHarness(PlanListComponentHarness);
   }
 
   afterEach(() => {
@@ -113,8 +113,7 @@ describe('ApiProductPlanListComponent', () => {
       fixture.detectChanges();
       flushPlansList([]);
 
-      const table = await loader.getHarness(MatTableHarness);
-      expect(await (await table.host()).text()).toContain('There is no plan (yet).');
+      expect(await planListHarness.getTableText()).toContain('There is no plan (yet).');
     }));
 
     it('displays plan rows when plans are loaded', fakeAsync(async () => {
@@ -123,10 +122,8 @@ describe('ApiProductPlanListComponent', () => {
       const plan = { ...fakePlanV4({ name: 'JWT Plan', security: { type: 'JWT' }, status: 'PUBLISHED' }) };
       flushPlansList([plan]);
 
-      const table = await loader.getHarness(MatTableHarness.with({ selector: '#plansTable' }));
-      const rows = await table.getRows();
-      expect(rows).toHaveLength(1);
-      const [row] = await parallel(() => rows.map(r => r.getCellTextByIndex()));
+      expect(await planListHarness.getRowCount()).toBe(1);
+      const [row] = await planListHarness.getRowCells();
       expect(row).toContain('JWT Plan');
     }));
 
@@ -135,9 +132,7 @@ describe('ApiProductPlanListComponent', () => {
       fixture.detectChanges();
       flushPlansList([]);
 
-      const table = await loader.getHarness(MatTableHarness.with({ selector: '#plansTable' }));
-      const headerRows = await table.getHeaderRows();
-      const [headers] = await parallel(() => headerRows.map(r => r.getCellTextByColumnName()));
+      const headers = await planListHarness.getHeaderColumnNames();
       expect(headers['deploy-on']).toBeUndefined();
     }));
   });
@@ -147,11 +142,10 @@ describe('ApiProductPlanListComponent', () => {
       await init();
       fixture.detectChanges();
       flushPlansList([]);
+      tick();
+      fixture.detectChanges();
 
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).then(btn => btn.click());
-      const menu = await loader.getHarness(MatMenuHarness);
-      const items = await menu.getItems();
-      const texts = await parallel(() => items.map(i => i.getText()));
+      const texts = await planListHarness.getAddPlanMenuItems();
 
       expect(texts).toEqual(expect.arrayContaining(['API Key', 'JWT', 'mTLS']));
       expect(texts).not.toContain('Keyless (public)');
@@ -166,25 +160,23 @@ describe('ApiProductPlanListComponent', () => {
       fixture.detectChanges();
       flushPlansList([]);
 
-      const btn = await loader.getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' }));
-      expect(btn).toBeNull();
+      expect(await planListHarness.isAddPlanButtonVisible()).toBe(false);
     }));
   });
 
   describe('status filter', () => {
-    it('reloads table when status filter is changed to STAGING', fakeAsync(async () => {
+    it('filters table by status when status tab is changed to STAGING', fakeAsync(async () => {
       await init();
       fixture.detectChanges();
-      flushPlansList([fakePlanV4({ status: 'PUBLISHED' })]);
-
-      await loader.getHarness(MatButtonToggleHarness.with({ text: /STAGING/ })).then(btn => btn.toggle());
-
+      const publishedPlan = fakePlanV4({ status: 'PUBLISHED' });
       const stagingPlan = fakePlanV4({ name: 'Staging Plan', status: 'STAGING', security: { type: 'API_KEY' } });
-      flushPlansList([stagingPlan], ['STAGING']);
+      flushPlansList([publishedPlan, stagingPlan]);
 
-      const table = await loader.getHarness(MatTableHarness.with({ selector: '#plansTable' }));
-      const rows = await table.getRows();
-      expect(rows).toHaveLength(1);
+      await planListHarness.selectStatusFilter(/STAGING/);
+      tick();
+      fixture.detectChanges();
+
+      expect(await planListHarness.getRowCount()).toBe(1);
     }));
   });
 
@@ -196,10 +188,11 @@ describe('ApiProductPlanListComponent', () => {
       const plan = fakePlanV4({ name: 'New Plan', status: 'STAGING', security: { type: 'API_KEY' } });
       flushPlansList([plan]);
 
-      await loader.getHarness(MatButtonToggleHarness.with({ text: /STAGING/ })).then(btn => btn.toggle());
-      flushPlansList([plan], ['STAGING']);
+      await planListHarness.selectStatusFilter(/STAGING/);
+      tick();
+      fixture.detectChanges();
 
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' })).then(btn => btn.click());
+      await planListHarness.clickPublishPlanButton();
 
       const dialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#publishPlanDialog' }));
       await dialog.getHarness(MatButtonHarness.with({ text: 'Publish' })).then(btn => btn.click());
@@ -219,8 +212,10 @@ describe('ApiProductPlanListComponent', () => {
 
       const plan = fakePlanV4({ name: 'Active Plan', status: 'PUBLISHED', security: { type: 'JWT' } });
       flushPlansList([plan]);
+      tick();
+      fixture.detectChanges();
 
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Deprecate the plan"]' })).then(btn => btn.click());
+      await planListHarness.clickDeprecatePlanButton();
 
       const dialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#deprecatePlanDialog' }));
       await dialog.getHarness(MatButtonHarness.with({ text: 'Deprecate' })).then(btn => btn.click());
@@ -240,8 +235,10 @@ describe('ApiProductPlanListComponent', () => {
 
       const plan = fakePlanV4({ name: 'Close Me', status: 'PUBLISHED', security: { type: 'API_KEY' } });
       flushPlansList([plan]);
+      tick();
+      fixture.detectChanges();
 
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Close the plan"]' })).then(btn => btn.click());
+      await planListHarness.clickClosePlanButton();
 
       const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
       await confirmDialog.confirm();
@@ -262,10 +259,11 @@ describe('ApiProductPlanListComponent', () => {
       const plan = fakePlanV4({ name: 'New Plan', status: 'STAGING', security: { type: 'API_KEY' } });
       flushPlansList([plan]);
 
-      await loader.getHarness(MatButtonToggleHarness.with({ text: /STAGING/ })).then(btn => btn.toggle());
-      flushPlansList([plan], ['STAGING']);
+      await planListHarness.selectStatusFilter(/STAGING/);
+      tick();
+      fixture.detectChanges();
 
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' })).then(btn => btn.click());
+      await planListHarness.clickPublishPlanButton();
 
       const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
       await dialog.cancel();
@@ -280,8 +278,10 @@ describe('ApiProductPlanListComponent', () => {
 
       const plan = fakePlanV4({ name: 'Active Plan', status: 'PUBLISHED', security: { type: 'JWT' } });
       flushPlansList([plan]);
+      tick();
+      fixture.detectChanges();
 
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Deprecate the plan"]' })).then(btn => btn.click());
+      await planListHarness.clickDeprecatePlanButton();
 
       const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
       await dialog.cancel();
@@ -296,8 +296,10 @@ describe('ApiProductPlanListComponent', () => {
 
       const plan = fakePlanV4({ name: 'Close Me', status: 'PUBLISHED', security: { type: 'API_KEY' } });
       flushPlansList([plan]);
+      tick();
+      fixture.detectChanges();
 
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Close the plan"]' })).then(btn => btn.click());
+      await planListHarness.clickClosePlanButton();
 
       const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
       await confirmDialog.cancel();
@@ -313,10 +315,11 @@ describe('ApiProductPlanListComponent', () => {
       const plan = fakePlanV4({ name: 'New Plan', status: 'STAGING', security: { type: 'API_KEY' } });
       flushPlansList([plan]);
 
-      await loader.getHarness(MatButtonToggleHarness.with({ text: /STAGING/ })).then(btn => btn.toggle());
-      flushPlansList([plan], ['STAGING']);
+      await planListHarness.selectStatusFilter(/STAGING/);
+      tick();
+      fixture.detectChanges();
 
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' })).then(btn => btn.click());
+      await planListHarness.clickPublishPlanButton();
 
       const dialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#publishPlanDialog' }));
       await dialog.getHarness(MatButtonHarness.with({ text: 'Publish' })).then(btn => btn.click());
@@ -336,8 +339,10 @@ describe('ApiProductPlanListComponent', () => {
 
       const plan = fakePlanV4({ name: 'Active Plan', status: 'PUBLISHED', security: { type: 'JWT' } });
       flushPlansList([plan]);
+      tick();
+      fixture.detectChanges();
 
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Deprecate the plan"]' })).then(btn => btn.click());
+      await planListHarness.clickDeprecatePlanButton();
 
       const dialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#deprecatePlanDialog' }));
       await dialog.getHarness(MatButtonHarness.with({ text: 'Deprecate' })).then(btn => btn.click());
@@ -357,8 +362,10 @@ describe('ApiProductPlanListComponent', () => {
 
       const plan = fakePlanV4({ name: 'Close Me', status: 'PUBLISHED', security: { type: 'API_KEY' } });
       flushPlansList([plan]);
+      tick();
+      fixture.detectChanges();
 
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Close the plan"]' })).then(btn => btn.click());
+      await planListHarness.clickClosePlanButton();
 
       const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
       await confirmDialog.confirm();
@@ -378,10 +385,10 @@ describe('ApiProductPlanListComponent', () => {
       await init();
       fixture.detectChanges();
       flushPlansList([]);
+      tick();
+      fixture.detectChanges();
 
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).then(btn => btn.click());
-      const menu = await loader.getHarness(MatMenuHarness);
-      await menu.clickItem({ text: 'API Key' });
+      await planListHarness.clickAddPlanMenuItem('API Key');
 
       expect(routerNavigateSpy).toHaveBeenCalledWith(
         ['./new'],
@@ -397,6 +404,8 @@ describe('ApiProductPlanListComponent', () => {
       const plan1 = fakePlanV4({ id: 'p1', name: 'First', order: 1, status: 'PUBLISHED', security: { type: 'API_KEY' } });
       const plan2 = fakePlanV4({ id: 'p2', name: 'Second', order: 2, status: 'PUBLISHED', security: { type: 'JWT' } });
       flushPlansList([plan1, plan2]);
+      tick();
+      fixture.detectChanges();
 
       // No CDK drag-drop harness; simulate reorder to test business logic (PUT order, then reload)
       const dropEvent = { previousIndex: 0, currentIndex: 1 } as CdkDragDrop<string[]>;
@@ -411,17 +420,17 @@ describe('ApiProductPlanListComponent', () => {
       expect(putReq.request.body.order).toBe(2);
       putReq.flush({ ...plan1, order: 2 });
       tick();
-
-      httpTestingController
-        .expectOne(
-          `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans?page=1&perPage=9999&statuses=${PLAN_STATUS.join(',')}&fields=-flow`,
-        )
-        .flush({ data: [plan2, { ...plan1, order: 2 }] });
+      tick(); // allow reload() to schedule the list request
       fixture.detectChanges();
 
-      const table = await loader.getHarness(MatTableHarness.with({ selector: '#plansTable' }));
-      const rows = await table.getRows();
-      const [firstRow, secondRow] = await parallel(() => rows.map(r => r.getCellTextByIndex()));
+      // Reload is triggered by triggerReload(); flush the second (reload) list request
+      const listUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans?page=1&perPage=9999&statuses=${PLAN_STATUS.join(',')}&fields=-flow`;
+      const listReq = httpTestingController.expectOne(req => req.method === 'GET' && req.urlWithParams === listUrl);
+      listReq.flush({ data: [plan2, { ...plan1, order: 2 }] });
+      fixture.detectChanges();
+
+      const rowCells = await planListHarness.getRowCells();
+      const [firstRow, secondRow] = rowCells;
       expect(firstRow).toContain('Second');
       expect(secondRow).toContain('First');
     }));
@@ -432,6 +441,8 @@ describe('ApiProductPlanListComponent', () => {
       const plan1 = fakePlanV4({ id: 'p1', name: 'First', order: 1, status: 'PUBLISHED', security: { type: 'API_KEY' } });
       const plan2 = fakePlanV4({ id: 'p2', name: 'Second', order: 2, status: 'PUBLISHED', security: { type: 'JWT' } });
       flushPlansList([plan1, plan2]);
+      tick();
+      fixture.detectChanges();
 
       const dropEvent = { previousIndex: 0, currentIndex: 1 } as CdkDragDrop<string[]>;
       fixture.componentInstance['onPlanReordered'](dropEvent); // Simulate reorder (no drag harness)
@@ -461,8 +472,7 @@ describe('ApiProductPlanListComponent', () => {
       fixture.detectChanges();
 
       expect(snackBarService.error).toHaveBeenCalledWith('An error occurred while loading plans.');
-      const table = await loader.getHarness(MatTableHarness.with({ selector: '#plansTable' }));
-      expect(await (await table.host()).text()).toContain('There is no plan (yet).');
+      expect(await planListHarness.getTableText()).toContain('There is no plan (yet).');
     }));
   });
 
@@ -474,10 +484,9 @@ describe('ApiProductPlanListComponent', () => {
       const apiKeyPlan = fakePlanV4({ name: 'API Key Plan', security: { type: 'API_KEY' }, status: 'PUBLISHED' });
       flushPlansList([mtlsPlan, apiKeyPlan]);
 
-      const table = await loader.getHarness(MatTableHarness.with({ selector: '#plansTable' }));
-      const rows = await table.getRows();
-      expect(rows).toHaveLength(2);
-      const [row1, row2] = await parallel(() => rows.map(r => r.getCellTextByIndex()));
+      const rowCells = await planListHarness.getRowCells();
+      expect(rowCells).toHaveLength(2);
+      const [row1, row2] = rowCells;
       expect(row1).toContain('mTLS Plan');
       expect(row1).toContain('mTLS');
       expect(row2).toContain('API Key Plan');
@@ -518,12 +527,12 @@ describe('ApiProductPlanListComponent', () => {
 
       fixture = TestBed.createComponent(ApiProductPlanListComponent);
       loader = TestbedHarnessEnvironment.loader(fixture);
+      planListHarness = await loader.getHarness(PlanListComponentHarness);
       httpTestingController = TestBed.inject(HttpTestingController);
       fixture.detectChanges();
 
       // No HTTP call should be made when apiProductId is absent; verify() in afterEach confirms this
-      const table = await loader.getHarness(MatTableHarness);
-      expect(await (await table.host()).text()).toContain('There is no plan (yet).');
+      expect(await planListHarness.getTableText()).toContain('There is no plan (yet).');
     }));
   });
 });

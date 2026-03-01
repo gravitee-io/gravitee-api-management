@@ -21,7 +21,6 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { set } from 'lodash';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatButtonHarness } from '@angular/material/button/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatStepperHarness } from '@angular/material/stepper/testing';
 
@@ -57,9 +56,6 @@ describe('ApiPlanEditComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
   let routerNavigationSpy: jest.SpyInstance;
-
-  /** Allow waitForNextStep() interval(100) to run so the submit button is shown (no polling). */
-  const waitForStepTransition = () => new Promise<void>(r => setTimeout(r, 150));
 
   const configureTestingModule = (planId: string = undefined) => {
     TestBed.configureTestingModule({
@@ -135,10 +131,12 @@ describe('ApiPlanEditComponent', () => {
 
         await planForm.getNameInput().then(i => i.setValue('My new plan'));
 
-        // Click on Next buttons to display Save one (waitForNextStep uses interval(100))
-        await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then(b => b.click());
-        await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then(b => b.click());
-        await waitForStepTransition();
+        // Advance stepper by selecting steps so Submit shows (avoids interval(100) timeout)
+        const stepper = await loader.getHarness(MatStepperHarness);
+        const steps = await stepper.getSteps();
+        await steps[1].select();
+        await steps[2].select();
+        fixture.detectChanges();
 
         await saveBar.clickSubmit();
 
@@ -453,9 +451,11 @@ describe('ApiPlanEditComponent', () => {
 
         await planForm.getNameInput().then(i => i.setValue('My new plan'));
 
-        // Click on Next to display Save one (waitForNextStep uses interval(100))
-        await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then(b => b.click());
-        await waitForStepTransition();
+        // Advance stepper by selecting next step so Submit shows
+        const stepper = await loader.getHarness(MatStepperHarness);
+        const steps = await stepper.getSteps();
+        await steps[1].select();
+        fixture.detectChanges();
 
         await saveBar.clickSubmit();
 

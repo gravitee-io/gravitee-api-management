@@ -34,6 +34,7 @@ import { ConstantsService, PlanMenuItemVM } from '../../../../services-ngx/const
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { Api, Plan, PLAN_STATUS, PlanStatus } from '../../../../entities/management-api-v2';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
+import { PlanActionEvent } from '../../component/plan/plan-list/plan-list.component';
 
 type PlanDS = Plan & { securityTypeLabel: string };
 
@@ -144,6 +145,23 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
       this.router.navigate(['../v4/policy-studio'], {
         relativeTo: this.activatedRoute,
       });
+    }
+  }
+
+  public onActionSelected(event: PlanActionEvent): void {
+    switch (event.action) {
+      case 'PUBLISH':
+        this.publishPlan(event.plan);
+        break;
+      case 'DEPRECATE':
+        this.deprecatePlan(event.plan);
+        break;
+      case 'CLOSE':
+        this.closePlan(event.plan);
+        break;
+      case 'DESIGN':
+        this.designPlan(event.plan.id);
+        break;
     }
   }
 

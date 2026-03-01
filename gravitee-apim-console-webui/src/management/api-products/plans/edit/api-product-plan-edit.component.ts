@@ -92,7 +92,7 @@ export class ApiProductPlanEditComponent {
 
       const planMenuItem = AVAILABLE_PLANS_FOR_MENU.find(vm => vm.planFormType === planFormType);
       this.planForm.reset({ plan: plan ?? null });
-      this.planForm.get('plan')![this.isReadOnly() ? 'disable' : 'enable']();
+      this.planForm.controls.plan[this.isReadOnly() ? 'disable' : 'enable']();
       this.planMenuItem.set(planMenuItem);
       this.currentPlanStatus.set(plan?.status);
       this.initialPlanFormValue.set(this.planForm.getRawValue());
@@ -102,7 +102,7 @@ export class ApiProductPlanEditComponent {
   protected onSubmit(): void {
     if (this.planForm.invalid) return;
 
-    const planFormValue: PlanFormValue = { ...this.planForm.get('plan')!.value };
+    const planFormValue: PlanFormValue = this.planForm.getRawValue().plan!;
     const apiProductId = this.apiProductId();
     const planId = this.planId();
 

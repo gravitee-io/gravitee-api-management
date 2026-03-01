@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
-import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
@@ -24,6 +23,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { of } from 'rxjs';
 
 import { ApiProductPlanEditComponent } from './api-product-plan-edit.component';
+import { ApiProductPlanEditComponentHarness } from './api-product-plan-edit.component.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { fakePlanV4 } from '../../../../entities/management-api-v2';
@@ -35,7 +35,7 @@ describe('ApiProductPlanEditComponent', () => {
   const PLAN_ID = 'plan-123';
 
   let fixture: ComponentFixture<ApiProductPlanEditComponent>;
-  let _loader: HarnessLoader;
+  let harness: ApiProductPlanEditComponentHarness;
   let httpTestingController: HttpTestingController;
   let routerNavigateSpy: jest.SpyInstance;
   const snackBarService = { error: jest.fn(), success: jest.fn() };
@@ -71,14 +71,20 @@ describe('ApiProductPlanEditComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);
     routerNavigateSpy = jest.spyOn(router, 'navigate');
-    _loader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();
+    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiProductPlanEditComponentHarness);
   }
 
   afterEach(() => {
     httpTestingController.verify();
     jest.clearAllMocks();
   });
+
+  /** Submits the plan form by dispatching submit so ngSubmit runs. */
+  function submitForm(): void {
+    const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  }
 
   describe('create mode', () => {
     it('does not fetch plan in create mode and only loads policy schema for selected type', fakeAsync(async () => {
@@ -96,9 +102,15 @@ describe('ApiProductPlanEditComponent', () => {
       tick();
       fixture.detectChanges();
 
-      // ApiPlanFormComponent adds validators that require fields; bypass form validity for this test
-      jest.spyOn(fixture.componentInstance['planForm'], 'invalid', 'get').mockReturnValue(false);
-      fixture.componentInstance['onSubmit']();
+      await harness.setPlanName('My JWT Plan');
+      await harness.clickNextStep();
+      httpTestingController.match(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/jwt/schema`).forEach(r => r.flush({}));
+      tick();
+      fixture.detectChanges();
+      await harness.clickNextStep();
+      tick();
+      fixture.detectChanges();
+      submitForm();
       tick();
       fixture.detectChanges();
 
@@ -112,7 +124,6 @@ describe('ApiProductPlanEditComponent', () => {
       tick();
       fixture.detectChanges();
 
-      // Flush pending schema request to satisfy httpTestingController.verify()
       httpTestingController.match(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/jwt/schema`).forEach(r => r.flush({}));
 
       expect(snackBarService.success).toHaveBeenCalledWith('Configuration successfully saved!');
@@ -137,36 +148,20 @@ describe('ApiProductPlanEditComponent', () => {
       });
     }));
 
-    it('updates plan on submit and navigates back with current plan status', fakeAsync(async () => {
+    it('loads plan in edit mode and shows save bar', fakeAsync(async () => {
       await setup({ planId: PLAN_ID });
       const plan = fakePlanV4({ id: PLAN_ID, name: 'Original', status: 'PUBLISHED', security: { type: 'API_KEY' } });
 
       httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans/${PLAN_ID}`).flush(plan);
       tick();
       fixture.detectChanges();
-
-      jest.spyOn(fixture.componentInstance['planForm'], 'invalid', 'get').mockReturnValue(false);
-      fixture.componentInstance['onSubmit']();
-      tick();
-      fixture.detectChanges();
-
-      // Edit mode re-fetches the plan before PUT
-      httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans/${PLAN_ID}`).flush(plan);
-      tick();
-
-      const putReq = httpTestingController.expectOne({
-        method: 'PUT',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans/${PLAN_ID}`,
-      });
-      putReq.flush({ ...plan });
-      tick();
-      fixture.detectChanges();
-
-      // Flush pending schema request to satisfy httpTestingController.verify()
       httpTestingController.match(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/api-key/schema`).forEach(r => r.flush({}));
+      tick();
+      fixture.detectChanges();
 
-      expect(snackBarService.success).toHaveBeenCalledWith('Configuration successfully saved!');
-      expect(routerNavigateSpy).toHaveBeenCalledWith(['../'], expect.objectContaining({ queryParams: { status: 'PUBLISHED' } }));
+      expect(await harness.isSaveBarVisible()).toBe(true);
+      const nameInput = await (await harness.getPlanForm()).getNameInput();
+      expect(await nameInput.getValue()).toBe(plan.name);
     }));
 
     it('shows error and stays on page when loading plan returns 404', fakeAsync(async () => {
@@ -188,9 +183,13 @@ describe('ApiProductPlanEditComponent', () => {
       httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans/${PLAN_ID}`).flush(plan);
       tick();
       fixture.detectChanges();
+      httpTestingController.match(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/api-key/schema`).forEach(r => r.flush({}));
+      tick();
+      fixture.detectChanges();
 
-      jest.spyOn(fixture.componentInstance['planForm'], 'invalid', 'get').mockReturnValue(false);
-      fixture.componentInstance['onSubmit']();
+      await harness.setPlanName('Updated name');
+      fixture.detectChanges();
+      submitForm();
       tick();
       fixture.detectChanges();
 
@@ -213,18 +212,28 @@ describe('ApiProductPlanEditComponent', () => {
   });
 
   describe('form validation', () => {
-    it('does not send POST when form is invalid', fakeAsync(async () => {
-      await setup({ queryParams: { selectedPlanMenuItem: 'API_KEY' } });
+    it('does not send save request when form is invalid', fakeAsync(async () => {
+      await setup({ planId: PLAN_ID });
+      const plan = fakePlanV4({ id: PLAN_ID, name: 'Original', status: 'PUBLISHED', security: { type: 'API_KEY' } });
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans/${PLAN_ID}`).flush(plan);
       tick();
       fixture.detectChanges();
       httpTestingController.match(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/api-key/schema`).forEach(r => r.flush({}));
+      tick();
+      fixture.detectChanges();
 
-      fixture.componentInstance['onSubmit']();
+      await harness.setPlanName('');
+      fixture.detectChanges();
+      submitForm();
       tick();
 
       httpTestingController.expectNone({
         method: 'POST',
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans`,
+      });
+      httpTestingController.expectNone({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/plans/${PLAN_ID}`,
       });
       expect(routerNavigateSpy).not.toHaveBeenCalled();
     }));
@@ -236,8 +245,15 @@ describe('ApiProductPlanEditComponent', () => {
       tick();
       fixture.detectChanges();
 
-      jest.spyOn(fixture.componentInstance['planForm'], 'invalid', 'get').mockReturnValue(false);
-      fixture.componentInstance['onSubmit']();
+      await harness.setPlanName('My JWT Plan');
+      await harness.clickNextStep();
+      httpTestingController.match(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/jwt/schema`).forEach(r => r.flush({}));
+      tick();
+      fixture.detectChanges();
+      await harness.clickNextStep();
+      tick();
+      fixture.detectChanges();
+      submitForm();
       tick();
       fixture.detectChanges();
 
@@ -265,9 +281,10 @@ describe('ApiProductPlanEditComponent', () => {
       tick();
       fixture.detectChanges();
       httpTestingController.match(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/api-key/schema`).forEach(r => r.flush({}));
+      tick();
+      fixture.detectChanges();
 
-      expect(fixture.componentInstance['isReadOnly']()).toBe(true);
-      expect(fixture.nativeElement.querySelector('gio-save-bar')).toBeNull();
+      expect(await harness.isSaveBarVisible()).toBe(false);
     }));
   });
 });

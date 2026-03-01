@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { MatTableHarness } from '@angular/material/table/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatButtonToggleHarness } from '@angular/material/button-toggle/testing';
-import { MatMenuHarness } from '@angular/material/menu/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
-import { PlanListComponent, PlanDS } from './plan-list.component';
+import { PlanListComponent, PlanDS, type PlanFilterState, type PlanListContext } from './plan-list.component';
+import { PlanListComponentHarness } from './plan-list.component.harness';
 
 import { PLAN_STATUS, PlanStatus, fakePlanV4 } from '../../../../../entities/management-api-v2';
 import { PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
@@ -37,19 +33,25 @@ const PLAN_MENU_ITEMS: PlanMenuItemVM[] = [
 
 describe('PlanListComponent', () => {
   let fixture: ComponentFixture<PlanListComponent>;
-  let loader: HarnessLoader;
+  let harness: PlanListComponentHarness;
 
   function buildPlanStatuses(counts: Partial<Record<PlanStatus, number>> = {}) {
     return PLAN_STATUS.map(name => ({ name, number: counts[name] ?? 0 }));
   }
 
+  function buildFilterState(overrides: Partial<PlanFilterState> = {}): PlanFilterState {
+    return {
+      statuses: buildPlanStatuses({ PUBLISHED: 1 }),
+      selectedStatus: 'PUBLISHED',
+      ...overrides,
+    };
+  }
+
   async function create(
     inputs: Partial<{
       plans: PlanDS[];
-      isReadOnly: boolean;
-      showDeployOnColumn: boolean;
-      canAddPlan: boolean;
-      isV2Api: boolean;
+      context: PlanListContext;
+      filterState: PlanFilterState;
     }> = {},
   ) {
     await TestBed.configureTestingModule({
@@ -58,46 +60,36 @@ describe('PlanListComponent', () => {
 
     fixture = TestBed.createComponent(PlanListComponent);
     fixture.componentRef.setInput('planMenuItems', PLAN_MENU_ITEMS);
-    fixture.componentRef.setInput('planStatuses', buildPlanStatuses({ PUBLISHED: 1 }));
-    fixture.componentRef.setInput('selectedStatus', 'PUBLISHED');
+    fixture.componentRef.setInput('filterState', inputs.filterState ?? buildFilterState());
     fixture.componentRef.setInput('isLoadingData', false);
     fixture.componentRef.setInput('plans', inputs.plans ?? []);
-    fixture.componentRef.setInput('isReadOnly', inputs.isReadOnly ?? false);
-    fixture.componentRef.setInput('showDeployOnColumn', inputs.showDeployOnColumn ?? true);
-    fixture.componentRef.setInput('canAddPlan', inputs.canAddPlan ?? true);
-    fixture.componentRef.setInput('isV2Api', inputs.isV2Api ?? false);
+    fixture.componentRef.setInput('context', inputs.context ?? {});
     fixture.detectChanges();
-    loader = TestbedHarnessEnvironment.loader(fixture);
-  }
-
-  async function getHeaderColumnNames(): Promise<Record<string, string>> {
-    const table = await loader.getHarness(MatTableHarness.with({ selector: '#plansTable' }));
-    const headerRows = await table.getHeaderRows();
-    return headerRows[0].getCellTextByColumnName();
+    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, PlanListComponentHarness);
   }
 
   describe('column visibility', () => {
     it('shows Deploy on column when showDeployOnColumn is true', async () => {
-      await create({ showDeployOnColumn: true });
-      const headers = await getHeaderColumnNames();
+      await create({ context: { showDeployOnColumn: true } });
+      const headers = await harness.getHeaderColumnNames();
       expect(headers['deploy-on']).toBe('Deploy on');
     });
 
     it('hides Deploy on column when showDeployOnColumn is false', async () => {
-      await create({ showDeployOnColumn: false });
-      const headers = await getHeaderColumnNames();
+      await create({ context: { showDeployOnColumn: false } });
+      const headers = await harness.getHeaderColumnNames();
       expect(headers['deploy-on']).toBeUndefined();
     });
 
     it('shows drag handle column when not read-only', async () => {
-      await create({ isReadOnly: false });
-      const headers = await getHeaderColumnNames();
+      await create({ context: { isReadOnly: false } });
+      const headers = await harness.getHeaderColumnNames();
       expect(headers['drag-icon']).toBeDefined();
     });
 
     it('hides drag handle column when read-only', async () => {
-      await create({ isReadOnly: true });
-      const headers = await getHeaderColumnNames();
+      await create({ context: { isReadOnly: true } });
+      const headers = await harness.getHeaderColumnNames();
       expect(headers['drag-icon']).toBeUndefined();
     });
   });
@@ -105,44 +97,35 @@ describe('PlanListComponent', () => {
   describe('empty state', () => {
     it('shows empty message when plans array is empty', async () => {
       await create({ plans: [] });
-      const table = await loader.getHarness(MatTableHarness);
-      expect(await (await table.host()).text()).toContain('There is no plan (yet).');
+      expect(await harness.getTableText()).toContain('There is no plan (yet).');
     });
 
     it('renders one row per plan when plans are provided', async () => {
       const plan = { ...fakePlanV4({ name: 'My JWT Plan', security: { type: 'JWT' } }), securityTypeLabel: 'JWT' } as PlanDS;
       await create({ plans: [plan] });
-      const table = await loader.getHarness(MatTableHarness);
-      const rows = await table.getRows();
-      expect(rows).toHaveLength(1);
+      expect(await harness.getRowCount()).toBe(1);
     });
   });
 
   describe('add new plan button', () => {
     it('shows add plan button when not read-only', async () => {
-      await create({ isReadOnly: false, plans: [] });
-      const btn = await loader.getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' }));
-      expect(btn).not.toBeNull();
+      await create({ context: { isReadOnly: false }, plans: [] });
+      expect(await harness.isAddPlanButtonVisible()).toBe(true);
     });
 
     it('hides add plan button when read-only', async () => {
-      await create({ isReadOnly: true, plans: [] });
-      const btn = await loader.getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' }));
-      expect(btn).toBeNull();
+      await create({ context: { isReadOnly: true }, plans: [] });
+      expect(await harness.isAddPlanButtonVisible()).toBe(false);
     });
 
     it('hides add plan button when canAddPlan is false', async () => {
-      await create({ isReadOnly: false, canAddPlan: false, plans: [] });
-      const btn = await loader.getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' }));
-      expect(btn).toBeNull();
+      await create({ context: { isReadOnly: false, canAddPlan: false }, plans: [] });
+      expect(await harness.isAddPlanButtonVisible()).toBe(false);
     });
 
     it('add plan menu lists only the provided plan types', async () => {
-      await create({ isReadOnly: false, plans: [] });
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).then(btn => btn.click());
-      const menu = await loader.getHarness(MatMenuHarness);
-      const items = await menu.getItems();
-      const texts = await parallel(() => items.map(i => i.getText()));
+      await create({ context: { isReadOnly: false }, plans: [] });
+      const texts = await harness.getAddPlanMenuItems();
       expect(texts).toEqual(['API Key', 'JWT', 'mTLS']);
     });
   });
@@ -150,8 +133,8 @@ describe('PlanListComponent', () => {
   describe('status filter', () => {
     it('renders toggle buttons for PUBLISHED and STAGING statuses', async () => {
       await create({});
-      const toggles = await loader.getAllHarnesses(MatButtonToggleHarness);
-      const labels = await parallel(() => toggles.map(t => t.getText()));
+      const toggles = await harness.getStatusFilterToggles();
+      const labels = await Promise.all(toggles.map(t => t.getText()));
       expect(labels.some(l => l.includes('PUBLISHED'))).toBe(true);
       expect(labels.some(l => l.includes('STAGING'))).toBe(true);
     });
@@ -160,19 +143,17 @@ describe('PlanListComponent', () => {
       await create({});
       const emitted: PlanStatus[] = [];
       fixture.componentInstance.statusFilterChanged.subscribe((s: PlanStatus) => emitted.push(s));
-      await loader.getHarness(MatButtonToggleHarness.with({ text: /STAGING/ })).then(btn => btn.toggle());
+      await harness.selectStatusFilter(/STAGING/);
       expect(emitted).toContain('STAGING');
     });
   });
 
   describe('plan type selection', () => {
     it('emits plan form type when menu item is clicked', async () => {
-      await create({ isReadOnly: false, plans: [] });
+      await create({ context: { isReadOnly: false }, plans: [] });
       const emitted: string[] = [];
-      fixture.componentInstance.planTypeSelected.subscribe((type: string) => emitted.push(type));
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).then(btn => btn.click());
-      const menu = await loader.getHarness(MatMenuHarness);
-      await menu.clickItem({ text: 'JWT' });
+      fixture.componentInstance.typeSelected.subscribe((type: string) => emitted.push(type));
+      await harness.clickAddPlanMenuItem('JWT');
       expect(emitted).toEqual(['JWT']);
     });
   });
@@ -183,9 +164,8 @@ describe('PlanListComponent', () => {
         ...fakePlanV4({ name: 'JWT Plan', status: 'PUBLISHED', security: { type: 'JWT' } }),
         securityTypeLabel: 'JWT',
       } as PlanDS;
-      await create({ plans: [plan], isReadOnly: false, isV2Api: true });
-      const designBtn = await loader.getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Design the plan"]' }));
-      expect(designBtn).not.toBeNull();
+      await create({ plans: [plan], context: { isReadOnly: false, isV2Api: true } });
+      expect(await harness.isDesignPlanButtonVisible()).toBe(true);
     });
 
     it('hides design button when isV2Api is false', async () => {
@@ -193,9 +173,8 @@ describe('PlanListComponent', () => {
         ...fakePlanV4({ name: 'JWT Plan', status: 'PUBLISHED', security: { type: 'JWT' } }),
         securityTypeLabel: 'JWT',
       } as PlanDS;
-      await create({ plans: [plan], isReadOnly: false, isV2Api: false });
-      const designBtn = await loader.getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Design the plan"]' }));
-      expect(designBtn).toBeNull();
+      await create({ plans: [plan], context: { isReadOnly: false, isV2Api: false } });
+      expect(await harness.isDesignPlanButtonVisible()).toBe(false);
     });
   });
 });
