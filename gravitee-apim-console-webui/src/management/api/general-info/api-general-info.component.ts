@@ -491,8 +491,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
         tap(() => {
-          this.apiId = undefined;
-          this.ngOnInit();
+          this.refresh$.next();
         }),
         takeUntil(this.unsubscribe$),
       )
