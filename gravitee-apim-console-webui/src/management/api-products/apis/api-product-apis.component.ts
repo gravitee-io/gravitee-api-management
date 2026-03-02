@@ -22,8 +22,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
-import { combineLatest, EMPTY, Observable, forkJoin, of } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
+import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 import {
   GIO_DIALOG_WIDTH,
@@ -39,11 +39,11 @@ import {
   ApiProductAddApiDialogResult,
 } from './add-api-dialog/api-product-add-api-dialog.component';
 
-import { Api } from '../../../entities/management-api-v2';
+import { Api, ApiSearchQuery, ApisResponse, apiSortByParamFromString } from '../../../entities/management-api-v2';
+import { filtersToQueryParams, toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { getApiContextPath } from '../../../shared/utils/api-access.util';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
-import { filtersToQueryParams } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -61,16 +61,18 @@ export type ApiProductApiTableDS = {
 interface ApiProductApisTableWrapperFilters extends GioTableWrapperFilters {}
 
 const DEFAULT_FILTERS: ApiProductApisTableWrapperFilters = {
-  pagination: { index: 1, size: 10 },
+  pagination: { index: 1, size: 5 },
   searchTerm: '',
 };
 
 function queryParamsToFilters(queryParams: Record<string, string>): ApiProductApisTableWrapperFilters {
-  const searchTerm = queryParams['q'] ?? DEFAULT_FILTERS.searchTerm;
-  const index = queryParams['page'] ? Number(queryParams['page']) : DEFAULT_FILTERS.pagination.index;
-  const size = queryParams['size'] ? Number(queryParams['size']) : DEFAULT_FILTERS.pagination.size;
+  const searchTerm = queryParams.q ?? DEFAULT_FILTERS.searchTerm;
+  const index = queryParams.page ? Number(queryParams.page) : DEFAULT_FILTERS.pagination.index;
+  const size = queryParams.size ? Number(queryParams.size) : DEFAULT_FILTERS.pagination.size;
+  const sort = queryParams.order ? toSort(queryParams.order, { active: 'name', direction: 'asc' }) : undefined;
   return {
     searchTerm,
+    sort,
     pagination: { index, size },
   };
 }
@@ -102,9 +104,11 @@ export class ApiProductApisComponent implements OnInit {
   });
 
   /** Filters derived from router query params (single source of truth) */
-  readonly filters = toSignal(this.activatedRoute.queryParams.pipe(map(params => queryParamsToFilters(params as Record<string, string>))), {
+  readonly filters = toSignal(this.activatedRoute.queryParams.pipe(map(params => queryParamsToFilters(params))), {
     initialValue: queryParamsToFilters(this.activatedRoute.snapshot.queryParams as Record<string, string>),
   });
+
+  private readonly reloadTrigger$ = new Subject<void>();
 
   private static readonly LOAD_API_PRODUCT_ERROR = 'An error occurred while loading the API Product';
 
@@ -121,7 +125,7 @@ export class ApiProductApisComponent implements OnInit {
         tap(value => {
           const message = typeof successMessage === 'function' ? successMessage(value) : successMessage;
           this.snackBarService.success(message);
-          this.reloadTable();
+          this.reloadTrigger$.next();
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -135,56 +139,42 @@ export class ApiProductApisComponent implements OnInit {
   private initApisTableSubscription(): void {
     combineLatest([
       this.activatedRoute.queryParams.pipe(
-        map(params => queryParamsToFilters(params as Record<string, string>)),
         debounceTime(100),
+        map(params => queryParamsToFilters(params)),
         distinctUntilChanged(isEqual),
       ),
       toObservable(this.apiProductId, { injector: this.injector }).pipe(filter(id => !!id)),
+      this.reloadTrigger$.pipe(startWith(undefined)),
     ])
       .pipe(
         map(([filters, apiProductId]) => ({ filters, apiProductId })),
-        switchMap(({ filters, apiProductId }) => this.loadApisForProduct(apiProductId).pipe(map(apis => ({ filters, apis })))),
-        tap(({ filters, apis }) => this.processAndDisplayApis(filters, apis)),
+        switchMap(({ filters, apiProductId }) => this.loadApisForProduct(apiProductId, filters)),
+        tap(apisResponse => this.processAndDisplayApis(apisResponse)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
 
-  private loadApisForProduct(apiProductId: string): Observable<(Api | null)[]> {
+  private loadApisForProduct(apiProductId: string, filters: ApiProductApisTableWrapperFilters): Observable<ApisResponse> {
     this.isLoadingData = true;
-    return this.apiProductV2Service.get(apiProductId).pipe(
-      catchError(this.handleError(ApiProductApisComponent.LOAD_API_PRODUCT_ERROR, of(null))),
-      switchMap(apiProduct => {
-        if (!apiProduct?.apiIds?.length) {
-          return of([]);
-        }
-        const apiObservables = apiProduct.apiIds.map(apiId => this.apiV2Service.get(apiId).pipe(catchError(() => of(null))));
-        return forkJoin(apiObservables).pipe(catchError(this.handleError('An error occurred while loading APIs', of([]))));
-      }),
-    );
+    const searchBody: ApiSearchQuery = {
+      apiProductId,
+      query: filters.searchTerm || undefined,
+    };
+    const order = toOrder(filters.sort) ?? 'name';
+    return this.apiV2Service
+      .search(searchBody, apiSortByParamFromString(order), filters.pagination?.index ?? 1, filters.pagination?.size ?? 5)
+      .pipe(
+        catchError(
+          this.handleError('An error occurred while loading APIs', of({ data: [], pagination: { totalCount: 0 } } as ApisResponse)),
+        ),
+      );
   }
 
-  private processAndDisplayApis(filters: ApiProductApisTableWrapperFilters, apis: (Api | null)[]): void {
-    let filteredApis = apis.filter((api): api is Api => api !== null);
-    const searchTerm = filters.searchTerm?.toLowerCase() || '';
-
-    if (searchTerm) {
-      filteredApis = filteredApis.filter(
-        api =>
-          api.name?.toLowerCase().includes(searchTerm) ||
-          getApiContextPath(api)?.toLowerCase().includes(searchTerm) ||
-          api.apiVersion?.toLowerCase().includes(searchTerm),
-      );
-    }
-
-    const page = filters.pagination?.index || 1;
-    const perPage = filters.pagination?.size || 10;
-    const startIndex = (page - 1) * perPage;
-    const endIndex = startIndex + perPage;
-    const paginatedApis = filteredApis.slice(startIndex, endIndex);
-
-    this.apisTableDS = this.toApisTableDS(paginatedApis);
-    this.apisTableDSUnpaginatedLength = filteredApis.length;
+  private processAndDisplayApis(apisResponse: ApisResponse): void {
+    const apis = apisResponse?.data ?? [];
+    this.apisTableDS = this.toApisTableDS(apis);
+    this.apisTableDSUnpaginatedLength = apisResponse?.pagination?.totalCount ?? apis.length;
     this.isLoadingData = false;
   }
 
@@ -210,15 +200,6 @@ export class ApiProductApisComponent implements OnInit {
       queryParams: filtersToQueryParams(mergedFilters),
       queryParamsHandling: 'merge',
     });
-  }
-
-  private reloadTable(): void {
-    this.loadApisForProduct(this.apiProductId())
-      .pipe(
-        tap(apis => this.processAndDisplayApis(this.filters(), apis)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
   }
 
   onAddApi(): void {

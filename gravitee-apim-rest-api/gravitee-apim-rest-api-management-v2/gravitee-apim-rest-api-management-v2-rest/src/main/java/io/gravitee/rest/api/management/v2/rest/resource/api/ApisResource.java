@@ -39,6 +39,7 @@ import io.gravitee.apim.core.api.use_case.OAIToImportApiUseCase;
 import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiHostsUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
@@ -94,6 +95,8 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -150,6 +153,9 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private OAIToImportApiUseCase oaiToImportApiUseCase;
+
+    @Inject
+    private ApiProductQueryService apiProductQueryService;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -298,7 +304,16 @@ public class ApisResource extends AbstractResource {
             apiQueryBuilder.setQuery(apiSearchQuery.getQuery());
         }
 
-        if (Objects.nonNull(apiSearchQuery.getIds()) && !apiSearchQuery.getIds().isEmpty()) {
+        if (!Strings.isNullOrEmpty(apiSearchQuery.getApiProductId())) {
+            var apiProductOpt = apiProductQueryService.findById(apiSearchQuery.getApiProductId());
+            if (apiProductOpt.isEmpty() || apiProductOpt.get().getApiIds() == null || apiProductOpt.get().getApiIds().isEmpty()) {
+                return new ApisResponse()
+                    .data(List.of())
+                    .pagination(PaginationInfo.computePaginationInfo(0, 0, paginationParam))
+                    .links(computePaginationLinks(0, paginationParam));
+            }
+            apiQueryBuilder.addFilter(FIELD_TYPE_VALUE, new ArrayList<>(apiProductOpt.get().getApiIds()));
+        } else if (Objects.nonNull(apiSearchQuery.getIds()) && !apiSearchQuery.getIds().isEmpty()) {
             apiQueryBuilder.addFilter(FIELD_TYPE_VALUE, apiSearchQuery.getIds());
         }
 

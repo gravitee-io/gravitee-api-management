@@ -4008,6 +4008,10 @@ components:
                     example:
                         - apiId-1
                         - apiId-2
+                apiProductId:
+                    type: string
+                    description: When provided, restricts search to APIs belonging to this API Product. Takes precedence over ids when both are present.
+                    example: api-product-123
                 definitionVersion:
                     $ref: "#/components/schemas/DefinitionVersion"
                 definitionVersions:

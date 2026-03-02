@@ -24,6 +24,10 @@ export interface ApiSearchQuery {
    * List of ids to find
    */
   ids?: string[];
+  /**
+   * When provided, restricts search to APIs belonging to this API Product.
+   */
+  apiProductId?: string;
   definitionVersion?: DefinitionVersion;
   definitionVersions?: DefinitionVersion[];
   apiTypes?: string[];
