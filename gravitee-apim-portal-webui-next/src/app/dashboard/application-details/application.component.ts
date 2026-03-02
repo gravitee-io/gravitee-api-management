@@ -45,7 +45,7 @@ import { CurrentUserService } from '../../../services/current-user.service';
   templateUrl: './application.component.html',
   styleUrl: './application.component.scss',
 })
-export class ApplicationComponent implements OnChanges {
+export default class ApplicationComponent implements OnChanges {
   @Input() application!: Application;
   isAuthenticated = inject(CurrentUserService).isUserAuthenticated;
 
