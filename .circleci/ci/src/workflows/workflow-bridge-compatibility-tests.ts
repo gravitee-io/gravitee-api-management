@@ -37,7 +37,7 @@ export class BridgeCompatibilityTestsWorkflow {
     const e2eLintBuildJob = E2ELintBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(e2eLintBuildJob);
 
-    const e2eTestJob = E2ETestJob.create(dynamicConfig, environment);
+    const e2eTestJob = E2ETestJob.create(dynamicConfig, environment, true);
     dynamicConfig.addJob(e2eTestJob);
 
     const jobs = [
