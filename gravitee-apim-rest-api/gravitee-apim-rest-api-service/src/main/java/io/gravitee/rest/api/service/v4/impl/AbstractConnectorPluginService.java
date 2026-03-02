@@ -80,10 +80,18 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
         entity.setFeature(plugin.manifest().feature());
         ConnectorFactory<?> connectorFactory = getConnectorFactory(plugin.id());
 
-        if (connectorFactory.supportedApi() != null) {
+        if (connectorFactory.supportedApiTypes() != null) {
             entity.setSupportedApiType(ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
+            entity.setSupportedApiTypes(
+                connectorFactory
+                    .supportedApiTypes()
+                    .stream()
+                    .map(type -> ApiType.fromLabel(type.getLabel()))
+                    .collect(Collectors.toSet())
+            );
         }
-        if (connectorFactory.supportedApi() == io.gravitee.gateway.reactive.api.ApiType.MESSAGE) {
+
+        if (connectorFactory.supportedApiTypes().contains(io.gravitee.gateway.reactive.api.ApiType.MESSAGE)) {
             Set<io.gravitee.gateway.reactive.api.qos.Qos> supportedQos = extractSupportedQos(connectorFactory);
             if (supportedQos != null) {
                 entity.setSupportedQos(

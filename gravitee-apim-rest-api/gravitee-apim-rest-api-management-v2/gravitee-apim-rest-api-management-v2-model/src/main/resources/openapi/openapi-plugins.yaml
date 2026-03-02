@@ -392,6 +392,7 @@ paths:
                           - A2A_PROXY
                           - MCP_PROXY
                           - LLM_PROXY
+                          - AGENT
             tags:
                 - Plugins - Policies
             summary: Get a policy schema
@@ -600,7 +601,9 @@ components:
                 - MCP_PROXY
                 - MESSAGE
                 - PROXY
+                - MCP
                 - NATIVE
+                - AGENT
         ListenerType:
             type: string
             description: Listener type.

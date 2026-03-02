@@ -75,7 +75,7 @@ public class GenericPlanMapper {
         return switch (apiDefinitionVersion) {
             case V4 -> switch (api.getType()) {
                 case EDGE -> throw new IllegalStateException("EDGE API does not support plans");
-                case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> {
+                case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE, AGENT -> {
                     final Map<String, List<Flow>> flowsByPlanId = flowService != null
                         ? flowService.findByReferences(FlowReferenceType.PLAN, planIds)
                         : Map.of();
@@ -140,7 +140,7 @@ public class GenericPlanMapper {
         return switch (apiDefinitionVersion) {
             case V4 -> switch (api.getType()) {
                 case EDGE -> throw new IllegalStateException("EDGE API does not support plans");
-                case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> planMapper.toEntity(plan, null);
+                case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE, AGENT -> planMapper.toEntity(plan, null);
                 case NATIVE -> planMapper.toNativeEntity(plan, null);
             };
             case FEDERATED, FEDERATED_AGENT -> planMapper.toEntity(plan, null);
@@ -153,7 +153,7 @@ public class GenericPlanMapper {
         return switch (apiDefinitionVersion) {
             case V4 -> switch (api.getType()) {
                 case EDGE -> throw new IllegalStateException("EDGE API does not support plans");
-                case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> handleGenericPlanWithoutFlow(plans);
+                case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE, AGENT -> handleGenericPlanWithoutFlow(plans);
                 case NATIVE -> plans
                     .stream()
                     .map(plan -> planMapper.toNativeEntity(plan, null))

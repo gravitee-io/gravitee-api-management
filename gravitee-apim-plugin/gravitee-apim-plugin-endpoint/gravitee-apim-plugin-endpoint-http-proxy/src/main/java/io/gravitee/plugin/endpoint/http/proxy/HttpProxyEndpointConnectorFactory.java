@@ -15,6 +15,7 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy;
 
+import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
 import io.gravitee.gateway.reactive.api.connector.endpoint.sync.HttpEndpointSyncConnectorFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
@@ -41,6 +42,11 @@ public class HttpProxyEndpointConnectorFactory implements HttpEndpointSyncConnec
     @Override
     public Set<ConnectorMode> supportedModes() {
         return SUPPORTED_MODES;
+    }
+
+    @Override
+    public Set<ApiType> supportedApiTypes() {
+        return Set.of(supportedApi(), ApiType.MCP);
     }
 
     @Override

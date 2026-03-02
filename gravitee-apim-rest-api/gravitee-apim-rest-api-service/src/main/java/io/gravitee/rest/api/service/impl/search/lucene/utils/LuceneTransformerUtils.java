@@ -67,6 +67,8 @@ public final class LuceneTransformerUtils {
                 case LLM_PROXY -> "LLM_PROXY";
                 case MCP_PROXY -> "MCP_PROXY";
                 case MESSAGE -> "MESSAGE";
+                case MCP -> "MCP";
+                case AGENT -> "AGENT";
                 case NATIVE -> "KAFKA";
                 case PROXY -> isTcpApi ? "TCP_PROXY" : "HTTP_PROXY";
             };
