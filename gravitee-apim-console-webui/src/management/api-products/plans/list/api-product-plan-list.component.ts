@@ -141,6 +141,10 @@ export class ApiProductPlanListComponent {
     });
   }
 
+  protected onPlanSelected(plan: PlanDS): void {
+    this.router.navigate(['./', plan.id], { relativeTo: this.activatedRoute });
+  }
+
   protected onPlanReordered(event: CdkDragDrop<string[]>): void {
     const current = this.plansTableDS();
     const currentData = [...current];

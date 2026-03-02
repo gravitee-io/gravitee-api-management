@@ -22,6 +22,7 @@
   [context]="{ isReadOnly: isReadOnly, canAddPlan: api?.definitionVersion !== 'FEDERATED', isV2Api: isV2Api, showDeployOnColumn: true }"
   [filterState]="{ statuses: apiPlanStatus, selectedStatus: status }"
   (typeSelected)="navigateToNewPlan($event)"
+  (planSelected)="navigateToPlan($event)"
   (reordered)="dropRow($event)"
   (actionSelected)="onActionSelected($event)"
   (statusFilterChanged)="searchPlansByStatus($event)"

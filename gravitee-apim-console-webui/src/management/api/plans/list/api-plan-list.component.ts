@@ -34,9 +34,7 @@ import { ConstantsService, PlanMenuItemVM } from '../../../../services-ngx/const
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { Api, Plan, PLAN_STATUS, PlanStatus } from '../../../../entities/management-api-v2';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
-import { PlanActionEvent } from '../../component/plan/plan-list/plan-list.component';
-
-type PlanDS = Plan & { securityTypeLabel: string };
+import { PlanActionEvent, PlanDS } from '../../component/plan/plan-list/plan-list.component';
 
 @Component({
   selector: 'api-plan-list',
@@ -108,6 +106,10 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
       relativeTo: this.activatedRoute,
       queryParams: { selectedPlanMenuItem: planFormType },
     });
+  }
+
+  public navigateToPlan(plan: PlanDS): void {
+    this.router.navigate(['./', plan.id], { relativeTo: this.activatedRoute });
   }
 
   public dropRow(event: CdkDragDrop<string[]>) {

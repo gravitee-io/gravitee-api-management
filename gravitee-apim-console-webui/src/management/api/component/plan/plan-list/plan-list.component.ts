@@ -15,7 +15,6 @@
  */
 import { Component, computed, input, output } from '@angular/core';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
-import { RouterModule } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -56,7 +55,6 @@ export interface PlanListContext {
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule,
     DragDropModule,
     MatTableModule,
     MatButtonModule,
@@ -76,6 +74,7 @@ export class PlanListComponent {
 
   readonly actionSelected = output<PlanActionEvent>();
   readonly typeSelected = output<string>();
+  readonly planSelected = output<PlanDS>();
   readonly reordered = output<CdkDragDrop<string[]>>();
   readonly statusFilterChanged = output<PlanStatus>();
 

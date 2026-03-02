@@ -22,6 +22,7 @@
   [context]="{ isReadOnly: isReadOnly(), isV2Api: false, showDeployOnColumn: false }"
   [filterState]="{ statuses: apiPlanStatus(), selectedStatus: selectedStatus() }"
   (typeSelected)="onPlanTypeSelected($event)"
+  (planSelected)="onPlanSelected($event)"
   (reordered)="onPlanReordered($event)"
   (actionSelected)="onActionSelected($event)"
   (statusFilterChanged)="onStatusFilterChanged($event)"
