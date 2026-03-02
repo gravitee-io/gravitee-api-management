@@ -21,8 +21,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
 
-import { BadgeComponent } from '../../../components/badge/badge.component';
-import { DescribeTopicResponse } from '../../../models/kafka-cluster.model';
+import { BadgeColor, BadgeComponent } from '../../../components/badge/badge.component';
+import { ConsumerGroupSummary, DescribeTopicResponse } from '../../../models/kafka-cluster.model';
+
+const STATE_COLORS: Record<string, BadgeColor> = {
+  stable: 'success',
+  empty: 'default',
+  rebalancing: 'warning',
+  dead: 'error',
+};
 
 @Component({
   selector: 'gke-topic-detail',
@@ -33,10 +40,18 @@ import { DescribeTopicResponse } from '../../../models/kafka-cluster.model';
 })
 export class TopicDetailComponent {
   topicDetail = input<DescribeTopicResponse | undefined>();
+  consumerGroups = input<ConsumerGroupSummary[]>([]);
   loading = input(false);
 
   back = output<void>();
+  browseMessages = output<void>();
+  consumerGroupSelect = output<string>();
 
   partitionColumns = ['id', 'leader', 'replicas', 'isr', 'offline'];
   configColumns = ['name', 'value', 'source', 'readOnly', 'sensitive'];
+  consumerGroupColumns = ['groupId', 'membersCount', 'totalLag', 'coordinator', 'state'];
+
+  stateColor(state: string | undefined): BadgeColor {
+    return STATE_COLORS[state?.toLowerCase() ?? ''] ?? 'default';
+  }
 }

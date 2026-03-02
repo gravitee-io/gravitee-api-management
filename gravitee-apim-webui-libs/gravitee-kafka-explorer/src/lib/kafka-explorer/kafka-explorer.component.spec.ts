@@ -23,7 +23,12 @@ import { provideRouter, Router, RouterOutlet } from '@angular/router';
 
 import { KafkaExplorerHarness } from './kafka-explorer.harness';
 import { KAFKA_EXPLORER_ROUTES } from './kafka-explorer.routes';
-import { fakeDescribeClusterResponse, fakeDescribeTopicResponse, fakeListTopicsResponse } from '../models/kafka-cluster.fixture';
+import {
+  fakeDescribeClusterResponse,
+  fakeDescribeTopicResponse,
+  fakeListConsumerGroupsResponse,
+  fakeListTopicsResponse,
+} from '../models/kafka-cluster.fixture';
 import { KAFKA_EXPLORER_BASE_URL } from '../services/kafka-explorer-config.token';
 
 @Component({
@@ -156,6 +161,7 @@ describe('KafkaExplorerComponent', () => {
     await fixture.whenStable();
 
     httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/describe-topic').flush(fakeDescribeTopicResponse());
+    httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/list-consumer-groups').flush(fakeListConsumerGroupsResponse());
     fixture.detectChanges();
 
     const detailHarness = await harness.getTopicDetailHarness();
@@ -180,6 +186,7 @@ describe('KafkaExplorerComponent', () => {
     await fixture.whenStable();
 
     httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/describe-topic').flush(fakeDescribeTopicResponse());
+    httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/list-consumer-groups').flush(fakeListConsumerGroupsResponse());
     fixture.detectChanges();
 
     const detailHarness = await harness.getTopicDetailHarness();

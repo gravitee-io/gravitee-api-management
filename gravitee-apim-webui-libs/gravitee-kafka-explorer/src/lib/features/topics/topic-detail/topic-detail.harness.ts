@@ -18,8 +18,6 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatProgressBarHarness } from '@angular/material/progress-bar/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
-import { BadgeHarness } from '../../../components/badge/badge.harness';
-
 export class TopicDetailHarness extends ComponentHarness {
   static hostSelector = 'gke-topic-detail';
 
@@ -27,7 +25,8 @@ export class TopicDetailHarness extends ComponentHarness {
   private readonly getBackButton = this.locatorFor(MatButtonHarness.with({ selector: '[mat-icon-button]' }));
   private readonly getProgressBar = this.locatorForOptional(MatProgressBarHarness);
   private readonly getTitle = this.locatorFor('.topic-detail__title');
-  private readonly getInternalBadge = this.locatorForOptional(BadgeHarness);
+  private readonly getHeader = this.locatorFor('.topic-detail__header');
+  private readonly getBrowseMessagesButton = this.locatorForOptional(MatButtonHarness.with({ selector: '.topic-detail__browse-btn' }));
 
   async getTopicName() {
     const title = await this.getTitle();
@@ -35,7 +34,9 @@ export class TopicDetailHarness extends ComponentHarness {
   }
 
   async isInternal() {
-    return (await this.getInternalBadge()) !== null;
+    const header = await this.getHeader();
+    const text = await header.text();
+    return text.includes('Internal');
   }
 
   async isLoading() {
@@ -58,6 +59,27 @@ export class TopicDetailHarness extends ComponentHarness {
     const tables = await this.getTables();
     if (tables.length < 2) return [];
     const rows = await tables[1].getRows();
+    return parallel(() => rows.map(row => row.getCellTextByColumnName()));
+  }
+
+  async hasConsumerGroupsCard() {
+    const tables = await this.getTables();
+    return tables.length >= 3;
+  }
+
+  async hasBrowseMessagesButton() {
+    return (await this.getBrowseMessagesButton()) !== null;
+  }
+
+  async clickBrowseMessages() {
+    const button = await this.getBrowseMessagesButton();
+    await button!.click();
+  }
+
+  async getConsumerGroupsRows() {
+    const tables = await this.getTables();
+    if (tables.length < 3) return [];
+    const rows = await tables[2].getRows();
     return parallel(() => rows.map(row => row.getCellTextByColumnName()));
   }
 }

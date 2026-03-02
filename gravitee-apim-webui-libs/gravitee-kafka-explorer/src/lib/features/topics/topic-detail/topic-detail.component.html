@@ -24,6 +24,11 @@
     @if (topicDetail()?.internal) {
       <gke-badge>Internal</gke-badge>
     }
+    <span class="topic-detail__spacer"></span>
+    <button mat-stroked-button class="topic-detail__browse-btn" (click)="browseMessages.emit()">
+      <mat-icon>search</mat-icon>
+      Browse Messages
+    </button>
   </div>
 
   @if (loading()) {
@@ -102,6 +107,62 @@
           <tr mat-header-row *matHeaderRowDef="configColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: configColumns"></tr>
         </table>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Consumer Groups</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (consumerGroups().length === 0) {
+          <p class="topic-detail__empty">No consumer groups found</p>
+        } @else {
+          <table mat-table [dataSource]="consumerGroups()">
+            <ng-container matColumnDef="groupId">
+              <th mat-header-cell *matHeaderCellDef>Group ID</th>
+              <td mat-cell *matCellDef="let g">
+                <a
+                  class="topic-detail__link"
+                  tabindex="0"
+                  (click)="consumerGroupSelect.emit(g.groupId)"
+                  (keydown.enter)="consumerGroupSelect.emit(g.groupId)"
+                  >{{ g.groupId }}</a
+                >
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="membersCount">
+              <th mat-header-cell *matHeaderCellDef>Active Consumers</th>
+              <td mat-cell *matCellDef="let g">{{ g.membersCount }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="totalLag">
+              <th mat-header-cell *matHeaderCellDef>Messages Behind</th>
+              <td mat-cell *matCellDef="let g">
+                {{ g.totalLag }}
+                @if (g.totalLag > 0) {
+                  <gke-badge color="warning">lagging</gke-badge>
+                }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="coordinator">
+              <th mat-header-cell *matHeaderCellDef>Coordinator</th>
+              <td mat-cell *matCellDef="let g">{{ g.coordinator?.host }}:{{ g.coordinator?.port }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="state">
+              <th mat-header-cell *matHeaderCellDef>State</th>
+              <td mat-cell *matCellDef="let g">
+                <gke-badge [color]="stateColor(g.state)">{{ g.state }}</gke-badge>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="consumerGroupColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: consumerGroupColumns"></tr>
+          </table>
+        }
       </mat-card-content>
     </mat-card>
   }

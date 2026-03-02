@@ -15,4 +15,11 @@
     limitations under the License.
 
 -->
-<gke-topic-detail [topicDetail]="topicDetail()" [loading]="loading()" (back)="onBack()" />
+<gke-topic-detail
+  [topicDetail]="topicDetail()"
+  [consumerGroups]="consumerGroups()"
+  [loading]="loading()"
+  (back)="onBack()"
+  (browseMessages)="onBrowseMessages()"
+  (consumerGroupSelect)="onConsumerGroupSelect($event)"
+/>

@@ -33,6 +33,16 @@
     overflow-x: auto;
   }
 
+  &__link {
+    cursor: pointer;
+  }
+
+  &__empty {
+    color: var(--mat-sys-on-surface-variant, #49454f);
+    padding: 16px 0;
+    margin: 0;
+  }
+
   table {
     width: 100%;
   }
