@@ -19,6 +19,7 @@ version: '3.8'
 services:
   management_api:
     image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_TAG:-3}
+    pull_policy: always
     container_name: gravitee-apim-e2e-management_api
     restart: always
     links:
@@ -51,6 +52,7 @@ services:
 
   gateway:
     image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_TAG:-3}
+    pull_policy: always
     container_name: gravitee-apim-e2e-gateway
     restart: always
     links:

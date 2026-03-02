@@ -41,6 +41,7 @@ services:
 
   management_ui:
     image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_TAG:-3}
+    pull_policy: always
     container_name: gravitee-apim-e2e-management_ui
     restart: always
     ports:
@@ -60,6 +61,7 @@ services:
 
   portal_ui:
     image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_TAG:-3}
+    pull_policy: always
     container_name: gravitee-apim-e2e-portal_ui
     restart: always
     ports:
