@@ -70,9 +70,8 @@ import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.ConsumerGroupDescription;
 import org.apache.kafka.clients.admin.ConsumerGroupListing;
 import org.apache.kafka.clients.admin.DescribeClusterResult;
-import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsResult;
+import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsSpec;
 import org.apache.kafka.clients.admin.ListTopicsOptions;
-import org.apache.kafka.clients.admin.MemberDescription;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.admin.TopicListing;
@@ -333,12 +332,20 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
     }
 
     @Override
-    public ConsumerGroupsPage listConsumerGroups(KafkaClusterConfiguration config, String nameFilter, int page, int perPage) {
+    public ConsumerGroupsPage listConsumerGroups(
+        KafkaClusterConfiguration config,
+        String nameFilter,
+        String topicFilter,
+        int page,
+        int perPage
+    ) {
         return withAdminClient(config, adminClient -> {
-            // Step 1: List all consumer groups (cheap call)
+            boolean hasTopicFilter = topicFilter != null && !topicFilter.isBlank();
+
+            // Step 1: List all consumer groups
             Collection<ConsumerGroupListing> listings = adminClient.listConsumerGroups().all().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-            // Step 2: Filter by nameFilter (case-insensitive contains)
+            // Step 2: Filter by name
             List<String> filteredGroupIds = listings
                 .stream()
                 .map(ConsumerGroupListing::groupId)
@@ -346,9 +353,33 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 .sorted()
                 .toList();
 
+            // Step 3: Filter by topic — fetch only the target topic's partition offsets, then filter in-memory
+            Map<String, Map<TopicPartition, OffsetAndMetadata>> allOffsets;
+            if (hasTopicFilter) {
+                // Resolve topic partitions once to restrict the offset fetch to this topic only
+                TopicDescription topicDesc = adminClient
+                    .describeTopics(List.of(topicFilter))
+                    .allTopicNames()
+                    .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                    .get(topicFilter);
+                List<TopicPartition> topicPartitions = topicDesc
+                    .partitions()
+                    .stream()
+                    .map(p -> new TopicPartition(topicFilter, p.partition()))
+                    .toList();
+
+                allOffsets = fetchAllGroupOffsets(adminClient, filteredGroupIds, topicPartitions);
+                filteredGroupIds = filteredGroupIds
+                    .stream()
+                    .filter(groupId -> !allOffsets.getOrDefault(groupId, Map.of()).isEmpty())
+                    .toList();
+            } else {
+                allOffsets = null;
+            }
+
             int totalCount = filteredGroupIds.size();
 
-            // Step 3: Paginate
+            // Step 4: Paginate
             int fromIndex = Math.min(page * perPage, totalCount);
             int toIndex = Math.min(fromIndex + perPage, totalCount);
             List<String> pageGroupIds = filteredGroupIds.subList(fromIndex, toIndex);
@@ -357,20 +388,26 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 return new ConsumerGroupsPage(List.of(), totalCount, page, perPage);
             }
 
-            // Step 4: Describe consumer groups for the current page only
+            // Step 5: Batch-fetch offsets for page groups (reuse pre-fetched data when topicFilter was set)
+            final Map<String, Map<TopicPartition, OffsetAndMetadata>> pageOffsets = hasTopicFilter
+                ? allOffsets
+                : fetchAllGroupOffsets(adminClient, pageGroupIds, null);
+
+            // Step 6: Describe consumer groups for the current page
             Map<String, ConsumerGroupDescription> descriptions = adminClient
                 .describeConsumerGroups(pageGroupIds)
                 .all()
                 .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-            // Step 5: Best-effort lag calculation + topic count
+            // Step 7: Compute lag from pre-fetched offsets
             List<ConsumerGroup> groups = pageGroupIds
                 .stream()
                 .map(groupId -> {
                     ConsumerGroupDescription desc = descriptions.get(groupId);
                     String state = desc.state() != null ? desc.state().name() : "UNKNOWN";
                     int membersCount = desc.members().size();
-                    LagResult lagResult = computeLagResult(adminClient, groupId);
+                    var groupOffsets = pageOffsets.getOrDefault(groupId, Map.of());
+                    LagResult lagResult = computeLagResultFromOffsets(adminClient, groupOffsets, hasTopicFilter ? topicFilter : null);
                     KafkaNode coordinator = toKafkaNode(desc.coordinator());
                     return new ConsumerGroup(groupId, state, membersCount, lagResult.totalLag(), lagResult.numTopics(), coordinator);
                 })
@@ -422,28 +459,78 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
     private record LagResult(long totalLag, int numTopics) {}
 
-    private LagResult computeLagResult(AdminClient adminClient, String groupId) {
+    /**
+     * Batch-fetches committed offsets for multiple consumer groups in a single Kafka call.
+     * When topicPartitions is non-null, only offsets for those partitions are requested,
+     * reducing network payload and broker-side work.
+     */
+    private Map<String, Map<TopicPartition, OffsetAndMetadata>> fetchAllGroupOffsets(
+        AdminClient adminClient,
+        List<String> groupIds,
+        List<TopicPartition> topicPartitions
+    ) {
         try {
-            Map<TopicPartition, OffsetAndMetadata> committedOffsets = adminClient
-                .listConsumerGroupOffsets(groupId)
-                .partitionsToOffsetAndMetadata()
-                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            Map<String, ListConsumerGroupOffsetsSpec> specs = new HashMap<>();
+            for (String groupId : groupIds) {
+                var spec = new ListConsumerGroupOffsetsSpec();
+                if (topicPartitions != null) {
+                    spec.topicPartitions(topicPartitions);
+                }
+                specs.put(groupId, spec);
+            }
 
-            if (committedOffsets.isEmpty()) {
+            Map<String, Map<TopicPartition, OffsetAndMetadata>> result = new HashMap<>();
+            var batchResult = adminClient.listConsumerGroupOffsets(specs);
+            for (String groupId : groupIds) {
+                try {
+                    Map<TopicPartition, OffsetAndMetadata> offsets = batchResult
+                        .partitionsToOffsetAndMetadata(groupId)
+                        .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    result.put(groupId, offsets);
+                } catch (Exception e) {
+                    result.put(groupId, Map.of());
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            return Map.of();
+        }
+    }
+
+    /**
+     * Computes lag from pre-fetched offsets (no additional listConsumerGroupOffsets call).
+     * If topicFilter is non-null, only partitions for that topic are considered.
+     */
+    private LagResult computeLagResultFromOffsets(
+        AdminClient adminClient,
+        Map<TopicPartition, OffsetAndMetadata> committedOffsets,
+        String topicFilter
+    ) {
+        try {
+            Map<TopicPartition, OffsetAndMetadata> filtered = committedOffsets;
+            if (topicFilter != null && !topicFilter.isBlank()) {
+                filtered = committedOffsets
+                    .entrySet()
+                    .stream()
+                    .filter(e -> e.getKey().topic().equals(topicFilter))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            }
+
+            if (filtered.isEmpty()) {
                 return new LagResult(0, 0);
             }
 
-            int numTopics = (int) committedOffsets.keySet().stream().map(TopicPartition::topic).distinct().count();
+            int numTopics = (int) filtered.keySet().stream().map(TopicPartition::topic).distinct().count();
 
             Map<TopicPartition, OffsetSpec> endOffsetRequests = new HashMap<>();
-            for (TopicPartition tp : committedOffsets.keySet()) {
+            for (TopicPartition tp : filtered.keySet()) {
                 endOffsetRequests.put(tp, OffsetSpec.latest());
             }
 
             var endOffsets = adminClient.listOffsets(endOffsetRequests).all().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             long totalLag = 0;
-            for (var entry : committedOffsets.entrySet()) {
+            for (var entry : filtered.entrySet()) {
                 TopicPartition tp = entry.getKey();
                 long committed = entry.getValue().offset();
                 var endOffsetResult = endOffsets.get(tp);

@@ -123,7 +123,13 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
     }
 
     @Override
-    public ConsumerGroupsPage listConsumerGroups(KafkaClusterConfiguration config, String nameFilter, int page, int perPage) {
+    public ConsumerGroupsPage listConsumerGroups(
+        KafkaClusterConfiguration config,
+        String nameFilter,
+        String topicFilter,
+        int page,
+        int perPage
+    ) {
         if (exception != null) {
             throw exception;
         }

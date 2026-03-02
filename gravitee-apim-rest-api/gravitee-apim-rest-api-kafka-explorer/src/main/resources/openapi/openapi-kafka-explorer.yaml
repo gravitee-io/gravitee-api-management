@@ -530,6 +530,9 @@ components:
                 nameFilter:
                     type: string
                     description: Optional filter to match consumer group IDs (case-insensitive contains)
+                topicFilter:
+                    type: string
+                    description: Optional filter to only return consumer groups that have committed offsets for this topic
 
         ListConsumerGroupsResponse:
             type: object

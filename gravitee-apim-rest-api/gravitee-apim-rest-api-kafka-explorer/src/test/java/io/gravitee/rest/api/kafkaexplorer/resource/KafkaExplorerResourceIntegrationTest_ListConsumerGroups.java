@@ -85,6 +85,33 @@ class KafkaExplorerResourceIntegrationTest_ListConsumerGroups extends AbstractKa
     }
 
     @Test
+    void should_filter_consumer_groups_by_topic() {
+        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+
+        var request = new ListConsumerGroupsRequest().clusterId(CLUSTER_ID).topicFilter("__consumer_offsets");
+
+        var response = resource.listConsumerGroups(request, 1, 10);
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        var body = (ListConsumerGroupsResponse) response.getEntity();
+        assertThat(body.getData()).isNotEmpty();
+        assertThat(body.getData()).anyMatch(g -> g.getGroupId().equals(CONSUMER_GROUP_ID));
+    }
+
+    @Test
+    void should_return_empty_when_topic_filter_matches_no_group() {
+        givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "PLAINTEXT")));
+
+        var request = new ListConsumerGroupsRequest().clusterId(CLUSTER_ID).topicFilter("non-existent-topic-xyz");
+
+        var response = resource.listConsumerGroups(request, 1, 10);
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        var body = (ListConsumerGroupsResponse) response.getEntity();
+        assertThat(body.getData()).isEmpty();
+    }
+
+    @Test
     void should_return_400_when_request_is_null() {
         var response = resource.listConsumerGroups(null, 1, 10);
 
