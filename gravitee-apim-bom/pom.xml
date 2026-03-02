@@ -48,6 +48,15 @@
                 <type>pom</type>
             </dependency>
 
+            <!-- LangChain4J BOM -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-bom</artifactId>
+                <version>${langchain4j.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+
             <dependency>
                 <groupId>io.gravitee.alert</groupId>
                 <artifactId>gravitee-alert-api</artifactId>
@@ -195,6 +204,18 @@
                 <groupId>io.gravitee.resource</groupId>
                 <artifactId>gravitee-resource-oauth2-provider-api</artifactId>
                 <version>${gravitee-resource-oauth2-provider-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.resource</groupId>
+                <artifactId>gravitee-resource-agent-memory-store-api</artifactId>
+                <version>${gravitee-resource-agent-memory-store-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.resource</groupId>
+                <artifactId>gravitee-resource-skill-provider-api</artifactId>
+                <version>${gravitee-resource-skill-provider-api.version}</version>
             </dependency>
 
             <dependency>

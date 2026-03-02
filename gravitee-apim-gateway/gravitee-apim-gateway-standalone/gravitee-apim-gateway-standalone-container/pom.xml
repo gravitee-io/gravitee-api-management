@@ -173,6 +173,16 @@
 
         <dependency>
             <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-agent-memory-store-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-skill-provider-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
             <artifactId>gravitee-resource-auth-provider</artifactId>
         </dependency>
 
@@ -516,9 +526,7 @@
         <profile>
             <id>bundle-default</id>
             <activation>
-                <property>
-                    <name>bundle</name>
-                </property>
+                <activeByDefault>true</activeByDefault>
             </activation>
             <dependencies>
                 <!-- Cloud -->
