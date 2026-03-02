@@ -35,4 +35,7 @@ public class TlsSettings {
 
     @JsonProperty("client_certificates")
     private List<CreateClientCertificate> clientCertificates;
+
+    @JsonProperty("certificate_count")
+    private int certificateCount;
 }

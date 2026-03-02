@@ -1430,6 +1430,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                                 .map(c -> new CreateClientCertificate(c.name(), c.startsAt(), c.endsAt(), c.certificate()))
                                 .toList()
                         )
+                        .certificateCount(list.size())
                         .build()
                 );
             }

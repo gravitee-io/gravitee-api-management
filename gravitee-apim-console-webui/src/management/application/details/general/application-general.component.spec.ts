@@ -216,6 +216,41 @@ describe('ApplicationGeneralInfoComponent', () => {
     });
   });
 
+  describe('Certificate count warning banner', () => {
+    it('should display warning when application has multiple certificates', async () => {
+      const applicationDetails = fakeApplication({ type: 'SIMPLE' });
+      applicationDetails.settings.tls = {
+        client_certificate: 'pem certificate',
+        certificate_count: 3,
+      };
+      const applicationType = fakeApplicationType();
+      expectListApplicationRequest(applicationDetails);
+      expectApplicationTypeRequest(applicationType);
+      fixture.detectChanges();
+      await waitImageCheck();
+
+      const banner = fixture.nativeElement.querySelector('gio-banner-warning');
+      expect(banner).toBeTruthy();
+      expect(banner.textContent).toContain('This application has 3 certificates');
+    });
+
+    it('should not display warning when application has one or no certificate', async () => {
+      const applicationDetails = fakeApplication({ type: 'SIMPLE' });
+      applicationDetails.settings.tls = {
+        client_certificate: 'pem certificate',
+        certificate_count: 1,
+      };
+      const applicationType = fakeApplicationType();
+      expectListApplicationRequest(applicationDetails);
+      expectApplicationTypeRequest(applicationType);
+      fixture.detectChanges();
+      await waitImageCheck();
+
+      const banner = fixture.nativeElement.querySelector('gio-banner-warning');
+      expect(banner).toBeFalsy();
+    });
+  });
+
   describe('Application General details status is ARCHIVED', () => {
     it('details form should be set to readonly', async () => {
       const applicationDetails = fakeApplication({ status: 'ARCHIVED' });
