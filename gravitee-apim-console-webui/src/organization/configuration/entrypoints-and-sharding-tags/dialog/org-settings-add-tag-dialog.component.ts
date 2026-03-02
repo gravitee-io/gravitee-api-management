@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { Component, inject } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { shareReplay } from 'rxjs/operators';
 
@@ -32,25 +32,19 @@ export type OrgSettingAddTagDialogData = {
   standalone: false,
 })
 export class OrgSettingAddTagDialogComponent {
-  tag?: Tag;
-  isUpdate = false;
-  tagForm: UntypedFormGroup;
-  groups$? = this.groupService.listByOrganization().pipe(shareReplay(1));
+  private readonly dialogRef = inject(MatDialogRef<OrgSettingAddTagDialogComponent>);
+  private readonly confirmDialogData = inject<OrgSettingAddTagDialogData>(MAT_DIALOG_DATA);
+  private readonly groupService = inject(GroupService);
 
-  constructor(
-    public dialogRef: MatDialogRef<OrgSettingAddTagDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) confirmDialogData: OrgSettingAddTagDialogData,
-    private readonly groupService: GroupService,
-  ) {
-    this.tag = confirmDialogData.tag;
-    this.isUpdate = !!this.tag;
-
-    this.tagForm = new UntypedFormGroup({
-      name: new UntypedFormControl(this.tag?.name, [Validators.required, Validators.minLength(1), Validators.maxLength(64)]),
-      description: new UntypedFormControl(this.tag?.description),
-      restrictedGroups: new UntypedFormControl(this.tag?.restricted_groups ?? []),
-    });
-  }
+  tag?: Tag = this.confirmDialogData.tag;
+  isUpdate = !!this.tag;
+  tagForm = new FormGroup({
+    name: new FormControl<string>(this.tag?.name, [Validators.required, Validators.minLength(1), Validators.maxLength(64)]),
+    key: new FormControl<string>(this.tag?.key, [Validators.required, Validators.minLength(1), Validators.maxLength(64)]),
+    description: new FormControl<string>(this.tag?.description),
+    restrictedGroups: new FormControl<string[]>(this.tag?.restricted_groups ?? []),
+  });
+  groups$ = this.groupService.listByOrganization().pipe(shareReplay(1));
 
   onSubmit() {
     const { restrictedGroups, ...formRawValue } = this.tagForm.getRawValue();
