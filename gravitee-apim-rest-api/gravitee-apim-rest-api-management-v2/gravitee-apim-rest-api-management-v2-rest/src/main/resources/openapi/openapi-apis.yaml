@@ -4596,9 +4596,11 @@ components:
                 - EDGE
                 - LLM_PROXY
                 - MCP_PROXY
+                - MCP
                 - MESSAGE
                 - NATIVE
                 - PROXY
+                - AGENT
         Visibility:
             type: string
             description: The visibility of the resource regarding the portal.

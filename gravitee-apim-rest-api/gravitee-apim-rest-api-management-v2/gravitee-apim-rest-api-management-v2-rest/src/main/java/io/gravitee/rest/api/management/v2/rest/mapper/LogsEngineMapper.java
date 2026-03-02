@@ -23,6 +23,7 @@ import io.gravitee.apim.core.logs_engine.model.NumericFilter;
 import io.gravitee.apim.core.logs_engine.model.Operator;
 import io.gravitee.apim.core.logs_engine.model.SearchLogsRequest;
 import io.gravitee.apim.core.logs_engine.model.StringFilter;
+import io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.SearchLogsResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -80,6 +81,7 @@ public interface LogsEngineMapper {
             case PROXY -> io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog.ApiTypeEnum.HTTP_PROXY;
             case LLM_PROXY -> io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog.ApiTypeEnum.LLM_PROXY;
             case MCP_PROXY -> io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog.ApiTypeEnum.MCP_PROXY;
+            case AGENT -> io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog.ApiTypeEnum.AGENT;
             case A2A_PROXY, AUTHZ, EDGE, MESSAGE, NATIVE -> null;
         };
     }

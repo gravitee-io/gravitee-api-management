@@ -616,6 +616,7 @@ class AcceptSubscriptionUseCaseTest {
                 case MCP_PROXY -> ApiFixtures.aMCPProxyApiV4().setId(API_ID);
                 case PROXY -> ApiFixtures.aProxyApiV4().setId(API_ID);
                 case MESSAGE -> ApiFixtures.aMessageApiV4().setId(API_ID);
+                case AGENT -> ApiFixtures.anAgentApiV4().setId(API_ID);
                 case NATIVE -> throw new IllegalStateException("NATIVE API not supported");
             };
             case FEDERATED -> ApiFixtures.aFederatedApi().setId(API_ID);
@@ -639,7 +640,7 @@ class AcceptSubscriptionUseCaseTest {
         return switch (api.getDefinitionVersion()) {
             case V2 -> PlanFixtures.aPlanV2().setPlanStatus(PlanStatus.PUBLISHED);
             case V4 -> switch (api.getType()) {
-                case A2A_PROXY, LLM_PROXY, MCP_PROXY, PROXY -> PlanFixtures.HttpV4.anApiKey().setPlanStatus(PlanStatus.PUBLISHED);
+                case A2A_PROXY, LLM_PROXY, MCP_PROXY, PROXY, AGENT -> PlanFixtures.HttpV4.anApiKey().setPlanStatus(PlanStatus.PUBLISHED);
                 case AUTHZ -> throw new IllegalStateException("AUTHZ API not supported");
                 case EDGE -> throw new IllegalStateException("EDGE API not supported");
                 case MESSAGE -> PlanFixtures.HttpV4.aPushPlan().setPlanStatus(PlanStatus.PUBLISHED);

@@ -210,7 +210,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         if (apiType == ApiType.AUTHZ) {
             return;
         }
-        if (isBlank(type) || !connectorPluginEntity.getSupportedApiType().equals(apiType)) {
+        if (isBlank(type) || !connectorPluginEntity.getSupportedApiTypes().contains(apiType)) {
             throw new EndpointGroupTypeInvalidException(type);
         }
     }

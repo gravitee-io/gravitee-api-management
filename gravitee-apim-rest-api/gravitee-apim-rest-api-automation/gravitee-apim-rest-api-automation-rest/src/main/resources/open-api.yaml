@@ -1921,7 +1921,9 @@ components:
         - MCP_PROXY
         - MESSAGE
         - PROXY
+        - MCP
         - NATIVE
+        - AGENT
     Visibility:
       type: string
       description: The visibility of the entity regarding the portal.

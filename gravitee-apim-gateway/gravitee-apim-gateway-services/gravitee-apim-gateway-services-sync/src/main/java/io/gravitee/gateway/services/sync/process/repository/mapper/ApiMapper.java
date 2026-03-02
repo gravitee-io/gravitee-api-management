@@ -82,7 +82,8 @@ public class ApiMapper {
                         api.getType() == ApiType.LLM_PROXY ||
                         api.getType() == ApiType.MCP_PROXY ||
                         api.getType() == ApiType.MESSAGE ||
-                        api.getType() == ApiType.AUTHZ
+                        api.getType() == ApiType.AUTHZ ||
+                        api.getType() == ApiType.AGENT
                     ) {
                         var eventApiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class);
 

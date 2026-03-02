@@ -62,7 +62,7 @@
         <gravitee-exchange.version>3.0.0</gravitee-exchange.version>
         <gravitee-expression-language.version>4.3.0</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
-        <gravitee-gateway-api.version>6.2.0</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>6.2.0-agent</gravitee-gateway-api.version>
         <gravitee-integration-api.version>5.1.0</gravitee-integration-api.version>
         <gravitee-json-validation.version>2.2.0</gravitee-json-validation.version>
         <gravitee-kubernetes.version>4.0.0</gravitee-kubernetes.version>
@@ -78,6 +78,8 @@
         <gravitee-resource-cache-provider-api.version>2.2.0</gravitee-resource-cache-provider-api.version>
         <gravitee-resource-content-provider-api.version>1.0.0</gravitee-resource-content-provider-api.version>
         <gravitee-resource-oauth2-provider-api.version>1.5.1</gravitee-resource-oauth2-provider-api.version>
+        <gravitee-resource-skill-provider-api.version>1.0.0-SNAPSHOT</gravitee-resource-skill-provider-api.version>
+        <gravitee-resource-agent-memory-store-api.version>1.0.0-SNAPSHOT</gravitee-resource-agent-memory-store-api.version>
         <gravitee-resource-storage-api.version>1.1.0</gravitee-resource-storage-api.version>
         <gravitee-scoring-api.version>0.7.0</gravitee-scoring-api.version>
         <gravitee-secret-api.version>3.0.0</gravitee-secret-api.version>
@@ -158,6 +160,8 @@
         <xmlbeans.version>5.3.0</xmlbeans.version>
         <tika.version>3.2.3</tika.version>
         <pdfbox.version>3.0.6</pdfbox.version>
+
+        <langchain4j.version>1.13.0</langchain4j.version>
 
         <!-- Plugins version -->
         <maven-clean-plugin.version>3.4.1</maven-clean-plugin.version>

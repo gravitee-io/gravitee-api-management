@@ -5250,8 +5250,10 @@ components:
                 - LLM_PROXY
                 - MCP_PROXY
                 - PROXY
+                - MCP
                 - MESSAGE
                 - NATIVE
+                - AGENT
         ApiInformation:
             properties:
                 name:
@@ -7240,8 +7242,10 @@ components:
                         - llm_proxy
                         - mcp_proxy
                         - proxy
+                        - mcp
                         - message
                         - native
+                        - agent
                 supportedModes:
                     description: ConnectorMode supported by the connector.
                     type: array

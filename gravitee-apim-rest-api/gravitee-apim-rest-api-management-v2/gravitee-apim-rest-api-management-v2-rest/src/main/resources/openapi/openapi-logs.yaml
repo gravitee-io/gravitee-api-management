@@ -275,6 +275,8 @@ components:
             - HTTP_PROXY
             - LLM_PROXY
             - MCP_PROXY
+            - MCP
+            - AGENT
         timestamp:
           type: string
           format: date-time

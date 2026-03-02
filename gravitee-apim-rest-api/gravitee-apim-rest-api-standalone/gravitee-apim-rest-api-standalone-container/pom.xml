@@ -128,6 +128,14 @@
         </dependency>
         <dependency>
             <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-skill-provider-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-agent-memory-store-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
             <artifactId>gravitee-resource-cache-provider-api</artifactId>
         </dependency>
         <dependency>
