@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ApiV2, ApiV4, HttpListener, KafkaListener, TcpListener } from '../../entities/management-api-v2';
+import { Api, ApiV2, ApiV4, HttpListener, KafkaListener, TcpListener } from '../../entities/management-api-v2';
 
 export const getApiAccess = (api: ApiV4 | ApiV2): string[] | null => {
   if (api.definitionVersion === 'V2') {
@@ -42,3 +42,13 @@ export const getApiAccess = (api: ApiV4 | ApiV2): string[] | null => {
 
   return tcpListenerHosts.length > 0 ? tcpListenerHosts : httpListenerPaths.length > 0 ? httpListenerPaths : null;
 };
+
+/**
+ * Returns the first access path for display (e.g. context path, primary path).
+ * Complementary to getApiAccess - use when you need a single value for UI display.
+ */
+export function getApiContextPath(api: Api | null | undefined): string | null {
+  if (!api || (api.definitionVersion !== 'V2' && api.definitionVersion !== 'V4')) return null;
+  const access = getApiAccess(api as ApiV4 | ApiV2);
+  return access?.[0] ?? null;
+}

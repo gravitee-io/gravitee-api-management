@@ -15,7 +15,7 @@
  */
 
 import { Component, computed, inject, Injector, OnInit, signal } from '@angular/core';
-import { toObservable } from '@angular/core/rxjs-interop';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { combineLatest, Observable, of } from 'rxjs';
@@ -31,7 +31,7 @@ import { GioAvatarModule, GioBannerModule, GioIconsModule } from '@gravitee/ui-p
 
 import { Api } from '../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { getApiContextPath } from '../../../../shared/utils/api.util';
+import { getApiContextPath } from '../../../../shared/utils/api-access.util';
 
 export type ApiWithContextPath = Api & { contextPath: string | null };
 
@@ -69,12 +69,15 @@ export class ApiProductAddApiDialogComponent implements OnInit {
   private readonly apiService = inject(ApiV2Service);
   readonly data = inject<ApiProductAddApiDialogData>(MAT_DIALOG_DATA);
 
-  get hasNonEmptySearchTerm(): boolean {
-    const v = this.searchApiControl.value;
-    return typeof v === 'string' && v.trim().length > 0;
-  }
-
   readonly searchApiControl = new FormControl<string | Api>('');
+  readonly searchTermValue = toSignal(
+    this.searchApiControl.valueChanges.pipe(
+      startWith(this.searchApiControl.value ?? ''),
+      map(v => (typeof v === 'string' ? v : '')),
+    ),
+    { initialValue: '' },
+  );
+  readonly hasNonEmptySearchTerm = computed(() => this.searchTermValue().trim().length > 0);
   filteredOptions$!: Observable<ApiWithContextPath[]>;
 
   readonly selectedApis = signal<Api[]>([]);

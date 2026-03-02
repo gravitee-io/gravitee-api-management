@@ -87,7 +87,7 @@
               </span>
             </mat-option>
           } @empty {
-            @if (hasNonEmptySearchTerm) {
+            @if (hasNonEmptySearchTerm()) {
               <mat-option disabled>No APIs matching search criteria</mat-option>
             }
           }

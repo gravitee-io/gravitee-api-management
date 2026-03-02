@@ -109,6 +109,19 @@ describe('ApiProductApisComponent', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     _router = TestBed.inject(Router);
+
+    // Simulate router.navigate updating query params (Router is source of truth)
+    jest.spyOn(_router, 'navigate').mockImplementation((_commands, extras) => {
+      if (extras?.['queryParams']) {
+        const merged = { ...queryParams$.value, ...extras['queryParams'] };
+        const filtered: Record<string, string> = {};
+        for (const [k, v] of Object.entries(merged)) {
+          if (v != null) filtered[k] = String(v);
+        }
+        queryParams$.next(filtered);
+      }
+      return Promise.resolve(true);
+    });
   });
 
   afterEach(() => {

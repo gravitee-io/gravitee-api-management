@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { getApiAccess } from './api-access.util';
+import { getApiAccess, getApiContextPath } from './api-access.util';
 
 import { fakeApiV2, fakeApiV4, fakeNativeKafkaApiV4 } from '../../entities/management-api-v2';
 
@@ -100,5 +100,43 @@ describe('getApiAccess', () => {
     const api = fakeApiV4({ type: 'PROXY', listeners: [] });
 
     expect(getApiAccess(api)).toEqual(null);
+  });
+});
+
+describe('getApiContextPath', () => {
+  it('should return first access when getApiAccess returns multiple', () => {
+    const api = fakeApiV2({
+      proxy: {
+        ...fakeApiV2().proxy,
+        virtualHosts: [
+          { host: 'example.com', path: '/planets', overrideEntrypoint: true },
+          { host: 'api.example.com', path: '/v2', overrideEntrypoint: true },
+        ],
+      },
+    });
+
+    expect(getApiContextPath(api)).toBe('example.com/planets');
+  });
+
+  it('should return single access when getApiAccess returns one', () => {
+    const api = fakeApiV2({ proxy: { ...fakeApiV2().proxy, virtualHosts: [] }, contextPath: '/ctx' });
+
+    expect(getApiContextPath(api)).toBe('/ctx');
+  });
+
+  it('should return null when getApiAccess returns null', () => {
+    const api = fakeApiV4({ type: 'PROXY', listeners: [] });
+
+    expect(getApiContextPath(api)).toBe(null);
+  });
+
+  it('should return null for null or undefined api', () => {
+    expect(getApiContextPath(null)).toBe(null);
+    expect(getApiContextPath(undefined)).toBe(null);
+  });
+
+  it('should return null for unsupported definition version', () => {
+    const api = { definitionVersion: 'V1' } as Parameters<typeof getApiContextPath>[0];
+    expect(getApiContextPath(api)).toBe(null);
   });
 });
