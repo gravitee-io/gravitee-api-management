@@ -67,6 +67,10 @@ export class ApiRuntimeLogsComponent implements OnInit {
       });
     }),
   );
+  errorKeys$ = this.apiLogsService.searchErrorKeys(this.activatedRoute.snapshot.params.apiId).pipe(
+    map((keys) => keys.filter(Boolean)),
+    shareReplay(1),
+  );
   apiType: Signal<ApiType> = toSignal(this.api$.pipe(map((api: ApiV4) => api.type)));
   initialValues: LogFiltersInitialValues;
   loading = true;
@@ -154,6 +158,8 @@ export class ApiRuntimeLogsComponent implements OnInit {
             mcpMethods: this.activatedRoute.snapshot.queryParams?.mcpMethods?.split(',') ?? undefined,
             statuses: statuses?.size > 0 ? statuses : undefined,
             entrypoints: this.activatedRoute.snapshot.queryParams?.entrypointIds?.split(',') ?? undefined,
+            errorKeys: this.activatedRoute.snapshot.queryParams?.errorKeys?.split(',') ?? undefined,
+
           };
         }),
       )

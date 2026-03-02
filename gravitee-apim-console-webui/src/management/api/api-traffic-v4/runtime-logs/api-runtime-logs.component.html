@@ -40,6 +40,7 @@
       [plans]="apiPlans$ | async"
       [entrypoints]="entrypoints$ | async"
       [apiType]="apiType()"
+      [errorKeys]="errorKeys$ | async"
       (refresh)="refresh()"
     ></api-runtime-logs-quick-filters>
   }

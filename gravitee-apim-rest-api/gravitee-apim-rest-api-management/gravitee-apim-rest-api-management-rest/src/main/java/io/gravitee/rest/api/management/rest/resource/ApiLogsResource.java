@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static java.lang.String.format;
 
+import io.gravitee.apim.core.log.use_case.SearchApiConnectionLogErrorKeysUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.wrapper.ApiRequestItemSearchLogResponse;
 import io.gravitee.rest.api.management.rest.resource.param.LogsParam;
@@ -41,6 +42,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -52,6 +54,9 @@ public class ApiLogsResource extends AbstractResource {
 
     @Inject
     private LogsService logsService;
+
+    @Inject
+    private SearchApiConnectionLogErrorKeysUseCase searchErrorKeysUseCase;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
@@ -118,5 +123,17 @@ public class ApiLogsResource extends AbstractResource {
         return Response.ok(logsService.exportAsCsv(GraviteeContext.getExecutionContext(), searchLogResponse))
             .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", api, System.currentTimeMillis()))
             .build();
+    }
+
+    @Path("/error-keys")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
+    public List<String> getApiLogErrorKeys() {
+        var output = searchErrorKeysUseCase.execute(
+            GraviteeContext.getExecutionContext(),
+            new SearchApiConnectionLogErrorKeysUseCase.Input(api)
+        );
+        return output.errorKeys();
     }
 }

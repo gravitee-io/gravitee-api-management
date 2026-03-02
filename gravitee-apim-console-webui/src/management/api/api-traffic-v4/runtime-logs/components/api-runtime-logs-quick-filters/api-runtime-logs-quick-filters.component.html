@@ -61,6 +61,13 @@
         </mat-select>
       </mat-form-field>
 
+      <mat-form-field class="quick-filters__error-keys">
+        <mat-label>Error Types</mat-label>
+        <mat-select formControlName="errorKeys" aria-label="Error keys selection" [multiple]="true" panelWidth="">
+          <mat-option *ngFor="let errorKey of errorKeys" [value]="errorKey">{{ errorKey }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
       <div class="action">
         <api-runtime-logs-more-filters
           [showMoreFilters]="showMoreFilters"

@@ -73,6 +73,8 @@ public class SearchMetricsQueryAdapter {
 
         addUriFilter(filter, mustFilterList);
 
+        addErrorKeysFilter(filter, mustFilterList);
+
         addResponseTimeRangesFilter(filter, mustFilterList);
 
         if (!mustFilterList.isEmpty()) {
@@ -109,6 +111,12 @@ public class SearchMetricsQueryAdapter {
             mustFilterList.add(
                 JsonObject.of("wildcard", JsonObject.of(RequestV2MetricsV4Fields.URI, beginningSlash + uriKeyword + endingWildcard))
             );
+        }
+    }
+
+    private static void addErrorKeysFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getErrorKeys())) {
+            mustFilterList.add(JsonObject.of("terms", JsonObject.of(RequestV2MetricsV4Fields.ERROR_KEY, filter.getErrorKeys().toArray())));
         }
     }
 

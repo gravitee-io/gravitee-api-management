@@ -23,6 +23,8 @@ import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchConnectionLogErrorKeysQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchConnectionLogErrorKeysResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchMetricsQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchMetricsResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.message.SearchMessageMetricsQueryAdapter;
@@ -31,6 +33,7 @@ import io.gravitee.repository.log.v4.api.MetricsRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.Metrics;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
+import io.gravitee.repository.log.v4.model.connection.SearchConnectionLogErrorKeysQuery;
 import io.gravitee.repository.log.v4.model.message.MessageMetrics;
 import io.gravitee.repository.log.v4.model.message.MessageMetricsQuery;
 import java.util.List;
@@ -72,6 +75,25 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
 
         return this.client.search(indexes, null, SearchMetricsQueryAdapter.adapt(query))
             .map(SearchMetricsResponseAdapter::adapt)
+            .blockingGet();
+    }
+
+    @Override
+    public List<String> searchConnectionLogErrorKeys(QueryContext queryContext, String apiId) {
+        var indexes = getQueryIndexesFromDefinitionVersions(
+            Type.REQUEST,
+            Type.V4_METRICS,
+            configuration,
+            queryContext,
+            List.of(DefinitionVersion.V2, DefinitionVersion.V4)
+        );
+
+        return this.client.search(
+                indexes,
+                null,
+                SearchConnectionLogErrorKeysQueryAdapter.adapt(SearchConnectionLogErrorKeysQuery.of(apiId))
+            )
+            .map(SearchConnectionLogErrorKeysResponseAdapter::adapt)
             .blockingGet();
     }
 }

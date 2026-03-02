@@ -161,6 +161,19 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
     }
 
     @Override
+    public List<String> searchApiConnectionLogErrorKeys(ExecutionContext executionContext, String apiId) {
+        return connectionLogs
+            .storage()
+            .stream()
+            .filter(log -> apiId == null || apiId.equals(log.getApiId()))
+            .map(BaseConnectionLog::getErrorKey)
+            .filter(StringUtils::hasText)
+            .distinct()
+            .sorted()
+            .collect(Collectors.toList());
+    }
+
+    @Override
     public void initWith(List<Object> items) {
         connectionLogs.initWith(items.stream().filter(BaseConnectionLog.class::isInstance).map(BaseConnectionLog.class::cast).toList());
         connectionLogDetails.initWith(
@@ -231,6 +244,10 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
 
         if (!CollectionUtils.isEmpty(logsFilters.entrypointIds())) {
             predicate = predicate.and(connectionLog -> logsFilters.entrypointIds().contains(connectionLog.getEntrypointId()));
+        }
+
+        if (!CollectionUtils.isEmpty(logsFilters.errorKeys())) {
+            predicate = predicate.and(connectionLog -> logsFilters.errorKeys().contains(connectionLog.getErrorKey()));
         }
 
         if (!CollectionUtils.isEmpty(logsFilters.responseTimeRanges())) {

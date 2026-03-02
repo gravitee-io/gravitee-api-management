@@ -199,7 +199,8 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             .requestIds(searchLogsFilters.requestIds())
             .transactionIds(searchLogsFilters.transactionIds())
             .uri(searchLogsFilters.uri())
-            .responseTimeRanges(ConnectionLogAdapter.INSTANCE.convert(searchLogsFilters.responseTimeRanges()));
+            .responseTimeRanges(ConnectionLogAdapter.INSTANCE.convert(searchLogsFilters.responseTimeRanges()))
+            .errorKeys(searchLogsFilters.errorKeys());
     }
 
     private static ConnectionLogDetailQuery.Filter.FilterBuilder mapToConnectionLogDetailQueryFilterBuilder(
@@ -237,5 +238,18 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
             connectionLogDetailQuery
         );
+    }
+
+    @Override
+    public List<String> searchApiConnectionLogErrorKeys(ExecutionContext executionContext, String apiId) {
+        try {
+            return metricsRepository.searchConnectionLogErrorKeys(
+                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                apiId
+            );
+        } catch (AnalyticsException e) {
+            log.error("An error occurs while trying to search error keys for api [apiId={}]", apiId, e);
+            throw new TechnicalManagementException("Error while searching error keys for api " + apiId, e);
+        }
     }
 }

@@ -51,6 +51,8 @@ export class ApiLogsV2Service {
     if (queryParam?.methods) params = params.append('methods', queryParam.methods);
     if (queryParam?.mcpMethods) params = params.append('mcpMethods', queryParam.mcpMethods);
     if (queryParam?.statuses) params = params.append('statuses', queryParam.statuses);
+    if (queryParam?.errorKeys) params = params.append('errorKeys', queryParam.errorKeys);
+
 
     return this.http.get<ApiLogsResponse>(`${this.constants.env?.v2BaseURL}/apis/${apiId}/logs`, {
       params,
@@ -76,6 +78,9 @@ export class ApiLogsV2Service {
     return httpParams.append('additional', `${field};${value}`);
   }
 
+  searchErrorKeys(apiId: string): Observable<string[]> {
+    return this.http.get<string[]>(`${this.constants.env.v2BaseURL}/apis/${apiId}/logs/error-keys`);
+  }
   searchApiMessageLogs(
     apiId: string,
     params?: {

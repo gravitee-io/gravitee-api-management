@@ -47,6 +47,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
   @Input() initialValues: LogFiltersInitialValues;
   @Input() plans: Plan[];
   @Input() entrypoints: { id: string; name: string }[];
+  @Input() errorKeys: string[];
   @Input() apiType: ApiType;
   @Output() refresh = new EventEmitter<void>();
   @Output() resetFilters = new EventEmitter<void>();
@@ -145,6 +146,8 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
       }),
       methods: new UntypedFormControl({ value: this.initialValues.methods, disabled: true }),
       mcpMethods: new UntypedFormControl({ value: this.initialValues.mcpMethods, disabled: true }),
+      errorKeys: new UntypedFormControl({ value: this.initialValues.errorKeys ?? [], disabled: true }),
+
     });
     this.onValuesChanges();
   }
@@ -217,13 +220,14 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
     };
   }
 
-  private mapQuickFiltersFormValues({ period, entrypoints, plans, methods, mcpMethods }: LogFiltersForm) {
+  private mapQuickFiltersFormValues({ period, entrypoints, plans, methods, mcpMethods, errorKeys }: LogFiltersForm) {
     return {
       period,
       entrypoints,
       plans: this.plansFromValues(plans),
       methods: methods?.length > 0 ? methods : undefined,
       mcpMethods: mcpMethods?.length > 0 ? mcpMethods : undefined,
+      errorKeys: errorKeys?.length > 0 ? errorKeys : undefined,
     };
   }
 

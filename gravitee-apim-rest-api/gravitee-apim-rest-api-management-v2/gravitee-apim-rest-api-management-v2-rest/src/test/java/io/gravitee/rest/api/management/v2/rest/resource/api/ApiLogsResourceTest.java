@@ -701,4 +701,69 @@ class ApiLogsResourceTest extends ApiResourceTest {
                 .hasMessage("No log found for api: " + API + " and requestId: request-id");
         }
     }
+
+    @Nested
+    class GetApiLogErrorKeys {
+
+        @BeforeEach
+        void setUp() {
+            planStorageService.initWith(List.of(PLAN_1, PLAN_2));
+            applicationStorageService.initWith(List.of(APPLICATION));
+        }
+
+        @AfterEach
+        void tearDown() {
+            Stream.of(connectionLogStorageService, planStorageService, applicationStorageService).forEach(InMemoryAlternative::reset);
+        }
+
+        @Test
+        void should_return_distinct_error_keys() {
+            connectionLogStorageService.initWithConnectionLogs(
+                List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder().errorKey("GATEWAY_CLIENT_CONNECTION_ERROR").build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder().errorKey("NO_ENDPOINT_FOUND").build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder().errorKey("GATEWAY_CLIENT_CONNECTION_ERROR").build() // duplicate
+                )
+            );
+
+            final Response response = rootTarget().path("error-keys").request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(List.class)
+                .satisfies(keys ->
+                    assertThat(keys).hasSize(2).containsExactlyInAnyOrder("GATEWAY_CLIENT_CONNECTION_ERROR", "NO_ENDPOINT_FOUND")
+                );
+        }
+
+        @Test
+        void should_return_empty_list_when_no_error_keys() {
+            connectionLogStorageService.initWithConnectionLogs(
+                List.of(connectionLogFixtures.aConnectionLog("req1").toBuilder().errorKey(null).build())
+            );
+
+            final Response response = rootTarget().path("error-keys").request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(List.class)
+                .satisfies(keys -> assertThat(keys).isEmpty());
+        }
+
+        @Test
+        void should_return_403_when_insufficient_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_LOG,
+                    API,
+                    RolePermissionAction.READ
+                )
+            ).thenReturn(false);
+
+            final Response response = rootTarget().path("error-keys").request().get();
+
+            assertThat(response).hasStatus(FORBIDDEN_403);
+        }
+    }
 }
