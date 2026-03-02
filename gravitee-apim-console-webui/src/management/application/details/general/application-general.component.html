@@ -226,6 +226,11 @@
                 >The <code>client_certificate</code> of the application. This field is required to subscribe to mTLS plans.
               </mat-hint>
             </mat-form-field>
+            @if (certificateCount > 1) {
+              <gio-banner-warning>
+                This application has {{ certificateCount }} active certificates. The one displayed is the most recently created.
+              </gio-banner-warning>
+            }
           </div>
         </div>
       </mat-card-content>
