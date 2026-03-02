@@ -43,6 +43,8 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class ConnectorPluginEntity extends PlatformPluginEntity {
 
+    private Set<ApiType> supportedApiTypes;
+
     private ApiType supportedApiType;
 
     private Set<ConnectorMode> supportedModes;
