@@ -15,7 +15,10 @@
  */
 package io.gravitee.apim.core.analytics.query_service;
 
+import io.gravitee.apim.core.analytics.model.AnalyticsDateHistoResponse;
+import io.gravitee.apim.core.analytics.model.AnalyticsGroupByResponse;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.AnalyticsStatsResponse;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
@@ -38,6 +41,21 @@ import org.checkerframework.checker.units.qual.A;
 
 public interface AnalyticsQueryService {
     Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to);
+
+    long searchCount(ExecutionContext executionContext, String apiId, Instant from, Instant to);
+
+    Optional<AnalyticsStatsResponse> searchStats(ExecutionContext executionContext, String apiId, String field, Instant from, Instant to);
+
+    Map<String, Long> searchGroupBy(ExecutionContext executionContext, String apiId, String field, int size, Instant from, Instant to);
+
+    AnalyticsDateHistoResponse searchDateHisto(
+        ExecutionContext executionContext,
+        String apiId,
+        String field,
+        long intervalMs,
+        Instant from,
+        Instant to
+    );
 
     Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(
         ExecutionContext executionContext,
