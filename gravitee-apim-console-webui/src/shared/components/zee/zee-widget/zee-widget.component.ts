@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -46,6 +46,8 @@ export class ZeeWidgetComponent {
   @Output() accepted = new EventEmitter<any>();
   @Output() rejected = new EventEmitter<void>();
 
+  @ViewChild('promptInput') promptInput!: ElementRef<HTMLTextAreaElement>;
+
   readonly MAX_PROMPT_LENGTH = MAX_PROMPT_LENGTH;
   isOpen = false;
   state: ZeeState = 'idle';
@@ -57,6 +59,16 @@ export class ZeeWidgetComponent {
 
   togglePanel(): void {
     this.isOpen = !this.isOpen;
+    if (this.isOpen && this.state === 'idle') {
+      setTimeout(() => this.promptInput?.nativeElement?.focus(), 50);
+    }
+  }
+
+  onKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.onSubmit();
+    }
   }
 
   constructor(

@@ -47,8 +47,10 @@
       <mat-form-field appearance="outline" class="zee-prompt-field">
         <mat-label>Describe what you want Zee to create...</mat-label>
         <textarea
+          #promptInput
           matInput
           [(ngModel)]="prompt"
+          (keydown)="onKeydown($event)"
           rows="3"
           placeholder="e.g. Generate a flow that rate-limits requests to 100 per minute"
         ></textarea>
