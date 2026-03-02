@@ -37,7 +37,14 @@ export type LogFilters = {
   errorKeys?: string[];
 };
 
-export type LogFiltersForm = { period: SimpleFilter; entrypoints: string[]; plans: string[]; methods: string[]; mcpMethods: string[]; errorKeys?: string[]; };
+export type LogFiltersForm = {
+  period: SimpleFilter;
+  entrypoints: string[];
+  plans: string[];
+  methods: string[];
+  mcpMethods: string[];
+  errorKeys?: string[];
+};
 
 export type MoreFiltersForm = { period: SimpleFilter; from: Moment; to: Moment; statuses: Set<number>; applications?: MultiFilter };
 

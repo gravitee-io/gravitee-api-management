@@ -147,7 +147,6 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
       methods: new UntypedFormControl({ value: this.initialValues.methods, disabled: true }),
       mcpMethods: new UntypedFormControl({ value: this.initialValues.mcpMethods, disabled: true }),
       errorKeys: new UntypedFormControl({ value: this.initialValues.errorKeys ?? [], disabled: true }),
-
     });
     this.onValuesChanges();
   }

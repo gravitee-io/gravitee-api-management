@@ -53,7 +53,6 @@ export class ApiLogsV2Service {
     if (queryParam?.statuses) params = params.append('statuses', queryParam.statuses);
     if (queryParam?.errorKeys) params = params.append('errorKeys', queryParam.errorKeys);
 
-
     return this.http.get<ApiLogsResponse>(`${this.constants.env?.v2BaseURL}/apis/${apiId}/logs`, {
       params,
     });
