@@ -84,6 +84,7 @@
         <gravitee-sandbox-api.version>1.0.0-SNAPSHOT</gravitee-sandbox-api.version>
         <gravitee-resource-storage-api.version>1.1.0</gravitee-resource-storage-api.version>
         <gravitee-scoring-api.version>0.7.0</gravitee-scoring-api.version>
+        <gravitee-scoring-api.version>0.7.0</gravitee-scoring-api.version>
         <gravitee-secret-api.version>3.0.0</gravitee-secret-api.version>
         <gravitee-service-discovery-api.version>1.1.1</gravitee-service-discovery-api.version>
         <gravitee-spec-gen-api.version>1.1.0</gravitee-spec-gen-api.version>
@@ -163,7 +164,11 @@
         <tika.version>3.2.3</tika.version>
         <pdfbox.version>3.0.6</pdfbox.version>
 
+<<<<<<< HEAD
         <langchain4j.version>1.16.3</langchain4j.version>
+=======
+        <langchain4j.version>1.13.0</langchain4j.version>
+>>>>>>> b14ca1f810 (New API Type: MCP and AGENT)
 
         <!-- Plugins version -->
         <maven-clean-plugin.version>3.4.1</maven-clean-plugin.version>

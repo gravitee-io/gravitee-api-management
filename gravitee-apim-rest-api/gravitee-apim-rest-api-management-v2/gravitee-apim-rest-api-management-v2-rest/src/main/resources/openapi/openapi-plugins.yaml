@@ -601,6 +601,7 @@ components:
                 - MCP_PROXY
                 - MESSAGE
                 - PROXY
+                - MCP
                 - NATIVE
                 - AGENT
         ListenerType:

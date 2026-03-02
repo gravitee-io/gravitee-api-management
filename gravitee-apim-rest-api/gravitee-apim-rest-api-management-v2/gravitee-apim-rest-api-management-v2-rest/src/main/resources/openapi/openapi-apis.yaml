@@ -4596,6 +4596,7 @@ components:
                 - EDGE
                 - LLM_PROXY
                 - MCP_PROXY
+                - MCP
                 - MESSAGE
                 - NATIVE
                 - PROXY

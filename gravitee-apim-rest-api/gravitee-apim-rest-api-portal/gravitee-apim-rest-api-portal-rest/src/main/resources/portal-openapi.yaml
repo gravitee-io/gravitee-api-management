@@ -5250,6 +5250,7 @@ components:
                 - LLM_PROXY
                 - MCP_PROXY
                 - PROXY
+                - MCP
                 - MESSAGE
                 - NATIVE
                 - AGENT
@@ -7241,6 +7242,7 @@ components:
                         - llm_proxy
                         - mcp_proxy
                         - proxy
+                        - mcp
                         - message
                         - native
                         - agent
