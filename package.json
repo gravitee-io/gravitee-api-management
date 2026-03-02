@@ -128,8 +128,8 @@
         "@angular/cli": "20.3.14",
         "@angular/compiler-cli": "20.3.16",
         "@gravitee/ui-schematics": "17.6.1",
-        "@nx/angular": "^21.1.0",
-        "@nx/jest": "^22.4.5",
+        "@nx/angular": "21.6.10",
+        "@nx/jest": "22.4.5",
         "@schematics/angular": "20.3.14",
         "@storybook/addon-docs": "9.1.17",
         "@storybook/addon-links": "9.1.17",
@@ -167,7 +167,7 @@
         "jest-preset-angular": "14.6.1",
         "license-check-and-add": "4.0.5",
         "ng-packagr": "^20.0.0",
-        "nx": "^21.1.0",
+        "nx": "21.6.10",
         "prettier": "3.5.3",
         "storybook": "9.1.17",
         "stylelint": "16.15.0",
@@ -175,7 +175,7 @@
         "stylelint-config-prettier-scss": "1.0.0",
         "stylelint-config-standard-scss": "14.0.0",
         "stylelint-order": "6.0.4",
-        "tslib": "^2.8.0",
+        "tslib": "2.8.1",
         "typescript": "5.9.3"
     },
     "engines": {
