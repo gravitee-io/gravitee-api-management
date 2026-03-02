@@ -18,6 +18,7 @@ import { NewTag } from './newTag';
 export function fakeNewTag(attributes?: Partial<NewTag>): NewTag {
   const base: NewTag = {
     name: 'Internal',
+    key: 'internal',
     description: 'A tag for all internal stuff',
   };
 

@@ -46,7 +46,7 @@ const MAPPING_TARGET_DISPLAYABLE: Record<Entrypoint['target'], string> = {
 };
 
 type TagTableDS = {
-  id: string;
+  key: string;
   name?: string;
   description?: string;
   restrictedGroupsName?: string[];
@@ -74,7 +74,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
   tagsTableDS: TagTableDS;
   filteredTagsTableDS: TagTableDS;
   tagsTableUnpaginatedLength = 0;
-  tagsTableDisplayedColumns: string[] = ['id', 'name', 'description', 'restrictedGroupsName', 'actions'];
+  tagsTableDisplayedColumns: string[] = ['key', 'name', 'description', 'restrictedGroupsName', 'actions'];
 
   environmentsPortalSettings: { environment: Environment; portalSettings: PortalSettings }[];
   defaultConfigForm: UntypedFormGroup;
@@ -124,7 +124,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
       .subscribe(([tags, groups, environmentsPortalSettings, entrypoints]) => {
         this.tags = tags;
         this.tagsTableDS = tags.map(tag => ({
-          id: tag.id,
+          key: tag.key,
           name: tag.name,
           description: tag.description,
           restrictedGroupsName: (tag.restricted_groups ?? [])
@@ -173,13 +173,19 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
         this.initialDefaultConfigFormValues = this.defaultConfigForm.getRawValue();
 
         this.entrypoints = entrypoints;
-        this.entrypointsTableDS = entrypoints.map(entrypoint => ({
-          id: entrypoint.id,
-          target: MAPPING_TARGET_DISPLAYABLE[entrypoint.target],
-          url: entrypoint.value,
-          tags: entrypoint.tags,
-          tagsName: (entrypoint.tags ?? []).map(tagId => tags.find(t => t.id === tagId)?.name ?? tagId),
-        }));
+        this.entrypointsTableDS = entrypoints.map(entrypoint => {
+          const tagsName = (entrypoint.tags ?? []).map(tagKey => {
+            const tag = tags.find(t => t.key === tagKey);
+            return tag?.name ?? tagKey;
+          });
+          return {
+            id: entrypoint.id,
+            target: MAPPING_TARGET_DISPLAYABLE[entrypoint.target],
+            url: entrypoint.value,
+            tags: entrypoint.tags,
+            tagsName,
+          };
+        });
         this.filteredEntrypointsTableDS = this.entrypointsTableDS;
         this.entrypointsTableUnpaginatedLength = this.entrypointsTableDS.length;
 
@@ -274,7 +280,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
       .open<OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData, Tag>(OrgSettingAddTagDialogComponent, {
         width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
-          tag: this.tags.find(t => t.id === tag.id),
+          tag: this.tags.find(t => t.key === tag.key),
         },
         role: 'dialog',
         id: 'addTagDialog',
@@ -296,7 +302,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
   }
 
   onDeleteTagClicked(tag: TagTableDS[number]) {
-    const entrypointsToUpdate = this.entrypoints.filter(entrypoint => entrypoint.tags.includes(tag.id));
+    const entrypointsToUpdate = this.entrypoints.filter(entrypoint => entrypoint.tags.includes(tag.key));
     const entrypointsToUpdateWithOneTag = entrypointsToUpdate.filter(e => e.tags.length === 1);
     const entrypointsToUpdateWithManyTags = entrypointsToUpdate.filter(e => e.tags.length > 1);
 
@@ -345,7 +351,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
           }
           const entrypointsUpdated = entrypointsToUpdateWithManyTags.map(entrypoint => ({
             ...entrypoint,
-            tags: entrypoint.tags.filter(t => t !== tag.id),
+            tags: entrypoint.tags.filter(t => t !== tag.key),
           }));
           const entrypointsToDelete = entrypointsToUpdateWithOneTag;
 
@@ -354,7 +360,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
             ...entrypointsToDelete.map(entrypoint => this.entrypointService.delete(entrypoint.id)),
           ]);
         }),
-        switchMap(() => this.tagService.delete(tag.id)),
+        switchMap(() => this.tagService.delete(tag.key)),
         tap(() => this.snackBarService.success(`Tag "${tag.name}" has been deleted.`)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
