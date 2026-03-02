@@ -52,7 +52,7 @@ import { Api, ApiType, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from 
 import { MigrateToV4State } from '../../../entities/management-api-v2/api/v2/migrateToV4Response';
 import { Integration } from '../../integrations/integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
-import { API_ADAPTER } from '../../../shared/components/zee/adapters/api-adapter';
+
 
 export interface MigrateDialogResult {
   confirmed: boolean;
@@ -104,7 +104,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
   public integrationName = '';
   public integrationId = '';
-  public apiAdapter = API_ADAPTER;
+
 
   constructor(
     private readonly router: Router,

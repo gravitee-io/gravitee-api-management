@@ -64,18 +64,21 @@ public class LlmEngineServiceImpl implements LlmEngineService {
      * with a typed object requiring {@code target}.
      */
     private static final List<JsonPatchOp> API_PATCHES = List.of(
-            new JsonPatchOp.Add(
-                    "/properties/description",
-                    Map.of("type", "string", "description", "Human-readable description of the API.")),
-            new JsonPatchOp.Replace(
-                    "/$defs/Endpoint/properties/configuration",
-                    Map.of("type", "object",
-                            "description", "Endpoint-specific configuration.",
-                            "properties", Map.of("target",
-                                    Map.of("type", "string",
-                                            "description",
-                                            "The target backend HTTP URL (e.g. https://api.example.com).")),
-                            "required", List.of("target"))));
+        new JsonPatchOp.Add("/properties/description", Map.of("type", "string", "description", "Human-readable description of the API.")),
+        new JsonPatchOp.Replace(
+            "/$defs/Endpoint/properties/configuration",
+            Map.of(
+                "type",
+                "object",
+                "description",
+                "Endpoint-specific configuration.",
+                "properties",
+                Map.of("target", Map.of("type", "string", "description", "The target backend HTTP URL (e.g. https://api.example.com).")),
+                "required",
+                List.of("target")
+            )
+        )
+    );
 
     /**
      * RFC 6902 JSON Patch to replace the opaque {@code configuration} in
@@ -83,30 +86,40 @@ public class LlmEngineServiceImpl implements LlmEngineService {
      * {@code target}.
      */
     private static final List<JsonPatchOp> ENDPOINT_GROUP_PATCHES = List.of(
-            new JsonPatchOp.Replace(
-                    "/$defs/Endpoint/properties/configuration",
-                    Map.of("type", "object",
-                            "description", "Endpoint-specific configuration.",
-                            "properties", Map.of("target",
-                                    Map.of("type", "string",
-                                            "description",
-                                            "The target backend HTTP URL (e.g. https://api.example.com).")),
-                            "required", List.of("target"))));
+        new JsonPatchOp.Replace(
+            "/$defs/Endpoint/properties/configuration",
+            Map.of(
+                "type",
+                "object",
+                "description",
+                "Endpoint-specific configuration.",
+                "properties",
+                Map.of("target", Map.of("type", "string", "description", "The target backend HTTP URL (e.g. https://api.example.com).")),
+                "required",
+                List.of("target")
+            )
+        )
+    );
 
     /**
      * RFC 6902 JSON Patch to replace the opaque {@code configuration} in
      * the standalone Endpoint schema with a typed object requiring {@code target}.
      */
     private static final List<JsonPatchOp> ENDPOINT_PATCHES = List.of(
-            new JsonPatchOp.Replace(
-                    "/properties/configuration",
-                    Map.of("type", "object",
-                            "description", "Endpoint-specific configuration.",
-                            "properties", Map.of("target",
-                                    Map.of("type", "string",
-                                            "description",
-                                            "The target backend HTTP URL (e.g. https://api.example.com).")),
-                            "required", List.of("target"))));
+        new JsonPatchOp.Replace(
+            "/properties/configuration",
+            Map.of(
+                "type",
+                "object",
+                "description",
+                "Endpoint-specific configuration.",
+                "properties",
+                Map.of("target", Map.of("type", "string", "description", "The target backend HTTP URL (e.g. https://api.example.com).")),
+                "required",
+                List.of("target")
+            )
+        )
+    );
 
     private final boolean disabled;
     private final LlmRoundtripEngine engine;
@@ -129,11 +142,9 @@ public class LlmEngineServiceImpl implements LlmEngineService {
         this.disabled = false;
 
         Objects.requireNonNull(config.getAzureUrl(), "ai.zee.azure.url must be configured when ai.zee.enabled=true");
-        Objects.requireNonNull(config.getAzureApiKey(),
-                "ai.zee.azure.apiKey must be configured when ai.zee.enabled=true");
+        Objects.requireNonNull(config.getAzureApiKey(), "ai.zee.azure.apiKey must be configured when ai.zee.enabled=true");
 
-        var providerConfig = new ProviderConfig(config.getAzureUrl(), config.getAzureModel(),
-                Map.of("api-key", config.getAzureApiKey()));
+        var providerConfig = new ProviderConfig(config.getAzureUrl(), config.getAzureModel(), Map.of("api-key", config.getAzureApiKey()));
 
         LlmTransport transport = request -> executeHttp(httpClient, request);
 
@@ -153,8 +164,7 @@ public class LlmEngineServiceImpl implements LlmEngineService {
     @Override
     public LlmGenerationResult generate(String prompt, String componentName) {
         if (disabled) {
-            throw new IllegalStateException(
-                    "Zee Mode is disabled. Set ai.zee.enabled=true with valid Azure credentials.");
+            throw new IllegalStateException("Zee Mode is disabled. Set ai.zee.enabled=true with valid Azure credentials.");
         }
 
         SchemaGenerator.Component component;
@@ -162,8 +172,8 @@ public class LlmEngineServiceImpl implements LlmEngineService {
             component = SchemaGenerator.Component.from(componentName);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(
-                    "Unsupported component: " + componentName + ". Available: " +
-                            java.util.Arrays.toString(SchemaGenerator.Component.values()));
+                "Unsupported component: " + componentName + ". Available: " + java.util.Arrays.toString(SchemaGenerator.Component.values())
+            );
         }
 
         try {
@@ -186,16 +196,15 @@ public class LlmEngineServiceImpl implements LlmEngineService {
     }
 
     private static LlmGenerationResult toGenerationResult(RoundtripResult result) {
-        return new LlmGenerationResult(result.data(), result.isValid(), -1, result.warnings(),
-                result.validationErrors());
+        return new LlmGenerationResult(result.data(), result.isValid(), -1, result.warnings(), result.validationErrors());
     }
 
     private static String executeHttp(HttpClient httpClient, LlmRequest request) throws LlmTransportException {
         try {
             var builder = HttpRequest.newBuilder()
-                    .uri(URI.create(request.url()))
-                    .timeout(HTTP_TIMEOUT)
-                    .POST(HttpRequest.BodyPublishers.ofString(request.body()));
+                .uri(URI.create(request.url()))
+                .timeout(HTTP_TIMEOUT)
+                .POST(HttpRequest.BodyPublishers.ofString(request.body()));
 
             request.headers().forEach(builder::header);
 
@@ -203,8 +212,9 @@ public class LlmEngineServiceImpl implements LlmEngineService {
 
             if (response.statusCode() >= 400) {
                 throw new LlmTransportException(
-                        "Azure OpenAI returned HTTP " + response.statusCode() + ": " + truncate(response.body(), 500),
-                        response.statusCode());
+                    "Azure OpenAI returned HTTP " + response.statusCode() + ": " + truncate(response.body(), 500),
+                    response.statusCode()
+                );
             }
 
             LOG.info("LLM Response body: {}", truncate(response.body(), 2000));

@@ -24,10 +24,14 @@ export const ZeeResourceType = {
 
 export type ZeeResourceType = (typeof ZeeResourceType)[keyof typeof ZeeResourceType];
 
-export interface ZeeResourceAdapter<TSavePayload = unknown> {
-  transform(generated: unknown, context?: Record<string, unknown>): TSavePayload;
-  previewLabel: string;
-}
+/** Human-readable labels for each resource type, used in the preview header. */
+export const RESOURCE_TYPE_LABELS: Record<ZeeResourceType, string> = {
+  FLOW: 'Generated Flow',
+  PLAN: 'Generated Plan',
+  API: 'Generated API',
+  ENDPOINT: 'Generated Endpoint',
+  ENTRYPOINT: 'Generated Entrypoint',
+};
 
 export interface ZeeGenerateRequest {
   resourceType: ZeeResourceType;
@@ -43,3 +47,4 @@ export interface ZeeGenerateResponse {
     tokensUsed: number;
   };
 }
+

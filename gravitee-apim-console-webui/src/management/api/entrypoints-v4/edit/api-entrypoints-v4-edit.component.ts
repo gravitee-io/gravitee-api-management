@@ -25,7 +25,7 @@ import { ApiV4, ConnectorPlugin, Entrypoint, Listener, Qos, UpdateApiV4 } from '
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { IconService } from '../../../../services-ngx/icon.service';
-import { ENTRYPOINT_ADAPTER } from '../../../../shared/components/zee/adapters/entrypoint-adapter';
+
 
 type DlqElement = { name: string; type: string; icon: string };
 @Component({
@@ -51,7 +51,7 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
   public supportDlq: boolean;
   public enabledDlq: boolean;
   public dlqElements: { name: string; elements: DlqElement[] }[] = [];
-  public entrypointAdapter = ENTRYPOINT_ADAPTER;
+
 
   constructor(
     private readonly router: Router,

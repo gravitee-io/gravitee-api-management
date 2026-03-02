@@ -22,7 +22,6 @@
 <zee-widget
   *ngIf="!isReadOnly && mode === 'create'"
   [resourceType]="'ENDPOINT'"
-  [adapter]="endpointAdapter"
   [contextData]="{ apiId: activatedRoute.snapshot.params.apiId }"
   (accepted)="onEndpointGenerated($event)"
 ></zee-widget>

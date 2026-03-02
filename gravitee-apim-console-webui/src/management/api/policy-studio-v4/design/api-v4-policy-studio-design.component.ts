@@ -43,7 +43,7 @@ import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/
 import { SharedPolicyGroupsService } from '../../../../services-ngx/shared-policy-groups.service';
 import { getApiProtocolTypeFromApi } from '../../../../entities/management-api-v2/plugin/apiProtocolType';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { FLOW_ADAPTER } from '../../../../shared/components/zee/adapters/flow-adapter';
+
 
 export type FlowSelection = { planIndex: number; flowIndex: number };
 
@@ -58,7 +58,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
 
   public apiType: ApiType;
   public flowExecution: FlowExecution;
-  public flowAdapter = FLOW_ADAPTER;
+
   public entrypointsInfo: ConnectorInfo[];
   public endpointsInfo: ConnectorInfo[];
   public commonFlows: PSFlow[];

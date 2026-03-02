@@ -27,7 +27,7 @@ import { Api, ApiV4, CreatePlanV2, CreatePlanV4, Plan, PlanStatus } from '../../
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 import { isApiV4 } from '../../../../util';
-import { PLAN_ADAPTER } from '../../../../shared/components/zee/adapters/plan-adapter';
+
 
 @Component({
   selector: 'api-plan-edit',
@@ -51,7 +51,7 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
   public currentPlanStatus: PlanStatus;
   public hasTcpListeners;
   public isNative: boolean = false;
-  public planAdapter = PLAN_ADAPTER;
+
 
   constructor(
     private readonly router: Router,

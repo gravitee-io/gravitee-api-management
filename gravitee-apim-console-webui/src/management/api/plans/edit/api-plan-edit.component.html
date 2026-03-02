@@ -25,7 +25,6 @@
   <zee-widget
     *ngIf="!isReadOnly && mode === 'create'"
     [resourceType]="'PLAN'"
-    [adapter]="planAdapter"
     [contextData]="{ apiId: api?.id }"
     (accepted)="onPlanGenerated($event)"
   ></zee-widget>

@@ -61,8 +61,8 @@ class LlmEngineServiceImplTest {
             var service = new LlmEngineServiceImpl(engine);
 
             assertThatThrownBy(() -> service.generate("prompt", "UnknownWidget"))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Unsupported component: UnknownWidget");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Unsupported component: UnknownWidget");
         }
 
         @Test
@@ -71,8 +71,8 @@ class LlmEngineServiceImplTest {
             var service = new LlmEngineServiceImpl(engine);
 
             assertThatThrownBy(() -> service.generate("prompt", null))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Unsupported component: null");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Unsupported component: null");
         }
 
         @Test
@@ -83,8 +83,7 @@ class LlmEngineServiceImplTest {
             var fakeResult = new RoundtripResult(fakeData, null, List.of(), List.of());
 
             var engine = mock(LlmRoundtripEngine.class);
-            when(engine.generateWithPreconverted(anyString(), anyString(), any(), eq("my prompt")))
-                    .thenReturn(fakeResult);
+            when(engine.generateWithPreconverted(anyString(), anyString(), any(), eq("my prompt"))).thenReturn(fakeResult);
 
             var service = new LlmEngineServiceImpl(engine);
 
@@ -108,8 +107,7 @@ class LlmEngineServiceImplTest {
             var engine = mock(LlmRoundtripEngine.class);
             // The patch variant goes through generateWithPatch, not
             // generateWithPreconverted
-            when(engine.generateWithPatch(anyString(), eq("create an API"), anyString()))
-                    .thenReturn(fakeResult);
+            when(engine.generateWithPatch(anyString(), eq("create an API"), anyString())).thenReturn(fakeResult);
 
             var service = new LlmEngineServiceImpl(engine);
 
@@ -127,8 +125,7 @@ class LlmEngineServiceImplTest {
             var fakeResult = new RoundtripResult(fakeData, null, List.of(), List.of());
 
             var engine = mock(LlmRoundtripEngine.class);
-            when(engine.generateWithPatch(anyString(), eq("create a group"), anyString()))
-                    .thenReturn(fakeResult);
+            when(engine.generateWithPatch(anyString(), eq("create a group"), anyString())).thenReturn(fakeResult);
 
             var service = new LlmEngineServiceImpl(engine);
 
@@ -144,8 +141,7 @@ class LlmEngineServiceImplTest {
             var fakeResult = new RoundtripResult(fakeData, null, List.of(), List.of());
 
             var engine = mock(LlmRoundtripEngine.class);
-            when(engine.generateWithPatch(anyString(), eq("create an endpoint"), anyString()))
-                    .thenReturn(fakeResult);
+            when(engine.generateWithPatch(anyString(), eq("create an endpoint"), anyString())).thenReturn(fakeResult);
 
             var service = new LlmEngineServiceImpl(engine);
 
@@ -163,8 +159,7 @@ class LlmEngineServiceImplTest {
             var fakeResult = new RoundtripResult(fakeData, null, warnings, errors);
 
             var engine = mock(LlmRoundtripEngine.class);
-            when(engine.generateWithPreconverted(anyString(), anyString(), any(), anyString()))
-                    .thenReturn(fakeResult);
+            when(engine.generateWithPreconverted(anyString(), anyString(), any(), anyString())).thenReturn(fakeResult);
 
             var service = new LlmEngineServiceImpl(engine);
 
@@ -178,14 +173,15 @@ class LlmEngineServiceImplTest {
         @Test
         void wraps_transport_exception_as_runtime_exception() throws Exception {
             var engine = mock(LlmRoundtripEngine.class);
-            when(engine.generateWithPreconverted(anyString(), anyString(), any(), anyString()))
-                    .thenThrow(new LlmTransportException("connection refused", 0));
+            when(engine.generateWithPreconverted(anyString(), anyString(), any(), anyString())).thenThrow(
+                new LlmTransportException("connection refused", 0)
+            );
 
             var service = new LlmEngineServiceImpl(engine);
 
             assertThatThrownBy(() -> service.generate("prompt", "Flow"))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("LLM transport failed");
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("LLM transport failed");
         }
 
         @Test
@@ -195,8 +191,7 @@ class LlmEngineServiceImplTest {
             var fakeResult = new RoundtripResult(fakeData, null, List.of(), List.of());
 
             var engine = mock(LlmRoundtripEngine.class);
-            when(engine.generateWithPreconverted(anyString(), anyString(), any(), anyString()))
-                    .thenReturn(fakeResult);
+            when(engine.generateWithPreconverted(anyString(), anyString(), any(), anyString())).thenReturn(fakeResult);
 
             var service = new LlmEngineServiceImpl(engine);
 
@@ -216,8 +211,8 @@ class LlmEngineServiceImplTest {
             var service = new LlmEngineServiceImpl(config);
 
             assertThatThrownBy(() -> service.generate("prompt", "Flow"))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("Zee Mode is disabled");
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Zee Mode is disabled");
         }
     }
 }

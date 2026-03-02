@@ -23,7 +23,7 @@ import { ZeeWidgetComponent, MAX_PROMPT_LENGTH } from './zee-widget.component';
 
 import { ZeeModule } from '../zee.module';
 import { ZeeService } from '../zee.service';
-import { ZeeGenerateResponse, ZeeResourceAdapter, ZeeResourceType } from '../zee.model';
+import { ZeeGenerateResponse, ZeeResourceType } from '../zee.model';
 import { GioTestingModule } from '../../../testing';
 
 /** JSDOM lacks DataTransfer — create a minimal FileList-shaped stub for unit tests. */
@@ -47,11 +47,6 @@ describe('ZeeWidgetComponent', () => {
   let zeeService: ZeeService;
   let snackBar: MatSnackBar;
 
-  const mockAdapter: ZeeResourceAdapter = {
-    previewLabel: 'Generated Flow',
-    transform: jest.fn((generated: any) => ({ name: generated.name })),
-  };
-
   const mockResponse: ZeeGenerateResponse = {
     resourceType: 'FLOW',
     generated: { name: 'Bot-blocker Flow', enabled: true },
@@ -70,7 +65,6 @@ describe('ZeeWidgetComponent', () => {
 
     // Set required inputs
     component.resourceType = ZeeResourceType.FLOW;
-    component.adapter = mockAdapter;
     component.contextData = { apiId: 'api-123' };
 
     fixture.detectChanges();
@@ -190,15 +184,14 @@ describe('ZeeWidgetComponent', () => {
       // Now in preview state
     });
 
-    it('should emit accepted with transformed payload and reset to idle', () => {
+    it('should emit accepted with raw generated data and reset to idle', () => {
       const emittedValues: any[] = [];
       component.accepted.subscribe((val) => emittedValues.push(val));
 
       component.onAccept();
 
-      expect(mockAdapter.transform).toHaveBeenCalledWith(mockResponse.generated, { apiId: 'api-123' });
       expect(emittedValues).toHaveLength(1);
-      expect(emittedValues[0]).toEqual({ name: 'Bot-blocker Flow' });
+      expect(emittedValues[0]).toEqual(mockResponse.generated);
       expect(component.state).toEqual('idle');
       expect(component.generatedResource).toBeNull();
     });

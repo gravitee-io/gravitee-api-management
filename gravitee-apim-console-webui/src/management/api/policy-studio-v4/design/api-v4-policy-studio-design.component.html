@@ -19,7 +19,6 @@
 <zee-widget
   *ngIf="!isReadOnly"
   [resourceType]="'FLOW'"
-  [adapter]="flowAdapter"
   [contextData]="{ apiId: apiId }"
   (accepted)="onFlowGenerated($event)"
 ></zee-widget>

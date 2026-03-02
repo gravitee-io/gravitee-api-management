@@ -17,7 +17,7 @@ import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
 
-import { ZeeGenerateRequest, ZeeResourceAdapter, ZeeResourceType } from '../zee.model';
+import { RESOURCE_TYPE_LABELS, ZeeGenerateRequest, ZeeResourceType } from '../zee.model';
 import { ZeeService } from '../zee.service';
 
 type ZeeState = 'idle' | 'loading' | 'preview' | 'error';
@@ -39,7 +39,6 @@ export const MAX_PROMPT_LENGTH = 2000;
 })
 export class ZeeWidgetComponent {
   @Input() resourceType!: ZeeResourceType;
-  @Input() adapter!: ZeeResourceAdapter;
   @Input() contextData?: Record<string, any>;
   /** Max file size in MB that is enforced in the UI (default matches backend 5 MB hard limit). */
   @Input() maxFileSizeMb = 5;
@@ -80,6 +79,10 @@ export class ZeeWidgetComponent {
     return !this.prompt.trim() || this.prompt.length > MAX_PROMPT_LENGTH;
   }
 
+  get previewLabel(): string {
+    return RESOURCE_TYPE_LABELS[this.resourceType] ?? 'Generated Resource';
+  }
+
   onSubmit(): void {
     if (this.isSubmitDisabled) {
       return;
@@ -110,8 +113,7 @@ export class ZeeWidgetComponent {
   }
 
   onAccept(): void {
-    const payload = this.adapter.transform(this.generatedResource, this.contextData);
-    this.accepted.emit(payload);
+    this.accepted.emit(this.generatedResource);
     this.reset();
   }
 

@@ -21,7 +21,6 @@
 <zee-widget
   *ngIf="form"
   [resourceType]="'ENTRYPOINT'"
-  [adapter]="entrypointAdapter"
   [contextData]="{ apiId: apiId }"
   (accepted)="onEntrypointGenerated($event)"
 ></zee-widget>

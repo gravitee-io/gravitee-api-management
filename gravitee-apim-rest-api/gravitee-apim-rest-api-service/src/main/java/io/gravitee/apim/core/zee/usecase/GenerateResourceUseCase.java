@@ -72,17 +72,18 @@ public class GenerateResourceUseCase {
     public GenerateResourceUseCase(LlmEngineService llmEngineService, List<RagContextStrategy> strategies) {
         this.llmEngineService = llmEngineService;
         this.ragStrategies = strategies
-                .stream()
-                .filter(s -> s.resourceType() != null)
-                .collect(
-                        Collectors.toUnmodifiableMap(RagContextStrategy::resourceType, Function.identity(),
-                                (first, second) -> {
-                                    log.warn(
-                                            "Duplicate RagContextStrategy for resourceType={}; keeping first ({})",
-                                            first.resourceType(),
-                                            first.getClass().getSimpleName());
-                                    return first;
-                                }));
+            .stream()
+            .filter(s -> s.resourceType() != null)
+            .collect(
+                Collectors.toUnmodifiableMap(RagContextStrategy::resourceType, Function.identity(), (first, second) -> {
+                    log.warn(
+                        "Duplicate RagContextStrategy for resourceType={}; keeping first ({})",
+                        first.resourceType(),
+                        first.getClass().getSimpleName()
+                    );
+                    return first;
+                })
+            );
     }
 
     /**
@@ -97,9 +98,13 @@ public class GenerateResourceUseCase {
         var componentName = request.resourceType().componentName();
 
         log.info(
-                "Zee generation request received: resourceType={}, component={}, promptLength={}, files={}, hasCurrentState={}",
-                request.resourceType(), componentName, request.prompt().length(),
-                request.files().size(), request.contextData().containsKey("currentState"));
+            "Zee generation request received: resourceType={}, component={}, promptLength={}, files={}, hasCurrentState={}",
+            request.resourceType(),
+            componentName,
+            request.prompt().length(),
+            request.files().size(),
+            request.contextData().containsKey("currentState")
+        );
         log.debug("Zee user prompt: {}", request.prompt());
 
         var ragContext = retrieveRagContext(request, envId, orgId);
@@ -110,17 +115,26 @@ public class GenerateResourceUseCase {
 
         var llmResult = llmEngineService.generate(prompt, componentName);
 
-        log.info("Zee LLM response received: tokensUsed={}, errors={}, warnings={}",
-                llmResult.tokensUsed(), llmResult.errors().size(), llmResult.warnings().size());
+        log.info(
+            "Zee LLM response received: tokensUsed={}, errors={}, warnings={}",
+            llmResult.tokensUsed(),
+            llmResult.errors().size(),
+            llmResult.warnings().size()
+        );
         log.debug("Zee LLM result data: {}", llmResult.data());
 
         var result = new ZeeResult(
-                request.resourceType(),
-                llmResult.data(),
-                new ZeeMetadata(MODEL_IDENTIFIER, llmResult.tokensUsed(), !ragContext.isBlank()));
+            request.resourceType(),
+            llmResult.data(),
+            new ZeeMetadata(MODEL_IDENTIFIER, llmResult.tokensUsed(), !ragContext.isBlank())
+        );
 
-        log.info("Zee generation complete: resourceType={}, tokensUsed={}, hasRag={}",
-                result.resourceType(), result.metadata().tokensUsed(), result.metadata().usedRag());
+        log.info(
+            "Zee generation complete: resourceType={}, tokensUsed={}, hasRag={}",
+            result.resourceType(),
+            result.metadata().tokensUsed(),
+            result.metadata().usedRag()
+        );
 
         return result;
     }
@@ -134,10 +148,11 @@ public class GenerateResourceUseCase {
             return ctx != null ? ctx : "";
         } catch (Exception e) {
             log.warn(
-                    "RAG context retrieval failed for resourceType={} envId={}; continuing without RAG context",
-                    request.resourceType(),
-                    envId,
-                    e);
+                "RAG context retrieval failed for resourceType={} envId={}; continuing without RAG context",
+                request.resourceType(),
+                envId,
+                e
+            );
             return "";
         }
     }
@@ -147,8 +162,7 @@ public class GenerateResourceUseCase {
      * (if updating) → RAG context (if non-empty) → uploaded files (if any) →
      * user request.
      */
-    private String buildPrompt(String userPrompt, String ragContext, List<FileContent> files,
-            Map<String, Object> contextData) {
+    private String buildPrompt(String userPrompt, String ragContext, List<FileContent> files, Map<String, Object> contextData) {
         var sb = new StringBuilder();
         sb.append("You are Zee, an expert Gravitee APIM assistant. ");
 
@@ -164,8 +178,7 @@ public class GenerateResourceUseCase {
             sb.append("## Current Resource State\n");
             try {
                 var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                sb.append("```json\n").append(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(currentState))
-                        .append("\n```\n\n");
+                sb.append("```json\n").append(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(currentState)).append("\n```\n\n");
             } catch (Exception e) {
                 sb.append("```json\n").append(currentState).append("\n```\n\n");
             }

@@ -113,7 +113,7 @@
     <div *ngSwitchCase="'preview'" class="zee-preview" aria-live="polite">
       <div class="zee-preview__header">
         <mat-icon color="primary">auto_awesome</mat-icon>
-        <h3 class="zee-preview__title">{{ adapter?.previewLabel }}</h3>
+        <h3 class="zee-preview__title">{{ previewLabel }}</h3>
       </div>
       <zee-preview [data]="generatedResource" [resourceType]="resourceType"></zee-preview>
       <div class="zee-actions">

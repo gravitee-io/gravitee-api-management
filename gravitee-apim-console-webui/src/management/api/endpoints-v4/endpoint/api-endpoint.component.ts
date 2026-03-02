@@ -33,7 +33,7 @@ import { ApiHealthCheckV4FormComponent } from '../../component/health-check-v4-f
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { Tenant } from '../../../../entities/tenant/tenant';
 import { TenantService } from '../../../../services-ngx/tenant.service';
-import { ENDPOINT_ADAPTER } from '../../../../shared/components/zee/adapters/endpoint-adapter';
+
 
 export type EndpointHealthCheckFormType = FormGroup<{
   enabled: FormControl<boolean>;
@@ -65,7 +65,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
   public isNativeKafkaApi: boolean;
   public healthCheckForm: EndpointHealthCheckFormType;
   public tenants: Tenant[];
-  public endpointAdapter = ENDPOINT_ADAPTER;
+
 
   constructor(
     private readonly router: Router,
