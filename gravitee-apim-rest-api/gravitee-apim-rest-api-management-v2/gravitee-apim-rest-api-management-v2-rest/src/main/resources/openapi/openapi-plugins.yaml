@@ -44,7 +44,17 @@ paths:
             operationId: getEndpoints
             x-mcp:
                 enabled: true
-                name: list_endpoint_plugins
+                group: get_connector_info
+                groupDescription: "Get information about available connectors (endpoints and entrypoints)."
+                groupTitle: "Connector Information"
+                action: list_endpoints
+                description: "List all available endpoint connector types."
+                response:
+                    summaryFields: [id, name, description, supportedApiType, supportedListenerType, supportedModes]
+                    fieldGroups:
+                        all:
+                            description: "Complete connector details including icon"
+                            fields: ["*"]
             responses:
                 "200":
                     description: List of Endpoints.
@@ -133,7 +143,9 @@ paths:
             operationId: getEndpointSchema
             x-mcp:
                 enabled: true
-                name: get_endpoint_schema
+                group: get_connector_info
+                action: get_endpoint_schema
+                description: "Get the JSON schema for a specific endpoint type's configuration."
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
@@ -170,7 +182,15 @@ paths:
             operationId: getEntrypoints
             x-mcp:
                 enabled: true
-                name: list_entrypoints
+                group: get_connector_info
+                action: list_entrypoints
+                description: "List all available entrypoint connector types."
+                response:
+                    summaryFields: [id, name, description, supportedApiType, supportedListenerType, supportedModes]
+                    fieldGroups:
+                        all:
+                            description: "Complete connector details including icon"
+                            fields: ["*"]
             responses:
                 "200":
                     description: List of Entrypoints.
@@ -259,7 +279,9 @@ paths:
             operationId: getEntrypointSchema
             x-mcp:
                 enabled: true
-                name: get_entrypoint_schema
+                group: get_connector_info
+                action: get_entrypoint_schema
+                description: "Get the JSON schema for a specific entrypoint type's configuration."
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
@@ -326,7 +348,17 @@ paths:
             operationId: getPolicies
             x-mcp:
                 enabled: true
-                name: list_policies
+                group: get_policy_info
+                groupDescription: "Get information about available policies."
+                groupTitle: "Policy Information"
+                action: list
+                description: "List all available policy types."
+                response:
+                    summaryFields: [id, name, description, category, proxy, message]
+                    fieldGroups:
+                        all:
+                            description: "Complete policy details including icon"
+                            fields: ["*"]
             responses:
                 "200":
                     description: List of Policies.
@@ -352,7 +384,9 @@ paths:
             operationId: getPolicy
             x-mcp:
                 enabled: true
-                name: get_policy
+                group: get_policy_info
+                action: get
+                description: "Get details about a specific policy type."
             responses:
                 "200":
                     description: Policy
@@ -376,7 +410,9 @@ paths:
             operationId: getPolicyDocumentation
             x-mcp:
                 enabled: true
-                name: get_policy_documentation
+                group: get_policy_info
+                action: get_documentation
+                description: "Get the documentation for a specific policy type."
             responses:
                 "200":
                     description: Documentation of the entrypoint
@@ -423,7 +459,9 @@ paths:
             operationId: getPolicySchema
             x-mcp:
                 enabled: true
-                name: get_policy_schema
+                group: get_policy_info
+                action: get_schema
+                description: "Get the JSON configuration schema for a specific policy type."
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
@@ -452,7 +490,7 @@ paths:
                                     $ref: "#/components/schemas/ResourcePlugin"
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/resources/{resrouceId}:
+    /plugins/resources/{resourceId}:
         parameters:
             - $ref: "#/components/parameters/policyIdParam"
         get:

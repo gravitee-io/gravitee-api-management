@@ -73,8 +73,7 @@ paths:
                 User must have the ENVIRONMENT_API[READ] permission.
             operationId: listApis
             x-mcp:
-                enabled: true
-                name: list_apis
+                enabled: false
             responses:
                 "200":
                     $ref: "#/components/responses/ApisResponse"
@@ -92,11 +91,13 @@ paths:
             operationId: createApi
             x-mcp:
                 enabled: true
-                name: create_api
-                description: |
-                    Create a new v4 API in the environment.
-                    Requires API name, version, and listener configuration.
-                    Use list_policies and list_endpoint_plugins tools first to understand available configurations.
+                group: create_api
+                groupDescription: "Create a new API in the environment."
+                groupTitle: "API Creation"
+                action: gravitee_v4
+                description: "Create a new v4 API. Requires API name, version, and listener configuration."
+                workflow: "For PROXY type: use http-proxy entrypoint and endpoint. See example."
+                example: '{"name":"My API","apiVersion":"1.0","definitionVersion":"V4","type":"PROXY","listeners":[{"type":"HTTP","paths":[{"path":"/my-api"}],"entrypoints":[{"type":"http-proxy"}]}],"endpointGroups":[{"name":"default","type":"http-proxy","endpoints":[{"name":"backend","type":"http-proxy","configuration":{"target":"https://backend.example.com"}}]}]}'
             requestBody:
                 content:
                     application/json:
@@ -129,7 +130,9 @@ paths:
             operationId: createApiFromSwagger
             x-mcp:
                 enabled: true
-                name: import_api_from_swagger
+                group: create_api
+                action: openapi_import
+                description: "Create an API by importing an OpenAPI/Swagger specification."
             requestBody:
                 content:
                     application/json:
@@ -194,6 +197,33 @@ paths:
 
                 User must have the ENVIRONMENT_API[READ] permission.
             operationId: searchApis
+            x-mcp:
+                enabled: true
+                name: search_apis
+                description: "Search APIs by name, status, or other criteria. Use query field for name search, statuses field to filter by state (e.g. STARTED for deployed/running APIs, STOPPED for stopped ones). Use envId='DEFAULT' for the default environment. When multiple APIs share the same name, compare createdAt timestamps to identify the most recent one. Do not attempt to sort by createdAt — it is not a supported sortBy value."
+                readOnly: true
+                response:
+                    itemsPath: data
+                    summaryFields: [id, name, description, apiVersion, definitionVersion, type, state, createdAt, updatedAt]
+                    fieldGroups:
+                        networking:
+                            description: "Listener and endpoint configuration (listeners, endpointGroups)"
+                            fields: [listeners, endpointGroups]
+                        policies:
+                            description: "Flow and policy configuration (flows, flowExecution, services)"
+                            fields: [flows, flowExecution, services]
+                        lifecycle:
+                            description: "Timestamps and state details (createdAt, updatedAt, deployedAt, lifecycleState, workflowState, deploymentState)"
+                            fields: [createdAt, updatedAt, deployedAt, lifecycleState, workflowState, deploymentState]
+                        configuration:
+                            description: "Resources, properties, and response templates"
+                            fields: [resources, properties, responseTemplates]
+                        metadata:
+                            description: "Tags, labels, categories, groups, visibility, ownership and links"
+                            fields: [tags, labels, categories, groups, _links, visibility, originContext, definitionContext, primaryOwner]
+                        all:
+                            description: "Complete response with no projection"
+                            fields: ["*"]
             requestBody:
                 content:
                     application/json:
@@ -273,6 +303,8 @@ paths:
             x-mcp:
                 enabled: true
                 name: get_api
+                description: "Get full API configuration including listeners, endpoints, and flows. Use before update_api to get current state."
+                workflow: "Tip: use the 'expands' parameter with 'links,primary_owner' for richer results."
             responses:
                 "200":
                     description: API found
@@ -294,6 +326,8 @@ paths:
             x-mcp:
                 enabled: true
                 name: update_api
+                description: "Update an API. Send the complete API body — fetch current state with get_api first, modify, then send."
+                workflow: "Always get_api first, then modify and send the complete body back."
             requestBody:
                 content:
                     application/json:
@@ -330,6 +364,7 @@ paths:
             x-mcp:
               enabled: true
               name: delete_api
+              description: "Permanently delete an API. Set closePlans=true to also close active plans."
             responses:
                 "204":
                     description: API successfully deleted
@@ -403,7 +438,13 @@ paths:
             operationId: createApiDeployment
             x-mcp:
                 enabled: true
-                name: deploy_api
+                group: change_api_lifecycle
+                groupDescription: "Manage the lifecycle of an API (deploy, start, stop)."
+                groupTitle: "API Lifecycle"
+                action: deploy
+                description: "Deploy latest API configuration to gateway instances."
+                workflow: "API must have at least one published plan. Deploy after configuration changes (update_api, manage_api_plan) and before starting."
+                example: '{"deploymentLabel":"v1.0 release"}'
             requestBody:
                 content:
                     application/json:
@@ -606,7 +647,10 @@ paths:
             operationId: startApi
             x-mcp:
                 enabled: true
-                name: start_api
+                group: change_api_lifecycle
+                action: start
+                description: "Start the API gateway instances."
+                workflow: "Starting an API the first time also deploys it automatically. If already started, no action needed."
             responses:
                 "204":
                     description: API successfully started
@@ -692,7 +736,10 @@ paths:
             operationId: stopApi
             x-mcp:
                 enabled: true
-                name: stop_api
+                group: change_api_lifecycle
+                action: stop
+                description: "Stop the API gateway instances."
+                workflow: "If the API is already stopped, no action is needed."
             responses:
                 "204":
                     description: API successfully stopped
@@ -1077,6 +1124,8 @@ paths:
             x-mcp:
                 enabled: true
                 name: list_api_plans
+                description: "List plans for an API. Filter by status (PUBLISHED, STAGING, CLOSED)."
+                workflow: "Use status filter to find PUBLISHED plans available for subscription."
             responses:
                 "200":
                     $ref: "#/components/responses/PlansResponse"
@@ -1093,8 +1142,13 @@ paths:
             operationId: createApiPlan
             x-mcp:
                 enabled: true
-                name: create_api_plan
-                description: The plan must be published with publish_api_plan before consumers can subscribe.
+                group: manage_api_plan
+                groupDescription: "Manage the lifecycle of API plans."
+                groupTitle: "Plan Management"
+                action: create
+                description: "Create a new plan for the API."
+                workflow: "Plans are created in STAGING status. Always publish the plan immediately after creation (publish action) unless explicitly told not to — the API cannot be deployed without a published plan."
+                example: '{"definitionVersion":"V4","name":"My Plan","security":{"type":"KEY_LESS"},"mode":"STANDARD","validation":"AUTO"}'
             requestBody:
                 content:
                     application/json:
@@ -1127,6 +1181,7 @@ paths:
             x-mcp:
                 enabled: true
                 name: get_api_plan
+                description: "Get full plan configuration. Use before manage_api_plan update action."
             responses:
                 "200":
                     description: An API's plan
@@ -1147,7 +1202,9 @@ paths:
             operationId: updateApiPlan
             x-mcp:
                 enabled: true
-                name: update_api_plan
+                group: manage_api_plan
+                action: update
+                description: "Update an existing plan's configuration."
             requestBody:
                 content:
                     application/json:
@@ -1193,7 +1250,9 @@ paths:
             operationId: closeApiPlan
             x-mcp:
                 enabled: true
-                name: close_api_plan
+                group: manage_api_plan
+                action: close
+                description: "Close the plan, preventing new subscriptions."
             responses:
                 "200":
                     description: API's plan successfully closed
@@ -1242,7 +1301,9 @@ paths:
             operationId: publishApiPlan
             x-mcp:
                 enabled: true
-                name: publish_api_plan
+                group: manage_api_plan
+                action: publish
+                description: "Make the plan available for consumer subscription."
             responses:
                 "200":
                     description: API's plan successfully published
@@ -1638,8 +1699,7 @@ paths:
                 User must have API_SUBSCRIPTION[READ] permissions to access endpoint.
             operationId: getApiSubscribers
             x-mcp:
-                enabled: true
-                name: list_api_subscribers
+                enabled: false
             responses:
                 "200":
                     $ref: "#/components/responses/SubscribersResponse"
@@ -1707,6 +1767,7 @@ paths:
             x-mcp:
                 enabled: true
                 name: list_api_subscriptions
+                description: "List all subscriptions for the API. Includes subscriber information."
             responses:
                 "200":
                     $ref: "#/components/responses/SubscriptionsResponse"
@@ -1724,6 +1785,8 @@ paths:
             x-mcp:
                 enabled: true
                 name: create_api_subscription
+                description: "Create a subscription to an API plan."
+                workflow: "Verify with manage_api_subscription verify action first if unsure."
             requestBody:
                 content:
                     application/json:
@@ -1812,7 +1875,11 @@ paths:
             operationId: verifyCreateApiSubscription
             x-mcp:
                 enabled: true
-                name: verify_api_subscription
+                group: manage_api_subscription
+                groupDescription: "Manage the lifecycle of API subscriptions."
+                groupTitle: "Subscription Management"
+                action: verify
+                description: "Verify a subscription creation request before submitting."
             requestBody:
                 content:
                     application/json:
@@ -1859,6 +1926,7 @@ paths:
             x-mcp:
                 enabled: true
                 name: get_api_subscription
+                description: "Get full subscription details including status and consumer configuration."
             responses:
                 "200":
                     description: An API's subscription
@@ -1879,7 +1947,9 @@ paths:
             operationId: updateApiSubscription
             x-mcp:
                 enabled: true
-                name: update_api_subscription
+                group: manage_api_subscription
+                action: update
+                description: "Update an existing subscription's configuration."
             requestBody:
                 content:
                     application/json:
@@ -1911,7 +1981,9 @@ paths:
             operationId: closeApiSubscription
             x-mcp:
                 enabled: true
-                name: close_api_subscription
+                group: manage_api_subscription
+                action: close
+                description: "Close the subscription, ending access."
             responses:
                 "200":
                     description: API's subscription successfully closed
@@ -1937,7 +2009,9 @@ paths:
             operationId: pauseApiSubscription
             x-mcp:
                 enabled: true
-                name: pause_api_subscription
+                group: manage_api_subscription
+                action: pause
+                description: "Temporarily pause the subscription."
             responses:
                 "200":
                     description: API's subscription successfully paused
@@ -1963,7 +2037,9 @@ paths:
             operationId: resumeApiSubscription
             x-mcp:
                 enabled: true
-                name: resume_api_subscription
+                group: manage_api_subscription
+                action: resume
+                description: "Resume a previously paused subscription."
             responses:
                 "200":
                     description: API's subscription successfully resumed
@@ -1989,7 +2065,9 @@ paths:
             operationId: acceptApiSubscription
             x-mcp:
                 enabled: true
-                name: accept_api_subscription
+                group: manage_api_subscription
+                action: accept
+                description: "Accept a pending subscription request."
             requestBody:
                 content:
                     application/json:
@@ -2021,7 +2099,9 @@ paths:
             operationId: rejectApiSubscription
             x-mcp:
                 enabled: true
-                name: reject_api_subscription
+                group: manage_api_subscription
+                action: reject
+                description: "Reject a pending subscription request."
             requestBody:
                 content:
                     application/json:
@@ -2054,7 +2134,9 @@ paths:
             operationId: transferApiSubscription
             x-mcp:
                 enabled: true
-                name: transfer_api_subscription
+                group: manage_api_subscription
+                action: transfer
+                description: "Transfer the subscription to a different plan."
             requestBody:
                 content:
                     application/json:
@@ -2087,7 +2169,11 @@ paths:
             operationId: getApiSubscriptionApiKeys
             x-mcp:
                 enabled: true
-                name: list_subscription_api_keys
+                group: manage_subscription_api_key
+                groupDescription: "Manage API keys for a subscription."
+                groupTitle: "API Key Management"
+                action: list
+                description: "List all API keys for a subscription."
             responses:
                 "200":
                     $ref: "#/components/responses/SubscriptionApiKeysResponse"
@@ -2110,7 +2196,9 @@ paths:
             operationId: renewApiSubscriptionApiKeys
             x-mcp:
                 enabled: true
-                name: renew_subscription_api_keys
+                group: manage_subscription_api_key
+                action: renew
+                description: "Renew API keys for a subscription."
             requestBody:
                 content:
                     application/json:
@@ -2143,7 +2231,9 @@ paths:
             operationId: updateApiSubscriptionApiKey
             x-mcp:
                 enabled: true
-                name: update_subscription_api_key
+                group: manage_subscription_api_key
+                action: update
+                description: "Update an API key's metadata."
             requestBody:
                 content:
                     application/json:
@@ -2177,7 +2267,9 @@ paths:
             operationId: revokeApiSubscriptionApiKey
             x-mcp:
                 enabled: true
-                name: revoke_subscription_api_key
+                group: manage_subscription_api_key
+                action: revoke
+                description: "Revoke an API key, immediately disabling access."
             responses:
                 "200":
                     description: The revoked subscription API Key.
@@ -2204,7 +2296,9 @@ paths:
             operationId: reactivateApiSubscriptionApiKey
             x-mcp:
                 enabled: true
-                name: reactivate_subscription_api_key
+                group: manage_subscription_api_key
+                action: reactivate
+                description: "Reactivate a previously revoked API key."
             responses:
                 "200":
                     description: The reactivated subscription API Key.
@@ -2486,6 +2580,20 @@ paths:
             x-mcp:
                 enabled: true
                 name: get_api_logs
+                description: "Get recent API request logs for debugging and monitoring."
+                response:
+                    itemsPath: data
+                    summaryFields: [timestamp, requestId, method, status, uri, gatewayResponseTime, endpoint]
+                    fieldGroups:
+                        context:
+                            description: "Application, plan, and transaction details"
+                            fields: [application, plan, transactionId, clientIdentifier]
+                        errors:
+                            description: "Error details and warnings"
+                            fields: [message, errorKey, errorComponentName, errorComponentType, warnings]
+                        all:
+                            description: "Complete log entries"
+                            fields: ["*"]
             responses:
                 "200":
                     $ref: "#/components/responses/ApiLogsResponse"
@@ -2752,8 +2860,7 @@ paths:
                 User must have the API_DOCUMENTATION[READ] permission.
             operationId: getApiPages
             x-mcp:
-                enabled: true
-                name: list_api_pages
+                enabled: false
             responses:
                 "200":
                     $ref: "#/components/responses/ApiDocumentationPagesResponse"
@@ -2770,9 +2877,7 @@ paths:
                 User must have the API_DOCUMENTATION[CREATE] permission.
             operationId: createDocumentationPage
             x-mcp:
-                enabled: true
-                name: create_documentation_page
-                description: Pages must be published with publish_documentation_page to be visible in the developer portal.
+                enabled: false
             requestBody:
                 content:
                     application/json:
@@ -2804,8 +2909,7 @@ paths:
                 User must have the API_DOCUMENTATION[READ] permission.
             operationId: getApiPage
             x-mcp:
-                enabled: true
-                name: get_api_page
+                enabled: false
             responses:
                 "200":
                     description: API Documentation Page
@@ -2826,8 +2930,7 @@ paths:
                 User must have the API_DOCUMENTATION[CREATE] permission.
             operationId: updateDocumentationPage
             x-mcp:
-                enabled: true
-                name: update_documentation_page
+                enabled: false
             requestBody:
                 content:
                     application/json:
@@ -2872,8 +2975,7 @@ paths:
                 User must have the API_DOCUMENTATION[UPDATE] permission.
             operationId: publishDocumentationPage
             x-mcp:
-                enabled: true
-                name: publish_documentation_page
+                enabled: false
             responses:
                 "200":
                     description: API Documentation Page
@@ -8754,7 +8856,7 @@ components:
             in: query
             required: false
             description: |
-                The timestamp from which the logs will be returned.
+                Timestamp in epoch milliseconds (e.g., 1740920400000) from which the logs will be returned.
             schema:
                 type: integer
                 format: int64
@@ -8763,7 +8865,7 @@ components:
             in: query
             required: false
             description: |
-                The timestamp to which the logs will be returned.
+                Timestamp in epoch milliseconds (e.g., 1740920400000) to which the logs will be returned.
             schema:
                 type: integer
                 format: int64

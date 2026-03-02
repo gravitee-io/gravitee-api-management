@@ -17,7 +17,7 @@ package io.gravitee.apim.core.analytics_engine.model;
 
 import java.util.List;
 
-public record FilterSpec(Name name, String label, Type type, List<String> enumValues, NumberRange range, List<Operator> operators) {
+public record FilterSpec(Name name, String label, Type type, List<String> enumValues, NumberRange range, List<Operator> operators, String valueDescription) {
     public enum Name {
         API,
         APPLICATION,

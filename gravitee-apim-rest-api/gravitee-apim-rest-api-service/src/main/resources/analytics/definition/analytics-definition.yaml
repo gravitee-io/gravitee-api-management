@@ -1213,6 +1213,7 @@ spec:
         - name: API
           label: API
           type: KEYWORD
+          valueDescription: "API identifier (UUID)."
           operators:
               - EQ
               - IN
@@ -1220,6 +1221,7 @@ spec:
         - name: APPLICATION
           label: Application
           type: KEYWORD
+          valueDescription: "Application identifier (UUID)."
           operators:
               - EQ
               - IN
@@ -1227,6 +1229,7 @@ spec:
         - name: PLAN
           label: Plan
           type: KEYWORD
+          valueDescription: "Plan identifier (UUID)."
           operators:
               - EQ
               - IN
@@ -1234,6 +1237,7 @@ spec:
         - name: GATEWAY
           label: Gateway
           type: KEYWORD
+          valueDescription: "Gateway instance identifier."
           operators:
               - EQ
               - IN
@@ -1241,6 +1245,7 @@ spec:
         - name: TENANT
           label: Tenant
           type: KEYWORD
+          valueDescription: "Tenant identifier."
           operators:
               - EQ
               - IN
@@ -1248,6 +1253,7 @@ spec:
         - name: ZONE
           label: Zone
           type: KEYWORD
+          valueDescription: "Zone identifier."
           operators:
               - EQ
               - IN
@@ -1303,6 +1309,7 @@ spec:
         - name: HTTP_PATH_MAPPING
           label: Path Mapping
           type: KEYWORD
+          valueDescription: "Path mapping pattern (e.g. /:productId)."
           operators:
               - EQ
               - IN
@@ -1310,6 +1317,7 @@ spec:
         - name: HOST
           label: Host
           type: KEYWORD
+          valueDescription: "Hostname (e.g. api.example.com)."
           operators:
               - EQ
               - IN
@@ -1317,6 +1325,7 @@ spec:
         - name: GEO_IP_COUNTRY
           label: Country
           type: KEYWORD
+          valueDescription: "Country ISO 3166-1 alpha-2 code (e.g. FR, US)."
           operators:
               - EQ
               - IN
@@ -1324,6 +1333,7 @@ spec:
         - name: GEO_IP_REGION
           label: Region
           type: KEYWORD
+          valueDescription: "Region or state name."
           operators:
               - EQ
               - IN
@@ -1331,6 +1341,7 @@ spec:
         - name: GEO_IP_CITY
           label: City
           type: KEYWORD
+          valueDescription: "City name."
           operators:
               - EQ
               - IN
@@ -1338,6 +1349,7 @@ spec:
         - name: GEO_IP_CONTINENT
           label: Continent
           type: KEYWORD
+          valueDescription: "Continent code (e.g. EU, NA, AS)."
           operators:
               - EQ
               - IN
@@ -1345,6 +1357,7 @@ spec:
         - name: CONSUMER_IP
           label: Consumer IP
           type: KEYWORD
+          valueDescription: "Client IP address."
           operators:
               - EQ
               - IN
@@ -1352,6 +1365,7 @@ spec:
         - name: HTTP_USER_AGENT_OS_NAME
           label: User Agent OS
           type: KEYWORD
+          valueDescription: "Operating system name (e.g. Windows, Linux, macOS)."
           operators:
               - EQ
               - IN
@@ -1359,6 +1373,7 @@ spec:
         - name: HTTP_USER_AGENT_DEVICE
           label: User Agent Device
           type: KEYWORD
+          valueDescription: "Device type (e.g. Desktop, Mobile, Tablet)."
           operators:
               - EQ
               - IN
@@ -1366,6 +1381,7 @@ spec:
         - name: MESSAGE_CONNECTOR_TYPE
           label: Connector Type
           type: KEYWORD
+          valueDescription: "Connector type identifier."
           operators:
               - EQ
               - IN
@@ -1383,6 +1399,7 @@ spec:
         - name: KAFKA_TOPIC
           label: Topic
           type: KEYWORD
+          valueDescription: "Kafka topic name."
           operators:
               - EQ
               - IN

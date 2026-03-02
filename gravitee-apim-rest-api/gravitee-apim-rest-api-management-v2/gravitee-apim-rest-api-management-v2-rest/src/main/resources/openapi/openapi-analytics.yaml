@@ -42,11 +42,17 @@ paths:
       operationId: queryApiSpecs
       x-mcp:
           enabled: true
-          name: query_api_specs
-          description: Use this first to discover which metrics are available for each API type.
+          group: discover_analytics
+          groupDescription: "Discover available analytics capabilities (APIs, metrics, filters, facets). Use before querying analytics."
+          groupTitle: "Analytics Discovery"
+          action: apis
+          description: "Discover which API types are available for analytics."
+          workflow: >-
+            Use this first to discover valid apiType values for the 'metrics' action.
+            Note: these apiType values differ from the API 'type' field (e.g. PROXY→HTTP_PROXY).
       summary: Query available APIs for analytics
       description: |
-        Returns a list of available APIs for analytics, that can be used to obtain available metrics each one of them.
+        Returns a list of available API types for analytics, that can be used to obtain available metrics each one of them.
       tags:
         - definition
       parameters:
@@ -54,7 +60,7 @@ paths:
       responses:
         "200":
           description: |
-            The response contains a list of available APIs for analytics, that can be used to obtain available metrics each one of them.
+            The response contains a list of available API types for analytics, that can be used to obtain available metrics each one of them.
           content:
             application/json:
               schema:
@@ -81,12 +87,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /environments/{envId}/analytics/definition/apis/{apiName}/metrics:
+  /environments/{envId}/analytics/definition/apis/{apiType}/metrics:
     get:
       operationId: queryMetricSpecs
       x-mcp:
           enabled: true
-          name: query_metric_specs
+          group: discover_analytics
+          action: metrics
+          description: >-
+            Discover available metrics for a specific API type.
+            IMPORTANT: The apiType values here differ from the API 'type' field returned by search_apis or get_api.
+            Mapping: PROXY→HTTP_PROXY, LLM_PROXY→LLM, MCP_PROXY→MCP, A2A_PROXY→A2A. MESSAGE stays MESSAGE.
+            Use the 'apis' action first to see all valid apiType values.
+          response:
+              itemsPath: data
+              summaryFields: [name, label, type, unit, measures, apis]
+              fieldGroups:
+                  facets:
+                      description: "Available facet names for grouping"
+                      fields: [facets]
+                  filters:
+                      description: "Available filter names"
+                      fields: [filters]
+                  all:
+                      description: "Complete metric details"
+                      fields: ["*"]
       summary: Query available metrics for an API type
       description: |
         Returns a list of available metrics for a specific API type, including their supported measures, facets, and filters.
@@ -94,7 +119,7 @@ paths:
         - definition
       parameters:
         - $ref: "#/components/parameters/EnvId"
-        - $ref: "#/components/parameters/ApiName"
+        - $ref: "#/components/parameters/ApiType"
       responses:
         "200":
           description: |
@@ -141,7 +166,9 @@ paths:
       operationId: queryFilterSpecsForMetric
       x-mcp:
           enabled: true
-          name: query_filter_specs
+          group: discover_analytics
+          action: filters
+          description: "Discover available filters for a specific metric."
       summary: Query available filters for a specific metric
       description: |
         Returns a list of available filters that can be applied to a specific metric within an API type, including their operators and value constraints.
@@ -207,7 +234,9 @@ paths:
       operationId: queryFacetSpecsForMetric
       x-mcp:
           enabled: true
-          name: query_facet_specs
+          group: discover_analytics
+          action: facets
+          description: "Discover available facets for a specific metric."
       summary: Query available facets for a specific metric
       description: |
         Returns a list of available facets that can be used to group data for a specific metric within an API type, including their data types.
@@ -257,8 +286,13 @@ paths:
       operationId: queryMeasures
       x-mcp:
           enabled: true
-          name: query_measures
-          description: Use query_metric_specs first to discover available metrics and measures.
+          group: query_analytics
+          groupDescription: "Query analytics data (measures, facets, time series). Use discover_analytics first to understand available metrics."
+          groupTitle: "Analytics Queries"
+          action: measures
+          description: "Query aggregate measures for selected metrics with optional grouping and filtering."
+          workflow: "Counter metrics (HTTP_REQUESTS) support COUNT, RPS. Gauge metrics (HTTP_GATEWAY_RESPONSE_TIME, HTTP_ENDPOINT_RESPONSE_TIME) support AVG, MIN, MAX, P90, P95, P99. HTTP_ERRORS only supports PERCENTAGE (not COUNT). Valid filter operators are EQ, IN, GTE, LTE. Use discover_analytics metrics action to check available measures per metric."
+          example: '{"timeRange":{"from":"2025-02-28T15:00:00Z","to":"2025-03-01T15:00:00Z"},"metrics":[{"name":"HTTP_GATEWAY_RESPONSE_TIME","measures":["AVG"]}],"filters":[{"name":"API","operator":"EQ","value":"<api-id>"}]}'
       summary: Query measures analytics
       description: |
         Return aggregated values for specified metrics within a time range.
@@ -354,8 +388,11 @@ paths:
       operationId: queryFacets
       x-mcp:
           enabled: true
-          name: query_facets
-          description: Use query_facet_specs first to discover available facets for your metric.
+          group: query_analytics
+          action: facets
+          description: "Group data by facet values with optional ranging, sorting and limits."
+          workflow: "Use discover_analytics first to discover available facets for your metric."
+          example: '{"timeRange":{"from":"2025-02-28T15:00:00Z","to":"2025-03-01T15:00:00Z"},"by":["HTTP_STATUS_CODE_GROUP"],"metrics":[{"name":"HTTP_REQUESTS","measures":["COUNT"]}],"filters":[{"name":"API","operator":"EQ","value":"<api-id>"}]}'
       summary: Query facets analytics
       description: |
         Group data by facet values with optional ranging, sorting and limits.
@@ -543,8 +580,11 @@ paths:
       operationId: queryTimeSeries
       x-mcp:
           enabled: true
-          name: query_time_series
-          description: Use query_metric_specs first to discover available metrics.
+          group: query_analytics
+          action: time_series
+          description: "Query data points over time with optional grouping by facets."
+          workflow: "Use discover_analytics first to discover available metrics."
+          example: '{"timeRange":{"from":"2025-02-28T14:00:00Z","to":"2025-02-28T15:00:00Z"},"interval":300000,"metrics":[{"name":"HTTP_GATEWAY_RESPONSE_TIME","measures":["AVG"]}],"filters":[{"name":"API","operator":"EQ","value":"<api-id>"}]}'
       summary: Query time series analytics
       description: |
         Return data points over time with optional grouping by facets.
@@ -762,13 +802,13 @@ components:
                 type: string
                 default: DEFAULT
 
-        ApiName:
-            name: apiName
+        ApiType:
+            name: apiType
             in: path
             required: true
             description: The API type identifier for which to retrieve metrics
             schema:
-                $ref: "#/components/schemas/ApiName"
+                $ref: "#/components/schemas/ApiType"
 
         MetricName:
             name: metricName
@@ -779,7 +819,7 @@ components:
                 $ref: "#/components/schemas/MetricName"
 
     schemas:
-        ApiName:
+        ApiType:
             type: string
             enum:
                 - HTTP_PROXY
@@ -971,7 +1011,7 @@ components:
             type: object
             properties:
                 name:
-                    $ref: "#/components/schemas/ApiName"
+                    $ref: "#/components/schemas/ApiType"
                 label:
                     type: string
                     description: A human-readable label for the API
@@ -1058,11 +1098,16 @@ components:
                     example:
                         min: 100
                         max: 600
+                valueDescription:
+                    type: string
+                    description: "Describes what value is expected for this filter, such as value format or identifier type."
+                    example: "API identifier (UUID)."
             example:
                 name: "API"
                 label: "API"
                 type: "KEYWORD"
                 operators: ["EQ", "IN"]
+                valueDescription: "API identifier (UUID)."
 
         MetricSpec:
             type: object
@@ -1085,7 +1130,7 @@ components:
                 apis:
                     type: array
                     items:
-                        $ref: "#/components/schemas/ApiName"
+                        $ref: "#/components/schemas/ApiType"
                     description: List of API types this metric applies to
                     example: ["HTTP_PROXY", "LLM"]
                 type:
@@ -1174,6 +1219,7 @@ components:
                       label: "API"
                       type: "KEYWORD"
                       operators: ["EQ", "IN"]
+                      valueDescription: "API identifier (UUID)."
                     - name: "HTTP_METHOD"
                       label: "HTTP Method"
                       type: "ENUM"
@@ -1275,7 +1321,7 @@ components:
                 value:
                     type: string
                     description: Filter value (string for EQ)
-            example: { name: "API", operator: "EQ", value: "api-id" }
+            example: { name: "API", operator: "EQ", value: "7b6ebef3-6236-4ac5-815e-d3dcef83df5d" }
 
         NumberFilter:
             description: Filter specification for numeric values
