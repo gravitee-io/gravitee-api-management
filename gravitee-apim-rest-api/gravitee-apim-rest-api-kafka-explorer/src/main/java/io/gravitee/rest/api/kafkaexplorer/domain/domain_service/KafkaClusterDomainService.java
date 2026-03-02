@@ -28,6 +28,6 @@ public interface KafkaClusterDomainService {
     TopicsPage listTopics(KafkaClusterConfiguration config, String nameFilter, int page, int perPage);
     TopicDetail describeTopic(KafkaClusterConfiguration config, String topicName);
     BrokerInfo describeBroker(KafkaClusterConfiguration config, int brokerId);
-    ConsumerGroupsPage listConsumerGroups(KafkaClusterConfiguration config, String nameFilter, int page, int perPage);
+    ConsumerGroupsPage listConsumerGroups(KafkaClusterConfiguration config, String nameFilter, String topicFilter, int page, int perPage);
     ConsumerGroupDetail describeConsumerGroup(KafkaClusterConfiguration config, String groupId);
 }

@@ -41,11 +41,17 @@ public class ListConsumerGroupsUseCase {
     public Output execute(Input input) {
         var cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId(), input.environmentId());
         var config = cluster.getKafkaClusterConfiguration(objectMapper);
-        var consumerGroupsPage = kafkaClusterDomainService.listConsumerGroups(config, input.nameFilter(), input.page(), input.perPage());
+        var consumerGroupsPage = kafkaClusterDomainService.listConsumerGroups(
+            config,
+            input.nameFilter(),
+            input.topicFilter(),
+            input.page(),
+            input.perPage()
+        );
         return new Output(consumerGroupsPage);
     }
 
-    public record Input(String clusterId, String environmentId, String nameFilter, int page, int perPage) {}
+    public record Input(String clusterId, String environmentId, String nameFilter, String topicFilter, int page, int perPage) {}
 
     public record Output(ConsumerGroupsPage consumerGroupsPage) {}
 }

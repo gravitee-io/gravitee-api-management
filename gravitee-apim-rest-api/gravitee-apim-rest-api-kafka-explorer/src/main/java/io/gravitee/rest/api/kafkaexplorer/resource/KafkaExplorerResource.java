@@ -240,7 +240,14 @@ public class KafkaExplorerResource {
             var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
             int page0Based = page - 1;
             var result = listConsumerGroupsUseCase.execute(
-                new ListConsumerGroupsUseCase.Input(request.getClusterId(), environmentId, request.getNameFilter(), page0Based, perPage)
+                new ListConsumerGroupsUseCase.Input(
+                    request.getClusterId(),
+                    environmentId,
+                    request.getNameFilter(),
+                    request.getTopicFilter(),
+                    page0Based,
+                    perPage
+                )
             );
             return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.consumerGroupsPage(), page, perPage)).build();
         } catch (KafkaExplorerException e) {
