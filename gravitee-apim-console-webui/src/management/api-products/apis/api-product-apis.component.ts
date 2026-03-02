@@ -22,7 +22,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
-import { combineLatest, EMPTY, Observable, BehaviorSubject, forkJoin, of } from 'rxjs';
+import { combineLatest, EMPTY, Observable, forkJoin, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 import {
@@ -40,7 +40,7 @@ import {
 } from './add-api-dialog/api-product-add-api-dialog.component';
 
 import { Api } from '../../../entities/management-api-v2';
-import { getApiContextPath } from '../../../shared/utils/api.util';
+import { getApiContextPath } from '../../../shared/utils/api-access.util';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { filtersToQueryParams } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
@@ -59,6 +59,21 @@ export type ApiProductApiTableDS = {
 }[];
 
 interface ApiProductApisTableWrapperFilters extends GioTableWrapperFilters {}
+
+const DEFAULT_FILTERS: ApiProductApisTableWrapperFilters = {
+  pagination: { index: 1, size: 10 },
+  searchTerm: '',
+};
+
+function queryParamsToFilters(queryParams: Record<string, string>): ApiProductApisTableWrapperFilters {
+  const searchTerm = queryParams['q'] ?? DEFAULT_FILTERS.searchTerm;
+  const index = queryParams['page'] ? Number(queryParams['page']) : DEFAULT_FILTERS.pagination.index;
+  const size = queryParams['size'] ? Number(queryParams['size']) : DEFAULT_FILTERS.pagination.size;
+  return {
+    searchTerm,
+    pagination: { index, size },
+  };
+}
 
 @Component({
   selector: 'api-product-apis',
@@ -80,16 +95,16 @@ export class ApiProductApisComponent implements OnInit {
   readonly displayedColumns = ['picture', 'name', 'contextPath', 'definition', 'version', 'actions'] as const;
   apisTableDS: ApiProductApiTableDS = [];
   apisTableDSUnpaginatedLength = 0;
-  filters: ApiProductApisTableWrapperFilters = {
-    pagination: { index: 1, size: 10 },
-    searchTerm: '',
-  };
   searchLabel = 'Search APIs...';
   isLoadingData = true;
   readonly apiProductId = toSignal((this.activatedRoute.parent?.params ?? of({})).pipe(map(p => p['apiProductId'] ?? '')), {
     initialValue: '',
   });
-  private readonly filters$ = new BehaviorSubject(this.filters);
+
+  /** Filters derived from router query params (single source of truth) */
+  readonly filters = toSignal(this.activatedRoute.queryParams.pipe(map(params => queryParamsToFilters(params as Record<string, string>))), {
+    initialValue: queryParamsToFilters(this.activatedRoute.snapshot.queryParams as Record<string, string>),
+  });
 
   private static readonly LOAD_API_PRODUCT_ERROR = 'An error occurred while loading the API Product';
 
@@ -114,50 +129,25 @@ export class ApiProductApisComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.initFilters();
     this.initApisTableSubscription();
   }
 
   private initApisTableSubscription(): void {
     combineLatest([
-      this.filters$.pipe(debounceTime(100), distinctUntilChanged(isEqual)),
+      this.activatedRoute.queryParams.pipe(
+        map(params => queryParamsToFilters(params as Record<string, string>)),
+        debounceTime(100),
+        distinctUntilChanged(isEqual),
+      ),
       toObservable(this.apiProductId, { injector: this.injector }).pipe(filter(id => !!id)),
     ])
       .pipe(
         map(([filters, apiProductId]) => ({ filters, apiProductId })),
-        tap(({ filters }) => this.syncFiltersToUrl(filters)),
-        switchMap(({ apiProductId }) => this.loadApisForProduct(apiProductId)),
-        tap(apis => this.processAndDisplayApis(apis)),
+        switchMap(({ filters, apiProductId }) => this.loadApisForProduct(apiProductId).pipe(map(apis => ({ filters, apis })))),
+        tap(({ filters, apis }) => this.processAndDisplayApis(filters, apis)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
-  }
-
-  private syncFiltersToUrl(filters: ApiProductApisTableWrapperFilters): void {
-    this.router.navigate([], {
-      relativeTo: this.activatedRoute,
-      queryParams: filtersToQueryParams(filters),
-      queryParamsHandling: 'merge',
-    });
-  }
-
-  private initFilters(): void {
-    const initialSearchValue = this.activatedRoute.snapshot.queryParams['q'] ?? this.filters.searchTerm;
-    const initialPageNumber = this.activatedRoute.snapshot.queryParams['page']
-      ? Number(this.activatedRoute.snapshot.queryParams['page'])
-      : this.filters.pagination.index;
-    const initialPageSize = this.activatedRoute.snapshot.queryParams['size']
-      ? Number(this.activatedRoute.snapshot.queryParams['size'])
-      : this.filters.pagination.size;
-
-    this.filters = {
-      searchTerm: initialSearchValue,
-      pagination: {
-        index: initialPageNumber,
-        size: initialPageSize,
-      },
-    };
-    this.filters$.next(this.filters);
   }
 
   private loadApisForProduct(apiProductId: string): Observable<(Api | null)[]> {
@@ -174,9 +164,9 @@ export class ApiProductApisComponent implements OnInit {
     );
   }
 
-  private processAndDisplayApis(apis: (Api | null)[]): void {
+  private processAndDisplayApis(filters: ApiProductApisTableWrapperFilters, apis: (Api | null)[]): void {
     let filteredApis = apis.filter((api): api is Api => api !== null);
-    const searchTerm = this.filters.searchTerm?.toLowerCase() || '';
+    const searchTerm = filters.searchTerm?.toLowerCase() || '';
 
     if (searchTerm) {
       filteredApis = filteredApis.filter(
@@ -187,8 +177,8 @@ export class ApiProductApisComponent implements OnInit {
       );
     }
 
-    const page = this.filters.pagination?.index || 1;
-    const perPage = this.filters.pagination?.size || 10;
+    const page = filters.pagination?.index || 1;
+    const perPage = filters.pagination?.size || 10;
     const startIndex = (page - 1) * perPage;
     const endIndex = startIndex + perPage;
     const paginatedApis = filteredApis.slice(startIndex, endIndex);
@@ -211,14 +201,21 @@ export class ApiProductApisComponent implements OnInit {
   }
 
   onFiltersChanged(filters: ApiProductApisTableWrapperFilters): void {
-    this.filters = { ...this.filters, ...filters };
-    this.filters$.next(this.filters);
+    const mergedFilters: ApiProductApisTableWrapperFilters = {
+      ...this.filters(),
+      ...filters,
+    };
+    this.router.navigate([], {
+      relativeTo: this.activatedRoute,
+      queryParams: filtersToQueryParams(mergedFilters),
+      queryParamsHandling: 'merge',
+    });
   }
 
   private reloadTable(): void {
     this.loadApisForProduct(this.apiProductId())
       .pipe(
-        tap(apis => this.processAndDisplayApis(apis)),
+        tap(apis => this.processAndDisplayApis(this.filters(), apis)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();

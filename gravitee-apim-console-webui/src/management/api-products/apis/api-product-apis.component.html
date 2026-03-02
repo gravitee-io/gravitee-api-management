@@ -27,7 +27,7 @@
   </div>
 
   <gio-table-wrapper
-    [filters]="filters"
+    [filters]="filters()"
     [length]="apisTableDSUnpaginatedLength"
     [searchLabel]="searchLabel"
     (filtersChange)="onFiltersChanged($event)"
