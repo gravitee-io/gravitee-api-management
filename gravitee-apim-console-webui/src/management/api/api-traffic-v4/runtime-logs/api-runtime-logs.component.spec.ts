@@ -130,8 +130,14 @@ describe('ApiRuntimeLogsComponent', () => {
   };
 
   afterEach(() => {
+    flushErrorKeys();
     httpTestingController.verify();
   });
+
+  function flushErrorKeys() {
+    const errorKeysReqs = httpTestingController.match(req => req.url.includes('/logs/error-keys'));
+    errorKeysReqs.filter(req => !req.cancelled).forEach(req => req.flush([]));
+  }
 
   describe('GIVEN there are no logs', () => {
     beforeEach(async () => {
@@ -839,6 +845,7 @@ describe('ApiRuntimeLogsComponent', () => {
         method: 'GET',
       })
       .flush(fakeEmptyApiLogsResponse());
+    flushErrorKeys();
     fixture.detectChanges();
   }
 
@@ -875,6 +882,7 @@ describe('ApiRuntimeLogsComponent', () => {
           },
         }),
       );
+    flushErrorKeys();
     fixture.detectChanges();
   }
 
@@ -950,6 +958,7 @@ describe('ApiRuntimeLogsComponent', () => {
         statuses: null,
         from: null,
         to: null,
+        errorKeys: null,
         ...queryParams,
       },
     });

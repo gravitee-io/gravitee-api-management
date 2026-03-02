@@ -218,6 +218,7 @@ public class SearchEnvironmentLogsUseCase {
         builder.transactionIds(filterContext.transactionIds().orElseGet(Collections::emptySet));
         builder.uri(filterContext.uri().orElse(null));
         builder.responseTimeRanges(buildResponseTimeRanges(filterContext));
+        builder.errorKeys(filterContext.errorKeys().orElseGet(Collections::emptySet));
 
         if (request.timeRange() != null) {
             if (isTimeRangeInvalid(request.timeRange())) {
@@ -301,6 +302,7 @@ public class SearchEnvironmentLogsUseCase {
             case MCP_METHOD -> filterContext.limitByMcpMethods(ids);
             case TRANSACTION_ID -> filterContext.limitByTransactionIds(ids);
             case REQUEST_ID -> filterContext.limitByRequestIds(ids);
+            case ERROR_KEY -> filterContext.limitByErrorKeys(ids);
             case URI -> {
                 // For URI, only EQ filters are supported, so we take the first (and presumably
                 // only) value

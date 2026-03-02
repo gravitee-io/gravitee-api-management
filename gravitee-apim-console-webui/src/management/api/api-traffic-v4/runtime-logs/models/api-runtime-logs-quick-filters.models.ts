@@ -34,11 +34,25 @@ export type LogFilters = {
   methods?: string[];
   mcpMethods?: string[];
   statuses?: Set<number>;
+  errorKeys?: string[];
 };
 
-export type LogFiltersForm = { period: SimpleFilter; entrypoints: string[]; plans: string[]; methods: string[]; mcpMethods: string[] };
+export type LogFiltersForm = {
+  period: SimpleFilter;
+  entrypoints: string[];
+  plans: string[];
+  methods: string[];
+  mcpMethods: string[];
+};
 
-export type MoreFiltersForm = { period: SimpleFilter; from: Moment; to: Moment; statuses: Set<number>; applications?: MultiFilter };
+export type MoreFiltersForm = {
+  period: SimpleFilter;
+  from: Moment;
+  to: Moment;
+  statuses: Set<number>;
+  applications?: MultiFilter;
+  errorKeys?: string[];
+};
 
 export type LogFiltersInitialValues = {
   applications?: MultiFilter;
@@ -49,6 +63,7 @@ export type LogFiltersInitialValues = {
   methods: string[];
   mcpMethods: string[];
   statuses: Set<number>;
+  errorKeys?: string[];
 };
 
 export const DEFAULT_PERIOD = { label: 'None', value: '0' };
@@ -74,4 +89,5 @@ export const DEFAULT_FILTERS: LogFilters = {
   from: undefined,
   to: undefined,
   methods: undefined,
+  errorKeys: undefined,
 };

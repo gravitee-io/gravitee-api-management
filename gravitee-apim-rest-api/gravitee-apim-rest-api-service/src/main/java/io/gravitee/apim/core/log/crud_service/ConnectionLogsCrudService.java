@@ -63,4 +63,14 @@ public interface ConnectionLogsCrudService {
         Pageable pageable
     );
     Optional<ConnectionLogDetail> searchApiConnectionLog(ExecutionContext executionContext, String apiId, String requestId);
+
+    /**
+     * Returns distinct error keys found in connection logs for the given API
+     */
+    List<String> searchApiConnectionLogErrorKeys(ExecutionContext executionContext, String apiId, Long from, Long to);
+
+    /**
+     * Returns distinct error keys found in connection logs for the given environment
+     */
+    List<String> searchEnvironmentConnectionLogErrorKeys(ExecutionContext executionContext, Long from, Long to);
 }

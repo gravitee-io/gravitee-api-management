@@ -63,10 +63,17 @@ export interface TimeRange {
   to: string;
 }
 
+export interface SearchLogFilter {
+  name: string;
+  operator: 'EQ' | 'NEQ' | 'LT' | 'LTE' | 'GT' | 'GTE' | 'IN';
+  value: string | number | boolean | string[] | number[];
+}
+
 export interface SearchLogsParam {
   page?: number;
   perPage?: number;
   timeRange?: TimeRange;
+  filters?: SearchLogFilter[];
 }
 
 @Injectable({
@@ -91,6 +98,7 @@ export class EnvironmentLogsService {
         from: oneDayAgo.toISOString(),
         to: now.toISOString(),
       },
+      filters: param?.filters,
     };
 
     return this.http.post<SearchLogsResponse>(`${this.constants.env.v2BaseURL}/logs/search`, body, { params });

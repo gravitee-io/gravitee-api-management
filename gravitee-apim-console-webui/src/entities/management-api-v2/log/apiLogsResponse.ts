@@ -30,6 +30,7 @@ export interface ApiLogsParam {
   methods?: string;
   mcpMethods?: string;
   statuses?: string;
+  errorKeys?: string;
 }
 
 export interface ApiLogsResponse {

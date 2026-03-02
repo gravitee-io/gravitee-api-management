@@ -161,6 +161,26 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
     }
 
     @Override
+    public List<String> searchApiConnectionLogErrorKeys(ExecutionContext executionContext, String apiId, Long from, Long to) {
+        var logsFilters = SearchLogsFilters.builder().apiIds(apiId != null ? Set.of(apiId) : null).from(from).to(to).build();
+        var predicate = getBaseConnectionLogPredicate(logsFilters);
+        return connectionLogs
+            .storage()
+            .stream()
+            .filter(predicate)
+            .map(BaseConnectionLog::getErrorKey)
+            .filter(StringUtils::hasText)
+            .distinct()
+            .sorted()
+            .toList();
+    }
+
+    @Override
+    public List<String> searchEnvironmentConnectionLogErrorKeys(ExecutionContext executionContext, Long from, Long to) {
+        return searchApiConnectionLogErrorKeys(executionContext, null, from, to);
+    }
+
+    @Override
     public void initWith(List<Object> items) {
         connectionLogs.initWith(items.stream().filter(BaseConnectionLog.class::isInstance).map(BaseConnectionLog.class::cast).toList());
         connectionLogDetails.initWith(
@@ -231,6 +251,10 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
 
         if (!CollectionUtils.isEmpty(logsFilters.entrypointIds())) {
             predicate = predicate.and(connectionLog -> logsFilters.entrypointIds().contains(connectionLog.getEntrypointId()));
+        }
+
+        if (!CollectionUtils.isEmpty(logsFilters.errorKeys())) {
+            predicate = predicate.and(connectionLog -> logsFilters.errorKeys().contains(connectionLog.getErrorKey()));
         }
 
         if (!CollectionUtils.isEmpty(logsFilters.responseTimeRanges())) {

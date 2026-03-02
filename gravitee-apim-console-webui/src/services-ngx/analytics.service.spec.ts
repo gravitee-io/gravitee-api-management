@@ -144,4 +144,22 @@ describe('AnalyticsService', () => {
   afterEach(() => {
     httpTestingController.verify();
   });
+  describe('getEnvironmentErrorKeys', () => {
+    it('should call the V2 API to fetch error keys', done => {
+      const from = 1710000000000;
+      const to = 1710086400000;
+      const fakeErrorKeys = ['API_KEY_MISSING', 'QUOTA_EXCEEDED'];
+
+      analyticsService.getEnvironmentErrorKeys(from, to).subscribe(response => {
+        expect(response).toEqual(fakeErrorKeys);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/analytics/error-keys?from=${from}&to=${to}`);
+
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(fakeErrorKeys);
+    });
+  });
 });

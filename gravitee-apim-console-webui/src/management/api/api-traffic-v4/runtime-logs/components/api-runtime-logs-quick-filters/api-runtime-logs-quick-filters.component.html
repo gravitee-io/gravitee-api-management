@@ -65,6 +65,7 @@
         <api-runtime-logs-more-filters
           [showMoreFilters]="showMoreFilters"
           [formValues]="moreFiltersValues"
+          [errorKeys]="errorKeys"
           (closeMoreFiltersEvent)="showMoreFilters = false"
           (applyMoreFiltersEvent)="applyMoreFilters($event)"
         ></api-runtime-logs-more-filters>

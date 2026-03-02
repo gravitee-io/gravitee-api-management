@@ -37,4 +37,9 @@ public class NoOpMetricsRepository implements MetricsRepository {
     public LogResponse<Metrics> searchMetrics(QueryContext queryContext, MetricsQuery query, List<DefinitionVersion> definitionVersions) {
         return new LogResponse<>(0L, new ArrayList<>());
     }
+
+    @Override
+    public List<String> searchConnectionLogErrorKeys(QueryContext queryContext, String apiId, Long from, Long to) {
+        return new ArrayList<>();
+    }
 }

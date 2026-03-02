@@ -26,6 +26,7 @@
     <api-runtime-logs-more-filters-form
       *ngIf="showMoreFilters"
       [formValues]="formValues"
+      [errorKeys]="errorKeys"
       (valuesChangeEvent)="currentValues = $event"
       (isInvalidEvent)="isInvalid = $event"
     ></api-runtime-logs-more-filters-form>

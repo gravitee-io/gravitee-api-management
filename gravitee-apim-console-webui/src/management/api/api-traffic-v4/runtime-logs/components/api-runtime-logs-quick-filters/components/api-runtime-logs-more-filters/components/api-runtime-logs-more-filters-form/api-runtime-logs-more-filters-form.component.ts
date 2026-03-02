@@ -40,6 +40,7 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
   minDate: Moment;
   statuses: Set<number>;
   applicationsCache: MultiFilter;
+  @Input() errorKeys: string[];
 
   constructor(private readonly cdr: ChangeDetectorRef) {}
 
@@ -57,6 +58,7 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
     this.moreFiltersForm = new UntypedFormGroup({
       statuses: new UntypedFormControl(this.statuses),
       applications: new UntypedFormControl(this.formValues.applications?.map(application => application.value)),
+      errorKeys: new UntypedFormControl(this.formValues.errorKeys ?? []),
     });
     this.moreFiltersForm.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => this.emitValues());
   }
@@ -118,6 +120,7 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
       ...this.datesForm.getRawValue(),
       statuses: this.statuses.size > 0 ? this.statuses : null,
       applications: this.applicationsFromValues(this.moreFiltersForm.get('applications').value),
+      errorKeys: this.moreFiltersForm.get('errorKeys').value,
     });
     this.cdr.detectChanges();
   }

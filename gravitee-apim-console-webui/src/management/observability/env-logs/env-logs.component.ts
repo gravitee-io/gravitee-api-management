@@ -28,7 +28,7 @@ import type { EnvLog } from './models/env-log.model';
 import { EnvLogsFilterBarComponent } from './components/env-logs-filter-bar/env-logs-filter-bar.component';
 import { EnvLogsTableComponent } from './components/env-logs-table/env-logs-table.component';
 
-import { EnvironmentLogsService, EnvironmentApiLog } from '../../../services-ngx/environment-logs.service';
+import { EnvironmentLogsService, EnvironmentApiLog, SearchLogsParam } from '../../../services-ngx/environment-logs.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTableWrapperPagination } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { Pagination } from '../../../entities/management-api-v2';
@@ -51,17 +51,18 @@ export class EnvLogsComponent {
   private readonly datePipe = inject(DatePipe);
 
   pagination = signal<Pagination>({ page: 1, perPage: 10, totalCount: 0 });
+  filters = signal<SearchLogsParam>({});
   loading = signal(true);
   error = signal<string | null>(null);
 
-  private readonly logsResult$ = toObservable(this.pagination).pipe(
+  private readonly logsResult$ = toObservable(computed(() => ({ pagination: this.pagination(), filters: this.filters() }))).pipe(
     debounceTime(0),
     tap(() => {
       this.loading.set(true);
       this.error.set(null);
     }),
-    switchMap(({ page, perPage }) =>
-      this.environmentLogsService.searchLogs({ page, perPage }).pipe(
+    switchMap(({ pagination: { page, perPage }, filters }) =>
+      this.environmentLogsService.searchLogs({ page, perPage, ...filters }).pipe(
         tap(() => this.loading.set(false)),
         catchError(err => {
           this.loading.set(false);
@@ -83,6 +84,7 @@ export class EnvLogsComponent {
     const result = this.logsResult();
     return result?.data.map(log => this.mapToEnvLog(log)) ?? [];
   });
+
   /** Merges backend totalCount into the pagination signal for the table wrapper. */
   paginationWithTotal = computed(() => ({
     ...this.pagination(),
@@ -90,6 +92,11 @@ export class EnvLogsComponent {
   }));
 
   onRefresh() {
+    this.pagination.update(prev => ({ ...prev, page: 1 }));
+  }
+
+  onFiltersChanged(filters: SearchLogsParam) {
+    this.filters.set(filters);
     this.pagination.update(prev => ({ ...prev, page: 1 }));
   }
 
