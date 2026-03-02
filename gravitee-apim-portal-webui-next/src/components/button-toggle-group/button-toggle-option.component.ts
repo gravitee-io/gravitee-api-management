@@ -13,36 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject, Input } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { MatButton } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
 
 import { ButtonToggleGroupComponent } from './button-toggle-group.component';
 
 @Component({
   selector: 'app-button-toggle-option',
   standalone: true,
-  imports: [MatButton, MatIcon],
+  imports: [MatButton],
   templateUrl: './button-toggle-option.component.html',
   styleUrl: './button-toggle-option.component.scss',
 })
 export class ButtonToggleOptionComponent {
-  @Input({ required: true })
-  value!: string;
-
-  @Input({ required: true })
-  icon!: string;
-
-  @Input({ required: true })
-  label!: string;
+  readonly value = input.required<string>();
+  readonly icon = input.required<string>();
+  readonly label = input.required<string>();
 
   protected readonly group = inject(ButtonToggleGroupComponent);
 
   get isActive(): boolean {
-    return this.group.value() === this.value;
+    return this.group.value() === this.value();
   }
 
   select(): void {
-    this.group.value.set(this.value);
+    this.group.value.set(this.value());
   }
 }

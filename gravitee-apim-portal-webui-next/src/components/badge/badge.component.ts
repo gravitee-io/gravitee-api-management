@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-badge',
@@ -22,6 +22,5 @@ import { Component, Input } from '@angular/core';
   styleUrl: './badge.component.scss',
 })
 export class BadgeComponent {
-  @Input({ required: true })
-  label!: string;
+  readonly label = input.required<string>();
 }

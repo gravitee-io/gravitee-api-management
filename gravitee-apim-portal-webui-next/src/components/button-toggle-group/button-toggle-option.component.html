@@ -18,8 +18,8 @@
 <button
   class="button-toggle-option"
   [class.button-toggle-option--active]="isActive"
-  mat-button
+  mat-flat-button
   (click)="select()">
-  <mat-icon>{{ icon }}</mat-icon>
-  {{ label }}
+  <span class="material-icons">{{ icon() }}</span>
+  {{ label() }}
 </button>
