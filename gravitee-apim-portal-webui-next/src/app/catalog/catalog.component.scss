@@ -32,10 +32,6 @@
     justify-content: space-between;
     gap: 16px;
 
-    .next-gen-h1 {
-      color: theme.$default-text-color;
-    }
-
     &--mobile {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -92,12 +88,6 @@
   &__table {
     width: 100%;
 
-    .mat-column-name {
-      width: 25%;
-      font-weight: 500;
-      color: theme.$default-text-color;
-    }
-
     .mat-column-labels {
       width: 50%;
     }
@@ -121,32 +111,12 @@
       white-space: nowrap;
     }
 
-    &__info-button {
-      flex-shrink: 0;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 18px;
-      height: 18px;
-      padding: 0;
+    &__info-icon {
+      line-height: 16px;
+      vertical-align: text-bottom;
       margin-left: 6px;
-      background-color: theme.$card-background-color;
-      border: 1px solid theme.$default-text-color;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-      vertical-align: middle;
-
-      &__text {
-        font-family: 'Times New Roman', serif;
-        font-style: italic;
-        color: theme.$default-text-color;
-        line-height: 1;
-      }
-
-      &:hover {
-        background-color: var(--mat-sys-surface-container-low);
-      }
+      color: theme.$default-text-color;
+      cursor: default;
     }
 
     &__mcp-cell {

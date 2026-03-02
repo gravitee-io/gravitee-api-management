@@ -53,9 +53,7 @@
               <td mat-cell *matCellDef="let api">
                 <span class="api-list__table__name-text">{{ api.title }}</span>
                 @if (api.content) {
-                  <button class="api-list__table__info-button" [matTooltip]="api.content">
-                    <span class="api-list__table__info-button__text next-gen-caption">i</span>
-                  </button>
+                  <span class="material-icons icon-small api-list__table__info-icon" [matTooltip]="api.content">info</span>
                 }
               </td>
             </ng-container>
