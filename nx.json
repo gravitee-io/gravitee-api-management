@@ -45,6 +45,7 @@
         },
         "lint-prettier": {
             "executor": "nx:run-commands",
+            "dependsOn": ["lint-eslint", "lint-license"],
             "options": {
                 "command": "sh -c 'case \"$*\" in *--fix*) prettier --write \"{projectRoot}/**/*.{ts,js,html,scss,css,json}\" ;; *) prettier --check \"{projectRoot}/**/*.{ts,js,html,scss,css,json}\" ;; esac' _"
             },
