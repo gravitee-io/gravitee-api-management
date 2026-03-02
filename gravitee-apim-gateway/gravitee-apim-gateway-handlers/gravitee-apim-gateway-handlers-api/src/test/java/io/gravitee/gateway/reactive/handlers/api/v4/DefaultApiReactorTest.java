@@ -26,6 +26,7 @@ import static io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor.REQ
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
@@ -39,6 +40,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -50,6 +52,8 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
+import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
+import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ApiType;
@@ -942,6 +946,37 @@ class DefaultApiReactorTest {
         assertThat(accessPointHttpAcceptor.innerHttpsAcceptors())
             .extracting(HttpAcceptor::host, HttpAcceptor::path)
             .containsOnly(Tuple.tuple("host1", "path/"), Tuple.tuple("host2", "path/"));
+    }
+
+    @Test
+    void shouldSubscribeAndUnsubscribeWithSameLambdaListener() throws Exception {
+        ArgumentCaptor<EventListener<ApiProductEventType, ApiProductChangedEvent>> captor = ArgumentCaptor.forClass(EventListener.class);
+        verify(eventManager).subscribeForEvents(captor.capture(), eq(ApiProductEventType.class));
+        EventListener<ApiProductEventType, ApiProductChangedEvent> subscribedListener = captor.getValue();
+
+        assertThat(subscribedListener).isNotSameAs(cut);
+
+        cut.doStop();
+
+        verify(eventManager).unsubscribeForEvents(subscribedListener, ApiProductEventType.class);
+    }
+
+    @Test
+    void shouldNotLoseNewListenerWhenOldReactorStops() throws Exception {
+        ArgumentCaptor<EventListener<ApiProductEventType, ApiProductChangedEvent>> captor1 = ArgumentCaptor.forClass(EventListener.class);
+        verify(eventManager).subscribeForEvents(captor1.capture(), eq(ApiProductEventType.class));
+        EventListener<ApiProductEventType, ApiProductChangedEvent> oldListener = captor1.getValue();
+
+        buildApiReactor();
+        ArgumentCaptor<EventListener<ApiProductEventType, ApiProductChangedEvent>> captor2 = ArgumentCaptor.forClass(EventListener.class);
+        verify(eventManager, times(2)).subscribeForEvents(captor2.capture(), eq(ApiProductEventType.class));
+        EventListener<ApiProductEventType, ApiProductChangedEvent> newListener = captor2.getAllValues().get(1);
+
+        assertThat(newListener).isNotSameAs(oldListener);
+
+        cut.doStop();
+        verify(eventManager).unsubscribeForEvents(oldListener, ApiProductEventType.class);
+        verify(eventManager, never()).unsubscribeForEvents(newListener, ApiProductEventType.class);
     }
 
     @Test
