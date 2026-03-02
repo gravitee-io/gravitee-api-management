@@ -91,9 +91,21 @@ export class PlanListComponentHarness extends ComponentHarness {
     return toggle.toggle();
   }
 
+  async clickPlanName(index = 0): Promise<void> {
+    const cells = await this.locatorForAll('[data-testid="plans_plan_name"]')();
+    if (cells.length <= index) throw new Error(`Plan name cell at index ${index} not found`);
+    return cells[index].click();
+  }
+
   async clickEditPlanButton(): Promise<void> {
     const btn = await this.locatorForOptional(MatButtonHarness.with({ selector: '[aria-label="Edit the plan"]' }))();
     if (!btn) throw new Error('Edit the plan button not found');
+    return btn.click();
+  }
+
+  async clickViewPlanButton(): Promise<void> {
+    const btn = await this.locatorForOptional(MatButtonHarness.with({ selector: '[aria-label="View the plan details"]' }))();
+    if (!btn) throw new Error('View the plan details button not found');
     return btn.click();
   }
 

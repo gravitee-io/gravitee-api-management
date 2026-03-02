@@ -397,6 +397,34 @@ describe('ApiProductPlanListComponent', () => {
     }));
   });
 
+  describe('clicking a plan navigates to edit route', () => {
+    it('navigates to plan edit route when plan name is clicked', fakeAsync(async () => {
+      await init();
+      fixture.detectChanges();
+      const plan = fakePlanV4({ status: 'PUBLISHED', security: { type: 'JWT' } });
+      flushPlansList([plan]);
+      tick();
+      fixture.detectChanges();
+
+      await planListHarness.clickPlanName();
+
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['./', plan.id], expect.objectContaining({ relativeTo: expect.anything() }));
+    }));
+
+    it('navigates to plan edit route when edit button is clicked', fakeAsync(async () => {
+      await init();
+      fixture.detectChanges();
+      const plan = fakePlanV4({ status: 'PUBLISHED', security: { type: 'JWT' } });
+      flushPlansList([plan]);
+      tick();
+      fixture.detectChanges();
+
+      await planListHarness.clickEditPlanButton();
+
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['./', plan.id], expect.objectContaining({ relativeTo: expect.anything() }));
+    }));
+  });
+
   describe('plan reorder', () => {
     it('sends PUT with new order then reloads list and table reflects new order', fakeAsync(async () => {
       await init();

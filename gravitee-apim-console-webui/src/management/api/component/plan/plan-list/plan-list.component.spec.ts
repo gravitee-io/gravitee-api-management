@@ -17,7 +17,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 
 import { PlanListComponent, PlanDS, type PlanFilterState, type PlanListContext } from './plan-list.component';
 import { PlanListComponentHarness } from './plan-list.component.harness';
@@ -55,7 +54,7 @@ describe('PlanListComponent', () => {
     }> = {},
   ) {
     await TestBed.configureTestingModule({
-      imports: [PlanListComponent, NoopAnimationsModule, RouterTestingModule, MatIconTestingModule],
+      imports: [PlanListComponent, NoopAnimationsModule, MatIconTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PlanListComponent);
@@ -155,6 +154,67 @@ describe('PlanListComponent', () => {
       fixture.componentInstance.typeSelected.subscribe((type: string) => emitted.push(type));
       await harness.clickAddPlanMenuItem('JWT');
       expect(emitted).toEqual(['JWT']);
+    });
+  });
+
+  describe('planSelected output', () => {
+    it('emits selected plan when plan name cell is clicked for non-closed plan', async () => {
+      const plan = {
+        ...fakePlanV4({ name: 'JWT Plan', status: 'PUBLISHED', security: { type: 'JWT' } }),
+        securityTypeLabel: 'JWT',
+      } as PlanDS;
+      await create({ plans: [plan] });
+      const emitted: PlanDS[] = [];
+      fixture.componentInstance.planSelected.subscribe((p: PlanDS) => emitted.push(p));
+
+      await harness.clickPlanName();
+
+      expect(emitted).toHaveLength(1);
+      expect(emitted[0].id).toBe(plan.id);
+    });
+
+    it('does not emit planSelected when clicking a closed plan name', async () => {
+      const plan = {
+        ...fakePlanV4({ name: 'Closed Plan', status: 'CLOSED', security: { type: 'JWT' } }),
+        securityTypeLabel: 'JWT',
+      } as PlanDS;
+      await create({ plans: [plan] });
+      const emitted: PlanDS[] = [];
+      fixture.componentInstance.planSelected.subscribe((p: PlanDS) => emitted.push(p));
+
+      await harness.clickPlanName();
+
+      expect(emitted).toHaveLength(0);
+    });
+
+    it('emits selected plan when edit button is clicked', async () => {
+      const plan = {
+        ...fakePlanV4({ name: 'JWT Plan', status: 'PUBLISHED', security: { type: 'JWT' } }),
+        securityTypeLabel: 'JWT',
+      } as PlanDS;
+      await create({ plans: [plan], context: { isReadOnly: false } });
+      const emitted: PlanDS[] = [];
+      fixture.componentInstance.planSelected.subscribe((p: PlanDS) => emitted.push(p));
+
+      await harness.clickEditPlanButton();
+
+      expect(emitted).toHaveLength(1);
+      expect(emitted[0].id).toBe(plan.id);
+    });
+
+    it('emits selected plan when view button is clicked in read-only mode', async () => {
+      const plan = {
+        ...fakePlanV4({ name: 'JWT Plan', status: 'PUBLISHED', security: { type: 'JWT' } }),
+        securityTypeLabel: 'JWT',
+      } as PlanDS;
+      await create({ plans: [plan], context: { isReadOnly: true } });
+      const emitted: PlanDS[] = [];
+      fixture.componentInstance.planSelected.subscribe((p: PlanDS) => emitted.push(p));
+
+      await harness.clickViewPlanButton();
+
+      expect(emitted).toHaveLength(1);
+      expect(emitted[0].id).toBe(plan.id);
     });
   });
 

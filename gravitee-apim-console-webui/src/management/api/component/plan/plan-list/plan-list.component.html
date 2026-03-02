@@ -82,7 +82,8 @@
       mat-cell
       *matCellDef="let element"
       [class.plans__table__name]="element.status !== 'CLOSED'"
-      [routerLink]="element.status !== 'CLOSED' ? './' + element.id : null"
+      (click)="element.status !== 'CLOSED' && planSelected.emit(element)"
+      data-testid="plans_plan_name"
     >
       {{ element.name }}
     </td>
@@ -139,7 +140,7 @@
               aria-label="Edit the plan"
               matTooltip="Edit the plan"
               data-testid="plans_edit_plan_button"
-              [routerLink]="'./' + element.id"
+              (click)="planSelected.emit(element)"
             >
               <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
             </button>
@@ -190,7 +191,12 @@
           }
         } @else {
           @if (element.status !== 'CLOSED') {
-            <button mat-icon-button aria-label="View the plan details" matTooltip="View the plan details" [routerLink]="'./' + element.id">
+            <button
+              mat-icon-button
+              aria-label="View the plan details"
+              matTooltip="View the plan details"
+              (click)="planSelected.emit(element)"
+            >
               <mat-icon svgIcon="gio:eye-empty"></mat-icon>
             </button>
           }
