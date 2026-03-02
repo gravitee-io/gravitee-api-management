@@ -18,7 +18,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { TopicDetailComponent } from './topic-detail/topic-detail.component';
-import { DescribeTopicResponse } from '../../models/kafka-cluster.model';
+import { ConsumerGroupSummary, DescribeTopicResponse } from '../../models/kafka-cluster.model';
 import { KafkaExplorerStore } from '../../services/kafka-explorer-store.service';
 import { KafkaExplorerService } from '../../services/kafka-explorer.service';
 
@@ -36,6 +36,7 @@ export class TopicDetailPageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   topicDetail = signal<DescribeTopicResponse | undefined>(undefined);
+  consumerGroups = signal<ConsumerGroupSummary[]>([]);
   loading = signal(false);
 
   ngOnInit() {
@@ -54,9 +55,26 @@ export class TopicDetailPageComponent implements OnInit {
           this.loading.set(false);
         },
       });
+
+    this.service
+      .listConsumerGroups(this.store.baseURL(), this.store.clusterId(), undefined, 1, 100, topicName)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: response => {
+          this.consumerGroups.set(response.data);
+        },
+      });
   }
 
   onBack() {
     this.router.navigate(['..'], { relativeTo: this.route });
+  }
+
+  onBrowseMessages() {
+    this.router.navigate(['messages'], { relativeTo: this.route });
+  }
+
+  onConsumerGroupSelect(groupId: string) {
+    this.router.navigate(['../../consumer-groups', groupId], { relativeTo: this.route });
   }
 }

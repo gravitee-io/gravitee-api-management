@@ -60,14 +60,13 @@ export class KafkaExplorerService {
     nameFilter?: string,
     page = 1,
     perPage = 25,
+    topicFilter?: string,
   ): Observable<ListConsumerGroupsResponse> {
-    return this.http.post<ListConsumerGroupsResponse>(
-      `${baseURL}/kafka-explorer/list-consumer-groups`,
-      { clusterId, nameFilter },
-      {
-        params: { page: page.toString(), perPage: perPage.toString() },
-      },
-    );
+    const body: Record<string, unknown> = { clusterId, nameFilter };
+    if (topicFilter) body['topicFilter'] = topicFilter;
+    return this.http.post<ListConsumerGroupsResponse>(`${baseURL}/kafka-explorer/list-consumer-groups`, body, {
+      params: { page: page.toString(), perPage: perPage.toString() },
+    });
   }
 
   describeConsumerGroup(baseURL: string, clusterId: string, groupId: string): Observable<DescribeConsumerGroupResponse> {

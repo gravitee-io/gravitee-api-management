@@ -23,7 +23,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { TopicDetailHarness } from './topic-detail/topic-detail.harness';
 import { TopicDetailPageComponent } from './topic-detail-page.component';
-import { fakeDescribeTopicResponse, fakeKafkaNode, fakeTopicPartitionDetail } from '../../models/kafka-cluster.fixture';
+import {
+  fakeDescribeTopicResponse,
+  fakeKafkaNode,
+  fakeListConsumerGroupsResponse,
+  fakeTopicPartitionDetail,
+} from '../../models/kafka-cluster.fixture';
 import { KafkaExplorerStore } from '../../services/kafka-explorer-store.service';
 
 describe('TopicDetailPageComponent', () => {
@@ -63,15 +68,21 @@ describe('TopicDetailPageComponent', () => {
     httpTesting.verify();
   });
 
+  function flushConsumerGroups(response = fakeListConsumerGroupsResponse()) {
+    httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/list-consumer-groups').flush(response);
+    fixture.detectChanges();
+  }
+
   function flushTopic(response = fakeDescribeTopicResponse()) {
     httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/describe-topic').flush(response);
-    fixture.detectChanges();
+    flushConsumerGroups();
   }
 
   it('should call describeTopic on init with route param', () => {
     const req = httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/describe-topic');
     expect(req.request.body).toEqual({ clusterId: 'test-cluster-id', topicName: 'my-topic' });
     req.flush(fakeDescribeTopicResponse());
+    flushConsumerGroups();
   });
 
   it('should display topic name', async () => {
@@ -152,5 +163,48 @@ describe('TopicDetailPageComponent', () => {
     await harness.clickBack();
 
     expect(router.navigate).toHaveBeenCalledWith(['..'], { relativeTo: route });
+  });
+
+  it('should call listConsumerGroups with topicFilter on init', () => {
+    httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/describe-topic').flush(fakeDescribeTopicResponse());
+    const req = httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/list-consumer-groups');
+    expect(req.request.body).toEqual({ clusterId: 'test-cluster-id', nameFilter: undefined, topicFilter: 'my-topic' });
+    expect(req.request.params.get('perPage')).toBe('100');
+    req.flush(fakeListConsumerGroupsResponse());
+  });
+
+  it('should display consumer groups table', async () => {
+    flushTopic();
+
+    const harness = await loader.getHarness(TopicDetailHarness);
+    const rows = await harness.getConsumerGroupsRows();
+    expect(rows.length).toBe(3);
+    expect(rows[0]['groupId']).toBe('my-group');
+    expect(rows[0]['membersCount']).toBe('2');
+    expect(rows[0]['coordinator']).toContain('kafka-broker-0.example.com');
+  });
+
+  it('should navigate to consumer group on select', async () => {
+    flushTopic();
+
+    fixture.componentInstance.onConsumerGroupSelect('my-group');
+
+    expect(router.navigate).toHaveBeenCalledWith(['../../consumer-groups', 'my-group'], { relativeTo: route });
+  });
+
+  it('should show browse messages button', async () => {
+    flushTopic();
+
+    const harness = await loader.getHarness(TopicDetailHarness);
+    expect(await harness.hasBrowseMessagesButton()).toBe(true);
+  });
+
+  it('should navigate to messages on browse messages click', async () => {
+    flushTopic();
+
+    const harness = await loader.getHarness(TopicDetailHarness);
+    await harness.clickBrowseMessages();
+
+    expect(router.navigate).toHaveBeenCalledWith(['messages'], { relativeTo: route });
   });
 });
