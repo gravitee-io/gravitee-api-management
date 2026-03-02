@@ -44,6 +44,7 @@ export class ApplicationGeneralComponent implements OnInit {
   public applicationForm: UntypedFormGroup;
   public isLoadingData = true;
   public isReadOnly = false;
+  public certificateCount = 0;
   public initialApplicationGeneralFormsValue: unknown;
   private destroyRef = inject(DestroyRef);
 
@@ -71,6 +72,7 @@ export class ApplicationGeneralComponent implements OnInit {
       .subscribe(() => {
         this.isLoadingData = false;
         this.isReadOnly = this.initialApplication.status === 'ARCHIVED' || this.initialApplication.origin === 'KUBERNETES';
+        this.certificateCount = this.initialApplication.settings?.tls?.certificate_count ?? 0;
 
         this.applicationForm = new UntypedFormGroup({
           details: new UntypedFormGroup({
