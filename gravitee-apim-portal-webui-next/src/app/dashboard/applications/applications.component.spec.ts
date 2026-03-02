@@ -21,13 +21,13 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
 import { RouterModule } from '@angular/router';
 
-import { ApplicationsComponent } from './applications.component';
+import ApplicationsComponent from './applications.component';
 import { ApplicationCardHarness } from './applications.harness';
-import { ApplicationsResponse } from '../../entities/application/application';
-import { fakeApplication, fakeApplicationsResponse } from '../../entities/application/application.fixture';
-import { fakeUser } from '../../entities/user/user.fixtures';
-import { CurrentUserService } from '../../services/current-user.service';
-import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
+import { ApplicationsResponse } from '../../../entities/application/application';
+import { fakeApplication, fakeApplicationsResponse } from '../../../entities/application/application.fixture';
+import { fakeUser } from '../../../entities/user/user.fixtures';
+import { CurrentUserService } from '../../../services/current-user.service';
+import { AppTestingModule, TESTING_BASE_URL } from '../../../testing/app-testing.module';
 
 describe('ApplicationsComponent', () => {
   let fixture: ComponentFixture<ApplicationsComponent>;
