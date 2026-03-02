@@ -63,23 +63,19 @@ export type TimeRange = {
   to: string;
 };
 
+export interface SearchLogFilter {
+  name: string;
+  operator: 'EQ' | 'NEQ' | 'LT' | 'LTE' | 'GT' | 'GTE' | 'IN';
+  value: string | number | boolean | string[] | number[];
+}
+
 export type SearchLogsParam = {
   page?: number;
   perPage?: number;
   timeRange?: TimeRange;
+  filters?: SearchLogFilter[];
   /** Filter by a specific request ID (maps to backend FilterName.REQUEST_ID) */
   requestId?: string;
-};
-
-type SearchLogsFilter = {
-  name: string;
-  operator: string;
-  value: string;
-};
-
-type SearchLogsRequestBody = {
-  timeRange: TimeRange;
-  filters?: SearchLogsFilter[];
 };
 
 /** ~10 years in milliseconds – wide enough to find any log regardless of age. */
@@ -99,16 +95,15 @@ export class EnvironmentLogsService {
     params = params.append('page', param?.page ?? 1);
     params = params.append('perPage', param?.perPage ?? 10);
 
-    const filters: SearchLogsFilter[] = [];
+    const filters: SearchLogFilter[] = [...(param?.filters ?? [])];
     if (param?.requestId) {
       filters.push({ name: 'REQUEST_ID', operator: 'EQ', value: param.requestId });
     }
 
-    const body: SearchLogsRequestBody = { timeRange: this.resolveTimeRange(param) };
-
-    if (filters.length > 0) {
-      body.filters = filters;
-    }
+    const body = {
+      timeRange: this.resolveTimeRange(param),
+      filters: filters.length > 0 ? filters : undefined,
+    };
 
     return this.http.post<SearchLogsResponse>(`${this.constants.env.v2BaseURL}/logs/search`, body, { params });
   }

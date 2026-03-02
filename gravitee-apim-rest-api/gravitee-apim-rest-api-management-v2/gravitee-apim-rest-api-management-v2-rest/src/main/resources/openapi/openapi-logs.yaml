@@ -133,6 +133,35 @@ paths:
               schema:
                 $ref: "./openapi-analytics.yaml#/components/schemas/Error"
 
+  /environments/{envId}/logs/error-keys:
+    get:
+      operationId: getEnvironmentLogErrorKeys
+      summary: Get environment error keys
+      description: |
+        Get the list of error keys found in the connection logs for the environment.
+      tags:
+        - logs
+      parameters:
+        - $ref: "./openapi-analytics.yaml#/components/parameters/EnvId"
+        - $ref: "#/components/parameters/from"
+        - $ref: "#/components/parameters/to"
+      responses:
+        "200":
+          description: List of error keys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                example: ["TIMEOUT", "GATEWAY_TIMEOUT"]
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "./openapi-analytics.yaml#/components/schemas/Error"
+
 components:
   parameters:
     pageParam:
@@ -155,6 +184,24 @@ components:
         default: 10
         minimum: 1
         maximum: 100
+    from:
+      name: from
+      in: query
+      required: false
+      description: |
+        The timestamp from which the logs will be returned.
+      schema:
+        type: integer
+        format: int64
+    to:
+      name: to
+      in: query
+      required: false
+      description: |
+        The timestamp to which the logs will be returned.
+      schema:
+        type: integer
+        format: int64
   schemas:
     SearchLogsRequest:
       description: Request body for searching API connection logs
@@ -375,6 +422,7 @@ components:
         - REQUEST_ID
         - URI
         - RESPONSE_TIME
+        - ERROR_KEY
       description: Available filter names for filtering analytics data
 
     Operator:

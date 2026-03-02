@@ -50,6 +50,7 @@ export class QuickFiltersStoreService {
       methods: logFilters.methods?.length > 0 ? logFilters.methods?.join(',') : null,
       mcpMethods: logFilters.mcpMethods?.length > 0 ? logFilters.mcpMethods?.join(',') : null,
       statuses: logFilters.statuses?.size > 0 ? Array.from(logFilters.statuses)?.join(',') : null,
+      errorKeys: logFilters.errorKeys?.length > 0 ? logFilters.errorKeys.join(',') : null,
     };
   }
 

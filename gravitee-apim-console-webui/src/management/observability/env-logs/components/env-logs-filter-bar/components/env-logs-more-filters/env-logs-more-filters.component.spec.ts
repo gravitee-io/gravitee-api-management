@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { provideHttpClient } from '@angular/common/http';
@@ -23,6 +24,7 @@ import { EnvLogsMoreFiltersComponent } from './env-logs-more-filters.component';
 import { EnvLogsMoreFiltersHarness } from './env-logs-more-filters.harness';
 
 import { DEFAULT_MORE_FILTERS } from '../../../../models/env-logs-more-filters.model';
+import { AnalyticsService } from '../../../../../../../services-ngx/analytics.service';
 
 describe('EnvLogsMoreFiltersComponent', () => {
   let fixture: ComponentFixture<EnvLogsMoreFiltersComponent>;
@@ -31,7 +33,16 @@ describe('EnvLogsMoreFiltersComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [EnvLogsMoreFiltersComponent],
-      providers: [provideNoopAnimations(), provideHttpClient()],
+      providers: [
+        provideNoopAnimations(),
+        provideHttpClient(),
+        {
+          provide: AnalyticsService,
+          useValue: {
+            getEnvironmentErrorKeys: jest.fn().mockReturnValue(of(['error-key-1'])),
+          },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(EnvLogsMoreFiltersComponent);
@@ -262,6 +273,25 @@ describe('EnvLogsMoreFiltersComponent', () => {
 
       expect(fixture.componentInstance.minDateDisplay).toBeInstanceOf(Date);
     });
+
+    it('should update minDate when the from control value changes', () => {
+      const fromDate = moment('2026-03-01T09:00:00');
+
+      fixture.componentInstance.form.controls.from.setValue(fromDate);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.minDate).toEqual(fromDate);
+    });
+
+    it('should set minDate to null when from control is cleared', () => {
+      fixture.componentInstance.form.controls.from.setValue(moment('2026-03-01T09:00:00'));
+      fixture.detectChanges();
+
+      fixture.componentInstance.form.controls.from.setValue(null);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.minDate).toBeNull();
+    });
   });
 
   describe('formValues input sync', () => {
@@ -279,6 +309,115 @@ describe('EnvLogsMoreFiltersComponent', () => {
       expect(fixture.componentInstance.form.value.mcpMethod).toBe('tools/call');
       expect(fixture.componentInstance.form.value.entrypoints).toEqual(['http-proxy']);
       expect(fixture.componentInstance.minDate).toBeTruthy();
+    });
+
+    it('should sync the statuses set when formValues input changes', () => {
+      fixture.componentRef.setInput('formValues', { ...DEFAULT_MORE_FILTERS, statuses: new Set([200, 404]) });
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.statuses.has(200)).toBe(true);
+      expect(fixture.componentInstance.statuses.has(404)).toBe(true);
+    });
+  });
+  describe('Error Keys functionality', () => {
+    it('should include selected error keys in apply emission', async () => {
+      const applySpy = jest.fn();
+      fixture.componentInstance.applyMoreFilters.subscribe(applySpy);
+
+      // Directly set the options to simulate service response
+      fixture.componentInstance.errorKeysOptions = ['API_KEY_MISSING', 'QUOTA_EXCEEDED'];
+      fixture.detectChanges();
+
+      fixture.componentInstance.form.controls.errorKeys.setValue(['API_KEY_MISSING']);
+
+      await harness.clickApply();
+
+      expect(applySpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          errorKeys: ['API_KEY_MISSING'],
+        }),
+      );
+    });
+
+    it('should fetch error keys when dates change', done => {
+      const analyticsService = TestBed.inject(AnalyticsService);
+      const fromDate = moment('2026-01-01');
+      const toDate = moment('2026-01-02');
+
+      // Trigger value changes on the form
+      fixture.componentInstance.form.controls.from.setValue(fromDate);
+      fixture.componentInstance.form.controls.to.setValue(toDate);
+      fixture.detectChanges();
+
+      // Wait for debounceTime(200)
+      setTimeout(() => {
+        expect(analyticsService.getEnvironmentErrorKeys).toHaveBeenCalledWith(fromDate.valueOf(), toDate.valueOf());
+        expect(fixture.componentInstance.errorKeysOptions).toEqual(['error-key-1']);
+        done();
+      }, 300);
+    });
+
+    it('should use default time range for error keys if form dates are missing', done => {
+      const analyticsService = TestBed.inject(AnalyticsService);
+
+      // Reset form dates
+      fixture.componentInstance.form.controls.from.setValue(null);
+      fixture.componentInstance.form.controls.to.setValue(null);
+      fixture.detectChanges();
+
+      setTimeout(() => {
+        // Verify it called with fallback values (last 24h logic)
+        expect(analyticsService.getEnvironmentErrorKeys).toHaveBeenCalledWith(expect.any(Number), expect.any(Number));
+        done();
+      }, 300);
+    });
+  });
+
+  describe('resetMoreFilters', () => {
+    it('should clear all fields including errorKeys and statuses', async () => {
+      const applySpy = jest.fn();
+      fixture.componentInstance.applyMoreFilters.subscribe(applySpy);
+
+      // Populate form
+      fixture.componentInstance.statuses = new Set([500]);
+      fixture.componentInstance.form.patchValue({
+        mcpMethod: 'test',
+        errorKeys: ['KEY'],
+      });
+
+      fixture.componentInstance.resetMoreFilters();
+
+      expect(fixture.componentInstance.statuses.size).toBe(0);
+      expect(fixture.componentInstance.form.value.errorKeys).toBeNull();
+      expect(fixture.componentInstance.form.value.mcpMethod).toBeNull();
+
+      expect(applySpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          errorKeys: null,
+          statuses: new Set(),
+        }),
+      );
+    });
+  });
+
+  describe('apply sanitization', () => {
+    it('should trim string values before emitting', () => {
+      const applySpy = jest.fn();
+      fixture.componentInstance.applyMoreFilters.subscribe(applySpy);
+
+      fixture.componentInstance.form.patchValue({
+        mcpMethod: '  tools/list  ',
+        transactionId: ' tx-123 ',
+      });
+
+      fixture.componentInstance.apply();
+
+      expect(applySpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          mcpMethod: 'tools/list',
+          transactionId: 'tx-123',
+        }),
+      );
     });
   });
 });
