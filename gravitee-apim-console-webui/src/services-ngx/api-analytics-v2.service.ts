@@ -27,6 +27,7 @@ import { AnalyticsResponseStatusOvertime } from '../entities/management-api-v2/a
 import { AnalyticsResponseTimeOverTime } from '../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
 import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
 import { ApiAnalyticsFilters } from '../management/api/api-traffic-v4/analytics/components/api-analytics-filters-bar/api-analytics-filters-bar.configuration';
+import { AnalyticsCount, AnalyticsGroupBy, AnalyticsStats } from '../entities/management-api-v2/analytics/analyticsUnified';
 
 @Injectable({
   providedIn: 'root',
@@ -104,6 +105,39 @@ export class ApiAnalyticsV2Service {
         const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-time-over-time?from=${from}&to=${to}`;
         return this.http.get<AnalyticsResponseTimeOverTime>(url);
       }),
+    );
+  }
+
+  getAnalyticsCount(apiId: string): Observable<AnalyticsCount> {
+    return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
+      switchMap(({ from, to }) =>
+        this.http.get<AnalyticsCount>(`${this.constants.env.v2BaseURL}/apis/${apiId}/analytics`, {
+          params: { type: 'COUNT', from, to },
+        }),
+      ),
+    );
+  }
+
+  getAnalyticsStats(apiId: string, field: string): Observable<AnalyticsStats> {
+    return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
+      switchMap(({ from, to }) =>
+        this.http.get<AnalyticsStats>(`${this.constants.env.v2BaseURL}/apis/${apiId}/analytics`, {
+          params: { type: 'STATS', field, from, to },
+        }),
+      ),
+    );
+  }
+
+  getAnalyticsGroupBy(apiId: string, field: string, size = 10): Observable<AnalyticsGroupBy> {
+    return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
+      switchMap(({ from, to }) =>
+        this.http.get<AnalyticsGroupBy>(`${this.constants.env.v2BaseURL}/apis/${apiId}/analytics`, {
+          params: { type: 'GROUP_BY', field, size, from, to },
+        }),
+      ),
     );
   }
 }

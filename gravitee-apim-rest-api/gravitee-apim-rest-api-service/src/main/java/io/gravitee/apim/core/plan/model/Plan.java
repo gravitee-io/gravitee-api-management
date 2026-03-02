@@ -160,6 +160,11 @@ public class Plan implements GenericPlanEntity {
         };
     }
 
+    @Override
+    public int getOrder() {
+        return order;
+    }
+
     public Plan setPlanMode(PlanMode planMode) {
         if (definitionVersion == DefinitionVersion.V4) {
             getPlanDefinitionV4().setMode(planMode);
