@@ -23,11 +23,11 @@ import { Router, RouterLink } from '@angular/router';
 import { BehaviorSubject, catchError, distinctUntilChanged, map, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { ApplicationCardComponent } from '../../components/application-card/application-card.component';
-import { PaginationComponent } from '../../components/pagination/pagination.component';
-import { ApplicationService } from '../../services/application.service';
-import { CurrentUserService } from '../../services/current-user.service';
-import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
+import { ApplicationCardComponent } from '../../../components/application-card/application-card.component';
+import { PaginationComponent } from '../../../components/pagination/pagination.component';
+import { ApplicationService } from '../../../services/application.service';
+import { CurrentUserService } from '../../../services/current-user.service';
+import { ObservabilityBreakpointService } from '../../../services/observability-breakpoint.service';
 import { CardsGridComponent } from 'src/components/cards-grid/cards-grid.component';
 
 export interface ApplicationPaginatorVM {
@@ -55,7 +55,7 @@ export interface ApplicationPaginatorVM {
   templateUrl: './applications.component.html',
   styleUrl: './applications.component.scss',
 })
-export class ApplicationsComponent {
+export default class ApplicationsComponent {
   currentUser = inject(CurrentUserService).user;
 
   loadingPage: boolean = true;

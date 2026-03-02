@@ -33,12 +33,11 @@ import { authGuard } from '../guards/auth.guard';
 import { pagesResolver } from '../resolvers/pages.resolver';
 import { ApiTabToolsComponent } from './api/api-details/api-tab-tools/api-tab-tools.component';
 import { SubscribeToApiComponent } from './api/subscribe-to-api/subscribe-to-api.component';
-import { ApplicationLogComponent } from './applications/application/application-tab-logs/application-log/application-log.component';
-import { ApplicationLogTableComponent } from './applications/application/application-tab-logs/application-log-table/application-log-table.component';
-import { ApplicationTabLogsComponent } from './applications/application/application-tab-logs/application-tab-logs.component';
-import { ApplicationTabSettingsComponent } from './applications/application/application-tab-settings/application-tab-settings.component';
-import { ApplicationComponent } from './applications/application/application.component';
-import { ApplicationsComponent } from './applications/applications.component';
+import { ApplicationLogComponent } from './dashboard/application-details/application-tab-logs/application-log/application-log.component';
+import { ApplicationLogTableComponent } from './dashboard/application-details/application-tab-logs/application-log-table/application-log-table.component';
+import { ApplicationTabLogsComponent } from './dashboard/application-details/application-tab-logs/application-tab-logs.component';
+import { ApplicationTabSettingsComponent } from './dashboard/application-details/application-tab-settings/application-tab-settings.component';
+import ApplicationComponent from './dashboard/application-details/application.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { RegistrationConfirmationComponent } from './registration/registration-confirmation/registration-confirmation.component';
 import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
@@ -174,13 +173,21 @@ export const routes: Routes = [
         path: 'subscriptions/:subscriptionId',
         loadComponent: () => import('./dashboard/subscription-details/subscription-details.component'),
       },
+      {
+        path: 'applications',
+        loadComponent: () => import('./dashboard/applications/applications.component'),
+      },
+      {
+        path: 'applications/:applicationId',
+        loadComponent: () => import('./dashboard/application-details/application.component'),
+      },
     ],
   },
   {
     path: 'applications',
     canActivateChild: [redirectGuard, authGuard],
     children: [
-      { path: '', component: ApplicationsComponent, data: { breadcrumb: 'Applications' } },
+      { path: '', redirectTo: '/dashboard/applications', pathMatch: 'full' },
       {
         path: 'create',
         component: CreateApplicationComponent,

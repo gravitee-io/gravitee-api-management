@@ -27,7 +27,10 @@ interface MenuItem {
   title: string;
 }
 
-const MENU_ITEMS: MenuItem[] = [{ path: 'subscriptions', title: $localize`:@@subscriptionsTitle:Subscriptions` }];
+const MENU_ITEMS: MenuItem[] = [
+  { path: 'applications', title: $localize`:@@applicationsTitle:Applications` },
+  { path: 'subscriptions', title: $localize`:@@subscriptionsTitle:Subscriptions` },
+];
 
 @Component({
   selector: 'app-dashboard',
