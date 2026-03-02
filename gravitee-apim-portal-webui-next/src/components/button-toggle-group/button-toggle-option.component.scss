@@ -14,18 +14,24 @@
  * limitations under the License.
  */
 @use '../../scss/theme';
+@use '@angular/material' as mat;
 
 :host {
   display: contents;
 }
 
 .button-toggle-option {
-  --mdc-text-button-container-height: 40px;
-  border-radius: 0;
+  @include mat.button-overrides(
+    (
+      filled-container-height: 40px,
+      filled-container-shape: 0,
+      filled-container-color: transparent,
+      filled-label-text-color: theme.$paragraph-color,
+    )
+  );
   min-width: unset;
-  color: theme.$paragraph-color;
 
-  mat-icon {
+  .material-icons {
     font-size: 20px;
     width: 20px;
     height: 20px;
@@ -33,10 +39,14 @@
   }
 
   &--active {
-    background-color: theme.$button-toggle-active-background-color;
-    color: theme.$button-toggle-active-text-color;
+    @include mat.button-overrides(
+      (
+        filled-container-color: theme.$button-toggle-active-background-color,
+        filled-label-text-color: theme.$button-toggle-active-text-color,
+      )
+    );
 
-    mat-icon {
+    .material-icons {
       color: theme.$button-toggle-active-text-color;
       font-variation-settings:
         'FILL' 1,
