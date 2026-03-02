@@ -17,6 +17,12 @@ package io.gravitee.apim.infra.zee;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -25,12 +31,22 @@ import com.jsonschema.llm.engine.LlmTransportException;
 import com.jsonschema.llm.engine.RoundtripResult;
 import io.gravitee.apim.core.zee.domain_service.LlmEngineService.LlmGenerationResult;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for {@link LlmEngineServiceImpl} after the SchemaGenerator facade
+ * simplification.
+ *
+ * <p>
+ * Since the implementation now delegates to
+ * {@code SchemaGenerator.generate(Component, prompt, engine)}, these tests
+ * verify the dispatch logic, error wrapping, and the Api description-patch
+ * special case — without mocking the static SDK methods. Instead, we mock
+ * the {@link LlmRoundtripEngine} that the SDK calls through.
+ */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class LlmEngineServiceImplTest {
 
@@ -40,17 +56,40 @@ class LlmEngineServiceImplTest {
     class Generate {
 
         @Test
-        void returns_result_from_component_invoker() {
-            // Arrange
+        void throws_on_unknown_component() {
+            var engine = mock(LlmRoundtripEngine.class);
+            var service = new LlmEngineServiceImpl(engine);
+
+            assertThatThrownBy(() -> service.generate("prompt", "UnknownWidget"))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Unsupported component: UnknownWidget");
+        }
+
+        @Test
+        void throws_on_null_component_name() {
+            var engine = mock(LlmRoundtripEngine.class);
+            var service = new LlmEngineServiceImpl(engine);
+
+            assertThatThrownBy(() -> service.generate("prompt", null))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Unsupported component: null");
+        }
+
+        @Test
+        void resolves_flow_component_via_schema_generator() throws Exception {
+            // Arrange — mock the engine so the SDK's SchemaGenerator.generate can call
+            // through
             ObjectNode fakeData = MAPPER.createObjectNode().put("name", "rate-limit-flow").put("enabled", true);
             var fakeResult = new RoundtripResult(fakeData, null, List.of(), List.of());
 
-            var registry = Map.of("Flow", (LlmEngineServiceImpl.ComponentInvoker) (prompt, engine) -> fakeResult);
+            var engine = mock(LlmRoundtripEngine.class);
+            when(engine.generateWithPreconverted(anyString(), anyString(), any(), eq("my prompt")))
+                    .thenReturn(fakeResult);
 
-            var service = new LlmEngineServiceImpl(null, registry);
+            var service = new LlmEngineServiceImpl(engine);
 
             // Act
-            LlmGenerationResult result = service.generate("Create a rate limit flow", "Flow");
+            LlmGenerationResult result = service.generate("my prompt", "Flow");
 
             // Assert
             assertThat(result.data()).isEqualTo(fakeData);
@@ -61,17 +100,75 @@ class LlmEngineServiceImplTest {
         }
 
         @Test
-        void maps_validation_errors_from_roundtrip_result() {
+        void api_component_uses_patch_variant() throws Exception {
+            // Arrange — Api triggers the generateWithPatch path
+            ObjectNode fakeData = MAPPER.createObjectNode().put("name", "my-api");
+            var fakeResult = new RoundtripResult(fakeData, null, List.of(), List.of());
+
+            var engine = mock(LlmRoundtripEngine.class);
+            // The patch variant goes through generateWithPatch, not
+            // generateWithPreconverted
+            when(engine.generateWithPatch(anyString(), eq("create an API"), anyString()))
+                    .thenReturn(fakeResult);
+
+            var service = new LlmEngineServiceImpl(engine);
+
+            // Act
+            LlmGenerationResult result = service.generate("create an API", "Api");
+
+            // Assert
+            assertThat(result.data()).isEqualTo(fakeData);
+            verify(engine).generateWithPatch(anyString(), eq("create an API"), anyString());
+        }
+
+        @Test
+        void endpoint_group_component_uses_patch_variant() throws Exception {
+            ObjectNode fakeData = MAPPER.createObjectNode().put("name", "my-group");
+            var fakeResult = new RoundtripResult(fakeData, null, List.of(), List.of());
+
+            var engine = mock(LlmRoundtripEngine.class);
+            when(engine.generateWithPatch(anyString(), eq("create a group"), anyString()))
+                    .thenReturn(fakeResult);
+
+            var service = new LlmEngineServiceImpl(engine);
+
+            LlmGenerationResult result = service.generate("create a group", "EndpointGroup");
+
+            assertThat(result.data()).isEqualTo(fakeData);
+            verify(engine).generateWithPatch(anyString(), eq("create a group"), anyString());
+        }
+
+        @Test
+        void endpoint_component_uses_patch_variant() throws Exception {
+            ObjectNode fakeData = MAPPER.createObjectNode().put("name", "my-endpoint");
+            var fakeResult = new RoundtripResult(fakeData, null, List.of(), List.of());
+
+            var engine = mock(LlmRoundtripEngine.class);
+            when(engine.generateWithPatch(anyString(), eq("create an endpoint"), anyString()))
+                    .thenReturn(fakeResult);
+
+            var service = new LlmEngineServiceImpl(engine);
+
+            LlmGenerationResult result = service.generate("create an endpoint", "Endpoint");
+
+            assertThat(result.data()).isEqualTo(fakeData);
+            verify(engine).generateWithPatch(anyString(), eq("create an endpoint"), anyString());
+        }
+
+        @Test
+        void maps_validation_errors_from_roundtrip_result() throws Exception {
             ObjectNode fakeData = MAPPER.createObjectNode();
             var errors = List.of("$.name: required property missing");
             var warnings = List.of("field 'x' was dropped during rehydration");
             var fakeResult = new RoundtripResult(fakeData, null, warnings, errors);
 
-            var registry = Map.of("Plan", (LlmEngineServiceImpl.ComponentInvoker) (prompt, engine) -> fakeResult);
+            var engine = mock(LlmRoundtripEngine.class);
+            when(engine.generateWithPreconverted(anyString(), anyString(), any(), anyString()))
+                    .thenReturn(fakeResult);
 
-            var service = new LlmEngineServiceImpl(null, registry);
+            var service = new LlmEngineServiceImpl(engine);
 
-            LlmGenerationResult result = service.generate("Create a keyless plan", "Plan");
+            LlmGenerationResult result = service.generate("Create a plan", "Plan");
 
             assertThat(result.valid()).isFalse();
             assertThat(result.validationErrors()).containsExactly("$.name: required property missing");
@@ -79,71 +176,48 @@ class LlmEngineServiceImplTest {
         }
 
         @Test
-        void throws_on_unknown_component() {
-            var service = new LlmEngineServiceImpl(null, Map.of());
+        void wraps_transport_exception_as_runtime_exception() throws Exception {
+            var engine = mock(LlmRoundtripEngine.class);
+            when(engine.generateWithPreconverted(anyString(), anyString(), any(), anyString()))
+                    .thenThrow(new LlmTransportException("connection refused", 0));
 
-            assertThatThrownBy(() -> service.generate("prompt", "UnknownWidget"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Unsupported component: UnknownWidget");
-        }
-
-        @Test
-        void wraps_io_exception_as_runtime_exception() {
-            LlmEngineServiceImpl.ComponentInvoker failingInvoker = (prompt, engine) -> {
-                throw new java.io.IOException("schema resource not found");
-            };
-
-            var service = new LlmEngineServiceImpl(null, Map.of("Flow", failingInvoker));
+            var service = new LlmEngineServiceImpl(engine);
 
             assertThatThrownBy(() -> service.generate("prompt", "Flow"))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Failed to load schema resources");
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessageContaining("LLM transport failed");
         }
 
         @Test
-        void wraps_transport_exception_as_runtime_exception() {
-            LlmEngineServiceImpl.ComponentInvoker failingInvoker = (prompt, engine) -> {
-                throw new LlmTransportException("connection refused", 0);
-            };
+        void component_name_lookup_is_case_insensitive() throws Exception {
+            // SchemaGenerator.Component.from() does case-insensitive lookup
+            ObjectNode fakeData = MAPPER.createObjectNode();
+            var fakeResult = new RoundtripResult(fakeData, null, List.of(), List.of());
 
-            var service = new LlmEngineServiceImpl(null, Map.of("Flow", failingInvoker));
+            var engine = mock(LlmRoundtripEngine.class);
+            when(engine.generateWithPreconverted(anyString(), anyString(), any(), anyString()))
+                    .thenReturn(fakeResult);
 
-            assertThatThrownBy(() -> service.generate("prompt", "Flow"))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("LLM transport failed");
-        }
+            var service = new LlmEngineServiceImpl(engine);
 
-        @Test
-        void passes_prompt_to_invoker() {
-            var capturedPrompt = new String[1];
-            LlmEngineServiceImpl.ComponentInvoker capturingInvoker = (prompt, engine) -> {
-                capturedPrompt[0] = prompt;
-                return new RoundtripResult(MAPPER.createObjectNode(), null, List.of(), List.of());
-            };
-
-            var service = new LlmEngineServiceImpl(null, Map.of("Flow", capturingInvoker));
-            service.generate("Create a flow with rate limiting at 100 req/s", "Flow");
-
-            assertThat(capturedPrompt[0]).isEqualTo("Create a flow with rate limiting at 100 req/s");
+            // "flow" (lowercase) should resolve to FLOW component
+            LlmGenerationResult result = service.generate("prompt", "flow");
+            assertThat(result).isNotNull();
         }
     }
 
     @Nested
-    class Registry {
+    class DisabledMode {
 
         @Test
-        void default_registry_contains_v4_flow() {
-            // Use a dummy config to build the default registry
+        void throws_when_disabled() {
             var config = new ZeeConfiguration();
-            // We can't fully construct without valid URLs, but we can test
-            // the static buildRegistry method indirectly through reflection
-            // or just verify the test constructor works
-            var registry = Map.of("Flow", (LlmEngineServiceImpl.ComponentInvoker) (p, e) -> null);
-            var service = new LlmEngineServiceImpl(null, registry);
+            config.setEnabled(false);
+            var service = new LlmEngineServiceImpl(config);
 
-            // The service should accept "Flow" as a valid component
-            // (we already test this above, this is a structural test)
-            assertThat(registry).containsKey("Flow");
+            assertThatThrownBy(() -> service.generate("prompt", "Flow"))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("Zee Mode is disabled");
         }
     }
 }

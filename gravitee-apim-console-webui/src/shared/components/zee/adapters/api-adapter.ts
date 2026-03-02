@@ -92,7 +92,7 @@ export const API_ADAPTER: ZeeResourceAdapter<ApiPayload> = {
     const g = generated as Record<string, unknown>;
     return {
       name: asString(g.name, ''),
-      apiVersion: asString(g.apiVersion ?? g.version, '1.0.0'),
+      apiVersion: asString(g.apiVersion ?? g.version, '1.0.0') || '1.0.0',
       description: asString(g.description, ''),
       type: asString(g.type, 'PROXY'),
       listeners: asArray(g.listeners).map(mapListener),
@@ -153,13 +153,18 @@ function mapLoadBalancer(raw: unknown): { type: string } {
 
 function mapEndpoint(raw: unknown): ApiEndpoint {
   const e = raw as Record<string, unknown>;
+  // Move top-level 'target' into configuration (see endpoint-adapter.ts)
+  const config = parseConfig(e.configuration);
+  if (e.target && !config.target) {
+    config.target = e.target;
+  }
   return {
     name: asString(e.name, ''),
     type: asString(e.type, 'http-proxy'),
     weight: asNumber(e.weight, 1),
     inheritConfiguration: asBoolean(e.inheritConfiguration, true),
     secondary: asBoolean(e.secondary, false),
-    configuration: parseConfig(e.configuration),
+    configuration: config,
     services: asRecord(e.services),
   };
 }

@@ -27,7 +27,7 @@
     *ngIf="!isReadOnly && api?.definitionVersion === 'V4'"
     [resourceType]="'API'"
     [adapter]="apiAdapter"
-    [contextData]="{ apiId: apiId }"
+    [contextData]="{ apiId: apiId, currentState: { name: api?.name, apiVersion: api?.apiVersion, description: api?.description, labels: api?.labels, type: $any(api)?.type } }"
     (accepted)="onApiGenerated($event)"
   ></zee-widget>
   <mat-card class="details-card" [formGroup]="apiDetailsForm">

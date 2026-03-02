@@ -72,18 +72,17 @@ public class GenerateResourceUseCase {
     public GenerateResourceUseCase(LlmEngineService llmEngineService, List<RagContextStrategy> strategies) {
         this.llmEngineService = llmEngineService;
         this.ragStrategies = strategies
-            .stream()
-            .filter(s -> s.resourceType() != null)
-            .collect(
-                Collectors.toUnmodifiableMap(RagContextStrategy::resourceType, Function.identity(), (first, second) -> {
-                    log.warn(
-                        "Duplicate RagContextStrategy for resourceType={}; keeping first ({})",
-                        first.resourceType(),
-                        first.getClass().getSimpleName()
-                    );
-                    return first;
-                })
-            );
+                .stream()
+                .filter(s -> s.resourceType() != null)
+                .collect(
+                        Collectors.toUnmodifiableMap(RagContextStrategy::resourceType, Function.identity(),
+                                (first, second) -> {
+                                    log.warn(
+                                            "Duplicate RagContextStrategy for resourceType={}; keeping first ({})",
+                                            first.resourceType(),
+                                            first.getClass().getSimpleName());
+                                    return first;
+                                }));
     }
 
     /**
@@ -95,24 +94,35 @@ public class GenerateResourceUseCase {
      * @return the generation result including the rehydrated resource and metadata
      */
     public ZeeResult execute(ZeeRequest request, String envId, String orgId) {
-        // 1. Component name from enum
         var componentName = request.resourceType().componentName();
 
-        // 2. RAG context — graceful fallback on failure
+        log.info(
+                "Zee generation request received: resourceType={}, component={}, promptLength={}, files={}, hasCurrentState={}",
+                request.resourceType(), componentName, request.prompt().length(),
+                request.files().size(), request.contextData().containsKey("currentState"));
+        log.debug("Zee user prompt: {}", request.prompt());
+
         var ragContext = retrieveRagContext(request, envId, orgId);
+        var prompt = buildPrompt(request.prompt(), ragContext, request.files(), request.contextData());
 
-        // 3. Build enriched prompt
-        var prompt = buildPrompt(request.prompt(), ragContext, request.files());
+        log.info("Zee enriched prompt built: {} chars, hasRag={}", prompt.length(), !ragContext.isBlank());
+        log.debug("Zee enriched prompt:\n{}", prompt);
 
-        // 4. Call LLM engine
         var llmResult = llmEngineService.generate(prompt, componentName);
 
-        // 5. Return domain result
-        return new ZeeResult(
-            request.resourceType(),
-            llmResult.data(),
-            new ZeeMetadata(MODEL_IDENTIFIER, llmResult.tokensUsed(), !ragContext.isBlank())
-        );
+        log.info("Zee LLM response received: tokensUsed={}, errors={}, warnings={}",
+                llmResult.tokensUsed(), llmResult.errors().size(), llmResult.warnings().size());
+        log.debug("Zee LLM result data: {}", llmResult.data());
+
+        var result = new ZeeResult(
+                request.resourceType(),
+                llmResult.data(),
+                new ZeeMetadata(MODEL_IDENTIFIER, llmResult.tokensUsed(), !ragContext.isBlank()));
+
+        log.info("Zee generation complete: resourceType={}, tokensUsed={}, hasRag={}",
+                result.resourceType(), result.metadata().tokensUsed(), result.metadata().usedRag());
+
+        return result;
     }
 
     // ── private helpers ──────────────────────────────────────────────────────
@@ -124,24 +134,46 @@ public class GenerateResourceUseCase {
             return ctx != null ? ctx : "";
         } catch (Exception e) {
             log.warn(
-                "RAG context retrieval failed for resourceType={} envId={}; continuing without RAG context",
-                request.resourceType(),
-                envId,
-                e
-            );
+                    "RAG context retrieval failed for resourceType={} envId={}; continuing without RAG context",
+                    request.resourceType(),
+                    envId,
+                    e);
             return "";
         }
     }
 
     /**
-     * Assembles the enriched prompt in sections: system preamble → RAG context
-     * (if non-empty) → uploaded files (if any) → user request.
+     * Assembles the enriched prompt in sections: system preamble → current state
+     * (if updating) → RAG context (if non-empty) → uploaded files (if any) →
+     * user request.
      */
-    private String buildPrompt(String userPrompt, String ragContext, List<FileContent> files) {
+    private String buildPrompt(String userPrompt, String ragContext, List<FileContent> files,
+            Map<String, Object> contextData) {
         var sb = new StringBuilder();
         sb.append("You are Zee, an expert Gravitee APIM assistant. ");
-        sb.append("Generate Gravitee API definition resources based on the user's request. ");
-        sb.append("Be precise and follow Gravitee conventions.\n\n");
+
+        var currentState = contextData.get("currentState");
+        if (currentState != null) {
+            // Update mode — LLM should preserve existing fields
+            sb.append("You are updating an existing Gravitee resource. ");
+            sb.append("Only alter data required to fulfill the user's request. ");
+            sb.append("Preserve all existing field values unless the user explicitly asks to change them.\n\n");
+            sb.append("NOTE: Users may use informal names for fields. Common aliases:\n");
+            sb.append("- 'labels' and 'tags' refer to the same field (use 'tags' in output)\n");
+            sb.append("- 'version' refers to 'apiVersion'\n\n");
+            sb.append("## Current Resource State\n");
+            try {
+                var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                sb.append("```json\n").append(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(currentState))
+                        .append("\n```\n\n");
+            } catch (Exception e) {
+                sb.append("```json\n").append(currentState).append("\n```\n\n");
+            }
+        } else {
+            // Create mode — LLM generates from scratch
+            sb.append("Generate Gravitee API definition resources based on the user's request. ");
+            sb.append("Be precise and follow Gravitee conventions.\n\n");
+        }
 
         if (!ragContext.isBlank()) {
             sb.append("## Existing Configuration Context\n").append(ragContext).append("\n\n");
