@@ -1442,6 +1442,19 @@
                 <!-- Endpoints -->
                 <dependency>
                     <groupId>com.graviteesource.endpoint</groupId>
+                    <artifactId>gravitee-endpoint-jms</artifactId>
+                    <version>${gravitee-endpoint-jms.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.endpoint</groupId>
                     <artifactId>gravitee-endpoint-kafka</artifactId>
                     <version>${gravitee-endpoint-kafka.version}</version>
                     <type>zip</type>
