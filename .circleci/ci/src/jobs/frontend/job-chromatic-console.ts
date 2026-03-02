@@ -55,7 +55,7 @@ export class ChromaticConsoleJob {
       //  - Create a new project in Chromatic and update the token
       new commands.Run({
         name: 'Running Chromatic',
-        command: `SB_URL=$(cd gravitee-apim-console-webui && npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --exit-once-uploaded -d=storybook-static | grep -o "View your Storybook at https:\\/\\/[0-9a-z-]*\\.chromatic\\.com" | grep -o "https:.*")
+        command: `SB_URL=$(npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --exit-once-uploaded -d=storybook-all/storybook-static | grep -o "View your Storybook at https:\\/\\/[0-9a-z-]*\\.chromatic\\.com" | grep -o "https:.*")
 echo "export SB_URL=$SB_URL" >> $BASH_ENV`,
       }),
       new reusable.ReusedCommand(orbs.github.commands['setup']),

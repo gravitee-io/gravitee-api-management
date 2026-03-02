@@ -24,6 +24,7 @@ import {
   BuildDockerBackendImageJob,
   BuildDockerWebUiImageJob,
   ChromaticConsoleJob,
+  StorybookAllJob,
   CommunityBuildBackendJob,
   ConsoleWebuiBuildJob,
   DangerJsJob,
@@ -39,7 +40,6 @@ import {
   ReleaseHelmJob,
   SetupJob,
   SonarCloudAnalysisJob,
-  StorybookConsoleJob,
   TestApimChartsJob,
   TestDefinitionJob,
   TestGatewayJob,
@@ -352,12 +352,6 @@ export class PullRequestsWorkflow {
       const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(consoleWebuiBuildJob);
 
-      const storybookConsoleJob = StorybookConsoleJob.create(dynamicConfig, environment);
-      dynamicConfig.addJob(storybookConsoleJob);
-
-      const chromaticConsoleJob = ChromaticConsoleJob.create(dynamicConfig, environment);
-      dynamicConfig.addJob(chromaticConsoleJob);
-
       const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(sonarCloudAnalysisJob);
 
@@ -395,21 +389,33 @@ export class PullRequestsWorkflow {
       }
 
       jobs.push(
-        new workflow.WorkflowJob(storybookConsoleJob, {
-          name: 'Build Console Storybook',
-          context: config.jobContext,
-        }),
-        new workflow.WorkflowJob(chromaticConsoleJob, {
-          name: 'Deploy console in chromatic',
-          context: config.jobContext,
-          requires: ['Build Console Storybook'],
-        }),
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
           name: 'Sonar - gravitee-apim-console-webui',
           context: config.jobContext,
           requires: ['Lint & test APIM Console'],
           working_directory: config.components.console.project,
           cache_type: 'frontend',
+        }),
+      );
+    }
+
+    // Build all Storybooks & deploy to Chromatic
+    if (!filterJobs || shouldBuildStorybook(environment.changedFiles)) {
+      const storybookAllJob = StorybookAllJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(storybookAllJob);
+
+      const chromaticConsoleJob = ChromaticConsoleJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(chromaticConsoleJob);
+
+      jobs.push(
+        new workflow.WorkflowJob(storybookAllJob, {
+          name: 'Build all Storybooks',
+          context: config.jobContext,
+        }),
+        new workflow.WorkflowJob(chromaticConsoleJob, {
+          name: 'Deploy Storybook to Chromatic',
+          context: config.jobContext,
+          requires: ['Build all Storybooks'],
         }),
       );
     }
@@ -708,6 +714,15 @@ function shouldBuildConsole(changedFiles: string[]): boolean {
   return (
     shouldBuildAllFront(changedFiles) ||
     changedFiles.some((file) => file.includes(config.components.console.project)) ||
+    changedFiles.some((file) => file.includes('gravitee-apim-webui-libs'))
+  );
+}
+
+function shouldBuildStorybook(changedFiles: string[]): boolean {
+  return (
+    shouldBuildAllFront(changedFiles) ||
+    changedFiles.some((file) => file.includes(config.components.console.project)) ||
+    changedFiles.some((file) => file.includes(config.components.portal.next.project)) ||
     changedFiles.some((file) => file.includes('gravitee-apim-webui-libs'))
   );
 }

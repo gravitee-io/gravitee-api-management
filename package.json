@@ -214,6 +214,8 @@
         "markdown:test": "nx test markdown",
         "dashboard:storybook": "nx storybook dashboard",
         "dashboard:test": "nx test dashboard",
+        "storybook-all:build": "nx run storybook-all:build-storybook",
+        "storybook-all:serve": "nx run storybook-all:serve-storybook",
         "clean": "rm -rf gravitee-apim-console-webui/node_modules gravitee-apim-console-webui/.angular gravitee-apim-console-webui/dist gravitee-apim-console-webui/dist-lib gravitee-apim-portal-webui-next/node_modules gravitee-apim-portal-webui-next/.angular gravitee-apim-portal-webui-next/dist && echo '✅ Clean done.'",
         "postinstall": "yarn clean"
     },

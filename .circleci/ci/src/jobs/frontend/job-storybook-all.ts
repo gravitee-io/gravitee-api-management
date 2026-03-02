@@ -19,8 +19,8 @@ import { NodeLtsExecutor } from '../../executors';
 import { InstallYarnCommand, NotifyOnFailureCommand, WorkspaceInstallCommand } from '../../commands';
 import { CircleCIEnvironment } from '../../pipelines';
 
-export class StorybookConsoleJob {
-  private static jobName = 'job-console-webui-build-storybook';
+export class StorybookAllJob {
+  private static jobName = 'job-build-all-storybooks';
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     const installYarnCmd = InstallYarnCommand.get();
@@ -37,16 +37,16 @@ export class StorybookConsoleJob {
       new reusable.ReusedCommand(installYarnCmd),
       new reusable.ReusedCommand(workspaceInstallCommand),
       new commands.Run({
-        name: 'Build Storybook Console',
-        command: 'NODE_OPTIONS=--max_old_space_size=8192 yarn nx run console:build-storybook',
+        name: 'Build all Storybooks',
+        command: 'NODE_OPTIONS=--max_old_space_size=8192 yarn nx run storybook-all:build-storybook --parallel=2',
       }),
       new reusable.ReusedCommand(notifyOnFailureCommand),
       new commands.workspace.Persist({
         root: '.',
-        paths: ['gravitee-apim-console-webui/storybook-static', 'gravitee-apim-console-webui/dist-lib'],
+        paths: ['storybook-all/storybook-static', 'gravitee-apim-console-webui/dist-lib'],
       }),
     ];
 
-    return new Job(StorybookConsoleJob.jobName, NodeLtsExecutor.create('large'), steps);
+    return new Job(StorybookAllJob.jobName, NodeLtsExecutor.create('large'), steps);
   }
 }
