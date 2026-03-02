@@ -17,7 +17,6 @@ import { ConfigureTestingGraviteeMarkdownEditor } from '@gravitee/gravitee-markd
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { By } from '@angular/platform-browser';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
@@ -905,7 +904,7 @@ describe('PortalNavigationItemsComponent', () => {
 
     it('should show GMD editor when page content type is GRAVITEE_MARKDOWN', async () => {
       // beforeEach already loaded nav items and page content with default type GRAVITEE_MARKDOWN
-      const gmdEditor = fixture.debugElement.query(By.css('gmd-editor'));
+      const gmdEditor = await harness.getGmdEditor();
       expect(gmdEditor).toBeTruthy();
       expect(await harness.getEditorContentText()).toBe('This is the content of Nav Item 1');
     });
@@ -916,9 +915,9 @@ describe('PortalNavigationItemsComponent', () => {
       await fixture.whenStable();
       fixture.detectChanges();
 
-      const openApiEditor = fixture.debugElement.query(By.css('portal-openapi-editor'));
+      const openApiEditor = await harness.getOpenApiEditor();
       expect(openApiEditor).toBeTruthy();
-      const gmdEditor = fixture.debugElement.query(By.css('gmd-editor'));
+      const gmdEditor = await harness.getGmdEditor();
       expect(gmdEditor).toBeFalsy();
     });
 

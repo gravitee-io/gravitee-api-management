@@ -16,31 +16,29 @@
 import { Component } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
-import { MatButtonModule } from '@angular/material/button';
 
 import { GioSwaggerUiModule } from '../../../components/documentation/gio-swagger-ui/gio-swagger-ui.module';
 
 @Component({
-  selector: 'portal-openapi-editor',
-  templateUrl: './portal-openapi-editor.component.html',
-  styleUrl: './portal-openapi-editor.component.scss',
+  selector: 'openapi-editor',
+  templateUrl: './openapi-editor.component.html',
+  styleUrl: './openapi-editor.component.scss',
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: PortalOpenApiEditorComponent,
+      useExisting: OpenApiEditorComponent,
       multi: true,
     },
   ],
-  imports: [FormsModule, GioMonacoEditorModule, GioSwaggerUiModule, MatButtonModule],
+  imports: [FormsModule, GioMonacoEditorModule, GioSwaggerUiModule],
 })
-export class PortalOpenApiEditorComponent implements ControlValueAccessor {
-  preview = true;
+export class OpenApiEditorComponent implements ControlValueAccessor {
   _value = '';
   private _disabled = false;
 
-  public _onChange: (value: string) => void = () => ({});
+  _onChange: (value: string) => void = () => ({});
 
-  protected _onTouched: () => void = () => ({});
+  _onTouched: () => void = () => ({});
 
   registerOnChange(fn: (value: string) => void): void {
     this._onChange = fn;

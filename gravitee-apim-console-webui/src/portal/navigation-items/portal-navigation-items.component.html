@@ -111,7 +111,7 @@
           } @else {
             @switch (currentPageContentType()) {
               @case ('OPENAPI') {
-                <portal-openapi-editor [formControl]="contentControl" />
+                <openapi-editor [formControl]="contentControl" />
               }
               @default {
                 <gmd-editor [formControl]="contentControl" />

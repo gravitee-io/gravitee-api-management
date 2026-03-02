@@ -21,6 +21,7 @@ import { MatMenuHarness, MatMenuItemHarness } from '@angular/material/menu/testi
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { EmptyStateComponentHarness } from '../../shared/components/empty-state/empty-state.component.harness';
+import { OpenApiEditorHarness } from '../components/openapi-editor/openapi-editor.harness';
 import { FlatTreeComponentHarness } from '../components/flat-tree/flat-tree.component.harness';
 
 export class PortalNavigationItemsHarness extends ComponentHarness {
@@ -34,6 +35,8 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   private getMenu = this.locatorFor(MatMenuHarness);
   private getTree = this.locatorFor(FlatTreeComponentHarness);
   private getGraviteeMarkdownEditor = this.locatorFor(GraviteeMarkdownEditorHarness);
+  private getGmdEditorOptional = this.locatorForOptional(GraviteeMarkdownEditorHarness);
+  private getOpenApiEditorOptional = this.locatorForOptional(OpenApiEditorHarness);
   private getEmptyEditor = this.locatorForOptional(
     EmptyStateComponentHarness.with({
       title: 'Editor',
@@ -120,6 +123,14 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   async getNavigationItemTitles(): Promise<string[]> {
     const tree = await this.getTree();
     return tree.getAllItemTitles();
+  }
+
+  async getGmdEditor(): Promise<GraviteeMarkdownEditorHarness | null> {
+    return this.getGmdEditorOptional();
+  }
+
+  async getOpenApiEditor(): Promise<OpenApiEditorHarness | null> {
+    return this.getOpenApiEditorOptional();
   }
 
   async getEditorContentText(): Promise<string> {

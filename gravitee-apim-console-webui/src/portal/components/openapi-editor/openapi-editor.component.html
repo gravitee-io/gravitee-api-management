@@ -15,21 +15,17 @@
     limitations under the License.
 
 -->
-<div class="content__header">
-  <div class="content__header__title">
-    <h4>OpenAPI content</h4>
-  </div>
-  <button mat-stroked-button type="button" (click)="preview = !preview">Toggle preview</button>
-</div>
 <div class="content__editor">
-  <gio-monaco-editor
-    [(ngModel)]="_value"
-    [languageConfig]="{ language: 'yaml' }"
-    (ngModelChange)="_onChange($event)"
-    [disableMiniMap]="true"
-    [disabled]="disabled"
-  ></gio-monaco-editor>
-  @if (preview) {
+  <div class="content__editor__cell">
+    <gio-monaco-editor
+      [(ngModel)]="_value"
+      [languageConfig]="{ language: 'yaml' }"
+      (ngModelChange)="_onChange($event)"
+      [disableMiniMap]="true"
+      [disabled]="disabled"
+    ></gio-monaco-editor>
+  </div>
+  <div class="content__editor__cell">
     <gio-swagger-ui [spec]="_value"></gio-swagger-ui>
-  }
+  </div>
 </div>
