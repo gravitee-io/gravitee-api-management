@@ -15,6 +15,7 @@
  */
 export interface NewTag {
   name: string;
+  key: string;
   description: string;
   restricted_groups?: string[];
 }

@@ -16,6 +16,7 @@
 export interface Tag {
   id: string;
   name: string;
+  key: string;
   description: string;
   restricted_groups?: string[];
 }
