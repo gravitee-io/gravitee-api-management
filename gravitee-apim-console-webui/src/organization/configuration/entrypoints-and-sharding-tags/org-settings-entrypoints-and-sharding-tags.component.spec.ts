@@ -251,7 +251,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       expect(headerCells).toEqual([
         {
           description: 'Description',
-          id: 'ID',
+          key: 'Key',
           name: 'Name',
           restrictedGroupsName: 'Restricted groups',
           actions: '',
@@ -260,7 +260,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       expect(rowCells).toEqual([
         {
           description: 'A tag for all external stuff',
-          id: expect.stringContaining('external'),
+          key: expect.stringContaining('external'),
           name: 'External',
           restrictedGroupsName: 'Group A',
           actions: 'editdelete',
@@ -300,7 +300,10 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
     });
 
     it('should delete a tag', async () => {
-      expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] }), fakeTag({ id: 'tag-2' })]);
+      expectTagsListRequest([
+        fakeTag({ id: 'tag-1-id', key: 'tag-1', restricted_groups: ['group-a'] }),
+        fakeTag({ id: 'tag-2-id', key: 'tag-2' }),
+      ]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest([fakeEntrypoint({ tags: ['tag-1', 'tag-2'] }), fakeEntrypoint({ id: 'epIdB', tags: ['tag-1'] })]);
@@ -337,7 +340,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
     });
 
     it('should delete a tag without entrypoint mapping', async () => {
-      expectTagsListRequest([fakeTag({ id: 'tag-1' })]);
+      expectTagsListRequest([fakeTag({ id: 'tag-1-id', key: 'tag-1' })]);
       expectGroupListByOrganizationRequest([]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest([]);
@@ -422,6 +425,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags/tag-1` });
       expect(req.request.body).toStrictEqual({
         id: 'tag-1',
+        key: 'external',
         name: 'New tag name',
         description: 'New tag description',
         restricted_groups: ['group-a', 'group-b'],
@@ -562,6 +566,9 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       const nameInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
       await nameInput.setValue('Tag name');
 
+      const keyInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=key]' }));
+      await keyInput.setValue('tag-key');
+
       const descriptionInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=description' }));
       await descriptionInput.setValue('Tag description');
 
@@ -573,6 +580,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags` });
       expect(req.request.body).toStrictEqual({
         name: 'Tag name',
+        key: 'tag-key',
         description: 'Tag description',
         restricted_groups: ['group-a'],
       });

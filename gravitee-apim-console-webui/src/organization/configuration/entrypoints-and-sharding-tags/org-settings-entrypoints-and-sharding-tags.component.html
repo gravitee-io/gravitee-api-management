@@ -148,11 +148,11 @@
         id="tagsTable"
         aria-label="Tags table"
       >
-        <!-- Id Column -->
-        <ng-container matColumnDef="id">
-          <th mat-header-cell *matHeaderCellDef id="id" mat-sort-header>ID</th>
+        <!-- key Column -->
+        <ng-container matColumnDef="key">
+          <th mat-header-cell *matHeaderCellDef id="key" mat-sort-header>Key</th>
           <td mat-cell *matCellDef="let tag">
-            <span gioClipboardCopyWrapper [contentToCopy]="tag.id">{{ tag.id }}</span>
+            <span gioClipboardCopyWrapper [contentToCopy]="tag.key">{{ tag.key }}</span>
           </td>
         </ng-container>
 

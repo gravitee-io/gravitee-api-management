@@ -17,8 +17,9 @@ import { Tag } from './tag';
 
 export function fakeTag(attributes?: Partial<Tag>): Tag {
   const base: Tag = {
-    id: 'external',
+    id: '875fb0a0-1ea2-3a1d-bfd6-f59f9a18bd5b',
     name: 'External',
+    key: 'external',
     description: 'A tag for all external stuff',
   };
 
