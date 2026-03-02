@@ -70,7 +70,7 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
 import { PortalNavigationItemIconPipe } from '../icon/portal-navigation-item-icon.pipe';
-import { PortalOpenApiEditorComponent } from '../components/portal-openapi-editor/portal-openapi-editor.component';
+import { OpenApiEditorComponent } from '../components/openapi-editor/openapi-editor.component';
 
 @Component({
   selector: 'portal-navigation-items',
@@ -79,7 +79,7 @@ import { PortalOpenApiEditorComponent } from '../components/portal-openapi-edito
   imports: [
     PortalHeaderComponent,
     GraviteeMarkdownEditorModule,
-    PortalOpenApiEditorComponent,
+    OpenApiEditorComponent,
     ReactiveFormsModule,
     EmptyStateComponent,
     GioCardEmptyStateModule,
@@ -352,7 +352,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         this.isLoadingPageContent.set(false);
 
         if (result.success) {
-          this.currentPageContentType.set(result.type ?? 'GRAVITEE_MARKDOWN');
+          this.currentPageContentType.set(result.type);
           this.contentControl.reset(result.content);
           this.initialContent.set(result.content);
         }

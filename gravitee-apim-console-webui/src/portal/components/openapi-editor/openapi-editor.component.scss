@@ -13,28 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80);
+
 :host {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
 }
 
 .content {
-  &__header {
-    padding: 16px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    &__title {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-    }
-  }
-
   &__editor {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: 1fr;
     gap: 10px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    padding: 16px 16px 0 16px;
+  }
+
+  &__editor__cell {
+    border: 1px solid $outline-color;
+    border-radius: 4px;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 }
