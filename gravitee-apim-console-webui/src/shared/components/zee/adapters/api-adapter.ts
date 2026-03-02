@@ -15,6 +15,7 @@
  */
 
 import { ZeeResourceAdapter } from '../zee.model';
+import { asArray, asBoolean, asNumber, asOptionalString, asRecord, asString, asStringArray, parseConfig } from './helpers';
 
 interface ApiFlowStep {
   name: string;
@@ -153,7 +154,6 @@ function mapLoadBalancer(raw: unknown): { type: string } {
 
 function mapEndpoint(raw: unknown): ApiEndpoint {
   const e = raw as Record<string, unknown>;
-  // Move top-level 'target' into configuration (see endpoint-adapter.ts)
   const config = parseConfig(e.configuration);
   if (e.target && !config.target) {
     config.target = e.target;
@@ -201,47 +201,4 @@ function mapProperty(raw: unknown): ApiProperty {
     key: asString(p.key, ''),
     value: asString(p.value, ''),
   };
-}
-
-// ── Type-safe helpers ──
-
-function asString(v: unknown, fallback: string): string {
-  return typeof v === 'string' ? v : fallback;
-}
-
-function asOptionalString(v: unknown): string | undefined {
-  return typeof v === 'string' ? v : undefined;
-}
-
-function asBoolean(v: unknown, fallback: boolean): boolean {
-  return typeof v === 'boolean' ? v : fallback;
-}
-
-function asNumber(v: unknown, fallback: number): number {
-  return typeof v === 'number' ? v : fallback;
-}
-
-function asStringArray(v: unknown): string[] {
-  return Array.isArray(v) ? v.filter((item): item is string => typeof item === 'string') : [];
-}
-
-function asArray(v: unknown): unknown[] {
-  return Array.isArray(v) ? v : [];
-}
-
-function asRecord(v: unknown): Record<string, unknown> {
-  return typeof v === 'object' && v !== null ? (v as Record<string, unknown>) : {};
-}
-
-function parseConfig(config: unknown): Record<string, unknown> {
-  if (!config) return {};
-  if (typeof config === 'string') {
-    try {
-      const parsed: unknown = JSON.parse(config);
-      return typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : {};
-    } catch {
-      return {};
-    }
-  }
-  return typeof config === 'object' && config !== null ? (config as Record<string, unknown>) : {};
 }

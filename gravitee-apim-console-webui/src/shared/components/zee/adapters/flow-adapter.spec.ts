@@ -200,8 +200,6 @@ describe('FLOW_ADAPTER', () => {
       });
 
     it('should return empty object for invalid JSON configuration', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-
       const generated = {
         name: 'Flow',
         response: [
@@ -226,9 +224,6 @@ describe('FLOW_ADAPTER', () => {
           messageCondition: undefined,
         },
       ]);
-
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
     });
   });
 });

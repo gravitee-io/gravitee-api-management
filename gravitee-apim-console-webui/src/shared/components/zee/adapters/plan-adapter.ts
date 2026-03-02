@@ -15,6 +15,7 @@
  */
 
 import { ZeeResourceAdapter } from '../zee.model';
+import { asArray, asBoolean, asNumber, asOptionalString, asString, asStringArray, parseConfig } from './helpers';
 
 interface PlanSecurity {
   type: string;
@@ -120,43 +121,4 @@ function mapStep(raw: unknown): PlanFlowStep {
     condition: asOptionalString(s.condition),
     configuration: parseConfig(s.configuration),
   };
-}
-
-// ── Type-safe helpers ──
-
-function asString(v: unknown, fallback: string): string {
-  return typeof v === 'string' ? v : fallback;
-}
-
-function asOptionalString(v: unknown): string | undefined {
-  return typeof v === 'string' ? v : undefined;
-}
-
-function asBoolean(v: unknown, fallback: boolean): boolean {
-  return typeof v === 'boolean' ? v : fallback;
-}
-
-function asNumber(v: unknown, fallback: number): number {
-  return typeof v === 'number' ? v : fallback;
-}
-
-function asStringArray(v: unknown): string[] {
-  return Array.isArray(v) ? v.filter((item): item is string => typeof item === 'string') : [];
-}
-
-function asArray(v: unknown): unknown[] {
-  return Array.isArray(v) ? v : [];
-}
-
-function parseConfig(config: unknown): Record<string, unknown> {
-  if (!config) return {};
-  if (typeof config === 'string') {
-    try {
-      const parsed: unknown = JSON.parse(config);
-      return typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : {};
-    } catch {
-      return {};
-    }
-  }
-  return typeof config === 'object' && config !== null ? (config as Record<string, unknown>) : {};
 }

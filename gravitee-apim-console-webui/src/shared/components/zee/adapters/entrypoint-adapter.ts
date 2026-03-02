@@ -15,6 +15,7 @@
  */
 
 import { ZeeResourceAdapter } from '../zee.model';
+import { asString, parseConfig } from './helpers';
 
 interface EntrypointDlq {
   endpoint: string;
@@ -44,23 +45,4 @@ function mapDlq(raw: unknown): EntrypointDlq | null {
   const endpoint = d.endpoint;
   if (typeof endpoint !== 'string') return null;
   return { endpoint };
-}
-
-// ── Type-safe helpers ──
-
-function asString(v: unknown, fallback: string): string {
-  return typeof v === 'string' ? v : fallback;
-}
-
-function parseConfig(config: unknown): Record<string, unknown> {
-  if (!config) return {};
-  if (typeof config === 'string') {
-    try {
-      const parsed: unknown = JSON.parse(config);
-      return typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : {};
-    } catch {
-      return {};
-    }
-  }
-  return typeof config === 'object' && config !== null ? (config as Record<string, unknown>) : {};
 }

@@ -15,6 +15,7 @@
  */
 
 import { ZeeResourceAdapter } from '../zee.model';
+import { asArray, asBoolean, asOptionalString, asString, asStringArray, parseConfig } from './helpers';
 
 interface FlowStep {
   name: string;
@@ -98,40 +99,4 @@ function mapSelector(raw: unknown): FlowSelector {
     default:
       return { type };
   }
-}
-
-// ── Type-safe helpers ──
-
-function asString(v: unknown, fallback: string): string {
-  return typeof v === 'string' ? v : fallback;
-}
-
-function asOptionalString(v: unknown): string | undefined {
-  return typeof v === 'string' ? v : undefined;
-}
-
-function asBoolean(v: unknown, fallback: boolean): boolean {
-  return typeof v === 'boolean' ? v : fallback;
-}
-
-function asStringArray(v: unknown): string[] {
-  return Array.isArray(v) ? v.filter((item): item is string => typeof item === 'string') : [];
-}
-
-function asArray(v: unknown): unknown[] {
-  return Array.isArray(v) ? v : [];
-}
-
-function parseConfig(config: unknown): Record<string, unknown> {
-  if (!config) return {};
-  if (typeof config === 'string') {
-    try {
-      const parsed: unknown = JSON.parse(config);
-      return typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : {};
-    } catch {
-      console.warn('Zee FLOW_ADAPTER: Failed to parse configuration JSON', config);
-      return {};
-    }
-  }
-  return typeof config === 'object' && config !== null ? (config as Record<string, unknown>) : {};
 }
