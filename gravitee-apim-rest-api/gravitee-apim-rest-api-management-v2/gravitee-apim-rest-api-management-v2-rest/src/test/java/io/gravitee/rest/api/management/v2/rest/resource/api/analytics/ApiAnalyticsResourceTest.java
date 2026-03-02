@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,6 +25,10 @@ import assertions.MAPIAssertions;
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import io.gravitee.apim.core.analytics.model.AnalyticsCountResponse;
+import io.gravitee.apim.core.analytics.model.AnalyticsDateHistoResponse;
+import io.gravitee.apim.core.analytics.model.AnalyticsGroupByResponse;
+import io.gravitee.apim.core.analytics.model.AnalyticsStatsResponse;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
@@ -93,6 +98,196 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
         GraviteeContext.cleanContext();
         fakeAnalyticsQueryService.reset();
         apiCrudServiceInMemory.reset();
+    }
+
+    @Nested
+    class UnifiedAnalytics {
+
+        private static final long FROM = 1728981738000L;
+        private static final long TO = 1729068138000L;
+
+        @Test
+        void should_return_403_when_no_permission() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_ANALYTICS,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = rootTarget()
+                .queryParam("type", "COUNT")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_return_400_when_type_missing() {
+            final Response response = rootTarget().queryParam("from", FROM).queryParam("to", TO).request().get();
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_when_from_missing() {
+            final Response response = rootTarget().queryParam("type", "COUNT").queryParam("to", TO).request().get();
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_when_to_missing() {
+            final Response response = rootTarget().queryParam("type", "COUNT").queryParam("from", FROM).request().get();
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_count_response() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.count = 99L;
+
+            final Response response = rootTarget()
+                .queryParam("type", "COUNT")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(AnalyticsCountResponse.class)
+                .satisfies(r -> assertThat(r.count()).isEqualTo(99L));
+        }
+
+        @Test
+        void should_return_400_when_field_missing_for_stats() {
+            final Response response = rootTarget()
+                .queryParam("type", "STATS")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .request()
+                .get();
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_stats_response() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.stats = new AnalyticsStatsResponse(42L, 1.0, 999.0, 55.5, 2331.0);
+
+            final Response response = rootTarget()
+                .queryParam("type", "STATS")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .queryParam("field", "gateway-response-time-ms")
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(AnalyticsStatsResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.count()).isEqualTo(42L);
+                    assertThat(r.min()).isEqualTo(1.0);
+                    assertThat(r.max()).isEqualTo(999.0);
+                    assertThat(r.avg()).isEqualTo(55.5);
+                    assertThat(r.sum()).isEqualTo(2331.0);
+                });
+        }
+
+        @Test
+        void should_return_400_when_field_missing_for_group_by() {
+            final Response response = rootTarget()
+                .queryParam("type", "GROUP_BY")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .request()
+                .get();
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_group_by_response() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.groupByValues = Map.of("200", 50L, "404", 10L);
+
+            final Response response = rootTarget()
+                .queryParam("type", "GROUP_BY")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .queryParam("field", "status")
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(AnalyticsGroupByResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.values()).containsEntry("200", 50L).containsEntry("404", 10L);
+                    assertThat(r.metadata()).isEmpty();
+                });
+        }
+
+        @Test
+        void should_return_400_when_interval_missing_for_date_histo() {
+            final Response response = rootTarget()
+                .queryParam("type", "DATE_HISTO")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .queryParam("field", "status")
+                .request()
+                .get();
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_date_histo_response() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.dateHistoResponse =
+                new AnalyticsDateHistoResponse(
+                    List.of(1697932800000L, 1697936400000L),
+                    List.of(new AnalyticsDateHistoResponse.DateHistoBucket("200", List.of(10L, 20L), Map.of()))
+                );
+
+            final Response response = rootTarget()
+                .queryParam("type", "DATE_HISTO")
+                .queryParam("from", FROM)
+                .queryParam("to", TO)
+                .queryParam("field", "status")
+                .queryParam("interval", 3_600_000L)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(AnalyticsDateHistoResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.timestamps()).containsExactly(1697932800000L, 1697936400000L);
+                    assertThat(r.values()).hasSize(1);
+                    assertThat(r.values().get(0).field()).isEqualTo("200");
+                    assertThat(r.values().get(0).buckets()).containsExactly(10L, 20L);
+                });
+        }
     }
 
     @Nested
