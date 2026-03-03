@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.API1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.CATEGORY1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,11 +36,13 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVali
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,6 +95,7 @@ class CreatePortalNavigationItemUseCaseTest {
             .apiId("apiId")
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
+            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
             .build();
         createPortalNavigationItem.setParentId(PortalNavigationItemId.of(APIS_ID));
 
@@ -123,6 +127,7 @@ class CreatePortalNavigationItemUseCaseTest {
             .apiId("wrongApiId")
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
+            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
             .build();
         createPortalNavigationItem.setParentId(PortalNavigationItemId.of(APIS_ID));
 
@@ -145,6 +150,7 @@ class CreatePortalNavigationItemUseCaseTest {
             .title("title")
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
+            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
             .build();
         createPortalNavigationItem.setParentId(PortalNavigationItemId.of(APIS_ID));
 
@@ -179,6 +185,7 @@ class CreatePortalNavigationItemUseCaseTest {
             .url("invalid url")
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
+            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
             .build();
         createPortalNavigationItem.setParentId(PortalNavigationItemId.of(APIS_ID));
 
@@ -201,6 +208,7 @@ class CreatePortalNavigationItemUseCaseTest {
             .title("title")
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
+            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
             .build();
         final var numberOfContents = pageContentCrudService.storage().size();
 
@@ -217,7 +225,37 @@ class CreatePortalNavigationItemUseCaseTest {
                 assertThat(content.getOrganizationId()).isEqualTo(ORG_ID);
                 assertThat(content.getEnvironmentId()).isEqualTo(ENV_ID);
                 assertThat(content).isInstanceOf(GraviteeMarkdownPageContent.class);
-                assertThat(((GraviteeMarkdownPageContent) content).getContent()).isEqualTo("default page content");
+                assertThat(((GraviteeMarkdownPageContent) content).getContent().value()).isEqualTo("default page content");
+            });
+    }
+
+    @Test
+    void should_create_openapi_page_content_when_content_type_is_openapi() {
+        // Given
+        final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+            .id(PortalNavigationItemId.random())
+            .type(PortalNavigationItemType.PAGE)
+            .title("title")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .contentType(PortalPageContentType.OPENAPI)
+            .build();
+        final var numberOfContents = pageContentCrudService.storage().size();
+
+        // When
+        final var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
+
+        // Then
+        final var contentId = ((PortalNavigationPage) output.item()).getPortalPageContentId();
+        final var contents = pageContentCrudService.storage();
+        assertThat(contents)
+            .hasSize(numberOfContents + 1)
+            .anySatisfy(content -> {
+                assertThat(content.getId()).isEqualTo(contentId);
+                assertThat(content.getOrganizationId()).isEqualTo(ORG_ID);
+                assertThat(content.getEnvironmentId()).isEqualTo(ENV_ID);
+                assertThat(content).isInstanceOf(OpenApiPageContent.class);
+                assertThat(((OpenApiPageContent) content).getContent().value()).isEqualTo("openapi: 3.0.3");
             });
     }
 
@@ -230,6 +268,7 @@ class CreatePortalNavigationItemUseCaseTest {
             .title("title")
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
+            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
             .build();
 
         // When
@@ -252,6 +291,7 @@ class CreatePortalNavigationItemUseCaseTest {
                 .area(PortalArea.TOP_NAVBAR)
                 .parentId(PortalNavigationItemId.of(API1_ID))
                 .order(0)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
                 .build();
 
             // When
@@ -272,6 +312,7 @@ class CreatePortalNavigationItemUseCaseTest {
                 .parentId(PortalNavigationItemId.of(API1_ID))
                 .url("https://gravitee.io")
                 .order(0)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
                 .build();
 
             // When
@@ -291,6 +332,7 @@ class CreatePortalNavigationItemUseCaseTest {
                 .area(PortalArea.TOP_NAVBAR)
                 .parentId(PortalNavigationItemId.of(API1_ID))
                 .order(0)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
                 .build();
 
             // When
@@ -310,6 +352,7 @@ class CreatePortalNavigationItemUseCaseTest {
                 .apiId("apiId")
                 .parentId(PortalNavigationItemId.of(API1_ID))
                 .order(0)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
                 .build();
 
             // When
@@ -319,6 +362,70 @@ class CreatePortalNavigationItemUseCaseTest {
             // Then
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
             assertThat(exception.getMessage()).isEqualTo("Parent hierarchy cannot include API items.");
+        }
+    }
+
+    @Nested
+    class RootId {
+
+        @Test
+        void should_set_root_id_to_self_when_creating_root_item() {
+            // Given — no parentId → root item
+            var toCreate = CreatePortalNavigationItem.builder()
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.FOLDER)
+                .title("New Root Folder")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .build();
+
+            // When
+            var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, toCreate));
+
+            // Then — rootId must equal the item's own id
+            assertThat(output.item().getRootId()).isEqualTo(output.item().getId());
+            assertThat(output.item().getParentId()).isNull();
+        }
+
+        @Test
+        void should_set_parentId_and_rootId_correctly_when_creating_child_under_non_root_parent() {
+            // Given — APIS (root) → CATEGORY1 (child, rootId = APIS_ID) in sampleNavigationItems
+            // Create a new item under CATEGORY1
+            var toCreate = CreatePortalNavigationItem.builder()
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.FOLDER)
+                .title("New Sub Folder")
+                .area(PortalArea.TOP_NAVBAR)
+                .parentId(PortalNavigationItemId.of(CATEGORY1_ID))
+                .order(0)
+                .build();
+
+            // When
+            var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, toCreate));
+
+            // Then — parentId = CATEGORY1_ID, rootId = APIS_ID (inherited from parent's rootId)
+            assertThat(output.item().getParentId()).isEqualTo(PortalNavigationItemId.of(CATEGORY1_ID));
+            assertThat(output.item().getRootId()).isEqualTo(PortalNavigationItemId.of(APIS_ID));
+        }
+
+        @Test
+        void should_create_homepage_item_as_root_element_with_root_id_equal_to_self() {
+            // HOMEPAGE items are always root elements — the validator rejects a second one,
+            // but each individual creation must produce rootId = self.id
+            var toCreate = CreatePortalNavigationItem.builder()
+                .id(PortalNavigationItemId.random())
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Homepage")
+                .area(PortalArea.HOMEPAGE)
+                .order(0)
+                .build(); // no parentId — homepages are always root
+
+            // When
+            var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, toCreate));
+
+            // Then — item is a root element
+            assertThat(output.item().getParentId()).isNull();
+            assertThat(output.item().getRootId()).isEqualTo(output.item().getId());
         }
     }
 
@@ -342,6 +449,7 @@ class CreatePortalNavigationItemUseCaseTest {
                 .title("title")
                 .area(PortalArea.TOP_NAVBAR)
                 .order(order)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
                 .build();
 
             final var existingSiblingOrdersById = queryService
@@ -393,6 +501,7 @@ class CreatePortalNavigationItemUseCaseTest {
                 .title("title")
                 .area(PortalArea.TOP_NAVBAR)
                 .order(order)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
                 .build();
             createPortalNavigationItem.setParentId(PortalNavigationItemId.of(APIS_ID));
 

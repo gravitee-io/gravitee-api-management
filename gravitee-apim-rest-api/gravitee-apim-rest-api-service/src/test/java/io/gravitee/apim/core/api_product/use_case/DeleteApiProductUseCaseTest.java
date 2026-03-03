@@ -24,6 +24,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
 import inmemory.AbstractUseCaseTest;
@@ -31,14 +32,18 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import inmemory.IndexerInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
+import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
+import io.gravitee.apim.core.search.model.IndexableApiProduct;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -56,6 +61,7 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
     private final EventCrudService eventCrudService = mock(EventCrudService.class);
     private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
     private final ApiStateDomainService apiStateDomainService = mock(ApiStateDomainService.class);
+    private final ApiProductIndexerDomainService apiProductIndexerDomainService = mock(ApiProductIndexerDomainService.class);
     private DeleteApiProductUseCase deleteApiProductUseCase;
 
     @BeforeEach
@@ -74,7 +80,8 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
             validateApiProductService,
             apiStateDomainService,
             eventCrudService,
-            eventLatestCrudService
+            eventLatestCrudService,
+            apiProductIndexerDomainService
         );
     }
 
@@ -97,6 +104,42 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
         verify(apiStateDomainService, never()).stop(any(), any());
         verify(eventCrudService).createEvent(eq(ORG_ID), eq(ENV_ID), any(), any(), any(), any());
         verify(eventLatestCrudService).createOrPatchLatestEvent(eq(ORG_ID), eq(productId), any());
+        verify(apiProductIndexerDomainService).delete(any(), argThat(apiProduct -> productId.equals(apiProduct.getId())));
+        verify(apiProductIndexerDomainService, never()).index(any(), any(), any());
+    }
+
+    @Test
+    void should_remove_existing_api_product_from_index_when_deleted() {
+        var productId = "api-product-id";
+        var product = ApiProduct.builder().id(productId).name("Product").environmentId(ENV_ID).build();
+        apiProductCrudService.create(product);
+        apiProductQueryService.initWith(List.of(product));
+
+        IndexerInMemory indexer = new IndexerInMemory();
+        indexer.initWith(List.of(new IndexableApiProduct(product, null)));
+        assertThat(indexer.storage()).anyMatch(i -> productId.equals(i.getId()));
+
+        var primaryOwnerDomainService = mock(ApiProductPrimaryOwnerDomainService.class);
+        when(primaryOwnerDomainService.getApiProductPrimaryOwner(ORG_ID, productId)).thenReturn(null);
+        var realIndexerDomainService = new ApiProductIndexerDomainService(primaryOwnerDomainService, indexer);
+        var useCaseWithRealIndexer = new DeleteApiProductUseCase(
+            apiProductCrudService,
+            new io.gravitee.apim.core.audit.domain_service.AuditDomainService(
+                auditCrudService,
+                userCrudService,
+                new JacksonJsonDiffProcessor()
+            ),
+            apiProductQueryService,
+            new ValidateApiProductService(apiQueryService, apiCrudService, planQueryService, apiProductQueryService),
+            apiStateDomainService,
+            eventCrudService,
+            eventLatestCrudService,
+            realIndexerDomainService
+        );
+
+        useCaseWithRealIndexer.execute(new DeleteApiProductUseCase.Input(productId, AUDIT_INFO));
+
+        assertThat(indexer.storage()).noneMatch(i -> productId.equals(i.getId()));
     }
 
     @Test
@@ -135,6 +178,8 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
         assertThat(apiProductCrudService.findById(productId)).isEmpty();
         verify(apiStateDomainService).stop(argThat(api -> "api-deployed-no-plans".equals(api.getId())), eq(AUDIT_INFO));
         verify(eventCrudService).createEvent(eq(ORG_ID), eq(ENV_ID), any(), any(), any(), any());
+        verify(apiProductIndexerDomainService).delete(any(), argThat(apiProduct -> productId.equals(apiProduct.getId())));
+        verify(apiProductIndexerDomainService, never()).index(any(), any(), any());
     }
 
     @Test
@@ -156,6 +201,8 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
 
         assertThat(apiProductCrudService.findById(productId)).isEmpty();
         verify(apiStateDomainService, never()).stop(any(), any());
+        verify(apiProductIndexerDomainService).delete(any(), argThat(apiProduct -> productId.equals(apiProduct.getId())));
+        verify(apiProductIndexerDomainService, never()).index(any(), any(), any());
     }
 
     @Test
@@ -180,5 +227,7 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
         verify(apiStateDomainService, times(2)).stop(any(), eq(AUDIT_INFO));
         verify(apiStateDomainService).stop(argThat(api -> "api-1".equals(api.getId())), eq(AUDIT_INFO));
         verify(apiStateDomainService).stop(argThat(api -> "api-2".equals(api.getId())), eq(AUDIT_INFO));
+        verify(apiProductIndexerDomainService).delete(any(), argThat(apiProduct -> productId.equals(apiProduct.getId())));
+        verify(apiProductIndexerDomainService, never()).index(any(), any(), any());
     }
 }

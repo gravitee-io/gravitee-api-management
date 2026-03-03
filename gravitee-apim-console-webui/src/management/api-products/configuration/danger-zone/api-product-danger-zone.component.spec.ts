@@ -83,8 +83,8 @@ describe('ApiProductDangerZoneComponent', () => {
     expect(hostComponent.removeApisEmitted).toBe(true);
   });
 
-  it('should emit deleteApiProductClick when Delete API Product button is clicked', async () => {
-    const deleteButton = await loader.getHarness(MatButtonHarness.with({ text: /Delete API Product/i }));
+  it('should emit deleteApiProductClick when Delete button is clicked', async () => {
+    const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="api_product_dangerzone_delete"]' }));
     await deleteButton.click();
 
     expect(hostComponent.deleteApiProductEmitted).toBe(true);

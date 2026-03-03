@@ -52,12 +52,12 @@ export interface NodeMenuActionEvent {
 }
 
 interface FlatTreeNode {
-  expandable: boolean;
   id: string;
   label: string;
   type: PortalNavigationItemType;
   data?: PortalNavigationItem;
   level: number;
+  children?: SectionNode[];
 }
 
 type ProcessingNode = SectionNode & {
@@ -181,7 +181,7 @@ export class FlatTreeComponent {
   }
 
   hasChildren(node: FlatTreeNode): boolean {
-    return node.expandable;
+    return (node?.children ?? []).length > 0;
   }
 
   onDrop(event: CdkDragDrop<SectionNode[]>) {
@@ -222,7 +222,7 @@ export class FlatTreeComponent {
       }
     }
 
-    if (nodeToMove.type === 'FOLDER') {
+    if (nodeToMove.type === 'FOLDER' || nodeToMove.type === 'API') {
       this.treeBase()?.expandAll();
     }
 
@@ -278,7 +278,7 @@ export class FlatTreeComponent {
         label: link.title,
         type,
         data: link,
-        children: type === 'FOLDER' ? [] : undefined,
+        children: type === 'FOLDER' || type === 'API' ? [] : undefined,
         __order: link.order ?? 0,
         __parentId: link.parentId ?? null,
       } as ProcessingNode);

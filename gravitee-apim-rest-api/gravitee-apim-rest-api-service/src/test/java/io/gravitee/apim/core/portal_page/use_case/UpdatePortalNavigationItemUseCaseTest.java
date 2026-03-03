@@ -18,6 +18,8 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static fixtures.core.model.PortalNavigationItemFixtures.API1_FOLDER_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.API1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.API2_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.CATEGORY1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.LINK1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
@@ -36,6 +38,8 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVali
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -45,6 +49,7 @@ import java.util.ArrayList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -409,10 +414,124 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(result).isNotNull();
         assertThat(result.updatedItem()).isNotNull();
         assertThat(result.updatedItem().getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+        // LINK1 was a root item (rootId = LINK1_ID), moving under API1 (rootId = APIS_ID) changes rootId
+        assertThat(result.updatedItem().getRootId()).isEqualTo(PortalNavigationItemId.of(APIS_ID));
 
         var updated = queryService.findByIdAndEnvironmentId(ENV_ID, existing.getId());
         assertThat(updated).isNotNull();
         assertThat(updated.getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+        assertThat(updated.getRootId()).isEqualTo(PortalNavigationItemId.of(APIS_ID));
+    }
+
+    @Nested
+    class ParentChange {
+
+        @Test
+        void should_update_rootId_and_propagate_to_children_when_non_root_item_moves_to_different_non_root_parent() {
+            // Given — sampleNavigationItems: APIS (root) → CATEGORY1 (child, rootId=APIS_ID, has children incl. PAGE11)
+            // Find the second root folder (guides) which has a different rootId
+            var targetParent = queryService
+                .findTopLevelItemsByEnvironmentIdAndPortalArea(ENV_ID, PortalArea.TOP_NAVBAR)
+                .stream()
+                .filter(item -> item instanceof PortalNavigationFolder && !item.getId().equals(PortalNavigationItemId.of(APIS_ID)))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Expected a second root folder in sample data"));
+
+            var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(CATEGORY1_ID));
+
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.FOLDER)
+                .title(existing.getTitle())
+                .parentId(targetParent.getId()) // move CATEGORY1 under the other root folder
+                .published(existing.getPublished())
+                .visibility(existing.getVisibility())
+                .build();
+
+            var input = UpdatePortalNavigationItemUseCase.Input.builder()
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(CATEGORY1_ID)
+                .updatePortalNavigationItem(toUpdate)
+                .build();
+
+            // When
+            var result = useCase.execute(input);
+
+            // Then — CATEGORY1's rootId changes to the target root folder's rootId
+            assertThat(result.updatedItem().getRootId()).isEqualTo(targetParent.getId());
+
+            // And its child PAGE11 has rootId propagated to the same value
+            var page11 = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(PAGE11_ID));
+            assertThat(page11.getRootId()).isEqualTo(targetParent.getId());
+        }
+
+        @Test
+        void should_update_rootId_to_self_and_propagate_to_children_when_non_root_item_moves_to_root_level() {
+            // Given — CATEGORY1 is a non-root folder (rootId=APIS_ID) with children incl. PAGE11
+            var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(CATEGORY1_ID));
+            assertThat(existing.getParentId()).isNotNull(); // confirm it's currently non-root
+
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.FOLDER)
+                .title(existing.getTitle())
+                .parentId(null) // move to root level
+                .published(existing.getPublished())
+                .visibility(existing.getVisibility())
+                .build();
+
+            var input = UpdatePortalNavigationItemUseCase.Input.builder()
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(CATEGORY1_ID)
+                .updatePortalNavigationItem(toUpdate)
+                .build();
+
+            // When
+            var result = useCase.execute(input);
+
+            // Then — CATEGORY1's rootId equals its own id (it is now a root)
+            assertThat(result.updatedItem().getParentId()).isNull();
+            assertThat(result.updatedItem().getRootId()).isEqualTo(result.updatedItem().getId());
+
+            // And its child PAGE11 has rootId propagated to CATEGORY1's id
+            var page11 = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(PAGE11_ID));
+            assertThat(page11.getRootId()).isEqualTo(result.updatedItem().getId());
+        }
+
+        @Test
+        void should_update_rootId_when_root_item_moves_to_non_root_parent() {
+            // Given — find the second root folder (guides, rootId=guides.id) to move under CATEGORY1 (rootId=APIS_ID)
+            var rootItem = queryService
+                .findTopLevelItemsByEnvironmentIdAndPortalArea(ENV_ID, PortalArea.TOP_NAVBAR)
+                .stream()
+                .filter(item -> item instanceof PortalNavigationFolder && !item.getId().equals(PortalNavigationItemId.of(APIS_ID)))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Expected a second root folder in sample data"));
+
+            assertThat(rootItem.getParentId()).isNull(); // confirm it's currently a root
+
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.FOLDER)
+                .title(rootItem.getTitle())
+                .parentId(PortalNavigationItemId.of(CATEGORY1_ID)) // move under non-root folder
+                .published(rootItem.getPublished())
+                .visibility(rootItem.getVisibility())
+                .build();
+
+            var input = UpdatePortalNavigationItemUseCase.Input.builder()
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(rootItem.getId().toString())
+                .updatePortalNavigationItem(toUpdate)
+                .build();
+
+            // When
+            var result = useCase.execute(input);
+
+            // Then — former root item now has rootId = APIS_ID (inherited from CATEGORY1's rootId)
+            assertThat(result.updatedItem().getParentId()).isEqualTo(PortalNavigationItemId.of(CATEGORY1_ID));
+            assertThat(result.updatedItem().getRootId()).isEqualTo(PortalNavigationItemId.of(APIS_ID));
+        }
     }
 
     @Test

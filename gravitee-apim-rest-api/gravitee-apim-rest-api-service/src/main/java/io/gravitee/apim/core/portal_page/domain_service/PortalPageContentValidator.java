@@ -19,7 +19,7 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 
 public interface PortalPageContentValidator {
-    boolean appliesTo(PortalPageContent existingContent);
+    boolean appliesTo(PortalPageContent<?> existingContent);
 
     void validate(UpdatePortalPageContent updateContent);
 }

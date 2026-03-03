@@ -57,6 +57,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(folder.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
             assertThat(folder.getParentId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440001"));
             assertThat(folder.getOrder()).isEqualTo(0);
+            assertThat(folder.getRootId()).isEqualTo(PortalNavigationItemId.zero());
         }
 
         @Test
@@ -82,6 +83,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(page.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
             assertThat(page.getPortalPageContentId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440003"));
             assertThat(page.getOrder()).isEqualTo(0);
+            assertThat(page.getRootId()).isEqualTo(PortalNavigationItemId.zero());
         }
 
         @Test
@@ -107,6 +109,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(link.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
             assertThat(link.getUrl()).isEqualTo("https://example.com");
             assertThat(link.getOrder()).isEqualTo(0);
+            assertThat(link.getRootId()).isEqualTo(PortalNavigationItemId.zero());
         }
 
         @Test
@@ -132,6 +135,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(api.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
             assertThat(api.getApiId()).isEqualTo("testApi");
             assertThat(api.getOrder()).isEqualTo(0);
+            assertThat(api.getRootId()).isEqualTo(PortalNavigationItemId.zero());
         }
 
         @Test
@@ -216,8 +220,11 @@ class PortalNavigationItemAdapterTest {
         @Test
         void should_map_folder_to_repository() {
             // Given
-            var entity = PortalNavigationItemFixtures.aFolder("550e8400-e29b-41d4-a716-446655440010", "My Folder");
-            entity.setParentId(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440011"));
+            var entity = PortalNavigationItemFixtures.aFolder(
+                "550e8400-e29b-41d4-a716-446655440010",
+                "My Folder",
+                PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440011")
+            );
 
             // When
             var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);

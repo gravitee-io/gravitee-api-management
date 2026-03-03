@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { HttpTestingController } from '@angular/common/http/testing';
-import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { discardPeriodicTasks, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 
 import { DebugModeV4Service } from './debug-mode-v4.service';
@@ -23,6 +23,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing'
 import { RequestPolicyDebugStep, ResponsePolicyDebugStep } from '../models/DebugStep';
 import { fakeDebugEvent } from '../models/DebugEvent.fixture';
 import { fakeApiV4 } from '../../../../entities/management-api-v2';
+import { DEBUG_EVENT_FAILED_ERROR } from '../debug-mode.service';
 
 describe('DebugModeV4Service', () => {
   let httpTestingController: HttpTestingController;
@@ -302,16 +303,46 @@ describe('DebugModeV4Service', () => {
 
       expectSendDebugEvent(eventId);
       tick(1000);
-      expectGetDebugEvent(eventId, false);
+      expectGetDebugEvent(eventId, 'DEBUGGING');
       tick(1000);
-      expectGetDebugEvent(eventId, true);
+      expectGetDebugEvent(eventId, 'SUCCESS');
       tick(1000);
 
       expect(done).toEqual(true);
     }));
 
-    it('should return some empty data when timeout is reached', fakeAsync(() => {
+    it('should keep polling beyond 10 seconds and not auto-complete', fakeAsync(() => {
+      const eventId = 'eventId';
       let done = false;
+      const subscription = debugModeV4Service
+        .debug({
+          method: 'GET',
+          body: '',
+          headers: [],
+          path: '',
+        })
+        .subscribe(() => {
+          done = true;
+        });
+
+      expectSendDebugEvent(eventId);
+
+      for (let i = 0; i < 11; i++) {
+        tick(1000);
+        expectGetDebugEvent(eventId, 'DEBUGGING');
+      }
+
+      expect(done).toEqual(false);
+
+      // Unsubscribe to stop the interval before discarding periodic tasks
+      subscription.unsubscribe();
+      discardPeriodicTasks();
+    }));
+
+    it('should stop polling and throw an error when debug event status is error', fakeAsync(() => {
+      const eventId = 'eventId';
+      let error: Error;
+
       debugModeV4Service
         .debug({
           method: 'GET',
@@ -319,31 +350,24 @@ describe('DebugModeV4Service', () => {
           headers: [],
           path: '',
         })
-        .subscribe(response => {
-          expect(response).toStrictEqual({
-            isLoading: false,
-            executionMode: null,
-            reachedTimeout: true,
-            request: {},
-            response: {},
-            responsePolicyDebugSteps: [],
-            backendResponse: {},
-            requestPolicyDebugSteps: [],
-            preprocessorStep: {},
-            requestDebugSteps: {},
-            responseDebugSteps: {},
-          });
-          done = true;
+        .subscribe({
+          error: err => {
+            error = err;
+          },
         });
 
-      // Expect without flushing to wait for the timeout
-      httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/debug`,
-      });
+      expectSendDebugEvent(eventId);
+      tick(1000);
+      expectGetDebugEvent(eventId, 'ERROR');
+      tick();
 
-      tick(10000);
-      expect(done).toEqual(true);
+      expect(error.message).toEqual(DEBUG_EVENT_FAILED_ERROR);
+
+      tick(5000);
+      httpTestingController.expectNone({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/events/${eventId}`,
+      });
     }));
   });
 
@@ -356,7 +380,7 @@ describe('DebugModeV4Service', () => {
       .flush({ id: eventId });
   }
 
-  function expectGetDebugEvent(eventId: string, success: boolean) {
+  function expectGetDebugEvent(eventId: string, status: 'SUCCESS' | 'ERROR' | 'DEBUGGING') {
     httpTestingController
       .expectOne({
         method: 'GET',
@@ -365,7 +389,7 @@ describe('DebugModeV4Service', () => {
       .flush({
         type: 'DEBUG_API',
         properties: {
-          API_DEBUG_STATUS: success ? 'SUCCESS' : 'FAILED',
+          API_DEBUG_STATUS: status,
         },
         payload: JSON.stringify(fakeDebugEvent().payload),
       });

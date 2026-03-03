@@ -15,11 +15,13 @@
  */
 package io.gravitee.apim.core.api_product.use_case;
 
+import static io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService.oneShotIndexation;
 import static java.util.Map.entry;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -34,6 +36,9 @@ import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.exception.ApiProductPrimaryOwnerNotFoundException;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
@@ -41,10 +46,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
 @RequiredArgsConstructor
+@CustomLog
 public class UpdateApiProductUseCase {
 
     private final ApiProductCrudService apiProductCrudService;
@@ -55,6 +62,8 @@ public class UpdateApiProductUseCase {
     private final EventCrudService eventCrudService;
     private final EventLatestCrudService eventLatestCrudService;
     private final LicenseDomainService licenseDomainService;
+    private final ApiProductIndexerDomainService apiProductIndexerDomainService;
+    private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService;
 
     public Output execute(Input input) {
         if (!licenseDomainService.isApiProductDeploymentAllowed(input.auditInfo().organizationId())) {
@@ -93,6 +102,18 @@ public class UpdateApiProductUseCase {
         existingApiProduct.update(updateApiProduct);
 
         ApiProduct updated = apiProductCrudService.update(existingApiProduct);
+
+        PrimaryOwnerEntity primaryOwner = null;
+        try {
+            primaryOwner = apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwner(
+                input.auditInfo().organizationId(),
+                updated.getId()
+            );
+        } catch (ApiProductPrimaryOwnerNotFoundException ex) {
+            log.debug("Failed to retrieve API Product primary owner, will index without primary owner", ex);
+        }
+        apiProductIndexerDomainService.index(oneShotIndexation(input.auditInfo()), updated, primaryOwner);
+
         publishDeployEvent(input.auditInfo(), updated);
         createAuditLog(beforeUpdate, updated, input.auditInfo());
         return new Output(updated);

@@ -36,7 +36,7 @@ public class UpdatePortalPageContentUseCase {
 
     public Output execute(Input input) {
         // Check if portal page content is existing
-        PortalPageContent existingContent = portalPageContentQueryService
+        PortalPageContent<?> existingContent = portalPageContentQueryService
             .findById(PortalPageContentId.of(input.portalPageContentId()))
             .orElseThrow(() -> new PageContentNotFoundException(input.portalPageContentId()));
 
@@ -63,5 +63,5 @@ public class UpdatePortalPageContentUseCase {
         UpdatePortalPageContent updatePortalPageContent
     ) {}
 
-    public record Output(PortalPageContent portalPageContent) {}
+    public record Output(PortalPageContent<?> portalPageContent) {}
 }

@@ -69,7 +69,7 @@ class KafkaClusterDomainServiceImplTest {
 
         assertThatThrownBy(() -> service.describeCluster(CONFIG))
             .isInstanceOf(KafkaExplorerException.class)
-            .hasMessageContaining("Cannot create admin client")
+            .hasMessageContaining("Failed to connect to Kafka cluster")
             .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode()).isEqualTo(TechnicalCode.CONNECTION_FAILED));
     }
 
@@ -112,7 +112,7 @@ class KafkaClusterDomainServiceImplTest {
 
         assertThatThrownBy(() -> service.describeCluster(CONFIG))
             .isInstanceOf(KafkaExplorerException.class)
-            .hasMessageContaining("Something went wrong")
+            .hasMessageContaining("Failed to connect to Kafka cluster")
             .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode()).isEqualTo(TechnicalCode.CONNECTION_FAILED));
     }
 

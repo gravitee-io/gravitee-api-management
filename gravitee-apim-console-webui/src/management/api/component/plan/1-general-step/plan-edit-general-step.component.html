@@ -98,12 +98,14 @@
     </mat-form-field>
   </ng-container>
 
-  <h2>Access-Control</h2>
+  <ng-container *ngIf="!hideAccessControl">
+    <h2>Access-Control</h2>
 
-  <mat-form-field>
-    <mat-label>Groups excluded</mat-label>
-    <mat-select formControlName="excludedGroups" aria-label="Groups excluded selection" multiple>
-      <mat-option *ngFor="let group of groups$ | async" [value]="group.id">{{ group.name }}</mat-option>
-    </mat-select>
-  </mat-form-field>
+    <mat-form-field>
+      <mat-label>Groups excluded</mat-label>
+      <mat-select formControlName="excludedGroups" aria-label="Groups excluded selection" multiple>
+        <mat-option *ngFor="let group of groups$ | async" [value]="group.id">{{ group.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </ng-container>
 </ng-container>

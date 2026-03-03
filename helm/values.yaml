@@ -1564,6 +1564,8 @@ gateway:
 #    properties:
 #      encryption:
 #        secret: ...
+#    security:
+#      verbose401: false  # set to true to return detailed error messages in 401 responses
 ## API Level secret-provider configuration
 #    secrets:
 #      providers:

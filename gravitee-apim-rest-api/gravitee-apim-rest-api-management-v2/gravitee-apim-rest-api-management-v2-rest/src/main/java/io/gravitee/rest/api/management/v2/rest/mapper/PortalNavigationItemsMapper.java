@@ -24,6 +24,7 @@ import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolde
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.PortalPageContentType;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink;
@@ -74,17 +75,25 @@ public interface PortalNavigationItemsMapper {
         target = "portalPageContentId",
         expression = "java(page.getPortalPageContentId() == null ? null : io.gravitee.apim.core.portal_page.model.PortalPageContentId.of(page.getPortalPageContentId().toString()))"
     )
+    @Mapping(
+        target = "contentType",
+        expression = "java(page.getContentType() == null ? io.gravitee.apim.core.portal_page.model.PortalPageContentType.GRAVITEE_MARKDOWN : map(page.getContentType()))"
+    )
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage page
     );
 
+    @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder folder
     );
 
+    @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink link
     );
+
+    @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi api
     );
@@ -115,6 +124,11 @@ public interface PortalNavigationItemsMapper {
 
     default String map(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId id) {
         return id != null ? id.json() : null;
+    }
+
+    default io.gravitee.apim.core.portal_page.model.PortalPageContentType map(PortalPageContentType type) {
+        if (type == null) return null;
+        return io.gravitee.apim.core.portal_page.model.PortalPageContentType.valueOf(type.name());
     }
 
     default io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(

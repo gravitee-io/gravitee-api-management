@@ -160,6 +160,9 @@ export class ClusterListComponent implements OnInit {
             description: result.description,
             configuration: {
               bootstrapServers: result.bootstrapServers,
+              security: {
+                protocol: 'PLAINTEXT',
+              },
             },
           });
         }),

@@ -22,20 +22,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class PortalPageContentQueryServiceInMemory implements InMemoryAlternative<PortalPageContent>, PortalPageContentQueryService {
+public class PortalPageContentQueryServiceInMemory implements InMemoryAlternative<PortalPageContent<?>>, PortalPageContentQueryService {
 
-    ArrayList<PortalPageContent> storage = new ArrayList<>();
+    ArrayList<PortalPageContent<?>> storage = new ArrayList<>();
 
     public PortalPageContentQueryServiceInMemory() {
         initWith(List.of());
     }
 
-    public PortalPageContentQueryServiceInMemory(List<PortalPageContent> items) {
+    public PortalPageContentQueryServiceInMemory(List<PortalPageContent<?>> items) {
         initWith(items);
     }
 
     @Override
-    public Optional<PortalPageContent> findById(PortalPageContentId id) {
+    public Optional<PortalPageContent<?>> findById(PortalPageContentId id) {
         return storage
             .stream()
             .filter(content -> content.getId().equals(id))
@@ -43,7 +43,7 @@ public class PortalPageContentQueryServiceInMemory implements InMemoryAlternativ
     }
 
     @Override
-    public void initWith(List<PortalPageContent> items) {
+    public void initWith(List<PortalPageContent<?>> items) {
         storage.clear();
         storage.addAll(items);
     }
@@ -54,7 +54,7 @@ public class PortalPageContentQueryServiceInMemory implements InMemoryAlternativ
     }
 
     @Override
-    public List<PortalPageContent> storage() {
+    public List<PortalPageContent<?>> storage() {
         return storage;
     }
 }

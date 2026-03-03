@@ -47,3 +47,18 @@ tests:
                   secret: aSecret
               validateSubscription: true
 
+  - it: Set the API security verbose401
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        api:
+          security:
+            verbose401: true
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            api:
+              security:
+                verbose401: true
+

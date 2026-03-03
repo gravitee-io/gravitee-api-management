@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionFormRepository;
 import io.gravitee.repository.management.model.SubscriptionForm;
@@ -66,7 +67,9 @@ class SubscriptionFormQueryServiceImplTest {
             assertThat(result).isPresent();
             assertThat(result.get().getId().toString()).hasToString("550e8400-e29b-41d4-a716-446655440000");
             assertThat(result.get().getEnvironmentId()).isEqualTo("environment-id");
-            assertThat(result.get().getGmdContent()).isEqualTo("<gmd-input name=\"company\" label=\"Company\" required=\"true\"/>");
+            assertThat(result.get().getGmdContent()).isEqualTo(
+                GraviteeMarkdown.of("<gmd-input name=\"company\" label=\"Company\" required=\"true\"/>")
+            );
             assertThat(result.get().isEnabled()).isTrue();
         }
 

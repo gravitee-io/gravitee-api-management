@@ -69,12 +69,6 @@ public class NewHttpApi extends AbstractNewApi {
             .flowExecution(flowExecution)
             .failover(failover);
 
-        if (
-            definitionVersion == io.gravitee.definition.model.DefinitionVersion.V4 && type == io.gravitee.definition.model.v4.ApiType.PROXY
-        ) {
-            builder.allowedInApiProducts(true);
-        }
-
         return builder;
     }
 }

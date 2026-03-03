@@ -30,7 +30,7 @@ public final class PortalNavigationApi extends PortalNavigationItem implements P
     @Nonnull
     private String apiId;
 
-    public PortalNavigationApi(
+    PortalNavigationApi(
         @Nonnull PortalNavigationItemId id,
         @Nonnull String organizationId,
         @Nonnull String environmentId,

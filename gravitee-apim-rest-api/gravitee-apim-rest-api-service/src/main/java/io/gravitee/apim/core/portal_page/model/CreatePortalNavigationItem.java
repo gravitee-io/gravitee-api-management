@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,6 +34,10 @@ public final class CreatePortalNavigationItem {
     private PortalNavigationItemType type;
     private PortalNavigationItemId parentId;
     private PortalPageContentId portalPageContentId;
+
+    @NotNull
+    private PortalPageContentType contentType;
+
     private String url;
     private String apiId;
     private PortalVisibility visibility;

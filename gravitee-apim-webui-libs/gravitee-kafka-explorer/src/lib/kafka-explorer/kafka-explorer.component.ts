@@ -13,50 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, inject, input, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ActivatedRoute, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
-import { BrokersComponent } from '../brokers/brokers.component';
-import { DescribeClusterResponse } from '../models/kafka-cluster.model';
+import { KAFKA_EXPLORER_BASE_URL } from '../services/kafka-explorer-config.token';
+import { KafkaExplorerStore } from '../services/kafka-explorer-store.service';
 import { KafkaExplorerService } from '../services/kafka-explorer.service';
 
 @Component({
   selector: 'gke-kafka-explorer',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatProgressSpinnerModule, MatIconModule, BrokersComponent],
+  imports: [MatButtonModule, MatProgressSpinnerModule, MatIconModule, RouterOutlet, RouterLink, RouterLinkActive],
+  providers: [KafkaExplorerStore],
   templateUrl: './kafka-explorer.component.html',
   styleUrls: ['./kafka-explorer.component.scss'],
 })
 export class KafkaExplorerComponent implements OnInit {
-  baseURL = input.required<string>();
-  clusterId = input.required<string>();
+  store = inject(KafkaExplorerStore);
 
-  clusterInfo = signal<DescribeClusterResponse | undefined>(undefined);
-  loading = signal(false);
-  error = signal<string | null>(null);
-
+  private readonly baseURL = inject(KAFKA_EXPLORER_BASE_URL);
+  private readonly route = inject(ActivatedRoute);
   private readonly kafkaExplorerService = inject(KafkaExplorerService);
   private readonly destroyRef = inject(DestroyRef);
 
   ngOnInit() {
-    this.loading.set(true);
-    this.error.set(null);
+    const clusterId = this.route.parent!.snapshot.params['clusterId'];
+    this.store.baseURL.set(this.baseURL);
+    this.store.clusterId.set(clusterId);
+    this.store.loading.set(true);
+    this.store.error.set(null);
 
     this.kafkaExplorerService
-      .describeCluster(this.baseURL(), this.clusterId())
+      .describeCluster(this.baseURL, clusterId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: response => {
-          this.clusterInfo.set(response);
-          this.loading.set(false);
+        next: cluster => {
+          this.store.clusterInfo.set(cluster);
+          this.store.loading.set(false);
         },
         error: err => {
-          this.error.set(err?.error?.message || 'Failed to describe cluster');
-          this.loading.set(false);
+          this.store.error.set(err?.error?.message || 'Failed to load cluster data');
+          this.store.loading.set(false);
         },
       });
   }

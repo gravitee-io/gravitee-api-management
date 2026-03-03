@@ -68,7 +68,7 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         var result = response.readEntity(io.gravitee.rest.api.portal.rest.model.SubscriptionForm.class);
         assertNotNull(result);
-        assertEquals(enabledForm.getGmdContent(), result.getGmdContent());
+        assertEquals(enabledForm.getGmdContent().value(), result.getGmdContent());
     }
 
     @Test

@@ -19,35 +19,56 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { provideRouter, Router, RouterOutlet } from '@angular/router';
 
-import { KafkaExplorerComponent } from './kafka-explorer.component';
 import { KafkaExplorerHarness } from './kafka-explorer.harness';
-import { fakeDescribeClusterResponse } from '../models/kafka-cluster.fixture';
+import { KAFKA_EXPLORER_ROUTES } from './kafka-explorer.routes';
+import { fakeDescribeClusterResponse, fakeDescribeTopicResponse, fakeListTopicsResponse } from '../models/kafka-cluster.fixture';
+import { KAFKA_EXPLORER_BASE_URL } from '../services/kafka-explorer-config.token';
 
 @Component({
   standalone: true,
-  imports: [KafkaExplorerComponent],
-  template: `<gke-kafka-explorer [baseURL]="baseURL" [clusterId]="clusterId" />`,
+  imports: [RouterOutlet],
+  template: `<router-outlet />`,
 })
-class TestHostComponent {
-  baseURL = '/api/v2';
-  clusterId = 'test-cluster-id';
-}
+class TestHostComponent {}
 
 describe('KafkaExplorerComponent', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let harness: KafkaExplorerHarness;
   let httpTesting: HttpTestingController;
+  let router: Router;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TestHostComponent],
-      providers: [provideNoopAnimations(), provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideNoopAnimations(),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([
+          {
+            path: 'clusters/:clusterId',
+            children: [
+              {
+                path: 'explorer',
+                children: KAFKA_EXPLORER_ROUTES,
+              },
+            ],
+          },
+        ]),
+        { provide: KAFKA_EXPLORER_BASE_URL, useValue: '/api/v2' },
+      ],
     }).compileComponents();
 
     httpTesting = TestBed.inject(HttpTestingController);
+    router = TestBed.inject(Router);
     fixture = TestBed.createComponent(TestHostComponent);
     fixture.detectChanges();
+
+    await router.navigateByUrl('/clusters/test-cluster-id/explorer');
+    fixture.detectChanges();
+
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, KafkaExplorerHarness);
   });
 
@@ -55,34 +76,124 @@ describe('KafkaExplorerComponent', () => {
     httpTesting.verify();
   });
 
+  function flushCluster() {
+    httpTesting.expectOne('/api/v2/kafka-explorer/describe-cluster').flush(fakeDescribeClusterResponse());
+    fixture.detectChanges();
+  }
+
+  function flushTopics() {
+    httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/list-topics').flush(fakeListTopicsResponse());
+    fixture.detectChanges();
+  }
+
   it('should show loader while loading', async () => {
     expect(await harness.isLoading()).toBe(true);
 
-    httpTesting.expectOne('/api/v2/kafka-explorer/describe-cluster').flush(fakeDescribeClusterResponse());
+    flushCluster();
   });
 
-  it('should display cluster info after successful response', async () => {
-    const req = httpTesting.expectOne('/api/v2/kafka-explorer/describe-cluster');
-    expect(req.request.body).toEqual({ clusterId: 'test-cluster-id' });
+  it('should display sidebar with Brokers and Topics links', async () => {
+    flushCluster();
 
-    req.flush(fakeDescribeClusterResponse());
-    fixture.detectChanges();
-
-    const topbarText = await harness.getTopbarText();
-    expect(topbarText).toContain('test-cluster-id');
-    expect(topbarText).toContain('kafka-broker-0.example.com');
+    const labels = await harness.getSidebarLabels();
+    expect(labels).toEqual(['Brokers', 'Topics', 'Consumer Groups']);
   });
 
-  it('should render broker nodes table via BrokersHarness', async () => {
-    httpTesting.expectOne('/api/v2/kafka-explorer/describe-cluster').flush(fakeDescribeClusterResponse());
+  it('should display brokers section by default', async () => {
+    flushCluster();
+
+    const brokersHarness = await harness.getBrokersHarness();
+    expect(brokersHarness).toBeTruthy();
+  });
+
+  it('should navigate to Topics section', async () => {
+    flushCluster();
+
+    await harness.selectSection('Topics');
     fixture.detectChanges();
+    await fixture.whenStable();
+
+    flushTopics();
+
+    const topicsHarness = await harness.getTopicsHarness();
+    expect(topicsHarness).toBeTruthy();
+
+    const brokersHarness = await harness.getBrokersHarness();
+    expect(brokersHarness).toBeNull();
+  });
+
+  it('should navigate back to Brokers section', async () => {
+    flushCluster();
+
+    await harness.selectSection('Topics');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    flushTopics();
+
+    await harness.selectSection('Brokers');
+    fixture.detectChanges();
+    await fixture.whenStable();
 
     const brokersHarness = await harness.getBrokersHarness();
     expect(brokersHarness).toBeTruthy();
 
-    const rows = await brokersHarness!.getRowsData();
-    expect(rows.length).toBe(3);
-    expect(rows[0]).toEqual({ id: '0', host: 'kafka-broker-0.example.com', port: '9092' });
+    const topicsHarness = await harness.getTopicsHarness();
+    expect(topicsHarness).toBeNull();
+  });
+
+  it('should navigate to topic detail when clicking a topic row', async () => {
+    flushCluster();
+
+    await harness.selectSection('Topics');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    flushTopics();
+
+    const topicsHarness = await harness.getTopicsHarness();
+    const rows = await topicsHarness!.getRows();
+    await (await rows[0].host()).click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/describe-topic').flush(fakeDescribeTopicResponse());
+    fixture.detectChanges();
+
+    const detailHarness = await harness.getTopicDetailHarness();
+    expect(detailHarness).toBeTruthy();
+
+    const topicsAfter = await harness.getTopicsHarness();
+    expect(topicsAfter).toBeNull();
+  });
+
+  it('should navigate back to topics list from topic detail', async () => {
+    flushCluster();
+
+    await harness.selectSection('Topics');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    flushTopics();
+
+    const topicsHarness = await harness.getTopicsHarness();
+    const rows = await topicsHarness!.getRows();
+    await (await rows[0].host()).click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    httpTesting.expectOne(req => req.url === '/api/v2/kafka-explorer/describe-topic').flush(fakeDescribeTopicResponse());
+    fixture.detectChanges();
+
+    const detailHarness = await harness.getTopicDetailHarness();
+    await detailHarness!.clickBack();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    flushTopics();
+
+    const topicsAfter = await harness.getTopicsHarness();
+    expect(topicsAfter).toBeTruthy();
+
+    const detailAfter = await harness.getTopicDetailHarness();
+    expect(detailAfter).toBeNull();
   });
 
   it('should show error on failure', async () => {
@@ -94,5 +205,11 @@ describe('KafkaExplorerComponent', () => {
     expect(await harness.isLoading()).toBe(false);
     const errorMessage = await harness.getErrorMessage();
     expect(errorMessage).toContain('Connection refused');
+  });
+
+  it('should redirect to brokers URL by default', async () => {
+    flushCluster();
+
+    expect(router.url).toBe('/clusters/test-cluster-id/explorer/brokers');
   });
 });

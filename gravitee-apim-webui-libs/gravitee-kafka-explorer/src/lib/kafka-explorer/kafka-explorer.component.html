@@ -15,36 +15,41 @@
     limitations under the License.
 
 -->
-@if (loading()) {
+@if (store.loading()) {
   <div class="kafka-explorer__loader">
     <mat-spinner diameter="40" />
   </div>
 }
 
-@if (error(); as errorMsg) {
+@if (store.error(); as errorMsg) {
   <div class="kafka-explorer__error">
     <mat-icon>error</mat-icon>
     <span>{{ errorMsg }}</span>
   </div>
 }
 
-@if (clusterInfo(); as info) {
+@if (store.clusterInfo()) {
   <div class="kafka-explorer">
-    <mat-card class="kafka-explorer__topbar">
-      <mat-card-content>
-        <div class="kafka-explorer__topbar-items">
-          <div class="kafka-explorer__topbar-item">
-            <span class="mat-caption">Cluster ID</span>
-            <span class="mat-body-2">{{ info.clusterId }}</span>
-          </div>
-          <div class="kafka-explorer__topbar-item">
-            <span class="mat-caption">Controller</span>
-            <span class="mat-body-2">{{ info.controller.host }}:{{ info.controller.port }} (node {{ info.controller.id }})</span>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
-
-    <gke-brokers [nodes]="info.nodes" />
+    <div class="kafka-explorer__layout">
+      <aside class="kafka-explorer__sidebar">
+        <a mat-button routerLink="brokers" routerLinkActive="kafka-explorer__sidebar-btn--active" class="kafka-explorer__sidebar-btn">
+          Brokers
+        </a>
+        <a mat-button routerLink="topics" routerLinkActive="kafka-explorer__sidebar-btn--active" class="kafka-explorer__sidebar-btn">
+          Topics
+        </a>
+        <a
+          mat-button
+          routerLink="consumer-groups"
+          routerLinkActive="kafka-explorer__sidebar-btn--active"
+          class="kafka-explorer__sidebar-btn"
+        >
+          Consumer Groups
+        </a>
+      </aside>
+      <div class="kafka-explorer__content">
+        <router-outlet />
+      </div>
+    </div>
   </div>
 }

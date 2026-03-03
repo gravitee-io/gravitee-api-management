@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.model;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.util.Optional;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
@@ -50,9 +51,13 @@ public abstract sealed class PortalNavigationItem
     @Nonnull
     private Integer order;
 
-    @Setter
     @Nullable
     private PortalNavigationItemId parentId;
+
+    @Setter
+    @Builder.Default
+    @Nonnull
+    private PortalNavigationItemId rootId = PortalNavigationItemId.zero();
 
     @Setter
     @Nonnull
@@ -80,9 +85,23 @@ public abstract sealed class PortalNavigationItem
         this.order = order;
         this.published = published;
         this.visibility = visibility;
+        this.rootId = id;
     }
 
     public abstract PortalNavigationItemType getType();
+
+    public void markAsRoot() {
+        this.parentId = null;
+        this.rootId = this.id;
+    }
+
+    /**
+     * Updates parentId and rootId atomically from the given parent container.
+     */
+    public void updateParent(@Nonnull PortalNavigationItemContainer parent) {
+        this.parentId = parent.getId();
+        this.rootId = parent.getRootId();
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -102,11 +121,15 @@ public abstract sealed class PortalNavigationItem
         return "PortalNavigationItem[id=" + id + ", title=" + title + "]";
     }
 
-    public static PortalNavigationItem from(CreatePortalNavigationItem item, String organizationId, String environmentId) {
+    public static PortalNavigationItem from(
+        CreatePortalNavigationItem item,
+        String organizationId,
+        String environmentId,
+        @Nullable PortalNavigationItemContainer parent
+    ) {
         final var id = Optional.ofNullable(item.getId()).orElse(PortalNavigationItemId.random());
         final var title = item.getTitle();
         final var area = item.getArea();
-        final var parentId = item.getParentId();
         final var contentId = item.getPortalPageContentId();
         final var url = item.getUrl();
         final var apiId = item.getApiId();
@@ -114,21 +137,23 @@ public abstract sealed class PortalNavigationItem
         final var visibility = null != item.getVisibility() ? item.getVisibility() : PortalVisibility.PUBLIC;
         final var published = null != item.getPublished() ? item.getPublished() : false;
 
-        final var newItem = switch (item.getType()) {
+        final PortalNavigationItem newItem = switch (item.getType()) {
             case FOLDER -> new PortalNavigationFolder(id, organizationId, environmentId, title, area, order, published, visibility);
             case PAGE -> new PortalNavigationPage(id, organizationId, environmentId, title, area, order, contentId, published, visibility);
             case LINK -> new PortalNavigationLink(id, organizationId, environmentId, title, area, order, url, published, visibility);
             case API -> new PortalNavigationApi(id, organizationId, environmentId, title, area, order, apiId, published, visibility);
         };
-        newItem.setParentId(parentId);
-
+        if (parent == null) {
+            newItem.markAsRoot();
+        } else {
+            newItem.updateParent(parent);
+        }
         return newItem;
     }
 
     public void update(UpdatePortalNavigationItem navItem) {
         this.setTitle(navItem.getTitle().trim());
         this.setOrder(navItem.getOrder());
-        this.setParentId(navItem.getParentId());
         this.setPublished(navItem.getPublished());
         this.setVisibility(navItem.getVisibility());
     }

@@ -132,6 +132,50 @@ class ApiProductQueryServiceImplTest {
     }
 
     @Nested
+    class FindByEnvironmentIdAndIdIn {
+
+        @Test
+        void should_return_empty_set_when_ids_null() {
+            var result = service.findByEnvironmentIdAndIdIn(ENV_ID, null);
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_empty_set_when_ids_empty() {
+            var result = service.findByEnvironmentIdAndIdIn(ENV_ID, Set.of());
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_products_matching_environment_and_ids() throws TechnicalException {
+            var repoApiProduct = buildRepositoryApiProduct();
+            var otherEnvProduct = io.gravitee.repository.management.model.ApiProduct.builder()
+                .id("other-env-product")
+                .environmentId("other-env")
+                .name("Other")
+                .version("1.0.0")
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
+            when(apiProductRepository.findByIds(Set.of(API_PRODUCT_ID, "other-env-product"))).thenReturn(
+                Set.of(repoApiProduct, otherEnvProduct)
+            );
+
+            var result = service.findByEnvironmentIdAndIdIn(ENV_ID, Set.of(API_PRODUCT_ID, "other-env-product"));
+
+            assertThat(result).hasSize(1);
+            assertThat(result.iterator().next().getId()).isEqualTo(API_PRODUCT_ID);
+        }
+
+        @Test
+        void should_throw_technical_exception_when_repository_fails() throws TechnicalException {
+            when(apiProductRepository.findByIds(Set.of(API_PRODUCT_ID))).thenThrow(new TechnicalException("Database error"));
+            var throwable = catchThrowable(() -> service.findByEnvironmentIdAndIdIn(ENV_ID, Set.of(API_PRODUCT_ID)));
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
+        }
+    }
+
+    @Nested
     class FindById {
 
         @Test

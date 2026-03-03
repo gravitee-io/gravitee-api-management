@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, inject, OnInit } from '@angular/core';
+import { Component, computed, HostListener, inject, OnInit, Signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,13 +21,15 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { LowerCasePipe, TitleCasePipe } from '@angular/common';
-import { GioBannerModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormSelectionInlineModule } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import {
   PortalNavigationItem,
   PortalNavigationItemType,
   PortalNavigationLink,
+  PortalPageContentType,
   PortalVisibility,
 } from '../../../entities/management-api-v2';
 import { urlValidator } from '../../../shared/validators/url.validator';
@@ -39,12 +41,14 @@ export type SectionEditorDialogItemType = Exclude<PortalNavigationItemType, 'API
 interface SectionEditorDialogCreateData {
   mode: 'create';
   type: SectionEditorDialogItemType;
+  parentItem?: PortalNavigationItem;
 }
 
 interface SectionEditorDialogEditData {
   mode: 'edit';
-  type: SectionEditorDialogItemType;
+  type: PortalNavigationItemType;
   existingItem: PortalNavigationItem;
+  parentItem?: PortalNavigationItem;
 }
 
 export type SectionEditorDialogData = SectionEditorDialogCreateData | SectionEditorDialogEditData;
@@ -53,18 +57,33 @@ export interface SectionEditorDialogResult {
   title: string;
   visibility: PortalVisibility;
   url?: string;
+  contentType?: PortalPageContentType;
 }
+
+export interface PortalPageTypeOption {
+  value: PortalPageContentType;
+  label: string;
+  icon: string;
+  available: boolean;
+}
+
+export const PORTAL_PAGE_CONTENT_TYPE_OPTIONS: PortalPageTypeOption[] = [
+  { value: 'GRAVITEE_MARKDOWN', label: 'Markdown', icon: 'gio:gravitee', available: true },
+  { value: 'OPENAPI', label: 'OpenAPI', icon: 'gio:open-api', available: true },
+];
 
 interface SectionFormControls {
   title: FormControl<string>;
   isPrivate: FormControl<boolean>;
   url?: FormControl<string>; // Optional for 'LINK' type
+  contentType?: FormControl<PortalPageContentType>; // Optional for 'PAGE' create only
 }
 
 interface SectionFormValues {
   title: string;
   isPrivate: boolean;
   url?: string;
+  contentType?: PortalPageContentType;
 }
 
 type SectionForm = FormGroup<SectionFormControls>;
@@ -80,7 +99,9 @@ type SectionForm = FormGroup<SectionFormControls>;
     MatInputModule,
     TitleCasePipe,
     GioBannerModule,
+    GioFormSelectionInlineModule,
     LowerCasePipe,
+    MatTooltipModule,
   ],
   templateUrl: './section-editor-dialog.component.html',
   styleUrls: ['./section-editor-dialog.component.scss'],
@@ -92,12 +113,27 @@ export class SectionEditorDialogComponent implements OnInit {
   });
   public initialFormValues: SectionFormValues;
 
-  public type: SectionEditorDialogItemType;
+  public type: PortalNavigationItemType;
   public mode: SectionEditorDialogMode;
   public title: string;
+  readonly pageContentTypeOptions = PORTAL_PAGE_CONTENT_TYPE_OPTIONS;
+
+  showPageTypeSelection(): boolean {
+    return this.mode === 'create' && this.type === 'PAGE';
+  }
 
   private readonly dialogRef = inject(MatDialogRef<SectionEditorDialogComponent, SectionEditorDialogResult>);
   private readonly data: SectionEditorDialogData = inject(MAT_DIALOG_DATA);
+  readonly publicDisabled: Signal<boolean> = computed(() => {
+    return this.data.parentItem ? this.data.parentItem.visibility !== 'PUBLIC' : false;
+  });
+  readonly publicDisabledTooltip: Signal<string> = computed(() => {
+    if (!this.publicDisabled()) {
+      return '';
+    }
+
+    return `This navigation item is in ${this.data.parentItem?.type?.toLocaleLowerCase()} requiring authentication`;
+  });
   public buttonTitle: string;
 
   constructor() {
@@ -124,8 +160,21 @@ export class SectionEditorDialogComponent implements OnInit {
   ngOnInit(): void {
     this.addTypeSpecificControls();
     this.prefillExistingItem();
+    this.syncVisibilityControlState();
 
     this.initialFormValues = this.form.getRawValue();
+  }
+
+  private syncVisibilityControlState(): void {
+    const isPrivateControl = this.form.controls.isPrivate;
+
+    if (this.publicDisabled()) {
+      isPrivateControl.setValue(true, { emitEvent: false });
+      isPrivateControl.disable({ emitEvent: false });
+      return;
+    }
+
+    isPrivateControl.enable({ emitEvent: false });
   }
 
   private addTypeSpecificControls(): void {
@@ -137,6 +186,9 @@ export class SectionEditorDialogComponent implements OnInit {
           nonNullable: true,
         }),
       );
+    }
+    if (this.showPageTypeSelection()) {
+      this.form.addControl('contentType', new FormControl<PortalPageContentType>('GRAVITEE_MARKDOWN', { nonNullable: true }));
     }
   }
 
@@ -158,6 +210,7 @@ export class SectionEditorDialogComponent implements OnInit {
         title: formValues.title,
         visibility: formValues.isPrivate ? 'PRIVATE' : 'PUBLIC',
         ...(this.type === 'LINK' ? { url: formValues.url! } : {}),
+        ...(this.showPageTypeSelection() && formValues.contentType ? { contentType: formValues.contentType } : {}),
       });
     }
   }

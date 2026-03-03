@@ -17,7 +17,14 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { DescribeClusterResponse } from '../models/kafka-cluster.model';
+import {
+  DescribeBrokerResponse,
+  DescribeClusterResponse,
+  DescribeTopicResponse,
+  ListTopicsResponse,
+  DescribeConsumerGroupResponse,
+  ListConsumerGroupsResponse,
+} from '../models/kafka-cluster.model';
 
 @Injectable({
   providedIn: 'root',
@@ -27,5 +34,43 @@ export class KafkaExplorerService {
 
   describeCluster(baseURL: string, clusterId: string): Observable<DescribeClusterResponse> {
     return this.http.post<DescribeClusterResponse>(`${baseURL}/kafka-explorer/describe-cluster`, { clusterId });
+  }
+
+  listTopics(baseURL: string, clusterId: string, nameFilter?: string, page = 1, perPage = 25): Observable<ListTopicsResponse> {
+    return this.http.post<ListTopicsResponse>(
+      `${baseURL}/kafka-explorer/list-topics`,
+      { clusterId, nameFilter },
+      {
+        params: { page: page.toString(), perPage: perPage.toString() },
+      },
+    );
+  }
+
+  describeTopic(baseURL: string, clusterId: string, topicName: string): Observable<DescribeTopicResponse> {
+    return this.http.post<DescribeTopicResponse>(`${baseURL}/kafka-explorer/describe-topic`, { clusterId, topicName });
+  }
+
+  describeBroker(baseURL: string, clusterId: string, brokerId: number): Observable<DescribeBrokerResponse> {
+    return this.http.post<DescribeBrokerResponse>(`${baseURL}/kafka-explorer/describe-broker`, { clusterId, brokerId });
+  }
+
+  listConsumerGroups(
+    baseURL: string,
+    clusterId: string,
+    nameFilter?: string,
+    page = 1,
+    perPage = 25,
+  ): Observable<ListConsumerGroupsResponse> {
+    return this.http.post<ListConsumerGroupsResponse>(
+      `${baseURL}/kafka-explorer/list-consumer-groups`,
+      { clusterId, nameFilter },
+      {
+        params: { page: page.toString(), perPage: perPage.toString() },
+      },
+    );
+  }
+
+  describeConsumerGroup(baseURL: string, clusterId: string, groupId: string): Observable<DescribeConsumerGroupResponse> {
+    return this.http.post<DescribeConsumerGroupResponse>(`${baseURL}/kafka-explorer/describe-consumer-group`, { clusterId, groupId });
   }
 }

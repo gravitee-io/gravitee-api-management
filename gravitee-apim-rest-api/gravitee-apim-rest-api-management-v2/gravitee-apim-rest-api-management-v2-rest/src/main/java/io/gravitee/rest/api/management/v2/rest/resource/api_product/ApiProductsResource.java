@@ -19,14 +19,18 @@ import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.CreateApiProduct;
 import io.gravitee.apim.core.api_product.use_case.CreateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
+import io.gravitee.apim.core.api_product.use_case.SearchApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductNameUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiProductMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ApiProductSearchQuery;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiProductResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.param.ApiProductSortByParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -47,7 +51,9 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 
 @CustomLog
@@ -66,13 +72,16 @@ public class ApiProductsResource extends AbstractResource {
     @Inject
     private GetApiProductsUseCase getApiProductsUseCase;
 
+    @Inject
+    private SearchApiProductsUseCase searchApiProductsUseCase;
+
     @Path("{apiProductId}")
     public ApiProductResource getApiProductResource() {
         return resourceContext.getResource(ApiProductResource.class);
     }
 
     @POST
-    @Path("/_verify")
+    @Path("_verify")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions(
@@ -119,6 +128,60 @@ public class ApiProductsResource extends AbstractResource {
             .build();
     }
 
+    @POST
+    @Path("_search")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCT, acls = { RolePermissionAction.READ }) })
+    public Response searchApiProducts(
+        @BeanParam @Valid PaginationParam paginationParam,
+        @BeanParam ApiProductSortByParam apiProductSortByParam,
+        @Valid @NotNull ApiProductSearchQuery searchQuery
+    ) {
+        apiProductSortByParam.validate();
+        boolean hasIds = CollectionUtils.isNotEmpty(searchQuery.getIds());
+        var executionContext = GraviteeContext.getExecutionContext();
+        Set<String> ids = hasIds
+            ? searchQuery
+                .getIds()
+                .stream()
+                .filter(id -> id != null && !id.isBlank())
+                .collect(Collectors.toSet())
+            : Set.of();
+
+        var input = SearchApiProductsUseCase.Input.of(
+            executionContext.getEnvironmentId(),
+            executionContext.getOrganizationId(),
+            searchQuery.getQuery(),
+            ids.isEmpty() ? null : ids,
+            paginationParam.toPageable(),
+            apiProductSortByParam.toSortable()
+        );
+        var output = searchApiProductsUseCase.execute(input);
+        var page = output.page();
+
+        long totalElements = page.getTotalElements();
+        int pageItemsCount = Math.toIntExact(page.getPageElements());
+        log.debug(
+            "Search API Products for environment [{}]: {} total, page has {} items",
+            executionContext.getEnvironmentId(),
+            totalElements,
+            pageItemsCount
+        );
+        return Response.ok()
+            .entity(
+                Map.of(
+                    "data",
+                    page.getContent().stream().map(ApiProductMapper.INSTANCE::map).toList(),
+                    "pagination",
+                    PaginationInfo.computePaginationInfo(totalElements, pageItemsCount, paginationParam),
+                    "links",
+                    computePaginationLinks(totalElements, paginationParam)
+                )
+            )
+            .build();
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCT, acls = { RolePermissionAction.READ }) })
@@ -127,18 +190,23 @@ public class ApiProductsResource extends AbstractResource {
         var output = getApiProductsUseCase.execute(
             GetApiProductsUseCase.Input.of(executionContext.getEnvironmentId(), executionContext.getOrganizationId())
         );
-        Set<ApiProduct> allData = output.apiProducts();
-        List<ApiProduct> paginationData = computePaginationData(allData, paginationParam);
-        log.debug("Get API Products for environment [{}]: {} found", executionContext, allData.size());
+        Set<ApiProduct> allApiProducts = output.apiProducts();
+        List<ApiProduct> paginationApiProducts = computePaginationData(allApiProducts, paginationParam);
+        log.debug("Get API Products for environment [{}]: {} found", executionContext, allApiProducts.size());
+        List<io.gravitee.rest.api.management.v2.rest.model.ApiProduct> restPaginationData = paginationApiProducts
+            .stream()
+            .map(ApiProductMapper.INSTANCE::map)
+            .toList();
         return Response.ok()
             .entity(
-                new java.util.HashMap<String, Object>() {
-                    {
-                        put("data", paginationData);
-                        put("pagination", PaginationInfo.computePaginationInfo(allData.size(), paginationData.size(), paginationParam));
-                        put("links", computePaginationLinks(allData.size(), paginationParam));
-                    }
-                }
+                Map.of(
+                    "data",
+                    restPaginationData,
+                    "pagination",
+                    PaginationInfo.computePaginationInfo(allApiProducts.size(), paginationApiProducts.size(), paginationParam),
+                    "links",
+                    computePaginationLinks(allApiProducts.size(), paginationParam)
+                )
             )
             .build();
     }

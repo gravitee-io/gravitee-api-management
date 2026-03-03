@@ -757,7 +757,7 @@ spec:
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
 
-        - name: LLM_PROMPT_TOKEN_COST
+        - name: LLM_PROMPT_TOKEN_TOTAL_COST
           label: Total token cost
           apis:
               - LLM

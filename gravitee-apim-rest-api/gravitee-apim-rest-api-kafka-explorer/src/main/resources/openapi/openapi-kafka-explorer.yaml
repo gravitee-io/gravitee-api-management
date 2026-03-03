@@ -49,6 +49,202 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/KafkaExplorerError"
 
+    /kafka-explorer/list-topics:
+        post:
+            tags:
+                - Kafka Explorer
+            summary: List topics of a Kafka cluster
+            description: |
+                Connects to a Kafka cluster and returns the list of topics with their metadata.
+            operationId: listTopics
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                      type: integer
+                      default: 1
+                  description: Page number (1-based)
+                - name: perPage
+                  in: query
+                  schema:
+                      type: integer
+                      default: 10
+                  description: Number of topics per page
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ListTopicsRequest"
+            responses:
+                "200":
+                    description: List of topics
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ListTopicsResponse"
+                "400":
+                    description: Invalid parameters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+                "502":
+                    description: Connection failure
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+
+    /kafka-explorer/describe-topic:
+        post:
+            tags:
+                - Kafka Explorer
+            summary: Describe a Kafka topic
+            description: |
+                Connects to a Kafka cluster and returns detailed information about a specific topic including partitions and configuration.
+            operationId: describeTopic
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DescribeTopicRequest"
+            responses:
+                "200":
+                    description: Topic detail
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DescribeTopicResponse"
+                "400":
+                    description: Invalid parameters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+                "502":
+                    description: Connection failure
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+
+    /kafka-explorer/describe-broker:
+        post:
+            tags:
+                - Kafka Explorer
+            summary: Describe a Kafka broker
+            description: |
+                Connects to a Kafka cluster and returns detailed information about a specific broker including log directories and configuration.
+            operationId: describeBroker
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DescribeBrokerRequest"
+            responses:
+                "200":
+                    description: Broker detail
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DescribeBrokerResponse"
+                "400":
+                    description: Invalid parameters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+                "502":
+                    description: Connection failure
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+
+    /kafka-explorer/list-consumer-groups:
+        post:
+            tags:
+                - Kafka Explorer
+            summary: List consumer groups of a Kafka cluster
+            description: |
+                Connects to a Kafka cluster and returns the list of consumer groups with their metadata.
+            operationId: listConsumerGroups
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                      type: integer
+                      default: 1
+                  description: Page number (1-based)
+                - name: perPage
+                  in: query
+                  schema:
+                      type: integer
+                      default: 10
+                  description: Number of consumer groups per page
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ListConsumerGroupsRequest"
+            responses:
+                "200":
+                    description: List of consumer groups
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ListConsumerGroupsResponse"
+                "400":
+                    description: Invalid parameters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+                "502":
+                    description: Connection failure
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+
+    /kafka-explorer/describe-consumer-group:
+        post:
+            tags:
+                - Kafka Explorer
+            summary: Describe a Kafka consumer group
+            description: |
+                Connects to a Kafka cluster and returns detailed information about a specific consumer group including members and offsets.
+            operationId: describeConsumerGroup
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DescribeConsumerGroupRequest"
+            responses:
+                "200":
+                    description: Consumer group detail
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DescribeConsumerGroupResponse"
+                "400":
+                    description: Invalid parameters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+                "502":
+                    description: Connection failure
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+
 components:
     schemas:
         DescribeClusterRequest:
@@ -70,7 +266,15 @@ components:
                 nodes:
                     type: array
                     items:
-                        $ref: "#/components/schemas/KafkaNode"
+                        $ref: "#/components/schemas/BrokerDetail"
+                totalTopics:
+                    type: integer
+                    format: int32
+                    description: Total number of topics in the cluster
+                totalPartitions:
+                    type: integer
+                    format: int32
+                    description: Total number of partitions across all topics
 
         KafkaNode:
             type: object
@@ -83,6 +287,357 @@ components:
                 port:
                     type: integer
                     format: int32
+
+        BrokerDetail:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+                host:
+                    type: string
+                port:
+                    type: integer
+                    format: int32
+                rack:
+                    type: string
+                    description: Rack identifier of this broker, or null if not configured
+                leaderPartitions:
+                    type: integer
+                    format: int32
+                    description: Number of partitions for which this broker is the leader
+                replicaPartitions:
+                    type: integer
+                    format: int32
+                    description: Number of partition replicas hosted on this broker
+                logDirSize:
+                    type: integer
+                    format: int64
+                    description: Total size of all log directories on this broker in bytes, or null if unavailable
+
+        ListTopicsRequest:
+            type: object
+            required:
+                - clusterId
+            properties:
+                clusterId:
+                    type: string
+                    description: ID of the Cluster to connect to
+                nameFilter:
+                    type: string
+                    description: Optional filter to match topic names (case-insensitive contains)
+
+        ListTopicsResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/KafkaTopic"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+        Pagination:
+            type: object
+            properties:
+                page:
+                    type: integer
+                perPage:
+                    type: integer
+                pageCount:
+                    type: integer
+                pageItemsCount:
+                    type: integer
+                totalCount:
+                    type: integer
+                    format: int64
+
+        KafkaTopic:
+            type: object
+            properties:
+                name:
+                    type: string
+                partitionCount:
+                    type: integer
+                    format: int32
+                    description: Number of partitions for this topic
+                replicationFactor:
+                    type: integer
+                    format: int32
+                    description: Replication factor of this topic
+                underReplicatedCount:
+                    type: integer
+                    format: int32
+                    description: Number of partitions where ISR size is less than replica count
+                internal:
+                    type: boolean
+                    description: Whether this is an internal Kafka topic
+                size:
+                    type: integer
+                    format: int64
+                    description: Total size of the topic in bytes across all brokers, or null if unavailable
+                messageCount:
+                    type: integer
+                    format: int64
+                    description: Total number of messages (sum of latest offsets), or null if unavailable
+
+        DescribeTopicRequest:
+            type: object
+            required:
+                - clusterId
+                - topicName
+            properties:
+                clusterId:
+                    type: string
+                    description: ID of the Cluster to connect to
+                topicName:
+                    type: string
+                    description: Name of the topic to describe
+
+        DescribeTopicResponse:
+            type: object
+            properties:
+                name:
+                    type: string
+                internal:
+                    type: boolean
+                partitions:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/TopicPartition"
+                configs:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/TopicConfig"
+
+        TopicPartition:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+                leader:
+                    $ref: "#/components/schemas/KafkaNode"
+                replicas:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/KafkaNode"
+                isr:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/KafkaNode"
+                offline:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/KafkaNode"
+
+        TopicConfig:
+            type: object
+            properties:
+                name:
+                    type: string
+                value:
+                    type: string
+                source:
+                    type: string
+                readOnly:
+                    type: boolean
+                sensitive:
+                    type: boolean
+
+        DescribeBrokerRequest:
+            type: object
+            required:
+                - clusterId
+                - brokerId
+            properties:
+                clusterId:
+                    type: string
+                    description: ID of the Cluster to connect to
+                brokerId:
+                    type: integer
+                    format: int32
+                    description: ID of the broker to describe
+
+        DescribeBrokerResponse:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+                host:
+                    type: string
+                port:
+                    type: integer
+                    format: int32
+                rack:
+                    type: string
+                    description: Rack identifier of this broker, or null if not configured
+                isController:
+                    type: boolean
+                    description: Whether this broker is the cluster controller
+                leaderPartitions:
+                    type: integer
+                    format: int32
+                    description: Number of partitions for which this broker is the leader
+                replicaPartitions:
+                    type: integer
+                    format: int32
+                    description: Number of partition replicas hosted on this broker
+                logDirSize:
+                    type: integer
+                    format: int64
+                    description: Total size of all log directories on this broker in bytes, or null if unavailable
+                logDirEntries:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/BrokerLogDirEntry"
+                configs:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/TopicConfig"
+
+        BrokerLogDirEntry:
+            type: object
+            properties:
+                path:
+                    type: string
+                    description: File system path of the log directory
+                error:
+                    type: string
+                    description: Error status of this log directory, or null if healthy
+                topics:
+                    type: integer
+                    format: int32
+                    description: Number of distinct topics stored in this log directory
+                partitions:
+                    type: integer
+                    format: int32
+                    description: Number of partition replicas stored in this log directory
+                size:
+                    type: integer
+                    format: int64
+                    description: Total size of this log directory in bytes
+
+        ListConsumerGroupsRequest:
+            type: object
+            required:
+                - clusterId
+            properties:
+                clusterId:
+                    type: string
+                    description: ID of the Cluster to connect to
+                nameFilter:
+                    type: string
+                    description: Optional filter to match consumer group IDs (case-insensitive contains)
+
+        ListConsumerGroupsResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ConsumerGroupSummary"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+        ConsumerGroupSummary:
+            type: object
+            properties:
+                groupId:
+                    type: string
+                state:
+                    type: string
+                    description: Consumer group state (STABLE, EMPTY, REBALANCING, DEAD, etc.)
+                membersCount:
+                    type: integer
+                    format: int32
+                totalLag:
+                    type: integer
+                    format: int64
+                    description: Total lag across all partitions
+                numTopics:
+                    type: integer
+                    format: int32
+                    description: Number of topics the consumer group has committed offsets for
+                coordinator:
+                    $ref: "#/components/schemas/KafkaNode"
+
+        DescribeConsumerGroupRequest:
+            type: object
+            required:
+                - clusterId
+                - groupId
+            properties:
+                clusterId:
+                    type: string
+                    description: ID of the Cluster to connect to
+                groupId:
+                    type: string
+                    description: ID of the consumer group to describe
+
+        DescribeConsumerGroupResponse:
+            type: object
+            properties:
+                groupId:
+                    type: string
+                state:
+                    type: string
+                coordinator:
+                    $ref: "#/components/schemas/KafkaNode"
+                partitionAssignor:
+                    type: string
+                members:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ConsumerGroupMember"
+                offsets:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ConsumerGroupOffset"
+
+        ConsumerGroupMember:
+            type: object
+            properties:
+                memberId:
+                    type: string
+                clientId:
+                    type: string
+                host:
+                    type: string
+                assignments:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/MemberAssignment"
+
+        MemberAssignment:
+            type: object
+            properties:
+                topicName:
+                    type: string
+                partitions:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+
+        ConsumerGroupOffset:
+            type: object
+            properties:
+                topic:
+                    type: string
+                partition:
+                    type: integer
+                    format: int32
+                committedOffset:
+                    type: integer
+                    format: int64
+                endOffset:
+                    type: integer
+                    format: int64
+                lag:
+                    type: integer
+                    format: int64
 
         KafkaExplorerError:
             type: object

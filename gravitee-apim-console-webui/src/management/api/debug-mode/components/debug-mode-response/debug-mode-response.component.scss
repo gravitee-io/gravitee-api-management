@@ -12,7 +12,6 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__empty-response,
   &__loading-response,
-  &__reached-timeout,
   &__inspector-helper {
     display: flex;
     flex-direction: column;
@@ -36,6 +35,12 @@ $typography: map.get(gio.$mat-theme, typography);
       animation-iteration-count: infinite;
       animation-fill-mode: both;
       animation-play-state: running;
+    }
+
+    &__long-request-warning {
+      margin: 8px 48px 0;
+      max-width: 560px;
+      text-align: center;
     }
   }
 

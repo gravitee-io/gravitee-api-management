@@ -25,6 +25,15 @@ import lombok.Data;
 @Data
 public class SecurityChainDiagnostic {
 
+    private static final String MESSAGE_INVALID_TOKEN = "The provided authentication token is invalid";
+    private static final String MESSAGE_NOT_AUTHORIZED = "The provided credentials are not authorized";
+    private static final String MESSAGE_EXPIRED = "Access has expired for the provided credentials";
+    private static final String MESSAGE_NO_PLAN_MATCHED = "No plan matched the request";
+    private static final String MESSAGE_NO_TOKEN = "The request did not include an authentication token";
+    private static final String MESSAGE_UNAUTHORIZED = "Unauthorized";
+
+    private final boolean verbose401;
+
     List<String> noTokenPlans;
     List<String> invalidTokenPlans;
     List<String> noMatchingRulePlans;
@@ -32,6 +41,14 @@ public class SecurityChainDiagnostic {
     List<String> expiredSubscriptionPlans;
 
     private record NoSubscriptionInfo(String planName, String tokenType, String maskedToken) {}
+
+    public SecurityChainDiagnostic() {
+        this(false);
+    }
+
+    public SecurityChainDiagnostic(boolean verbose401) {
+        this.verbose401 = verbose401;
+    }
 
     public void markPlanHasNoToken(String planName) {
         if (noTokenPlans == null) {
@@ -81,6 +98,34 @@ public class SecurityChainDiagnostic {
             invalidTokenPlans = new ArrayList<>();
         }
         invalidTokenPlans.add(planName);
+    }
+
+    public String message() {
+        if (!verbose401) {
+            return MESSAGE_UNAUTHORIZED;
+        }
+
+        if (invalidTokenPlans != null) {
+            return MESSAGE_INVALID_TOKEN;
+        }
+
+        if (noSubscriptionPlans != null) {
+            return MESSAGE_NOT_AUTHORIZED;
+        }
+
+        if (expiredSubscriptionPlans != null) {
+            return MESSAGE_EXPIRED;
+        }
+
+        if (noMatchingRulePlans != null) {
+            return MESSAGE_NO_PLAN_MATCHED;
+        }
+
+        if (noTokenPlans != null) {
+            return MESSAGE_NO_TOKEN;
+        }
+
+        return MESSAGE_UNAUTHORIZED;
     }
 
     public Exception cause() {

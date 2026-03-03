@@ -17,10 +17,21 @@ package io.gravitee.rest.api.kafkaexplorer.resource;
 
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
+import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeBrokerUseCase;
+import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeConsumerGroupUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeKafkaClusterUseCase;
+import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeTopicUseCase;
+import io.gravitee.rest.api.kafkaexplorer.domain.use_case.ListConsumerGroupsUseCase;
+import io.gravitee.rest.api.kafkaexplorer.domain.use_case.ListTopicsUseCase;
 import io.gravitee.rest.api.kafkaexplorer.mapper.KafkaExplorerMapper;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeBrokerRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeClusterRequest;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeConsumerGroupRequest;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeTopicRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaExplorerError;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.ListConsumerGroupsRequest;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.ListTopicsRequest;
+import io.gravitee.rest.api.kafkaexplorer.rest.model.ListTopicsResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.GraviteeLicenseFeature;
@@ -29,16 +40,33 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 public class KafkaExplorerResource {
 
     @Inject
+    private DescribeBrokerUseCase describeBrokerUseCase;
+
+    @Inject
     private DescribeKafkaClusterUseCase describeKafkaClusterUseCase;
+
+    @Inject
+    private ListTopicsUseCase listTopicsUseCase;
+
+    @Inject
+    private DescribeTopicUseCase describeTopicUseCase;
+
+    @Inject
+    private ListConsumerGroupsUseCase listConsumerGroupsUseCase;
+
+    @Inject
+    private DescribeConsumerGroupUseCase describeConsumerGroupUseCase;
 
     @POST
     @Path("/describe-cluster")
@@ -57,6 +85,196 @@ public class KafkaExplorerResource {
             var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
             var result = describeKafkaClusterUseCase.execute(new DescribeKafkaClusterUseCase.Input(request.getClusterId(), environmentId));
             return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.clusterInfo())).build();
+        } catch (KafkaExplorerException e) {
+            return Response.status(Response.Status.BAD_GATEWAY)
+                .entity(new KafkaExplorerError().message(e.getMessage()).technicalCode(e.getTechnicalCode().name()))
+                .build();
+        }
+    }
+
+    @POST
+    @Path("/list-topics")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @GraviteeLicenseFeature("apim-native-kafka-explorer")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ) })
+    public Response listTopics(
+        ListTopicsRequest request,
+        @QueryParam("page") @DefaultValue("1") int page,
+        @QueryParam("perPage") @DefaultValue("10") int perPage
+    ) {
+        if (request == null || request.getClusterId() == null || request.getClusterId().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                .build();
+        }
+
+        if (page < 1) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new KafkaExplorerError().message("page must be >= 1").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                .build();
+        }
+
+        if (perPage < 1 || perPage > 100) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(
+                    new KafkaExplorerError()
+                        .message("perPage must be between 1 and 100")
+                        .technicalCode(TechnicalCode.INVALID_PARAMETERS.name())
+                )
+                .build();
+        }
+
+        try {
+            var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
+            int page0Based = page - 1;
+            var result = listTopicsUseCase.execute(
+                new ListTopicsUseCase.Input(request.getClusterId(), environmentId, request.getNameFilter(), page0Based, perPage)
+            );
+            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.topicsPage(), page, perPage)).build();
+        } catch (KafkaExplorerException e) {
+            return Response.status(Response.Status.BAD_GATEWAY)
+                .entity(new KafkaExplorerError().message(e.getMessage()).technicalCode(e.getTechnicalCode().name()))
+                .build();
+        }
+    }
+
+    @POST
+    @Path("/describe-topic")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @GraviteeLicenseFeature("apim-native-kafka-explorer")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ) })
+    public Response describeTopic(DescribeTopicRequest request) {
+        if (request == null || request.getClusterId() == null || request.getClusterId().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                .build();
+        }
+
+        if (request.getTopicName() == null || request.getTopicName().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new KafkaExplorerError().message("topicName is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                .build();
+        }
+
+        try {
+            var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
+            var result = describeTopicUseCase.execute(
+                new DescribeTopicUseCase.Input(request.getClusterId(), environmentId, request.getTopicName())
+            );
+            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.topicDetail())).build();
+        } catch (KafkaExplorerException e) {
+            return Response.status(Response.Status.BAD_GATEWAY)
+                .entity(new KafkaExplorerError().message(e.getMessage()).technicalCode(e.getTechnicalCode().name()))
+                .build();
+        }
+    }
+
+    @POST
+    @Path("/describe-broker")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @GraviteeLicenseFeature("apim-native-kafka-explorer")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ) })
+    public Response describeBroker(DescribeBrokerRequest request) {
+        if (request == null || request.getClusterId() == null || request.getClusterId().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                .build();
+        }
+
+        if (request.getBrokerId() == null || request.getBrokerId() < 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new KafkaExplorerError().message("brokerId must be >= 0").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                .build();
+        }
+
+        try {
+            var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
+            var result = describeBrokerUseCase.execute(
+                new DescribeBrokerUseCase.Input(request.getClusterId(), environmentId, request.getBrokerId())
+            );
+            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.brokerInfo())).build();
+        } catch (KafkaExplorerException e) {
+            return Response.status(Response.Status.BAD_GATEWAY)
+                .entity(new KafkaExplorerError().message(e.getMessage()).technicalCode(e.getTechnicalCode().name()))
+                .build();
+        }
+    }
+
+    @POST
+    @Path("/list-consumer-groups")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @GraviteeLicenseFeature("apim-native-kafka-explorer")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ) })
+    public Response listConsumerGroups(
+        ListConsumerGroupsRequest request,
+        @QueryParam("page") @DefaultValue("1") int page,
+        @QueryParam("perPage") @DefaultValue("25") int perPage
+    ) {
+        if (request == null || request.getClusterId() == null || request.getClusterId().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                .build();
+        }
+
+        if (page < 1) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new KafkaExplorerError().message("page must be >= 1").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                .build();
+        }
+
+        if (perPage < 1 || perPage > 100) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(
+                    new KafkaExplorerError()
+                        .message("perPage must be between 1 and 100")
+                        .technicalCode(TechnicalCode.INVALID_PARAMETERS.name())
+                )
+                .build();
+        }
+
+        try {
+            var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
+            int page0Based = page - 1;
+            var result = listConsumerGroupsUseCase.execute(
+                new ListConsumerGroupsUseCase.Input(request.getClusterId(), environmentId, request.getNameFilter(), page0Based, perPage)
+            );
+            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.consumerGroupsPage(), page, perPage)).build();
+        } catch (KafkaExplorerException e) {
+            return Response.status(Response.Status.BAD_GATEWAY)
+                .entity(new KafkaExplorerError().message(e.getMessage()).technicalCode(e.getTechnicalCode().name()))
+                .build();
+        }
+    }
+
+    @POST
+    @Path("/describe-consumer-group")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @GraviteeLicenseFeature("apim-native-kafka-explorer")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = RolePermissionAction.READ) })
+    public Response describeConsumerGroup(DescribeConsumerGroupRequest request) {
+        if (request == null || request.getClusterId() == null || request.getClusterId().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new KafkaExplorerError().message("clusterId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                .build();
+        }
+
+        if (request.getGroupId() == null || request.getGroupId().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new KafkaExplorerError().message("groupId is required").technicalCode(TechnicalCode.INVALID_PARAMETERS.name()))
+                .build();
+        }
+
+        try {
+            var environmentId = GraviteeContext.getExecutionContext().getEnvironmentId();
+            var result = describeConsumerGroupUseCase.execute(
+                new DescribeConsumerGroupUseCase.Input(request.getClusterId(), environmentId, request.getGroupId())
+            );
+            return Response.ok(KafkaExplorerMapper.INSTANCE.map(result.consumerGroupDetail())).build();
         } catch (KafkaExplorerException e) {
             return Response.status(Response.Status.BAD_GATEWAY)
                 .entity(new KafkaExplorerError().message(e.getMessage()).technicalCode(e.getTechnicalCode().name()))

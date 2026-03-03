@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatProgressSpinnerHarness } from '@angular/material/progress-spinner/testing';
 
-import { BrokersHarness } from '../brokers/brokers.harness';
+import { BrokersHarness } from '../features/brokers/brokers/brokers.harness';
+import { TopicDetailHarness } from '../features/topics/topic-detail/topic-detail.harness';
+import { TopicsHarness } from '../features/topics/topics/topics.harness';
 
 export class KafkaExplorerHarness extends ComponentHarness {
   static hostSelector = 'gke-kafka-explorer';
 
   private readonly getSpinner = this.locatorForOptional(MatProgressSpinnerHarness);
   private readonly getBrokers = this.locatorForOptional(BrokersHarness);
+  private readonly getTopics = this.locatorForOptional(TopicsHarness);
   private readonly getErrorBanner = this.locatorForOptional('.kafka-explorer__error');
-  private readonly getTopbar = this.locatorForOptional('.kafka-explorer__topbar');
+  private readonly getSidebarLinks = this.locatorForAll(MatButtonHarness.with({ ancestor: '.kafka-explorer__sidebar' }));
 
   async isLoading() {
     return (await this.getSpinner()) !== null;
@@ -35,12 +39,31 @@ export class KafkaExplorerHarness extends ComponentHarness {
     return error ? error.text() : null;
   }
 
-  async getTopbarText() {
-    const topbar = await this.getTopbar();
-    return topbar ? topbar.text() : null;
+  async selectSection(label: string) {
+    const links = await this.getSidebarLinks();
+    for (const link of links) {
+      if ((await link.getText()) === label) {
+        await link.click();
+        return;
+      }
+    }
+    throw new Error(`Sidebar link "${label}" not found`);
+  }
+
+  async getSidebarLabels() {
+    const links = await this.getSidebarLinks();
+    return Promise.all(links.map(l => l.getText()));
   }
 
   async getBrokersHarness() {
     return this.getBrokers();
+  }
+
+  async getTopicsHarness() {
+    return this.getTopics();
+  }
+
+  async getTopicDetailHarness() {
+    return this.locatorForOptional(TopicDetailHarness)();
   }
 }

@@ -37,6 +37,7 @@ import io.gravitee.rest.api.portal.rest.model.PlanUsageConfiguration;
 import io.gravitee.rest.api.portal.rest.model.TimePeriodConfiguration;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,13 +54,18 @@ import org.springframework.stereotype.Component;
 public class PlanMapper {
 
     private final GraviteeMapper mapper = new GraviteeMapper();
-    private final String POLICY_CONFIGURATION_LIMIT = "limit";
-    private final String POLICY_CONFIGURATION_DYNAMIC_LIMIT = "dynamicLimit";
-    private final String POLICY_CONFIGURATION_PERIOD_TIME = "periodTime";
-    private final String POLICY_CONFIGURATION_PERIOD_TIME_UNIT = "periodTimeUnit";
-    private final String RATE_LIMIT_POLICY_ID = "rate-limit";
-    private final String QUOTA_POLICY_ID = "quota";
-    private final Map<String, String> POLICY_CONFIGURATION_ATTRIBUTES = Map.of(QUOTA_POLICY_ID, "quota", RATE_LIMIT_POLICY_ID, "rate");
+    private static final String POLICY_CONFIGURATION_LIMIT = "limit";
+    private static final String POLICY_CONFIGURATION_DYNAMIC_LIMIT = "dynamicLimit";
+    private static final String POLICY_CONFIGURATION_PERIOD_TIME = "periodTime";
+    private static final String POLICY_CONFIGURATION_PERIOD_TIME_UNIT = "periodTimeUnit";
+    private static final String RATE_LIMIT_POLICY_ID = "rate-limit";
+    private static final String QUOTA_POLICY_ID = "quota";
+    private static final Map<String, String> POLICY_CONFIGURATION_ATTRIBUTES = Map.of(
+        QUOTA_POLICY_ID,
+        "quota",
+        RATE_LIMIT_POLICY_ID,
+        "rate"
+    );
 
     public Plan convert(GenericPlanEntity plan, GenericApiEntity api) {
         final Plan planItem = new Plan();
@@ -100,50 +106,46 @@ public class PlanMapper {
      */
     private TimePeriodConfiguration getMostRestrictivePolicyConfiguration(String policyId, GenericPlanEntity plan, GenericApiEntity api) {
         List<String> policyConfigurations = this.getEnabledConfigurationsByPolicyId(policyId, plan);
+        String policyAttribute = POLICY_CONFIGURATION_ATTRIBUTES.get(policyId);
 
-        // Configuration with the longest minimum duration between calls
-        var longestMinimumDuration = new AtomicReference<TimePeriodConfiguration>();
-        policyConfigurations
+        return policyConfigurations
             .stream()
-            .map(stepConfiguration -> {
-                try {
-                    return mapper.readTree(stepConfiguration);
-                } catch (JsonProcessingException e) {
-                    return JsonNodeFactory.instance.objectNode();
-                }
-            })
-            .map(configuration -> {
-                var policyAttribute = POLICY_CONFIGURATION_ATTRIBUTES.get(policyId);
-                return configuration.has(policyAttribute) ? configuration.get(policyAttribute) : JsonNodeFactory.instance.objectNode();
-            })
-            .forEach(configuration -> {
-                if (!configuration.has(POLICY_CONFIGURATION_LIMIT) && !configuration.has(POLICY_CONFIGURATION_DYNAMIC_LIMIT)) {
-                    return;
-                }
+            .map(this::safeReadJson)
+            .map(node -> node.has(policyAttribute) ? node.get(policyAttribute) : JsonNodeFactory.instance.objectNode())
+            .map(node -> this.extractValidConfiguration(node, api))
+            .filter(Objects::nonNull)
+            .max(Comparator.comparing(this::calculateDuration))
+            .orElse(null);
+    }
 
-                var limitToUse = this.getLimitToUse(configuration, api);
-                if (limitToUse < 0) {
-                    return;
-                }
+    private JsonNode safeReadJson(String configuration) {
+        try {
+            return mapper.readTree(configuration);
+        } catch (JsonProcessingException e) {
+            return JsonNodeFactory.instance.objectNode();
+        }
+    }
 
-                var configAsTimePeriodConfiguration = new TimePeriodConfiguration();
-                configAsTimePeriodConfiguration.setLimit(limitToUse);
-                configAsTimePeriodConfiguration.setPeriodTime(configuration.get(POLICY_CONFIGURATION_PERIOD_TIME).intValue());
-                configAsTimePeriodConfiguration.setPeriodTimeUnit(
-                    PeriodTimeUnit.valueOf(configuration.get(POLICY_CONFIGURATION_PERIOD_TIME_UNIT).asText())
-                );
+    private TimePeriodConfiguration extractValidConfiguration(JsonNode configuration, GenericApiEntity api) {
+        // Fast fail checks
+        if (!configuration.has(POLICY_CONFIGURATION_LIMIT) && !configuration.has(POLICY_CONFIGURATION_DYNAMIC_LIMIT)) {
+            return null;
+        }
 
-                var configDuration = this.calculateDuration(configAsTimePeriodConfiguration);
-                var currentLongestMinimumDuration = this.calculateDuration(longestMinimumDuration.get());
-                if (
-                    Objects.isNull(currentLongestMinimumDuration) ||
-                    (Objects.nonNull(configDuration) && currentLongestMinimumDuration.compareTo(configDuration) < 0)
-                ) {
-                    longestMinimumDuration.set(configAsTimePeriodConfiguration);
-                }
-            });
+        var limitToUse = this.getLimitToUse(configuration, api);
+        if (limitToUse < 0) {
+            return null;
+        }
 
-        return longestMinimumDuration.get();
+        // Object creation
+        var config = new TimePeriodConfiguration();
+        config.setLimit(limitToUse);
+
+        if (configuration.has(POLICY_CONFIGURATION_PERIOD_TIME) && configuration.has(POLICY_CONFIGURATION_PERIOD_TIME_UNIT)) {
+            config.setPeriodTime(configuration.get(POLICY_CONFIGURATION_PERIOD_TIME).intValue());
+            config.setPeriodTimeUnit(PeriodTimeUnit.valueOf(configuration.get(POLICY_CONFIGURATION_PERIOD_TIME_UNIT).asText()));
+        }
+        return config;
     }
 
     private Duration calculateDuration(TimePeriodConfiguration configuration) {
@@ -151,11 +153,9 @@ public class PlanMapper {
             Objects.isNull(configuration) ||
             Objects.isNull(configuration.getLimit()) ||
             Objects.isNull(configuration.getPeriodTime()) ||
-            Objects.isNull(configuration.getPeriodTimeUnit())
+            Objects.isNull(configuration.getPeriodTimeUnit()) ||
+            configuration.getLimit().intValue() == 0
         ) {
-            return null;
-        }
-        if (configuration.getLimit().intValue() == 0) {
             return Duration.ZERO;
         }
         return ChronoUnit.valueOf(configuration.getPeriodTimeUnit().getValue())

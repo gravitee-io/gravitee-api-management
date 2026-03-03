@@ -22,6 +22,7 @@ import fixtures.core.model.SubscriptionFormFixtures;
 import inmemory.InMemoryAlternative;
 import inmemory.SubscriptionFormCrudServiceInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.model.SubscriptionForm;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateSubscriptionForm;
@@ -97,9 +98,7 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(SubscriptionForm.class)
-                .satisfies(result -> {
-                    assertThat(result.getGmdContent()).isEqualTo("<gmd-card>Updated Content</gmd-card>");
-                });
+                .satisfies(result -> assertThat(result.getGmdContent()).isEqualTo("<gmd-card>Updated Content</gmd-card>"));
         }
 
         @Test
@@ -146,9 +145,7 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(SubscriptionForm.class)
-                .satisfies(result -> {
-                    assertThat(result.getEnabled()).isTrue();
-                });
+                .satisfies(result -> assertThat(result.getEnabled()).isTrue());
         }
 
         @Test
@@ -157,7 +154,7 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
             var enabledForm = io.gravitee.apim.core.subscription_form.model.SubscriptionForm.builder()
                 .id(io.gravitee.apim.core.subscription_form.model.SubscriptionFormId.of(SubscriptionFormFixtures.FORM_ID))
                 .environmentId(ENVIRONMENT)
-                .gmdContent(SubscriptionFormFixtures.GMD_CONTENT)
+                .gmdContent(GraviteeMarkdown.of(SubscriptionFormFixtures.GMD_CONTENT))
                 .enabled(true)
                 .build();
             subscriptionFormQueryService.initWith(List.of(enabledForm));
@@ -170,9 +167,7 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(SubscriptionForm.class)
-                .satisfies(result -> {
-                    assertThat(result.getEnabled()).isTrue();
-                });
+                .satisfies(result -> assertThat(result.getEnabled()).isTrue());
         }
 
         @Test
@@ -196,7 +191,7 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
             var enabledForm = io.gravitee.apim.core.subscription_form.model.SubscriptionForm.builder()
                 .id(io.gravitee.apim.core.subscription_form.model.SubscriptionFormId.of(SubscriptionFormFixtures.FORM_ID))
                 .environmentId(ENVIRONMENT)
-                .gmdContent(SubscriptionFormFixtures.GMD_CONTENT)
+                .gmdContent(GraviteeMarkdown.of(SubscriptionFormFixtures.GMD_CONTENT))
                 .enabled(true)
                 .build();
             subscriptionFormQueryService.initWith(List.of(enabledForm));
@@ -209,9 +204,7 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(SubscriptionForm.class)
-                .satisfies(result -> {
-                    assertThat(result.getEnabled()).isFalse();
-                });
+                .satisfies(result -> assertThat(result.getEnabled()).isFalse());
         }
 
         @Test
@@ -228,9 +221,7 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(SubscriptionForm.class)
-                .satisfies(result -> {
-                    assertThat(result.getEnabled()).isFalse();
-                });
+                .satisfies(result -> assertThat(result.getEnabled()).isFalse());
         }
 
         @Test

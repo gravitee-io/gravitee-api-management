@@ -16,8 +16,6 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
@@ -148,48 +146,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     @Test
     void should_not_show_children_of_unpublished_parent() {
         // Given
-        // Root Level
-        var grandparentId = PortalNavigationFixtures.randomNavigationId();
-        var grandparent = PortalNavigationFixtures.folder(grandparentId, "Grandparent (Pub)", PortalArea.TOP_NAVBAR);
-        grandparent.setEnvironmentId(ENV_ID);
-        grandparent.setPublished(true);
-
-        // Level 1: Unpublished Parent (Child of Grandparent)
-        var parentId = PortalNavigationFixtures.randomNavigationId();
-        var parent = PortalNavigationFixtures.folder(parentId, "Parent (Unpub)", PortalArea.TOP_NAVBAR);
-        parent.setEnvironmentId(ENV_ID);
-        parent.setParentId(grandparentId);
-        parent.setPublished(false);
-
-        // Level 1: Published Sibling (Child of Grandparent)
-        var siblingId = PortalNavigationFixtures.randomNavigationId();
-        var sibling = PortalNavigationFixtures.link(siblingId, "Sibling (Pub)", PortalArea.TOP_NAVBAR, "https://example.com");
-        sibling.setEnvironmentId(ENV_ID);
-        sibling.setParentId(grandparentId);
-        sibling.setPublished(true);
-
-        // Level 2: Children of the Unpublished Parent (should be hidden)
-        var child1 = PortalNavigationFixtures.page(
-            PortalNavigationFixtures.randomNavigationId(),
-            "Child 1",
-            PortalArea.TOP_NAVBAR,
-            PortalNavigationFixtures.randomPageId()
-        );
-        child1.setEnvironmentId(ENV_ID);
-        child1.setParentId(parentId);
-        child1.setPublished(true);
-
-        var child2 = PortalNavigationFixtures.page(
-            PortalNavigationFixtures.randomNavigationId(),
-            "Child 2",
-            PortalArea.TOP_NAVBAR,
-            PortalNavigationFixtures.randomPageId()
-        );
-        child2.setEnvironmentId(ENV_ID);
-        child2.setParentId(parentId);
-        child2.setPublished(true);
-
-        List<PortalNavigationItem> items = List.of(grandparent, parent, sibling, child1, child2);
+        List<PortalNavigationItem> items = PortalNavigationFixtures.unpublishedParentHierarchy(PortalArea.TOP_NAVBAR, ENV_ID);
         portalNavigationItemsQueryService.initWith(items);
 
         // When
@@ -204,8 +161,12 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
 
         assertThat(resultList)
             .extracting(this::getIdFromItem)
-            .containsExactlyInAnyOrder(grandparentId.toString(), siblingId.toString())
-            .doesNotContain(parentId.toString(), child1.getId().toString(), child2.getId().toString());
+            .containsExactlyInAnyOrder(PortalNavigationFixtures.GRANDPARENT_ID.toString(), PortalNavigationFixtures.SIBLING_ID.toString())
+            .doesNotContain(
+                PortalNavigationFixtures.PARENT_ID.toString(),
+                PortalNavigationFixtures.CHILD1_ID.toString(),
+                PortalNavigationFixtures.CHILD2_ID.toString()
+            );
     }
 
     private String getIdFromItem(io.gravitee.rest.api.portal.rest.model.PortalNavigationItem item) {

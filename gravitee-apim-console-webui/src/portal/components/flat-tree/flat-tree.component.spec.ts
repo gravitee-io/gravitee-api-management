@@ -25,6 +25,7 @@ import { FlatTreeComponentHarness } from './flat-tree.component.harness';
 
 import { GioTestingModule } from '../../../shared/testing';
 import {
+  fakePortalNavigationApi,
   fakePortalNavigationFolder,
   fakePortalNavigationLink,
   fakePortalNavigationPage,
@@ -59,7 +60,7 @@ describe('FlatTreeComponent', () => {
 
   const makeItem = (
     id: string,
-    type: 'PAGE' | 'FOLDER' | 'LINK',
+    type: PortalNavigationItem['type'],
     title: string,
     order?: number,
     parentId?: string | null,
@@ -70,6 +71,8 @@ describe('FlatTreeComponent', () => {
         return fakePortalNavigationFolder({ id, title, order, parentId, published });
       case 'LINK':
         return fakePortalNavigationLink({ id, title, order, parentId, published });
+      case 'API':
+        return fakePortalNavigationApi({ id, title, order, parentId, published });
       case 'PAGE':
       default:
         return fakePortalNavigationPage({ id, title, order, parentId, published });
@@ -343,6 +346,21 @@ describe('FlatTreeComponent', () => {
 
     const titles = await harness.getAllItemTitles();
     expect(titles).toContain('Folder 1');
+    expect(titles).toContain('Folder 2');
+    expect(titles).toContain('Page 1');
+  });
+
+  it('should handle nested api structure', async () => {
+    const links = [
+      makeItem('a1', 'API', 'API 1', 0),
+      makeItem('f2', 'FOLDER', 'Folder 2', 0, 'f1'),
+      makeItem('p1', 'PAGE', 'Page 1', 0, 'f1'),
+    ];
+
+    fixture.componentRef.setInput('links', links);
+    fixture.detectChanges();
+    const titles = await harness.getAllItemTitles();
+    expect(titles).toContain('API 1');
     expect(titles).toContain('Folder 2');
     expect(titles).toContain('Page 1');
   });
@@ -672,6 +690,27 @@ describe('FlatTreeComponent', () => {
 
       expect(editButton).toBeNull();
       expect(deleteButton).toBeTruthy();
+    });
+
+    it('should disable "Delete" option for folder with children', async () => {
+      setupPermissions(['environment-documentation-d']);
+      fixture = TestBed.createComponent(FlatTreeComponent);
+      component = fixture.componentInstance;
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, FlatTreeComponentHarness);
+
+      const links = [makeItem('f1', 'FOLDER', 'Folder 1', 0), makeItem('p1', 'PAGE', 'Child Page', 0, 'f1')];
+      fixture.componentRef.setInput('links', links);
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const moreActionsButton = await harness['getMoreActionsButtonById']('f1')();
+      await moreActionsButton.click();
+
+      const deleteButton = await harness.getMenuItemByTestId('delete-node-button');
+
+      expect(deleteButton).toBeTruthy();
+      expect(await deleteButton!.isDisabled()).toBe(true);
     });
   });
 

@@ -29,6 +29,7 @@ import { DebugApiEntity, DebugApiEntityFromJSON } from '@gravitee/management-web
 import { describeIfV3, succeed } from '@lib/jest-utils';
 import { from, Observable, switchMap, map, retry, Subscription } from 'rxjs';
 import { EventEntity } from '@gravitee/management-webclient-sdk/src/lib/models/EventEntity';
+import { faker } from '@faker-js/faker';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -39,6 +40,7 @@ const organizationApi = new OrganizationApi(forManagementAsAdminUser());
 describe('Call my API (incl. query params, Headers and body) and view debug session with proper info', () => {
   describeIfV3('-- only if v3 --', () => {
     let apiEntity: ApiEntity;
+    let debugEventSubscription: Subscription;
 
     beforeAll(async () => {
       // Create Global Flow
@@ -69,6 +71,7 @@ describe('Call my API (incl. query params, Headers and body) and view debug sess
         orgId,
         envId,
         newApiEntity: ApisFaker.newApi({
+          name: `debug-v2-${faker.commerce.productName()}`,
           gravitee: '2.0.0',
           // With flow on root path
           flows: [
@@ -143,7 +146,7 @@ describe('Call my API (incl. query params, Headers and body) and view debug sess
       let debugResult;
 
       beforeEach((done) => {
-        createAndWaitForDebugResult$({
+        debugEventSubscription = createAndWaitForDebugResult$({
           ...DebugApiEntityFromJSON(ApiEntityToJSON(apiEntity)),
           entrypoints: undefined,
           request: {
@@ -156,6 +159,10 @@ describe('Call my API (incl. query params, Headers and body) and view debug sess
           debugResult = JSON.parse(value.payload);
           done();
         });
+      });
+
+      afterEach(() => {
+        debugEventSubscription.unsubscribe();
       });
 
       test('Should contain response', () => {
@@ -214,7 +221,6 @@ describe('Call my API (incl. query params, Headers and body) and view debug sess
 
     describe('Get debug event on `GET /?name=TheFox`', () => {
       let debugResult;
-      let debugEventSubscription: Subscription;
 
       beforeEach((done) => {
         debugEventSubscription = createAndWaitForDebugResult$({
@@ -245,7 +251,7 @@ describe('Call my API (incl. query params, Headers and body) and view debug sess
       let debugResult;
 
       beforeEach((done) => {
-        createAndWaitForDebugResult$({
+        debugEventSubscription = createAndWaitForDebugResult$({
           ...DebugApiEntityFromJSON(ApiEntityToJSON(apiEntity)),
           entrypoints: undefined,
           request: {
@@ -263,6 +269,10 @@ describe('Call my API (incl. query params, Headers and body) and view debug sess
         });
       });
 
+      afterEach(() => {
+        debugEventSubscription.unsubscribe();
+      });
+
       test('Should contain preprocessorStep', () => {
         expect(debugResult.preprocessorStep.headers['array-header']).toEqual(['1', '2', '3']);
         expect(debugResult.preprocessorStep.headers['string-header']).toEqual(['string-value']);
@@ -273,7 +283,7 @@ describe('Call my API (incl. query params, Headers and body) and view debug sess
       let debugResult;
 
       beforeEach((done) => {
-        createAndWaitForDebugResult$({
+        debugEventSubscription = createAndWaitForDebugResult$({
           ...DebugApiEntityFromJSON(ApiEntityToJSON(apiEntity)),
           entrypoints: undefined,
           request: {
@@ -286,6 +296,10 @@ describe('Call my API (incl. query params, Headers and body) and view debug sess
           debugResult = JSON.parse(value.payload);
           done();
         });
+      });
+
+      afterEach(() => {
+        debugEventSubscription.unsubscribe();
       });
 
       test('Should contain body in the policy-assign-content', () => {

@@ -413,9 +413,6 @@ public class ApiMapper {
             apiDefinition.setFailover(newApiEntity.getFailover());
             apiDefinition.setFlowExecution(newApiEntity.getFlowExecution());
             apiDefinition.setFlows(newApiEntity.getFlows());
-            if (newApiEntity.getType() == ApiType.PROXY) {
-                apiDefinition.setAllowedInApiProducts(true);
-            }
 
             return objectMapper.writeValueAsString(apiDefinition);
         } catch (JsonProcessingException jse) {
@@ -581,10 +578,8 @@ public class ApiMapper {
             apiDefinition.setFlows(apiEntity.getFlows());
             apiDefinition.setResponseTemplates(apiEntity.getResponseTemplates());
             apiDefinition.setServices(apiEntity.getServices());
-            if (apiEntity.getType() == ApiType.PROXY) {
-                apiDefinition.setAllowedInApiProducts(
-                    apiEntity.getAllowedInApiProducts() != null ? apiEntity.getAllowedInApiProducts() : false
-                );
+            if (apiEntity.getType() == ApiType.PROXY && apiEntity.getAllowedInApiProducts() != null) {
+                apiDefinition.setAllowedInApiProducts(apiEntity.getAllowedInApiProducts());
             }
 
             return objectMapper.writeValueAsString(apiDefinition);

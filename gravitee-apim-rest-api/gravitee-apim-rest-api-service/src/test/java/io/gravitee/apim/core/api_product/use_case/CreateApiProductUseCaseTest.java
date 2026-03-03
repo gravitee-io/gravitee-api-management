@@ -37,6 +37,7 @@ import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.model.CreateApiProduct;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -81,6 +82,7 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final EventCrudService eventCrudService = mock(EventCrudService.class);
     private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
     private final LicenseManager licenseManager = mock(LicenseManager.class);
+    private final ApiProductIndexerDomainService apiProductIndexerDomainService = mock(ApiProductIndexerDomainService.class);
 
     private CreateApiProductUseCase createApiProductUseCase;
 
@@ -130,7 +132,8 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
             apiProductPrimaryOwnerFactory,
             eventCrudService,
             eventLatestCrudService,
-            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager)
+            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+            apiProductIndexerDomainService
         );
 
         initRoles();
@@ -177,6 +180,7 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
 
         verify(eventCrudService).createEvent(eq(ORG_ID), eq(ENV_ID), any(), any(), any(), any());
         verify(eventLatestCrudService).createOrPatchLatestEvent(eq(ORG_ID), eq(GENERATED_UUID), any());
+        verify(apiProductIndexerDomainService).index(any(), eq(output.apiProduct()), any());
     }
 
     @Test

@@ -25,6 +25,8 @@ import static org.mockito.Mockito.mock;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
+import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
@@ -762,6 +764,16 @@ public class SearchEngineServiceTest {
         @Bean
         public ApiIndexerDomainService apiIndexerDomainService() {
             return mock(ApiIndexerDomainService.class);
+        }
+
+        @Bean
+        public ApiProductIndexerDomainService apiProductIndexerDomainService() {
+            return mock(ApiProductIndexerDomainService.class);
+        }
+
+        @Bean
+        public ApiProductCrudService apiProductCrudService() {
+            return mock(ApiProductCrudService.class);
         }
     }
 

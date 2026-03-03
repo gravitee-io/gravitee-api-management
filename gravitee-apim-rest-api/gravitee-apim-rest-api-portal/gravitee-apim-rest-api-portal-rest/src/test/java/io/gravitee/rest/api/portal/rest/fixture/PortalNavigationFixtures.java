@@ -38,16 +38,51 @@ public final class PortalNavigationFixtures {
         return PortalPageContentId.random();
     }
 
+    public static final PortalNavigationItemId GRANDPARENT_ID = randomNavigationId();
+    public static final PortalNavigationItemId PARENT_ID = randomNavigationId();
+    public static final PortalNavigationItemId SIBLING_ID = randomNavigationId();
+    public static final PortalNavigationItemId CHILD1_ID = randomNavigationId();
+    public static final PortalNavigationItemId CHILD2_ID = randomNavigationId();
+
     public static PortalNavigationFolder folder(PortalNavigationItemId id, String title, PortalArea area) {
-        return new PortalNavigationFolder(id, "org", "env", title, area, 1, true, PortalVisibility.PUBLIC);
+        return PortalNavigationFolder.builder()
+            .id(id)
+            .organizationId("org")
+            .environmentId("env")
+            .title(title)
+            .area(area)
+            .order(1)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
     }
 
     public static PortalNavigationLink link(PortalNavigationItemId id, String title, PortalArea area, String url) {
-        return new PortalNavigationLink(id, "org", "env", title, area, 1, url, true, PortalVisibility.PUBLIC);
+        return PortalNavigationLink.builder()
+            .id(id)
+            .organizationId("org")
+            .environmentId("env")
+            .title(title)
+            .area(area)
+            .order(1)
+            .url(url)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
     }
 
     public static PortalNavigationPage page(PortalNavigationItemId id, String title, PortalArea area, PortalPageContentId pageId) {
-        return new PortalNavigationPage(id, "org", "env", title, area, 1, pageId, true, PortalVisibility.PUBLIC);
+        return PortalNavigationPage.builder()
+            .id(id)
+            .organizationId("org")
+            .environmentId("env")
+            .title(title)
+            .area(area)
+            .order(1)
+            .portalPageContentId(pageId)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
     }
 
     public static List<PortalNavigationItem> sampleList(PortalArea area) {
@@ -60,5 +95,34 @@ public final class PortalNavigationFixtures {
         items.add(link(id2, "Link 1", area, "https://example.org"));
         items.add(page(id3, "Page 1", area, randomPageId()));
         return items;
+    }
+
+    // New: helper to build the hierarchy used by should_not_show_children_of_unpublished_parent test
+    public static List<PortalNavigationItem> unpublishedParentHierarchy(PortalArea area, String environmentId) {
+        var grandparent = folder(GRANDPARENT_ID, "Grandparent (Pub)", area);
+        grandparent.setEnvironmentId(environmentId);
+        grandparent.setPublished(true);
+
+        var parent = folder(PARENT_ID, "Parent (Unpub)", area);
+        parent.setEnvironmentId(environmentId);
+        parent.updateParent(grandparent);
+        parent.setPublished(false);
+
+        var sibling = link(SIBLING_ID, "Sibling (Pub)", area, "https://example.com");
+        sibling.setEnvironmentId(environmentId);
+        sibling.updateParent(grandparent);
+        sibling.setPublished(true);
+
+        var child1 = page(CHILD1_ID, "Child 1", area, randomPageId());
+        child1.setEnvironmentId(environmentId);
+        child1.updateParent(parent);
+        child1.setPublished(true);
+
+        var child2 = page(CHILD2_ID, "Child 2", area, randomPageId());
+        child2.setEnvironmentId(environmentId);
+        child2.updateParent(parent);
+        child2.setPublished(true);
+
+        return List.of(grandparent, parent, sibling, child1, child2);
     }
 }

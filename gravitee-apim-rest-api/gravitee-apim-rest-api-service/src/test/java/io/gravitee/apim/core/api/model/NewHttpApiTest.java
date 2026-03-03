@@ -28,15 +28,14 @@ import org.junit.jupiter.api.Test;
 class NewHttpApiTest {
 
     @Test
-    void should_set_allowedInApiProducts_true_for_v4_proxy_http_api() {
-        // Given a new V4 HTTP PROXY API
+    void should_not_set_allowedInApiProducts_by_default_for_v4_proxy_http_api() {
         NewHttpApi newHttpApi = NewApiFixtures.aProxyApiV4();
 
         var definition = newHttpApi.toApiDefinitionBuilder().build();
 
         assertThat(definition.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
         assertThat(definition.getType()).isEqualTo(ApiType.PROXY);
-        assertThat(definition.getAllowedInApiProducts()).isTrue();
+        assertThat(definition.getAllowedInApiProducts()).isNull();
     }
 
     @Test
