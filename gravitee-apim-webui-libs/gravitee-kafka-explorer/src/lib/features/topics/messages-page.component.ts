@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 
-import { BrowseMessagesOptions, MessagesBrowserComponent } from './messages/messages-browser.component';
+import { BrowseMessagesOptions, MessagesBrowserComponent, TailMessagesOptions } from './messages/messages-browser.component';
 import { KafkaMessage } from '../../models/kafka-cluster.model';
 import { KafkaExplorerStore } from '../../services/kafka-explorer-store.service';
 import { KafkaExplorerService } from '../../services/kafka-explorer.service';
@@ -28,7 +29,7 @@ import { KafkaExplorerService } from '../../services/kafka-explorer.service';
   imports: [MessagesBrowserComponent],
   templateUrl: './messages-page.component.html',
 })
-export class MessagesPageComponent implements OnInit {
+export class MessagesPageComponent implements OnInit, OnDestroy {
   store = inject(KafkaExplorerStore);
   private readonly service = inject(KafkaExplorerService);
   private readonly router = inject(Router);
@@ -40,6 +41,8 @@ export class MessagesPageComponent implements OnInit {
   messages = signal<KafkaMessage[]>([]);
   totalFetched = signal(0);
   loading = signal(false);
+  tailActive = signal(false);
+  private tailSubscription: Subscription | null = null;
 
   ngOnInit() {
     this.topicName = this.route.snapshot.params['topicName'];
@@ -62,6 +65,49 @@ export class MessagesPageComponent implements OnInit {
 
   onBack() {
     this.router.navigate(['..'], { relativeTo: this.route });
+  }
+
+  onStartTail(options: TailMessagesOptions) {
+    this.tailActive.set(true);
+    this.messages.set([]);
+    this.totalFetched.set(0);
+
+    this.tailSubscription = this.service
+      .tailMessages(this.store.baseURL(), this.store.clusterId(), this.topicName, {
+        partition: options.partition,
+        keyFilter: options.keyFilter,
+        valueFilter: options.valueFilter,
+        maxMessages: options.maxMessages,
+        durationSeconds: options.durationSeconds,
+      })
+      .subscribe({
+        next: message => {
+          const current = this.messages();
+          const updated = [message, ...current].slice(0, options.maxMessages);
+          this.messages.set(updated);
+          this.totalFetched.set(this.totalFetched() + 1);
+        },
+        error: (err: unknown) => {
+          this.tailActive.set(false);
+          this.tailSubscription = null;
+          const message = err instanceof Error ? err.message : 'Tail stream failed';
+          this.store.error.set(message);
+        },
+        complete: () => {
+          this.tailActive.set(false);
+          this.tailSubscription = null;
+        },
+      });
+  }
+
+  onStopTail() {
+    this.tailSubscription?.unsubscribe();
+    this.tailSubscription = null;
+    this.tailActive.set(false);
+  }
+
+  ngOnDestroy() {
+    this.onStopTail();
   }
 
   private fetchMessages(options: BrowseMessagesOptions) {

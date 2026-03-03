@@ -41,4 +41,14 @@ public interface KafkaClusterDomainService {
         String valueFilter,
         int limit
     );
+    void tailMessages(
+        KafkaClusterConfiguration config,
+        String topicName,
+        Integer partition,
+        String keyFilter,
+        String valueFilter,
+        int maxMessages,
+        int durationSeconds,
+        MessageConsumer consumer
+    );
 }

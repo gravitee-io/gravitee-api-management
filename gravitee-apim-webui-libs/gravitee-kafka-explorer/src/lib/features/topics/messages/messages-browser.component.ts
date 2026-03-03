@@ -17,11 +17,13 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { Component, computed, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { Sort, MatSortModule, SortDirection } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
@@ -37,6 +39,16 @@ export interface BrowseMessagesOptions {
   limit: number;
 }
 
+export type BrowseMode = 'batch' | 'live';
+
+export interface TailMessagesOptions {
+  partition?: number;
+  keyFilter?: string;
+  valueFilter?: string;
+  maxMessages: number;
+  durationSeconds: number;
+}
+
 @Component({
   selector: 'gke-messages-browser',
   standalone: true,
@@ -47,7 +59,9 @@ export interface BrowseMessagesOptions {
     MatTableModule,
     MatIconModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatProgressBarModule,
+    MatProgressSpinnerModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
@@ -64,8 +78,16 @@ export class MessagesBrowserComponent {
   partitionCount = input(0);
   loading = input(false);
 
+  tailActive = input(false);
+
   back = output<void>();
-  search = output<BrowseMessagesOptions>();
+  browseMessages = output<BrowseMessagesOptions>();
+  startTail = output<TailMessagesOptions>();
+  stopTail = output<void>();
+
+  mode = signal<BrowseMode>('batch');
+  tailDuration = signal(30);
+  tailMaxMessages = signal(1000);
 
   selectedPartition = signal<number | undefined>(undefined);
   offsetMode = signal<OffsetMode>('NEWEST');
@@ -125,7 +147,7 @@ export class MessagesBrowserComponent {
     this.sortActive.set('timestamp');
     this.sortDirection.set(this.offsetMode() === 'NEWEST' ? 'desc' : 'asc');
 
-    this.search.emit({
+    this.browseMessages.emit({
       partition: this.selectedPartition(),
       offsetMode: this.offsetMode(),
       offsetValue: this.offsetValue(),
@@ -133,6 +155,20 @@ export class MessagesBrowserComponent {
       valueFilter: this.valueFilter() || undefined,
       limit: this.limit(),
     });
+  }
+
+  onStartTail() {
+    this.startTail.emit({
+      partition: this.selectedPartition(),
+      keyFilter: this.keyFilter() || undefined,
+      valueFilter: this.valueFilter() || undefined,
+      maxMessages: this.tailMaxMessages(),
+      durationSeconds: this.tailDuration(),
+    });
+  }
+
+  onStopTail() {
+    this.stopTail.emit();
   }
 
   onRowClick(message: KafkaMessage) {

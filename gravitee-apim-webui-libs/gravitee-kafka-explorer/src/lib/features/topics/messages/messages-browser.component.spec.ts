@@ -71,7 +71,7 @@ describe('MessagesBrowserComponent', () => {
 
   it('should emit search event on fetch button click', async () => {
     const spy = jest.fn();
-    fixture.componentInstance.search.subscribe(spy);
+    fixture.componentInstance.browseMessages.subscribe(spy);
 
     await harness.clickFetch();
 

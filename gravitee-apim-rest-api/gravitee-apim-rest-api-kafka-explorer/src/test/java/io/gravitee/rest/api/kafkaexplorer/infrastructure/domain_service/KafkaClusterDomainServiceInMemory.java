@@ -17,6 +17,7 @@ package io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service;
 
 import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
 import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.KafkaClusterDomainService;
+import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.MessageConsumer;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrowseMessagesResult;
@@ -178,5 +179,28 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
             throw exception;
         }
         return browseMessagesResult;
+    }
+
+    @Override
+    public void tailMessages(
+        KafkaClusterConfiguration config,
+        String topicName,
+        Integer partition,
+        String keyFilter,
+        String valueFilter,
+        int maxMessages,
+        int durationSeconds,
+        MessageConsumer consumer
+    ) {
+        if (exception != null) {
+            throw exception;
+        }
+        if (browseMessagesResult != null) {
+            for (var msg : browseMessagesResult.messages()) {
+                if (!consumer.accept(msg)) {
+                    break;
+                }
+            }
+        }
     }
 }

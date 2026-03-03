@@ -25,6 +25,7 @@ import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeKafkaClusterUs
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeTopicUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.ListConsumerGroupsUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.ListTopicsUseCase;
+import io.gravitee.rest.api.kafkaexplorer.domain.use_case.TailMessagesUseCase;
 import io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service.KafkaClusterDomainServiceImpl;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.File;
@@ -84,6 +85,8 @@ abstract class AbstractKafkaExplorerResourceIntegrationTest {
                 new DescribeConsumerGroupUseCase(clusterCrudService, clusterService, objectMapper)
             );
             injectField(resource, "browseMessagesUseCase", new BrowseMessagesUseCase(clusterCrudService, clusterService, objectMapper));
+            injectField(resource, "tailMessagesUseCase", new TailMessagesUseCase(clusterCrudService, clusterService, objectMapper));
+            injectField(resource, "objectMapper", objectMapper);
         } catch (Exception e) {
             throw new RuntimeException("Failed to set up integration test", e);
         }
