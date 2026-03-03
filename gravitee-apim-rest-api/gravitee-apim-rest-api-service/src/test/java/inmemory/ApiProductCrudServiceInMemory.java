@@ -16,10 +16,12 @@
 package inmemory;
 
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
-import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.stream.Collectors;
 
 public class ApiProductCrudServiceInMemory extends AbstractCrudServiceInMemory<ApiProduct> implements ApiProductCrudService {
 
@@ -52,5 +54,16 @@ public class ApiProductCrudServiceInMemory extends AbstractCrudServiceInMemory<A
             .filter(apiProduct -> id.equals(apiProduct.getId()))
             .findFirst()
             .get();
+    }
+
+    @Override
+    public List<ApiProduct> findByIds(Collection<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return storage
+            .stream()
+            .filter(apiProduct -> ids.contains(apiProduct.getId()))
+            .collect(Collectors.toList());
     }
 }

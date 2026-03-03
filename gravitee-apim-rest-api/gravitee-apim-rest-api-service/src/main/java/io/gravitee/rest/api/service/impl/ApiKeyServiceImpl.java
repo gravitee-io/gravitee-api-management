@@ -770,6 +770,10 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         NotificationParamsBuilder paramsBuilder
     ) {
         subscriptions.forEach(subscription -> {
+            // Notifications are not applicable for API Product subscriptions (TODO: implement notifications for API Product subscriptions)
+            if (isApiProductSubscription(subscription)) {
+                return;
+            }
             GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
             GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, subscription.getApi());
             PrimaryOwnerEntity owner = application.getPrimaryOwner();
@@ -782,5 +786,10 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 .build();
             notifierService.trigger(executionContext, apiHook, genericApiModel.getId(), params);
         });
+    }
+
+    private boolean isApiProductSubscription(SubscriptionEntity subscription) {
+        var referenceType = subscription.getReferenceType();
+        return referenceType != null && SubscriptionReferenceType.API_PRODUCT.name().equals(referenceType);
     }
 }
