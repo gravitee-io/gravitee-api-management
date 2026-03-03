@@ -23,23 +23,32 @@
     </div>
 
     <div class="deployment-configuration__content">
-      <form *ngIf="deploymentsForm" [formGroup]="deploymentsForm" autocomplete="off">
-        <div>
-          <div class="deployment-configuration__form-field__label">Sharding tags</div>
-          <div class="deployment-configuration__form-field__description">
-            Choose the sharding tag that you want to assign to the API. This will dictate where it is deployed. Sharding tags are configured
-            at the Organization level.
+      @if (deploymentsForm) {
+        <form [formGroup]="deploymentsForm" autocomplete="off">
+          <div>
+            <div class="deployment-configuration__form-field__label">Sharding tags</div>
+            <div class="deployment-configuration__form-field__description">
+              Choose the sharding tag that you want to assign to the API. This will dictate where it is deployed. Sharding tags are
+              configured at the Organization level.
+            </div>
+            <mat-form-field class="deployment-configuration__form-field">
+              <mat-label>Sharding tags</mat-label>
+              <mat-select formControlName="tags" multiple>
+                @for (tag of shardingTags; track tag.id) {
+                  <mat-option [value]="tag.key">
+                    {{ tag.name
+                    }}<span>
+                      @if (tag.description) {
+                        - {{ tag.description }}
+                      }
+                    </span>
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
           </div>
-          <mat-form-field class="deployment-configuration__form-field">
-            <mat-label>Sharding tags</mat-label>
-            <mat-select formControlName="tags" multiple>
-              <mat-option *ngFor="let tag of shardingTags" [value]="tag.id"
-                >{{ tag.name }}<span *ngIf="tag.description"> - {{ tag.description }}</span></mat-option
-              >
-            </mat-select>
-          </mat-form-field>
-        </div>
-      </form>
+        </form>
+      }
     </div>
   </mat-card-content>
 </mat-card>
