@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../scss/theme' as theme;
+import { ComponentHarness, TestElement } from '@angular/cdk/testing';
 
-:host {
-  display: block;
-  width: 100%;
-}
+export class RedocContentViewerHarness extends ComponentHarness {
+  public static hostSelector = 'app-redoc-content-viewer';
+  protected locateRedoc = this.locatorFor('#redoc');
 
-gmd-viewer {
-  display: block;
-  max-width: theme.$inner-content-width;
-}
-
-app-redoc-content-viewer {
-  display: block;
-  width: 100%;
-}
-
-.empty-state {
-  display: flex;
-  justify-content: center;
-  padding: 25px;
+  public async getRedoc(): Promise<TestElement> {
+    return await this.locateRedoc();
+  }
 }

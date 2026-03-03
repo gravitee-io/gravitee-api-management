@@ -13,24 +13,65 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { inject, Injectable } from '@angular/core';
 
 import { readYaml } from '../app/helpers/yaml-parser';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare let Redoc: any;
 
+const DEFAULT_PRIMARY_COLOR = '#32329f';
+
 @Injectable({
   providedIn: 'root',
 })
 export class RedocService {
-  constructor() {}
+  private readonly document = inject(DOCUMENT);
 
-  init(content: string | undefined, options: unknown, elementId: unknown): void {
+  init(content: string | undefined, options: Record<string, unknown>, element: HTMLElement): void {
     if (content) {
       const swaggerSpec = this.parseContent(content);
-      Redoc.init(swaggerSpec, options, elementId);
+      const mergedOptions = this.mergeThemeWithPrimary(options);
+      Redoc.init(swaggerSpec, mergedOptions, element);
     }
+  }
+
+  private getPrimaryColor(): string {
+    const value = this.document.defaultView
+      ?.getComputedStyle(this.document.documentElement)
+      ?.getPropertyValue('--gio-app-primary-main-color')
+      ?.trim();
+    return value || DEFAULT_PRIMARY_COLOR;
+  }
+
+  private mergeThemeWithPrimary(options: Record<string, unknown>): Record<string, unknown> {
+    const primary = this.getPrimaryColor();
+    const baseTheme = (options['theme'] as Record<string, unknown>) ?? {};
+    const baseColors = (baseTheme['colors'] as Record<string, unknown>) ?? {};
+    return {
+      ...options,
+      theme: {
+        ...baseTheme,
+        colors: {
+          ...baseColors,
+          primary: {
+            main: primary,
+          },
+          http: {
+            get: primary,
+            post: primary,
+            put: primary,
+            patch: primary,
+            delete: primary,
+            options: primary,
+            head: primary,
+            link: primary,
+            basic: primary,
+          },
+        },
+      },
+    };
   }
 
   private parseContent(content: string): unknown {
