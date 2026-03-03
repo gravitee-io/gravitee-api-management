@@ -26,6 +26,7 @@ import { PlatformLogsComponent } from './legacy/logs/platform-logs.component';
 import { PlatformLogComponent } from './legacy/logs/platform-log.component';
 import { OverviewComponent } from './overview/overview.component';
 import { DashboardsListComponent } from './dashboards/dashboards-list/dashboards-list.component';
+import { DashboardDetailComponent } from './dashboards/dashboard-detail/dashboard-detail.component';
 import { EnvLogsComponent } from './env-logs/env-logs.component';
 import { EnvLogsDetailsComponent } from './env-logs/components/env-logs-details/env-logs-details.component';
 
@@ -37,6 +38,10 @@ const routes: Routes = [
   {
     path: 'dashboards',
     component: DashboardsListComponent,
+  },
+  {
+    path: 'dashboards/:dashboardId',
+    component: DashboardDetailComponent,
   },
   {
     path: '',

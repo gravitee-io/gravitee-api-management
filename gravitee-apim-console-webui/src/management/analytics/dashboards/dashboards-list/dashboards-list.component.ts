@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Dashboard } from '@gravitee/gravitee-dashboard';
+
 import { Component, computed, inject, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { GioActionMenuComponent, GioActionMenuItemComponent } from '@gravitee/ui-particles-angular';
@@ -31,20 +33,25 @@ import {
   MatTable,
 } from '@angular/material/table';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
-import { MatSort, MatSortHeader } from '@angular/material/sort';
 import { MatIcon } from '@angular/material/icon';
-import { startWith, switchMap, map, debounceTime } from 'rxjs/operators';
+import { startWith, switchMap, map, debounceTime, filter, scan, catchError } from 'rxjs/operators';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { forkJoin, of } from 'rxjs';
 import { MatDivider } from '@angular/material/list';
-import { KeyValuePipe } from '@angular/common';
+import { KeyValuePipe, DatePipe } from '@angular/common';
 import { MatTooltip } from '@angular/material/tooltip';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { TemplateSelectorDialogComponent } from './ui/template-selector-dialog/template-selector-dialog.component';
+import {
+  TemplateSelectorDialogComponent,
+  TemplateSelectorDialogResult,
+} from './ui/template-selector-dialog/template-selector-dialog.component';
 
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { DashboardService } from '../../data-access/dashboard.service';
+import { PagedResult } from '../../../../entities/management-api-v2';
+import { UsersService } from '../../../../services-ngx/users.service';
 
 @Component({
   selector: 'dashboards-list',
@@ -65,13 +72,12 @@ import { DashboardService } from '../../data-access/dashboard.service';
     MatMenuItem,
     MatRow,
     MatRowDef,
-    MatSort,
-    MatSortHeader,
     MatTable,
     MatNoDataRow,
     MatMenuTrigger,
     MatDivider,
     KeyValuePipe,
+    DatePipe,
     MatTooltip,
     RouterLink,
   ],
@@ -80,9 +86,12 @@ import { DashboardService } from '../../data-access/dashboard.service';
 })
 export class DashboardsListComponent {
   private readonly dashboardService = inject(DashboardService);
+  private readonly usersService = inject(UsersService);
   private readonly dialog = inject(MatDialog);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
-  public displayedColumns = ['name', 'createdBy', 'lastUpdated', 'labels', 'actions'];
+  public displayedColumns = ['name', 'createdBy', 'lastModified', 'labels', 'actions'];
 
   public filters = signal<GioTableWrapperFilters>({
     pagination: { index: 1, size: 10 },
@@ -93,33 +102,74 @@ export class DashboardsListComponent {
     toObservable(this.filters).pipe(
       debounceTime(200),
       switchMap(filters =>
-        this.dashboardService.list(filters.searchTerm, filters.sort, filters.pagination.index, filters.pagination.size).pipe(
-          map(result => ({ isLoading: false, result })),
-          startWith({ isLoading: true, result: undefined }),
+        this.dashboardService.list(filters.pagination.index, filters.pagination.size).pipe(
+          switchMap(result => {
+            const userIds = [...new Set((result.data ?? []).map(d => d.createdBy).filter((id): id is string => !!id))];
+            if (userIds.length === 0) {
+              return of({ isLoading: false as const, result, userNames: new Map<string, string>() });
+            }
+            return forkJoin(
+              userIds.map(id =>
+                this.usersService.get(id).pipe(
+                  map(user => [id, (user.displayName ?? [user.firstname, user.lastname].filter(Boolean).join(' ')) || 'Unknown'] as const),
+                  catchError(() => of([id, 'Unknown'] as const)),
+                ),
+              ),
+            ).pipe(map(entries => ({ isLoading: false as const, result, userNames: new Map(entries) })));
+          }),
+          startWith({ isLoading: true as const }),
         ),
       ),
+      scan((prev, curr) => ('result' in curr ? curr : { ...prev, isLoading: true }), {
+        isLoading: true,
+        result: undefined as PagedResult<Dashboard> | undefined,
+        userNames: new Map<string, string>(),
+      }),
     ),
-    { initialValue: { isLoading: true, result: undefined } },
+    {
+      initialValue: {
+        isLoading: true,
+        result: undefined as PagedResult<Dashboard> | undefined,
+        userNames: new Map<string, string>(),
+      },
+    },
   );
 
   public dashboardItems = computed(() => this.dashboardsResource().result?.data ?? []);
+  public totalCount = computed(() => this.dashboardsResource().result?.pagination?.totalCount ?? 0);
   public isLoading = computed(() => this.dashboardsResource().isLoading);
+  public userNames = computed(() => this.dashboardsResource().userNames);
 
   public onFiltersChanged(event: GioTableWrapperFilters) {
     this.filters.update(f => ({ ...f, ...event }));
   }
 
-  public onSortChanged(sort: { active: string; direction: string }) {
-    this.filters.update(f => ({ ...f, sort: { active: sort.active, direction: sort.direction as 'asc' | 'desc' } }));
+  public openTemplateDialog(): void {
+    this.dialog
+      .open(TemplateSelectorDialogComponent, {
+        panelClass: 'template-selector-dialog-panel',
+        width: '1300px',
+        maxWidth: '90vw',
+        height: '720px',
+        maxHeight: '80vh',
+      })
+      .afterClosed()
+      .pipe(
+        filter((result): result is TemplateSelectorDialogResult => !!result),
+        switchMap(result => this.dashboardService.create(this.dashboardService.toCreateDashboard(result.template))),
+      )
+      .subscribe(dashboard => {
+        this.router.navigate(['./', dashboard.id], { relativeTo: this.route });
+      });
   }
 
-  public openTemplateDialog(): void {
-    this.dialog.open(TemplateSelectorDialogComponent, {
-      panelClass: 'template-selector-dialog-panel',
-      width: '1300px',
-      maxWidth: '90vw',
-      height: '720px',
-      maxHeight: '80vh',
+  public deleteDashboard(dashboard: Dashboard): void {
+    this.dashboardService.confirmAndDelete(dashboard).subscribe(() => {
+      if (this.dashboardItems().length === 1 && this.filters().pagination.index > 1) {
+        this.filters.update(f => ({ ...f, pagination: { ...f.pagination, index: f.pagination.index - 1 } }));
+      } else {
+        this.filters.update(f => ({ ...f }));
+      }
     });
   }
 }

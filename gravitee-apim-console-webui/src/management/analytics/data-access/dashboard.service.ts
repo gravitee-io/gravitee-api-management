@@ -15,112 +15,117 @@
  */
 import { Dashboard } from '@gravitee/gravitee-dashboard';
 
-import { computed, Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { computed, Inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { EMPTY, Observable } from 'rxjs';
+import { switchMap, tap, catchError, filter } from 'rxjs/operators';
+import { MatDialog } from '@angular/material/dialog';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { PROXY_DASHBOARD_TEMPLATE } from './templates';
+import { DashboardTemplate } from './templates/dashboard-template.model';
 
+import { Constants } from '../../../entities/Constants';
 import { PagedResult } from '../../../entities/management-api-v2';
-import { Sort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-
-export interface DashboardListItem {
-  id: string;
-  name: string;
-  createdBy: string;
-  lastUpdated: string;
-  labels?: Record<string, string>;
-}
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class DashboardService {
-  private readonly dashboards: DashboardListItem[] = [
-    {
-      id: '1',
-      name: 'V4 Proxy Dashboard',
-      createdBy: 'Admin',
-      lastUpdated: 'Aug 12, 2025',
-      labels: { Focus: 'HTTP / TCP', Theme: 'Proxy' },
-    },
-    { id: '2', name: 'Kafka Dashboard', createdBy: 'Admin', lastUpdated: 'Aug 12, 2025' },
-    { id: '3', name: 'Message API Dashboard', createdBy: 'Admin', lastUpdated: 'Aug 12, 2025' },
-    {
-      id: '4',
-      name: 'AI Dashboard',
-      createdBy: 'Thomas Pesquet',
-      lastUpdated: 'Aug 12, 2025',
-      labels: { Focus: 'LLM / MCP', Theme: 'AI' },
-    },
-    { id: '5', name: 'LLM Dashboard', createdBy: 'Admin', lastUpdated: 'Aug 12, 2025' },
-    { id: '6', name: 'MCP Dashboard', createdBy: 'Admin', lastUpdated: 'Aug 12, 2025', labels: { team: 'Ops', group: 'France' } },
-    { id: '7', name: 'Adoption Dashboard', createdBy: 'Admin', lastUpdated: 'Aug 12, 2025' },
-    { id: '8', name: 'Application Dashboard', createdBy: 'Admin', lastUpdated: 'Aug 12, 2025', labels: { geo: 'EU-west' } },
-  ];
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+    private readonly dialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
   readonly overviewDashboard = computed(() => {
     return this.createInitialOverview();
   });
 
-  public list(searchTerm: string, sort: Sort, page: number, size: number): Observable<PagedResult<DashboardListItem>> {
-    let list = this.dashboards;
-
-    // Filtering
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      list = list.filter(d => d.name.toLowerCase().includes(term));
-    }
-
-    // Sorting
-    if (sort && sort.direction) {
-      list = [...list].sort((a, b) => {
-        const isAsc = sort.direction === 'asc';
-        switch (sort.active) {
-          case 'name':
-            return this.compare(a.name, b.name, isAsc);
-          case 'createdBy':
-            return this.compare(a.createdBy, b.createdBy, isAsc);
-          case 'lastUpdated':
-            return this.compare(a.lastUpdated, b.lastUpdated, isAsc);
-          case 'labels': {
-            const labelsA = Object.entries(a.labels ?? {})
-              .map(([k, v]) => `${k}:${v}`)
-              .sort((a, b) => a.localeCompare(b))
-              .join(',');
-            const labelsB = Object.entries(b.labels ?? {})
-              .map(([k, v]) => `${k}:${v}`)
-              .sort((a, b) => a.localeCompare(b))
-              .join(',');
-            return this.compare(labelsA, labelsB, isAsc);
-          }
-          default:
-            return 0;
-        }
-      });
-    }
-
-    // Pagination
-    const totalCount = list.length;
-    const startIndex = (page - 1) * size;
-    const endIndex = Math.min(startIndex + size, totalCount);
-    const data = list.slice(startIndex, endIndex);
-
-    const result = new PagedResult<DashboardListItem>();
-    result.data = data;
-    result.pagination = {
-      totalCount,
-      pageCount: Math.ceil(totalCount / size),
-      page,
-      perPage: size,
-      pageItemsCount: data.length,
-    } as any;
-    result.links = {};
-
-    return of(result);
+  public list(page: number, perPage: number): Observable<PagedResult<Dashboard>> {
+    return this.http.get<PagedResult<Dashboard>>(`${this.constants.org.v2BaseURL}/analytics/dashboards`, {
+      params: {
+        page: page.toString(),
+        perPage: perPage.toString(),
+      },
+    });
   }
 
-  private compare(a: number | string, b: number | string, isAsc: boolean) {
-    return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
+  public create(dashboard: Partial<Dashboard>): Observable<Dashboard> {
+    return this.http.post<Dashboard>(`${this.constants.org.v2BaseURL}/analytics/dashboards`, dashboard);
+  }
+
+  public getById(id: string): Observable<Dashboard> {
+    return this.http.get<Dashboard>(`${this.constants.org.v2BaseURL}/analytics/dashboards/${id}`);
+  }
+
+  public delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.org.v2BaseURL}/analytics/dashboards/${id}`);
+  }
+
+  /**
+   * Opens a confirmation dialog, calls DELETE on the API, shows success/error snackbars.
+   * Returns an Observable<void> that emits once on success, or completes silently on cancellation/error.
+   * Each consumer can chain its own post-delete behaviour (e.g. refresh list, navigate back).
+   */
+  public confirmAndDelete(dashboard: Dashboard): Observable<void> {
+    return this.dialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        data: {
+          title: 'Delete Dashboard',
+          content: `Are you sure you want to delete the dashboard "<strong>${this.escapeHtml(dashboard.name)}</strong>"?`,
+          confirmButton: 'Delete',
+        },
+        role: 'alertdialog',
+        id: 'deleteDashboardConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter(confirmed => confirmed === true),
+        switchMap(() => this.delete(dashboard.id)),
+        tap(() => this.snackBarService.success(`Dashboard "${dashboard.name}" deleted successfully.`)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error?.message ?? 'An error occurred while deleting the dashboard.');
+          return EMPTY;
+        }),
+      );
+  }
+
+  /** Escapes HTML special characters to prevent XSS when interpolating user-controlled strings into HTML content. */
+  private escapeHtml(text: string): string {
+    return text
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#x27;');
+  }
+
+  public toCreateDashboard(template: DashboardTemplate): Partial<Dashboard> {
+    const now = new Date().toISOString();
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const defaultTimeRange = { from: fiveMinutesAgo, to: now };
+    const defaultInterval = Math.floor((5 * 60 * 1000) / 30); // 5 min / 30 buckets = 10000ms
+
+    const widgets = (template.initialConfig.widgets ?? []).map(widget => {
+      if (!widget.request) return widget;
+
+      const request = { ...widget.request, timeRange: widget.request.timeRange ?? defaultTimeRange };
+
+      if (request.type === 'time-series') {
+        return { ...widget, request: { ...request, interval: (request as any).interval ?? defaultInterval } };
+      }
+
+      return { ...widget, request };
+    });
+
+    return {
+      name: `${template.name} - ${new Date().toLocaleString()}`,
+      labels: template.initialConfig.labels ?? {},
+      widgets,
+    };
   }
 
   private createInitialOverview(): Dashboard {
