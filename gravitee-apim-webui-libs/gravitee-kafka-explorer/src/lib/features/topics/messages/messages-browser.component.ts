@@ -70,6 +70,7 @@ export class MessagesBrowserComponent {
   selectedPartition = signal<number | undefined>(undefined);
   offsetMode = signal<OffsetMode>('NEWEST');
   offsetValue = signal<number | undefined>(undefined);
+  timestampInput = signal('');
   keyFilter = signal('');
   valueFilter = signal('');
   limit = signal(50);
@@ -108,6 +109,11 @@ export class MessagesBrowserComponent {
       options.push(i);
     }
     return options;
+  }
+
+  onTimestampChange(value: string) {
+    this.timestampInput.set(value);
+    this.offsetValue.set(value ? new Date(value).getTime() : undefined);
   }
 
   onSortChange(sort: Sort) {

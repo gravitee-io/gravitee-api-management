@@ -50,8 +50,14 @@
 
         @if (offsetMode() === 'TIMESTAMP') {
           <mat-form-field class="messages-browser__control">
-            <mat-label>Timestamp (ms)</mat-label>
-            <input matInput type="number" [ngModel]="offsetValue()" (ngModelChange)="offsetValue.set($event)" />
+            <mat-label>Timestamp</mat-label>
+            <input
+              matInput
+              type="datetime-local"
+              step="1"
+              [ngModel]="timestampInput()"
+              (ngModelChange)="onTimestampChange($event)"
+            />
           </mat-form-field>
         }
 

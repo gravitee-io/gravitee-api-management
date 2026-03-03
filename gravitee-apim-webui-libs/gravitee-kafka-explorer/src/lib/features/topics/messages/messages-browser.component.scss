@@ -42,6 +42,12 @@
     &--small {
       max-width: 80px;
     }
+
+    input[type='datetime-local']::-webkit-calendar-picker-indicator {
+      display: block;
+      opacity: 1;
+      cursor: pointer;
+    }
   }
 
   &__fetch-btn {
