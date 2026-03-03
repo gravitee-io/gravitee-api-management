@@ -33,6 +33,7 @@ import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiKeyAuditEvent;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.ApiKeyMode;
@@ -272,6 +273,47 @@ class GenerateApiKeyDomainServiceTest {
 
         // Then
         assertThat(throwable).isInstanceOf(ApiKeyAlreadyExistingException.class);
+    }
+
+    @Test
+    void should_create_api_product_audit_when_subscription_is_api_product() {
+        // Given
+        var apiProductId = "product-1";
+        var apiProductSubscription = SUBSCRIPTION_1.toBuilder()
+            .referenceId(apiProductId)
+            .referenceType(SubscriptionReferenceType.API_PRODUCT)
+            .apiId(null)
+            .build();
+
+        // When
+        service.generate(apiProductSubscription, AUDIT_INFO, "custom-key");
+
+        // Then
+        assertThat(auditCrudService.storage())
+            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id", "patch")
+            .anyMatch(
+                audit ->
+                    audit.getReferenceType() == AuditEntity.AuditReferenceType.API_PRODUCT &&
+                    apiProductId.equals(audit.getReferenceId()) &&
+                    audit.getProperties().containsKey("API_PRODUCT") &&
+                    apiProductId.equals(audit.getProperties().get("API_PRODUCT")) &&
+                    ApiKeyAuditEvent.APIKEY_CREATED.name().equals(audit.getEvent())
+            );
+    }
+
+    @Test
+    void generateForFederated_creates_federated_api_key() {
+        var apiProductSubscription = SUBSCRIPTION_1.toBuilder()
+            .referenceId("product-1")
+            .referenceType(SubscriptionReferenceType.API_PRODUCT)
+            .apiId(null)
+            .build();
+
+        service.generateForFederated(apiProductSubscription, AUDIT_INFO, "federated-key");
+
+        assertThat(apiKeyCrudService.storage()).anyMatch(
+            key -> "federated-key".equals(key.getKey()) && key.getSubscriptions().contains(SUBSCRIPTION_ID_1)
+        );
     }
 
     @SneakyThrows

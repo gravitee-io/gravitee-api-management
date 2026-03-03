@@ -24,6 +24,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -91,5 +94,17 @@ public class ApiProductCrudServiceImpl implements ApiProductCrudService {
             log.error("An error occurred while finding Api Product by id {}", id, e);
         }
         throw new ApiProductNotFoundException(id);
+    }
+
+    @Override
+    public List<ApiProduct> findByIds(Collection<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        try {
+            return apiProductsRepository.findByIds(ids).stream().map(ApiProductAdapter.INSTANCE::toModel).collect(Collectors.toList());
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("Failed to find API Products by ids", e);
+        }
     }
 }
