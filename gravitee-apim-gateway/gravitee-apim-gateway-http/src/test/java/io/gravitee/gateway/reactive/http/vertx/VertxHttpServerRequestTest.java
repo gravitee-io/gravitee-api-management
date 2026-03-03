@@ -40,6 +40,7 @@ import io.gravitee.gateway.reactive.api.ws.WebSocket;
 import io.gravitee.gateway.reactive.core.MessageFlow;
 import io.gravitee.gateway.reactive.core.context.OnMessagesInterceptor;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import io.reactivex.rxjava3.core.Completable;
@@ -48,6 +49,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.http.impl.HttpServerConnection;
+import io.vertx.core.net.HostAndPort;
 import io.vertx.rxjava3.core.http.HttpConnection;
 import io.vertx.rxjava3.core.http.HttpHeaders;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
@@ -84,14 +86,15 @@ class VertxHttpServerRequestTest {
     @BeforeEach
     void init() {
         subscriptionCount = new AtomicInteger(0);
-        Flowable<io.vertx.rxjava3.core.buffer.Buffer> chunks = Flowable.just(
-            io.vertx.rxjava3.core.buffer.Buffer.buffer("chunk1"),
-            io.vertx.rxjava3.core.buffer.Buffer.buffer("chunk2"),
-            io.vertx.rxjava3.core.buffer.Buffer.buffer("chunk3")
+        Flowable<io.vertx.core.buffer.Buffer> chunks = Flowable.just(
+            io.vertx.core.buffer.Buffer.buffer("chunk1"),
+            io.vertx.core.buffer.Buffer.buffer("chunk2"),
+            io.vertx.core.buffer.Buffer.buffer("chunk3")
         ).doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
 
         when(httpServerRequest.headers()).thenReturn(HttpHeaders.headers());
         when(httpServerRequest.toFlowable()).thenReturn(chunks);
+        when(httpServerRequest.authority()).thenReturn(HostAndPort.create("localhost", 8080));
 
         mockConnectionCreationTimestamp();
 
@@ -101,12 +104,14 @@ class VertxHttpServerRequestTest {
     private void mockConnectionCreationTimestamp() {
         HttpConnection httpConnection = mock(HttpConnection.class);
         HttpServerConnection httpServerConnection = mock(HttpServerConnection.class);
+        ChannelHandlerContext channelHandlerContext = mock(ChannelHandlerContext.class);
         Channel channel = mock(Channel.class);
         Attribute attribute = mock(Attribute.class);
 
         when(httpServerRequest.connection()).thenReturn(httpConnection);
         when(httpConnection.getDelegate()).thenReturn(httpServerConnection);
-        when(httpServerConnection.channel()).thenReturn(channel);
+        when(httpServerConnection.channelHandlerContext()).thenReturn(channelHandlerContext);
+        when(channelHandlerContext.channel()).thenReturn(channel);
         when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))).thenReturn(attribute);
         when(attribute.get()).thenReturn(System.currentTimeMillis());
     }
@@ -116,7 +121,10 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_return_original_host() {
-            when(httpServerRequest.host()).thenReturn("original.host", "changed.host");
+            when(httpServerRequest.authority()).thenReturn(
+                HostAndPort.create("original.host", 8080),
+                HostAndPort.create("changed.host", 8080)
+            );
             cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
 
             assertEquals("original.host", cut.originalHost());
@@ -393,6 +401,7 @@ class VertxHttpServerRequestTest {
             reset(httpServerRequest);
             lenient().when(httpServerRequest.headers()).thenReturn(HttpHeaders.headers());
             lenient().when(httpServerRequest.toFlowable()).thenReturn(Flowable.empty());
+            lenient().when(httpServerRequest.authority()).thenReturn(HostAndPort.create("localhost", 8080));
 
             mockConnectionCreationTimestamp();
         }
@@ -496,8 +505,8 @@ class VertxHttpServerRequestTest {
     }
 
     private void mockWithEmpty() {
-        final Flowable<io.vertx.rxjava3.core.buffer.Buffer> chunks = Flowable.<io.vertx.rxjava3.core.buffer.Buffer>empty().doOnSubscribe(
-            subscription -> subscriptionCount.incrementAndGet()
+        final Flowable<io.vertx.core.buffer.Buffer> chunks = Flowable.<io.vertx.core.buffer.Buffer>empty().doOnSubscribe(subscription ->
+            subscriptionCount.incrementAndGet()
         );
 
         when(httpServerRequest.toFlowable()).thenReturn(chunks);
@@ -506,7 +515,7 @@ class VertxHttpServerRequestTest {
     }
 
     private void mockWithError() {
-        final Flowable<io.vertx.rxjava3.core.buffer.Buffer> chunks = Flowable.<io.vertx.rxjava3.core.buffer.Buffer>error(
+        final Flowable<io.vertx.core.buffer.Buffer> chunks = Flowable.<io.vertx.core.buffer.Buffer>error(
             new RuntimeException(MOCK_EXCEPTION)
         ).doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
 

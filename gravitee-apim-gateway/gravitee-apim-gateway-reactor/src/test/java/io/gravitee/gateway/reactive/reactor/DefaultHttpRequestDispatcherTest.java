@@ -58,6 +58,7 @@ import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import io.reactivex.rxjava3.core.Completable;
@@ -65,11 +66,12 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.Future;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.impl.HttpServerConnection;
-import io.vertx.rxjava3.core.MultiMap;
+import io.vertx.core.net.HostAndPort;
 import io.vertx.rxjava3.core.http.HttpConnection;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
@@ -94,6 +96,7 @@ import org.springframework.core.env.Environment;
 class DefaultHttpRequestDispatcherTest {
 
     protected static final String HOST = "gravitee.io";
+    protected static final int PORT = 8080;
     protected static final String PATH = "/path";
     protected static final String MOCK_ERROR_MESSAGE = "Mock error";
     public static final String SERVER_ID = null;
@@ -165,7 +168,7 @@ class DefaultHttpRequestDispatcherTest {
     @BeforeEach
     public void init() {
         // Mock vertx request behavior.
-        lenient().when(rxRequest.host()).thenReturn(HOST);
+        lenient().when(rxRequest.authority()).thenReturn(HostAndPort.create(HOST, PORT));
         lenient().when(rxRequest.path()).thenReturn(PATH);
         lenient().when(rxRequest.version()).thenReturn(HttpVersion.HTTP_2);
         lenient().when(rxRequest.method()).thenReturn(HttpMethod.GET);
@@ -174,7 +177,7 @@ class DefaultHttpRequestDispatcherTest {
         lenient().when(rxRequest.response()).thenReturn(rxResponse);
         lenient().when(rxRequest.getDelegate()).thenReturn(request);
 
-        lenient().when(request.host()).thenReturn(HOST);
+        lenient().when(request.authority()).thenReturn(HostAndPort.create(HOST, PORT));
         lenient().when(request.path()).thenReturn(PATH);
         lenient().when(request.method()).thenReturn(HttpMethod.GET);
         lenient().when(request.headers()).thenReturn(io.vertx.core.MultiMap.caseInsensitiveMultiMap());
@@ -223,11 +226,13 @@ class DefaultHttpRequestDispatcherTest {
         HttpConnection httpConnection = mock(HttpConnection.class);
         HttpServerConnection httpServerConnection = mock(HttpServerConnection.class);
         Channel channel = mock(Channel.class);
+        ChannelHandlerContext channelHandlerContext = mock(ChannelHandlerContext.class);
         Attribute attribute = mock(Attribute.class);
 
         lenient().when(rxRequest.connection()).thenReturn(httpConnection);
         lenient().when(httpConnection.getDelegate()).thenReturn(httpServerConnection);
-        lenient().when(httpServerConnection.channel()).thenReturn(channel);
+        lenient().when(httpServerConnection.channelHandlerContext()).thenReturn(channelHandlerContext);
+        lenient().when(channelHandlerContext.channel()).thenReturn(channel);
         lenient().when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))).thenReturn(attribute);
         lenient().when(attribute.get()).thenReturn(System.currentTimeMillis());
     }
