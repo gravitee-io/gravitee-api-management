@@ -23,7 +23,6 @@ export class TopicDetailHarness extends ComponentHarness {
 
   private readonly getTables = this.locatorForAll(MatTableHarness);
   private readonly getBackButton = this.locatorFor(MatButtonHarness.with({ selector: '[mat-icon-button]' }));
-  private readonly getBrowseMessagesButton = this.locatorForOptional(MatButtonHarness.with({ text: /Browse Messages/ }));
   private readonly getProgressBar = this.locatorForOptional(MatProgressBarHarness);
   private readonly getTitle = this.locatorFor('.topic-detail__title');
   private readonly getHeader = this.locatorFor('.topic-detail__header');
@@ -47,17 +46,6 @@ export class TopicDetailHarness extends ComponentHarness {
   async clickBack() {
     const button = await this.getBackButton();
     await button.click();
-  }
-
-  async hasBrowseMessagesButton() {
-    return (await this.getBrowseMessagesButton()) !== null;
-  }
-
-  async clickBrowseMessages() {
-    const button = await this.getBrowseMessagesButton();
-    if (button) {
-      await button.click();
-    }
   }
 
   async getPartitionsRows() {

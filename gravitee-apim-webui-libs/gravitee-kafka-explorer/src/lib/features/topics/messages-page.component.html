@@ -21,6 +21,9 @@
   [totalFetched]="totalFetched()"
   [partitionCount]="partitionCount()"
   [loading]="loading()"
+  [tailActive]="tailActive()"
   (back)="onBack()"
-  (search)="onSearch($event)"
+  (browseMessages)="onSearch($event)"
+  (startTail)="onStartTail($event)"
+  (stopTail)="onStopTail()"
 />

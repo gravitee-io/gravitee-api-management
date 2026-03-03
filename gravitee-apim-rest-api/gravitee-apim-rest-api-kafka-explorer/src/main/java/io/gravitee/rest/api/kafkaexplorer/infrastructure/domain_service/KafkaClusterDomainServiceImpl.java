@@ -28,6 +28,7 @@ import io.gravitee.plugin.configurations.ssl.pem.PEMTrustStore;
 import io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12KeyStore;
 import io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore;
 import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.KafkaClusterDomainService;
+import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.MessageConsumer;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerDetail;
@@ -367,11 +368,19 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             Map<String, Map<TopicPartition, OffsetAndMetadata>> allOffsets;
             if (hasTopicFilter) {
                 // Resolve topic partitions once to restrict the offset fetch to this topic only
-                TopicDescription topicDesc = adminClient
-                    .describeTopics(List.of(topicFilter))
-                    .allTopicNames()
-                    .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                    .get(topicFilter);
+                TopicDescription topicDesc;
+                try {
+                    topicDesc = adminClient
+                        .describeTopics(List.of(topicFilter))
+                        .allTopicNames()
+                        .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                        .get(topicFilter);
+                } catch (ExecutionException e) {
+                    if (e.getCause() instanceof org.apache.kafka.common.errors.UnknownTopicOrPartitionException) {
+                        return new ConsumerGroupsPage(List.of(), 0, page, perPage);
+                    }
+                    throw e;
+                }
                 List<TopicPartition> topicPartitions = topicDesc
                     .partitions()
                     .stream()
@@ -478,42 +487,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         String valueFilter,
         int limit
     ) {
-        // First, use AdminClient to verify topic exists and get partition info
-        List<TopicPartition> targetPartitions = withAdminClient(config, adminClient -> {
-            TopicDescription description;
-            try {
-                description = adminClient
-                    .describeTopics(List.of(topicName))
-                    .allTopicNames()
-                    .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                    .get(topicName);
-            } catch (ExecutionException e) {
-                if (e.getCause() instanceof org.apache.kafka.common.errors.UnknownTopicOrPartitionException) {
-                    throw new KafkaExplorerException("Topic '" + topicName + "' not found", TechnicalCode.TOPIC_NOT_FOUND, e);
-                }
-                throw e;
-            }
-
-            if (description == null) {
-                throw new KafkaExplorerException("Topic '" + topicName + "' not found", TechnicalCode.TOPIC_NOT_FOUND);
-            }
-
-            if (partition != null) {
-                if (partition < 0 || partition >= description.partitions().size()) {
-                    throw new KafkaExplorerException(
-                        "Partition " + partition + " does not exist for topic '" + topicName + "'",
-                        TechnicalCode.INVALID_PARAMETERS
-                    );
-                }
-                return List.of(new TopicPartition(topicName, partition));
-            }
-
-            return description
-                .partitions()
-                .stream()
-                .map(p -> new TopicPartition(topicName, p.partition()))
-                .toList();
-        });
+        List<TopicPartition> targetPartitions = resolvePartitions(config, topicName, partition);
 
         // Then, use Consumer to fetch messages
         return withConsumer(config, limit * targetPartitions.size(), consumer -> {
@@ -571,14 +545,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
             List<KafkaMessage> allMessages = new ArrayList<>();
             for (ConsumerRecord<String, String> record : records) {
-                List<KafkaHeader> headers = new ArrayList<>();
-                for (Header header : record.headers()) {
-                    String headerValue = header.value() != null ? new String(header.value()) : null;
-                    headers.add(new KafkaHeader(header.key(), headerValue));
-                }
-                allMessages.add(
-                    new KafkaMessage(record.partition(), record.offset(), record.timestamp(), record.key(), record.value(), headers)
-                );
+                allMessages.add(toKafkaMessage(record));
             }
 
             int totalFetched = allMessages.size();
@@ -608,6 +575,98 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
             return new BrowseMessagesResult(allMessages, totalFetched);
         });
+    }
+
+    @Override
+    public void tailMessages(
+        KafkaClusterConfiguration config,
+        String topicName,
+        Integer partition,
+        String keyFilter,
+        String valueFilter,
+        int maxMessages,
+        int durationSeconds,
+        MessageConsumer consumer
+    ) {
+        List<TopicPartition> targetPartitions = resolvePartitions(config, topicName, partition);
+
+        withConsumer(config, 500, kafkaConsumer -> {
+            kafkaConsumer.assign(targetPartitions);
+            kafkaConsumer.seekToEnd(targetPartitions);
+
+            long deadline = System.currentTimeMillis() + (durationSeconds * 1000L);
+            int sent = 0;
+            String lowerKeyFilter = (keyFilter != null && !keyFilter.isBlank()) ? keyFilter.toLowerCase() : null;
+            String lowerValueFilter = (valueFilter != null && !valueFilter.isBlank()) ? valueFilter.toLowerCase() : null;
+
+            while (System.currentTimeMillis() < deadline && sent < maxMessages) {
+                ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(500));
+                for (ConsumerRecord<String, String> record : records) {
+                    KafkaMessage msg = toKafkaMessage(record);
+
+                    if (lowerKeyFilter != null && (msg.key() == null || !msg.key().toLowerCase().contains(lowerKeyFilter))) {
+                        continue;
+                    }
+                    if (lowerValueFilter != null && (msg.value() == null || !msg.value().toLowerCase().contains(lowerValueFilter))) {
+                        continue;
+                    }
+
+                    if (!consumer.accept(msg)) {
+                        return null;
+                    }
+                    sent++;
+                    if (sent >= maxMessages) break;
+                }
+            }
+            return null;
+        });
+    }
+
+    private List<TopicPartition> resolvePartitions(KafkaClusterConfiguration config, String topicName, Integer partition) {
+        return withAdminClient(config, adminClient -> {
+            TopicDescription description;
+            try {
+                description = adminClient
+                    .describeTopics(List.of(topicName))
+                    .allTopicNames()
+                    .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                    .get(topicName);
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof org.apache.kafka.common.errors.UnknownTopicOrPartitionException) {
+                    throw new KafkaExplorerException("Topic '" + topicName + "' not found", TechnicalCode.TOPIC_NOT_FOUND, e);
+                }
+                throw e;
+            }
+
+            if (description == null) {
+                throw new KafkaExplorerException("Topic '" + topicName + "' not found", TechnicalCode.TOPIC_NOT_FOUND);
+            }
+
+            if (partition != null) {
+                if (partition < 0 || partition >= description.partitions().size()) {
+                    throw new KafkaExplorerException(
+                        "Partition " + partition + " does not exist for topic '" + topicName + "'",
+                        TechnicalCode.INVALID_PARAMETERS
+                    );
+                }
+                return List.of(new TopicPartition(topicName, partition));
+            }
+
+            return description
+                .partitions()
+                .stream()
+                .map(p -> new TopicPartition(topicName, p.partition()))
+                .toList();
+        });
+    }
+
+    private KafkaMessage toKafkaMessage(ConsumerRecord<String, String> record) {
+        List<KafkaHeader> headers = new ArrayList<>();
+        for (Header header : record.headers()) {
+            String headerValue = header.value() != null ? new String(header.value()) : null;
+            headers.add(new KafkaHeader(header.key(), headerValue));
+        }
+        return new KafkaMessage(record.partition(), record.offset(), record.timestamp(), record.key(), record.value(), headers);
     }
 
     @FunctionalInterface

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.kafkaexplorer.resource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.BrowseMessagesUseCase;
@@ -24,6 +25,7 @@ import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeKafkaClusterUs
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeTopicUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.ListConsumerGroupsUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.ListTopicsUseCase;
+import io.gravitee.rest.api.kafkaexplorer.domain.use_case.TailMessagesUseCase;
 import io.gravitee.rest.api.kafkaexplorer.mapper.KafkaExplorerMapper;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.BrowseMessagesRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeBrokerRequest;
@@ -43,13 +45,21 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.sse.Sse;
+import jakarta.ws.rs.sse.SseEventSink;
+import java.util.concurrent.atomic.AtomicInteger;
+import lombok.CustomLog;
 
+@CustomLog
 public class KafkaExplorerResource {
 
     @Inject
@@ -72,6 +82,16 @@ public class KafkaExplorerResource {
 
     @Inject
     private DescribeConsumerGroupUseCase describeConsumerGroupUseCase;
+
+    @Inject
+    private TailMessagesUseCase tailMessagesUseCase;
+
+    @Inject
+    private ObjectMapper objectMapper;
+
+    private static final AtomicInteger activeTailStreams = new AtomicInteger(0);
+    // Cap concurrent tail streams to prevent resource exhaustion on the management API
+    private static final int MAX_TAIL_STREAMS = 256;
 
     @POST
     @Path("/describe-cluster")
