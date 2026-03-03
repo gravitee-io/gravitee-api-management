@@ -13,78 +13,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AsyncPipe } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, computed, DestroyRef, inject, input, signal } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { EMPTY, Observable, Subject, switchMap, take, takeUntil, tap } from 'rxjs';
+import { EMPTY, switchMap, tap } from 'rxjs';
 
 import { ApplicationTabSettingsEditComponent } from './application-tab-settings-edit/application-tab-settings-edit.component';
 import { ApplicationTabSettingsReadComponent } from './application-tab-settings-read/application-tab-settings-read.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../components/confirm-dialog/confirm-dialog.component';
-import { Application, ApplicationType } from '../../../../entities/application/application';
+import { ApplicationType } from '../../../../entities/application/application';
 import { UserApplicationPermissions } from '../../../../entities/permission/permission';
 import { ApplicationService } from '../../../../services/application.service';
 
 @Component({
   selector: 'app-application-tab-settings',
-  imports: [MatButtonModule, ApplicationTabSettingsEditComponent, ApplicationTabSettingsReadComponent, AsyncPipe, MatDialogModule],
+  imports: [MatButtonModule, ApplicationTabSettingsEditComponent, ApplicationTabSettingsReadComponent, MatDialogModule],
   templateUrl: './application-tab-settings.component.html',
 })
-export class ApplicationTabSettingsComponent implements OnInit {
-  @Input()
-  applicationId!: string;
+export class ApplicationTabSettingsComponent {
+  private applicationService = inject(ApplicationService);
+  private matDialog = inject(MatDialog);
+  private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
-  @Input()
-  applicationTypeConfiguration!: ApplicationType;
+  applicationId = input.required<string>();
+  applicationTypeConfiguration = input.required<ApplicationType>();
+  userApplicationPermissions = input.required<UserApplicationPermissions>();
 
-  @Input()
-  userApplicationPermissions!: UserApplicationPermissions;
+  canUpdate = computed(() => this.userApplicationPermissions().DEFINITION?.includes('U') || false);
+  canDelete = computed(() => this.userApplicationPermissions().DEFINITION?.includes('D') || false);
+  isEditing = signal(false);
 
-  application$!: Observable<Application>;
-
-  canUpdate: boolean = false;
-  canDelete: boolean = false;
-
-  private unsubscribe$ = new Subject();
-
-  constructor(
-    private readonly applicationService: ApplicationService,
-    private matDialog: MatDialog,
-    private router: Router,
-  ) {}
-
-  ngOnInit(): void {
-    this.application$ = this.applicationService.get(this.applicationId);
-    this.canDelete = this.userApplicationPermissions.DEFINITION?.includes('D') || false;
-    this.canUpdate = this.userApplicationPermissions.DEFINITION?.includes('U') || false;
-  }
+  application = toSignal(toObservable(this.applicationId).pipe(switchMap(id => this.applicationService.get(id))));
 
   deleteApplication(): void {
+    const app = this.application();
+    if (!app) return;
+
     const dialogData: ConfirmDialogData = {
       title: $localize`:@@titleDeleteApplicationDialog:Delete application`,
       content: $localize`:@@contentDeleteApplicationDialog:All your subscriptions will be closed. Are you sure you want to delete this application?`,
       confirmLabel: $localize`:@@confirmDeleteApplicationDialog:Delete`,
       cancelLabel: $localize`:@@cancelDeleteApplicationDialog:Cancel`,
     };
-    this.application$
+
+    this.matDialog
+      .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
+        role: 'alertdialog',
+        id: 'confirmDialog',
+        data: dialogData,
+      })
+      .afterClosed()
       .pipe(
-        take(1),
-        switchMap(application =>
-          this.matDialog
-            .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
-              role: 'alertdialog',
-              id: 'confirmDialog',
-              data: dialogData,
-            })
-            .afterClosed()
-            .pipe(
-              switchMap(confirmed => (confirmed ? this.applicationService.delete(application.id) : EMPTY)),
-              tap(() => this.router.navigate(['/applications'])),
-              takeUntil(this.unsubscribe$),
-            ),
-        ),
+        switchMap(confirmed => (confirmed ? this.applicationService.delete(app.id) : EMPTY)),
+        tap(() => this.router.navigate(['/applications'])),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({ error: err => console.error(err) });
   }

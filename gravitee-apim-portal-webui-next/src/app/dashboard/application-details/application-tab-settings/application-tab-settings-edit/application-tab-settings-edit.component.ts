@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -79,11 +79,8 @@ interface ApplicationGrantTypeVM {
   styleUrl: './application-tab-settings-edit.component.scss',
 })
 export class ApplicationTabSettingsEditComponent implements OnInit {
-  @Input()
-  applicationId!: string;
-
-  @Input()
-  applicationTypeConfiguration!: ApplicationType;
+  applicationId = input.required<string>();
+  applicationTypeConfiguration = input.required<ApplicationType>();
 
   application$!: Observable<Application>;
 
@@ -122,7 +119,7 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
 
   ngOnInit(): void {
     this.buildGrantTypeList();
-    this.application$ = this.applicationService.get(this.applicationId);
+    this.application$ = this.applicationService.get(this.applicationId());
 
     this.application$.pipe(take(1)).subscribe(application => {
       this.application = application;
@@ -210,11 +207,11 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
   }
 
   private isGrantTypeMandatory(t: ApplicationGrantType): boolean {
-    return this.applicationTypeConfiguration.mandatory_grant_types?.some(grantType => grantType.type === t.type) ?? false;
+    return this.applicationTypeConfiguration().mandatory_grant_types?.some(grantType => grantType.type === t.type) ?? false;
   }
 
   private buildGrantTypeList() {
-    this.grantTypesList = this.applicationTypeConfiguration.allowed_grant_types?.map(t => {
+    this.grantTypesList = this.applicationTypeConfiguration().allowed_grant_types?.map(t => {
       return <ApplicationGrantTypeVM>{
         type: t.type,
         name: this.isGrantTypeMandatory(t) ? `${t.name} - (Mandatory)` : t.name,
@@ -227,7 +224,7 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
     this.applicationSettingsForm.controls.name.setValidators(Validators.required);
     if (this.application.settings.oauth) {
       this.applicationSettingsForm.controls.oauthGrantTypes.setValidators([Validators.required, Validators.minLength(1)]);
-      if (this.applicationTypeConfiguration.requires_redirect_uris) {
+      if (this.applicationTypeConfiguration().requires_redirect_uris) {
         this.applicationSettingsForm.controls.oauthRedirectUris.setValidators([Validators.required, Validators.minLength(1)]);
       }
     }
@@ -248,10 +245,11 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
         appToUpdate.settings.oauth.grant_types = appVM.oauthGrantTypes;
 
         // Responses types depend on the selected grant types. They have to be taken from the type configuration
-        if (!this.applicationTypeConfiguration.allowed_grant_types) {
+        const allowedGrantTypes = this.applicationTypeConfiguration().allowed_grant_types;
+        if (!allowedGrantTypes) {
           appToUpdate.settings.oauth.response_types = [];
         } else {
-          appToUpdate.settings.oauth.response_types = this.applicationTypeConfiguration.allowed_grant_types
+          appToUpdate.settings.oauth.response_types = allowedGrantTypes
             .filter(grantType => appVM.oauthGrantTypes?.some(type => type === grantType.type))
             .flatMap(grantType => grantType.response_types ?? []);
         }

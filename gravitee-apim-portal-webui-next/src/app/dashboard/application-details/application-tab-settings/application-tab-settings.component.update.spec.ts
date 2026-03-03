@@ -36,7 +36,6 @@ import { ConfigService } from '../../../../services/config.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../testing/app-testing.module';
 
 describe('ApplicationTabSettingsComponent', () => {
-  let component: ApplicationTabSettingsComponent;
   let fixture: ComponentFixture<ApplicationTabSettingsComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
@@ -62,38 +61,38 @@ describe('ApplicationTabSettingsComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     loader = TestbedHarnessEnvironment.loader(fixture);
 
-    component = fixture.componentInstance;
-    component.applicationId = applicationId;
-    component.userApplicationPermissions = fakeUserApplicationPermissions({
-      DEFINITION: ['U'],
-    });
+    fixture.componentRef.setInput('applicationId', applicationId);
+    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ DEFINITION: ['U'] }));
   });
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  async function initRestCalls(application: Application, applicationType: ApplicationType) {
-    component.applicationTypeConfiguration = applicationType;
-    fixture.detectChanges();
-
+  function flushGetRequests(application: Application) {
     const applicationUrl = `${TESTING_BASE_URL}/applications/${applicationId}`;
-
-    const applicationRequest = httpTestingController.expectOne(applicationUrl);
-    expect(applicationRequest.request.method).toBe('GET');
-    applicationRequest.flush(application);
-
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const applicationRequests = httpTestingController.match(applicationUrl);
-
-    applicationRequests.forEach(req => {
+    httpTestingController.match(applicationUrl).forEach(req => {
       expect(req.request.method).toBe('GET');
       req.flush(application);
       fixture.detectChanges();
     });
+  }
 
+  async function initRestCalls(application: Application, applicationType: ApplicationType) {
+    fixture.componentRef.setInput('applicationTypeConfiguration', applicationType);
+    fixture.detectChanges();
+
+    flushGetRequests(application);
+    await fixture.whenStable();
+    flushGetRequests(application);
+    await fixture.whenStable();
+
+    // Enter edit mode, then flush the edit component's own GET request
+    fixture.componentRef.instance.isEditing.set(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    flushGetRequests(application);
     await fixture.whenStable();
 
     updateHarness = await loader.getHarness(ApplicationTabSettingsEditHarness);
@@ -155,6 +154,7 @@ describe('ApplicationTabSettingsComponent', () => {
       req.flush(updatedApplication);
     });
   });
+
   describe('Display Backend to backend application', () => {
     const b2bApplication = fakeApplication({
       id: applicationId,

@@ -14,34 +14,74 @@
  * limitations under the License.
  */
 
-.settings__readonly {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
+@use '../../../../../scss/theme' as theme;
 
-  &__content {
+.settings-view {
+  mat-card-content {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
+    gap: 24px;
+    padding-top: 8px;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    &__actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+
+  &__details {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    &__row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      &__icon {
+        color: theme.$paragraph-color;
+        flex-shrink: 0;
+      }
+
+      &__label {
+        width: 120px;
+        flex-shrink: 0;
+        color: theme.$paragraph-color;
+      }
+
+      &__value--not-set {
+        font-style: italic;
+        color: theme.$paragraph-color;
+      }
+
+      &__chip {
+        background-color: theme.$chip-background;
+        border-radius: theme.$container-shape;
+        padding: 2px 12px;
+        border: theme.$border-width solid theme.$border-color;
+      }
+    }
+  }
+
+  &__description {
+    background-color: theme.$background-color;
+    border: theme.$border-width solid theme.$border-color;
+    border-radius: theme.$container-shape;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
     gap: 8px;
 
-    &__card {
-      flex: 1 1 auto;
-
-      &__header {
-        padding: 8px 0 24px;
-      }
-
-      &__content {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-
-        &__information {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-      }
+    &__empty {
+      color: theme.$paragraph-color;
     }
   }
 }
