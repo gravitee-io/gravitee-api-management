@@ -35,8 +35,7 @@ import { fakeUserApplicationPermissions } from '../../../../entities/permission/
 import { ConfigService } from '../../../../services/config.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../testing/app-testing.module';
 
-describe('ApplicationTabSettingsComponent', () => {
-  let component: ApplicationTabSettingsComponent;
+describe('ApplicationTabSettingsComponent - Read view', () => {
   let fixture: ComponentFixture<ApplicationTabSettingsComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
@@ -62,38 +61,29 @@ describe('ApplicationTabSettingsComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     loader = TestbedHarnessEnvironment.loader(fixture);
 
-    component = fixture.componentInstance;
-    component.applicationId = applicationId;
-    component.userApplicationPermissions = fakeUserApplicationPermissions({
-      DEFINITION: ['R'],
-    });
+    fixture.componentRef.setInput('applicationId', applicationId);
+    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ DEFINITION: ['R'] }));
   });
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  async function initRestCalls(application: Application, applicationType: ApplicationType) {
-    component.applicationTypeConfiguration = applicationType;
-    fixture.detectChanges();
-
-    const applicationUrl = `${TESTING_BASE_URL}/applications/${applicationId}`;
-
-    const applicationRequest = httpTestingController.expectOne(applicationUrl);
-    expect(applicationRequest.request.method).toBe('GET');
-    applicationRequest.flush(application);
-
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const applicationRequests = httpTestingController.match(applicationUrl);
-
-    applicationRequests.forEach(req => {
+  function flushGetRequests(application: Application) {
+    httpTestingController.match(`${TESTING_BASE_URL}/applications/${applicationId}`).forEach(req => {
       expect(req.request.method).toBe('GET');
       req.flush(application);
       fixture.detectChanges();
     });
+  }
 
+  async function initRestCalls(application: Application, applicationType: ApplicationType) {
+    fixture.componentRef.setInput('applicationTypeConfiguration', applicationType);
+    fixture.detectChanges();
+
+    flushGetRequests(application);
+    await fixture.whenStable();
+    flushGetRequests(application);
     await fixture.whenStable();
 
     readonlyHarness = await loader.getHarness(ApplicationTabSettingsReadHarness);
@@ -104,29 +94,20 @@ describe('ApplicationTabSettingsComponent', () => {
       id: applicationId,
       name: 'Simple application',
       description: 'Simple description',
-      picture: 'data:image/png;base64,xxxxxxxx',
       applicationType: 'SIMPLE',
-      settings: {
-        oauth: undefined,
-        app: {
-          type: 'Custom Application Type',
-          client_id: 'Custom Client ID',
-        },
-      },
     });
 
     beforeEach(async () => {
       await initRestCalls(simpleApplication, fakeSimpleApplicationType());
     });
 
-    it('Should display name, description, picture, client ID & application type fields', async () => {
-      expect(await readonlyHarness.getInfoCardTitle()).toEqual('OAuth2 Integration');
-      expect(await readonlyHarness.getInfoCardApplicationType()).toEqual('Application type');
-      expect(await readonlyHarness.getInfoCardApplicationTypeDescription()).toEqual('Custom Application Type');
-      expect(await readonlyHarness.getClientId()).toEqual('Custom Client ID');
-      expect(await readonlyHarness.getHiddenClientSecret()).toBeUndefined();
-      expect(await readonlyHarness.getInfoCardRedirectUris()).toBeUndefined();
-      expect(await readonlyHarness.getInfoCardGrantTypes()).toBeUndefined();
+    it('Should display application name, owner, type, security type and description', async () => {
+      expect(await readonlyHarness.getName()).toEqual('Simple application');
+      expect(await readonlyHarness.getOwner()).toEqual('Admin master');
+      expect(await readonlyHarness.getType()).toEqual('Simple');
+      expect(await readonlyHarness.getSecurityType()).toEqual('Simple');
+      expect(await readonlyHarness.getDescription()).toEqual('Simple description');
+      expect(await readonlyHarness.canEdit()).toBeFalsy();
     });
   });
 
@@ -135,34 +116,20 @@ describe('ApplicationTabSettingsComponent', () => {
       id: applicationId,
       name: 'B2b application',
       description: 'B2b description',
-      picture: 'data:image/png;base64,xxxxxxxx',
       applicationType: 'BACKEND_TO_BACKEND',
-      settings: {
-        oauth: {
-          client_id: 'my client id',
-          client_secret: 'my client secret',
-          redirect_uris: [],
-          response_types: [],
-          grant_types: ['client_credentials'],
-          renew_client_secret_supported: false,
-        },
-        app: undefined,
-      },
     });
 
     beforeEach(async () => {
       await initRestCalls(b2bApplication, fakeBackendToBackendApplicationType());
     });
 
-    it('Should display name, description, picture, client ID, client secret & grant types fields', async () => {
-      expect(await readonlyHarness.getInfoCardTitle()).toEqual('OpenID Connect Integration');
-      expect(await readonlyHarness.getInfoCardApplicationType()).toEqual('Backend to backend');
-      expect(await readonlyHarness.getInfoCardApplicationTypeDescription()).toEqual('Machine to machine');
-      expect(await readonlyHarness.getInfoCardGrantTypes()).toEqual('Client Credentials');
-      expect(await readonlyHarness.getClientId()).toEqual('my client id');
-      expect(await readonlyHarness.getHiddenClientSecret()).toEqual('****************');
-      expect(await readonlyHarness.getClearClientSecret()).toEqual('my client secret');
-      expect(await readonlyHarness.getInfoCardRedirectUris()).toBeUndefined();
+    it('Should display application name, owner, type, security type and description', async () => {
+      expect(await readonlyHarness.getName()).toEqual('B2b application');
+      expect(await readonlyHarness.getOwner()).toEqual('Admin master');
+      expect(await readonlyHarness.getType()).toEqual('Backend to backend');
+      expect(await readonlyHarness.getSecurityType()).toEqual('Backend to backend');
+      expect(await readonlyHarness.getDescription()).toEqual('B2b description');
+      expect(await readonlyHarness.canEdit()).toBeFalsy();
     });
   });
 
@@ -171,34 +138,20 @@ describe('ApplicationTabSettingsComponent', () => {
       id: applicationId,
       name: 'Native application',
       description: 'Native description',
-      picture: 'data:image/png;base64,xxxxxxxx',
       applicationType: 'NATIVE',
-      settings: {
-        oauth: {
-          client_id: 'my client id',
-          client_secret: 'my client secret',
-          redirect_uris: ['http://localhost/native'],
-          response_types: ['code'],
-          grant_types: ['authorization_code'],
-          renew_client_secret_supported: false,
-        },
-        app: undefined,
-      },
     });
 
     beforeEach(async () => {
       await initRestCalls(nativeApplication, fakeNativeApplicationType());
     });
 
-    it('Should display name, description, picture, client ID, client secret, redirect URIs & grant types fields', async () => {
-      expect(await readonlyHarness.getInfoCardTitle()).toEqual('OpenID Connect Integration');
-      expect(await readonlyHarness.getInfoCardApplicationType()).toEqual('Native');
-      expect(await readonlyHarness.getInfoCardApplicationTypeDescription()).toEqual('iOS, Android, ...');
-      expect(await readonlyHarness.getInfoCardGrantTypes()).toEqual('Authorization Code');
-      expect(await readonlyHarness.getClientId()).toEqual('my client id');
-      expect(await readonlyHarness.getHiddenClientSecret()).toEqual('****************');
-      expect(await readonlyHarness.getClearClientSecret()).toEqual('my client secret');
-      expect(await readonlyHarness.getInfoCardRedirectUris()).toEqual('http://localhost/native');
+    it('Should display application name, owner, type, security type and description', async () => {
+      expect(await readonlyHarness.getName()).toEqual('Native application');
+      expect(await readonlyHarness.getOwner()).toEqual('Admin master');
+      expect(await readonlyHarness.getType()).toEqual('Native');
+      expect(await readonlyHarness.getSecurityType()).toEqual('Native');
+      expect(await readonlyHarness.getDescription()).toEqual('Native description');
+      expect(await readonlyHarness.canEdit()).toBeFalsy();
     });
   });
 
@@ -207,34 +160,20 @@ describe('ApplicationTabSettingsComponent', () => {
       id: applicationId,
       name: 'Browser application',
       description: 'Browser description',
-      picture: 'data:image/png;base64,xxxxxxxx',
       applicationType: 'BROWSER',
-      settings: {
-        oauth: {
-          client_id: 'my client id',
-          client_secret: 'my client secret',
-          redirect_uris: ['http://localhost/browser'],
-          response_types: ['code', 'token', 'id_token'],
-          grant_types: ['authorization_code', 'implicit'],
-          renew_client_secret_supported: false,
-        },
-        app: undefined,
-      },
     });
 
     beforeEach(async () => {
       await initRestCalls(browserApplication, fakeBrowserApplicationType());
     });
 
-    it('Should display name, description, picture, client ID, client secret, redirect URIs & grant types fields', async () => {
-      expect(await readonlyHarness.getInfoCardTitle()).toEqual('OpenID Connect Integration');
-      expect(await readonlyHarness.getInfoCardApplicationType()).toEqual('SPA');
-      expect(await readonlyHarness.getInfoCardApplicationTypeDescription()).toEqual('Angular, React, Ember, ...');
-      expect(await readonlyHarness.getInfoCardGrantTypes()).toEqual('Authorization Code,Implicit');
-      expect(await readonlyHarness.getClientId()).toEqual('my client id');
-      expect(await readonlyHarness.getHiddenClientSecret()).toEqual('****************');
-      expect(await readonlyHarness.getClearClientSecret()).toEqual('my client secret');
-      expect(await readonlyHarness.getInfoCardRedirectUris()).toEqual('http://localhost/browser');
+    it('Should display application name, owner, type, security type and description', async () => {
+      expect(await readonlyHarness.getName()).toEqual('Browser application');
+      expect(await readonlyHarness.getOwner()).toEqual('Admin master');
+      expect(await readonlyHarness.getType()).toEqual('SPA');
+      expect(await readonlyHarness.getSecurityType()).toEqual('SPA');
+      expect(await readonlyHarness.getDescription()).toEqual('Browser description');
+      expect(await readonlyHarness.canEdit()).toBeFalsy();
     });
   });
 
@@ -243,34 +182,20 @@ describe('ApplicationTabSettingsComponent', () => {
       id: applicationId,
       name: 'Web application',
       description: 'Web description',
-      picture: 'data:image/png;base64,xxxxxxxx',
       applicationType: 'WEB',
-      settings: {
-        oauth: {
-          client_id: 'my client id',
-          client_secret: 'my client secret',
-          redirect_uris: ['http://localhost/web'],
-          response_types: ['code'],
-          grant_types: ['authorization_code'],
-          renew_client_secret_supported: false,
-        },
-        app: undefined,
-      },
     });
 
     beforeEach(async () => {
       await initRestCalls(webApplication, fakeWebApplicationType());
     });
 
-    it('Should display name, description, picture, client ID, client secret, redirect URIs & grant types fields', async () => {
-      expect(await readonlyHarness.getInfoCardTitle()).toEqual('OpenID Connect Integration');
-      expect(await readonlyHarness.getInfoCardApplicationType()).toEqual('Web');
-      expect(await readonlyHarness.getInfoCardApplicationTypeDescription()).toEqual('Java, .Net, ...');
-      expect(await readonlyHarness.getInfoCardGrantTypes()).toEqual('Authorization Code');
-      expect(await readonlyHarness.getClientId()).toEqual('my client id');
-      expect(await readonlyHarness.getHiddenClientSecret()).toEqual('****************');
-      expect(await readonlyHarness.getClearClientSecret()).toEqual('my client secret');
-      expect(await readonlyHarness.getInfoCardRedirectUris()).toEqual('http://localhost/web');
+    it('Should display application name, owner, type, security type and description', async () => {
+      expect(await readonlyHarness.getName()).toEqual('Web application');
+      expect(await readonlyHarness.getOwner()).toEqual('Admin master');
+      expect(await readonlyHarness.getType()).toEqual('Web');
+      expect(await readonlyHarness.getSecurityType()).toEqual('Web');
+      expect(await readonlyHarness.getDescription()).toEqual('Web description');
+      expect(await readonlyHarness.canEdit()).toBeFalsy();
     });
   });
 });

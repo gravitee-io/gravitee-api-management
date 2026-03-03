@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, effect, inject, input } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
-import { MatIcon } from '@angular/material/icon';
 import { MatTabLink, MatTabNav, MatTabNavPanel } from '@angular/material/tabs';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { BreadcrumbService } from 'xng-breadcrumb';
@@ -34,7 +33,6 @@ import { CurrentUserService } from '../../../services/current-user.service';
     BannerComponent,
     MatCard,
     MatCardContent,
-    MatIcon,
     MatTabLink,
     MatTabNav,
     MatTabNavPanel,
@@ -45,15 +43,18 @@ import { CurrentUserService } from '../../../services/current-user.service';
   templateUrl: './application.component.html',
   styleUrl: './application.component.scss',
 })
+<<<<<<< HEAD:gravitee-apim-portal-webui-next/src/app/dashboard/application-details/application.component.ts
 export default class ApplicationComponent implements OnChanges {
   @Input() application!: Application;
+=======
+export class ApplicationComponent {
+  application = input.required<Application>();
+>>>>>>> e473a6c382 (feat(portal): redesign application settings read view and tab navigation):gravitee-apim-portal-webui-next/src/app/applications/application/application.component.ts
   isAuthenticated = inject(CurrentUserService).isUserAuthenticated;
 
-  constructor(private breadcrumbService: BreadcrumbService) {}
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['application']) {
-      this.breadcrumbService.set('@appName', this.application.name);
-    }
+  constructor(private breadcrumbService: BreadcrumbService) {
+    effect(() => {
+      this.breadcrumbService.set('@appName', this.application().name);
+    });
   }
 }

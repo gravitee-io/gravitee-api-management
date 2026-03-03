@@ -20,6 +20,7 @@ export interface Application {
   applicationType?: string;
   created_at?: string;
   updated_at?: string;
+  domain?: string;
   id: string;
   name: string;
   description?: string;

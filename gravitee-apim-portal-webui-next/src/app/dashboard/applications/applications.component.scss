@@ -35,12 +35,15 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+  }
 
-    &__title {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
+  &__title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  &--mobile {
+    grid-template-columns: 1fr;
   }
 }
 

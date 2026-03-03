@@ -15,10 +15,10 @@
     limitations under the License.
 
 -->
-@if (application$ | async; as application) {
-  @if (canUpdate) {
-    <app-application-tab-settings-edit [applicationId]="application.id" [applicationTypeConfiguration]="applicationTypeConfiguration">
-      @if (canDelete) {
+@if (application(); as application) {
+  @if (isEditing() && canUpdate()) {
+    <app-application-tab-settings-edit [applicationId]="application.id" [applicationTypeConfiguration]="applicationTypeConfiguration()">
+      @if (canDelete()) {
         <button
           mat-button
           (click)="deleteApplication()"
@@ -31,17 +31,23 @@
       }
     </app-application-tab-settings-edit>
   } @else {
-    <app-application-tab-settings-read [applicationId]="application.id" [applicationTypeConfiguration]="applicationTypeConfiguration">
-      @if (canDelete) {
+    <app-application-tab-settings-read
+      [applicationId]="application.id"
+      [applicationTypeConfiguration]="applicationTypeConfiguration()"
+      [canUpdate]="canUpdate()"
+      (editClicked)="isEditing.set(true)"
+    >
+      @if (canDelete()) {
         <button
-          mat-button
+          mat-stroked-button
+          color="warn"
           (click)="deleteApplication()"
           i18n="@@deleteApplicationSettings"
           aria-label="Delete application"
           data-testId="delete"
           additionalActions
         >
-          Delete application
+          Delete
         </button>
       }
     </app-application-tab-settings-read>

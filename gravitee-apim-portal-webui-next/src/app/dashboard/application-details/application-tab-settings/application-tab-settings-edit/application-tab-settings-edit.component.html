@@ -75,8 +75,8 @@
             </div>
           </div>
           <div class="settings__form__content__integration__subTitle">
-            <span class="m3-title-small" data-testId="type">{{ applicationTypeConfiguration.name }}: </span>
-            <span class="m3-body-medium" data-testId="typeDescription">{{ applicationTypeConfiguration.description }}</span>
+            <span class="m3-title-small" data-testId="type">{{ applicationTypeConfiguration().name }}: </span>
+            <span class="m3-body-medium" data-testId="typeDescription">{{ applicationTypeConfiguration().description }}</span>
           </div>
           <div class="settings__form__content__integration__copy-code">
             <app-copy-code id="client-id" title="Client ID" [text]="application.settings.oauth.client_id ?? ''" data-testId="clientId" />
@@ -88,7 +88,7 @@
               data-testId="clientSecret"
             />
           </div>
-          @if (applicationTypeConfiguration.requires_redirect_uris) {
+          @if (applicationTypeConfiguration().requires_redirect_uris) {
             <mat-form-field appearance="outline">
               <mat-label i18n="@@applicationRedirectUrisApplicationSettings">Redirect URIs</mat-label>
               <mat-chip-grid #redirectURIChipGrid aria-label="Redirect URIs" formControlName="oauthRedirectUris" data-testId="redirectUris">
