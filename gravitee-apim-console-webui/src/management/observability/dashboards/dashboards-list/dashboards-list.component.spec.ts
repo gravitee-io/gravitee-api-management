@@ -25,7 +25,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { DashboardsListComponent } from './dashboards-list.component';
 
 import { Constants } from '../../../../entities/Constants';
-import { CONSTANTS_TESTING } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 
 describe('DashboardsListComponent', () => {
   let component: DashboardsListComponent;
@@ -35,7 +35,7 @@ describe('DashboardsListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DashboardsListComponent, NoopAnimationsModule],
+      imports: [DashboardsListComponent, NoopAnimationsModule, GioTestingModule],
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting(), { provide: Constants, useValue: CONSTANTS_TESTING }],
     }).compileComponents();
 

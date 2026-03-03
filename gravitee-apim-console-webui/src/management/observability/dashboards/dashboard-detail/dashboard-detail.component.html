@@ -20,6 +20,7 @@
     <h1>{{ dashboard.name }}</h1>
     <gio-action-menu [icon]="'more_vert'">
       <gio-action-menu-item
+        *gioPermission="{ anyOf: ['environment-dashboard-u'] }"
         icon="gio:edit-pencil"
         label="Edit"
         [disabled]="true"
@@ -28,6 +29,7 @@
       ></gio-action-menu-item>
       <mat-divider></mat-divider>
       <gio-action-menu-item
+        *gioPermission="{ anyOf: ['environment-dashboard-d'] }"
         class="delete-action"
         icon="gio:trash"
         label="Delete"

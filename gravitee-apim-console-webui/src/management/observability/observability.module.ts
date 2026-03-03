@@ -15,15 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 
-import { EnvAnalyticsLayoutComponent } from './env-analytics-layout.component';
-import { AnalyticsDashboardComponent } from './legacy/analytics-dashboard/analytics-dashboard.component';
-import { PlatformLogsComponent } from './legacy/logs/platform-logs.component';
-import { PlatformLogComponent } from './legacy/logs/platform-log.component';
 import { OverviewComponent } from './overview/overview.component';
 import { DashboardsListComponent } from './dashboards/dashboards-list/dashboards-list.component';
 import { DashboardDetailComponent } from './dashboards/dashboard-detail/dashboard-detail.component';
@@ -37,47 +29,19 @@ const routes: Routes = [
   },
   {
     path: 'dashboards',
-    component: DashboardsListComponent,
-  },
-  {
-    path: 'dashboards/:dashboardId',
-    component: DashboardDetailComponent,
-  },
-  {
-    path: '',
-    pathMatch: 'full',
-    redirectTo: 'overview',
-  },
-  {
-    path: '',
-    component: EnvAnalyticsLayoutComponent,
+    data: {
+      permissions: {
+        anyOf: ['environment-dashboard-r'],
+      },
+    },
     children: [
       {
-        path: 'dashboard',
-        component: AnalyticsDashboardComponent,
-        data: {
-          docs: {
-            page: 'management-dashboard-analytics',
-          },
-        },
+        path: '',
+        component: DashboardsListComponent,
       },
       {
-        path: 'logs',
-        component: PlatformLogsComponent,
-        data: {
-          docs: {
-            page: 'management-api-logs',
-          },
-        },
-      },
-      {
-        path: 'logs/:logId',
-        component: PlatformLogComponent,
-        data: {
-          docs: {
-            page: 'management-api-log',
-          },
-        },
+        path: ':dashboardId',
+        component: DashboardDetailComponent,
       },
     ],
   },
@@ -99,11 +63,15 @@ const routes: Routes = [
       },
     },
   },
+  {
+    path: '',
+    pathMatch: 'full',
+    redirectTo: 'overview',
+  },
 ];
 
 @NgModule({
-  declarations: [EnvAnalyticsLayoutComponent, AnalyticsDashboardComponent, PlatformLogsComponent, PlatformLogComponent],
-  imports: [RouterModule.forChild(routes), MatTabsModule, MatCardModule, MatIconModule, GioIconsModule, GioBannerModule],
+  imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
 })
-export class EnvAnalyticsModule {}
+export class ObservabilityModule {}

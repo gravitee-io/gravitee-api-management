@@ -17,7 +17,7 @@
 -->
 <div class="title">
   <h1>Analytics dashboards</h1>
-  <button mat-raised-button color="primary" [matMenuTriggerFor]="createMenu">
+  <button *gioPermission="{ anyOf: ['environment-dashboard-c'] }" mat-raised-button color="primary" [matMenuTriggerFor]="createMenu">
     Create dashboard
     <mat-icon>keyboard_arrow_down</mat-icon>
   </button>
@@ -78,6 +78,7 @@
             ></gio-action-menu-item>
             <mat-divider></mat-divider>
             <gio-action-menu-item
+              *gioPermission="{ anyOf: ['environment-dashboard-d'] }"
               class="delete-action"
               icon="gio:trash"
               label="Delete"
