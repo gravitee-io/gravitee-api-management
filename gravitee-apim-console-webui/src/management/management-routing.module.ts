@@ -184,8 +184,17 @@ const managementRoutes: Routes = [
         },
       },
       {
+        path: 'observability',
+        loadChildren: () => import('./observability/observability.module').then(m => m.ObservabilityModule),
+        data: {
+          permissions: {
+            anyOf: ['environment-platform-r'],
+          },
+        },
+      },
+      {
         path: 'analytics',
-        loadChildren: () => import('./analytics/env-analytics.module').then(m => m.EnvAnalyticsModule),
+        loadChildren: () => import('./analytics/env-analytics-legacy.module').then(m => m.EnvAnalyticsLegacyModule),
         data: {
           permissions: {
             anyOf: ['environment-platform-r'],

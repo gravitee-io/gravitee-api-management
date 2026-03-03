@@ -16,7 +16,7 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { GioLicenseService, GioMenuSearchService, LicenseOptions, MenuSearchItem, SelectorItem } from '@gravitee/ui-particles-angular';
 import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
-import { Observable, Subject } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
@@ -33,6 +33,7 @@ interface MenuItem {
   permissions?: string[];
   licenseOptions?: LicenseOptions;
   iconRight$?: Observable<any>;
+  iconRightTooltip?: string;
   subMenuPermissions?: string[];
   category: string;
   items?: MenuItem[];
@@ -208,30 +209,46 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     });
 
     mainMenuItems.push({
+      icon: 'gio:dashboard-dots',
+      displayName: 'Observability',
+      category: 'Observability',
+      permissions: ['environment-platform-r'],
+      routerBasePath: `/${this.currentEnv.hrids}/observability`,
+      items: [
+        {
+          displayName: 'Overview',
+          routerLink: './observability/overview',
+          category: 'Analytics',
+        },
+        {
+          displayName: 'Dashboards',
+          routerLink: './observability/dashboards',
+          category: 'Analytics',
+        },
+        {
+          displayName: 'Logs',
+          routerLink: './observability/logs-explorer',
+          category: 'Analytics',
+        },
+      ],
+    });
+    mainMenuItems.push({
       icon: 'gio:bar-chart-2',
       displayName: 'Analytics',
       category: 'Analytics',
       permissions: ['environment-platform-r'],
       routerBasePath: `/${this.currentEnv.hrids}/analytics`,
+      iconRight$: of('info'),
+      iconRightTooltip: 'This feature is deprecated, please use Observability > Dashboards instead.',
       items: [
         {
-          displayName: 'Overview',
-          routerLink: './analytics/overview',
-          category: 'Analytics',
-        },
-        {
-          displayName: 'Dashboards',
-          routerLink: './analytics/dashboards',
+          displayName: 'Dashboard',
+          routerLink: './analytics/dashboard',
           category: 'Analytics',
         },
         {
           displayName: 'Logs',
-          routerLink: './analytics/logs-explorer',
-          category: 'Analytics',
-        },
-        {
-          displayName: 'Classic view',
-          routerLink: './analytics/dashboard',
+          routerLink: './analytics/logs',
           category: 'Analytics',
         },
       ],

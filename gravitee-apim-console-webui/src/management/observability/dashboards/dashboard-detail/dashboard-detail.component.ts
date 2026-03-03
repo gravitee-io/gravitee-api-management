@@ -23,12 +23,13 @@ import { GioActionMenuComponent, GioActionMenuItemComponent } from '@gravitee/ui
 import { MatDivider } from '@angular/material/list';
 import { MatTooltip } from '@angular/material/tooltip';
 
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { DashboardService } from '../../data-access/dashboard.service';
 import { DashboardViewerComponent } from '../ui/dashboard-viewer/dashboard-viewer.component';
 
 @Component({
   selector: 'dashboard-detail',
-  imports: [DashboardViewerComponent, GioActionMenuComponent, GioActionMenuItemComponent, MatDivider, MatTooltip],
+  imports: [DashboardViewerComponent, GioActionMenuComponent, GioActionMenuItemComponent, MatDivider, MatTooltip, GioPermissionModule],
   templateUrl: './dashboard-detail.component.html',
   styleUrls: ['./dashboard-detail.component.scss'],
 })

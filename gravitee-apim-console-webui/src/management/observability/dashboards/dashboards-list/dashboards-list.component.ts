@@ -38,7 +38,7 @@ import { startWith, switchMap, map, debounceTime, filter, scan, catchError } fro
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { forkJoin, of } from 'rxjs';
 import { MatDivider } from '@angular/material/list';
-import { KeyValuePipe, DatePipe } from '@angular/common';
+import { DatePipe, KeyValuePipe } from '@angular/common';
 import { MatTooltip } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
@@ -52,6 +52,7 @@ import { GioTableWrapperModule } from '../../../../shared/components/gio-table-w
 import { DashboardService } from '../../data-access/dashboard.service';
 import { PagedResult } from '../../../../entities/management-api-v2';
 import { UsersService } from '../../../../services-ngx/users.service';
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
 @Component({
   selector: 'dashboards-list',
@@ -80,6 +81,7 @@ import { UsersService } from '../../../../services-ngx/users.service';
     DatePipe,
     MatTooltip,
     RouterLink,
+    GioPermissionModule,
   ],
   templateUrl: './dashboards-list.component.html',
   styleUrls: ['./dashboards-list.component.scss'],
