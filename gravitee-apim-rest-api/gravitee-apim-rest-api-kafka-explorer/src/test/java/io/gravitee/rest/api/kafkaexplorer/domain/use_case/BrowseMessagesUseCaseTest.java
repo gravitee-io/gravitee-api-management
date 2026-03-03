@@ -67,7 +67,7 @@ class BrowseMessagesUseCaseTest {
         clusterDomainService.givenBrowseMessagesResult(expectedResult);
 
         var result = useCase.execute(
-            new BrowseMessagesUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "my-topic", null, "NEWEST", null, null, 50)
+            new BrowseMessagesUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "my-topic", null, "NEWEST", null, null, null, 50)
         );
 
         assertThat(result.browseMessagesResult()).isEqualTo(expectedResult);
@@ -83,7 +83,9 @@ class BrowseMessagesUseCaseTest {
         clusterDomainService.givenException(new KafkaExplorerException("Topic not found", TechnicalCode.TOPIC_NOT_FOUND));
 
         assertThatThrownBy(() ->
-            useCase.execute(new BrowseMessagesUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "missing-topic", null, "NEWEST", null, null, 50))
+            useCase.execute(
+                new BrowseMessagesUseCase.Input(CLUSTER_ID, ENVIRONMENT_ID, "missing-topic", null, "NEWEST", null, null, null, 50)
+            )
         )
             .isInstanceOf(KafkaExplorerException.class)
             .satisfies(e -> assertThat(((KafkaExplorerException) e).getTechnicalCode()).isEqualTo(TechnicalCode.TOPIC_NOT_FOUND));

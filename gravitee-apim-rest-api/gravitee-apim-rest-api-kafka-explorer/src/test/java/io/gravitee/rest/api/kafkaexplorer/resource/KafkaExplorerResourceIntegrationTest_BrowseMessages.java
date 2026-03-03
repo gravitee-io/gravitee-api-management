@@ -147,7 +147,7 @@ class KafkaExplorerResourceIntegrationTest_BrowseMessages extends AbstractKafkaE
             .clusterId(CLUSTER_ID)
             .topicName(BROWSE_TOPIC)
             .valueFilter("index\":0")
-            .offsetMode(BrowseMessagesRequest.OffsetModeEnum.OLDEST);
+            .offsetMode(BrowseMessagesRequest.OffsetModeEnum.EARLIEST);
 
         var response = resource.browseMessages(request, 50);
 

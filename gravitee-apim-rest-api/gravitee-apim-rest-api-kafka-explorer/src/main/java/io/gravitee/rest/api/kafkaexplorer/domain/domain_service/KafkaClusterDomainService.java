@@ -38,6 +38,7 @@ public interface KafkaClusterDomainService {
         String offsetMode,
         Long offsetValue,
         String keyFilter,
+        String valueFilter,
         int limit
     );
 }

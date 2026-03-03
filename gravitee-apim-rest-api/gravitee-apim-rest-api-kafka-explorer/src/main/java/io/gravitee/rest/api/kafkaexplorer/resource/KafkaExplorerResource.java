@@ -336,6 +336,7 @@ public class KafkaExplorerResource {
                     offsetMode,
                     request.getOffsetValue(),
                     request.getKeyFilter(),
+                    request.getValueFilter(),
                     limit
                 )
             );

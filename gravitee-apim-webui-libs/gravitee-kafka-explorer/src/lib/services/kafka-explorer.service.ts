@@ -79,7 +79,14 @@ export class KafkaExplorerService {
     baseURL: string,
     clusterId: string,
     topicName: string,
-    options?: { partition?: number; offsetMode?: OffsetMode; offsetValue?: number; keyFilter?: string; limit?: number },
+    options?: {
+      partition?: number;
+      offsetMode?: OffsetMode;
+      offsetValue?: number;
+      keyFilter?: string;
+      valueFilter?: string;
+      limit?: number;
+    },
   ): Observable<BrowseMessagesResponse> {
     const limit = options?.limit ?? 50;
     const body: Record<string, unknown> = { clusterId, topicName };
@@ -87,6 +94,7 @@ export class KafkaExplorerService {
     if (options?.offsetMode) body['offsetMode'] = options.offsetMode;
     if (options?.offsetValue != null) body['offsetValue'] = options.offsetValue;
     if (options?.keyFilter) body['keyFilter'] = options.keyFilter;
+    if (options?.valueFilter) body['valueFilter'] = options.valueFilter;
     return this.http.post<BrowseMessagesResponse>(`${baseURL}/kafka-explorer/browse-messages`, body, {
       params: { limit: limit.toString() },
     });

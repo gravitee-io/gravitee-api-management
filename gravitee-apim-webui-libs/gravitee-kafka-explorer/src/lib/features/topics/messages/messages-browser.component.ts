@@ -33,6 +33,7 @@ export interface BrowseMessagesOptions {
   offsetMode: OffsetMode;
   offsetValue?: number;
   keyFilter?: string;
+  valueFilter?: string;
   limit: number;
 }
 
@@ -70,6 +71,7 @@ export class MessagesBrowserComponent {
   offsetMode = signal<OffsetMode>('NEWEST');
   offsetValue = signal<number | undefined>(undefined);
   keyFilter = signal('');
+  valueFilter = signal('');
   limit = signal(50);
 
   expandedMessage = signal<KafkaMessage | null>(null);
@@ -122,6 +124,7 @@ export class MessagesBrowserComponent {
       offsetMode: this.offsetMode(),
       offsetValue: this.offsetValue(),
       keyFilter: this.keyFilter() || undefined,
+      valueFilter: this.valueFilter() || undefined,
       limit: this.limit(),
     });
   }
