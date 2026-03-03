@@ -16,6 +16,7 @@
 package io.gravitee.apim.gateway.tests.sdk;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
+import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApiProducts;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganizations;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeploySharedPolicyGroups;
@@ -80,6 +81,7 @@ public class GatewayTestingExtension
             startGateway(context);
             deployOrganizationForClass(context);
             deploySharedPolicyGroupsForClass(context);
+            deployApiProductsForClass(context);
             deployApisForClass(context);
         } catch (Exception e) {
             LOGGER.error("Before all error: ", e);
@@ -101,6 +103,7 @@ public class GatewayTestingExtension
     public void beforeEach(ExtensionContext context) throws Exception {
         deployOrganizationForMethod(context);
         deploySharedPolicyGroupsForMethod(context);
+        deployApiProductsForMethod(context);
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployApi.class)) {
             LOGGER.debug("Deploying apis for test {}", context.getRequiredTestMethod().getName());
             final DeployApi annotation = context.getRequiredTestMethod().getAnnotation(DeployApi.class);
@@ -185,6 +188,10 @@ public class GatewayTestingExtension
             LOGGER.debug("Clear test method's shared policy groups");
             gatewayRunner.undeploySharedPolicyGroupForTest();
         }
+        if (context.getRequiredTestMethod().isAnnotationPresent(DeployApiProducts.class)) {
+            LOGGER.debug("Clear test method's API Products");
+            gatewayRunner.undeployApiProductForTest();
+        }
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployOrganization.class)) {
             LOGGER.debug("Clear organization");
             gatewayRunner.undeployOrganizationForTest();
@@ -205,6 +212,9 @@ public class GatewayTestingExtension
         }
         if (requiredTestClass.isAnnotationPresent(DeploySharedPolicyGroups.class)) {
             gatewayRunner.undeploySharedPolicyGroupForClass();
+        }
+        if (requiredTestClass.isAnnotationPresent(DeployApiProducts.class)) {
+            gatewayRunner.undeployApiProductForClass();
         }
         if (requiredTestClass.isAnnotationPresent(DeployOrganization.class)) {
             gatewayRunner.undeployOrganizationForClass();
@@ -252,6 +262,35 @@ public class GatewayTestingExtension
         if (requiredTestClass.isAnnotationPresent(DeploySharedPolicyGroups.class)) {
             for (String sharedPolicyGroupDefinition : requiredTestClass.getAnnotation(DeploySharedPolicyGroups.class).value()) {
                 gatewayRunner.deploySharedPolicyGroupForClass(sharedPolicyGroupDefinition);
+            }
+        }
+    }
+
+    private void deployApiProductsForClass(final ExtensionContext context) throws IOException {
+        final Class<?> requiredTestClass = context.getRequiredTestClass();
+        if (requiredTestClass.isAnnotationPresent(DeployApiProducts.class)) {
+            for (String apiProductDefinition : requiredTestClass.getAnnotation(DeployApiProducts.class).value()) {
+                gatewayRunner.deployApiProductForClass(apiProductDefinition);
+            }
+        }
+    }
+
+    private void deployApiProductsForMethod(ExtensionContext context) throws Exception {
+        List<String> deployApiProducts = new ArrayList<>();
+        if (context.getRequiredTestMethod().isAnnotationPresent(DeployApiProducts.class)) {
+            final DeployApiProducts annotation = context.getRequiredTestMethod().getAnnotation(DeployApiProducts.class);
+            deployApiProducts.addAll(Arrays.asList(annotation.value()));
+        }
+
+        if (!deployApiProducts.isEmpty()) {
+            LOGGER.debug("Deploying API Products for test {}", context.getRequiredTestMethod().getName());
+            for (String apiProductDefinition : deployApiProducts) {
+                try {
+                    gatewayRunner.deployApiProductForTest(apiProductDefinition);
+                } catch (Exception e) {
+                    exception = e;
+                    throw e;
+                }
             }
         }
     }
