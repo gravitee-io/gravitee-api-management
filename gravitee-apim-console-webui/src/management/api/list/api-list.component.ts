@@ -191,7 +191,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     this.tagService
       .list()
       .pipe(
-        map(tags => (this.tags = tags.map(tag => tag.id))),
+        map(tags => (this.tags = tags.map(tag => tag.key))),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();

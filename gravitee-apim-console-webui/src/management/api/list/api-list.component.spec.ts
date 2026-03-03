@@ -359,7 +359,10 @@ describe('ApisListComponent', () => {
         tick();
 
         const reqTags = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/tags`);
-        reqTags.flush([{ id: 'tag-1' }, { id: 'tag-2' }]);
+        reqTags.flush([
+          { id: 'tag-1', key: 'tag-1' },
+          { id: 'tag-2', key: 'tag-2' },
+        ]);
       }
 
       function expectQualityRequest(apiId: string, score: number) {
