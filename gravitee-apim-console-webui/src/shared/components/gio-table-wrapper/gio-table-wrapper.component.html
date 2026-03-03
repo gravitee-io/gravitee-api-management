@@ -36,6 +36,7 @@
         [length]="length"
         [pageSizeOptions]="paginationPageSizeOptions"
         [hidePageSize]="disablePageSize"
+        [showFirstLastButtons]="true"
         aria-label="Select page"
         data-testid="paginator-header"
       ></mat-paginator>
@@ -52,6 +53,7 @@
     [class.hidden]="length <= paginatorBottom.pageSize"
     [length]="length"
     [hidePageSize]="true"
+    [showFirstLastButtons]="true"
     aria-label="Select page"
     data-testid="paginator-footer"
   ></mat-paginator>

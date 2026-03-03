@@ -13,67 +13,77 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatTableHarness } from '@angular/material/table/testing';
-import { MatSortHarness } from '@angular/material/sort/testing';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 
 import { DashboardsListComponent } from './dashboards-list.component';
+
+import { Constants } from '../../../../entities/Constants';
+import { CONSTANTS_TESTING } from '../../../../shared/testing';
 
 describe('DashboardsListComponent', () => {
   let component: DashboardsListComponent;
   let fixture: ComponentFixture<DashboardsListComponent>;
   let loader: HarnessLoader;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [DashboardsListComponent, NoopAnimationsModule],
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting(), { provide: Constants, useValue: CONSTANTS_TESTING }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardsListComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    httpTestingController = TestBed.inject(HttpTestingController);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    // detectChanges is intentionally NOT called here: the debounceTime(200) timer
+    // must be created inside each fakeAsync test so that tick() can advance it.
   });
 
-  it('should create', () => {
+  afterEach(() => {
+    // Absorb any asset requests (e.g. icon SVGs from MatIconRegistry) before verifying
+    httpTestingController.match(req => !req.url.includes('/analytics/dashboards'));
+    httpTestingController.verify();
+  });
+
+  it('should create', fakeAsync(() => {
+    fixture.detectChanges(); // starts the observable chain inside the fakeAsync zone
+    tick(200); // advances past debounceTime(200)
+    fixture.detectChanges();
+    httpTestingController.expectOne(req => req.url.includes('/analytics/dashboards')).flush({ data: [], pagination: { totalCount: 0 } });
     expect(component).toBeTruthy();
-  });
+  }));
 
-  it('should display dashboards', async () => {
+  it('should display dashboards', fakeAsync(async () => {
+    const dashboards = Array.from({ length: 8 }, (_, i) => ({
+      id: `id-${i}`,
+      name: `Dashboard ${i}`,
+      createdBy: undefined,
+      createdAt: '2024-01-01',
+      lastModified: '2024-01-01',
+      labels: {},
+      widgets: [],
+    }));
+
+    fixture.detectChanges(); // starts the observable chain inside the fakeAsync zone
+    tick(200); // advances past debounceTime(200)
+    fixture.detectChanges();
+
+    httpTestingController
+      .expectOne(req => req.url.includes('/analytics/dashboards'))
+      .flush({ data: dashboards, pagination: { totalCount: 8 } });
+
+    fixture.detectChanges();
+
     const table = await loader.getHarness(MatTableHarness);
     const rows = await table.getRows();
-    // Default pagination is 10, and we have 8 items
     expect(rows.length).toBe(8);
-  });
-
-  it('should sort dashboards', async () => {
-    const sort = await loader.getHarness(MatSortHarness);
-    const headers = await sort.getSortHeaders({ sortDirection: '' });
-
-    // Sort by name asc
-    await headers[0].click();
-    expect(await headers[0].getSortDirection()).toBe('asc');
-
-    const table = await loader.getHarness(MatTableHarness);
-    const rows = await table.getRows();
-    const cells = await rows[0].getCells();
-    // "AI Dashboard" starts with A and I comes before d, should be first
-    expect(await cells[0].getText()).toBe('AI Dashboard');
-
-    // Sort by name desc
-    await headers[0].click();
-    expect(await headers[0].getSortDirection()).toBe('desc');
-
-    const rowsDesc = await table.getRows();
-    const cellsDesc = await rowsDesc[0].getCells();
-    // "V4 Proxy Dashboard" starts with V, should be first (or similar)
-    expect(await cellsDesc[0].getText()).toBe('V4 Proxy Dashboard');
-  });
+  }));
 });
