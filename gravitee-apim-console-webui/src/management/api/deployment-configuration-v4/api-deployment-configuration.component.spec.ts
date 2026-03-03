@@ -67,9 +67,9 @@ describe('ApiDeploymentConfigurationComponent', () => {
 
         expectApiGetRequest(api);
         expectTagGetRequest([
-          fakeTag({ id: 'tag1', name: 'tag1' }),
-          fakeTag({ id: 'tag2', name: 'tag2' }),
-          fakeTag({ id: 'tag3', name: 'tag3' }),
+          fakeTag({ id: 'tag-1-id', key: 'tag1', name: 'tag1' }),
+          fakeTag({ id: 'tag-2-id', key: 'tag2', name: 'tag2' }),
+          fakeTag({ id: 'tag-3-id', key: 'tag3', name: 'tag3' }),
         ]);
 
         const saveBar = await loader.getHarness(GioSaveBarHarness);
@@ -149,9 +149,9 @@ describe('ApiDeploymentConfigurationComponent', () => {
     it('should not be able to update deployment configuration', async () => {
       expectApiGetRequest(api);
       expectTagGetRequest([
-        fakeTag({ id: 'tag1', name: 'tag1' }),
-        fakeTag({ id: 'tag2', name: 'tag2' }),
-        fakeTag({ id: 'tag3', name: 'tag3' }),
+        fakeTag({ id: 'tag-1-id', key: 'tag1', name: 'tag1' }),
+        fakeTag({ id: 'tag-2-id', key: 'tag2', name: 'tag2' }),
+        fakeTag({ id: 'tag-3-id', key: 'tag3', name: 'tag3' }),
       ]);
 
       const saveBar = await loader.getHarness(GioSaveBarHarness);
