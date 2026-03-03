@@ -72,6 +72,7 @@ export class MessagesPageComponent implements OnInit {
         offsetMode: options.offsetMode,
         offsetValue: options.offsetValue,
         keyFilter: options.keyFilter,
+        valueFilter: options.valueFilter,
         limit: options.limit,
       })
       .pipe(takeUntilDestroyed(this.destroyRef))

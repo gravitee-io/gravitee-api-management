@@ -171,6 +171,7 @@ public class KafkaClusterDomainServiceInMemory implements KafkaClusterDomainServ
         String offsetMode,
         Long offsetValue,
         String keyFilter,
+        String valueFilter,
         int limit
     ) {
         if (exception != null) {

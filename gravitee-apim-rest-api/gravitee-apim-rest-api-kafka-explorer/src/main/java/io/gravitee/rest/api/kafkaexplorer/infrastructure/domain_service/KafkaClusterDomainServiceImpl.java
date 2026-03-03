@@ -475,6 +475,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         String offsetMode,
         Long offsetValue,
         String keyFilter,
+        String valueFilter,
         int limit
     ) {
         // First, use AdminClient to verify topic exists and get partition info
@@ -588,6 +589,15 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 allMessages = allMessages
                     .stream()
                     .filter(m -> m.key() != null && m.key().toLowerCase().contains(lowerFilter))
+                    .toList();
+            }
+
+            // Apply value filter if provided
+            if (valueFilter != null && !valueFilter.isBlank()) {
+                String lowerFilter = valueFilter.toLowerCase();
+                allMessages = allMessages
+                    .stream()
+                    .filter(m -> m.value() != null && m.value().toLowerCase().contains(lowerFilter))
                     .toList();
             }
 

@@ -717,6 +717,9 @@ components:
                 keyFilter:
                     type: string
                     description: Optional case-insensitive contains match on message key
+                valueFilter:
+                    type: string
+                    description: Optional case-insensitive contains match on message value
 
         BrowseMessagesResponse:
             type: object

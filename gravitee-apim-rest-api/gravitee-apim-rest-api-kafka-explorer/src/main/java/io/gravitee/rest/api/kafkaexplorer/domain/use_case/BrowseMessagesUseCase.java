@@ -48,6 +48,7 @@ public class BrowseMessagesUseCase {
             input.offsetMode(),
             input.offsetValue(),
             input.keyFilter(),
+            input.valueFilter(),
             input.limit()
         );
         return new Output(result);
@@ -61,6 +62,7 @@ public class BrowseMessagesUseCase {
         String offsetMode,
         Long offsetValue,
         String keyFilter,
+        String valueFilter,
         int limit
     ) {}
 

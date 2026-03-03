@@ -67,6 +67,11 @@
           <input matInput [ngModel]="keyFilter()" (ngModelChange)="keyFilter.set($event)" />
         </mat-form-field>
 
+        <mat-form-field class="messages-browser__control">
+          <mat-label>Value filter</mat-label>
+          <input matInput [ngModel]="valueFilter()" (ngModelChange)="valueFilter.set($event)" />
+        </mat-form-field>
+
         <mat-form-field class="messages-browser__control messages-browser__control--small">
           <mat-label>Limit</mat-label>
           <input matInput type="number" [ngModel]="limit()" (ngModelChange)="limit.set($event)" min="1" max="100" />
