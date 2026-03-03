@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
+import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApiProducts;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
@@ -30,6 +31,8 @@ import io.gravitee.apim.gateway.tests.sdk.converters.ApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.LegacyApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.NativeApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.V4ApiDeploymentPreparer;
+import io.gravitee.apim.gateway.tests.sdk.license.PermissiveLicenseManager;
+import io.gravitee.apim.gateway.tests.sdk.license.UniverseTierLicenseManager;
 import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.gateway.tests.sdk.plugin.PluginManifestLoader;
 import io.gravitee.apim.gateway.tests.sdk.policy.KeylessPolicy;
@@ -54,7 +57,9 @@ import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.dictionary.model.Dictionary;
+import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
@@ -62,6 +67,7 @@ import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.container.spring.env.GraviteeYamlPropertySource;
 import io.gravitee.node.plugins.service.ServiceManager;
@@ -109,6 +115,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -130,7 +137,9 @@ import lombok.SneakyThrows;
 import org.junit.platform.commons.PreconditionViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
@@ -161,7 +170,11 @@ public class GatewayRunner {
         "A shared policy group has already been deployed with id {%s}";
     public static final String CANNOT_UNDEPPLOY_CLASS_API_MESSAGE = "An API deployed at class level cannot be undeployed (id {%s})";
     public static final String CANNOT_UNDEPPLOY_CLASS_SPG_MESSAGE =
-        "A Shared Policy Group deployed at class level cannot be undeployed (id {%s})";
+        "A shared policy group deployed at class level cannot be undeployed (id {%s})";
+    public static final String API_PRODUCT_ALREADY_DEPLOYED_MESSAGE = "An API Product has already been deployed with id {%s}";
+    public static final String CANNOT_UNDEPLOY_CLASS_API_PRODUCT_MESSAGE =
+        "An API Product deployed at class level cannot be undeployed (id {%s})";
+    private static final String AT_CLASS_LEVEL = " at class level";
 
     private final GatewayConfigurationBuilder gatewayConfigurationBuilder;
     private final AbstractGatewayTest testInstance;
@@ -175,6 +188,8 @@ public class GatewayRunner {
     private final Map<String, ReactableOrganization> deployedOrganizationsForTest;
     private final Map<SharedPolicyGroupKey, ReactableSharedPolicyGroup> deployedSharedPolicyGroupsForTestClass;
     private final Map<SharedPolicyGroupKey, ReactableSharedPolicyGroup> deployedSharedPolicyGroupsForTest;
+    private final Map<String, ReactableApiProduct> deployedApiProductsForTestClass;
+    private final Map<String, ReactableApiProduct> deployedApiProductsForTest;
     private GatewayTestContainer gatewayContainer;
     private VertxEmbeddedContainer vertxContainer;
     private Path tempDir;
@@ -195,6 +210,8 @@ public class GatewayRunner {
         this.deployedOrganizationsForTest = new HashMap<>();
         this.deployedSharedPolicyGroupsForTestClass = new HashMap<>();
         this.deployedSharedPolicyGroupsForTest = new HashMap<>();
+        this.deployedApiProductsForTestClass = new HashMap<>();
+        this.deployedApiProductsForTest = new HashMap<>();
 
         // Allow test instance to access api deployed at class level
         testInstance.setDeployedClassApis(this.deployedForTestClass);
@@ -224,11 +241,14 @@ public class GatewayRunner {
             // prepare Gateway
             configure(gatewayConfiguration);
 
-            // create Gateway
-            gatewayContainer = new GatewayTestContainer(context -> {
-                // add extra configuration to gravitee.yaml
-                applyOnGraviteeYaml(context, gatewayConfiguration.yamlProperties());
+            // create Gateway — use UniverseTierLicenseManager if the test class deploys API Products
+            final LicenseManager licenseManager = testClassUsesApiProducts()
+                ? new UniverseTierLicenseManager()
+                : new PermissiveLicenseManager();
 
+            gatewayContainer = new GatewayTestContainer(context -> {
+                registerTestLicenseManager(context, licenseManager);
+                applyOnGraviteeYaml(context, gatewayConfiguration.yamlProperties());
                 // secret provider plugins need to be set up during boot to ensure a proper resolution of secrets during startup.
                 registerSecretProvider(context);
             });
@@ -242,6 +262,8 @@ public class GatewayRunner {
             testInstance.setUndeployCallback(this::undeployFromTest);
             testInstance.setDeploySharedPolicyGroupCallback(this::deploySharedPolicyGroupFromTest);
             testInstance.setUndeploySharedPolicyGroupCallback(this::undeploySharedPolicyGroupFromTest);
+            testInstance.setDeployApiProductCallback(this::deployOrRedeployApiProductFromTest);
+            testInstance.setUndeployApiProductCallback(this::undeployApiProductFromTest);
 
             // register plugins
 
@@ -486,6 +508,39 @@ public class GatewayRunner {
         );
     }
 
+    public void deployApiProductForClass(String apiProductDefinitionPath) throws IOException {
+        final ReactableApiProduct reactableApiProduct = loadApiProductDefinition(apiProductDefinitionPath);
+        if (deployedApiProductsForTestClass.containsKey(reactableApiProduct.getId())) {
+            throw new PreconditionViolationException(String.format(API_PRODUCT_ALREADY_DEPLOYED_MESSAGE, reactableApiProduct.getId()));
+        }
+        deployApiProduct(reactableApiProduct, deployedApiProductsForTestClass);
+    }
+
+    public void deployApiProductForTest(String apiProductDefinitionPath) throws IOException {
+        final ReactableApiProduct reactableApiProduct = loadApiProductDefinition(apiProductDefinitionPath);
+        if (
+            deployedApiProductsForTestClass.containsKey(reactableApiProduct.getId()) ||
+            deployedApiProductsForTest.containsKey(reactableApiProduct.getId())
+        ) {
+            throw new PreconditionViolationException(String.format(API_PRODUCT_ALREADY_DEPLOYED_MESSAGE, reactableApiProduct.getId()));
+        }
+        deployApiProduct(reactableApiProduct, deployedApiProductsForTest);
+    }
+
+    private void deployApiProduct(ReactableApiProduct reactableApiProduct, Map<String, ReactableApiProduct> deployedApiProducts) {
+        ApiProductManager apiProductManager = gatewayContainer.applicationContext().getBean(ApiProductManager.class);
+
+        testInstance.ensureMinimalRequirementForApiProduct(reactableApiProduct);
+        reactableApiProduct.setDeployedAt(new Date());
+
+        try {
+            apiProductManager.register(reactableApiProduct);
+        } catch (Exception e) {
+            throw new IllegalStateException("An error occurred deploying the API Product %s".formatted(reactableApiProduct.getId()), e);
+        }
+        deployedApiProducts.put(reactableApiProduct.getId(), reactableApiProduct);
+    }
+
     public void deployForClass(String apiDefinitionPath) throws IOException {
         deployForClass(apiDefinitionPath, null);
     }
@@ -529,7 +584,7 @@ public class GatewayRunner {
      */
     private void deployFromTest(ReactableApi<?> reactableApi) {
         if (deployedForTestClass.containsKey(reactableApi.getId())) {
-            throw new PreconditionViolationException(String.format(API_ALREADY_DEPLOYED_MESSAGE + " at class level", reactableApi.getId()));
+            throw new PreconditionViolationException(String.format(API_ALREADY_DEPLOYED_MESSAGE + AT_CLASS_LEVEL, reactableApi.getId()));
         }
         if (deployedForTest.containsKey(reactableApi.getId())) {
             undeploy(reactableApi);
@@ -563,7 +618,7 @@ public class GatewayRunner {
             )
         ) {
             throw new PreconditionViolationException(
-                String.format(SPG_ALREADY_DEPLOYED_MESSAGE + " at class level", reactableSharedPolicyGroup.getId())
+                String.format(SPG_ALREADY_DEPLOYED_MESSAGE + AT_CLASS_LEVEL, reactableSharedPolicyGroup.getId())
             );
         }
         if (
@@ -592,6 +647,30 @@ public class GatewayRunner {
                 .getBean(SharedPolicyGroupManager.class);
             sharedPolicyGroupManager.unregister(sharedPolicyGroup);
             deployedSharedPolicyGroupsForTest.remove(new SharedPolicyGroupKey(sharedPolicyGroup, environmentId));
+        }
+    }
+
+    private void deployOrRedeployApiProductFromTest(ReactableApiProduct reactableApiProduct) {
+        if (deployedApiProductsForTestClass.containsKey(reactableApiProduct.getId())) {
+            throw new PreconditionViolationException(
+                String.format(API_PRODUCT_ALREADY_DEPLOYED_MESSAGE + AT_CLASS_LEVEL, reactableApiProduct.getId())
+            );
+        }
+        if (deployedApiProductsForTest.containsKey(reactableApiProduct.getId())) {
+            undeployApiProduct(reactableApiProduct);
+            deployedApiProductsForTest.remove(reactableApiProduct.getId());
+        }
+        deployApiProduct(reactableApiProduct, deployedApiProductsForTest);
+    }
+
+    private void undeployApiProductFromTest(String apiProductId) {
+        if (deployedApiProductsForTestClass.containsKey(apiProductId)) {
+            throw new PreconditionViolationException(String.format(CANNOT_UNDEPLOY_CLASS_API_PRODUCT_MESSAGE, apiProductId));
+        }
+        if (deployedApiProductsForTest.containsKey(apiProductId)) {
+            ReactableApiProduct product = deployedApiProductsForTest.get(apiProductId);
+            undeployApiProduct(product);
+            deployedApiProductsForTest.remove(apiProductId);
         }
     }
 
@@ -701,6 +780,21 @@ public class GatewayRunner {
     public void undeploySharedPolicyGroup(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
         SharedPolicyGroupManager sharedPolicyGroupManager = gatewayContainer.applicationContext().getBean(SharedPolicyGroupManager.class);
         sharedPolicyGroupManager.unregister(reactableSharedPolicyGroup.getId());
+    }
+
+    public void undeployApiProductForClass() {
+        deployedApiProductsForTestClass.forEach((key, value) -> undeployApiProduct(value));
+        deployedApiProductsForTestClass.clear();
+    }
+
+    public void undeployApiProductForTest() {
+        deployedApiProductsForTest.forEach((key, value) -> undeployApiProduct(value));
+        deployedApiProductsForTest.clear();
+    }
+
+    private void undeployApiProduct(ReactableApiProduct reactableApiProduct) {
+        ApiProductManager apiProductManager = gatewayContainer.applicationContext().getBean(ApiProductManager.class);
+        apiProductManager.unregister(reactableApiProduct.getId());
     }
 
     /**
@@ -926,6 +1020,21 @@ public class GatewayRunner {
         return new ReactableSharedPolicyGroup(sharedPolicyGroup);
     }
 
+    private ReactableApiProduct loadApiProductDefinition(String apiProductDefinitionPath) throws IOException {
+        final ApiProductDefinition definition = loadResource(apiProductDefinitionPath, ApiProductDefinition.class);
+        return ReactableApiProduct.builder()
+            .id(definition.getId())
+            .name(definition.getName())
+            .description(definition.getDescription())
+            .version(definition.getVersion())
+            .apiIds(definition.getApiIds() != null ? definition.getApiIds() : Set.of())
+            .environmentId(definition.getEnvironmentId())
+            .environmentHrid(definition.getEnvironmentHrid())
+            .organizationId(definition.getOrganizationId())
+            .organizationHrid(definition.getOrganizationHrid())
+            .build();
+    }
+
     private <T> T loadResource(String resourcePath, Class<T> toClass) throws IOException {
         String definition = cacheDefinition.computeIfAbsent(resourcePath, path -> {
             try {
@@ -1069,6 +1178,32 @@ public class GatewayRunner {
             return Optional.ofNullable(apiAsJson.get("environmentId").asText());
         }
         return Optional.empty();
+    }
+
+    private void registerTestLicenseManager(ApplicationContext context, LicenseManager licenseManager) {
+        // AnnotationConfigApplicationContext uses DefaultListableBeanFactory; required for destroySingleton/registerSingleton.
+        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) ((ConfigurableApplicationContext) context).getBeanFactory();
+        String beanName = "licenseManager";
+        if (beanFactory.containsSingleton(beanName)) beanFactory.destroySingleton(beanName);
+        beanFactory.registerSingleton(beanName, licenseManager);
+    }
+
+    /**
+     * Returns {@code true} if the test class needs a "universe" tier license.
+     * Detected via {@link DeployApiProducts} annotation on the test class (including inherited)
+     * or any of its methods (including inherited from parent classes).
+     */
+    private boolean testClassUsesApiProducts() {
+        Class<?> testClass = testInstance.getClass();
+        if (testClass.isAnnotationPresent(DeployApiProducts.class)) {
+            return true;
+        }
+        for (Class<?> c = testClass; c != null; c = c.getSuperclass()) {
+            if (Arrays.stream(c.getDeclaredMethods()).anyMatch(method -> method.isAnnotationPresent(DeployApiProducts.class))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

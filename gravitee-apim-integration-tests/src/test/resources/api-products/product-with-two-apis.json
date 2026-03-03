@@ -1,0 +1,8 @@
+{
+  "id": "api-product-integration-1",
+  "name": "Integration Test API Product",
+  "description": "API Product for integration tests - contains two APIs",
+  "version": "1.0",
+  "apiIds": ["my-api-v4-1", "my-api-v4-2"],
+  "environmentId": "DEFAULT"
+}

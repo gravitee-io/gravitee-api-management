@@ -41,17 +41,22 @@ public class PermissiveLicenseManager extends AbstractService<LicenseManager> im
     @Nullable
     @Override
     public License getOrganizationLicense(String organizationId) {
-        return PERMISSIVE_LICENSE;
+        return getLicense();
     }
 
     @Override
     public @NonNull License getOrganizationLicenseOrPlatform(String organizationId) {
-        return PERMISSIVE_LICENSE;
+        return getLicense();
     }
 
     @NonNull
     @Override
     public License getPlatformLicense() {
+        return getLicense();
+    }
+
+    /** Override in subclasses to provide a different license (e.g. UniverseTierLicense). */
+    protected License getLicense() {
         return PERMISSIVE_LICENSE;
     }
 

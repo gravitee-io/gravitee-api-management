@@ -1,0 +1,8 @@
+{
+  "id": "api-product-1",
+  "name": "Test API Product",
+  "description": "API Product for SDK tests",
+  "version": "1.0",
+  "apiIds": ["api-1", "api-2"],
+  "environmentId": "DEFAULT"
+}

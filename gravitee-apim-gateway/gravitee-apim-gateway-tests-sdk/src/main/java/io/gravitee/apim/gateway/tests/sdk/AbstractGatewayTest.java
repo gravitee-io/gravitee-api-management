@@ -28,6 +28,7 @@ import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.gateway.tests.sdk.plugin.PluginRegister;
 import io.gravitee.apim.gateway.tests.sdk.runner.ApiConfigurer;
 import io.gravitee.apim.gateway.tests.sdk.runner.ApiDeployer;
+import io.gravitee.apim.gateway.tests.sdk.runner.ApiProductDeployer;
 import io.gravitee.apim.gateway.tests.sdk.runner.DictionaryDeployer;
 import io.gravitee.apim.gateway.tests.sdk.runner.OrganizationConfigurer;
 import io.gravitee.apim.gateway.tests.sdk.runner.SharedPolicyGroupDeployer;
@@ -35,6 +36,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.dictionary.model.Dictionary;
+import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
@@ -88,7 +90,8 @@ public abstract class AbstractGatewayTest
         OrganizationConfigurer,
         DictionaryDeployer,
         ApplicationContextAware,
-        SharedPolicyGroupDeployer {
+        SharedPolicyGroupDeployer,
+        ApiProductDeployer {
 
     private static final ObjectMapper objectMapper = new GraviteeMapper();
     protected static final PlaceholderSymbols DEFAULT_PLACEHOLDER_SYMBOLS = new PlaceholderSymbols("${", "}");
@@ -118,6 +121,8 @@ public abstract class AbstractGatewayTest
     private Consumer<String> apiUndeployer;
     private Consumer<ReactableSharedPolicyGroup> sharedPolicyGroupDeployer;
     private BiConsumer<String, String> sharedPolicyGroupUndeployer;
+    private Consumer<ReactableApiProduct> apiProductDeployer;
+    private Consumer<String> apiProductUndeployer;
     protected Vertx vertx;
 
     /**
@@ -343,6 +348,32 @@ public abstract class AbstractGatewayTest
     }
 
     @Override
+    public void setDeployApiProductCallback(Consumer<ReactableApiProduct> apiProductDeployer) {
+        this.apiProductDeployer = apiProductDeployer;
+    }
+
+    @Override
+    public void setUndeployApiProductCallback(Consumer<String> apiProductUndeployer) {
+        this.apiProductUndeployer = apiProductUndeployer;
+    }
+
+    @Override
+    public void deployApiProduct(ReactableApiProduct reactableApiProduct) {
+        apiProductDeployer.accept(reactableApiProduct);
+    }
+
+    @Override
+    public void undeployApiProduct(String apiProductId) {
+        apiProductUndeployer.accept(apiProductId);
+    }
+
+    @Override
+    public void redeployApiProduct(ReactableApiProduct reactableApiProduct) {
+        undeployApiProduct(reactableApiProduct.getId());
+        deployApiProduct(reactableApiProduct);
+    }
+
+    @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
@@ -366,6 +397,17 @@ public abstract class AbstractGatewayTest
     public void ensureMinimalRequirementForOrganization(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
         if (!StringUtils.hasText(reactableSharedPolicyGroup.getEnvironmentId())) {
             reactableSharedPolicyGroup.getDefinition().setEnvironmentId(DEFAULT_ID);
+        }
+    }
+
+    /**
+     * Ensures the API Product has the minimal requirement to be run properly.
+     * - add a default environment id ("DEFAULT") if not set
+     * @param reactableApiProduct to deploy
+     */
+    public void ensureMinimalRequirementForApiProduct(ReactableApiProduct reactableApiProduct) {
+        if (!StringUtils.hasText(reactableApiProduct.getEnvironmentId())) {
+            reactableApiProduct.setEnvironmentId(DEFAULT_ID);
         }
     }
 
