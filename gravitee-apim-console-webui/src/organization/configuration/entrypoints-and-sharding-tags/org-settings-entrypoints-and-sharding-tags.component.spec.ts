@@ -441,7 +441,8 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
     });
 
     it('should create a new HTTP mapping', async () => {
-      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
+      const tag1 = fakeTag({ id: 'tag-1-id', key: 'tag-1', name: 'Tag 1' });
+      expectTagsListRequest([tag1]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest();
@@ -449,7 +450,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       const addButtonMenu = await loader.getHarness(MatMenuHarness.with({ triggerText: /Add a mapping/ }));
       await addButtonMenu.clickItem({ text: 'HTTP' });
 
-      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
+      expectTagsListRequest([tag1]);
 
       const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
       expect(await submitButton.isDisabled()).toBeTruthy();
@@ -471,7 +472,8 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
     });
 
     it('should create a new KAFKA mapping', async () => {
-      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
+      const tag1 = fakeTag({ id: 'tag-1-id', key: 'tag-1', name: 'Tag 1' });
+      expectTagsListRequest([tag1]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest();
@@ -479,7 +481,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       const addButtonMenu = await loader.getHarness(MatMenuHarness.with({ triggerText: /Add a mapping/ }));
       await addButtonMenu.clickItem({ text: 'Kafka' });
 
-      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
+      expectTagsListRequest([tag1]);
 
       const addMappingDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#addMappingDialog' }));
 
@@ -507,7 +509,9 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
     });
 
     it('should update a HTTP mapping', async () => {
-      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+      const tag1 = fakeTag({ id: 'tag-1-id', key: 'tag-1', name: 'Tag 1' });
+      const tag2 = fakeTag({ id: 'tag-2-id', key: 'tag-2', name: 'Tag 2' });
+      expectTagsListRequest([tag1, tag2]);
       expectGroupListByOrganizationRequest([]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest([fakeEntrypoint({ id: 'entrypointIdA', tags: ['tag-1'] })]);
@@ -521,7 +525,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       );
       await editButton.click();
 
-      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+      expectTagsListRequest([tag1, tag2]);
 
       const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
 

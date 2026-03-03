@@ -28,11 +28,13 @@
       <mat-form-field>
         <mat-label>Sharding tags</mat-label>
         <mat-select formControlName="tags" aria-label="Sharding tags selection" multiple required>
-          <mat-option *ngFor="let tag of tags$ | async" [value]="tag.id"
-            >{{ tag.name }}{{ tag.description ? ' - ' + tag.description : '' }}</mat-option
-          >
+          @for (tag of tags$ | async; track tag.id) {
+            <mat-option [value]="tag.key">{{ tag.name }}{{ tag.description ? ' - ' + tag.description : '' }}</mat-option>
+          }
         </mat-select>
-        <mat-error *ngIf="mappingForm.get('tags').hasError('required')">At least one tag must be selected.</mat-error>
+        @if (mappingForm.controls.tags.hasError('required')) {
+          <mat-error>At least one tag must be selected.</mat-error>
+        }
       </mat-form-field>
 
       @switch (target) {
@@ -40,7 +42,9 @@
           <mat-form-field>
             <mat-label>Entrypoint url</mat-label>
             <input matInput formControlName="httpValue" type="url" placeholder="https://api.mycompany.com" required />
-            <mat-error *ngIf="mappingForm.get('httpValue').hasError('required')">Entrypoint Url is required.</mat-error>
+            @if (mappingForm.controls.httpValue.hasError('required')) {
+              <mat-error>Entrypoint Url is required.</mat-error>
+            }
           </mat-form-field>
         }
         @case ('KAFKA') {
@@ -49,21 +53,23 @@
               <mat-label>Default Kafka Bootstrap Domain Pattern</mat-label>
               <input matInput formControlName="kafkaDomain" />
 
-              <mat-error *ngIf="mappingForm.get('kafkaDomain').hasError('maxLength')"
-                >Kafka Domain must be less than 201 characters.</mat-error
-              >
-              <mat-error *ngIf="mappingForm.get('kafkaDomain').hasError('required')">Kafka Bootstrap Domain Pattern is required.</mat-error>
-              <mat-error *ngIf="mappingForm.get('kafkaDomain').hasError('apiHostMissing')">
-                Kafka Bootstrap Domain Pattern must contain {{ '{apiHost}' }}.
-              </mat-error>
+              @if (mappingForm.controls.kafkaDomain.hasError('maxLength')) {
+                <mat-error>Kafka Domain must be less than 201 characters.</mat-error>
+              }
+              @if (mappingForm.controls.kafkaDomain.hasError('required')) {
+                <mat-error>Kafka Bootstrap Domain Pattern is required.</mat-error>
+              }
+              @if (mappingForm.controls.kafkaDomain.hasError('apiHostMissing')) {
+                <mat-error>Kafka Bootstrap Domain Pattern must contain {{ '{apiHost}' }}.</mat-error>
+              }
               <mat-hint> To be configured according to the gateway configuration. e.g: {{ '{apiHost}.mycompany.org' }} </mat-hint>
             </mat-form-field>
             <mat-form-field class="kafka__port">
               <mat-label>Default Kafka port</mat-label>
               <input matInput formControlName="kafkaPort" type="number" />
-              <mat-error *ngIf="mappingForm.get('kafkaPort').hasError('invalidPort')"
-                >Port should be in range between 1025 and 65535</mat-error
-              >
+              @if (mappingForm.controls.kafkaPort.hasError('invalidPort')) {
+                <mat-error>Port should be in range between 1025 and 65535</mat-error>
+              }
             </mat-form-field>
           </div>
         }
@@ -71,7 +77,9 @@
           <mat-form-field class="tcp__port">
             <mat-label>Default TCP port</mat-label>
             <input matInput formControlName="tcpPort" type="number" />
-            <mat-error *ngIf="mappingForm.get('tcpPort').hasError('invalidPort')">Port should be in range between 1025 and 65535</mat-error>
+            @if (mappingForm.controls.tcpPort.hasError('invalidPort')) {
+              <mat-error>Port should be in range between 1025 and 65535</mat-error>
+            }
           </mat-form-field>
         }
       }
