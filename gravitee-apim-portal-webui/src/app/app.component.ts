@@ -331,7 +331,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     } else {
       const urlTree = this.router.parseUrl(route.path);
       const path = urlTree.root.children[PRIMARY_OUTLET].segments.join('/');
-      this.router.navigate([path], { queryParams: urlTree.queryParams });
+      this.router.navigate([path], { queryParams: urlTree.queryParams, queryParamsHandling: 'merge' });
     }
   }
 
