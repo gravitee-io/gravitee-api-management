@@ -1,42 +1,276 @@
-# V4 API Analytics Dashboard - User Stories & Implementation Guide (Refined)
+# V4 API Analytics Dashboard - User Stories & Implementation Guide (End-to-End Flows)
 
-This document provides a detailed breakdown of each user story into actionable subtasks, including exact file paths, test requirements, reference patterns, and dependencies.
+This document provides a detailed breakdown organized into **end-to-end feature flows** that deliver user value incrementally. Each flow follows the pattern: **Backend → Frontend Service → UI → E2E/Performance Tests**.
 
-**Document Version**: 2.0 (Refined after critical review)
+**Document Version**: 3.0 (Reorganized for incremental delivery)
+
+**Guiding Principles:**
+- **Start with UI** to establish user experience first
+- **Build complete features** end-to-end before moving to the next
+- **Deliver value ASAP** - each flow produces working functionality
+- **Small iterations** - prefer more flows over larger ones
+- **TDD throughout** - RED-GREEN-REFACTOR for every story
 
 ---
 
 ## Table of Contents
 
-- [Backend Stories](#backend-stories)
-  - [Story 1A: Analytics Domain Models](#story-1a-analytics-domain-models)
-  - [Story 1B: REST Endpoint Skeleton with Authorization](#story-1b-rest-endpoint-skeleton-with-authorization)
-  - [Story 1C: Use Case Foundation](#story-1c-use-case-foundation)
-  - [Story 2: COUNT Query Type Implementation](#story-2-count-query-type-implementation)
-  - [Story 2.5: Elasticsearch Error Handling](#story-25-elasticsearch-error-handling)
-  - [Story 3: STATS Query Type Implementation](#story-3-stats-query-type-implementation)
-  - [Story 4: GROUP_BY Query Type Implementation](#story-4-group_by-query-type-implementation)
-  - [Story 5: DATE_HISTO Query Type Implementation](#story-5-date_histo-query-type-implementation)
-  - [Story 6.5: Performance Validation & Timeouts](#story-65-performance-validation--timeouts)
-- [Frontend Stories](#frontend-stories)
-  - [Story 7A: Analytics Service - COUNT Support](#story-7a-analytics-service---count-support)
-  - [Story 7B: Analytics Service - STATS Support](#story-7b-analytics-service---stats-support)
-  - [Story 7C: Analytics Service - GROUP_BY Support](#story-7c-analytics-service---group_by-support)
-  - [Story 7D: Analytics Service - DATE_HISTO Support](#story-7d-analytics-service---date_histo-support)
-  - [Story 7.5: Dashboard Route & Navigation](#story-75-dashboard-route--navigation)
-  - [Story 8: Stats Cards Widget with State Handling](#story-8-stats-cards-widget-with-state-handling)
-  - [Story 9: HTTP Status Pie Chart Widget](#story-9-http-status-pie-chart-widget)
-  - [Story 10: Verify Existing Line Charts](#story-10-verify-existing-line-charts)
-  - [Story 12: Integration & Verification](#story-12-integration--verification)
-  - [Story 15: E2E Dashboard Tests](#story-15-e2e-dashboard-tests)
-- [Implementation Order](#implementation-order)
-- [Refinement Notes](#refinement-notes)
+- [Flow 1: Empty Dashboard Foundation](#flow-1-empty-dashboard-foundation)
+- [Flow 2: Request Count (First Analytics Feature)](#flow-2-request-count-first-analytics-feature)
+- [Flow 3: Gateway Latency Statistics](#flow-3-gateway-latency-statistics)
+- [Flow 4: Additional Performance Statistics](#flow-4-additional-performance-statistics)
+- [Flow 5: Status Code Distribution (Pie Chart)](#flow-5-status-code-distribution-pie-chart)
+- [Flow 6: Response Time Over Time (Line Chart)](#flow-6-response-time-over-time-line-chart)
+- [Flow 7: Error Handling & Resilience](#flow-7-error-handling--resilience)
+- [Flow 8: Performance Validation & Final Polish](#flow-8-performance-validation--final-polish)
+- [Implementation Timeline](#implementation-timeline)
+- [Version History](#version-history)
 
 ---
 
-## Backend Stories
+## Flow 1: Empty Dashboard Foundation
 
-### Story 1A: Analytics Domain Models
+**Goal:** Establish the UI foundation with routing, navigation, and empty state. No backend integration yet.
+
+**User Value:** Users can navigate to the new Analytics dashboard and see a timeframe selector with an empty state.
+
+**Duration:** 2 days
+
+---
+
+### Story 1.1: Dashboard Route & Navigation
+
+**Title:** Create analytics dashboard route with navigation
+
+**Description:**
+As an API publisher, I want to navigate to the Analytics dashboard from the API menu so that I can access analytics data.
+
+**Acceptance Criteria:**
+- [ ] Route exists at `/apis/:apiId/analytics-v4`
+- [ ] Menu item visible in API navigation sidebar
+- [ ] Dashboard component renders with empty state
+- [ ] Timeframe selector is visible and functional
+- [ ] Page title shows "Analytics Dashboard"
+- [ ] No backend calls are made yet
+- [ ] Component harness tests verify navigation
+
+**Layer:** Frontend
+**Complexity:** XS (2 days)
+**Dependencies:** None
+
+#### Subtask 1.1.0: Write Acceptance Tests (RED)
+
+**Files to Create:**
+
+1. **api-analytics-dashboard.component.harness.ts**
+   - **Path:** `gravitee-apim-console-webui/src/management/api/api-traffic-v4/analytics-dashboard/api-analytics-dashboard.component.harness.ts`
+   - **Test Cases:**
+     - `shouldRenderEmptyState()`
+     - `shouldDisplayTimeframeSelector()`
+     - `shouldNotMakeBackendCalls()`
+
+2. **api-analytics-dashboard.component.spec.ts**
+   - **Path:** `gravitee-apim-console-webui/src/management/api/api-traffic-v4/analytics-dashboard/api-analytics-dashboard.component.spec.ts`
+   - **Test Cases:**
+     - `shouldCreate()`
+     - `shouldDisplayEmptyState()`
+     - `shouldRenderTimeframeSelector()`
+     - `shouldHaveCorrectPageTitle()`
+
+**Reference Patterns:**
+- Existing harness: `api-analytics-proxy.component.harness.ts`
+- Use Angular Component Harnesses pattern
+- Use `HttpTestingController` to verify no HTTP calls
+
+#### Subtask 1.1.1: Create Dashboard Component
+
+**IMPORTANT:** The Gravitee Console uses the Particles design system (`@gravitee/ui-particles-angular`) on top of Angular Material. Before implementing any UI component, **study the EXISTING analytics code** at:
+- `src/management/api/api-traffic-v4/analytics/`
+
+**Files to Create:**
+
+1. **api-analytics-dashboard.component.ts**
+   - **Path:** `gravitee-apim-console-webui/src/management/api/api-traffic-v4/analytics-dashboard/api-analytics-dashboard.component.ts`
+   - **Content:**
+   ```typescript
+   import { Component, computed, inject, signal } from '@angular/core';
+   import { CommonModule } from '@angular/common';
+   import { ActivatedRoute } from '@angular/router';
+   import { MatCardModule } from '@angular/material/card';
+   import { GioTimeframeModule } from '@gravitee/ui-particles-angular';
+
+   @Component({
+     selector: 'api-analytics-dashboard',
+     standalone: true,
+     imports: [CommonModule, MatCardModule, GioTimeframeModule],
+     template: `
+       <div class="analytics-dashboard">
+         <div class="dashboard-header">
+           <h1>Analytics Dashboard</h1>
+           <gio-timeframe-selector
+             [from]="timeRange().from"
+             [to]="timeRange().to"
+             (timeRangeChange)="onTimeRangeChange($event)"
+           />
+         </div>
+
+         <div class="empty-state">
+           <mat-card>
+             <mat-card-content>
+               <p>Select a time range to view analytics data.</p>
+             </mat-card-content>
+           </mat-card>
+         </div>
+       </div>
+     `,
+     styleUrls: ['./api-analytics-dashboard.component.scss']
+   })
+   export class ApiAnalyticsDashboardComponent {
+     private readonly activatedRoute = inject(ActivatedRoute);
+
+     readonly apiId = computed(() => this.activatedRoute.snapshot.params['apiId']);
+     readonly timeRange = signal({
+       from: Date.now() - 24 * 60 * 60 * 1000, // 24 hours ago
+       to: Date.now()
+     });
+
+     onTimeRangeChange(range: { from: number; to: number }): void {
+       this.timeRange.set(range);
+     }
+   }
+   ```
+
+2. **api-analytics-dashboard.component.scss**
+   - **Path:** `gravitee-apim-console-webui/src/management/api/api-traffic-v4/analytics-dashboard/api-analytics-dashboard.component.scss`
+   - **Content:**
+   ```scss
+   .analytics-dashboard {
+     padding: 24px;
+
+     .dashboard-header {
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+       margin-bottom: 24px;
+
+       h1 {
+         margin: 0;
+       }
+     }
+
+     .empty-state {
+       display: flex;
+       justify-content: center;
+       align-items: center;
+       min-height: 400px;
+
+       mat-card {
+         text-align: center;
+         padding: 48px;
+       }
+     }
+   }
+   ```
+
+**Reference Patterns:**
+- Study existing: `src/management/api/api-traffic-v4/analytics/api-analytics-proxy/api-analytics-proxy.component.ts`
+- Use Standalone Components
+- Use Signals: `signal()`, `computed()`
+- Use `inject()` for DI (NO constructor injection)
+- Use `@if` control flow (NOT `*ngIf`)
+
+#### Subtask 1.1.2: Add Route Configuration
+
+**Files to Modify:**
+
+1. **api-traffic-v4-routing.module.ts**
+   - **Path:** `gravitee-apim-console-webui/src/management/api/api-traffic-v4/api-traffic-v4-routing.module.ts`
+   - **Action:** Add route
+   ```typescript
+   {
+     path: 'analytics-v4',
+     component: ApiAnalyticsDashboardComponent,
+     data: {
+       breadcrumb: 'Analytics Dashboard'
+     }
+   }
+   ```
+
+#### Subtask 1.1.3: Add Navigation Menu Item
+
+**Files to Modify:**
+
+1. **api-navigation.component.ts**
+   - **Path:** `gravitee-apim-console-webui/src/management/api/components/api-navigation/api-navigation.component.ts`
+   - **Action:** Add menu item
+   ```typescript
+   {
+     label: 'Analytics Dashboard',
+     routerLink: './analytics-v4',
+     icon: 'chart-bar',
+     permission: 'api-analytics-r'
+   }
+   ```
+
+#### Subtask 1.1.4: Run Tests (GREEN)
+
+- Verify all component tests pass
+- Verify harness tests pass
+- Verify navigation works in browser
+- Verify no HTTP calls are made
+
+---
+
+### Story 1.2: E2E Test for Empty Dashboard
+
+**Title:** E2E test verifying empty dashboard navigation
+
+**Description:**
+As a developer, I want E2E tests for the empty dashboard so that I can verify the basic navigation flow works.
+
+**Acceptance Criteria:**
+- [ ] E2E test navigates to dashboard
+- [ ] E2E test verifies empty state is displayed
+- [ ] E2E test verifies timeframe selector is present
+- [ ] Test runs in CI/CD pipeline
+
+**Layer:** Frontend E2E
+**Complexity:** XS (1 day)
+**Dependencies:** Story 1.1
+
+#### Subtask 1.2.0: Write E2E Test
+
+**Files to Create:**
+
+1. **api-analytics-dashboard.e2e-spec.ts**
+   - **Path:** `gravitee-apim-console-webui/e2e/api/analytics/api-analytics-dashboard.e2e-spec.ts`
+   - **Test Cases:**
+     - `should navigate to analytics dashboard`
+     - `should display empty state`
+     - `should display timeframe selector`
+
+**Reference Patterns:**
+- Existing E2E tests in `e2e/` directory
+- Use Playwright or Protractor patterns
+
+#### Subtask 1.2.1: Run Tests (GREEN)
+
+- Verify E2E test passes locally
+- Verify E2E test passes in CI
+
+---
+
+## Flow 2: Request Count (First Analytics Feature)
+
+**Goal:** Deliver the first complete end-to-end analytics feature: total request count.
+
+**User Value:** Users can see the total number of requests to their API in the selected time range.
+
+**Duration:** 1.5 weeks
+
+---
+
+### Story 2.1: Analytics Domain Models
 
 **Title:** Create analytics domain models and type hierarchy
 
@@ -55,7 +289,7 @@ As a platform developer, I want well-typed domain models for analytics queries a
 **Complexity:** M (3 days)
 **Dependencies:** None
 
-#### Subtask 1A.0: Write Acceptance Tests (RED)
+#### Subtask 2.1.0: Write Acceptance Tests (RED)
 
 **Files to Create:**
 
@@ -87,7 +321,7 @@ As a platform developer, I want well-typed domain models for analytics queries a
 - Use AssertJ for assertions
 - Use Jackson ObjectMapper for serialization tests
 
-#### Subtask 1A.1: Create Core Query Models
+#### Subtask 2.1.1: Create Core Query Models
 
 **Files to Create:**
 
@@ -114,44 +348,233 @@ As a platform developer, I want well-typed domain models for analytics queries a
 
 2. **CountQuery.java**
    - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/analytics/model/CountQuery.java`
+   - **Content:**
+   ```java
+   package io.gravitee.apim.core.analytics.model;
+
+   import java.time.Instant;
+
+   public record CountQuery(
+       String apiId,
+       Instant from,
+       Instant to
+   ) implements AnalyticsQuery {
+       @Override
+       public QueryType type() {
+           return QueryType.COUNT;
+       }
+   }
+   ```
 
 3. **StatsQuery.java**
    - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/analytics/model/StatsQuery.java`
+   - **Content:**
+   ```java
+   package io.gravitee.apim.core.analytics.model;
+
+   import java.time.Instant;
+
+   public record StatsQuery(
+       String apiId,
+       Instant from,
+       Instant to,
+       String field
+   ) implements AnalyticsQuery {
+       @Override
+       public QueryType type() {
+           return QueryType.STATS;
+       }
+   }
+   ```
 
 4. **GroupByQuery.java**
    - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/analytics/model/GroupByQuery.java`
+   - **Content:**
+   ```java
+   package io.gravitee.apim.core.analytics.model;
+
+   import java.time.Instant;
+
+   public record GroupByQuery(
+       String apiId,
+       Instant from,
+       Instant to,
+       String field,
+       Integer size,
+       String order
+   ) implements AnalyticsQuery {
+       @Override
+       public QueryType type() {
+           return QueryType.GROUP_BY;
+       }
+   }
+   ```
 
 5. **DateHistoQuery.java**
    - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/analytics/model/DateHistoQuery.java`
+   - **Content:**
+   ```java
+   package io.gravitee.apim.core.analytics.model;
+
+   import java.time.Instant;
+
+   public record DateHistoQuery(
+       String apiId,
+       Instant from,
+       Instant to,
+       String field,
+       Long interval
+   ) implements AnalyticsQuery {
+       @Override
+       public QueryType type() {
+           return QueryType.DATE_HISTO;
+       }
+   }
+   ```
 
 **Reference Patterns:**
 - Use Java 21 `sealed interface` and `record` types
 - Similar to existing query models in `io.gravitee.apim.core.analytics.model`
 
-#### Subtask 1A.2: Create Response Models
+#### Subtask 2.1.2: Create Response Models
 
 **Files to Create:**
 
 1. **AnalyticsResponse.java** (sealed interface)
    - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-model/src/main/java/io/gravitee/rest/api/model/v4/analytics/AnalyticsResponse.java`
+   - **Content:**
+   ```java
+   package io.gravitee.rest.api.model.v4.analytics;
+
+   public sealed interface AnalyticsResponse
+       permits CountResponse, StatsResponse, GroupByResponse, DateHistoResponse {
+       String type();
+   }
+   ```
 
 2. **CountResponse.java**
    - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-model/src/main/java/io/gravitee/rest/api/model/v4/analytics/CountResponse.java`
+   - **Content:**
+   ```java
+   package io.gravitee.rest.api.model.v4.analytics;
+
+   import lombok.AllArgsConstructor;
+   import lombok.Builder;
+   import lombok.Data;
+   import lombok.NoArgsConstructor;
+
+   @Data
+   @NoArgsConstructor
+   @AllArgsConstructor
+   @Builder
+   public class CountResponse implements AnalyticsResponse {
+       private String type = "COUNT";
+       private Long count;
+   }
+   ```
 
 3. **StatsResponse.java**
    - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-model/src/main/java/io/gravitee/rest/api/model/v4/analytics/StatsResponse.java`
+   - **Content:**
+   ```java
+   package io.gravitee.rest.api.model.v4.analytics;
+
+   import lombok.AllArgsConstructor;
+   import lombok.Builder;
+   import lombok.Data;
+   import lombok.NoArgsConstructor;
+
+   @Data
+   @NoArgsConstructor
+   @AllArgsConstructor
+   @Builder
+   public class StatsResponse implements AnalyticsResponse {
+       private String type = "STATS";
+       private Long count;
+       private Double min;
+       private Double max;
+       private Double avg;
+       private Double sum;
+   }
+   ```
 
 4. **GroupByResponse.java**
    - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-model/src/main/java/io/gravitee/rest/api/model/v4/analytics/GroupByResponse.java`
+   - **Content:**
+   ```java
+   package io.gravitee.rest.api.model.v4.analytics;
+
+   import lombok.AllArgsConstructor;
+   import lombok.Builder;
+   import lombok.Data;
+   import lombok.NoArgsConstructor;
+   import java.util.Map;
+
+   @Data
+   @NoArgsConstructor
+   @AllArgsConstructor
+   @Builder
+   public class GroupByResponse implements AnalyticsResponse {
+       private String type = "GROUP_BY";
+       private Map<String, Long> values;
+       private Map<String, Metadata> metadata;
+
+       @Data
+       @NoArgsConstructor
+       @AllArgsConstructor
+       @Builder
+       public static class Metadata {
+           private String name;
+       }
+   }
+   ```
 
 5. **DateHistoResponse.java**
    - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-model/src/main/java/io/gravitee/rest/api/model/v4/analytics/DateHistoResponse.java`
+   - **Content:**
+   ```java
+   package io.gravitee.rest.api.model.v4.analytics;
+
+   import lombok.AllArgsConstructor;
+   import lombok.Builder;
+   import lombok.Data;
+   import lombok.NoArgsConstructor;
+   import java.util.List;
+
+   @Data
+   @NoArgsConstructor
+   @AllArgsConstructor
+   @Builder
+   public class DateHistoResponse implements AnalyticsResponse {
+       private String type = "DATE_HISTO";
+       private List<Long> timestamp;
+       private List<FieldBucket> values;
+
+       @Data
+       @NoArgsConstructor
+       @AllArgsConstructor
+       @Builder
+       public static class FieldBucket {
+           private String field;
+           private List<Long> buckets;
+           private Metadata metadata;
+       }
+
+       @Data
+       @NoArgsConstructor
+       @AllArgsConstructor
+       @Builder
+       public static class Metadata {
+           private String name;
+       }
+   }
+   ```
 
 **Reference Patterns:**
 - Existing: `RequestsCount.java`, `ResponseStatusRanges.java`
-- Use Lombok annotations: `@Data`, `@NoArgsConstructor`, `@AllArgsConstructor`, `@SuperBuilder`
+- Use Lombok annotations: `@Data`, `@NoArgsConstructor`, `@AllArgsConstructor`, `@Builder`
 
-#### Subtask 1A.3: Run Tests (GREEN)
+#### Subtask 2.1.3: Run Tests (GREEN)
 
 - Verify all tests pass
 - Verify serialization/deserialization works
@@ -159,7 +582,7 @@ As a platform developer, I want well-typed domain models for analytics queries a
 
 ---
 
-### Story 1B: REST Endpoint Skeleton with Authorization
+### Story 2.2: REST Endpoint Skeleton with Authorization
 
 **Title:** Create REST endpoint with parameter validation and authorization
 
@@ -179,9 +602,9 @@ As a platform developer, I want a REST endpoint skeleton with authorization and 
 
 **Layer:** Backend
 **Complexity:** S (2 days)
-**Dependencies:** Story 1A
+**Dependencies:** Story 2.1
 
-#### Subtask 1B.0: Write Acceptance Tests (RED)
+#### Subtask 2.2.0: Write Acceptance Tests (RED)
 
 **Files to Create:**
 
@@ -204,62 +627,92 @@ As a platform developer, I want a REST endpoint skeleton with authorization and 
 - Extend `ApiResourceTest` base class
 - Use JAX-RS test client
 
-#### Subtask 1B.1: Create REST Resource Method
+#### Subtask 2.2.1: Create REST Resource Method
 
-**Files to Modify:**
+**Files to Create:**
 
 1. **ApiAnalyticsResource.java**
    - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-rest/src/main/java/io/gravitee/rest/api/management/v2/rest/resource/api/analytics/ApiAnalyticsResource.java`
-   - **Action:** Add new method
+   - **Content:**
    ```java
-   @GET
-   @Produces(MediaType.APPLICATION_JSON)
-   @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
-   public Response getAnalytics(
-       @PathParam("apiId") @NotNull String apiId,
-       @QueryParam("type") @NotNull String type,
-       @QueryParam("from") @NotNull Long from,
-       @QueryParam("to") @NotNull Long to,
-       @QueryParam("field") String field,
-       @QueryParam("interval") Long interval,
-       @QueryParam("size") Integer size,
-       @QueryParam("order") String order
-   ) {
-       // Validate type enum
-       if (!Arrays.asList("COUNT", "STATS", "GROUP_BY", "DATE_HISTO").contains(type)) {
-           return Response.status(400)
-               .entity(Map.of("error", "Invalid type parameter. Must be one of: COUNT, STATS, GROUP_BY, DATE_HISTO"))
+   package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
+
+   import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+   import io.gravitee.rest.api.model.permissions.RolePermission;
+   import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+   import io.gravitee.rest.api.rest.annotation.Permission;
+   import io.gravitee.rest.api.rest.annotation.Permissions;
+   import jakarta.ws.rs.*;
+   import jakarta.ws.rs.core.MediaType;
+   import jakarta.ws.rs.core.Response;
+   import java.util.Arrays;
+   import java.util.Map;
+
+   @Path("/v2/apis/{apiId}/analytics")
+   public class ApiAnalyticsResource extends AbstractResource {
+
+       @GET
+       @Produces(MediaType.APPLICATION_JSON)
+       @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+       public Response getAnalytics(
+           @PathParam("apiId") String apiId,
+           @QueryParam("type") String type,
+           @QueryParam("from") Long from,
+           @QueryParam("to") Long to,
+           @QueryParam("field") String field,
+           @QueryParam("interval") Long interval,
+           @QueryParam("size") Integer size,
+           @QueryParam("order") String order
+       ) {
+           // Validate required parameters
+           if (type == null || type.isEmpty()) {
+               return Response.status(400)
+                   .entity(Map.of("error", "Parameter 'type' is required"))
+                   .build();
+           }
+
+           if (from == null || to == null) {
+               return Response.status(400)
+                   .entity(Map.of("error", "Parameters 'from' and 'to' are required"))
+                   .build();
+           }
+
+           // Validate type enum
+           if (!Arrays.asList("COUNT", "STATS", "GROUP_BY", "DATE_HISTO").contains(type)) {
+               return Response.status(400)
+                   .entity(Map.of("error", "Invalid type parameter. Must be one of: COUNT, STATS, GROUP_BY, DATE_HISTO"))
+                   .build();
+           }
+
+           // Validate time range
+           if (from >= to) {
+               return Response.status(400)
+                   .entity(Map.of("error", "Start time must be before end time"))
+                   .build();
+           }
+
+           long rangeMs = to - from;
+           long maxRangeMs = 90L * 24 * 60 * 60 * 1000; // 90 days
+           if (rangeMs > maxRangeMs) {
+               return Response.status(400)
+                   .entity(Map.of("error", "Time range cannot exceed 90 days. Please select a shorter period."))
+                   .build();
+           }
+
+           // Temporary: Return 501 Not Implemented
+           return Response.status(501)
+               .entity(Map.of("message", "Query type " + type + " not yet implemented"))
                .build();
        }
-
-       // Validate time range
-       if (from >= to) {
-           return Response.status(400)
-               .entity(Map.of("error", "Start time must be before end time"))
-               .build();
-       }
-
-       long rangeMs = to - from;
-       long maxRangeMs = 90L * 24 * 60 * 60 * 1000; // 90 days
-       if (rangeMs > maxRangeMs) {
-           return Response.status(400)
-               .entity(Map.of("error", "Time range cannot exceed 90 days. Please select a shorter period."))
-               .build();
-       }
-
-       // Temporary: Return 501 Not Implemented
-       return Response.status(501)
-           .entity(Map.of("message", "Query type " + type + " not yet implemented"))
-           .build();
    }
    ```
 
 **Reference Patterns:**
-- Existing methods in same file
+- Existing resources in same package
 - Use `@Permissions` annotation for authorization
 - Use JAX-RS annotations: `@GET`, `@Produces`, `@PathParam`, `@QueryParam`
 
-#### Subtask 1B.2: Create OpenAPI Specification
+#### Subtask 2.2.2: Create OpenAPI Specification
 
 **Files to Create:**
 
@@ -453,7 +906,7 @@ As a platform developer, I want a REST endpoint skeleton with authorization and 
 - Use `oneOf` for discriminated union responses
 - OpenAPI 3.0 specification: https://swagger.io/specification/
 
-#### Subtask 1B.3: Run Tests (GREEN)
+#### Subtask 2.2.3: Run Tests (GREEN)
 
 - Verify all validation tests pass
 - Verify 403 response for missing permission
@@ -462,7 +915,7 @@ As a platform developer, I want a REST endpoint skeleton with authorization and 
 
 ---
 
-### Story 1C: Use Case Foundation
+### Story 2.3: Use Case Foundation
 
 **Title:** Create use case with API validation
 
@@ -479,9 +932,9 @@ As a platform developer, I want a use case that validates API requirements so th
 
 **Layer:** Backend
 **Complexity:** S (2 days)
-**Dependencies:** Story 1B
+**Dependencies:** Story 2.2
 
-#### Subtask 1C.0: Write Acceptance Tests (RED)
+#### Subtask 2.3.0: Write Acceptance Tests (RED)
 
 **Files to Create:**
 
@@ -508,7 +961,7 @@ As a platform developer, I want a use case that validates API requirements so th
 - Existing: `SearchRequestsCountAnalyticsUseCaseTest.java`
 - Mock `ApiQueryService` with Mockito
 
-#### Subtask 1C.1: Create Validator
+#### Subtask 2.3.1: Create Validator
 
 **Files to Create:**
 
@@ -547,7 +1000,7 @@ As a platform developer, I want a use case that validates API requirements so th
 **Reference Patterns:**
 - Similar validation in existing use cases
 
-#### Subtask 1C.2: Create Use Case
+#### Subtask 2.3.2: Create Use Case
 
 **Files to Create:**
 
@@ -593,19 +1046,24 @@ As a platform developer, I want a use case that validates API requirements so th
 **Reference Patterns:**
 - Existing: `SearchRequestsCountAnalyticsUseCase.java`
 
-#### Subtask 1C.3: Create Mapper Interface
+#### Subtask 2.3.3: Create Mapper Interface
 
-**Files to Modify:**
+**Files to Create:**
 
 1. **ApiAnalyticsMapper.java**
    - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-rest/src/main/java/io/gravitee/rest/api/management/v2/rest/mapper/ApiAnalyticsMapper.java`
-   - **Action:** Add placeholder mapping methods
+   - **Content:**
    ```java
+   package io.gravitee.rest.api.management.v2.rest.mapper;
+
+   import org.mapstruct.Mapper;
+   import org.mapstruct.factory.Mappers;
+
    @Mapper
    public interface ApiAnalyticsMapper {
        ApiAnalyticsMapper INSTANCE = Mappers.getMapper(ApiAnalyticsMapper.class);
 
-       // Placeholder - will be implemented in Stories 2-5
+       // Placeholder - will be implemented in upcoming stories
        // AnalyticsResponse map(CountResponse countResponse);
        // AnalyticsResponse map(StatsResponse statsResponse);
        // etc.
@@ -613,26 +1071,26 @@ As a platform developer, I want a use case that validates API requirements so th
    ```
 
 **Reference Patterns:**
-- Existing mapper in same file
+- Existing mapper in same package
 - Use MapStruct `@Mapper` annotation
 
-#### Subtask 1C.4: Wire Use Case to REST Resource
+#### Subtask 2.3.4: Wire Use Case to REST Resource
 
 **Files to Modify:**
 
 1. **ApiAnalyticsResource.java**
    - **Action:** Replace 501 logic with use case call
    ```java
-   // Inject use case
    @Inject
    private SearchUnifiedAnalyticsUseCase searchUnifiedAnalyticsUseCase;
 
    // In getAnalytics() method:
    try {
+       var query = buildQuery(type, from, to, field, interval, size, order);
        var input = new SearchUnifiedAnalyticsUseCase.Input(
            apiId,
            getExecutionContext().getEnvironmentId(),
-           buildQuery(type, from, to, field, interval, size, order)
+           query
        );
 
        var output = searchUnifiedAnalyticsUseCase.execute(getExecutionContext(), input);
@@ -652,7 +1110,25 @@ As a platform developer, I want a use case that validates API requirements so th
    }
    ```
 
-#### Subtask 1C.5: Run Tests (GREEN)
+2. **Add buildQuery() helper method:**
+   ```java
+   private AnalyticsQuery buildQuery(String type, Long from, Long to,
+                                      String field, Long interval, Integer size, String order) {
+       Instant fromInstant = Instant.ofEpochMilli(from);
+       Instant toInstant = Instant.ofEpochMilli(to);
+       String apiId = // extract from path
+
+       return switch (type) {
+           case "COUNT" -> new CountQuery(apiId, fromInstant, toInstant);
+           case "STATS" -> new StatsQuery(apiId, fromInstant, toInstant, field);
+           case "GROUP_BY" -> new GroupByQuery(apiId, fromInstant, toInstant, field, size, order);
+           case "DATE_HISTO" -> new DateHistoQuery(apiId, fromInstant, toInstant, field, interval);
+           default -> throw new IllegalArgumentException("Invalid query type: " + type);
+       };
+   }
+   ```
+
+#### Subtask 2.3.5: Run Tests (GREEN)
 
 - Verify all validation tests pass
 - Verify 404, 400, 403 responses work correctly
@@ -660,7 +1136,7 @@ As a platform developer, I want a use case that validates API requirements so th
 
 ---
 
-### Story 2: COUNT Query Type Implementation
+### Story 2.4: COUNT Query Implementation
 
 **Title:** Implement COUNT aggregation for total request count
 
@@ -678,9 +1154,9 @@ As an API publisher, I want to see the total number of requests to my API in a g
 
 **Layer:** Backend
 **Complexity:** S (3 days)
-**Dependencies:** Story 1A, 1B, 1C
+**Dependencies:** Story 2.3
 
-#### Subtask 2.0: Write Acceptance Tests (RED)
+#### Subtask 2.4.0: Write Acceptance Tests (RED)
 
 **Files to Create:**
 
@@ -711,7 +1187,7 @@ As an API publisher, I want to see the total number of requests to my API in a g
 - Use AssertJ for fluent assertions
 - Parse generated JSON to verify structure
 
-#### Subtask 2.1: Create Elasticsearch Query Adapter
+#### Subtask 2.4.1: Create Elasticsearch Query Adapter
 
 **Files to Create:**
 
@@ -760,7 +1236,7 @@ As an API publisher, I want to see the total number of requests to my API in a g
 - Existing: `SearchRequestsCountQueryAdapter.java`
 - Use `JsonObject` from Vert.x
 
-#### Subtask 2.2: Create Elasticsearch Response Adapter
+#### Subtask 2.4.2: Create Elasticsearch Response Adapter
 
 **Files to Create:**
 
@@ -804,7 +1280,7 @@ As an API publisher, I want to see the total number of requests to my API in a g
 - Parse ES JSON response using Vert.x `JsonObject`
 - Handle missing values with defaults
 
-#### Subtask 2.3: Add Repository Method
+#### Subtask 2.4.3: Add Repository Method
 
 **Files to Modify:**
 
@@ -836,31 +1312,80 @@ As an API publisher, I want to see the total number of requests to my API in a g
 - Existing methods in `AnalyticsElasticsearchRepository.java`
 - Use index constant: `Type.V4_METRICS`
 
-#### Subtask 2.4: Add Query Service Method
+#### Subtask 2.4.4: Add Query Service Method
 
-**Files to Modify:**
+**Files to Create:**
 
 1. **AnalyticsQueryService.java** (interface)
    - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/analytics/query_service/AnalyticsQueryService.java`
-   - **Action:** Add method signature
+   - **Content:**
+   ```java
+   package io.gravitee.apim.core.analytics.query_service;
+
+   import io.gravitee.apim.core.analytics.model.CountQuery;
+   import io.gravitee.rest.api.model.v4.analytics.CountResponse;
+   import java.util.Optional;
+
+   public interface AnalyticsQueryService {
+       Optional<CountResponse> searchCount(CountQuery query);
+   }
+   ```
 
 2. **AnalyticsQueryServiceImpl.java** (implementation)
    - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/infra/query_service/analytics/AnalyticsQueryServiceImpl.java`
-   - **Action:** Implement method
+   - **Content:**
+   ```java
+   package io.gravitee.apim.infra.query_service.analytics;
+
+   import io.gravitee.apim.core.analytics.model.CountQuery;
+   import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
+   import io.gravitee.repository.analytics.api.AnalyticsRepository;
+   import io.gravitee.rest.api.model.v4.analytics.CountResponse;
+   import java.util.Optional;
+
+   public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
+
+       private final AnalyticsRepository analyticsRepository;
+
+       public AnalyticsQueryServiceImpl(AnalyticsRepository analyticsRepository) {
+           this.analyticsRepository = analyticsRepository;
+       }
+
+       @Override
+       public Optional<CountResponse> searchCount(CountQuery query) {
+           return analyticsRepository.searchCount(query);
+       }
+   }
+   ```
 
 **Reference Patterns:**
 - Simple delegation pattern from service to repository
 
-#### Subtask 2.5: Wire Use Case to Handle COUNT Type
+#### Subtask 2.4.5: Wire Use Case to Handle COUNT Type
 
 **Files to Modify:**
 
 1. **SearchUnifiedAnalyticsUseCase.java**
    - **Action:** Add COUNT query handling
    ```java
-   public Output execute(ExecutionContext executionContext, Input input) {
-       validateApiRequirements(input);
+   private final AnalyticsQueryService analyticsQueryService;
 
+   public SearchUnifiedAnalyticsUseCase(
+       ApiQueryService apiQueryService,
+       AnalyticsQueryService analyticsQueryService
+   ) {
+       this.apiQueryService = apiQueryService;
+       this.analyticsQueryService = analyticsQueryService;
+   }
+
+   public Output execute(ExecutionContext executionContext, Input input) {
+       // Fetch and validate API
+       var api = apiQueryService.findById(input.apiId())
+           .orElseThrow(() -> new IllegalArgumentException("API not found: " + input.apiId()));
+
+       ApiAnalyticsValidator.validateApiRequirements(api, input.environmentId());
+
+       // Handle query types
        return switch (input.query()) {
            case CountQuery countQuery -> {
                var result = analyticsQueryService.searchCount(countQuery);
@@ -871,43 +1396,86 @@ As an API publisher, I want to see the total number of requests to my API in a g
    }
    ```
 
-#### Subtask 2.6: Integration Test with Testcontainers
+#### Subtask 2.4.6: Integration Test with Testcontainers
 
 **Files to Create:**
 
 1. **SearchCountAnalyticsIntegrationTest.java**
    - **Path:** `gravitee-apim-repository/gravitee-apim-repository-elasticsearch/src/test/java/io/gravitee/repository/elasticsearch/v4/analytics/SearchCountAnalyticsIntegrationTest.java`
-   - **Test Cases:**
-     - `shouldExecuteActualCountQuery()`
-     - `shouldReturnCorrectCountWithTestData()`
-     - `shouldReturnZeroForEmptyIndex()`
-     - `shouldFilterByApiId()`
-     - `shouldFilterByTimeRange()`
+   - **Content:**
+   ```java
+   package io.gravitee.repository.elasticsearch.v4.analytics;
 
-**Setup:**
-```java
-@Testcontainers
-class SearchCountAnalyticsIntegrationTest {
+   import io.gravitee.apim.core.analytics.model.CountQuery;
+   import org.junit.jupiter.api.BeforeAll;
+   import org.junit.jupiter.api.Test;
+   import org.testcontainers.elasticsearch.ElasticsearchContainer;
+   import org.testcontainers.junit.jupiter.Container;
+   import org.testcontainers.junit.jupiter.Testcontainers;
+   import java.time.Instant;
+   import static org.assertj.core.api.Assertions.assertThat;
 
-    @Container
-    static ElasticsearchContainer elasticsearch = new ElasticsearchContainer(
-        "docker.elastic.co/elasticsearch/elasticsearch:8.11.0"
-    );
+   @Testcontainers
+   class SearchCountAnalyticsIntegrationTest {
 
-    @BeforeAll
-    static void setup() {
-        // Create index
-        // Insert test data (100 requests with varied timestamps and API IDs)
-    }
+       @Container
+       static ElasticsearchContainer elasticsearch = new ElasticsearchContainer(
+           "docker.elastic.co/elasticsearch/elasticsearch:8.11.0"
+       );
 
-    @Test
-    void shouldExecuteActualCountQuery() {
-        // Create real query
-        // Execute against real Elasticsearch
-        // Verify actual count matches test data
-    }
-}
-```
+       @BeforeAll
+       static void setup() {
+           // Create index and insert test data
+           // - Create v4-metrics index with proper mapping
+           // - Insert 100 test documents with varied timestamps and API IDs
+       }
+
+       @Test
+       void shouldExecuteActualCountQuery() {
+           // Create query
+           var query = new CountQuery(
+               "api-123",
+               Instant.now().minusSeconds(3600),
+               Instant.now()
+           );
+
+           // Execute against real Elasticsearch
+           var result = repository.searchCount(query);
+
+           // Verify
+           assertThat(result).isPresent();
+           assertThat(result.get().getCount()).isEqualTo(50); // Expected count from test data
+       }
+
+       @Test
+       void shouldReturnZeroForEmptyIndex() {
+           var query = new CountQuery(
+               "nonexistent-api",
+               Instant.now().minusSeconds(3600),
+               Instant.now()
+           );
+
+           var result = repository.searchCount(query);
+
+           assertThat(result).isPresent();
+           assertThat(result.get().getCount()).isZero();
+       }
+
+       @Test
+       void shouldFilterByTimeRange() {
+           var query = new CountQuery(
+               "api-123",
+               Instant.now().minusSeconds(1800), // 30 minutes ago
+               Instant.now()
+           );
+
+           var result = repository.searchCount(query);
+
+           assertThat(result).isPresent();
+           assertThat(result.get().getCount()).isEqualTo(25); // Only requests in last 30min
+       }
+   }
+   ```
 
 **Maven Dependency:**
 ```xml
@@ -923,7 +1491,7 @@ class SearchCountAnalyticsIntegrationTest {
 - Use Testcontainers for real Elasticsearch
 - Populate with realistic test data
 
-#### Subtask 2.7: Run Tests (GREEN)
+#### Subtask 2.4.7: Run Tests (GREEN)
 
 - Verify all unit tests pass
 - Verify integration test with Testcontainers passes
@@ -931,195 +1499,476 @@ class SearchCountAnalyticsIntegrationTest {
 
 ---
 
-### Story 2.5: Elasticsearch Error Handling
+### Story 2.5: Frontend Service - COUNT Support
 
-**Title:** Handle Elasticsearch failures gracefully
+**Title:** Implement frontend service with COUNT request support
 
 **Description:**
-As a platform operator, I want analytics queries to handle Elasticsearch failures gracefully so that users receive appropriate error messages instead of generic 500 errors.
+As a frontend developer, I want an Angular service that fetches COUNT analytics so that I can display the total request count in the UI.
 
 **Acceptance Criteria:**
-- [ ] Returns 503 Service Unavailable when ES is unreachable
-- [ ] Returns 500 with error ID when ES returns query errors
-- [ ] Logs ES errors with full request context (apiId, query, timestamp)
-- [ ] Returns empty results (not error) when index doesn't exist
-- [ ] Returns 504 Gateway Timeout if ES query exceeds 10 seconds
-- [ ] Error messages are actionable for users
+- [ ] Service method `getAnalytics(apiId, request)` exists
+- [ ] TypeScript types for COUNT request/response exist
+- [ ] Service coordinates with timeframe selector via BehaviorSubject
+- [ ] HTTP parameters are correctly serialized
+- [ ] Service tests verify HTTP calls
 
-**Layer:** Backend
+**Layer:** Frontend Service
 **Complexity:** S (2 days)
-**Dependencies:** Story 2
+**Dependencies:** Story 2.4
 
 #### Subtask 2.5.0: Write Acceptance Tests (RED)
 
 **Files to Create:**
 
-1. **ElasticsearchErrorHandlingTest.java**
-   - **Path:** `gravitee-apim-repository/gravitee-apim-repository-elasticsearch/src/test/java/io/gravitee/repository/elasticsearch/v4/analytics/ElasticsearchErrorHandlingTest.java`
+1. **api-analytics-v2.service.spec.ts**
+   - **Path:** `gravitee-apim-console-webui/src/services-ngx/api-analytics-v2.service.spec.ts`
    - **Test Cases:**
-     - `shouldReturn503WhenESUnreachable()`
-     - `shouldReturn500WhenESQueryFails()`
-     - `shouldReturnEmptyWhenIndexMissing()`
-     - `shouldReturn504WhenESTimeout()`
-     - `shouldLogErrorsWithContext()`
-     - `shouldIncludeErrorIdInResponse()`
+     - `shouldFetchCountAnalytics()`
+     - `shouldIncludeTimeRange()`
+     - `shouldBuildCorrectQueryParams()`
+     - `shouldHandleHttpError()`
 
 **Reference Patterns:**
-- Mock ES client to throw specific exceptions
-- Verify error responses and logging
+- Use `HttpTestingController` for testing
+- Verify HTTP request parameters
 
-#### Subtask 2.5.1: Add Error Detection in Repository
-
-**Files to Modify:**
-
-1. **AnalyticsElasticsearchRepository.java**
-   - **Action:** Add error handling and detection
-   ```java
-   @Override
-   public Optional<CountResponse> searchCount(CountQuery query) {
-       try {
-           String esQuery = SearchCountAnalyticsQueryAdapter.adapt(query);
-           String response = client.search(Type.V4_METRICS, esQuery);
-           return Optional.of(SearchCountAnalyticsResponseAdapter.adapt(response));
-
-       } catch (IndexNotFoundException e) {
-           log.warn("Analytics index not found for API {}, returning empty result", query.apiId());
-           return Optional.of(CountResponse.builder().type("COUNT").count(0L).build());
-
-       } catch (ElasticsearchTimeoutException e) {
-           log.error("Elasticsearch query timeout for API {}", query.apiId(), e);
-           throw new AnalyticsTimeoutException("Query execution exceeded 10 seconds", e);
-
-       } catch (ElasticsearchConnectionException e) {
-           log.error("Elasticsearch connection failed for API {}", query.apiId(), e);
-           throw new AnalyticsUnavailableException("Elasticsearch is unreachable", e);
-
-       } catch (Exception e) {
-           String errorId = UUID.randomUUID().toString();
-           log.error("Elasticsearch query failed for API {} (errorId: {})", query.apiId(), errorId, e);
-           throw new AnalyticsQueryException("Query execution failed. Error ID: " + errorId, e);
-       }
-   }
-   ```
-
-#### Subtask 2.5.2: Create Custom Exceptions
+#### Subtask 2.5.1: Create TypeScript Types
 
 **Files to Create:**
 
-1. **AnalyticsTimeoutException.java**
-   - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/analytics/exception/AnalyticsTimeoutException.java`
+1. **analyticsRequest.ts**
+   - **Path:** `gravitee-apim-console-webui/src/entities/management-api-v2/analytics/analyticsRequest.ts`
+   - **Content:**
+   ```typescript
+   export enum AnalyticsQueryType {
+     COUNT = 'COUNT',
+     STATS = 'STATS',
+     GROUP_BY = 'GROUP_BY',
+     DATE_HISTO = 'DATE_HISTO',
+   }
 
-2. **AnalyticsUnavailableException.java**
-   - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/analytics/exception/AnalyticsUnavailableException.java`
+   export type BaseAnalyticsRequest = {
+     from: number;
+     to: number;
+   };
 
-3. **AnalyticsQueryException.java**
-   - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/analytics/exception/AnalyticsQueryException.java`
+   export type CountRequest = BaseAnalyticsRequest & {
+     type: AnalyticsQueryType.COUNT;
+   };
 
-#### Subtask 2.5.3: Map Exceptions to HTTP Status Codes
+   export type StatsRequest = BaseAnalyticsRequest & {
+     type: AnalyticsQueryType.STATS;
+     field: string;
+   };
 
-**Files to Modify:**
+   export type GroupByRequest = BaseAnalyticsRequest & {
+     type: AnalyticsQueryType.GROUP_BY;
+     field: string;
+     size?: number;
+     order?: 'asc' | 'desc';
+   };
 
-1. **ApiAnalyticsResource.java**
-   - **Action:** Add exception handling
-   ```java
-   try {
-       var output = searchUnifiedAnalyticsUseCase.execute(getExecutionContext(), input);
-       return Response.ok(output.response().get()).build();
+   export type DateHistoRequest = BaseAnalyticsRequest & {
+     type: AnalyticsQueryType.DATE_HISTO;
+     field: string;
+     interval: number;
+   };
 
-   } catch (AnalyticsTimeoutException e) {
-       return Response.status(504)
-           .entity(Map.of("error", e.getMessage()))
-           .build();
+   export type AnalyticsRequest = CountRequest | StatsRequest | GroupByRequest | DateHistoRequest;
+   ```
 
-   } catch (AnalyticsUnavailableException e) {
-       return Response.status(503)
-           .entity(Map.of("error", "Analytics service is temporarily unavailable. Please try again later."))
-           .build();
+2. **analyticsResponse.ts**
+   - **Path:** `gravitee-apim-console-webui/src/entities/management-api-v2/analytics/analyticsResponse.ts`
+   - **Content:**
+   ```typescript
+   export type CountResponse = {
+     type: 'COUNT';
+     count: number;
+   };
 
-   } catch (AnalyticsQueryException e) {
-       return Response.status(500)
-           .entity(Map.of("error", e.getMessage()))
-           .build();
+   export type StatsResponse = {
+     type: 'STATS';
+     count: number;
+     min?: number;
+     max?: number;
+     avg?: number;
+     sum?: number;
+   };
 
-   } catch (IllegalArgumentException e) {
-       return Response.status(400).entity(Map.of("error", e.getMessage())).build();
-   } catch (SecurityException e) {
-       return Response.status(403).entity(Map.of("error", e.getMessage())).build();
+   export type GroupByResponse = {
+     type: 'GROUP_BY';
+     values: Record<string, number>;
+     metadata: Record<string, { name: string }>;
+   };
+
+   export type DateHistoResponse = {
+     type: 'DATE_HISTO';
+     timestamp: number[];
+     values: Array<{
+       field: string;
+       buckets: number[];
+       metadata: { name: string };
+     }>;
+   };
+
+   export type AnalyticsResponse = CountResponse | StatsResponse | GroupByResponse | DateHistoResponse;
+   ```
+
+**Reference Patterns:**
+- Use TypeScript discriminated unions
+- Use `type` field as discriminator
+
+#### Subtask 2.5.2: Create Service
+
+**Files to Create:**
+
+1. **api-analytics-v2.service.ts**
+   - **Path:** `gravitee-apim-console-webui/src/services-ngx/api-analytics-v2.service.ts`
+   - **Content:**
+   ```typescript
+   import { Injectable, inject } from '@angular/core';
+   import { HttpClient, HttpParams } from '@angular/common/http';
+   import { BehaviorSubject, Observable } from 'rxjs';
+   import { switchMap } from 'rxjs/operators';
+   import { AnalyticsRequest, AnalyticsResponse } from '../entities/management-api-v2/analytics';
+
+   @Injectable({
+     providedIn: 'root',
+   })
+   export class ApiAnalyticsV2Service {
+     private readonly http = inject(HttpClient);
+     private readonly v2BaseURL = '/management/v2';
+     private readonly timeRangeFilter$ = new BehaviorSubject<{ from: number; to: number } | null>(null);
+
+     timeRangeFilter(): Observable<{ from: number; to: number } | null> {
+       return this.timeRangeFilter$.asObservable();
+     }
+
+     setTimeRangeFilter(from: number, to: number): void {
+       this.timeRangeFilter$.next({ from, to });
+     }
+
+     getAnalytics(apiId: string, request: AnalyticsRequest): Observable<AnalyticsResponse> {
+       return this.timeRangeFilter().pipe(
+         switchMap(() => {
+           const params = this.buildQueryParams(request);
+           return this.http.get<AnalyticsResponse>(`${this.v2BaseURL}/apis/${apiId}/analytics`, { params });
+         })
+       );
+     }
+
+     private buildQueryParams(request: AnalyticsRequest): HttpParams {
+       let params = new HttpParams()
+         .set('type', request.type)
+         .set('from', request.from.toString())
+         .set('to', request.to.toString());
+
+       if ('field' in request && request.field) {
+         params = params.set('field', request.field);
+       }
+
+       if ('interval' in request && request.interval) {
+         params = params.set('interval', request.interval.toString());
+       }
+
+       if ('size' in request && request.size) {
+         params = params.set('size', request.size.toString());
+       }
+
+       if ('order' in request && request.order) {
+         params = params.set('order', request.order);
+       }
+
+       return params;
+     }
    }
    ```
 
-#### Subtask 2.5.4: Add ES Query Timeout Configuration
+**Reference Patterns:**
+- Study existing: `src/services-ngx/api-v2.service.ts`
+- Use `inject()` for DI
+- Use `BehaviorSubject` for timeframe coordination
 
-**Files to Modify:**
+#### Subtask 2.5.3: Run Tests (GREEN)
 
-1. **application.yml** (or equivalent)
-   - **Action:** Add configuration
-   ```yaml
-   elasticsearch:
-     analytics:
-       timeout: 10000  # 10 seconds in milliseconds
-   ```
-
-2. **ElasticsearchClient.java** (or equivalent)
-   - **Action:** Configure timeout
-   ```java
-   RequestOptions options = RequestOptions.DEFAULT.toBuilder()
-       .setRequestConfig(RequestConfig.custom()
-           .setSocketTimeout(analyticsTimeout)
-           .setConnectTimeout(5000)
-           .build())
-       .build();
-   ```
-
-#### Subtask 2.5.5: Run Tests (GREEN)
-
-- Verify all error scenarios return correct status codes
-- Verify errors are logged with context
-- Verify timeout configuration works
-- Verify empty result when index missing
+- Verify all service tests pass
+- Verify HTTP calls are correct
+- Verify parameters are serialized correctly
 
 ---
 
-### Story 3: STATS Query Type Implementation
+### Story 2.6: Count Card Widget
 
-**Title:** Implement STATS aggregation for min/max/avg/sum calculations
+**Title:** Display total request count in a stats card
 
 **Description:**
-As an API publisher, I want to see statistical metrics (min, max, avg, sum) for numeric fields like response time so that I can identify performance trends and outliers.
+As an API publisher, I want to see the total request count displayed in a card so that I can quickly understand my API's traffic volume.
 
 **Acceptance Criteria:**
-- [ ] Returns stats with min, max, avg, sum, count
-- [ ] Supports fields: `gateway-latency-ms`, `gateway-response-time-ms`, `endpoint-response-time-ms`, `request-content-length`
-- [ ] Returns 400 for unsupported field
-- [ ] Returns null values when no data exists
-- [ ] Query uses ES stats aggregation
-- [ ] Unit tests cover all supported fields
-- [ ] Integration test verifies calculations match ES results
+- [ ] Card displays "Total Requests" label
+- [ ] Card displays count value (formatted with commas)
+- [ ] Card shows loading state while fetching
+- [ ] Card shows error state if request fails
+- [ ] Card updates when timeframe changes
+- [ ] Component harness tests verify display
+
+**Layer:** Frontend UI
+**Complexity:** S (2 days)
+**Dependencies:** Story 2.5
+
+#### Subtask 2.6.0: Write Acceptance Tests (RED)
+
+**IMPORTANT:** The Gravitee Console uses the Particles design system (`@gravitee/ui-particles-angular`) on top of Angular Material. Before implementing any UI component, **study the EXISTING analytics code** at:
+- `src/management/api/api-traffic-v4/analytics/`
+
+**Files to Create:**
+
+1. **api-analytics-count-card.component.harness.ts**
+   - **Path:** `gravitee-apim-console-webui/src/management/api/api-traffic-v4/analytics-dashboard/api-analytics-count-card/api-analytics-count-card.component.harness.ts`
+   - **Test Cases:**
+     - `shouldDisplayCountValue()`
+     - `shouldDisplayLoadingState()`
+     - `shouldDisplayErrorState()`
+     - `shouldFormatNumberWithCommas()`
+
+2. **api-analytics-count-card.component.spec.ts**
+   - **Path:** `gravitee-apim-console-webui/src/management/api/api-traffic-v4/analytics-dashboard/api-analytics-count-card/api-analytics-count-card.component.spec.ts`
+   - **Test Cases:**
+     - `shouldCreate()`
+     - `shouldFetchCountOnInit()`
+     - `shouldUpdateOnTimeRangeChange()`
+     - `shouldHandleError()`
+
+#### Subtask 2.6.1: Create Component
+
+**Files to Create:**
+
+1. **api-analytics-count-card.component.ts**
+   - **Path:** `gravitee-apim-console-webui/src/management/api/api-traffic-v4/analytics-dashboard/api-analytics-count-card/api-analytics-count-card.component.ts`
+   - **Content:**
+   ```typescript
+   import { Component, computed, inject, input } from '@angular/core';
+   import { CommonModule } from '@angular/common';
+   import { MatCardModule } from '@angular/material/card';
+   import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+   import { toSignal } from '@angular/core/rxjs-interop';
+   import { switchMap, catchError, startWith } from 'rxjs/operators';
+   import { of } from 'rxjs';
+
+   import { ApiAnalyticsV2Service } from '../../../../../services-ngx/api-analytics-v2.service';
+   import { AnalyticsQueryType, CountResponse } from '../../../../../entities/management-api-v2/analytics';
+
+   @Component({
+     selector: 'api-analytics-count-card',
+     standalone: true,
+     imports: [CommonModule, MatCardModule, MatProgressSpinnerModule],
+     template: `
+       <mat-card class="count-card">
+         <mat-card-header>
+           <mat-card-title>Total Requests</mat-card-title>
+         </mat-card-header>
+         <mat-card-content>
+           @if (countData(); as data) {
+             @if (data.isLoading) {
+               <mat-spinner diameter="40" />
+             } @else if (data.error) {
+               <div class="error">Failed to load count</div>
+             } @else if (data.count !== null) {
+               <div class="count-value">{{ data.count | number }}</div>
+             }
+           }
+         </mat-card-content>
+       </mat-card>
+     `,
+     styleUrls: ['./api-analytics-count-card.component.scss']
+   })
+   export class ApiAnalyticsCountCardComponent {
+     private readonly apiAnalyticsV2Service = inject(ApiAnalyticsV2Service);
+
+     readonly apiId = input.required<string>();
+     readonly timeRange = input.required<{ from: number; to: number }>();
+
+     private readonly countData$ = this.apiAnalyticsV2Service.timeRangeFilter().pipe(
+       switchMap(() => {
+         const range = this.timeRange();
+         return this.apiAnalyticsV2Service.getAnalytics(this.apiId(), {
+           type: AnalyticsQueryType.COUNT,
+           from: range.from,
+           to: range.to,
+         }).pipe(
+           catchError((error) => {
+             console.error('Error fetching count analytics:', error);
+             return of({ type: 'COUNT' as const, count: null, error: true });
+           }),
+           startWith({ isLoading: true, count: null })
+         );
+       })
+     );
+
+     readonly countData = toSignal(this.countData$, { initialValue: { isLoading: true, count: null } });
+   }
+   ```
+
+2. **api-analytics-count-card.component.scss**
+   - **Path:** `gravitee-apim-console-webui/src/management/api/api-traffic-v4/analytics-dashboard/api-analytics-count-card/api-analytics-count-card.component.scss`
+   - **Content:**
+   ```scss
+   .count-card {
+     min-height: 150px;
+
+     mat-card-content {
+       display: flex;
+       justify-content: center;
+       align-items: center;
+       min-height: 80px;
+
+       .count-value {
+         font-size: 36px;
+         font-weight: 600;
+         color: var(--gio-app-primary-main-color);
+       }
+
+       .error {
+         color: var(--gio-app-error-color);
+       }
+     }
+   }
+   ```
+
+**Reference Patterns:**
+- Study existing: `src/management/api/api-traffic-v4/analytics/api-analytics-proxy/api-analytics-proxy.component.ts`
+- Use `toSignal()` for Observable-to-Signal conversion
+- Use `@if` control flow (NOT `*ngIf`)
+
+#### Subtask 2.6.2: Update Dashboard Component
+
+**Files to Modify:**
+
+1. **api-analytics-dashboard.component.ts**
+   - **Action:** Replace empty state with count card
+   ```typescript
+   imports: [CommonModule, MatCardModule, GioTimeframeModule, ApiAnalyticsCountCardComponent],
+   template: `
+     <div class="analytics-dashboard">
+       <div class="dashboard-header">
+         <h1>Analytics Dashboard</h1>
+         <gio-timeframe-selector
+           [from]="timeRange().from"
+           [to]="timeRange().to"
+           (timeRangeChange)="onTimeRangeChange($event)"
+         />
+       </div>
+
+       <div class="dashboard-content">
+         <api-analytics-count-card
+           [apiId]="apiId()"
+           [timeRange]="timeRange()"
+         />
+       </div>
+     </div>
+   `,
+   ```
+
+#### Subtask 2.6.3: Run Tests (GREEN)
+
+- Verify all component tests pass
+- Verify harness tests pass
+- Verify count displays correctly in browser
+- Verify loading and error states work
+
+---
+
+### Story 2.7: E2E Test for Count Feature
+
+**Title:** E2E test verifying complete count flow
+
+**Description:**
+As a developer, I want E2E tests for the count feature so that I can verify the complete end-to-end flow works.
+
+**Acceptance Criteria:**
+- [ ] E2E test navigates to dashboard
+- [ ] E2E test verifies count card is displayed
+- [ ] E2E test verifies count value is shown
+- [ ] E2E test changes timeframe and verifies count updates
+- [ ] Test uses real backend (or mock server)
+
+**Layer:** Frontend E2E
+**Complexity:** XS (1 day)
+**Dependencies:** Story 2.6
+
+#### Subtask 2.7.0: Write E2E Test
+
+**Files to Modify:**
+
+1. **api-analytics-dashboard.e2e-spec.ts**
+   - **Action:** Add count tests
+   - **Test Cases:**
+     - `should display count card with value`
+     - `should update count when timeframe changes`
+     - `should handle loading state`
+
+#### Subtask 2.7.1: Run Tests (GREEN)
+
+- Verify E2E tests pass locally
+- Verify E2E tests pass in CI
+
+---
+
+## Flow 3: Gateway Latency Statistics
+
+**Goal:** Add the first statistics card showing gateway latency (avg, min, max).
+
+**User Value:** Users can see gateway latency statistics to understand API performance.
+
+**Duration:** 1 week
+
+---
+
+### Story 3.1: STATS Query Implementation
+
+**Title:** Implement STATS aggregation for numeric field statistics
+
+**Description:**
+As an API publisher, I want to see statistical aggregations (min, max, avg, sum) for numeric fields so that I can analyze performance metrics.
+
+**Acceptance Criteria:**
+- [ ] `GET /v2/apis/{apiId}/analytics?type=STATS&field=gateway-latency-ms&from=X&to=Y` returns stats
+- [ ] Response includes: count, min, max, avg, sum
+- [ ] Null values handled correctly (when no data exists)
+- [ ] Field validation ensures only allowed fields are queried
+- [ ] Integration test with Testcontainers verifies actual ES aggregation
 
 **Layer:** Backend
 **Complexity:** M (4 days)
-**Dependencies:** Story 1A, 1B, 1C, Story 2
+**Dependencies:** Story 2.4
 
-#### Subtask 3.0: Write Acceptance Tests (RED)
+#### Subtask 3.1.0: Write Acceptance Tests (RED)
 
 **Files to Create:**
 
 1. **AnalyticsFieldValidatorTest.java**
+   - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/test/java/io/gravitee/apim/core/analytics/validator/AnalyticsFieldValidatorTest.java`
+   - **Test Cases:**
+     - `shouldAcceptValidStatsField()`
+     - `shouldRejectInvalidStatsField()`
+     - `shouldAcceptValidGroupByField()`
+
 2. **SearchStatsAnalyticsQueryAdapterTest.java**
+   - **Path:** `gravitee-apim-repository/gravitee-apim-repository-elasticsearch/src/test/java/io/gravitee/repository/elasticsearch/v4/analytics/adapter/SearchStatsAnalyticsQueryAdapterTest.java`
+   - **Test Cases:**
+     - `shouldBuildStatsAggregation()`
+     - `shouldIncludeAllStatsFunctions()`
+     - `shouldHandleKeywordFieldSuffix()`
+
 3. **SearchStatsAnalyticsResponseAdapterTest.java**
-4. **SearchStatsAnalyticsIntegrationTest.java**
-5. **ApiAnalyticsResourceTest.java** (extend)
+   - **Path:** Same directory
+   - **Test Cases:**
+     - `shouldParseStatsResponse()`
+     - `shouldHandleNullValues()`
+     - `shouldReturnZeroCountWhenNoData()`
 
-**Test Cases:**
-- Field validation tests
-- Stats aggregation building tests
-- Response parsing tests
-- Integration test with real ES
-
-**Reference Patterns:**
-- Similar to Story 2 test structure
-
-#### Subtask 3.1: Create Field Validator
+#### Subtask 3.1.1: Create Field Validator
 
 **Files to Create:**
 
@@ -1137,1860 +1986,1072 @@ As an API publisher, I want to see statistical metrics (min, max, avg, sum) for 
            "gateway-latency-ms",
            "gateway-response-time-ms",
            "endpoint-response-time-ms",
-           "request-content-length"
+           "request-content-length",
+           "response-content-length"
        );
 
        private static final Set<String> GROUP_BY_FIELDS = Set.of(
            "status",
-           "mapped-status",
-           "application",
-           "plan",
+           "http-method",
            "host",
-           "uri"
+           "endpoint",
+           "application",
+           "plan"
        );
 
-       public static boolean isValidStatsField(String field) {
-           return STATS_FIELDS.contains(field);
-       }
-
-       public static boolean isValidGroupByField(String field) {
-           return GROUP_BY_FIELDS.contains(field);
-       }
-
        public static void validateStatsField(String field) {
-           if (!isValidStatsField(field)) {
+           if (!STATS_FIELDS.contains(field)) {
                throw new IllegalArgumentException(
-                   "Unsupported field for STATS: " + field +
-                   ". Supported fields: " + String.join(", ", STATS_FIELDS)
+                   "Invalid field for STATS query. Allowed: " + String.join(", ", STATS_FIELDS)
                );
            }
        }
 
        public static void validateGroupByField(String field) {
-           if (!isValidGroupByField(field)) {
+           if (!GROUP_BY_FIELDS.contains(field)) {
                throw new IllegalArgumentException(
-                   "Unsupported field for GROUP_BY: " + field +
-                   ". Supported fields: " + String.join(", ", GROUP_BY_FIELDS)
+                   "Invalid field for GROUP_BY query. Allowed: " + String.join(", ", GROUP_BY_FIELDS)
                );
            }
+       }
+
+       public static boolean isKeywordField(String field) {
+           return GROUP_BY_FIELDS.contains(field);
        }
    }
    ```
 
-#### Subtask 3.2: Create Query and Response Adapters
+#### Subtask 3.1.2: Create Query Adapter
 
 **Files to Create:**
 
 1. **SearchStatsAnalyticsQueryAdapter.java**
-2. **SearchStatsAnalyticsResponseAdapter.java**
+   - **Path:** `gravitee-apim-repository/gravitee-apim-repository-elasticsearch/src/main/java/io/gravitee/repository/elasticsearch/v4/analytics/adapter/SearchStatsAnalyticsQueryAdapter.java`
+   - **Content:**
+   ```java
+   package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-**Reference Patterns:**
-- Similar structure to COUNT adapters
-- Use ES `stats` aggregation
+   import io.gravitee.apim.core.analytics.model.StatsQuery;
+   import io.vertx.core.json.JsonObject;
+   import lombok.AccessLevel;
+   import lombok.NoArgsConstructor;
+   import java.util.HashMap;
+   import java.util.List;
+   import java.util.Map;
 
-#### Subtask 3.3: Add Repository, Service, and Use Case Methods
+   @NoArgsConstructor(access = AccessLevel.PRIVATE)
+   public class SearchStatsAnalyticsQueryAdapter {
+
+       public static String adapt(StatsQuery query) {
+           var jsonContent = new HashMap<String, Object>();
+           jsonContent.put("size", 0);
+           jsonContent.put("query", buildBoolQuery(query));
+           jsonContent.put("aggs", buildStatsAggregation(query.field()));
+
+           return new JsonObject(jsonContent).encode();
+       }
+
+       private static Map<String, Object> buildBoolQuery(StatsQuery query) {
+           var must = List.of(
+               Map.of("term", Map.of("api-id", query.apiId())),
+               Map.of("range", Map.of(
+                   "@timestamp", Map.of(
+                       "gte", query.from().toEpochMilli(),
+                       "lte", query.to().toEpochMilli()
+                   )
+               ))
+           );
+
+           return Map.of("bool", Map.of("must", must));
+       }
+
+       private static Map<String, Object> buildStatsAggregation(String field) {
+           return Map.of(
+               "field_stats", Map.of(
+                   "stats", Map.of("field", field)
+               )
+           );
+       }
+   }
+   ```
+
+#### Subtask 3.1.3: Create Response Adapter
+
+**Files to Create:**
+
+1. **SearchStatsAnalyticsResponseAdapter.java**
+   - **Path:** Same directory
+   - **Content:**
+   ```java
+   package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
+
+   import io.gravitee.rest.api.model.v4.analytics.StatsResponse;
+   import io.vertx.core.json.JsonObject;
+   import lombok.AccessLevel;
+   import lombok.NoArgsConstructor;
+
+   @NoArgsConstructor(access = AccessLevel.PRIVATE)
+   public class SearchStatsAnalyticsResponseAdapter {
+
+       public static StatsResponse adapt(String esResponse) {
+           var json = new JsonObject(esResponse);
+           var aggregations = json.getJsonObject("aggregations");
+
+           if (aggregations == null) {
+               return StatsResponse.builder()
+                   .type("STATS")
+                   .count(0L)
+                   .build();
+           }
+
+           var fieldStats = aggregations.getJsonObject("field_stats");
+           if (fieldStats == null) {
+               return StatsResponse.builder()
+                   .type("STATS")
+                   .count(0L)
+                   .build();
+           }
+
+           return StatsResponse.builder()
+               .type("STATS")
+               .count(fieldStats.getLong("count", 0L))
+               .min(fieldStats.getDouble("min"))
+               .max(fieldStats.getDouble("max"))
+               .avg(fieldStats.getDouble("avg"))
+               .sum(fieldStats.getDouble("sum"))
+               .build();
+       }
+   }
+   ```
+
+#### Subtask 3.1.4: Add Repository and Service Methods
 
 **Files to Modify:**
 
-1. **AnalyticsRepository.java** - Add `searchStats()`
-2. **AnalyticsElasticsearchRepository.java** - Implement with error handling
-3. **AnalyticsQueryService.java** - Add `searchStats()`
-4. **AnalyticsQueryServiceImpl.java** - Implement
-5. **SearchUnifiedAnalyticsUseCase.java** - Add STATS case
-6. **ApiAnalyticsResource.java** - Add field validation for STATS
+1. **AnalyticsRepository.java**
+   - **Action:** Add `searchStats` method signature
 
-#### Subtask 3.4: Integration Test with Testcontainers
+2. **AnalyticsElasticsearchRepository.java**
+   - **Action:** Implement `searchStats` method
+
+3. **AnalyticsQueryService.java**
+   - **Action:** Add `searchStats` method signature
+
+4. **AnalyticsQueryServiceImpl.java**
+   - **Action:** Implement `searchStats` method
+
+#### Subtask 3.1.5: Update Use Case
+
+**Files to Modify:**
+
+1. **SearchUnifiedAnalyticsUseCase.java**
+   - **Action:** Add STATS query handling
+   ```java
+   case StatsQuery statsQuery -> {
+       // Validate field
+       AnalyticsFieldValidator.validateStatsField(statsQuery.field());
+
+       var result = analyticsQueryService.searchStats(statsQuery);
+       yield new Output(result.map(r -> (AnalyticsResponse) r));
+   }
+   ```
+
+#### Subtask 3.1.6: Integration Test
 
 **Files to Create:**
 
 1. **SearchStatsAnalyticsIntegrationTest.java**
-
-**Test Cases:**
-- Verify actual stats calculations (min, max, avg, sum)
-- Verify all supported fields work
-- Verify null handling when no data
-
-#### Subtask 3.5: Run Tests (GREEN)
-
-- Verify all tests pass
-- Verify field validation works
-- Verify stats calculations are correct
-
----
-
-### Story 4: GROUP_BY Query Type Implementation
-
-**Title:** Implement GROUP_BY aggregation for top-N value distribution
-
-**Description:**
-As an API publisher, I want to see the distribution of requests grouped by a specific field (e.g., status codes, applications) so that I can identify top consumers and error patterns.
-
-**Acceptance Criteria:**
-- [ ] Returns grouped values with counts and metadata
-- [ ] Supports fields: `status`, `mapped-status`, `application`, `plan`, `host`, `uri`
-- [ ] Defaults to top 10 results, respects `size` parameter (max 100)
-- [ ] Returns empty values map when no data exists
-- [ ] Supports `order=desc` (default) and `order=asc`
-- [ ] Query uses ES terms aggregation
-- [ ] Handles `.keyword` field suffix dynamically
-
-**Layer:** Backend
-**Complexity:** L (5 days)
-**Dependencies:** Story 1A, 1B, 1C, Story 2
-
-#### Subtask 4.0: Write Acceptance Tests (RED)
-
-**Files to Create:**
-
-1. **SearchGroupByAnalyticsQueryAdapterTest.java**
-   - Test cases for terms aggregation building
-   - Test size defaults and limits
-   - Test ordering
-   - Test .keyword suffix handling
-
-2. **SearchGroupByAnalyticsResponseAdapterTest.java**
-   - Test bucket parsing
-   - Test metadata building
-   - Test empty results
-
-3. **SearchGroupByAnalyticsIntegrationTest.java**
-   - Test with real ES
-   - Test all supported fields
-   - Test top-N limiting
-
-**Reference Patterns:**
-- Similar to Story 2 and 3 test structure
-
-#### Subtask 4.1: Create Query Adapter with Field Type Detection
-
-**Files to Create:**
-
-1. **SearchGroupByAnalyticsQueryAdapter.java**
-   - Handle `.keyword` suffix based on field type
-   - Implement size limiting (default 10, max 100)
-   - Implement ordering (asc/desc)
-
-**Reference Patterns:**
-- Check `AnalyticsElasticsearchRepository` for field type checking logic
-
-#### Subtask 4.2: Create Response Adapter
-
-**Files to Create:**
-
-1. **SearchGroupByAnalyticsResponseAdapter.java**
-   - Parse ES bucket aggregations
-   - Build values map and metadata map
-
-#### Subtask 4.3: Add Repository Method with Field Type Checking
-
-**Files to Modify:**
-
-1. **AnalyticsElasticsearchRepository.java**
-   - Check if field needs `.keyword` suffix via `client.getFieldTypes()`
-   - Pass flag to adapter
-
-**Reference Patterns:**
-- Existing field type checking in `searchResponseStatusRanges()`
-
-#### Subtask 4.4: Add Service, Use Case, and REST Validation
-
-**Files to Modify:**
-
-1. **AnalyticsQueryService.java** - Add `searchGroupBy()`
-2. **AnalyticsQueryServiceImpl.java** - Implement
-3. **SearchUnifiedAnalyticsUseCase.java** - Add GROUP_BY case
-4. **ApiAnalyticsResource.java** - Add field validation for GROUP_BY
-
-#### Subtask 4.5: Integration Test with Testcontainers
-
-**Files to Create:**
-
-1. **SearchGroupByAnalyticsIntegrationTest.java**
-
-**Test Cases:**
-- Verify top-N limiting
-- Verify ordering
-- Verify .keyword handling for text fields
-
-#### Subtask 4.6: Run Tests (GREEN)
-
-- Verify all tests pass
-- Verify field type detection works
-- Verify top-N limiting and ordering work
-
----
-
-### Story 5: DATE_HISTO Query Type Implementation
-
-**Title:** Implement DATE_HISTO aggregation for time-series data
-
-**Description:**
-As an API publisher, I want to see metrics over time in fixed intervals so that I can identify peak usage periods and performance degradation.
-
-**Acceptance Criteria:**
-- [ ] Response includes `timestamp` array and `values` array with nested buckets
-- [ ] `interval` parameter is required (in milliseconds)
-- [ ] Supports all fields from GROUP_BY (keyword) and STATS (numeric)
-- [ ] Uses `min_doc_count: 0` to fill gaps
-- [ ] Uses `extended_bounds` to ensure full time range coverage
-- [ ] Returns empty buckets for periods with no data
-- [ ] Handles both numeric fields (stats agg) and keyword fields (terms agg)
-
-**Layer:** Backend
-**Complexity:** L (6 days)
-**Dependencies:** Story 3 (STATS), Story 4 (GROUP_BY)
-
-#### Subtask 5.0: Write Acceptance Tests (RED)
-
-**Files to Create:**
-
-1. **AnalyticsFieldTypeTest.java**
-   - Test field type detection (NUMERIC vs KEYWORD)
-
-2. **SearchDateHistoAnalyticsQueryAdapterTest.java**
-   - Test date histogram with stats aggregation (numeric fields)
-   - Test date histogram with terms aggregation (keyword fields)
-   - Test fixed_interval usage
-   - Test extended_bounds usage
-   - Test min_doc_count: 0
-
-3. **SearchDateHistoAnalyticsResponseAdapterTest.java**
-   - Test parsing numeric field responses (stats in buckets)
-   - Test parsing keyword field responses (terms in buckets)
-   - Test empty bucket handling
-   - Test timestamp ordering
-
-4. **SearchDateHistoAnalyticsIntegrationTest.java**
-   - Test with real ES for both field types
-   - Test gap filling
-   - Test bucket alignment
-
-**Reference Patterns:**
-- Double test coverage for dual paths (numeric + keyword)
-
-#### Subtask 5.1: Create Field Type Enum
-
-**Files to Create:**
-
-1. **AnalyticsFieldType.java**
-   - **Path:** `gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/analytics/model/AnalyticsFieldType.java`
-   - **Content:**
-   ```java
-   package io.gravitee.apim.core.analytics.model;
-
-   public enum AnalyticsFieldType {
-       NUMERIC,    // Stats aggregation (avg, min, max, sum)
-       KEYWORD;    // Terms aggregation
-
-       public static AnalyticsFieldType fromField(String field) {
-           return switch (field) {
-               case "gateway-latency-ms",
-                    "gateway-response-time-ms",
-                    "endpoint-response-time-ms",
-                    "request-content-length" -> NUMERIC;
-               case "status",
-                    "mapped-status",
-                    "application",
-                    "plan",
-                    "host",
-                    "uri" -> KEYWORD;
-               default -> throw new IllegalArgumentException("Unknown field: " + field);
-           };
-       }
-   }
-   ```
-
-#### Subtask 5.2: Create Query Adapter (Dual Path)
-
-**Files to Create:**
-
-1. **SearchDateHistoAnalyticsQueryAdapter.java**
-   - Implement date histogram aggregation
-   - Branch on field type:
-     - NUMERIC → nested stats aggregation
-     - KEYWORD → nested terms aggregation
-
-**Structure:**
-```java
-public static String adapt(DateHistoQuery query, boolean isFieldKeyword) {
-    AnalyticsFieldType fieldType = AnalyticsFieldType.fromField(query.field());
-
-    Map<String, Object> nestedAgg;
-    if (fieldType == AnalyticsFieldType.NUMERIC) {
-        nestedAgg = buildStatsAggregation(query.field());
-    } else {
-        String field = isFieldKeyword ? query.field() + ".keyword" : query.field();
-        nestedAgg = buildTermsAggregation(field);
-    }
-
-    // Build date histogram with nested agg
-    return buildDateHistogramQuery(query, nestedAgg);
-}
-```
-
-#### Subtask 5.3: Create Response Adapter (Dual Path)
-
-**Files to Create:**
-
-1. **SearchDateHistoAnalyticsResponseAdapter.java**
-   - Parse date histogram buckets
-   - Branch on field type to parse nested aggregations
-   - Build timestamp array and values array
-
-#### Subtask 5.4: Add Repository, Service, and Use Case Methods
-
-**Files to Modify:**
-
-1. **AnalyticsRepository.java** - Add `searchDateHisto()`
-2. **AnalyticsElasticsearchRepository.java** - Implement with field type detection
-3. **AnalyticsQueryService.java** - Add `searchDateHisto()`
-4. **AnalyticsQueryServiceImpl.java** - Implement
-5. **SearchUnifiedAnalyticsUseCase.java** - Add DATE_HISTO case
-6. **ApiAnalyticsResource.java** - Add interval validation
-
-#### Subtask 5.5: Integration Test with Testcontainers (Both Paths)
-
-**Files to Create:**
-
-1. **SearchDateHistoAnalyticsIntegrationTest.java**
-
-**Test Cases:**
-- Test with numeric field (gateway-response-time-ms)
-- Test with keyword field (status)
-- Verify gap filling works
-- Verify extended_bounds works
-- Verify both aggregation paths
-
-#### Subtask 5.6: Run Tests (GREEN)
-
-- Verify all tests pass for both field types
-- Verify gap filling works
-- Verify time alignment is correct
-
----
-
-### Story 6.5: Performance Validation & Timeouts
-
-**Title:** Validate query performance and add timeout protection
-
-**Description:**
-As a platform operator, I want analytics queries to have performance guarantees and timeout protection so that the system remains stable under load.
-
-**Acceptance Criteria:**
-- [ ] All queries complete in < 5 seconds for datasets up to 1M requests
-- [ ] ES query timeout is configurable (default 10 seconds)
-- [ ] Returns 504 Gateway Timeout if timeout exceeded
-- [ ] Performance test runs in CI/CD
-- [ ] Slow queries are logged with execution time
-
-**Layer:** Backend
-**Complexity:** M (5 days)
-**Dependencies:** Story 2, 3, 4, 5
-
-#### Subtask 6.5.0: Write Acceptance Tests (RED)
-
-**Files to Create:**
-
-1. **AnalyticsPerformanceTest.java**
-   - **Path:** `gravitee-apim-repository/gravitee-apim-repository-elasticsearch/src/test/java/io/gravitee/repository/elasticsearch/v4/analytics/AnalyticsPerformanceTest.java`
+   - **Path:** `gravitee-apim-repository/gravitee-apim-repository-elasticsearch/src/test/java/io/gravitee/repository/elasticsearch/v4/analytics/SearchStatsAnalyticsIntegrationTest.java`
    - **Test Cases:**
-     - `shouldCompleteCOUNTQueryIn5Seconds()`
-     - `shouldCompleteSTATSQueryIn5Seconds()`
-     - `shouldCompleteGROUPBYQueryIn5Seconds()`
-     - `shouldCompleteDATEHISTOQueryIn5Seconds()`
-     - `shouldTimeout10SecondsOnSlowQuery()`
-     - `shouldLogSlowQueries()`
+     - `shouldCalculateActualStats()`
+     - `shouldHandleNoData()`
+     - `shouldFilterByApiAndTimeRange()`
 
-**Setup:**
-- Use Testcontainers with 1M record dataset
-- Measure query execution time
-- Use @Timeout annotation
-
-#### Subtask 6.5.1: Add Query Execution Time Logging
-
-**Files to Modify:**
-
-1. **AnalyticsElasticsearchRepository.java**
-   - Add execution time measurement
-   - Log slow queries (> 2 seconds)
-   ```java
-   long startTime = System.currentTimeMillis();
-   try {
-       String response = client.search(Type.V4_METRICS, esQuery);
-       long duration = System.currentTimeMillis() - startTime;
-
-       if (duration > 2000) {
-           log.warn("Slow analytics query detected: {}ms for API {}", duration, query.apiId());
-       }
-
-       return Optional.of(adapter.adapt(response));
-   } catch (Exception e) {
-       long duration = System.currentTimeMillis() - startTime;
-       log.error("Query failed after {}ms for API {}", duration, query.apiId(), e);
-       throw e;
-   }
-   ```
-
-#### Subtask 6.5.2: Add Timeout Configuration
-
-**Files to Modify:**
-
-1. **application.yml**
-   ```yaml
-   elasticsearch:
-     analytics:
-       timeout: 10000  # 10 seconds
-       slowQueryThreshold: 2000  # Log queries > 2 seconds
-   ```
-
-2. **ElasticsearchClient.java** (or equivalent)
-   - Configure request timeout
-
-#### Subtask 6.5.3: Create Performance Test Dataset
-
-**Files to Create:**
-
-1. **test-data/analytics-1m-records.json**
-   - Script to generate 1M test records
-   - Varied timestamps, API IDs, status codes
-   - Realistic response times
-
-#### Subtask 6.5.4: Add CI/CD Performance Test
-
-**Files to Modify:**
-
-1. **pom.xml** (or build script)
-   - Add performance test profile
-   - Configure to run on specific branches or schedules
-
-**Example:**
-```xml
-<profile>
-  <id>performance-tests</id>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <includes>
-            <include>**/*PerformanceTest.java</include>
-          </includes>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-</profile>
-```
-
-#### Subtask 6.5.5: Run Tests (GREEN)
-
-- Verify all queries meet < 5 second SLA
-- Verify timeout protection works
-- Verify slow query logging works
-
-**Note:** Defer caching, circuit breakers, and heavy load testing (100 concurrent users) to post-MVP.
+#### Subtask 3.1.7: Run Tests (GREEN)
 
 ---
 
-## Frontend Stories
+### Story 3.2: Frontend Service - STATS Support
 
-### Story 7A: Analytics Service - COUNT Support
-
-**Title:** Create TypeScript service with COUNT query support
+**Title:** Add STATS request support to frontend service
 
 **Description:**
-As a frontend developer, I want a typed service method to fetch COUNT analytics so that I can display total request metrics.
+As a frontend developer, I want the service to support STATS requests so that I can fetch statistics data.
 
 **Acceptance Criteria:**
-- [ ] TypeScript models for CountRequest and CountResponse exist
-- [ ] Service method `getAnalytics()` supports COUNT requests
-- [ ] Returns typed Observable<CountResponse>
-- [ ] Includes HttpClient error handling
-- [ ] Unit test mocks HttpClient and verifies request
+- [ ] Service handles STATS request type
+- [ ] TypeScript types for STATS request/response exist
+- [ ] Service tests verify STATS HTTP calls
 
-**Layer:** Frontend
-**Complexity:** S (2 days)
-**Dependencies:** Story 2 (Backend COUNT endpoint)
+**Layer:** Frontend Service
+**Complexity:** XS (1 day)
+**Dependencies:** Story 3.1
 
-#### Subtask 7A.0: Write Acceptance Tests (RED)
-
-**Files to Create:**
-
-1. **api-analytics-v2.service.spec.ts** (extend)
-   - **Path:** `gravitee-apim-console-webui/src/services-ngx/api-analytics-v2.service.spec.ts`
-   - **Test Cases:**
-     - `shouldCallCorrectEndpointForCountRequest()`
-     - `shouldIncludeAllQueryParameters()`
-     - `shouldReturnTypedCountResponse()`
-     - `shouldHandleHttpErrors()`
-     - `shouldThrowForUnsupportedTypes()`
-
-**Reference Patterns:**
-- Use `HttpTestingController` from `@angular/common/http/testing`
-- Use fixture data for mock responses
-
-#### Subtask 7A.1: Create TypeScript Models for COUNT
-
-**Files to Create:**
-
-1. **analyticsRequest.ts**
-   - **Path:** `gravitee-apim-console-webui/src/entities/management-api-v2/analytics/analyticsRequest.ts`
-   - **Content:**
-   ```typescript
-   export enum AnalyticsQueryType {
-     COUNT = 'COUNT',
-     STATS = 'STATS',
-     GROUP_BY = 'GROUP_BY',
-     DATE_HISTO = 'DATE_HISTO',
-   }
-
-   export interface BaseAnalyticsRequest {
-     from: number;
-     to: number;
-   }
-
-   export interface CountRequest extends BaseAnalyticsRequest {
-     type: AnalyticsQueryType.COUNT;
-   }
-
-   // Placeholder for future types
-   export type AnalyticsRequest = CountRequest; // Will expand in 7B, 7C, 7D
-   ```
-
-2. **analyticsResponse.ts**
-   - **Path:** `gravitee-apim-console-webui/src/entities/management-api-v2/analytics/analyticsResponse.ts`
-   - **Content:**
-   ```typescript
-   export interface CountResponse {
-     type: 'COUNT';
-     count: number;
-   }
-
-   // Placeholder for future types
-   export type AnalyticsResponse = CountResponse; // Will expand in 7B, 7C, 7D
-   ```
-
-3. **analyticsRequest.fixture.ts**
-   - **Path:** `gravitee-apim-console-webui/src/entities/management-api-v2/analytics/analyticsRequest.fixture.ts`
-
-4. **analyticsResponse.fixture.ts**
-   - **Path:** `gravitee-apim-console-webui/src/entities/management-api-v2/analytics/analyticsResponse.fixture.ts`
-
-**Reference Patterns:**
-- Existing fixtures: `analyticsRequestsCount.fixture.ts`
-
-#### Subtask 7A.2: Add getAnalytics() Method (COUNT Only)
-
-**Files to Modify:**
-
-1. **api-analytics-v2.service.ts**
-   - **Path:** `gravitee-apim-console-webui/src/services-ngx/api-analytics-v2.service.ts`
-   - **Action:** Add new method
-   ```typescript
-   import { AnalyticsRequest, AnalyticsResponse, AnalyticsQueryType } from '../entities/management-api-v2/analytics';
-
-   getAnalytics(apiId: string, request: AnalyticsRequest): Observable<AnalyticsResponse> {
-     // Only COUNT is supported in this story
-     if (request.type !== AnalyticsQueryType.COUNT) {
-       return throwError(() => new Error(`Query type ${request.type} not yet supported`));
-     }
-
-     return this.timeRangeFilter().pipe(
-       switchMap(() => {
-         const params = new HttpParams()
-           .set('type', request.type)
-           .set('from', request.from.toString())
-           .set('to', request.to.toString());
-
-         return this.http.get<AnalyticsResponse>(
-           `${this.v2BaseURL}/apis/${apiId}/analytics`,
-           { params }
-         );
-       })
-     );
-   }
-   ```
-
-**Reference Patterns:**
-- Existing methods in same service
-- Use `switchMap` to coordinate with time range filter
-
-#### Subtask 7A.3: Run Tests (GREEN)
-
-- Verify COUNT requests work
-- Verify unsupported types throw error
-- Verify HTTP parameters are correct
-
-**Note:** Defer convenience methods (getCount(), etc.) - components will call `getAnalytics()` directly.
-
----
-
-### Story 7B: Analytics Service - STATS Support
-
-**Title:** Extend service to support STATS queries
-
-**Description:**
-As a frontend developer, I want the analytics service to support STATS queries so that I can display statistical metrics.
-
-**Acceptance Criteria:**
-- [ ] StatsRequest and StatsResponse types exist
-- [ ] `getAnalytics()` handles STATS type
-- [ ] Field parameter included in HTTP request
-- [ ] Unit test verifies STATS requests
-
-**Layer:** Frontend
-**Complexity:** S (2 days)
-**Dependencies:** Story 3 (Backend STATS endpoint), Story 7A
-
-#### Subtask 7B.0: Write Acceptance Tests (RED)
+#### Subtask 3.2.0: Write Tests (RED)
 
 **Files to Modify:**
 
 1. **api-analytics-v2.service.spec.ts**
-   - **Add Test Cases:**
-     - `shouldCallCorrectEndpointForStatsRequest()`
+   - **Action:** Add STATS tests
+   - **Test Cases:**
+     - `shouldFetchStatsAnalytics()`
      - `shouldIncludeFieldParameter()`
-     - `shouldReturnTypedStatsResponse()`
 
-#### Subtask 7B.1: Add STATS Models
+#### Subtask 3.2.1: Verify Types Exist
 
-**Files to Modify:**
+- Types for STATS were already created in Story 2.5.1
+- No changes needed to service (already supports discriminated unions)
 
-1. **analyticsRequest.ts**
-   - Add `StatsRequest` interface
-   - Update `AnalyticsRequest` type union
-
-2. **analyticsResponse.ts**
-   - Add `StatsResponse` interface
-   - Update `AnalyticsResponse` type union
-
-3. **analyticsResponse.fixture.ts**
-   - Add `fakeStatsResponse()` function
-
-#### Subtask 7B.2: Extend getAnalytics() Method
-
-**Files to Modify:**
-
-1. **api-analytics-v2.service.ts**
-   - Remove `throwError` for STATS type
-   - Add field parameter handling
-   ```typescript
-   let params = new HttpParams()
-     .set('type', request.type)
-     .set('from', request.from.toString())
-     .set('to', request.to.toString());
-
-   if (request.type === AnalyticsQueryType.STATS) {
-     params = params.set('field', (request as StatsRequest).field);
-   }
-   ```
-
-#### Subtask 7B.3: Run Tests (GREEN)
-
-- Verify STATS requests work
-- Verify field parameter is included
+#### Subtask 3.2.2: Run Tests (GREEN)
 
 ---
 
-### Story 7C: Analytics Service - GROUP_BY Support
+### Story 3.3: Gateway Latency Stats Card
 
-**Title:** Extend service to support GROUP_BY queries
-
-**Description:**
-As a frontend developer, I want the analytics service to support GROUP_BY queries so that I can display value distributions.
-
-**Acceptance Criteria:**
-- [ ] GroupByRequest and GroupByResponse types exist
-- [ ] `getAnalytics()` handles GROUP_BY type
-- [ ] Field, size, and order parameters included in HTTP request
-- [ ] Unit test verifies GROUP_BY requests
-
-**Layer:** Frontend
-**Complexity:** S (2 days)
-**Dependencies:** Story 4 (Backend GROUP_BY endpoint), Story 7B
-
-#### Subtask 7C.0: Write Acceptance Tests (RED)
-
-#### Subtask 7C.1: Add GROUP_BY Models
-
-#### Subtask 7C.2: Extend getAnalytics() Method
-
-```typescript
-if (request.type === AnalyticsQueryType.GROUP_BY) {
-  params = params.set('field', (request as GroupByRequest).field);
-  if (request.size) {
-    params = params.set('size', request.size.toString());
-  }
-  if (request.order) {
-    params = params.set('order', request.order);
-  }
-}
-```
-
-#### Subtask 7C.3: Run Tests (GREEN)
-
----
-
-### Story 7D: Analytics Service - DATE_HISTO Support
-
-**Title:** Extend service to support DATE_HISTO queries
+**Title:** Display gateway latency statistics in a card
 
 **Description:**
-As a frontend developer, I want the analytics service to support DATE_HISTO queries so that I can display time-series charts.
+As an API publisher, I want to see gateway latency stats (avg, min, max) so that I can understand API performance.
 
 **Acceptance Criteria:**
-- [ ] DateHistoRequest and DateHistoResponse types exist
-- [ ] `getAnalytics()` handles DATE_HISTO type
-- [ ] Field and interval parameters included in HTTP request
-- [ ] Unit test verifies DATE_HISTO requests
+- [ ] Card displays "Gateway Latency" label
+- [ ] Card displays avg, min, max values (formatted in ms)
+- [ ] Card shows loading and error states
+- [ ] Card updates when timeframe changes
+- [ ] Component harness tests verify display
 
-**Layer:** Frontend
+**Layer:** Frontend UI
 **Complexity:** S (2 days)
-**Dependencies:** Story 5 (Backend DATE_HISTO endpoint), Story 7C
+**Dependencies:** Story 3.2
 
-#### Subtask 7D.0: Write Acceptance Tests (RED)
+#### Subtask 3.3.0: Write Tests (RED)
 
-#### Subtask 7D.1: Add DATE_HISTO Models
-
-#### Subtask 7D.2: Extend getAnalytics() Method
-
-```typescript
-if (request.type === AnalyticsQueryType.DATE_HISTO) {
-  params = params.set('field', (request as DateHistoRequest).field);
-  params = params.set('interval', (request as DateHistoRequest).interval.toString());
-}
-```
-
-#### Subtask 7D.3: Run Tests (GREEN)
-
----
-
-### Story 7.5: Dashboard Route & Navigation
-
-**Title:** Add dashboard route and navigation menu item
-
-**Description:**
-As an API publisher, I want to access the analytics dashboard from the API menu so that I can view metrics without typing URLs manually.
-
-**Acceptance Criteria:**
-- [ ] Dashboard accessible at `/apis/:apiId/analytics/dashboard`
-- [ ] Menu item "Analytics" appears in API sidebar (under "Traffic")
-- [ ] Breadcrumb shows: APIs > {API Name} > Analytics > Dashboard
-- [ ] Route guard checks API_ANALYTICS:READ permission
-- [ ] Default timeframe is "Last 24 Hours"
-- [ ] Menu item only visible when user has permission
-
-**Layer:** Frontend
-**Complexity:** S (2 days)
-**Dependencies:** Story 7A (Service exists)
-
-#### Subtask 7.5.0: Write Acceptance Tests (RED)
+**IMPORTANT:** The Gravitee Console uses the Particles design system (`@gravitee/ui-particles-angular`) on top of Angular Material. Before implementing any UI component, **study the EXISTING analytics code** at:
+- `src/management/api/api-traffic-v4/analytics/`
 
 **Files to Create:**
 
-1. **api-analytics-routing.spec.ts**
-   - **Test Cases:**
-     - `shouldNavigateToDashboard()`
-     - `shouldRedirectToLoginWhenUnauthorized()`
-     - `shouldRedirectTo403WhenNoPermission()`
+1. **api-analytics-stats-card.component.harness.ts**
+2. **api-analytics-stats-card.component.spec.ts**
 
-2. **api-sidebar.component.spec.ts** (extend)
-   - **Test Cases:**
-     - `shouldShowAnalyticsMenuItemWhenHasPermission()`
-     - `shouldHideAnalyticsMenuItemWhenNoPermission()`
-
-#### Subtask 7.5.1: Add Route
-
-**Files to Modify:**
-
-1. **api-routing.module.ts** (or equivalent)
-   - **Path:** `gravitee-apim-console-webui/src/management/api/`
-   - **Action:** Add route
-   ```typescript
-   {
-     path: 'analytics/dashboard',
-     component: ApiAnalyticsProxyComponent,
-     canActivate: [PermissionGuard],
-     data: {
-       permissions: {
-         anyOf: ['api-analytics-r']
-       }
-     }
-   }
-   ```
-
-**Reference Patterns:**
-- Existing routes in same file
-- Use `PermissionGuard` for authorization
-
-#### Subtask 7.5.2: Add Menu Item
-
-**Files to Modify:**
-
-1. **api-sidebar.component.ts**
-   - **Action:** Add analytics menu item
-   ```typescript
-   {
-     label: 'Analytics',
-     icon: 'analytics',
-     routerLink: './analytics/dashboard',
-     permissions: ['api-analytics-r']
-   }
-   ```
-
-2. **api-sidebar.component.html**
-   - **Action:** Add menu item template
-   ```html
-   <a routerLink="./analytics/dashboard"
-      *ngIf="hasAnalyticsPermission"
-      matListItem>
-     <mat-icon>analytics</mat-icon>
-     <span>Analytics</span>
-   </a>
-   ```
-
-**Reference Patterns:**
-- Existing menu items in sidebar
-- Use `*ngIf` for permission checks
-
-#### Subtask 7.5.3: Add Breadcrumb
-
-**Files to Modify:**
-
-1. **api-analytics-proxy.component.ts**
-   - **Action:** Set breadcrumb metadata
-   ```typescript
-   @Component({
-     // ...
-     providers: [
-       {
-         provide: 'breadcrumb',
-         useValue: 'Dashboard'
-       }
-     ]
-   })
-   ```
-
-#### Subtask 7.5.4: Run Tests (GREEN)
-
-- Verify navigation works
-- Verify permission checks work
-- Verify menu item appears/disappears correctly
-
----
-
-### Story 8: Stats Cards Widget with State Handling
-
-**Title:** Display four stats cards with loading and error states
-
-**Description:**
-As an API publisher, I want to see key performance metrics at a glance so that I quickly understand my API's health.
-
-**Acceptance Criteria:**
-- [ ] Dashboard displays 4 stat cards: Total Requests, Avg Gateway Time, Avg Upstream Time, Avg Content Length
-- [ ] Cards show loading skeleton while fetching
-- [ ] Cards show "-" when data is null/undefined
-- [ ] Cards show error snackbar on HTTP failure
-- [ ] Cards show empty state when all stats are null
-- [ ] Cards update when timeframe changes
-
-**Layer:** Frontend
-**Complexity:** M (3 days)
-**Dependencies:** Story 7A, 7B (Service with COUNT and STATS)
-
-**Note:** This story includes empty/error/loading state handling (formerly Story 11).
-
-#### Subtask 8.0: Write Acceptance Tests (RED)
-
-**Files to Modify:**
-
-1. **api-analytics-proxy.component.spec.ts**
-   - **Test Cases:**
-     - `shouldDisplay4StatsCards()`
-     - `shouldShowLoadingStateInitially()`
-     - `shouldDisplayDashWhenDataIsNull()`
-     - `shouldFormatNumbersCorrectly()`
-     - `shouldConvertBytesToKB()`
-     - `shouldShowEmptyStateWhenAllStatsNull()`
-     - `shouldShowErrorSnackbarOnHttpFailure()`
-     - `shouldDegradeGracefullyOnPartialFailure()`
-
-**Reference Patterns:**
-- Use `HttpTestingController` to mock API responses
-- Use fixture data from `analyticsResponse.fixture.ts`
-
-#### Subtask 8.1: Fetch 4 Stats in Parallel
-
-**Files to Modify:**
-
-1. **api-analytics-proxy.component.ts**
-   - **Path:** `gravitee-apim-console-webui/src/management/api/api-traffic-v4/analytics/api-analytics-proxy/api-analytics-proxy.component.ts`
-   - **Action:** Fetch stats
-   ```typescript
-   import { inject, signal } from '@angular/core';
-   import { toSignal } from '@angular/core/rxjs-interop';
-   import { combineLatest, of } from 'rxjs';
-   import { map, startWith, catchError } from 'rxjs/operators';
-
-   private readonly apiAnalyticsV2Service = inject(ApiAnalyticsV2Service);
-   private readonly snackBarService = inject(SnackBarService);
-   private readonly apiId = signal<string>(''); // Set from route params
-
-   private readonly statsData$ = this.apiAnalyticsV2Service.timeRangeFilter().pipe(
-     switchMap((timeRange) => combineLatest([
-       // COUNT query
-       this.apiAnalyticsV2Service.getAnalytics(this.apiId(), {
-         type: AnalyticsQueryType.COUNT,
-         from: timeRange.from,
-         to: timeRange.to
-       }),
-       // STATS queries (3)
-       this.apiAnalyticsV2Service.getAnalytics(this.apiId(), {
-         type: AnalyticsQueryType.STATS,
-         field: 'gateway-response-time-ms',
-         from: timeRange.from,
-         to: timeRange.to
-       }),
-       this.apiAnalyticsV2Service.getAnalytics(this.apiId(), {
-         type: AnalyticsQueryType.STATS,
-         field: 'endpoint-response-time-ms',
-         from: timeRange.from,
-         to: timeRange.to
-       }),
-       this.apiAnalyticsV2Service.getAnalytics(this.apiId(), {
-         type: AnalyticsQueryType.STATS,
-         field: 'request-content-length',
-         from: timeRange.from,
-         to: timeRange.to
-       })
-     ])),
-     map(([count, gatewayTime, endpointTime, contentLength]) =>
-       this.mapToStatsCards(count as CountResponse, gatewayTime as StatsResponse,
-                           endpointTime as StatsResponse, contentLength as StatsResponse)
-     ),
-     startWith({ isLoading: true, stats: [] }),
-     catchError((error) => {
-       this.snackBarService.error(`Failed to load analytics: ${error.message}`);
-       return of({ isLoading: false, stats: [] });
-     })
-   );
-
-   readonly statsCards = toSignal(this.statsData$, {
-     initialValue: { isLoading: true, stats: [] }
-   });
-
-   private mapToStatsCards(
-     count: CountResponse,
-     gatewayTime: StatsResponse,
-     endpointTime: StatsResponse,
-     contentLength: StatsResponse
-   ): { isLoading: boolean; stats: AnalyticsRequestStats[] } {
-     return {
-       isLoading: false,
-       stats: [
-         {
-           label: 'Total Requests',
-           value: count.count?.toString() ?? '-',
-           unitLabel: '',
-           isLoading: false,
-         },
-         {
-           label: 'Avg Gateway Response Time',
-           value: gatewayTime.avg?.toFixed(2) ?? '-',
-           unitLabel: 'ms',
-           isLoading: false,
-         },
-         {
-           label: 'Avg Upstream Response Time',
-           value: endpointTime.avg?.toFixed(2) ?? '-',
-           unitLabel: 'ms',
-           isLoading: false,
-         },
-         {
-           label: 'Avg Content Length',
-           value: contentLength.avg ? (contentLength.avg / 1024).toFixed(2) : '-',
-           unitLabel: 'KB',
-           isLoading: false,
-         },
-       ],
-     };
-   }
-   ```
-
-**Reference Patterns:**
-- Use `toSignal()` to convert observables to signals
-- Use `combineLatest` for parallel requests
-
-#### Subtask 8.2: Update Template with State Handling
-
-**Files to Modify:**
-
-1. **api-analytics-proxy.component.html**
-   - **Action:** Add stats cards with loading/empty/error states
-   ```html
-   <div class="analytics-dashboard">
-     @if (statsCards().isLoading) {
-       <gio-loader></gio-loader>
-     } @else if (statsCards().stats.length === 0) {
-       <gio-card-empty-state>
-         <mat-icon>analytics</mat-icon>
-         <p>No analytics data available for this time range</p>
-         <p class="subtitle">Try selecting a different time period</p>
-       </gio-card-empty-state>
-     } @else {
-       <api-analytics-request-stats
-         [requestStats]="statsCards().stats"
-         [isLoading]="statsCards().isLoading"
-       />
-     }
-   </div>
-   ```
-
-**Reference Patterns:**
-- Use `@if` control flow (Angular 17+)
-- Use `GioLoaderModule` and `GioCardEmptyStateModule`
-
-#### Subtask 8.3: Update Styles
-
-**Files to Modify:**
-
-1. **api-analytics-proxy.component.scss**
-   - **Action:** Add responsive layout
-   ```scss
-   .analytics-dashboard {
-     padding: 16px;
-   }
-
-   .stats-row {
-     display: grid;
-     grid-template-columns: repeat(4, 1fr);
-     gap: 16px;
-     margin-bottom: 16px;
-   }
-
-   @media (max-width: 1024px) {
-     .stats-row {
-       grid-template-columns: repeat(2, 1fr);
-     }
-   }
-
-   @media (max-width: 768px) {
-     .stats-row {
-       grid-template-columns: 1fr;
-     }
-   }
-   ```
-
-#### Subtask 8.4: Run Tests (GREEN)
-
-- Verify all 4 stats cards render
-- Verify loading state works
-- Verify empty state shows when all null
-- Verify error snackbar shows on failure
-- Verify numbers are formatted correctly
-
----
-
-### Story 9: HTTP Status Pie Chart Widget
-
-**Title:** Add pie chart showing HTTP status code distribution
-
-**Description:**
-As an API publisher, I want to see the breakdown of HTTP status codes in a pie chart so that I can quickly spot error patterns.
-
-**Acceptance Criteria:**
-- [ ] Dashboard displays HTTP status pie chart
-- [ ] Chart fetches data via GROUP_BY query with `field=status`
-- [ ] Chart displays top 10 status codes
-- [ ] Colors follow convention (2xx=green, 3xx=blue, 4xx=orange, 5xx=red)
-- [ ] Chart shows "No data" empty state when values map is empty
-- [ ] Chart shows loading state while fetching
-- [ ] Chart shows error snackbar on failure
-- [ ] Chart updates when timeframe changes
-
-**Layer:** Frontend
-**Complexity:** M (4 days)
-**Dependencies:** Story 7C (Service with GROUP_BY)
-
-**Note:** This story includes empty/error/loading state handling (formerly Story 11).
-
-#### Subtask 9.0: Write Acceptance Tests (RED)
+#### Subtask 3.3.1: Create Component
 
 **Files to Create:**
 
-1. **api-analytics-response-status-distribution.component.spec.ts**
-   - **Test Cases:**
-     - `shouldDisplayPieChart()`
-     - `shouldShowLoadingState()`
-     - `shouldShowEmptyStateWhenNoData()`
-     - `shouldUseCorrectColorsFor2xxCodes()`
-     - `shouldUseCorrectColorsFor4xxCodes()`
-     - `shouldUseCorrectColorsFor5xxCodes()`
-     - `shouldDisplayTop10StatusCodes()`
-     - `shouldShowErrorSnackbarOnHttpFailure()`
-     - `shouldUpdateWhenTimeframeChanges()`
-
-#### Subtask 9.1: Create Status Distribution Component
-
-**Files to Create:**
-
-1. **api-analytics-response-status-distribution.component.ts**
-   - **Path:** `gravitee-apim-console-webui/src/management/api/api-traffic-v4/analytics/components/api-analytics-response-status-distribution/api-analytics-response-status-distribution.component.ts`
+1. **api-analytics-stats-card.component.ts**
+   - **Path:** `gravitee-apim-console-webui/src/management/api/api-traffic-v4/analytics-dashboard/api-analytics-stats-card/api-analytics-stats-card.component.ts`
    - **Content:**
    ```typescript
-   import { Component, inject, input } from '@angular/core';
-   import { toSignal } from '@angular/core/rxjs-interop';
+   import { Component, computed, inject, input } from '@angular/core';
    import { CommonModule } from '@angular/common';
    import { MatCardModule } from '@angular/material/card';
-   import { GioChartPieModule, GioChartPieInput } from '@gravitee/ui-components/gio-chart-pie';
-   import { GioLoaderModule, GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
-   import { ApiAnalyticsV2Service } from '../../../../../services-ngx/api-analytics-v2.service';
-   import { AnalyticsQueryType, GroupByResponse } from '../../../../../entities/management-api-v2/analytics';
-   import { map, startWith, catchError, switchMap } from 'rxjs/operators';
+   import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+   import { toSignal } from '@angular/core/rxjs-interop';
+   import { switchMap, catchError, startWith } from 'rxjs/operators';
    import { of } from 'rxjs';
 
+   import { ApiAnalyticsV2Service } from '../../../../../services-ngx/api-analytics-v2.service';
+   import { AnalyticsQueryType } from '../../../../../entities/management-api-v2/analytics';
+
    @Component({
-     selector: 'api-analytics-response-status-distribution',
+     selector: 'api-analytics-stats-card',
      standalone: true,
-     imports: [CommonModule, MatCardModule, GioChartPieModule, GioLoaderModule, GioCardEmptyStateModule],
-     templateUrl: './api-analytics-response-status-distribution.component.html',
-     styleUrl: './api-analytics-response-status-distribution.component.scss',
+     imports: [CommonModule, MatCardModule, MatProgressSpinnerModule],
+     template: `
+       <mat-card class="stats-card">
+         <mat-card-header>
+           <mat-card-title>{{ title() }}</mat-card-title>
+         </mat-card-header>
+         <mat-card-content>
+           @if (statsData(); as data) {
+             @if (data.isLoading) {
+               <mat-spinner diameter="40" />
+             } @else if (data.error) {
+               <div class="error">Failed to load statistics</div>
+             } @else if (data.stats) {
+               <div class="stats-grid">
+                 <div class="stat-item">
+                   <div class="stat-label">Average</div>
+                   <div class="stat-value">{{ data.stats.avg | number:'1.2-2' }} ms</div>
+                 </div>
+                 <div class="stat-item">
+                   <div class="stat-label">Min</div>
+                   <div class="stat-value">{{ data.stats.min | number:'1.2-2' }} ms</div>
+                 </div>
+                 <div class="stat-item">
+                   <div class="stat-label">Max</div>
+                   <div class="stat-value">{{ data.stats.max | number:'1.2-2' }} ms</div>
+                 </div>
+               </div>
+             }
+           }
+         </mat-card-content>
+       </mat-card>
+     `,
+     styleUrls: ['./api-analytics-stats-card.component.scss']
    })
-   export class ApiAnalyticsResponseStatusDistributionComponent {
+   export class ApiAnalyticsStatsCardComponent {
      private readonly apiAnalyticsV2Service = inject(ApiAnalyticsV2Service);
-     private readonly snackBarService = inject(SnackBarService);
 
-     apiId = input.required<string>();
+     readonly apiId = input.required<string>();
+     readonly timeRange = input.required<{ from: number; to: number }>();
+     readonly field = input.required<string>();
+     readonly title = input.required<string>();
 
-     private readonly statusData$ = this.apiAnalyticsV2Service.timeRangeFilter().pipe(
-       switchMap((timeRange) =>
-         this.apiAnalyticsV2Service.getAnalytics(this.apiId(), {
-           type: AnalyticsQueryType.GROUP_BY,
-           field: 'status',
-           size: 10,
-           order: 'desc',
-           from: timeRange.from,
-           to: timeRange.to
-         })
-       ),
-       map((response: GroupByResponse) => this.mapToPieChartData(response)),
-       startWith({ isLoading: true, data: [] }),
-       catchError((error) => {
-         this.snackBarService.error(`Failed to load status distribution: ${error.message}`);
-         return of({ isLoading: false, data: [] });
+     private readonly statsData$ = this.apiAnalyticsV2Service.timeRangeFilter().pipe(
+       switchMap(() => {
+         const range = this.timeRange();
+         return this.apiAnalyticsV2Service.getAnalytics(this.apiId(), {
+           type: AnalyticsQueryType.STATS,
+           field: this.field(),
+           from: range.from,
+           to: range.to,
+         }).pipe(
+           catchError((error) => {
+             console.error('Error fetching stats analytics:', error);
+             return of({ error: true });
+           }),
+           startWith({ isLoading: true })
+         );
        })
      );
 
-     readonly chartData = toSignal(this.statusData$, {
-       initialValue: { isLoading: true, data: [] }
-     });
-
-     private mapToPieChartData(response: GroupByResponse): { isLoading: boolean; data: GioChartPieInput[] } {
-       if (!response.values || Object.keys(response.values).length === 0) {
-         return { isLoading: false, data: [] };
-       }
-
-       const data = Object.entries(response.values).map(([status, count]) => ({
-         label: status,
-         value: count,
-         color: this.getStatusColor(status),
-       }));
-
-       return { isLoading: false, data };
-     }
-
-     private getStatusColor(status: string): string {
-       if (status.startsWith('2')) return '#30ab61'; // Green
-       if (status.startsWith('3')) return '#365bd3'; // Blue
-       if (status.startsWith('4')) return '#ff9f40'; // Orange
-       if (status.startsWith('5')) return '#cf3942'; // Red
-       return '#999999'; // Gray for 1xx or unknown
-     }
+     readonly statsData = toSignal(this.statsData$, { initialValue: { isLoading: true } });
    }
    ```
 
-2. **api-analytics-response-status-distribution.component.html**
-   ```html
-   <mat-card>
-     <mat-card-header>
-       <mat-card-title>HTTP Status Distribution</mat-card-title>
-     </mat-card-header>
-     <mat-card-content>
-       @if (chartData().isLoading) {
-         <gio-loader></gio-loader>
-       } @else if (chartData().data.length === 0) {
-         <gio-card-empty-state>
-           <mat-icon>pie_chart</mat-icon>
-           <p>No status data available for this time range</p>
-           <p class="subtitle">Try selecting a different time period</p>
-         </gio-card-empty-state>
-       } @else {
-         <gio-chart-pie [data]="chartData().data"></gio-chart-pie>
-       }
-     </mat-card-content>
-   </mat-card>
-   ```
-
-3. **api-analytics-response-status-distribution.component.scss**
+2. **api-analytics-stats-card.component.scss**
+   - **Content:**
    ```scss
-   :host {
-     display: block;
-   }
+   .stats-card {
+     min-height: 180px;
 
-   mat-card-content {
-     min-height: 300px;
-     display: flex;
-     align-items: center;
-     justify-content: center;
+     mat-card-content {
+       display: flex;
+       justify-content: center;
+       align-items: center;
+       min-height: 120px;
+
+       .stats-grid {
+         display: grid;
+         grid-template-columns: repeat(3, 1fr);
+         gap: 24px;
+         width: 100%;
+
+         .stat-item {
+           text-align: center;
+
+           .stat-label {
+             font-size: 12px;
+             color: var(--gio-app-text-muted-color);
+             margin-bottom: 8px;
+           }
+
+           .stat-value {
+             font-size: 24px;
+             font-weight: 600;
+             color: var(--gio-app-primary-main-color);
+           }
+         }
+       }
+
+       .error {
+         color: var(--gio-app-error-color);
+       }
+     }
    }
    ```
 
-#### Subtask 9.2: Add Component to Parent Layout
+#### Subtask 3.3.2: Update Dashboard Component
 
 **Files to Modify:**
 
-1. **api-analytics-proxy.component.ts**
-   - Import new component
-
-2. **api-analytics-proxy.component.html**
-   - Add to layout
-   ```html
-   <!-- Row 3: Two-column layout -->
-   <div class="analytics-row-3">
-     <div class="left-column">
-       <api-analytics-response-status-distribution [apiId]="apiId()" />
-     </div>
-     <div class="right-column">
-       <api-analytics-response-status-overtime [apiId]="apiId()" />
-     </div>
+1. **api-analytics-dashboard.component.ts**
+   - **Action:** Add gateway latency card
+   ```typescript
+   <div class="dashboard-content">
+     <api-analytics-count-card
+       [apiId]="apiId()"
+       [timeRange]="timeRange()"
+     />
+     <api-analytics-stats-card
+       [apiId]="apiId()"
+       [timeRange]="timeRange()"
+       [field]="'gateway-latency-ms'"
+       [title]="'Gateway Latency'"
+     />
    </div>
    ```
 
-3. **api-analytics-proxy.component.scss**
-   - Add grid layout
-   ```scss
-   .analytics-row-3 {
-     display: grid;
-     grid-template-columns: 1fr 1fr;
-     gap: 16px;
-     margin-top: 16px;
-   }
-
-   @media (max-width: 768px) {
-     .analytics-row-3 {
-       grid-template-columns: 1fr;
-     }
-   }
-   ```
-
-#### Subtask 9.3: Create Component Harness
-
-**Files to Create:**
-
-1. **api-analytics-response-status-distribution.component.harness.ts**
-
-#### Subtask 9.4: Run Tests (GREEN)
-
-- Verify pie chart renders
-- Verify colors are correct
-- Verify empty state works
-- Verify error handling works
+#### Subtask 3.3.3: Run Tests (GREEN)
 
 ---
 
-### Story 10: Verify Existing Line Charts
+### Story 3.4: E2E Test for Stats Feature
 
-**Title:** Verify existing line charts continue to work unchanged
+**Title:** E2E test verifying statistics display
 
 **Description:**
-As an API publisher, I want my existing line charts for response status over time and response time over time to continue working so that I don't lose historical trend visibility.
+As a developer, I want E2E tests for the stats feature so that I can verify statistics are displayed correctly.
 
 **Acceptance Criteria:**
-- [ ] "Response Status Over Time" line chart renders with mock data
-- [ ] "Response Time Over Time" line chart renders with mock data
-- [ ] Both charts update when timeframe filter changes
-- [ ] No console errors or warnings
-- [ ] Charts appear in correct position in layout
-- [ ] Tooltips and legends work correctly
-- [ ] Visual snapshot tests pass
+- [ ] E2E test verifies stats card is displayed
+- [ ] E2E test verifies avg, min, max values are shown
+- [ ] E2E test changes timeframe and verifies stats update
 
-**Layer:** Frontend
+**Layer:** Frontend E2E
 **Complexity:** XS (1 day)
-**Dependencies:** Story 7A (Service exists)
+**Dependencies:** Story 3.3
 
-**Decision:** Keep existing endpoints (DO NOT MIGRATE to unified endpoint).
-
-#### Subtask 10.0: Write Acceptance Tests (RED)
+#### Subtask 3.4.0: Write E2E Test
 
 **Files to Modify:**
 
-1. **api-analytics-proxy.component.spec.ts**
-   - **Add Test Cases:**
-     - `shouldRenderResponseStatusOvertimeChart()`
-     - `shouldRenderResponseTimeOverTimeChart()`
-     - `shouldUpdateChartsWhenTimeframeChanges()`
-     - `shouldDisplayLegendAndTooltips()`
-     - `shouldIncludeBothChartsInDashboardLayout()`
+1. **api-analytics-dashboard.e2e-spec.ts**
+   - **Action:** Add stats tests
 
-2. **Visual Regression Tests** (if framework exists)
-   - `snapshot: response-status-overtime-chart.png`
-   - `snapshot: response-time-over-time-chart.png`
-
-#### Subtask 10.1: Verify Components Are Imported
-
-**Files to Verify:**
-
-1. **api-analytics-proxy.component.ts**
-   - Verify imports:
-     - `ApiAnalyticsResponseStatusOvertimeComponent`
-     - `ApiAnalyticsResponseTimeOverTimeComponent`
-
-**Existing Components (No Modifications):**
-- `api-analytics-response-status-overtime.component.ts`
-  - Data Source: `ApiAnalyticsV2Service.getResponseStatusOvertime()`
-  - Chart Type: Multi-line chart (one line per status range: 2xx, 3xx, 4xx, 5xx)
-- `api-analytics-response-time-over-time.component.ts`
-  - Data Source: `ApiAnalyticsV2Service.getResponseTimeOverTime()`
-  - Chart Type: Line chart with multiple series (gateway, endpoint)
-
-#### Subtask 10.2: Verify Layout Includes Charts
-
-**Files to Verify:**
-
-1. **api-analytics-proxy.component.html**
-   - Verify charts are in layout:
-   ```html
-   <!-- Row 3: Two-column layout -->
-   <div class="analytics-row-3">
-     <div class="left-column">
-       <api-analytics-response-status-distribution [apiId]="apiId()" />
-     </div>
-     <div class="right-column">
-       <api-analytics-response-status-overtime [apiId]="apiId()" />
-     </div>
-   </div>
-
-   <!-- Row 4: Full-width -->
-   <div class="analytics-row-4">
-     <api-analytics-response-time-over-time [apiId]="apiId()" />
-   </div>
-   ```
-
-#### Subtask 10.3: Run Tests (GREEN)
-
-- Verify both charts render with mock data
-- Verify charts update on timeframe change
-- Verify no console errors
-- Verify visual regression tests pass
+#### Subtask 3.4.1: Run Tests (GREEN)
 
 ---
 
-### Story 12: Integration & Verification
+## Flow 4: Additional Performance Statistics
 
-**Title:** Full dashboard integration with coordinated widget refresh
+**Goal:** Add more statistics cards for response time and endpoint latency.
+
+**User Value:** Users get a complete view of performance metrics.
+
+**Duration:** 3 days
+
+---
+
+### Story 4.1: Response Time and Endpoint Stats Cards
+
+**Title:** Add response time and endpoint latency stats cards
 
 **Description:**
-As an API publisher, I want all analytics widgets to refresh together when I change the timeframe so that I have a consistent view of my API's performance.
+As an API publisher, I want to see response time and endpoint latency stats so that I have a complete performance overview.
 
 **Acceptance Criteria:**
-- [ ] All widgets (stats cards, pie chart, line charts) visible on page
-- [ ] Changing timeframe filter triggers refresh of all widgets simultaneously
-- [ ] Dashboard loads in < 2 seconds for APIs with < 100k requests
-- [ ] No console errors or warnings
-- [ ] Responsive layout works on desktop (1920x1080) and tablet (1024x768)
-- [ ] All widgets share same time range state
+- [ ] Card for "Gateway Response Time" displays stats
+- [ ] Card for "Endpoint Response Time" displays stats
+- [ ] Both cards reuse existing STATS backend
+- [ ] Dashboard shows all three stats cards in a grid
+
+**Layer:** Frontend UI
+**Complexity:** XS (3 days)
+**Dependencies:** Story 3.3
+
+#### Subtask 4.1.0: Write Tests (RED)
+
+**IMPORTANT:** The Gravitee Console uses the Particles design system (`@gravitee/ui-particles-angular`) on top of Angular Material. Before implementing any UI component, **study the EXISTING analytics code** at:
+- `src/management/api/api-traffic-v4/analytics/`
+
+#### Subtask 4.1.1: Update Dashboard Component
+
+**Files to Modify:**
+
+1. **api-analytics-dashboard.component.ts**
+   - **Action:** Add more stats cards
+   ```typescript
+   <div class="dashboard-content">
+     <div class="cards-grid">
+       <api-analytics-count-card
+         [apiId]="apiId()"
+         [timeRange]="timeRange()"
+       />
+     </div>
+
+     <div class="stats-grid">
+       <api-analytics-stats-card
+         [apiId]="apiId()"
+         [timeRange]="timeRange()"
+         [field]="'gateway-latency-ms'"
+         [title]="'Gateway Latency'"
+       />
+       <api-analytics-stats-card
+         [apiId]="apiId()"
+         [timeRange]="timeRange()"
+         [field]="'gateway-response-time-ms'"
+         [title]="'Gateway Response Time'"
+       />
+       <api-analytics-stats-card
+         [apiId]="apiId()"
+         [timeRange]="timeRange()"
+         [field]="'endpoint-response-time-ms'"
+         [title]="'Endpoint Response Time'"
+       />
+     </div>
+   </div>
+   ```
+
+2. **api-analytics-dashboard.component.scss**
+   - **Action:** Add grid layout
+   ```scss
+   .dashboard-content {
+     .cards-grid {
+       display: grid;
+       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+       gap: 16px;
+       margin-bottom: 24px;
+     }
+
+     .stats-grid {
+       display: grid;
+       grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+       gap: 16px;
+     }
+   }
+   ```
+
+#### Subtask 4.1.2: Run Tests (GREEN)
+
+---
+
+## Flow 5: Status Code Distribution (Pie Chart)
+
+**Goal:** Add a pie chart showing the distribution of HTTP status codes.
+
+**User Value:** Users can visualize the success/error rate of their API.
+
+**Duration:** 1 week
+
+---
+
+### Story 5.1: GROUP_BY Query Implementation
+
+**Title:** Implement GROUP_BY aggregation for categorical field grouping
+
+**Description:**
+As an API publisher, I want to group metrics by categorical fields so that I can see distributions (e.g., status code breakdown).
+
+**Acceptance Criteria:**
+- [ ] `GET /v2/apis/{apiId}/analytics?type=GROUP_BY&field=status&size=10&order=desc` returns grouped data
+- [ ] Response includes value counts and metadata
+- [ ] Field validation ensures only allowed fields
+- [ ] Size parameter limits results (default 10, max 100)
+- [ ] Order parameter sorts results (asc/desc)
+- [ ] Automatic `.keyword` suffix for text fields
+- [ ] Integration test verifies actual ES terms aggregation
+
+**Layer:** Backend
+**Complexity:** M (4 days)
+**Dependencies:** Story 3.1
+
+#### Subtask 5.1.0: Write Acceptance Tests (RED)
+
+Similar structure to Story 3.1, with tests for:
+- Query adapter
+- Response adapter
+- Integration test with Testcontainers
+
+#### Subtask 5.1.1: Create Query Adapter
+
+**Files to Create:**
+
+1. **SearchGroupByAnalyticsQueryAdapter.java**
+   - Build ES terms aggregation
+   - Handle `.keyword` suffix automatically
+   - Support size and order parameters
+
+#### Subtask 5.1.2: Create Response Adapter
+
+**Files to Create:**
+
+1. **SearchGroupByAnalyticsResponseAdapter.java**
+   - Parse ES buckets into values map
+   - Extract metadata (e.g., status code names)
+
+#### Subtask 5.1.3: Add Repository and Service Methods
+
+#### Subtask 5.1.4: Update Use Case
+
+**Files to Modify:**
+
+1. **SearchUnifiedAnalyticsUseCase.java**
+   - Add GROUP_BY query handling
+
+#### Subtask 5.1.5: Integration Test
+
+#### Subtask 5.1.6: Run Tests (GREEN)
+
+---
+
+### Story 5.2: Frontend Service - GROUP_BY Support
+
+**Title:** Add GROUP_BY request support to frontend service
+
+**Acceptance Criteria:**
+- [ ] Service handles GROUP_BY request type
+- [ ] TypeScript types exist
+- [ ] Service tests verify HTTP calls
+
+**Layer:** Frontend Service
+**Complexity:** XS (1 day)
+**Dependencies:** Story 5.1
+
+---
+
+### Story 5.3: HTTP Status Pie Chart Widget
+
+**Title:** Display HTTP status code distribution in a pie chart
+
+**Description:**
+As an API publisher, I want to see the distribution of HTTP status codes in a pie chart so that I can visualize success vs error rates.
+
+**Acceptance Criteria:**
+- [ ] Pie chart displays status code segments
+- [ ] Chart uses Highcharts (existing in codebase)
+- [ ] Chart shows loading and error states
+- [ ] Chart updates when timeframe changes
+- [ ] Legend shows status code labels (200 OK, 404 Not Found, etc.)
+- [ ] Component harness tests verify chart rendering
+
+**Layer:** Frontend UI
+**Complexity:** M (3 days)
+**Dependencies:** Story 5.2
+
+#### Subtask 5.3.0: Write Tests (RED)
+
+**IMPORTANT:** The Gravitee Console uses the Particles design system (`@gravitee/ui-particles-angular`) on top of Angular Material. Before implementing any UI component, **study the EXISTING analytics code** at:
+- `src/management/api/api-traffic-v4/analytics/`
+- Specifically study how Highcharts is integrated in existing analytics components
+
+#### Subtask 5.3.1: Create Component
+
+**Files to Create:**
+
+1. **api-analytics-pie-chart.component.ts**
+   - Use Highcharts for pie chart
+   - Map GROUP_BY response to Highcharts data format
+   - Include status code names in labels
+
+#### Subtask 5.3.2: Update Dashboard Component
+
+**Files to Modify:**
+
+1. **api-analytics-dashboard.component.ts**
+   - Add pie chart below stats cards
+
+#### Subtask 5.3.3: Run Tests (GREEN)
+
+---
+
+### Story 5.4: E2E Test for Pie Chart
+
+**Layer:** Frontend E2E
+**Complexity:** XS (1 day)
+**Dependencies:** Story 5.3
+
+---
+
+## Flow 6: Response Time Over Time (Line Chart)
+
+**Goal:** Add a line chart showing response time trends over time.
+
+**User Value:** Users can see performance trends and identify spikes.
+
+**Duration:** 1 week
+
+---
+
+### Story 6.1: DATE_HISTO Query Implementation
+
+**Title:** Implement DATE_HISTO aggregation for time series data
+
+**Description:**
+As an API publisher, I want to see metrics over time so that I can identify trends and anomalies.
+
+**Acceptance Criteria:**
+- [ ] `GET /v2/apis/{apiId}/analytics?type=DATE_HISTO&field=gateway-response-time-ms&interval=3600000` returns time series
+- [ ] Response includes timestamps and bucket values
+- [ ] Interval parameter controls bucket size (in milliseconds)
+- [ ] Time series aligned to interval boundaries
+- [ ] Integration test verifies actual ES date_histogram aggregation
+
+**Layer:** Backend
+**Complexity:** M (4 days)
+**Dependencies:** Story 5.1
+
+#### Subtask 6.1.0: Write Acceptance Tests (RED)
+
+#### Subtask 6.1.1: Create Query Adapter
+
+**Files to Create:**
+
+1. **SearchDateHistoAnalyticsQueryAdapter.java**
+   - Build ES date_histogram aggregation
+   - Support interval parameter
+
+#### Subtask 6.1.2: Create Response Adapter
+
+**Files to Create:**
+
+1. **SearchDateHistoAnalyticsResponseAdapter.java**
+   - Parse ES buckets into timestamp and values arrays
+
+#### Subtask 6.1.3: Add Repository and Service Methods
+
+#### Subtask 6.1.4: Update Use Case
+
+#### Subtask 6.1.5: Integration Test
+
+#### Subtask 6.1.6: Run Tests (GREEN)
+
+---
+
+### Story 6.2: Frontend Service - DATE_HISTO Support
+
+**Layer:** Frontend Service
+**Complexity:** XS (1 day)
+**Dependencies:** Story 6.1
+
+---
+
+### Story 6.3: Response Time Line Chart
+
+**Title:** Display response time over time in a line chart
+
+**Description:**
+As an API publisher, I want to see response time trends over time so that I can identify performance degradation.
+
+**Acceptance Criteria:**
+- [ ] Line chart displays time series data
+- [ ] Chart uses Highcharts (existing pattern)
+- [ ] X-axis shows time
+- [ ] Y-axis shows response time (ms)
+- [ ] Chart updates when timeframe changes
+- [ ] Component harness tests verify chart rendering
+
+**Layer:** Frontend UI
+**Complexity:** M (3 days)
+**Dependencies:** Story 6.2
+
+#### Subtask 6.3.0: Write Tests (RED)
+
+**IMPORTANT:** The Gravitee Console uses the Particles design system (`@gravitee/ui-particles-angular`) on top of Angular Material. Before implementing any UI component, **study the EXISTING analytics code** at:
+- `src/management/api/api-traffic-v4/analytics/`
+
+#### Subtask 6.3.1: Create or Verify Component
+
+- Check if existing line chart component can be reused
+- If yes, integrate it
+- If no, create new component following existing patterns
+
+#### Subtask 6.3.2: Update Dashboard Component
+
+#### Subtask 6.3.3: Run Tests (GREEN)
+
+---
+
+### Story 6.4: E2E Test for Line Chart
+
+**Layer:** Frontend E2E
+**Complexity:** XS (1 day)
+**Dependencies:** Story 6.3
+
+---
+
+## Flow 7: Error Handling & Resilience
+
+**Goal:** Add robust error handling for Elasticsearch failures and UI error states.
+
+**User Value:** Users see helpful error messages instead of crashes.
+
+**Duration:** 1 week
+
+---
+
+### Story 7.1: Elasticsearch Error Handling
+
+**Title:** Handle Elasticsearch failures gracefully
+
+**Description:**
+As a platform operator, I want analytics queries to handle ES failures gracefully so that users receive appropriate error messages.
+
+**Acceptance Criteria:**
+- [ ] Returns 503 when ES is unreachable
+- [ ] Returns 500 with error ID when ES query fails
+- [ ] Returns 504 when ES query exceeds 10 seconds
+- [ ] Logs errors with full context
+- [ ] Returns empty results (not error) when index doesn't exist
+
+**Layer:** Backend
+**Complexity:** S (2 days)
+**Dependencies:** Story 2.4, 3.1, 5.1, 6.1
+
+#### Subtask 7.1.0: Write Tests (RED)
+
+#### Subtask 7.1.1: Add Error Handling to Repository
+
+**Files to Modify:**
+
+1. **AnalyticsElasticsearchRepository.java**
+   - Add try-catch blocks
+   - Detect different error types
+   - Log with error IDs
+
+#### Subtask 7.1.2: Add Custom Exceptions
+
+**Files to Create:**
+
+1. **AnalyticsTimeoutException.java**
+2. **AnalyticsUnavailableException.java**
+3. **AnalyticsQueryException.java**
+
+#### Subtask 7.1.3: Update REST Resource
+
+**Files to Modify:**
+
+1. **ApiAnalyticsResource.java**
+   - Map exceptions to HTTP status codes
+   - Return error details
+
+#### Subtask 7.1.4: Run Tests (GREEN)
+
+---
+
+### Story 7.2: UI Error States
+
+**Title:** Display error states in all widgets
+
+**Description:**
+As an API publisher, I want to see clear error messages when analytics fail so that I know what went wrong.
+
+**Acceptance Criteria:**
+- [ ] All widgets show error state UI
+- [ ] Error messages are user-friendly
+- [ ] Retry button allows manual refresh
+- [ ] Error details logged to console for debugging
+
+**Layer:** Frontend UI
+**Complexity:** S (2 days)
+**Dependencies:** Story 7.1
+
+#### Subtask 7.2.0: Write Tests (RED)
+
+**IMPORTANT:** The Gravitee Console uses the Particles design system (`@gravitee/ui-particles-angular`) on top of Angular Material. Before implementing any UI component, **study the EXISTING analytics code** at:
+- `src/management/api/api-traffic-v4/analytics/`
+
+#### Subtask 7.2.1: Update Components
+
+- Enhance error handling in all widget components
+- Add retry functionality
+- Improve error messages
+
+#### Subtask 7.2.2: Run Tests (GREEN)
+
+---
+
+### Story 7.3: E2E Error Scenario Tests
+
+**Title:** E2E tests for error scenarios
+
+**Description:**
+As a developer, I want E2E tests for error scenarios so that I can verify error handling works correctly.
+
+**Acceptance Criteria:**
+- [ ] Test for ES unavailable scenario
+- [ ] Test for ES timeout scenario
+- [ ] Test for invalid API ID
+- [ ] Test for missing permissions
+
+**Layer:** Frontend E2E
+**Complexity:** S (2 days)
+**Dependencies:** Story 7.2
+
+---
+
+## Flow 8: Performance Validation & Final Polish
+
+**Goal:** Add performance constraints, validation, and comprehensive E2E tests.
+
+**User Value:** Dashboard performs well even with large data volumes.
+
+**Duration:** 1 week
+
+---
+
+### Story 8.1: Performance Validation & Timeouts
+
+**Title:** Add performance constraints and timeout protection
+
+**Description:**
+As a platform operator, I want analytics queries to have performance constraints so that they don't overload Elasticsearch.
+
+**Acceptance Criteria:**
+- [ ] 90-day max time range enforced
+- [ ] 10-second ES query timeout configured
+- [ ] < 5 second end-to-end SLA monitored
+- [ ] Performance tests verify constraints
+
+**Layer:** Backend
+**Complexity:** S (3 days)
+**Dependencies:** Flow 7
+
+#### Subtask 8.1.0: Write Tests (RED)
+
+#### Subtask 8.1.1: Add Timeout Configuration
+
+#### Subtask 8.1.2: Add Performance Tests
+
+#### Subtask 8.1.3: Run Tests (GREEN)
+
+---
+
+### Story 8.2: Comprehensive E2E Tests
+
+**Title:** End-to-end dashboard tests covering all features
+
+**Description:**
+As a developer, I want comprehensive E2E tests so that I can verify the complete dashboard works correctly.
+
+**Acceptance Criteria:**
+- [ ] Test complete user journey
+- [ ] Test all widgets together
+- [ ] Test timeframe changes
+- [ ] Test performance under load
+- [ ] Test cross-browser compatibility
+
+**Layer:** Frontend E2E
+**Complexity:** M (3 days)
+**Dependencies:** All previous stories
+
+#### Subtask 8.2.0: Write Comprehensive E2E Tests
+
+**Files to Create:**
+
+1. **api-analytics-dashboard-complete.e2e-spec.ts**
+   - Test complete user flow
+   - Test all interactions
+   - Test performance
+
+#### Subtask 8.2.1: Run Tests (GREEN)
+
+---
+
+### Story 8.3: Final Integration & Verification
+
+**Title:** Integration testing and final verification
+
+**Description:**
+As a product owner, I want to verify the complete dashboard works correctly so that it's ready for production.
+
+**Acceptance Criteria:**
+- [ ] All widgets display correctly together
+- [ ] Dashboard is responsive
+- [ ] Performance meets SLA
+- [ ] Documentation is complete
+- [ ] Code review completed
 
 **Layer:** Frontend
-**Complexity:** M (3 days)
-**Dependencies:** Story 8, 9, 10
-
-#### Subtask 12.0: Write Acceptance Tests (RED)
-
-**Files to Modify:**
-
-1. **api-analytics-proxy.component.spec.ts**
-   - **Add Test Cases:**
-     - `shouldDisplayAllWidgets()`
-     - `shouldRefreshAllWidgetsWhenTimeframeChanges()`
-     - `shouldShareTimeRangeAcrossWidgets()`
-     - `shouldNotHaveConsoleErrors()`
-     - `shouldBeResponsive()`
-     - `shouldLoadIn2SecondsOrLess()`
-
-**Reference Patterns:**
-- Mock `HttpTestingController` for all endpoints
-- Verify multiple HTTP requests when timeframe changes
-
-#### Subtask 12.1: Wire Timeframe Filter to All Widgets
-
-**Files to Verify:**
-
-All data streams should start with `timeRangeFilter().pipe(switchMap(...))`:
-
-1. **api-analytics-proxy.component.ts**
-   - Stats data stream uses `timeRangeFilter()`
-
-2. **api-analytics-response-status-distribution.component.ts**
-   - Pie chart data stream uses `timeRangeFilter()`
-
-3. **Existing chart components**
-   - Verify they use `timeRangeFilter()`
-
-**Pattern:**
-```typescript
-private readonly data$ = this.apiAnalyticsV2Service.timeRangeFilter().pipe(
-  switchMap((timeRange) => /* fetch data with timeRange */),
-  // ...
-);
-```
-
-#### Subtask 12.2: Add Performance Optimization
-
-**Files to Modify:**
-
-1. **api-analytics-proxy.component.ts**
-   - Add `shareReplay` to avoid duplicate requests
-   ```typescript
-   import { shareReplay } from 'rxjs/operators';
-
-   private readonly statsData$ = this.apiAnalyticsV2Service.timeRangeFilter().pipe(
-     switchMap(...),
-     map(...),
-     startWith(...),
-     catchError(...),
-     shareReplay(1) // Cache latest emission
-   );
-   ```
-
-**Reference Patterns:**
-- Use `shareReplay(1)` for multi-cast observables
-
-#### Subtask 12.3: Verify Responsive Layout
-
-**Files to Verify:**
-
-1. **api-analytics-proxy.component.scss**
-   - Verify responsive breakpoints exist
-   - Test at 1920x1080 (desktop)
-   - Test at 1024x768 (tablet)
-   - Test at 768px and below (mobile)
-
-#### Subtask 12.4: Run Tests (GREEN)
-
-- Verify all widgets visible
-- Verify timeframe changes trigger all refreshes
-- Verify no duplicate HTTP requests (shareReplay working)
-- Verify responsive layout at different breakpoints
+**Complexity:** S (2 days)
+**Dependencies:** Story 8.2
 
 ---
 
-### Story 15: E2E Dashboard Tests
+## Implementation Timeline
 
-**Title:** End-to-end tests for complete user journey
+### Overview
 
-**Description:**
-As a platform developer, I want E2E tests that validate the complete user journey so that I can ensure the dashboard works correctly in a real browser.
+Total Duration: **8 weeks** (organized into 8 end-to-end flows)
 
-**Acceptance Criteria:**
-- [ ] User can login and navigate to analytics dashboard
-- [ ] User can change timeframe and see all widgets refresh
-- [ ] Dashboard displays correctly in Chrome
-- [ ] Dashboard loads in < 3 seconds (measured in E2E test)
-- [ ] No console errors or warnings in browser
-- [ ] Basic accessibility audit passes (axe-core)
-- [ ] Responsive layout works on mobile viewport (375px)
+### Flow-by-Flow Schedule
 
-**Layer:** Frontend (E2E Test)
-**Complexity:** M (5 days)
-**Dependencies:** Story 12
+| Flow | Duration | Description | User Value Delivered |
+|------|----------|-------------|---------------------|
+| Flow 1 | 2 days | Empty Dashboard Foundation | Navigation & UI shell |
+| Flow 2 | 1.5 weeks | Request Count (First Analytics) | Total request count |
+| Flow 3 | 1 week | Gateway Latency Statistics | First performance metric |
+| Flow 4 | 3 days | Additional Performance Stats | Complete performance overview |
+| Flow 5 | 1 week | Status Code Distribution | Success/error visualization |
+| Flow 6 | 1 week | Response Time Over Time | Performance trends |
+| Flow 7 | 1 week | Error Handling & Resilience | Robust error handling |
+| Flow 8 | 1 week | Performance & Final Polish | Production-ready dashboard |
 
-**Note:** Defer cross-browser testing (Firefox, Safari) and visual regression (Percy/Chromatic) to post-MVP.
+### Parallel Work Opportunities
 
-#### Subtask 15.0: Write E2E Test Suite
+- **Week 1-2 (Flow 1-2):** Single team, establish foundation
+- **Week 3-6 (Flow 3-6):** Can parallelize:
+  - Team A: Backend query types (STATS, GROUP_BY, DATE_HISTO)
+  - Team B: Frontend widgets (Stats cards, Pie chart, Line chart)
+- **Week 7-8 (Flow 7-8):** Single team, polish and integration
 
-**Files to Create:**
+### Delivery Milestones
 
-1. **e2e/analytics-dashboard.spec.ts**
-   - **Test Cases:**
-     - `test('should navigate to analytics dashboard')`
-     - `test('should display all widgets with data')`
-     - `test('should refresh widgets when timeframe changes')`
-     - `test('should show empty state when no data')`
-     - `test('should load in under 3 seconds')`
-     - `test('should be accessible (axe audit)')`
-     - `test('should work on mobile viewport')`
-
-**Example:**
-```typescript
-import { test, expect } from '@playwright/test'; // or Cypress
-
-test.describe('Analytics Dashboard', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/login');
-    // Login and navigate to test API
-    await page.goto('/apis/test-api-123/analytics/dashboard');
-  });
-
-  test('should navigate to analytics dashboard', async ({ page }) => {
-    await expect(page.locator('api-analytics-proxy')).toBeVisible();
-    await expect(page.locator('h1')).toContainText('Analytics');
-  });
-
-  test('should display all widgets with data', async ({ page }) => {
-    // Wait for stats cards
-    await expect(page.locator('api-analytics-request-stats')).toBeVisible();
-    // Wait for pie chart
-    await expect(page.locator('api-analytics-response-status-distribution')).toBeVisible();
-    // Wait for line charts
-    await expect(page.locator('api-analytics-response-status-overtime')).toBeVisible();
-    await expect(page.locator('api-analytics-response-time-over-time')).toBeVisible();
-  });
-
-  test('should refresh widgets when timeframe changes', async ({ page }) => {
-    // Change timeframe
-    await page.click('[data-testid="timeframe-selector"]');
-    await page.click('[data-testid="timeframe-7d"]');
-
-    // Wait for refresh
-    await expect(page.locator('gio-loader')).toBeVisible();
-    await expect(page.locator('gio-loader')).not.toBeVisible();
-
-    // Verify data updated (check if different from initial)
-    const statsValue = await page.locator('.stat-value').first().textContent();
-    expect(statsValue).not.toBe('-');
-  });
-
-  test('should load in under 3 seconds', async ({ page }) => {
-    const startTime = Date.now();
-    await page.goto('/apis/test-api-123/analytics/dashboard');
-    await expect(page.locator('api-analytics-request-stats')).toBeVisible();
-    const loadTime = Date.now() - startTime;
-    expect(loadTime).toBeLessThan(3000);
-  });
-
-  test('should be accessible (axe audit)', async ({ page }) => {
-    const { injectAxe, checkA11y } = require('axe-playwright');
-    await injectAxe(page);
-    await checkA11y(page, null, {
-      detailedReport: true,
-      detailedReportOptions: { html: true }
-    });
-  });
-
-  test('should work on mobile viewport', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 });
-    await expect(page.locator('api-analytics-proxy')).toBeVisible();
-    // Verify cards stack vertically
-    const statsRow = page.locator('.stats-row');
-    const gridColumns = await statsRow.evaluate((el) =>
-      window.getComputedStyle(el).gridTemplateColumns
-    );
-    expect(gridColumns).toBe('1fr');
-  });
-});
-```
-
-#### Subtask 15.1: Setup Test Environment
-
-**Files to Create:**
-
-1. **e2e/support/analytics-helpers.ts**
-   - Helper functions for common actions (login, navigate, change timeframe)
-
-2. **e2e/fixtures/test-api-data.json**
-   - Test API configuration
-   - Known analytics data for assertions
-
-3. **playwright.config.ts** (or cypress.config.ts)
-   ```typescript
-   export default defineConfig({
-     testDir: './e2e',
-     timeout: 30000,
-     use: {
-       baseURL: 'http://localhost:4200',
-       trace: 'on-first-retry',
-       video: 'retain-on-failure',
-       screenshot: 'only-on-failure'
-     },
-     projects: [
-       {
-         name: 'Chrome',
-         use: { ...devices['Desktop Chrome'] }
-       }
-     ]
-   });
-   ```
-
-**Dependencies:**
-```json
-{
-  "devDependencies": {
-    "@playwright/test": "^1.40.0",
-    "axe-playwright": "^1.2.3"
-  }
-}
-```
-
-#### Subtask 15.2: Add CI/CD Integration
-
-**Files to Modify:**
-
-1. **.github/workflows/e2e-tests.yml** (or similar)
-   ```yaml
-   name: E2E Tests
-   on: [pull_request]
-
-   jobs:
-     e2e:
-       runs-on: ubuntu-latest
-       steps:
-         - uses: actions/checkout@v3
-         - uses: actions/setup-node@v3
-         - run: npm ci
-         - run: npm run build
-         - run: npm run e2e
-         - uses: actions/upload-artifact@v3
-           if: failure()
-           with:
-             name: test-results
-             path: test-results/
-   ```
-
-#### Subtask 15.3: Run Tests (GREEN)
-
-- Verify all E2E tests pass
-- Verify tests run in CI/CD
-- Verify accessibility audit passes
-- Verify mobile viewport works
+**Week 2:** First user value - empty dashboard with navigation
+**Week 3.5:** First analytics feature - request count visible
+**Week 4.5:** Performance metrics visible
+**Week 5:** Complete performance overview
+**Week 6:** Status distribution visualization
+**Week 7:** Time series trends
+**Week 8:** Production-ready dashboard
 
 ---
 
-## Implementation Order
+## Version History
 
-### Sprint 1: Foundation + COUNT (2 weeks)
-
-**Goal:** Establish foundation with complete TDD cycle for simplest query type
-
-**Week 1:**
-- ✅ Story 1A: Domain Models (M, 3 days) - Tests first
-- ✅ Story 1B: REST Endpoint + Auth (S, 2 days) - Tests first
-
-**Week 2:**
-- ✅ Story 1C: Use Case Foundation (S, 2 days) - Tests first
-- ✅ Story 2: COUNT Implementation (S, 3 days) - Tests first
-- ✅ Story 2.5: ES Error Handling (S, 2 days) - Tests first
-
-**Deliverable:** Working COUNT endpoint with auth and error handling
-
----
-
-### Sprint 2: STATS + GROUP_BY + Frontend Start (2 weeks)
-
-**Goal:** Add aggregations and unblock frontend
-
-**Week 3:**
-- ✅ Story 3: STATS Implementation (M, 4 days) - Tests first
-- ✅ Story 7A: Frontend Service - COUNT (S, 2 days) - Tests first
-- ✅ Story 8: Stats Cards (M, 3 days) starts - Tests first
-
-**Week 4:**
-- ✅ Story 4: GROUP_BY Implementation (L, 5 days) - Tests first
-- ✅ Story 8: Stats Cards (continues)
-
-**Deliverable:** COUNT and STATS working end-to-end, frontend displaying stats cards
-
----
-
-### Sprint 3: DATE_HISTO + Dashboard UI (2 weeks)
-
-**Goal:** Complete backend, build dashboard UI
-
-**Week 5:**
-- ✅ Story 5: DATE_HISTO Implementation (L, 6 days) - Tests first
-- ✅ Story 7B: Frontend Service - STATS (S, 2 days) - Tests first
-
-**Week 6:**
-- ✅ Story 7C: Frontend Service - GROUP_BY (S, 2 days) - Tests first
-- ✅ Story 7D: Frontend Service - DATE_HISTO (S, 2 days) - Tests first
-- ✅ Story 7.5: Dashboard Navigation (S, 2 days) - Tests first
-- ✅ Story 9: Pie Chart Widget (M, 4 days) starts - Tests first
-
-**Deliverable:** All query types working, dashboard accessible with navigation
-
----
-
-### Sprint 4: Integration + Performance + E2E (2 weeks)
-
-**Goal:** Validate complete system, performance, and E2E
-
-**Week 7:**
-- ✅ Story 9: Pie Chart Widget (continues)
-- ✅ Story 10: Verify Existing Charts (XS, 1 day) - Tests first
-- ✅ Story 12: Full Integration (M, 3 days) - Tests first
-
-**Week 8:**
-- ✅ Story 6.5: Performance Validation (M, 5 days) - Tests first
-- ✅ Story 15: E2E Tests (M, 5 days) - Tests first
-
-**Deliverable:** Fully integrated dashboard with performance validation and E2E tests
-
----
-
-## Refinement Notes
-
-### Version 2.0 Changes (Post-Review)
-
-This document was significantly refined based on a critical review focusing on TDD principles, story sizing, missing functionality, and dependency optimization.
-
-#### Critical Changes Implemented
-
-1. **TDD Compliance** ✅
-   - **Change:** Eliminated Stories 13 and 14 (separate testing stories)
-   - **Reason:** Tests must be written FIRST in each story (RED → GREEN → REFACTOR), not as separate stories at the end
-   - **Impact:** Every story now has Subtask X.0 for writing failing tests before implementation
-   - **Justification:** Aligns with TDD constraint-based discipline from user's rules (tdd.md). Tests as specs, not validation.
-
-2. **Story 1 Decomposition** ✅
-   - **Change:** Split Story 1 into 1A (Domain Models), 1B (REST Endpoint + Auth), 1C (Use Case)
-   - **Reason:** Original Story 1 was too large (10 models + endpoint + use case + mapper = 3-4 stories of work)
-   - **Impact:** Better parallelization, smaller PRs, clearer review scope
-   - **New Complexities:** 1A (M), 1B (S), 1C (S) - more accurate sizing
-
-3. **Authorization Moved to Foundation** ✅
-   - **Change:** Eliminated Story 6, moved authorization to Story 1B
-   - **Reason:** Security should never be retrofitted - must be foundational
-   - **Impact:** All subsequent stories (2-5) inherit auth automatically, no rework needed
-   - **Justification:** Follows "secure by default" principle, prevents security vulnerabilities
-
-4. **Elasticsearch Error Handling Added** ✅
-   - **Change:** Added Story 2.5 for ES error handling
-   - **Reason:** Critical production gap - need to handle ES failures gracefully
-   - **Impact:** Returns 503/500/504 based on failure type, logs with context
-   - **Justification:** Distinguishes between "no data" (200) and "system error" (503) for better UX
-
-5. **Time Range Validation Added** ✅
-   - **Change:** Added Subtask 1B.4 for time range validation (max 90 days)
-   - **Reason:** DoS protection - prevent users from querying 10 years of data and killing ES
-   - **Impact:** Enforces max 90 days, clear error messages
-   - **Justification:** Production-critical for system stability
-
-6. **Story 7 Split for Parallelization** ✅
-   - **Change:** Split Story 7 into 7A (COUNT), 7B (STATS), 7C (GROUP_BY), 7D (DATE_HISTO)
-   - **Reason:** Original dependency blocked frontend for 3-4 weeks until ALL backend types done
-   - **Impact:** Frontend can start Story 8 (Stats Cards) in Week 3 using COUNT (7A)
-   - **Justification:** Enables parallel development, earlier integration, faster feedback
-
-7. **Story 10 Rewritten with Specifics** ✅
-   - **Change:** Rewrote Story 10 from vague "Preserve Existing Charts" to detailed verification
-   - **Reason:** Original had no clear acceptance criteria, couldn't be tested
-   - **Impact:** Now specifies exact components, data sources, visual regression tests
-   - **Decision:** Keep existing endpoints (DO NOT MIGRATE) to reduce risk
-
-8. **Story 11 Merged into Widget Stories** ✅
-   - **Change:** Eliminated Story 11, merged empty/error/loading states into Stories 8 and 9
-   - **Reason:** Empty states are quality attributes, not features - should be part of widget definition of done
-   - **Impact:** Less overhead, more cohesive widget stories, still maintains quality
-   - **Justification:** Standard Angular patterns, no new business logic
-
-9. **Dashboard Navigation Added** ✅
-   - **Change:** Added Story 7.5 for navigation and routing
-   - **Reason:** Critical gap - dashboard without navigation is unusable
-   - **Impact:** Menu item, route, breadcrumb, permission checks
-   - **Justification:** Obvious requirement that was missing
-
-10. **Performance Story Added** ✅
-    - **Change:** Added Story 6.5 for performance validation and timeouts
-    - **Reason:** No validation of "< 2 second" SLA mentioned in Story 12
-    - **Impact:** ES query timeout (10s), performance tests, slow query logging
-    - **Note:** Kept lighter than original proposal (deferred caching, circuit breakers to post-MVP)
-
-11. **Integration Tests Added** ✅
-    - **Change:** Added Subtask X.5 to each backend story (2-5) for Testcontainers integration tests
-    - **Reason:** Critical gap - unit tests mock ES, need to test against real Elasticsearch
-    - **Impact:** Validates ES query syntax, field mappings, actual behavior
-    - **Justification:** Aligns with Java guidelines (java.md) emphasizing Testcontainers
-
-12. **E2E Testing Story Added** ✅
-    - **Change:** Added Story 15 for E2E tests with real browser
-    - **Reason:** All testing was unit/component level, no validation of complete user journey
-    - **Impact:** Full user journey in Chrome, basic accessibility, mobile viewport
-    - **Note:** Kept lighter than original proposal (deferred cross-browser, visual regression to post-MVP)
-
-13. **OpenAPI Made Mandatory** ✅
-    - **Change:** Made OpenAPI spec mandatory in Story 1B (was optional)
-    - **Reason:** API contracts should be explicit and versioned in modern API-first development
-    - **Impact:** Swagger UI documentation, potential for TypeScript type generation
-    - **Note:** Kept lighter than original proposal (basic docs, defer full codegen)
-
-14. **Story 5 Complexity Updated** ✅
-    - **Change:** Updated Story 5 complexity from M to L
-    - **Reason:** DATE_HISTO implements TWO different aggregation strategies (numeric stats + keyword terms)
-    - **Impact:** Added explicit subtasks for each path (5.2A/B, 5.3A/B), doubled test coverage
-    - **Decision:** Kept as one story (not split) since they share date histogram logic
-
-#### Changes Rejected
-
-1. **Sealed Interfaces Retained** ❌
-   - **Reviewer Suggested:** Use simple interfaces instead of sealed interfaces (over-engineering)
-   - **Decision:** REJECTED - Keep sealed interfaces
-   - **Justification:**
-     - Java 21 is already the target version
-     - Sealed interfaces provide valuable compile-time exhaustiveness checking for query type dispatching
-     - Prevents accidental addition of unsupported query types
-     - Not prevented from extension, just requires intentional change
-     - Type safety > theoretical future extensibility for MVP
-
-2. **Convenience Methods Deferred** ~
-   - **Reviewer Suggested:** Remove convenience methods (getCount(), getStats(), etc.)
-   - **Decision:** PARTIALLY ACCEPTED - Defer to usage patterns
-   - **Justification:**
-     - Direct calls to `getAnalytics()` provide same type safety
-     - Wait for real usage patterns before adding abstractions (YAGNI)
-     - Can add later if code reviews show boilerplate
-
-#### Story Count Summary
-
-**Original:** 14 stories (6 backend + 6 frontend + 2 testing)
-
-**Refined:** 18 stories (9 backend + 8 frontend + 1 E2E)
+### Version 3.0 (Current) - End-to-End Flows Organization
 
 **Changes:**
-- Story 1 → 1A, 1B, 1C (+2)
-- Story 6 eliminated (-1)
-- Story 2.5 added (+1)
-- Story 7 → 7A, 7B, 7C, 7D (+3)
-- Story 7.5 added (+1)
-- Story 6.5 added (+1)
-- Story 11 eliminated (-1)
-- Story 13, 14 eliminated (-2)
-- Story 15 added (+1)
+- **Reorganized structure**: Changed from layer-based (backend/frontend) to end-to-end feature flows
+- **Incremental delivery**: Each flow delivers complete user value
+- **UI-first approach**: Flow 1 starts with empty dashboard (no backend)
+- **Small iterations**: 8 flows instead of 4 sprints, shorter feedback cycles
+- **Particles design system**: Added explicit requirement to every UI story to use Gravitee Particles design system
+- **Study existing code**: Added requirement to study existing analytics code before implementing UI
 
-**Net:** +4 stories, but better granularity, parallelization, and TDD alignment
+**Structure:**
+- 8 end-to-end flows (vs. 18 sequential stories in v2.0)
+- Each flow: Backend → Frontend Service → UI → E2E/Perf tests
+- Flows deliver user value: Count → Stats → Pie → Line → Errors → Performance
 
-#### Key Benefits of Refinement
+**Key Principles:**
+- Start with UI to establish experience
+- Build backend only when needed
+- Test end-to-end after each flow
+- Deliver user value ASAP
+- Keep flows small for fast iteration
 
-1. **TDD Compliance:** Tests first (RED) in every story, not as afterthought
-2. **Security First:** Authorization in foundation (Story 1B), not retrofitted
-3. **Parallel Development:** Frontend unblocked 4 weeks earlier (Story 7 split)
-4. **Production Readiness:** ES error handling (2.5), timeouts (6.5), performance validation
-5. **Quality Assurance:** Integration tests (Testcontainers) + E2E tests (real browser)
-6. **Better Sizing:** More accurate complexity estimates (Story 1 split, Story 5 updated to L)
-7. **Complete UX:** Navigation (7.5), empty/error states (merged into widgets)
+### Version 2.0 - TDD Compliance & Critical Review
 
-#### Implementation Timeline Impact
+**Changes from v1.0:**
+- TDD compliance: Tests first (Subtask X.0) in every story
+- Story 1 split into 1A/1B/1C for accurate sizing
+- Authorization moved to Story 1B (foundation, not afterthought)
+- Added Story 2.5 (ES error handling)
+- Added Story 6.5 (performance validation)
+- Added Story 7.5 (navigation)
+- Story 7 split into 7A/7B/7C/7D (unblock frontend earlier)
+- Story 11 eliminated (merged into 8 & 9)
+- Testcontainers added to all backend stories
+- Sealed interfaces kept (type safety valuable)
 
-**Original Timeline:** ~10 weeks
-**Refined Timeline:** ~8 weeks (improved parallelization despite more stories)
+### Version 1.0 - Initial Decomposition
 
-**Improvements:**
-- Frontend starts Week 3 (was Week 6)
-- Backend and frontend work in parallel (was serialized)
-- Earlier integration and feedback
-- Better risk distribution
+**Original structure:**
+- 14 sequential stories
+- Backend stories: 1-6
+- Frontend stories: 7-12
+- Testing stories: 13-14
+- Tests at end (violated TDD)
 
 ---
 
-**Document Status:** Ready for implementation ✅
-**Review Version:** 2.0 (Post-Critical Review)
-**Last Updated:** 2026-03-03
+## Notes on Design System Usage
+
+**IMPORTANT:** Every UI component in this workshop MUST use the Gravitee Particles design system (`@gravitee/ui-particles-angular`) on top of Angular Material.
+
+**Before implementing any UI story:**
+1. Study existing analytics code at: `src/management/api/api-traffic-v4/analytics/`
+2. Review Particles components documentation
+3. Reuse existing patterns and components
+4. Consult with UX team if new components are needed
+
+**Common Particles Components:**
+- `gio-timeframe-selector` for date range selection
+- `gio-card` for card containers
+- `gio-loader` for loading states
+- `gio-banner` for error messages
+- Chart components (verify existing integrations)
+
+This ensures visual consistency across the Gravitee Console.
