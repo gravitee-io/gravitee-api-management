@@ -35,7 +35,6 @@ import io.gravitee.rest.api.kafkaexplorer.rest.model.DescribeTopicRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.KafkaExplorerError;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.ListConsumerGroupsRequest;
 import io.gravitee.rest.api.kafkaexplorer.rest.model.ListTopicsRequest;
-import io.gravitee.rest.api.kafkaexplorer.rest.model.ListTopicsResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.GraviteeLicenseFeature;

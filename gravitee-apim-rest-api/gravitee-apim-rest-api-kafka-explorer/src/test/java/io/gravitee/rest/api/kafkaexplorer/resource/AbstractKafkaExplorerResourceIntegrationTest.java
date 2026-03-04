@@ -64,7 +64,7 @@ abstract class AbstractKafkaExplorerResourceIntegrationTest {
         try {
             resource = new KafkaExplorerResource();
             clusterCrudService = new ClusterCrudServiceInMemory();
-            var clusterService = new KafkaClusterDomainServiceImpl();
+            var clusterService = new KafkaClusterDomainServiceImpl(5, 2);
             var objectMapper = new ObjectMapper();
             injectField(
                 resource,

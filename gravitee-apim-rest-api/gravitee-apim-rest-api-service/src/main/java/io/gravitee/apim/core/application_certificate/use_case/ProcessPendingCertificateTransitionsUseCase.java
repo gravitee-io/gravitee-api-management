@@ -25,12 +25,11 @@ import io.gravitee.apim.core.audit.model.ApplicationAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
-import java.time.ZonedDateTime;
+import io.gravitee.common.utils.TimeProvider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 
@@ -171,7 +170,7 @@ public class ProcessPendingCertificateTransitionsUseCase {
                 .event(newCertificate.getStatus().toAuditEvent())
                 .oldValue(oldCertificate)
                 .newValue(newCertificate)
-                .createdAt(ZonedDateTime.now())
+                .createdAt(TimeProvider.now())
                 .properties(Collections.singletonMap(AuditProperties.CLIENT_CERTIFICATE, oldCertificate.getId()))
                 .build()
         );

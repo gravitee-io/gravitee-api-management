@@ -77,6 +77,7 @@ import org.apache.kafka.clients.admin.DescribeClusterResult;
 import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsSpec;
 import org.apache.kafka.clients.admin.ListTopicsOptions;
 import org.apache.kafka.clients.admin.OffsetSpec;
+import org.apache.kafka.clients.admin.ReplicaInfo;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.admin.TopicListing;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -93,22 +94,31 @@ import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.errors.AuthenticationException;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService {
 
-    private static final long TIMEOUT_SECONDS = 5;
-    private static final long GET_TIMEOUT_SECONDS = TIMEOUT_SECONDS + 2;
+    private final Duration defaultTimeout;
+    private final Duration defaultGetTimeout;
+
+    public KafkaClusterDomainServiceImpl(
+        @Value("${kafka.timeout.seconds:5}") long timeoutSeconds,
+        @Value("${kafka.timeout.delay.seconds:2}") long delaySeconds
+    ) {
+        defaultTimeout = Duration.ofSeconds(Math.max(timeoutSeconds, 5));
+        defaultGetTimeout = defaultTimeout.plusSeconds(Math.max(delaySeconds, 2));
+    }
 
     @Override
     public KafkaClusterInfo describeCluster(KafkaClusterConfiguration config) {
         return withAdminClient(config, adminClient -> {
             DescribeClusterResult result = adminClient.describeCluster();
 
-            String clusterId = result.clusterId().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            Node controller = result.controller().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            var nodes = result.nodes().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            String clusterId = result.clusterId().get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+            Node controller = result.controller().get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+            var nodes = result.nodes().get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             var topicStats = fetchTopicStats(adminClient);
 
@@ -144,7 +154,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             Collection<TopicListing> listings = adminClient
                 .listTopics(new ListTopicsOptions().listInternal(true))
                 .listings()
-                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             Map<String, Boolean> internalFlags = new HashMap<>();
             for (TopicListing listing : listings) {
@@ -181,7 +191,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             Map<String, TopicDescription> descriptions = adminClient
                 .describeTopics(pageNames)
                 .allTopicNames()
-                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             // Step 5: Fetch topic sizes via describeLogDirs
             Map<String, Long> topicSizes = fetchTopicSizes(adminClient, Set.copyOf(pageNames));
@@ -195,7 +205,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 .map(name -> {
                     TopicDescription topic = descriptions.get(name);
                     int partitionCount = topic.partitions().size();
-                    int replicationFactor = topic.partitions().isEmpty() ? 0 : topic.partitions().get(0).replicas().size();
+                    int replicationFactor = topic.partitions().isEmpty() ? 0 : topic.partitions().getFirst().replicas().size();
                     int underReplicatedCount = (int) topic
                         .partitions()
                         .stream()
@@ -225,7 +235,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             TopicDescription description = adminClient
                 .describeTopics(List.of(topicName))
                 .allTopicNames()
-                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS)
                 .get(topicName);
 
             boolean internal = description.isInternal();
@@ -249,7 +259,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             var configResult = adminClient
                 .describeConfigs(Collections.singleton(configResource))
                 .all()
-                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             List<TopicConfigEntry> configs = configResult
                 .get(configResource)
@@ -269,8 +279,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         return withAdminClient(config, adminClient -> {
             // Step 1: describeCluster to find the node and detect controller
             DescribeClusterResult clusterResult = adminClient.describeCluster();
-            Node controller = clusterResult.controller().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            var nodes = clusterResult.nodes().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            Node controller = clusterResult.controller().get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
+            var nodes = clusterResult.nodes().get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             Node targetNode = nodes
                 .stream()
@@ -292,7 +302,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 var logDirsResult = adminClient
                     .describeLogDirs(List.of(brokerId))
                     .allDescriptions()
-                    .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
                 long totalSize = 0;
                 var brokerLogDirs = logDirsResult.get(brokerId);
@@ -326,7 +336,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             var configResult = adminClient
                 .describeConfigs(Collections.singleton(configResource))
                 .all()
-                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             List<TopicConfigEntry> configs = configResult
                 .get(configResource)
@@ -366,7 +376,10 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             boolean hasTopicFilter = topicFilter != null && !topicFilter.isBlank();
 
             // Step 1: List all consumer groups
-            Collection<ConsumerGroupListing> listings = adminClient.listConsumerGroups().all().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            Collection<ConsumerGroupListing> listings = adminClient
+                .listConsumerGroups()
+                .all()
+                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             // Step 2: Filter by name and sort
             Comparator<String> groupIdComparator = "desc".equalsIgnoreCase(sortOrder)
@@ -388,7 +401,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                     topicDesc = adminClient
                         .describeTopics(List.of(topicFilter))
                         .allTopicNames()
-                        .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                        .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS)
                         .get(topicFilter);
                 } catch (ExecutionException e) {
                     if (e.getCause() instanceof org.apache.kafka.common.errors.UnknownTopicOrPartitionException) {
@@ -431,7 +444,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             Map<String, ConsumerGroupDescription> descriptions = adminClient
                 .describeConsumerGroups(pageGroupIds)
                 .all()
-                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             // Step 7: Compute lag from pre-fetched offsets
             List<ConsumerGroup> groups = pageGroupIds
@@ -458,7 +471,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             ConsumerGroupDescription description = adminClient
                 .describeConsumerGroups(List.of(groupId))
                 .all()
-                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS)
                 .get(groupId);
 
             String state = description.state() != null ? description.state().name() : "UNKNOWN";
@@ -556,7 +569,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             }
 
             // Poll messages
-            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(TIMEOUT_SECONDS));
+            ConsumerRecords<String, String> records = consumer.poll(defaultTimeout);
 
             List<KafkaMessage> allMessages = new ArrayList<>();
             for (ConsumerRecord<String, String> record : records) {
@@ -644,7 +657,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 description = adminClient
                     .describeTopics(List.of(topicName))
                     .allTopicNames()
-                    .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                    .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS)
                     .get(topicName);
             } catch (ExecutionException e) {
                 if (e.getCause() instanceof org.apache.kafka.common.errors.UnknownTopicOrPartitionException) {
@@ -752,7 +765,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 try {
                     Map<TopicPartition, OffsetAndMetadata> offsets = batchResult
                         .partitionsToOffsetAndMetadata(groupId)
-                        .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                        .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
                     result.put(groupId, offsets);
                 } catch (Exception e) {
                     result.put(groupId, Map.of());
@@ -794,7 +807,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 endOffsetRequests.put(tp, OffsetSpec.latest());
             }
 
-            var endOffsets = adminClient.listOffsets(endOffsetRequests).all().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            var endOffsets = adminClient.listOffsets(endOffsetRequests).all().get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             long totalLag = 0;
             for (var entry : filtered.entrySet()) {
@@ -816,7 +829,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             Map<TopicPartition, OffsetAndMetadata> committedOffsets = adminClient
                 .listConsumerGroupOffsets(groupId)
                 .partitionsToOffsetAndMetadata()
-                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             if (committedOffsets.isEmpty()) {
                 return List.of();
@@ -827,7 +840,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 endOffsetRequests.put(tp, OffsetSpec.latest());
             }
 
-            var endOffsets = adminClient.listOffsets(endOffsetRequests).all().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            var endOffsets = adminClient.listOffsets(endOffsetRequests).all().get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             return committedOffsets
                 .entrySet()
@@ -865,12 +878,15 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             List<Integer> brokerIds = adminClient
                 .describeCluster()
                 .nodes()
-                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS)
                 .stream()
                 .map(Node::id)
                 .toList();
 
-            var logDirsResult = adminClient.describeLogDirs(brokerIds).allDescriptions().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            var logDirsResult = adminClient
+                .describeLogDirs(brokerIds)
+                .allDescriptions()
+                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             Map<String, Long> sizes = new HashMap<>();
             for (var brokerEntry : logDirsResult.values()) {
@@ -903,7 +919,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                 return Map.of();
             }
 
-            var offsets = adminClient.listOffsets(offsetRequests).all().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            var offsets = adminClient.listOffsets(offsetRequests).all().get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             return offsets
                 .entrySet()
@@ -953,7 +969,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         Set<String> topicNames = adminClient
             .listTopics(new ListTopicsOptions().listInternal(true))
             .names()
-            .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
         if (topicNames.isEmpty()) {
             return new TopicStats(0, 0, Map.of(), Map.of());
@@ -962,7 +978,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         Map<String, TopicDescription> descriptions = adminClient
             .describeTopics(topicNames)
             .allTopicNames()
-            .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
         Map<Integer, Integer> leaderCounts = new HashMap<>();
         Map<Integer, Integer> replicaCounts = new HashMap<>();
@@ -985,7 +1001,10 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
     private Map<Integer, Long> fetchLogDirSizes(AdminClient adminClient, List<Integer> brokerIds) {
         try {
-            var logDirsResult = adminClient.describeLogDirs(brokerIds).allDescriptions().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            var logDirsResult = adminClient
+                .describeLogDirs(brokerIds)
+                .allDescriptions()
+                .get(defaultGetTimeout.getSeconds(), TimeUnit.SECONDS);
 
             Map<Integer, Long> sizes = new HashMap<>();
             for (var entry : logDirsResult.entrySet()) {
@@ -994,7 +1013,7 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                     .values()
                     .stream()
                     .flatMap(logDir -> logDir.replicaInfos().values().stream())
-                    .mapToLong(info -> info.size())
+                    .mapToLong(ReplicaInfo::size)
                     .sum();
                 sizes.put(entry.getKey(), totalSize);
             }
@@ -1021,8 +1040,9 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         Properties properties = new Properties();
         // TODO: Add allowed bootstrap servers validation via gravitee.yml config to prevent SSRF
         properties.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, config.bootstrapServers());
-        properties.put(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, (int) Duration.ofSeconds(TIMEOUT_SECONDS).toMillis());
-        properties.put(AdminClientConfig.DEFAULT_API_TIMEOUT_MS_CONFIG, (int) Duration.ofSeconds(TIMEOUT_SECONDS).toMillis());
+        int timeout = (int) Math.min(defaultTimeout.toMillis(), Integer.MAX_VALUE);
+        properties.put(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, timeout);
+        properties.put(AdminClientConfig.DEFAULT_API_TIMEOUT_MS_CONFIG, timeout);
 
         SecurityProtocol protocol = SecurityProtocol.PLAINTEXT;
         if (config.security() != null && config.security().protocol() != null) {

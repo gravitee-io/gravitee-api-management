@@ -36,6 +36,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.property.Property;
@@ -229,7 +230,7 @@ class ImportDefinitionUpdateDomainServiceTest {
         assertThat(api.isDisableMembershipNotifications()).isEqualTo(apiExport.isDisableMembershipNotifications());
         assertThat(api.getType()).isEqualTo(apiExport.getType());
 
-        var definition = api.getApiDefinitionNativeV4();
+        var definition = (NativeApi) api.getApiDefinitionValue();
         assertThat(definition.getProperties()).usingRecursiveComparison().isEqualTo(apiExport.getProperties());
         assertThat(definition.getResources()).usingRecursiveComparison().isEqualTo(apiExport.getResources());
         assertThat(definition.getListeners()).usingRecursiveComparison().isEqualTo(apiExport.getListeners());
