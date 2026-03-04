@@ -18,16 +18,16 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatCardHarness } from '@angular/material/card/testing';
 import { RouterModule } from '@angular/router';
 
-import { ApplicationsComponent } from './applications.component';
+import ApplicationsComponent from './applications.component';
 import { ApplicationCardHarness } from './applications.harness';
-import { ApplicationsResponse } from '../../entities/application/application';
-import { fakeApplication, fakeApplicationsResponse } from '../../entities/application/application.fixture';
-import { fakeUser } from '../../entities/user/user.fixtures';
-import { CurrentUserService } from '../../services/current-user.service';
-import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
+import { PaginationHarness } from '../../../components/pagination/pagination.harness';
+import { ApplicationsResponse } from '../../../entities/application/application';
+import { fakeApplication, fakeApplicationsResponse } from '../../../entities/application/application.fixture';
+import { fakeUser } from '../../../entities/user/user.fixtures';
+import { CurrentUserService } from '../../../services/current-user.service';
+import { AppTestingModule, TESTING_BASE_URL } from '../../../testing/app-testing.module';
 
 describe('ApplicationsComponent', () => {
   let fixture: ComponentFixture<ApplicationsComponent>;
@@ -52,131 +52,81 @@ describe('ApplicationsComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('initial load of applications', () => {
-    it('should load 18 applications initially and then 9 on scroll', async () => {
-      expectApplicationList(
-        fakeApplicationsResponse({
-          data: Array.from({ length: 18 }, (_, index) => fakeApplication({ id: `${index + 1}` })),
-          metadata: {
-            pagination: {
-              current_page: 1,
-              total_pages: 3,
-            },
-          },
-        }),
-        1,
-        18,
-      );
-
-      await fixture.whenStable();
-      fixture.detectChanges();
-
-      let appCards = await harnessLoader.getAllHarnesses(ApplicationCardHarness);
-      expect(appCards.length).toEqual(18);
-
-      document.getElementsByClassName('app-list__container')[0].dispatchEvent(new Event('scrolled'));
-
-      expectApplicationList(
-        fakeApplicationsResponse({
-          data: Array.from({ length: 9 }, (_, index) => fakeApplication({ id: `${19 + index}` })),
-          metadata: {
-            pagination: {
-              current_page: 2,
-              total_pages: 3,
-            },
-          },
-        }),
-        3,
-        9,
-      );
-
-      fixture.detectChanges();
-
-      appCards = await harnessLoader.getAllHarnesses(ApplicationCardHarness);
-      expect(appCards.length).toEqual(27);
-    });
-  });
-
   describe('populated application list', () => {
     beforeEach(() => {
       expectApplicationList(
         fakeApplicationsResponse({
-          data: Array.from({ length: 18 }, (_, index) => fakeApplication({ id: `${index + 1}` })),
+          data: Array.from({ length: 20 }, (_, index) => fakeApplication({ id: `${index + 1}` })),
           metadata: {
             pagination: {
               current_page: 1,
               total_pages: 2,
+              total: 40,
             },
           },
         }),
-        1,
-        18,
       );
     });
 
-    it('should show Application list', async () => {
+    it('should show Application list header', () => {
+      const titleElement = fixture.nativeElement.querySelector('.next-gen-h1');
+      expect(titleElement).toBeTruthy();
+      expect(titleElement.textContent).toContain('Applications');
+    });
+
+    it('should show Application cards', async () => {
       await fixture.whenStable();
       fixture.detectChanges();
 
-      const h2Element = fixture.nativeElement.querySelector('h2');
-      expect(h2Element).toBeDefined();
-      expect(h2Element.textContent).toEqual('Applications');
-
-      const descriptionElement = fixture.nativeElement.querySelector('.description');
-      expect(descriptionElement).toBeDefined();
-      expect(descriptionElement.textContent.trim()).toEqual(
-        "An application represents a developer's project that interacts with the API. It acts as a means to manage access control to APIs via subscriptions.",
-      );
+      const appCards = await harnessLoader.getAllHarnesses(ApplicationCardHarness);
+      expect(appCards.length).toEqual(20);
     });
 
-    it("should display owner's display name", async () => {
+    it('should navigate to second page when pagination changes', async () => {
       await fixture.whenStable();
       fixture.detectChanges();
 
-      const ownerElement = fixture.nativeElement.querySelector('.m3-body-medium');
-      expect(ownerElement).toBeDefined();
-      expect(ownerElement.textContent).toEqual('Owner: Admin master');
-    });
+      const pagination = await harnessLoader.getHarness(PaginationHarness);
+      const nextButton = await pagination.getNextPageButton();
+      await nextButton.click();
+      fixture.detectChanges();
 
-    it('should not call page if on last page', async () => {
-      const appCard = await harnessLoader.getAllHarnesses(ApplicationCardHarness);
-      expect(appCard.length).toEqual(18);
-
-      document.getElementsByClassName('app-list__container')[0].dispatchEvent(new Event('scrolled'));
       expectApplicationList(
         fakeApplicationsResponse({
           data: [fakeApplication({ id: 'second-page-app' })],
           metadata: {
             pagination: {
-              current_page: 3,
-              total_pages: 3,
+              current_page: 2,
+              total_pages: 2,
+              total: 40,
             },
           },
         }),
-        3,
-        9,
+        2,
+        20,
       );
       fixture.detectChanges();
 
       const allHarnesses = await harnessLoader.getAllHarnesses(ApplicationCardHarness);
-      expect(allHarnesses.length).toEqual(19);
-
-      document.getElementsByClassName('app-list__container')[0].dispatchEvent(new Event('scrolled'));
-      httpTestingController.expectNone(`${TESTING_BASE_URL}/applications?page=3&size=9`);
+      expect(allHarnesses.length).toEqual(1);
     });
   });
 
   describe('empty component', () => {
     it('should show empty Application list', async () => {
-      expectApplicationList(fakeApplicationsResponse({ data: [] }), 1, 18);
-      const noAppCard = await harnessLoader.getHarness(MatCardHarness.with({ text: /Sorry, there are no applications yet\./ }));
-      expect(noAppCard).toBeTruthy();
+      expectApplicationList(fakeApplicationsResponse({ data: [] }));
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const emptyState = fixture.nativeElement.querySelector('.cards-grid__empty-state');
+      expect(emptyState).toBeTruthy();
+      expect(emptyState.textContent).toContain('No applications available yet');
     });
   });
 
   describe('create application button', () => {
     beforeEach(() => {
-      expectApplicationList(fakeApplicationsResponse({ data: [] }), 1, 18);
+      expectApplicationList(fakeApplicationsResponse({ data: [] }));
     });
 
     it('should show create button when user has APPLICATION-C permission', async () => {
@@ -215,7 +165,7 @@ describe('ApplicationsComponent', () => {
   function expectApplicationList(
     applicationsResponse: ApplicationsResponse = fakeApplicationsResponse(),
     page: number = 1,
-    size: number = 18,
+    size: number = 20,
   ) {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/applications?page=${page}&size=${size}`).flush(applicationsResponse);
   }
