@@ -32,6 +32,7 @@ import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
+import io.gravitee.rest.api.model.v4.analytics.GroupBy;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.Stats;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -74,7 +75,10 @@ class SearchApiAnalyticsUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2().toBuilder().environmentId(ENV_ID).build()));
 
         assertThatThrownBy(() ->
-                cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, type, FROM, TO, fieldFor(type)))
+                cut.execute(
+                    GraviteeContext.getExecutionContext(),
+                    new Input(MY_API, ENV_ID, type, FROM, TO, fieldFor(type), sizeFor(type), orderFor(type))
+                )
             )
             .isInstanceOf(ApiInvalidDefinitionVersionException.class);
     }
@@ -85,7 +89,10 @@ class SearchApiAnalyticsUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId("another-environment").build()));
 
         assertThatThrownBy(() ->
-                cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, type, FROM, TO, fieldFor(type)))
+                cut.execute(
+                    GraviteeContext.getExecutionContext(),
+                    new Input(MY_API, ENV_ID, type, FROM, TO, fieldFor(type), sizeFor(type), orderFor(type))
+                )
             )
             .isInstanceOf(ApiNotFoundException.class);
     }
@@ -96,7 +103,10 @@ class SearchApiAnalyticsUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aTcpApiV4().toBuilder().environmentId(ENV_ID).build()));
 
         assertThatThrownBy(() ->
-                cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, type, FROM, TO, fieldFor(type)))
+                cut.execute(
+                    GraviteeContext.getExecutionContext(),
+                    new Input(MY_API, ENV_ID, type, FROM, TO, fieldFor(type), sizeFor(type), orderFor(type))
+                )
             )
             .isInstanceOf(TcpProxyNotSupportedException.class);
     }
@@ -107,7 +117,10 @@ class SearchApiAnalyticsUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENV_ID).build()));
 
         assertThatThrownBy(() ->
-                cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, type, FROM, TO, fieldFor(type)))
+                cut.execute(
+                    GraviteeContext.getExecutionContext(),
+                    new Input(MY_API, ENV_ID, type, FROM, TO, fieldFor(type), sizeFor(type), orderFor(type))
+                )
             )
             .isInstanceOf(ApiInvalidTypeException.class);
     }
@@ -117,7 +130,10 @@ class SearchApiAnalyticsUseCaseTest {
     void should_validate_api_scope_for_all_query_types(Type type) {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId(ENV_ID).build()));
 
-        Output result = cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, type, FROM, TO, fieldFor(type)));
+        Output result = cut.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(MY_API, ENV_ID, type, FROM, TO, fieldFor(type), sizeFor(type), orderFor(type))
+        );
 
         assertThat(result.type()).isEqualTo(type);
     }
@@ -127,7 +143,10 @@ class SearchApiAnalyticsUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId(ENV_ID).build()));
         analyticsQueryService.requestsCount = RequestsCount.builder().total(56L).build();
 
-        Output result = cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Type.COUNT, FROM, TO, null));
+        Output result = cut.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(MY_API, ENV_ID, Type.COUNT, FROM, TO, null, null, null)
+        );
 
         assertThat(result.type()).isEqualTo(Type.COUNT);
         assertThat(result.count()).isEqualTo(56L);
@@ -139,7 +158,10 @@ class SearchApiAnalyticsUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId(ENV_ID).build()));
         analyticsQueryService.requestsCount = null;
 
-        Output result = cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Type.COUNT, FROM, TO, null));
+        Output result = cut.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(MY_API, ENV_ID, Type.COUNT, FROM, TO, null, null, null)
+        );
 
         assertThat(result.type()).isEqualTo(Type.COUNT);
         assertThat(result.count()).isZero();
@@ -152,7 +174,7 @@ class SearchApiAnalyticsUseCaseTest {
 
         Output result = cut.execute(
             GraviteeContext.getExecutionContext(),
-            new Input(MY_API, ENV_ID, Type.STATS, FROM, TO, "gateway-response-time-ms")
+            new Input(MY_API, ENV_ID, Type.STATS, FROM, TO, "gateway-response-time-ms", null, null)
         );
 
         assertThat(result.type()).isEqualTo(Type.STATS);
@@ -169,7 +191,10 @@ class SearchApiAnalyticsUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId(ENV_ID).build()));
         analyticsQueryService.stats = null;
 
-        Output result = cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Type.STATS, FROM, TO, "status"));
+        Output result = cut.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(MY_API, ENV_ID, Type.STATS, FROM, TO, "status", null, null)
+        );
 
         assertThat(result.type()).isEqualTo(Type.STATS);
         assertThat(result.count()).isZero();
@@ -184,12 +209,88 @@ class SearchApiAnalyticsUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId(ENV_ID).build()));
 
         assertThatThrownBy(() ->
-                cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Type.STATS, FROM, TO, "invalid-field"))
+                cut.execute(
+                    GraviteeContext.getExecutionContext(),
+                    new Input(MY_API, ENV_ID, Type.STATS, FROM, TO, "invalid-field", null, null)
+                )
             )
             .hasMessage("Unsupported stats field");
     }
 
+    @Test
+    void should_return_group_by_from_query_service_for_group_by_type() {
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId(ENV_ID).build()));
+        var values = new java.util.LinkedHashMap<String, Long>();
+        values.put("404", 7L);
+        values.put("200", 3L);
+        analyticsQueryService.groupBy =
+            GroupBy
+                .builder()
+                .values(values)
+                .metadata(
+                    new java.util.LinkedHashMap<>(
+                        java.util.Map.of("404", java.util.Map.of("name", "404"), "200", java.util.Map.of("name", "200"))
+                    )
+                )
+                .build();
+
+        Output result = cut.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(MY_API, ENV_ID, Type.GROUP_BY, FROM, TO, "status", null, null)
+        );
+
+        assertThat(result.type()).isEqualTo(Type.GROUP_BY);
+        assertThat(result.values()).containsExactly(java.util.Map.entry("404", 7L), java.util.Map.entry("200", 3L));
+        assertThat(result.metadata()).containsEntry("404", java.util.Map.of("name", "404"));
+        verify(analyticsQueryService)
+            .searchGroupBy(
+                any(),
+                eq(MY_API),
+                eq(FROM),
+                eq(TO),
+                eq("status"),
+                eq(10),
+                eq(io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService.GroupByOrder.DESC)
+            );
+    }
+
+    @Test
+    void should_return_empty_group_by_when_not_found() {
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId(ENV_ID).build()));
+        analyticsQueryService.groupBy = null;
+
+        Output result = cut.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(MY_API, ENV_ID, Type.GROUP_BY, FROM, TO, "status", null, null)
+        );
+
+        assertThat(result.type()).isEqualTo(Type.GROUP_BY);
+        assertThat(result.values()).isEmpty();
+        assertThat(result.metadata()).isEmpty();
+    }
+
+    @Test
+    void should_throw_if_group_by_field_is_not_supported() {
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId(ENV_ID).build()));
+
+        assertThatThrownBy(() ->
+                cut.execute(
+                    GraviteeContext.getExecutionContext(),
+                    new Input(MY_API, ENV_ID, Type.GROUP_BY, FROM, TO, "invalid-field", null, null)
+                )
+            )
+            .hasMessage("Unsupported group by field");
+    }
+
     private static String fieldFor(Type type) {
-        return type == Type.STATS ? "status" : null;
+        return (type == Type.STATS || type == Type.GROUP_BY) ? "status" : null;
+    }
+
+    private static Integer sizeFor(Type type) {
+        return type == Type.GROUP_BY ? 10 : null;
+    }
+
+    private static SearchApiAnalyticsUseCase.GroupByOrder orderFor(Type type) {
+        return type == Type.GROUP_BY ? SearchApiAnalyticsUseCase.GroupByOrder.DESC : null;
     }
 }

@@ -22,6 +22,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
+import io.gravitee.rest.api.model.v4.analytics.GroupBy;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
@@ -46,6 +47,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
 
     public RequestsCount requestsCount;
     public Stats stats;
+    public GroupBy groupBy;
     public AverageMessagesPerRequest averageMessagesPerRequest;
     public AverageConnectionDuration averageConnectionDuration;
     public ResponseStatusRanges responseStatusRanges;
@@ -64,6 +66,19 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public Optional<Stats> searchStats(ExecutionContext executionContext, String apiId, Instant from, Instant to, String field) {
         return Optional.ofNullable(stats);
+    }
+
+    @Override
+    public Optional<GroupBy> searchGroupBy(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to,
+        String field,
+        int size,
+        GroupByOrder order
+    ) {
+        return Optional.ofNullable(groupBy);
     }
 
     @Override
@@ -89,6 +104,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public void reset() {
         requestsCount = null;
         stats = null;
+        groupBy = null;
         averageMessagesPerRequest = null;
         averageConnectionDuration = null;
         averageAggregate = new LinkedHashMap<>();

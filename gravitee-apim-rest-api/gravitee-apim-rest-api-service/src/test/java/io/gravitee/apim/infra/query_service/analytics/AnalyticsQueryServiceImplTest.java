@@ -35,6 +35,7 @@ import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
+import io.gravitee.rest.api.model.v4.analytics.GroupBy;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.Stats;
 import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
@@ -213,6 +214,56 @@ class AnalyticsQueryServiceImplTest {
 
             assertThat(cut.searchStats(GraviteeContext.getExecutionContext(), "api#1", null, null, "status"))
                 .hasValue(Stats.builder().count(12L).min(2D).max(500D).avg(123.4D).sum(1480.8D).build());
+        }
+    }
+
+    @Nested
+    class GroupByAnalytics {
+
+        @Test
+        void should_return_empty_group_by() {
+            when(analyticsRepository.searchGroupBy(any(QueryContext.class), any())).thenReturn(Optional.empty());
+
+            assertThat(
+                cut.searchGroupBy(
+                    GraviteeContext.getExecutionContext(),
+                    "api#1",
+                    null,
+                    null,
+                    "status",
+                    10,
+                    AnalyticsQueryService.GroupByOrder.DESC
+                )
+            )
+                .isEmpty();
+        }
+
+        @Test
+        void should_map_repository_response_to_group_by() {
+            var values = new java.util.LinkedHashMap<String, Long>();
+            values.put("404", 7L);
+            values.put("200", 3L);
+            when(analyticsRepository.searchGroupBy(any(QueryContext.class), any()))
+                .thenReturn(Optional.of(io.gravitee.repository.log.v4.model.analytics.GroupByAggregate.builder().values(values).build()));
+
+            assertThat(
+                cut.searchGroupBy(
+                    GraviteeContext.getExecutionContext(),
+                    "api#1",
+                    null,
+                    null,
+                    "status",
+                    10,
+                    AnalyticsQueryService.GroupByOrder.DESC
+                )
+            )
+                .hasValue(
+                    GroupBy
+                        .builder()
+                        .values(values)
+                        .metadata(new java.util.LinkedHashMap<>(Map.of("404", Map.of("name", "404"), "200", Map.of("name", "200"))))
+                        .build()
+                );
         }
     }
 

@@ -2050,6 +2050,7 @@ paths:
               schema:
                   type: integer
                   format: int32
+              description: Used with `GROUP_BY` only. Maximum number of returned buckets. Default is `10`.
             - name: order
               in: query
               schema:
@@ -2057,6 +2058,9 @@ paths:
                   enum:
                       - ASC
                       - DESC
+              description: >-
+                  Used with `GROUP_BY` only. Sorts buckets by count ascending or descending.
+                  Ties are always resolved by bucket key ascending for deterministic ordering.
         get:
             tags:
                 - API Analytics

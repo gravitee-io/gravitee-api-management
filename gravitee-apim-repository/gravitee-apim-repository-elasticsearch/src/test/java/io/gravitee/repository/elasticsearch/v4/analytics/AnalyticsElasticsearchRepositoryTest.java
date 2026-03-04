@@ -29,6 +29,7 @@ import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
+import io.gravitee.repository.log.v4.model.analytics.GroupByQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
@@ -180,6 +181,43 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(statsAggregate.getMax()).isLessThan(600D);
                     assertThat(statsAggregate.getAvg()).isGreaterThan(0D);
                     assertThat(statsAggregate.getSum()).isGreaterThan(0D);
+                });
+        }
+    }
+
+    @Nested
+    class GroupBy {
+
+        @Test
+        void should_return_group_by_for_a_given_api() {
+            var result = cut.searchGroupBy(
+                new QueryContext("org#1", "env#1"),
+                new GroupByQueryCriteria(API_ID, null, null, "status", 10, GroupByQueryCriteria.Order.DESC)
+            );
+
+            assertThat(result)
+                .hasValueSatisfying(groupByAggregate -> {
+                    assertThat(groupByAggregate.getValues()).isNotEmpty();
+                    assertThat(groupByAggregate.getValues().values().stream().mapToLong(Long::longValue).sum()).isEqualTo(10L);
+
+                    var values = groupByAggregate.getValues().values().stream().toList();
+                    assertThat(values).isSortedAccordingTo((left, right) -> Long.compare(right, left));
+                });
+        }
+
+        @Test
+        void should_return_group_by_with_asc_order_and_size_limit() {
+            var result = cut.searchGroupBy(
+                new QueryContext("org#1", "env#1"),
+                new GroupByQueryCriteria(API_ID, null, null, "status", 2, GroupByQueryCriteria.Order.ASC)
+            );
+
+            assertThat(result)
+                .hasValueSatisfying(groupByAggregate -> {
+                    assertThat(groupByAggregate.getValues()).hasSizeLessThanOrEqualTo(2);
+
+                    var values = groupByAggregate.getValues().values().stream().toList();
+                    assertThat(values).isSorted();
                 });
         }
     }

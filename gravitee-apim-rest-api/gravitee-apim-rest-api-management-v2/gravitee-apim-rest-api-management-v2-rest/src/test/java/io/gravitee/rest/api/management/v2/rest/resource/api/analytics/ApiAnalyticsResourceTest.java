@@ -38,6 +38,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
+import io.gravitee.rest.api.model.v4.analytics.GroupBy;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.model.v4.analytics.Stats;
@@ -244,6 +245,44 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
         }
 
         @Test
+        void should_return_group_by_contract_with_data() {
+            var values = new LinkedHashMap<String, Long>();
+            values.put("404", 7L);
+            values.put("200", 3L);
+            var metadata = new LinkedHashMap<String, Map<String, String>>();
+            metadata.put("404", Map.of("name", "404"));
+            metadata.put("200", Map.of("name", "200"));
+            fakeAnalyticsQueryService.groupBy = GroupBy.builder().values(values).metadata(metadata).build();
+
+            final Response response = analyticsTarget
+                .queryParam("type", "GROUP_BY")
+                .queryParam("from", 0L)
+                .queryParam("to", 1L)
+                .queryParam("field", "status")
+                .queryParam("size", 2)
+                .queryParam("order", "DESC")
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(Map.class)
+                .satisfies(body -> {
+                    assertThat(body).containsEntry("type", "GROUP_BY");
+                    @SuppressWarnings("unchecked")
+                    var responseValues = (Map<String, Object>) body.get("values");
+                    @SuppressWarnings("unchecked")
+                    var responseMetadata = (Map<String, Object>) body.get("metadata");
+                    assertThat(responseValues).containsKeys("404", "200");
+                    assertThat(responseValues.get("404")).isEqualTo(7);
+                    assertThat(responseValues.get("200")).isEqualTo(3);
+                    assertThat(responseMetadata).containsKey("404");
+                    assertThat(responseMetadata.get("404")).isEqualTo(Map.of("name", "404"));
+                });
+        }
+
+        @Test
         void should_return_empty_date_histo_contract() {
             final Response response = analyticsTarget
                 .queryParam("type", "DATE_HISTO")
@@ -328,6 +367,19 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 .get();
 
             MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_if_group_by_field_is_not_supported() {
+            final Response response = analyticsTarget
+                .queryParam("type", "GROUP_BY")
+                .queryParam("from", 0L)
+                .queryParam("to", 1L)
+                .queryParam("field", "unknown-field")
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasMessage("Unsupported group by field");
         }
 
         @Test

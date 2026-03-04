@@ -97,7 +97,9 @@ public class ApiAnalyticsResource extends AbstractResource {
                 SearchApiAnalyticsUseCase.Type.valueOf(param.getType().name()),
                 Instant.ofEpochMilli(param.getFrom()),
                 Instant.ofEpochMilli(param.getTo()),
-                param.getField()
+                param.getField(),
+                param.getSize(),
+                param.getOrder() == null ? null : SearchApiAnalyticsUseCase.GroupByOrder.valueOf(param.getOrder().name())
             )
         );
 
@@ -120,8 +122,8 @@ public class ApiAnalyticsResource extends AbstractResource {
             case GROUP_BY -> {
                 var emptyGroupBy = new LinkedHashMap<String, Object>();
                 emptyGroupBy.put("type", param.getType().name());
-                emptyGroupBy.put("values", Map.of());
-                emptyGroupBy.put("metadata", Map.of());
+                emptyGroupBy.put("values", output.values() == null ? Map.of() : output.values());
+                emptyGroupBy.put("metadata", output.metadata() == null ? Map.of() : output.metadata());
                 yield emptyGroupBy;
             }
             case DATE_HISTO -> Map.of("type", param.getType().name(), "timestamp", List.of(), "values", List.of());

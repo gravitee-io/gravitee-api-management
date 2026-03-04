@@ -24,6 +24,7 @@ import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
+import io.gravitee.repository.log.v4.model.analytics.GroupByQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
@@ -35,6 +36,7 @@ import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
+import io.gravitee.rest.api.model.v4.analytics.GroupBy;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
@@ -46,6 +48,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -90,6 +93,34 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                     .sum(statsAggregate.getSum())
                     .build()
             );
+    }
+
+    @Override
+    public Optional<GroupBy> searchGroupBy(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to,
+        String field,
+        int size,
+        GroupByOrder order
+    ) {
+        return analyticsRepository
+            .searchGroupBy(
+                executionContext.getQueryContext(),
+                new GroupByQueryCriteria(apiId, from, to, field, size, GroupByQueryCriteria.Order.valueOf(order.name()))
+            )
+            .map(groupByAggregate -> {
+                var values = new LinkedHashMap<>(Optional.ofNullable(groupByAggregate.getValues()).orElse(Map.of()));
+                var metadata = values
+                    .keySet()
+                    .stream()
+                    .collect(
+                        java.util.stream.Collectors.toMap(key -> key, key -> Map.of("name", key), (left, right) -> left, LinkedHashMap::new)
+                    );
+
+                return GroupBy.builder().values(values).metadata(metadata).build();
+            });
     }
 
     @Override

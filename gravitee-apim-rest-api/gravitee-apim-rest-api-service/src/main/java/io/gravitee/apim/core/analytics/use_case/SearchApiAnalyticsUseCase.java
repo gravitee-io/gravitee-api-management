@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 @UseCase
 public class SearchApiAnalyticsUseCase {
 
-    private static final Set<String> SUPPORTED_STATS_FIELDS = Set.of(
+    private static final Set<String> SUPPORTED_FIELDS = Set.of(
         "status",
         "mapped-status",
         "application",
@@ -70,14 +70,36 @@ public class SearchApiAnalyticsUseCase {
                     .map(stats -> new Output(Type.STATS, stats.getCount(), stats.getMin(), stats.getMax(), stats.getAvg(), stats.getSum()))
                     .orElse(new Output(Type.STATS, 0L, 0D, 0D, 0D, 0D));
             }
-            case GROUP_BY -> new Output(Type.GROUP_BY);
+            case GROUP_BY -> {
+                validateGroupByField(input.field());
+                var size = input.size() == null ? 10 : input.size();
+                var order = input.order() == null ? GroupByOrder.DESC : input.order();
+                yield analyticsQueryService
+                    .searchGroupBy(
+                        executionContext,
+                        input.apiId(),
+                        input.from(),
+                        input.to(),
+                        input.field(),
+                        size,
+                        AnalyticsQueryService.GroupByOrder.valueOf(order.name())
+                    )
+                    .map(groupBy -> new Output(Type.GROUP_BY, null, null, null, null, null, groupBy.getValues(), groupBy.getMetadata()))
+                    .orElse(new Output(Type.GROUP_BY, null, null, null, null, null, Map.of(), Map.of()));
+            }
             case DATE_HISTO -> new Output(Type.DATE_HISTO);
         };
     }
 
     private static void validateStatsField(String field) {
-        if (!SUPPORTED_STATS_FIELDS.contains(field)) {
+        if (!SUPPORTED_FIELDS.contains(field)) {
             throw new ValidationDomainException("Unsupported stats field", Map.of("field", String.valueOf(field)));
+        }
+    }
+
+    private static void validateGroupByField(String field) {
+        if (!SUPPORTED_FIELDS.contains(field)) {
+            throw new ValidationDomainException("Unsupported group by field", Map.of("field", String.valueOf(field)));
         }
     }
 
@@ -113,15 +135,37 @@ public class SearchApiAnalyticsUseCase {
         }
     }
 
-    public record Input(String apiId, String environmentId, Type type, Instant from, Instant to, String field) {}
+    public record Input(
+        String apiId,
+        String environmentId,
+        Type type,
+        Instant from,
+        Instant to,
+        String field,
+        Integer size,
+        GroupByOrder order
+    ) {}
 
-    public record Output(Type type, Long count, Double min, Double max, Double avg, Double sum) {
+    public record Output(
+        Type type,
+        Long count,
+        Double min,
+        Double max,
+        Double avg,
+        Double sum,
+        Map<String, Long> values,
+        Map<String, Map<String, String>> metadata
+    ) {
         Output(Type type) {
-            this(type, null, null, null, null, null);
+            this(type, null, null, null, null, null, null, null);
         }
 
         Output(Type type, Long count) {
-            this(type, count, null, null, null, null);
+            this(type, count, null, null, null, null, null, null);
+        }
+
+        Output(Type type, Long count, Double min, Double max, Double avg, Double sum) {
+            this(type, count, min, max, avg, sum, null, null);
         }
     }
 
@@ -130,5 +174,10 @@ public class SearchApiAnalyticsUseCase {
         STATS,
         GROUP_BY,
         DATE_HISTO,
+    }
+
+    public enum GroupByOrder {
+        ASC,
+        DESC,
     }
 }
