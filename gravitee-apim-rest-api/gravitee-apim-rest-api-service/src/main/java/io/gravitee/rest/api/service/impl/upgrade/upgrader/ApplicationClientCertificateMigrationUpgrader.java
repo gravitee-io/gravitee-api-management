@@ -64,7 +64,7 @@ public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
             int pageNumber = 0;
             Page<Application> page;
             do {
-                Pageable pageable = new PageableBuilder().pageNumber(pageNumber + 1).pageSize(100).build();
+                Pageable pageable = new PageableBuilder().pageNumber(pageNumber).pageSize(100).build();
                 page = applicationRepository.search(criteria, pageable);
                 for (Application application : page
                     .getContent()
