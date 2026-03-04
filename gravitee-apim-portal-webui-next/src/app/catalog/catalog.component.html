@@ -29,7 +29,7 @@
 
   @if (apiPaginator().data.length > 0) {
     @if (viewMode() === 'grid') {
-      <cards-grid [cards]="apiPaginator().data">
+      <app-cards-grid [cards]="apiPaginator().data">
         <ng-container slot="cards">
           @for (api of apiPaginator().data; track api.id) {
             <app-api-card
@@ -43,7 +43,7 @@
             />
           }
         </ng-container>
-      </cards-grid>
+      </app-cards-grid>
     } @else {
       <div class="api-list__table-container">
         <table mat-table [dataSource]="apiPaginator().data" class="api-list__table">
@@ -128,8 +128,8 @@
     }
     <app-pagination
       class="api-list__pagination"
-      [totalResults]="apis.totalResults"
-      [currentPage]="apis.page"
+      [totalResults]="apiPaginator().totalResults"
+      [currentPage]="apiPaginator().page"
       [pageSize]="pageSize"
       [pageSizeOptions]="pageSizeOptions"
       (selectPage)="onPageChange($event)"
