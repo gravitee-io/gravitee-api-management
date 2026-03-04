@@ -31,6 +31,8 @@ public class NewTagEntity {
     @Size(min = 1)
     private String name;
 
+    private String key;
+
     private String description;
 
     @JsonProperty("restricted_groups")
@@ -42,6 +44,14 @@ public class NewTagEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getDescription() {
@@ -67,6 +77,7 @@ public class NewTagEntity {
         NewTagEntity that = (NewTagEntity) o;
         return (
             Objects.equals(name, that.name) &&
+            Objects.equals(key, that.key) &&
             Objects.equals(description, that.description) &&
             Objects.equals(restrictedGroups, that.restrictedGroups)
         );
@@ -74,7 +85,7 @@ public class NewTagEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, restrictedGroups);
+        return Objects.hash(name, key, description, restrictedGroups);
     }
 
     @Override
@@ -83,6 +94,9 @@ public class NewTagEntity {
             "NewTagEntity{" +
             "name='" +
             name +
+            '\'' +
+            ", key='" +
+            key +
             '\'' +
             ", description='" +
             description +

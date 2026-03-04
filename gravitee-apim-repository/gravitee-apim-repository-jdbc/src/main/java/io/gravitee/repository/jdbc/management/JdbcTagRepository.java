@@ -50,6 +50,7 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
     protected JdbcObjectMapper<Tag> buildOrm() {
         return JdbcObjectMapper.builder(Tag.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("key", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
@@ -70,14 +71,14 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
     }
 
     @Override
-    public Optional<Tag> findByIdAndReference(final String id, String referenceId, TagReferenceType referenceType)
+    public Optional<Tag> findByKeyAndReference(final String key, String referenceId, TagReferenceType referenceType)
         throws TechnicalException {
         try {
             Optional<Tag> tag = jdbcTemplate
                 .query(
-                    getOrm().getSelectAllSql() + " t where id = ? and reference_id = ? and reference_type = ? ",
+                    getOrm().getSelectAllSql() + " t where key = ? and reference_id = ? and reference_type = ? ",
                     getOrm().getRowMapper(),
-                    id,
+                    key,
                     referenceId,
                     referenceType.name()
                 )
@@ -86,25 +87,24 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
             tag.ifPresent(this::addGroups);
             return tag;
         } catch (final Exception ex) {
-            log.error("Failed to find {} tags by id, referenceId and referenceType:", getOrm().getTableName(), ex);
-            throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tags by id, referenceId and referenceType", ex);
+            log.error("Failed to find {} tags by key, referenceId and referenceType:", getOrm().getTableName(), ex);
+            throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tags by key, referenceId and referenceType", ex);
         }
     }
 
     @Override
-    public Set<Tag> findByIdsAndReference(Set<String> tagIds, String referenceId, TagReferenceType referenceType)
-        throws TechnicalException {
+    public Set<Tag> findByKeysAndReference(Set<String> keys, String referenceId, TagReferenceType referenceType) throws TechnicalException {
         try {
             return jdbcTemplate
                 .query(
                     getOrm().getSelectAllSql() +
-                        " where reference_id = ? and reference_type = ? and id in ( " +
-                        getOrm().buildInClause(tagIds) +
+                        " where reference_id = ? and reference_type = ? and key in ( " +
+                        getOrm().buildInClause(keys) +
                         " )",
                     (PreparedStatement ps) -> {
                         ps.setString(1, referenceId);
                         ps.setString(2, referenceType.name());
-                        getOrm().setArguments(ps, tagIds, 3);
+                        getOrm().setArguments(ps, keys, 3);
                     },
                     getOrm().getRowMapper()
                 )
@@ -112,8 +112,8 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
                 .peek(this::addGroups)
                 .collect(toSet());
         } catch (final Exception ex) {
-            log.error("Failed to find {} tags by ids, referenceId and referenceType:", getOrm().getTableName(), ex);
-            throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tags by ids, referenceId and referenceType", ex);
+            log.error("Failed to find {} tags by keys, referenceId and referenceType:", getOrm().getTableName(), ex);
+            throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tags by keys, referenceId and referenceType", ex);
         }
     }
 

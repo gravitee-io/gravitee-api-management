@@ -41,6 +41,7 @@ public class Tag {
     }
 
     private String id;
+    private String key;
     private String name;
     private String description;
     private List<String> restrictedGroups;
@@ -54,6 +55,7 @@ public class Tag {
         Tag tag = (Tag) o;
         return (
             Objects.equals(id, tag.id) &&
+            Objects.equals(key, tag.key) &&
             Objects.equals(name, tag.name) &&
             Objects.equals(description, tag.description) &&
             Objects.equals(referenceId, tag.referenceId) &&
@@ -63,7 +65,7 @@ public class Tag {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description, restrictedGroups);
+        return Objects.hash(id, key, name, description, restrictedGroups);
     }
 
     @Override
@@ -72,6 +74,9 @@ public class Tag {
             "Tag{" +
             "id='" +
             id +
+            '\'' +
+            ", key='" +
+            key +
             '\'' +
             ", name='" +
             name +
