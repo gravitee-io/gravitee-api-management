@@ -1,2 +1,2 @@
 export { AppSidebar } from './AppSidebar';
-export type { AppSidebarProps, Organization, NavItem, UserInfo } from './AppSidebar';
+export type { AppSidebarProps, NavItem, NavSubItem, UserInfo } from './AppSidebar';

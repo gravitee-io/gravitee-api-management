@@ -91,7 +91,7 @@ export type { ThemeToggleProps } from './components/layout/ThemeToggle';
 
 // ── Layout: AppSidebar ───────────────────────────────
 export { AppSidebar } from './components/layout/AppSidebar';
-export type { AppSidebarProps, Organization, NavItem, UserInfo } from './components/layout/AppSidebar';
+export type { AppSidebarProps, NavItem, NavSubItem, UserInfo } from './components/layout/AppSidebar';
 
 // ── Layout: MainLayout ──────────────────────────────
 export { MainLayout } from './components/layout/MainLayout';
