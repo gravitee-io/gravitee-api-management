@@ -22,7 +22,7 @@
 .cards-grid {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, 316px);
 
   &--narrow {
     grid-template-columns: repeat(2, 1fr);

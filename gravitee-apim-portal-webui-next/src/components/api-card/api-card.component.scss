@@ -17,12 +17,13 @@
 
 :host {
   display: flex;
-  min-height: 138px;
+  height: 138px;
   flex-flow: column;
   width: 100%;
 }
 
 .api-card {
+  height: 100%;
   cursor: pointer;
   overflow: hidden;
   transition: box-shadow 0.2s ease;
@@ -33,7 +34,7 @@
 
   &__header {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: flex-start;
     justify-content: space-between;
     gap: 8px;
@@ -43,6 +44,15 @@
       flex: 1;
       flex-flow: column;
       gap: 2px;
+      overflow: hidden;
+
+      .m3-title-medium {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+      }
     }
   }
 
@@ -51,12 +61,12 @@
     flex: 1 1 auto;
     flex-direction: column;
     gap: 12px;
+    overflow: hidden;
   }
 
   &__description {
     display: -webkit-box;
     overflow: hidden;
-    max-height: 54px;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
