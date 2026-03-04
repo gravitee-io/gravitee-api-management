@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { shareReplay } from 'rxjs/operators';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { filter, shareReplay, tap } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { Tag } from '../../../../entities/tag/tag';
 import { GroupService } from '../../../../services-ngx/group.service';
@@ -35,6 +36,7 @@ export class OrgSettingAddTagDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<OrgSettingAddTagDialogComponent>);
   private readonly confirmDialogData = inject<OrgSettingAddTagDialogData>(MAT_DIALOG_DATA);
   private readonly groupService = inject(GroupService);
+  private readonly destroyRef = inject(DestroyRef);
 
   tag?: Tag = this.confirmDialogData.tag;
   isUpdate = !!this.tag;
@@ -46,6 +48,21 @@ export class OrgSettingAddTagDialogComponent {
   });
   groups$ = this.groupService.listByOrganization().pipe(shareReplay(1));
 
+  constructor() {
+    this.tagForm.controls.key.valueChanges
+      .pipe(
+        filter(key => key !== null),
+        tap(key => {
+          const sanitized = this.sanitizeKeyBase(key);
+          if (sanitized !== key) {
+            this.tagForm.controls.key.setValue(sanitized, { emitEvent: false });
+          }
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
   onSubmit() {
     const { restrictedGroups, ...formRawValue } = this.tagForm.getRawValue();
     const updatedTag = {
@@ -54,5 +71,39 @@ export class OrgSettingAddTagDialogComponent {
       restricted_groups: restrictedGroups,
     };
     this.dialogRef.close(updatedTag);
+  }
+
+  /**
+   * Finalizes `key` sanitization on blur.
+   *
+   * We intentionally keep trailing `-` while the user is typing (e.g. transient `eu-`),
+   * then apply the backend rule “no trailing hyphen” when the field loses focus.
+   */
+  onKeyBlur(): void {
+    const value = this.tagForm.controls.key.value;
+    if (value == null) return;
+
+    let sanitized = this.sanitizeKeyBase(value);
+    while (sanitized.endsWith('-')) {
+      sanitized = sanitized.slice(0, -1);
+    }
+
+    if (sanitized !== value) {
+      this.tagForm.controls.key.setValue(sanitized, { emitEvent: false });
+    }
+  }
+
+  /**
+   * Normalizes user input to produce a valid tag key that meets backend requirements
+   * (alphanumeric with hyphens only, no diacritics or special characters).
+   */
+  private sanitizeKeyBase(key: string): string {
+    return key
+      .normalize('NFD')
+      .replaceAll(/[\u0300-\u036f]+/g, '')
+      .toLowerCase()
+      .replaceAll(/[^a-z\d\s-]/g, '')
+      .trim()
+      .replaceAll(/[^a-z\d]+/g, '-');
   }
 }
