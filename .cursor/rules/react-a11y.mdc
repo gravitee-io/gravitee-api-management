@@ -1,0 +1,72 @@
+---
+description: Accessibility standards for React components in Gamma and Baros
+globs: gravitee-apim-gamma-react/**/*.tsx, gravitee-apim-baros/**/*.tsx
+alwaysApply: false
+---
+
+# Accessibility Standards
+
+## Semantic HTML First
+
+Use native HTML elements before reaching for ARIA. Never add redundant roles.
+
+```tsx
+// ❌ BAD
+<div role="button" onClick={handleClick}>Save</div>
+<button role="button">Save</button>
+
+// ✅ GOOD
+<button onClick={handleClick}>Save</button>
+<nav aria-label="Main navigation">...</nav>
+<dialog open={isOpen}>...</dialog>
+```
+
+## Keyboard Navigation
+
+- All interactive elements must be keyboard-focusable.
+- Maintain logical tab order — avoid positive `tabIndex` values.
+- `Escape` must close modals, dropdowns, and overlays.
+- Custom widgets must support expected keys (e.g., arrow keys for menus, `Space`/`Enter` for toggles).
+
+## Focus Management
+
+- Restore focus to the trigger element when a modal/dialog closes.
+- Move focus to the first interactive element on route change or panel open.
+- Use `autoFocus` sparingly — only on the primary input of a newly rendered form or dialog.
+
+## Forms
+
+- Every `<input>` must have a visible `<label>` linked via `htmlFor`.
+- Error messages must be associated via `aria-describedby`.
+- Use `aria-invalid="true"` on inputs with validation errors.
+- Group related fields with `<fieldset>` and `<legend>`.
+
+```tsx
+// ✅ GOOD
+<label htmlFor="email">Email</label>
+<input id="email" type="email" aria-describedby="email-error" aria-invalid={!!error} />
+{error && <p id="email-error" role="alert">{error}</p>}
+```
+
+## Images & Media
+
+- Meaningful images: descriptive `alt` text.
+- Decorative images: `alt=""` (empty string, not omitted).
+- Icon-only buttons: use `aria-label`.
+
+## Live Regions
+
+- `aria-live="polite"` for non-urgent status updates (toast, loading complete).
+- `aria-live="assertive"` for errors that need immediate attention.
+- Mount the live region container before injecting content.
+
+## Color & Contrast
+
+- Minimum 4.5:1 contrast ratio for normal text, 3:1 for large text.
+- Never convey meaning by color alone — pair with icons, text, or patterns.
+
+## Heading Hierarchy
+
+- One `<h1>` per page.
+- No skipped heading levels (`<h1>` → `<h3>`).
+- Each section should begin with the next sequential heading level.

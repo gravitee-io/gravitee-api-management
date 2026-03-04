@@ -1,0 +1,113 @@
+---
+description: Strict TypeScript and type-safety conventions for Gamma and Baros
+globs: gravitee-apim-gamma-react/**/*.{ts,tsx}, gravitee-apim-baros/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Strict TypeScript & Safety
+
+## Compiler Strictness
+
+`strict: true` in `tsconfig.json` — no opt-outs (`noImplicitAny`, `strictNullChecks`, etc. all enabled).
+
+## No `any`
+
+Never use `any`. Use `unknown` with type narrowing, or define a proper type.
+
+```ts
+// ❌ BAD
+function parse(data: any) { return data.name; }
+
+// ✅ GOOD
+function parse(data: unknown): string {
+  const parsed = schema.parse(data);  // Zod validates at runtime
+  return parsed.name;
+}
+```
+
+## Component Props
+
+Define props as a standalone `interface`. Do not use `React.FC`.
+
+```tsx
+// ❌ BAD
+const Card: React.FC<{ title: string }> = ({ title }) => ...
+
+// ✅ GOOD
+interface CardProps {
+  readonly title: string;
+  readonly children: React.ReactNode;
+}
+
+export function Card({ title, children }: CardProps) { ... }
+```
+
+## Event Handlers & Refs
+
+Always provide explicit element types — never `any`.
+
+```tsx
+// Events
+function handleChange(e: React.ChangeEvent<HTMLInputElement>) { ... }
+function handleClick(e: React.MouseEvent<HTMLButtonElement>) { ... }
+
+// Refs
+const inputRef = useRef<HTMLInputElement>(null);
+```
+
+## Discriminated Unions for State
+
+Model complex state as discriminated unions instead of multiple booleans.
+
+```ts
+// ❌ BAD
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState<Error | null>(null);
+const [data, setData] = useState<User | null>(null);
+
+// ✅ GOOD
+type State =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'error'; error: Error }
+  | { status: 'success'; data: User };
+```
+
+## Exhaustive Switch
+
+Use the `never` sentinel to catch unhandled cases at compile time.
+
+```ts
+function renderStatus(state: State) {
+  switch (state.status) {
+    case 'idle': return null;
+    case 'loading': return <Spinner />;
+    case 'error': return <ErrorMsg error={state.error} />;
+    case 'success': return <UserCard user={state.data} />;
+    default: {
+      const _exhaustive: never = state;
+      return _exhaustive;
+    }
+  }
+}
+```
+
+## Runtime Validation
+
+Use **Zod** to validate all external data (API responses, URL params, form values).
+
+```ts
+const UserSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1),
+  role: z.enum(['admin', 'viewer']),
+});
+
+type User = z.infer<typeof UserSchema>;
+```
+
+## Additional Rules
+
+- Prefer `as const` for literal tuples and fixed arrays.
+- Avoid type assertions (`as`). Only narrow from `unknown` after validation.
+- Mark props and derived data as `readonly`.
