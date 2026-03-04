@@ -1,0 +1,38 @@
+---
+description: Console conventions: layout, shared components, testing, architecture for gravitee-apim-console-webui.
+globs: ["**/*.component.ts", "**/*.module.ts", "**/*.directive.ts", "**/*.pipe.ts", "**/*.scss", "**/*.html", "**/shared/**/*.ts"]
+---
+
+# Console Conventions (gravitee-apim-console-webui)
+
+Applies only inside **gravitee-apim-console-webui**. Use with `particles-design-system.mdc` and `angular.mdc`.
+
+## Console shared components
+
+- Hierarchy: Particles (`gio-*`) > Console shared (`src/shared/components/`, `gio-*`) > Angular Material (`mat-*`) > from scratch (ask user: feature-scoped or `src/shared`?).
+- Key shared components: `gio-permission`, `gio-license-banner`, `gio-table-wrapper`, `gio-api-select-dialog`, `gio-widget-layout`.
+- Feature code MUST import from `shared/` rather than reimplementing.
+
+## Layout
+
+- Single source of truth: `src/scss/gio-layout.scss`.
+- Usage: `@use '<path>/scss/gio-layout' as gio-layout;` 
+- Breakpoint mixins: `small-desktop`, `desktop`, `large-desktop`.
+
+## Shared guards & services
+
+- Guards: `PermissionGuard`, `HasLicenseGuard`, `HasUnsavedChangesGuard` from `shared/`.
+- Permissions: `GioPermissionService`, `ApimFeature`, `GioLicenseBannerModule`.
+- Utilities: prefer `shared/utils`, `shared/pipes`, `shared/validators`.
+
+## Testing
+
+- Use `GioTestingModule` and `CONSTANTS_TESTING` from `shared/testing` in specs.
+
+## Storybook
+
+- Shared components MUST have `.stories.ts` files (e.g. under "Shared / ...").
+
+## Legacy AngularJS
+
+- Preserve existing AngularJS patterns. Do not mix Angular and AngularJS in the same component.
