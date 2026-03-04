@@ -109,11 +109,6 @@ const mockNavItems: NavItem[] = [
   },
 ];
 
-const mockUser = {
-  name: 'Jane Doe',
-  email: 'jane.doe@gravitee.io',
-};
-
 const meta = {
   title: 'Layout/AppSidebar',
   component: AppSidebar,
@@ -141,7 +136,6 @@ export const Default: Story = {
     collapsedLogo: <GraviteeIcon />,
     navItems: mockNavItems,
     activeItemKey: 'api-list',
-    user: mockUser,
   },
 };
 
@@ -155,7 +149,6 @@ export const WithActiveSubItem: Story = {
         navItems={mockNavItems}
         activeItemKey={activeKey}
         onNavItemClick={setActiveKey}
-        user={mockUser}
       />
     );
   },

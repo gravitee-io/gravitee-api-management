@@ -12,41 +12,31 @@ import {
   Building2,
   Landmark,
   Command,
-  ChevronDown,
   Search,
   Home,
 } from 'lucide-react';
-import { Button } from '@baros/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@baros/components/ui/dropdown-menu';
 import { Separator } from '@baros/components/ui/separator';
 import { SidebarTrigger } from '@baros/components/ui/sidebar';
 import { AppSidebar } from '../AppSidebar';
 import type { NavItem } from '../AppSidebar';
 import { GraviteeLogo, GraviteeIcon } from '../GraviteeLogo';
+import { OrgEnvSelector } from '../OrgEnvSelector';
 import { ThemeToggle } from '../ThemeToggle';
 import { TopNav } from '../TopNav';
+import { TopNavUser } from '../TopNavUser';
 import { MainLayout } from './MainLayout';
 
-interface Organization {
-  name: string;
-  logo: React.ElementType;
-  plan: string;
-}
-
-const organizations: Organization[] = [
-  { name: 'Gravitee Inc', logo: Building2, plan: 'Enterprise' },
-  { name: 'Acme Corp.', logo: Landmark, plan: 'Startup' },
-  { name: 'Wayne Tech', logo: Command, plan: 'Free' },
+const organizations = [
+  { key: 'gravitee', name: 'Gravitee Inc', icon: Building2 },
+  { key: 'acme', name: 'Acme Corp.', icon: Landmark },
+  { key: 'wayne', name: 'Wayne Tech', icon: Command },
 ];
 
-const environments = ['Production', 'Staging', 'Development'];
+const environments = [
+  { key: 'prod', name: 'Production' },
+  { key: 'staging', name: 'Staging' },
+  { key: 'dev', name: 'Development' },
+];
 
 const navItems: NavItem[] = [
   {
@@ -172,8 +162,8 @@ type Story = StoryObj<typeof meta>;
 export const Overview: Story = {
   render: () => {
     const [activeKey, setActiveKey] = useState('api-list');
-    const [activeOrg, setActiveOrg] = useState(organizations[0]);
-    const [activeEnv, setActiveEnv] = useState(environments[0]);
+    const [activeOrgKey, setActiveOrgKey] = useState('gravitee');
+    const [activeEnvKey, setActiveEnvKey] = useState('prod');
 
     const parentTitle = findParentTitle(activeKey);
     const subTitle = findSubTitle(activeKey);
@@ -187,7 +177,6 @@ export const Overview: Story = {
             navItems={navItems}
             activeItemKey={activeKey}
             onNavItemClick={setActiveKey}
-            user={{ name: 'Jane Doe', email: 'jane.doe@gravitee.io' }}
           />
         }
         topnav={
@@ -196,46 +185,14 @@ export const Overview: Story = {
               <div className="flex items-center gap-1">
                 <SidebarTrigger />
                 <Separator orientation="vertical" className="mx-1 h-4" />
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 gap-1 px-2 text-xs">
-                      <activeOrg.logo className="size-3.5" />
-                      {activeOrg.name}
-                      <ChevronDown className="size-3 opacity-50" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="min-w-48">
-                    <DropdownMenuGroup>
-                      <DropdownMenuLabel className="text-xs text-muted-foreground">Organizations</DropdownMenuLabel>
-                      {organizations.map(org => (
-                        <DropdownMenuItem key={org.name} onClick={() => setActiveOrg(org)} className="gap-2">
-                          <org.logo className="size-3.5 shrink-0" />
-                          {org.name}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 gap-1 px-2 text-xs">
-                      {activeEnv}
-                      <ChevronDown className="size-3 opacity-50" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="min-w-40">
-                    <DropdownMenuGroup>
-                      <DropdownMenuLabel className="text-xs text-muted-foreground">Environments</DropdownMenuLabel>
-                      {environments.map(env => (
-                        <DropdownMenuItem key={env} onClick={() => setActiveEnv(env)}>
-                          {env}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <OrgEnvSelector
+                  organizations={organizations}
+                  environments={environments}
+                  activeOrgKey={activeOrgKey}
+                  activeEnvKey={activeEnvKey}
+                  onOrgChange={setActiveOrgKey}
+                  onEnvChange={setActiveEnvKey}
+                />
               </div>
             }
             trailing={
@@ -244,12 +201,13 @@ export const Overview: Story = {
                   <Search className="absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                   <input
                     type="search"
-                    placeholder={`Search in ${parentTitle}...`}
+                    placeholder="Search..."
                     className="h-7 w-48 rounded-md border border-input bg-background pl-8 pr-2 text-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    aria-label={`Search within ${parentTitle}`}
+                    aria-label="Global search"
                   />
                 </div>
                 <ThemeToggle />
+                <TopNavUser user={{ name: 'Jane Doe', email: 'jane.doe@gravitee.io' }} />
               </div>
             }
           />
@@ -319,7 +277,6 @@ export const CollapsedSidebar: Story = {
           collapsedLogo={<GraviteeIcon />}
           navItems={navItems}
           activeItemKey="policies"
-          user={{ name: 'Jane Doe', email: 'jane.doe@gravitee.io' }}
         />
       }
       topnav={
@@ -328,10 +285,20 @@ export const CollapsedSidebar: Story = {
             <div className="flex items-center gap-1">
               <SidebarTrigger />
               <Separator orientation="vertical" className="mx-1 h-4" />
-              <span className="text-xs font-medium">Governance</span>
+              <OrgEnvSelector
+                organizations={organizations}
+                environments={environments}
+                activeOrgKey="gravitee"
+                activeEnvKey="prod"
+              />
             </div>
           }
-          trailing={<ThemeToggle />}
+          trailing={
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
+              <TopNavUser user={{ name: 'Jane Doe', email: 'jane.doe@gravitee.io' }} />
+            </div>
+          }
         />
       }
     >
