@@ -1,2 +1,2 @@
 export { PageLayout } from './PageLayout';
-export type { PageLayoutProps, PageBreadcrumbItem, TabItem } from './PageLayout';
+export type { PageLayoutProps, TabItem } from './PageLayout';

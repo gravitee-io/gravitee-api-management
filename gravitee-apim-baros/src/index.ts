@@ -108,13 +108,17 @@ export type { AppSidebarProps, NavItem, NavSubItem } from './components/layout/A
 export { TopNavUser } from './components/layout/TopNavUser';
 export type { TopNavUserProps, UserInfo } from './components/layout/TopNavUser';
 
-// ── Layout: OrgEnvSelector ──────────────────────────
-export { OrgEnvSelector } from './components/layout/OrgEnvSelector';
-export type { OrgEnvSelectorProps, OrgOption, EnvOption } from './components/layout/OrgEnvSelector';
+// ── Layout: OrgSelector & EnvSelector ────────────────
+export { OrgSelector, EnvSelector } from './components/layout/OrgEnvSelector';
+export type { OrgSelectorProps, EnvSelectorProps, OrgOption, EnvOption } from './components/layout/OrgEnvSelector';
+
+// ── Layout: AppDropdown ──────────────────────────────
+export { AppDropdown } from './components/layout/AppDropdown';
+export type { AppDropdownProps, AppOption } from './components/layout/AppDropdown';
 
 // ── Layout: GraviteeLogo ─────────────────────────────
-export { GraviteeLogo, GraviteeIcon } from './components/layout/GraviteeLogo';
-export type { GraviteeLogoProps, GraviteeIconProps } from './components/layout/GraviteeLogo';
+export { GraviteeLogo } from './components/layout/GraviteeLogo';
+export type { GraviteeLogoProps } from './components/layout/GraviteeLogo';
 
 // ── Layout: MainLayout ──────────────────────────────
 export { MainLayout } from './components/layout/MainLayout';
@@ -122,4 +126,4 @@ export type { MainLayoutProps } from './components/layout/MainLayout';
 
 // ── Layout: PageLayout ──────────────────────────────
 export { PageLayout } from './components/layout/PageLayout';
-export type { PageLayoutProps, PageBreadcrumbItem, TabItem } from './components/layout/PageLayout';
+export type { PageLayoutProps, TabItem } from './components/layout/PageLayout';

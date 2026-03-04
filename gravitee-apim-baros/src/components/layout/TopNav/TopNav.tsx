@@ -5,7 +5,7 @@ import { Separator } from '@baros/components/ui/separator';
 interface TopNavProps extends Omit<ComponentPropsWithRef<'header'>, 'className'> {
   /** Additional CSS classes. */
   readonly className?: string;
-  /** Left-aligned content (sidebar trigger, breadcrumbs, title, etc.). */
+  /** Left-aligned content (logo, app selector, etc.). */
   readonly leading?: ReactNode;
   /** Center content (environment selector, etc.). Grows to fill available space. */
   readonly center?: ReactNode;

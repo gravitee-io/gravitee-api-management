@@ -1,20 +1,76 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Rocket, Plus, Search } from 'lucide-react';
 import { Button } from '@baros/components/ui/button';
 import { Separator } from '@baros/components/ui/separator';
 import { SidebarTrigger } from '@baros/components/ui/sidebar';
-import { mockNavItems, mockOrganizations, mockEnvironments, mockUser } from '../../../../.storybook/mock-data';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@baros/components/ui/breadcrumb';
+import { mockNavItems, mockApps, mockOrganizations, mockEnvironments, mockUser } from '../../../../.storybook/mock-data';
+import { AppDropdown } from '../AppDropdown';
 import { AppSidebar } from '../AppSidebar';
-import { GraviteeLogo, GraviteeIcon } from '../GraviteeLogo';
+import { GraviteeLogo } from '../GraviteeLogo';
 import { MainLayout } from '../MainLayout';
-import { OrgEnvSelector } from '../OrgEnvSelector';
+import { OrgSelector, EnvSelector } from '../OrgEnvSelector';
 import { ThemeToggle } from '../ThemeToggle';
 import { TopNav } from '../TopNav';
 import { TopNavUser } from '../TopNavUser';
 import { PageLayout } from './PageLayout';
 
-function AppShell({ activeNavKey, children }: { activeNavKey: string; children: React.ReactNode }) {
+interface BreadcrumbEntry {
+  label: string;
+  href?: string;
+}
+
+function SubHeader({ breadcrumbs }: { breadcrumbs: BreadcrumbEntry[] }) {
+  return (
+    <div className="flex items-center gap-2 border-b border-border px-4 py-2">
+      <SidebarTrigger />
+      {breadcrumbs.length > 0 && (
+        <>
+          <Separator orientation="vertical" className="mx-1 h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              {breadcrumbs.map((crumb, index) => {
+                const isFirst = index === 0;
+                const isLast = index === breadcrumbs.length - 1;
+                return (
+                  <Fragment key={crumb.label}>
+                    <BreadcrumbItem>
+                      {isFirst || isLast ? (
+                        <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                      ) : (
+                        <BreadcrumbLink href={crumb.href}>{crumb.label}</BreadcrumbLink>
+                      )}
+                    </BreadcrumbItem>
+                    {!isLast && <BreadcrumbSeparator />}
+                  </Fragment>
+                );
+              })}
+            </BreadcrumbList>
+          </Breadcrumb>
+        </>
+      )}
+    </div>
+  );
+}
+
+function AppShell({
+  activeNavKey,
+  breadcrumbs,
+  children,
+}: {
+  activeNavKey: string;
+  breadcrumbs: BreadcrumbEntry[];
+  children: React.ReactNode;
+}) {
+  const [activeAppKey, setActiveAppKey] = useState('api-management');
   const [activeOrgKey, setActiveOrgKey] = useState('gravitee');
   const [activeEnvKey, setActiveEnvKey] = useState('prod');
 
@@ -22,26 +78,30 @@ function AppShell({ activeNavKey, children }: { activeNavKey: string; children: 
     <MainLayout
       sidebar={
         <AppSidebar
-          logo={<GraviteeLogo />}
-          collapsedLogo={<GraviteeIcon />}
           navItems={mockNavItems}
           activeItemKey={activeNavKey}
+          footer={
+            <div className="flex flex-col gap-2">
+              <OrgSelector
+                organizations={mockOrganizations}
+                activeOrgKey={activeOrgKey}
+                onOrgChange={setActiveOrgKey}
+              />
+              <EnvSelector
+                environments={mockEnvironments}
+                activeEnvKey={activeEnvKey}
+                onEnvChange={setActiveEnvKey}
+              />
+            </div>
+          }
         />
       }
       topnav={
         <TopNav
           leading={
-            <div className="flex items-center gap-1">
-              <SidebarTrigger />
-              <Separator orientation="vertical" className="mx-1 h-4" />
-              <OrgEnvSelector
-                organizations={mockOrganizations}
-                environments={mockEnvironments}
-                activeOrgKey={activeOrgKey}
-                activeEnvKey={activeEnvKey}
-                onOrgChange={setActiveOrgKey}
-                onEnvChange={setActiveEnvKey}
-              />
+            <div className="flex items-center gap-2">
+              <GraviteeLogo />
+              <AppDropdown apps={mockApps} activeAppKey={activeAppKey} onAppChange={setActiveAppKey} />
             </div>
           }
           trailing={
@@ -61,6 +121,7 @@ function AppShell({ activeNavKey, children }: { activeNavKey: string; children: 
           }
         />
       }
+      subheader={<SubHeader breadcrumbs={breadcrumbs} />}
     >
       {children}
     </MainLayout>
@@ -131,13 +192,15 @@ export const APIDetails: Story = {
     const content = tabContent[activeTab];
 
     return (
-      <AppShell activeNavKey="api-list">
+      <AppShell
+        activeNavKey="api-list"
+        breadcrumbs={[
+          { label: 'APIs & Events', href: '#' },
+          { label: 'API List', href: '#' },
+          { label: 'Payment Service v2' },
+        ]}
+      >
         <PageLayout
-          breadcrumbs={[
-            { label: 'APIs & Events', href: '#' },
-            { label: 'API List', href: '#' },
-            { label: 'Payment Service v2' },
-          ]}
           title="Payment Service v2"
           description="REST API for processing payments and managing transactions."
           tabs={apiDetailsTabs}
@@ -181,9 +244,11 @@ const apis = [
 
 export const APIList: Story = {
   render: () => (
-    <AppShell activeNavKey="api-list">
+    <AppShell
+      activeNavKey="api-list"
+      breadcrumbs={[{ label: 'APIs & Events', href: '#' }, { label: 'API List' }]}
+    >
       <PageLayout
-        breadcrumbs={[{ label: 'APIs & Events', href: '#' }, { label: 'API List' }]}
         title="API List"
         description="Browse and manage all your APIs."
         actions={

@@ -1,21 +1,6 @@
-import { forwardRef, Fragment, type ComponentPropsWithRef, type ReactNode } from 'react';
+import { forwardRef, type ComponentPropsWithRef, type ReactNode } from 'react';
 import { cn } from '@baros/lib/utils';
 import { Separator } from '@baros/components/ui/separator';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@baros/components/ui/breadcrumb';
-
-interface PageBreadcrumbItem {
-  /** Display label for the breadcrumb segment. */
-  readonly label: string;
-  /** Optional URL. Omit for the current (last) segment. */
-  readonly href?: string;
-}
 
 interface TabItem {
   /** Unique identifier used to match against `activeTab`. */
@@ -29,8 +14,6 @@ interface TabItem {
 interface PageLayoutProps extends Omit<ComponentPropsWithRef<'div'>, 'className' | 'title'> {
   /** Additional CSS classes to merge with component styles. */
   readonly className?: string;
-  /** Ordered breadcrumb trail. The last item is rendered as the current page. */
-  readonly breadcrumbs: PageBreadcrumbItem[];
   /** Page heading (rendered as h1). */
   readonly title: string;
   /** Optional subtitle displayed below the title. */
@@ -48,34 +31,11 @@ interface PageLayoutProps extends Omit<ComponentPropsWithRef<'div'>, 'className'
 }
 
 const PageLayout = forwardRef<HTMLDivElement, PageLayoutProps>(
-  ({ className, breadcrumbs, title, description, tabs, activeTab, onTabClick, actions, children, ...props }, ref) => {
+  ({ className, title, description, tabs, activeTab, onTabClick, actions, children, ...props }, ref) => {
     const hasTabs = tabs != null && tabs.length > 0;
 
     return (
       <div ref={ref} className={cn('flex flex-col gap-4', className)} {...props}>
-        {breadcrumbs.length > 0 && (
-          <Breadcrumb>
-            <BreadcrumbList>
-              {breadcrumbs.map((crumb, index) => {
-                const isFirst = index === 0;
-                const isLast = index === breadcrumbs.length - 1;
-                return (
-                  <Fragment key={crumb.label}>
-                    <BreadcrumbItem>
-                      {isFirst ||isLast ? (
-                        <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-                      ) : (
-                        <BreadcrumbLink href={crumb.href}>{crumb.label}</BreadcrumbLink>
-                      )}
-                    </BreadcrumbItem>
-                    {!isLast && <BreadcrumbSeparator />}
-                  </Fragment>
-                );
-              })}
-            </BreadcrumbList>
-          </Breadcrumb>
-        )}
-
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
@@ -118,4 +78,4 @@ const PageLayout = forwardRef<HTMLDivElement, PageLayoutProps>(
 PageLayout.displayName = 'PageLayout';
 
 export { PageLayout };
-export type { PageLayoutProps, PageBreadcrumbItem, TabItem };
+export type { PageLayoutProps, TabItem };

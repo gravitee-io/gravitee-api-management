@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Globe, Shield } from 'lucide-react';
 import { SidebarProvider } from '@baros/components/ui/sidebar';
@@ -28,15 +28,12 @@ const mockNavItems: NavItem[] = [
   },
 ];
 
-const mockUser = { name: 'Jane Doe', email: 'jane@example.com' };
-
 function setupAppSidebarHarness(props?: Partial<AppSidebarProps>) {
   const user = userEvent.setup();
   render(
     <SidebarProvider defaultOpen>
       <AppSidebar
         navItems={mockNavItems}
-        user={mockUser}
         {...props}
       />
     </SidebarProvider>,
@@ -44,7 +41,6 @@ function setupAppSidebarHarness(props?: Partial<AppSidebarProps>) {
 
   return {
     getNav: () => screen.getByRole('navigation'),
-    getUserTrigger: () => screen.getByText('Jane Doe'),
     clickParentItem: (name: string) =>
       user.click(screen.getByRole('button', { name: new RegExp(name, 'i') })),
     querySubItem: (name: string) => screen.queryByText(name),
@@ -78,6 +74,12 @@ describe('AppSidebar', () => {
     expect(harness.querySubItem('Quality Rules')).toBeInTheDocument();
   });
 
+  it('renders footer content when provided', () => {
+    setupAppSidebarHarness({ footer: <div data-testid="sidebar-footer">Org / Env</div> });
+
+    expect(screen.getByTestId('sidebar-footer')).toHaveTextContent('Org / Env');
+  });
+
   it('calls onNavItemClick when a sub-item is clicked', async () => {
     const onNavItemClick = vi.fn();
     const user = userEvent.setup();
@@ -87,7 +89,6 @@ describe('AppSidebar', () => {
           navItems={mockNavItems}
           activeItemKey="api-list"
           onNavItemClick={onNavItemClick}
-          user={mockUser}
         />
       </SidebarProvider>,
     );
@@ -95,33 +96,5 @@ describe('AppSidebar', () => {
     await user.click(screen.getByText('Event Streams'));
 
     expect(onNavItemClick).toHaveBeenCalledWith('event-streams');
-  });
-
-  it('renders user info in the footer', () => {
-    const harness = setupAppSidebarHarness();
-
-    expect(harness.getUserTrigger()).toBeInTheDocument();
-    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
-  });
-
-  it('renders logo when provided', () => {
-    setupAppSidebarHarness({ logo: <span>WideLogo</span> });
-
-    expect(screen.getByText('WideLogo')).toBeInTheDocument();
-  });
-
-  it('renders collapsedLogo when sidebar is collapsed', () => {
-    render(
-      <SidebarProvider defaultOpen={false}>
-        <AppSidebar
-          navItems={mockNavItems}
-          logo={<span>WideLogo</span>}
-          collapsedLogo={<span>IconLogo</span>}
-          user={mockUser}
-        />
-      </SidebarProvider>,
-    );
-
-    expect(screen.getByText('IconLogo')).toBeInTheDocument();
   });
 });

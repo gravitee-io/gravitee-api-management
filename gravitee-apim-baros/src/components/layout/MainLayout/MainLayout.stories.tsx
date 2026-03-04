@@ -1,18 +1,64 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Search } from 'lucide-react';
 import { Separator } from '@baros/components/ui/separator';
 import { SidebarTrigger } from '@baros/components/ui/sidebar';
-import { mockNavItems, mockOrganizations, mockEnvironments, mockUser } from '../../../../.storybook/mock-data';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@baros/components/ui/breadcrumb';
+import { mockNavItems, mockApps, mockOrganizations, mockEnvironments, mockUser } from '../../../../.storybook/mock-data';
+import { AppDropdown } from '../AppDropdown';
 import { AppSidebar } from '../AppSidebar';
-import { GraviteeLogo, GraviteeIcon } from '../GraviteeLogo';
-import { OrgEnvSelector } from '../OrgEnvSelector';
+import { GraviteeLogo } from '../GraviteeLogo';
+import { OrgSelector, EnvSelector } from '../OrgEnvSelector';
 import { PageLayout } from '../PageLayout';
-import type { PageBreadcrumbItem } from '../PageLayout';
 import { ThemeToggle } from '../ThemeToggle';
 import { TopNav } from '../TopNav';
 import { TopNavUser } from '../TopNavUser';
 import { MainLayout } from './MainLayout';
+
+interface BreadcrumbEntry {
+  label: string;
+  href?: string;
+}
+
+function SubHeader({ breadcrumbs }: { breadcrumbs: BreadcrumbEntry[] }) {
+  return (
+    <div className="flex items-center gap-2 border-b border-border px-4 py-2">
+      <SidebarTrigger />
+      {breadcrumbs.length > 0 && (
+        <>
+          <Separator orientation="vertical" className="mx-1 h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              {breadcrumbs.map((crumb, index) => {
+                const isFirst = index === 0;
+                const isLast = index === breadcrumbs.length - 1;
+                return (
+                  <Fragment key={crumb.label}>
+                    <BreadcrumbItem>
+                      {isFirst || isLast ? (
+                        <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                      ) : (
+                        <BreadcrumbLink href={crumb.href}>{crumb.label}</BreadcrumbLink>
+                      )}
+                    </BreadcrumbItem>
+                    {!isLast && <BreadcrumbSeparator />}
+                  </Fragment>
+                );
+              })}
+            </BreadcrumbList>
+          </Breadcrumb>
+        </>
+      )}
+    </div>
+  );
+}
 
 function findParentTitle(key: string): string {
   for (const item of mockNavItems) {
@@ -30,10 +76,10 @@ function findSubTitle(key: string): string | undefined {
   return undefined;
 }
 
-function buildBreadcrumbs(key: string): PageBreadcrumbItem[] {
+function buildBreadcrumbs(key: string): BreadcrumbEntry[] {
   const parent = findParentTitle(key);
   const sub = findSubTitle(key);
-  const crumbs: PageBreadcrumbItem[] = [{ label: parent, href: '#' }];
+  const crumbs: BreadcrumbEntry[] = [{ label: parent, href: '#' }];
   if (sub) crumbs.push({ label: sub });
   return crumbs;
 }
@@ -53,6 +99,7 @@ type Story = StoryObj<typeof meta>;
 export const Overview: Story = {
   render: () => {
     const [activeKey, setActiveKey] = useState('api-list');
+    const [activeAppKey, setActiveAppKey] = useState('api-management');
     const [activeOrgKey, setActiveOrgKey] = useState('gravitee');
     const [activeEnvKey, setActiveEnvKey] = useState('prod');
 
@@ -62,27 +109,31 @@ export const Overview: Story = {
       <MainLayout
         sidebar={
           <AppSidebar
-            logo={<GraviteeLogo />}
-            collapsedLogo={<GraviteeIcon />}
             navItems={mockNavItems}
             activeItemKey={activeKey}
             onNavItemClick={setActiveKey}
+            footer={
+              <div className="flex flex-col gap-2">
+                <OrgSelector
+                  organizations={mockOrganizations}
+                  activeOrgKey={activeOrgKey}
+                  onOrgChange={setActiveOrgKey}
+                />
+                <EnvSelector
+                  environments={mockEnvironments}
+                  activeEnvKey={activeEnvKey}
+                  onEnvChange={setActiveEnvKey}
+                />
+              </div>
+            }
           />
         }
         topnav={
           <TopNav
             leading={
-              <div className="flex items-center gap-1">
-                <SidebarTrigger />
-                <Separator orientation="vertical" className="mx-1 h-4" />
-                <OrgEnvSelector
-                  organizations={mockOrganizations}
-                  environments={mockEnvironments}
-                  activeOrgKey={activeOrgKey}
-                  activeEnvKey={activeEnvKey}
-                  onOrgChange={setActiveOrgKey}
-                  onEnvChange={setActiveEnvKey}
-                />
+              <div className="flex items-center gap-2">
+                <GraviteeLogo />
+                <AppDropdown apps={mockApps} activeAppKey={activeAppKey} onAppChange={setActiveAppKey} />
               </div>
             }
             trailing={
@@ -102,9 +153,9 @@ export const Overview: Story = {
             }
           />
         }
+        subheader={<SubHeader breadcrumbs={buildBreadcrumbs(activeKey)} />}
       >
         <PageLayout
-          breadcrumbs={buildBreadcrumbs(activeKey)}
           title={pageTitle}
           description={`Manage your ${pageTitle.toLowerCase()} here.`}
         >
@@ -147,24 +198,22 @@ export const CollapsedSidebar: Story = {
       defaultOpen={false}
       sidebar={
         <AppSidebar
-          logo={<GraviteeLogo />}
-          collapsedLogo={<GraviteeIcon />}
           navItems={mockNavItems}
           activeItemKey="policies"
+          footer={
+            <div className="flex flex-col gap-2">
+              <OrgSelector organizations={mockOrganizations} activeOrgKey="gravitee" />
+              <EnvSelector environments={mockEnvironments} activeEnvKey="prod" />
+            </div>
+          }
         />
       }
       topnav={
         <TopNav
           leading={
-            <div className="flex items-center gap-1">
-              <SidebarTrigger />
-              <Separator orientation="vertical" className="mx-1 h-4" />
-              <OrgEnvSelector
-                organizations={mockOrganizations}
-                environments={mockEnvironments}
-                activeOrgKey="gravitee"
-                activeEnvKey="prod"
-              />
+            <div className="flex items-center gap-2">
+              <GraviteeLogo />
+              <AppDropdown apps={mockApps} activeAppKey="api-management" />
             </div>
           }
           trailing={
@@ -175,9 +224,9 @@ export const CollapsedSidebar: Story = {
           }
         />
       }
+      subheader={<SubHeader breadcrumbs={[{ label: 'Governance', href: '#' }, { label: 'Policies' }]} />}
     >
       <PageLayout
-        breadcrumbs={[{ label: 'Governance', href: '#' }, { label: 'Policies' }]}
         title="Policies"
         description="The sidebar is collapsed, giving more room to the main content area."
       >
@@ -196,7 +245,6 @@ export const NoSidebar: Story = {
   render: () => (
     <MainLayout topnav={<TopNav leading={<h1 className="text-xs font-semibold">Full Width</h1>} />}>
       <PageLayout
-        breadcrumbs={[{ label: 'Home' }]}
         title="Full Width Layout"
         description="No sidebar, content takes the full width."
       >

@@ -8,8 +8,10 @@ interface MainLayoutProps extends Omit<ComponentPropsWithRef<'div'>, 'className'
   readonly className?: string;
   /** Side navigation element (typically an <AppSidebar />). */
   readonly sidebar?: ReactNode;
-  /** Top navigation element (typically a <TopNav />). */
+  /** Top navigation element (typically a <TopNav />). Rendered full-width above the sidebar and content. */
   readonly topnav?: ReactNode;
+  /** Sub-header rendered between the top nav and the main content (e.g. sidebar trigger + breadcrumb). */
+  readonly subheader?: ReactNode;
   /** Main page content. */
   readonly children: ReactNode;
   /** Whether the sidebar starts in the open state. Defaults to true. */
@@ -17,20 +19,24 @@ interface MainLayoutProps extends Omit<ComponentPropsWithRef<'div'>, 'className'
 }
 
 const MainLayout = forwardRef<HTMLDivElement, MainLayoutProps>(
-  ({ className, sidebar, topnav, children, defaultOpen = true, ...props }, ref) => (
+  ({ className, sidebar, topnav, subheader, children, defaultOpen = true, ...props }, ref) => (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <div ref={ref} className={cn('flex min-h-svh w-full', className)} {...props}>
-        {sidebar}
+      <div ref={ref} className={cn('flex min-h-svh w-full flex-col', className)} {...props}>
+        {topnav}
 
-        <SidebarInset>
-          {topnav}
+        <div className="flex flex-1 overflow-hidden">
+          {sidebar}
 
-          <ScrollArea className="flex-1">
-            <main className="mx-auto w-full max-w-[var(--content-max-width)] p-[var(--content-padding)]">
-              {children}
-            </main>
-          </ScrollArea>
-        </SidebarInset>
+          <SidebarInset className="min-h-0">
+            {subheader}
+
+            <ScrollArea className="flex-1">
+              <main className="mx-auto w-full max-w-[var(--content-max-width)] p-[var(--content-padding)]">
+                {children}
+              </main>
+            </ScrollArea>
+          </SidebarInset>
+        </div>
       </div>
     </SidebarProvider>
   ),

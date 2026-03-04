@@ -13,8 +13,8 @@ import {
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -54,10 +54,8 @@ interface NavItem {
 interface AppSidebarProps extends Omit<ComponentPropsWithRef<typeof Sidebar>, 'className'> {
   /** Additional CSS classes. */
   readonly className?: string;
-  /** Branding element shown when the sidebar is expanded. */
-  readonly logo?: ReactNode;
-  /** Branding element shown when the sidebar is collapsed to icon mode. */
-  readonly collapsedLogo?: ReactNode;
+  /** Content rendered in the sidebar footer below the navigation items (e.g. org/env selectors). */
+  readonly footer?: ReactNode;
   /** Main navigation items. */
   readonly navItems?: NavItem[];
   /** Key of the currently active sub-item (or parent item if no sub-items). */
@@ -225,29 +223,6 @@ function NavMain({
 }
 
 /* ──────────────────────────────────────────────────── */
-/*  SidebarLogo                                         */
-/* ──────────────────────────────────────────────────── */
-
-function SidebarLogo({
-  logo,
-  collapsedLogo,
-}: {
-  readonly logo?: ReactNode;
-  readonly collapsedLogo?: ReactNode;
-}) {
-  const { state } = useSidebar();
-
-  if (!logo && !collapsedLogo) return null;
-
-  return (
-    <div 
-    className={cn("flex items-center gap-2 px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0", state === 'collapsed' ? 'py-0' : 'py-2')}>
-      {state === 'collapsed' ? (collapsedLogo ?? logo) : logo}
-    </div>
-  );
-}
-
-/* ──────────────────────────────────────────────────── */
 /*  AppSidebar                                          */
 /* ──────────────────────────────────────────────────── */
 
@@ -255,8 +230,7 @@ const AppSidebar = forwardRef<HTMLDivElement, AppSidebarProps>(
   (
     {
       className,
-      logo,
-      collapsedLogo,
+      footer,
       navItems = [],
       activeItemKey,
       onNavItemClick,
@@ -265,15 +239,17 @@ const AppSidebar = forwardRef<HTMLDivElement, AppSidebarProps>(
     ref,
   ) => (
     <Sidebar ref={ref} collapsible="icon" className={cn(className)} {...props}>
-      <SidebarHeader>
-        <SidebarLogo logo={logo} collapsedLogo={collapsedLogo} />
-      </SidebarHeader>
-
       <SidebarContent>
         {navItems.length > 0 && (
           <NavMain items={navItems} activeItemKey={activeItemKey} onNavItemClick={onNavItemClick} />
         )}
       </SidebarContent>
+
+      {footer && (
+        <SidebarFooter className="group-data-[collapsible=icon]:hidden">
+          {footer}
+        </SidebarFooter>
+      )}
 
       <SidebarRail />
     </Sidebar>
