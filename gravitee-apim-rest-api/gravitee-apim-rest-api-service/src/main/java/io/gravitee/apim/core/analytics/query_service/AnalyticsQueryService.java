@@ -74,6 +74,8 @@ public interface AnalyticsQueryService {
 
     Optional<TopFailedApis> searchTopFailedApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
+    Optional<Long> searchCount(ExecutionContext executionContext, String apiId, Instant from, Instant to);
+
     record ResponseStatusOverTimeQuery(
         List<String> apiIds,
         Instant from,

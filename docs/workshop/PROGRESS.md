@@ -3,7 +3,7 @@
 ## TODO
 
 - ✅ BE-1 — Query Parameter Model & Validation
-- BE-2 — COUNT Query Type + Endpoint Scaffolding
+- ✅ BE-2 — COUNT Query Type + Endpoint Scaffolding
 - BE-3 — STATS Query Type
 - BE-4 — GROUP_BY Query Type
 - BE-5 — DATE_HISTO Query Type
@@ -36,6 +36,27 @@ Validation rules implemented:
 - `interval` required for `DATE_HISTO`, range `[1000, 1_000_000_000]`
 - `size` defaults to 10 via `@DefaultValue("10")`
 
+### BE-2: COUNT Query Type + Endpoint Scaffolding ✅
+
+Full vertical slice from ES to REST endpoint. 5 new files + 2 test files, 6 modified files:
+
+| File | Type | Purpose |
+|---|---|---|
+| `REPO_API/.../model/analytics/CountQuery.java` | New | Record: `apiId`, `from`, `to` with `@Builder` |
+| `REPO_ES/.../adapter/SearchCountQueryAdapter.java` | New | Builds ES JSON: `size:0` + `bool.must` filter on `api-id` + `@timestamp` range |
+| `REPO_ES/.../adapter/SearchCountResponseAdapter.java` | New | Reads `hits.total.value` from ES response |
+| `SERVICE/.../use_case/SearchApiAnalyticsUseCase.java` | New | Unified use case with sealed `AnalyticsResult` interface, dispatches by type |
+| `REPO_ES/.../adapter/SearchCountQueryAdapterTest.java` | New | 5 tests: null, api-only, api+time, time-only, all-null |
+| `REPO_ES/.../adapter/SearchCountResponseAdapterTest.java` | New | 5 tests: null hits, null total, zero count, normal count, large count |
+| `REPO_API/.../api/AnalyticsRepository.java` | Modified | Added `searchCount(QueryContext, CountQuery)` |
+| `REPO_ES/.../AnalyticsElasticsearchRepository.java` | Modified | Implemented `searchCount` using V4_METRICS index |
+| `SERVICE/.../query_service/AnalyticsQueryService.java` | Modified | Added `searchCount` method |
+| `SERVICE/.../AnalyticsQueryServiceImpl.java` | Modified | Delegates to `analyticsRepository.searchCount()` |
+| `SERVICE/test/.../FakeAnalyticsQueryService.java` | Modified | Added `countResult` field |
+| `REST_V2/.../ApiAnalyticsResource.java` | Modified | Added `GET /analytics` unified endpoint with `@BeanParam` |
+
+Key design: `SearchApiAnalyticsUseCase` uses a `sealed interface AnalyticsResult` with `CountResult` (expandable for STATS, GROUP_BY, DATE_HISTO in later stories). The REST endpoint returns `jakarta.ws.rs.core.Response` with a Map body to avoid OpenAPI code-gen dependency for now.
+
 ---
 
 ## Key Decisions
@@ -47,6 +68,10 @@ Validation rules implemented:
 | Field validation happens before type-specific checks | An unsupported field value is rejected early regardless of type, so you don't get a confusing "field required" error when you actually provided a bad field name. |
 | Unit tests for `AnalyticsParam` rather than waiting for BE-6 integration tests | The stories say "tested as part of BE-6", but validate() is pure logic with no dependencies — unit-testable now, gives faster feedback. BE-6 will still add integration coverage. |
 | `AnalyticsFieldParam` uses a `Map<String, Enum>` lookup | O(1) lookup vs iterating `values()`. The field names use kebab-case (matching ES field names), so the enum constants use SCREAMING_SNAKE but expose the kebab-case via `getValue()`. |
+| `sealed interface AnalyticsResult` for polymorphic returns | Java 17 sealed types give exhaustive switch. Each query type adds a record variant (`CountResult`, later `StatsResult`, etc.). Compiler enforces all branches handled. |
+| `CountQuery` uses non-optional fields unlike `RequestsCountQuery` | `RequestsCountQuery` wraps everything in `Optional` for flexibility. Our unified endpoint always has `apiId`/`from`/`to` validated by `AnalyticsParam`, so `CountQuery` uses plain types. Simpler adapter code. |
+| Return `Response` with `Map` body instead of generated model | The response models (`ApiAnalyticsCountResponse`, etc.) come from OpenAPI code generation. Skipping the OpenAPI YAML edit (BE-2.1) for now — will add when we have all 4 response types to define at once. The Map approach is functionally identical. |
+| Count uses `hits.total.value` not aggregations | Unlike `SearchRequestsCountQueryAdapter` which uses a terms aggregation on `entrypoint-id`, the unified COUNT just needs the total document count. Simpler query, simpler response parsing. |
 
 ---
 
@@ -64,9 +89,9 @@ Validation rules implemented:
 
 ## Current Blockers / Open Questions
 
-- **None blocking.** BE-1 is self-contained with no downstream dependencies unresolved.
+- **None blocking.** BE-1 and BE-2 are complete. The unified endpoint scaffolding is in place for BE-3/4/5 to extend.
 - **`endpoint-response-time-ms` field** — flagged in STORIES.md Known Risks. Not relevant until FE-2 (stat cards). Must verify against a live `*-v4-metrics-*` index before using it.
-- **OpenAPI spec update** (BE-2.1) — not started yet. The unified endpoint schema definitions will be needed before BE-2's REST resource changes.
+- **OpenAPI spec update** (BE-2.1) — deferred. Response is currently a `Map` body. Will add proper schema when all 4 response types are defined.
 
 ---
 
@@ -98,3 +123,12 @@ Keep the existing separate endpoints working — don't break them.
 ```
 
 **Why it worked:** Pointed the agent at concrete file paths across all layers (REST resource, use cases, ES adapters, tests, frontend). The "study before starting" instruction forced deep pattern-reading before any code was written. "Keep existing endpoints working" set a clear non-regression constraint.
+
+### Story 2 prompt
+
+```
+Implement Story 2 from @docs/workshop/STORIES.md
+Include tests following the existing patterns in the codebase.
+```
+
+**Why it worked:** Short and effective because the agent already had full codebase context from Story 1. The `@docs/workshop/STORIES.md` reference anchored the exact requirements. "Following existing patterns" leveraged the deep pattern study already done.

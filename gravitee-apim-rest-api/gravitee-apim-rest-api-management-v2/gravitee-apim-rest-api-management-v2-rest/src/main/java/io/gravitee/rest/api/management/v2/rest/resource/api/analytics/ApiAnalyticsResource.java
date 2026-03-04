@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
+import io.gravitee.apim.core.analytics.use_case.SearchApiAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
@@ -30,12 +31,14 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountRe
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.param.AnalyticsParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
@@ -43,8 +46,10 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 public class ApiAnalyticsResource extends AbstractResource {
@@ -69,6 +74,36 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @Inject
     private SearchResponseStatusOverTimeUseCase searchResponseStatusOverTimeUseCase;
+
+    @Inject
+    private SearchApiAnalyticsUseCase searchApiAnalyticsUseCase;
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public Response getAnalytics(@BeanParam AnalyticsParam param) {
+        param.validate();
+
+        var input = new SearchApiAnalyticsUseCase.Input(
+            apiId,
+            GraviteeContext.getCurrentEnvironment(),
+            SearchApiAnalyticsUseCase.AnalyticsQueryType.valueOf(param.getType().name()),
+            Instant.ofEpochMilli(param.getFrom()),
+            Instant.ofEpochMilli(param.getTo()),
+            param.getField(),
+            param.getInterval(),
+            param.getSize()
+        );
+
+        var output = searchApiAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+        return Response.ok(mapResult(output.result())).build();
+    }
+
+    private Object mapResult(SearchApiAnalyticsUseCase.AnalyticsResult result) {
+        return switch (result) {
+            case SearchApiAnalyticsUseCase.AnalyticsResult.CountResult r -> Map.of("type", "COUNT", "count", r.count());
+        };
+    }
 
     @Path("/requests-count")
     @GET

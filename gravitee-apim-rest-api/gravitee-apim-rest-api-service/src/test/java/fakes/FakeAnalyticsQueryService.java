@@ -53,6 +53,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public ResponseStatusOvertime responseStatusOvertime;
     public TopHitsApps topHitsApps;
     public TopFailedApis topFailedApis;
+    public Long countResult;
 
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
@@ -88,6 +89,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
         responseStatusOvertime = null;
         requestResponseTime = null;
         topFailedApis = null;
+        countResult = null;
     }
 
     @Override
@@ -133,5 +135,10 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public Optional<TopFailedApis> searchTopFailedApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
         return Optional.ofNullable(topFailedApis);
+    }
+
+    @Override
+    public Optional<Long> searchCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
+        return Optional.ofNullable(countResult);
     }
 }

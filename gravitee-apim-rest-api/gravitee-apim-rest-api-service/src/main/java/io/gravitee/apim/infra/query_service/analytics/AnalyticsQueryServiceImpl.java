@@ -24,6 +24,7 @@ import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
+import io.gravitee.repository.log.v4.model.analytics.CountQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
@@ -222,6 +223,11 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             .responseMaxTime(result.getResponseMaxTime())
             .responseAvgTime(result.getResponseAvgTime())
             .build();
+    }
+
+    @Override
+    public Optional<Long> searchCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
+        return analyticsRepository.searchCount(executionContext.getQueryContext(), new CountQuery(apiId, from, to));
     }
 
     @Override
