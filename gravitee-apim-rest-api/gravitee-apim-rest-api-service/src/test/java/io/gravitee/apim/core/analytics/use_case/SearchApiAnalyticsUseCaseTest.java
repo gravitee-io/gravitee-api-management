@@ -120,7 +120,51 @@ class SearchApiAnalyticsUseCaseTest {
         }
     }
 
+    @Nested
+    class StatsQuery {
+
+        @BeforeEach
+        void setUp() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
+        }
+
+        @Test
+        void should_return_stats() {
+            analyticsQueryService.statsResult =
+                io.gravitee.apim.core.analytics.model.StatsResult.builder().count(50).min(10).max(200).avg(42.5).sum(2125).build();
+
+            var output = cut.execute(GraviteeContext.getExecutionContext(), statsInput());
+
+            assertThat(output.result()).isInstanceOf(AnalyticsResult.StatsResultResult.class);
+            var stats = ((AnalyticsResult.StatsResultResult) output.result()).stats();
+            assertThat(stats.count()).isEqualTo(50);
+            assertThat(stats.min()).isEqualTo(10);
+            assertThat(stats.max()).isEqualTo(200);
+            assertThat(stats.avg()).isEqualTo(42.5);
+            assertThat(stats.sum()).isEqualTo(2125);
+        }
+
+        @Test
+        void should_return_stats_with_zero_values_for_empty_range() {
+            analyticsQueryService.statsResult = null;
+
+            var output = cut.execute(GraviteeContext.getExecutionContext(), statsInput());
+
+            assertThat(output.result()).isInstanceOf(AnalyticsResult.StatsResultResult.class);
+            var stats = ((AnalyticsResult.StatsResultResult) output.result()).stats();
+            assertThat(stats.count()).isZero();
+            assertThat(stats.min()).isZero();
+            assertThat(stats.max()).isZero();
+            assertThat(stats.avg()).isZero();
+            assertThat(stats.sum()).isZero();
+        }
+    }
+
     private static Input countInput() {
         return new Input(MY_API, ENV_ID, AnalyticsQueryType.COUNT, FROM, TO, null, null, 10);
+    }
+
+    private static Input statsInput() {
+        return new Input(MY_API, ENV_ID, AnalyticsQueryType.STATS, FROM, TO, "gateway-response-time-ms", null, 10);
     }
 }

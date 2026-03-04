@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.query_service.analytics;
 
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
+import io.gravitee.apim.core.analytics.model.StatsResult;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.infra.adapter.ResponseStatusQueryCriteriaAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -28,6 +29,8 @@ import io.gravitee.repository.log.v4.model.analytics.CountQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
+import io.gravitee.repository.log.v4.model.analytics.StatsQuery;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
@@ -228,6 +231,13 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     @Override
     public Optional<Long> searchCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
         return analyticsRepository.searchCount(executionContext.getQueryContext(), new CountQuery(apiId, from, to));
+    }
+
+    @Override
+    public Optional<StatsResult> searchStats(ExecutionContext executionContext, String apiId, Instant from, Instant to, String field) {
+        return analyticsRepository
+            .searchStats(executionContext.getQueryContext(), new StatsQuery(apiId, from, to, field))
+            .map(agg -> StatsResult.builder().count(agg.count()).min(agg.min()).max(agg.max()).avg(agg.avg()).sum(agg.sum()).build());
     }
 
     @Override

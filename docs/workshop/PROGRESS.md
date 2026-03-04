@@ -4,7 +4,7 @@
 
 - ✅ BE-1 — Query Parameter Model & Validation
 - ✅ BE-2 — COUNT Query Type + Endpoint Scaffolding
-- BE-3 — STATS Query Type
+- ✅ BE-3 — STATS Query Type
 - BE-4 — GROUP_BY Query Type
 - BE-5 — DATE_HISTO Query Type
 - BE-6 — Backend Integration Tests
@@ -57,6 +57,31 @@ Full vertical slice from ES to REST endpoint. 5 new files + 2 test files, 6 modi
 
 Key design: `SearchApiAnalyticsUseCase` uses a `sealed interface AnalyticsResult` with `CountResult` (expandable for STATS, GROUP_BY, DATE_HISTO in later stories). The REST endpoint returns `jakarta.ws.rs.core.Response` with a Map body to avoid OpenAPI code-gen dependency for now.
 
+### BE-3: STATS Query Type ✅
+
+Min/max/avg/sum statistics for a metric field. 3 new source files + 2 repo models + 2 test files, 8 modified files:
+
+| File | Type | Purpose |
+|---|---|---|
+| `SERVICE/.../model/StatsResult.java` | New | Record: `count`, `min`, `max`, `avg`, `sum` with `@Builder` |
+| `REPO_API/.../model/analytics/StatsQuery.java` | New | Record: `apiId`, `from`, `to`, `field` |
+| `REPO_API/.../model/analytics/StatsAggregate.java` | New | Record: `count`, `min`, `max`, `avg`, `sum` |
+| `REPO_ES/.../adapter/SearchStatsQueryAdapter.java` | New | ES JSON: `size:0`, filter api-id + @timestamp, `aggs.stats_field.stats` on field |
+| `REPO_ES/.../adapter/SearchStatsResponseAdapter.java` | New | Parse stats agg → `StatsAggregate`; coerces null/NaN to 0.0 |
+| `REPO_ES/.../adapter/SearchStatsQueryAdapterTest.java` | New | 3 tests: full query, field variants, minimal query |
+| `REPO_ES/.../adapter/SearchStatsResponseAdapterTest.java` | New | 5 tests: null aggs, empty aggs, normal stats, empty-range (count=0), missing stats agg |
+| `AnalyticsQueryService` / `AnalyticsQueryServiceImpl` | Modified | Added `searchStats(ExecutionContext, apiId, from, to, field)` |
+| `AnalyticsRepository` / `AnalyticsElasticsearchRepository` | Modified | Added `searchStats(QueryContext, StatsQuery)` |
+| `SearchApiAnalyticsUseCase` | Modified | Added `STATS` branch, `StatsResultResult` sealed variant |
+| `ApiAnalyticsResource` | Modified | `mapResult()` handles STATS → Map with type, count, min, max, avg, sum |
+| `FakeAnalyticsQueryService` | Modified | Added `statsResult` field, `searchStats()` impl |
+| `NoOpAnalyticsRepository` | Modified | Added `searchStats()` returning `Optional.empty()` |
+| `SearchApiAnalyticsUseCaseTest` | Modified | `StatsQuery` nested class: should_return_stats, should_return_stats_with_zero_values_for_empty_range |
+
+Endpoint: `GET /environments/{envId}/apis/{apiId}/analytics?type=STATS&field=gateway-response-time-ms&from=...&to=...`
+
+Gotcha: gravitee `Aggregation` uses `Float` for count/min/max/avg/sum; adapter uses `longValue()` for count and `safeDouble()` for numeric fields.
+
 ---
 
 ## Key Decisions
@@ -85,11 +110,13 @@ Key design: `SearchApiAnalyticsUseCase` uses a `sealed interface AnalyticsResult
 
 4. **No existing param tests in the V2 module** — the V2 REST module had zero test files under `resource/param/`. All existing analytics validation was integration-tested through the resource test. We created the first param-level unit test.
 
+5. **gravitee `Aggregation` uses `Float`** — `getCount()` returns `Float`, not `Long`. Use `longValue()` when mapping to `long`. Setters (`setCount`, `setMin`, etc.) expect `Float`; use `100f`, `5.0f` in tests.
+
 ---
 
 ## Current Blockers / Open Questions
 
-- **None blocking.** BE-1 and BE-2 are complete. The unified endpoint scaffolding is in place for BE-3/4/5 to extend.
+- **None blocking.** BE-1, BE-2, and BE-3 are complete. The unified endpoint supports COUNT and STATS; GROUP_BY and DATE_HISTO to follow.
 - **`endpoint-response-time-ms` field** — flagged in STORIES.md Known Risks. Not relevant until FE-2 (stat cards). Must verify against a live `*-v4-metrics-*` index before using it.
 - **OpenAPI spec update** (BE-2.1) — deferred. Response is currently a `Map` body. Will add proper schema when all 4 response types are defined.
 
@@ -132,3 +159,26 @@ Include tests following the existing patterns in the codebase.
 ```
 
 **Why it worked:** Short and effective because the agent already had full codebase context from Story 1. The `@docs/workshop/STORIES.md` reference anchored the exact requirements. "Following existing patterns" leveraged the deep pattern study already done.
+
+### Story 3 prompt
+
+Read @docs/workshop/STORIES.md  and @docs/workshop/PROGRESS.md for the full list of user stories.
+
+Before starting, study the existing code that we're evolving:
+
+Backend (Java):
+- ApiAnalyticsResource.java in gravitee-apim-rest-api/.../api/analytics/
+  — has existing endpoints: /requests-count, /response-status-ranges, etc.
+- The existing use cases (SearchRequestsCountAnalyticsUseCase, etc.)
+- How Elasticsearch queries are built and executed
+- ApiAnalyticsResourceTest.java for test patterns
+
+Frontend (Angular):
+- ApiAnalyticsProxyComponent in api-traffic-v4/analytics/api-analytics-proxy/
+- ApiAnalyticsV2Service in services-ngx/api-analytics-v2.service.ts
+- Existing widget components in api-traffic-v4/analytics/components/
+- Chart libraries already in use
+
+Now implement Story 3.
+Include tests that follow the existing test patterns.
+Keep the existing separate endpoints working — don't break them.

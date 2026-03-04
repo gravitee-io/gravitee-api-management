@@ -21,6 +21,8 @@ import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQu
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.CountQuery;
+import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
+import io.gravitee.repository.log.v4.model.analytics.StatsQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
@@ -61,4 +63,6 @@ public interface AnalyticsRepository {
     Optional<TopFailedAggregate> searchTopFailedApis(QueryContext queryContext, TopFailedQueryCriteria criteria);
 
     Optional<Long> searchCount(QueryContext queryContext, CountQuery query);
+
+    Optional<StatsAggregate> searchStats(QueryContext queryContext, StatsQuery query);
 }

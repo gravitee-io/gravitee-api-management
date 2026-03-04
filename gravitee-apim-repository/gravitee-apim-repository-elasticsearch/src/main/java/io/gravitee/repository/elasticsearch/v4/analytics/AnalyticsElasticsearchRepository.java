@@ -34,6 +34,8 @@ import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsC
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusOverTimeAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchStatsQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchStatsResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchTopFailedApisAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
@@ -49,6 +51,8 @@ import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
+import io.gravitee.repository.log.v4.model.analytics.StatsQuery;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
@@ -198,6 +202,12 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     public Optional<Long> searchCount(QueryContext queryContext, CountQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         return this.client.search(index, null, SearchCountQueryAdapter.adapt(query)).map(SearchCountResponseAdapter::adapt).blockingGet();
+    }
+
+    @Override
+    public Optional<StatsAggregate> searchStats(QueryContext queryContext, StatsQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        return this.client.search(index, null, SearchStatsQueryAdapter.adapt(query)).map(SearchStatsResponseAdapter::adapt).blockingGet();
     }
 
     private String getIndices(QueryContext queryContext, Collection<DefinitionVersion> definitionVersions) {

@@ -102,6 +102,14 @@ public class ApiAnalyticsResource extends AbstractResource {
     private Object mapResult(SearchApiAnalyticsUseCase.AnalyticsResult result) {
         return switch (result) {
             case SearchApiAnalyticsUseCase.AnalyticsResult.CountResult r -> Map.of("type", "COUNT", "count", r.count());
+            case SearchApiAnalyticsUseCase.AnalyticsResult.StatsResultResult r -> Map.of(
+                "type", "STATS",
+                "count", r.stats().count(),
+                "min", r.stats().min(),
+                "max", r.stats().max(),
+                "avg", r.stats().avg(),
+                "sum", r.stats().sum()
+            );
         };
     }
 
