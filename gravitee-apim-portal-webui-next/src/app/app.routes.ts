@@ -37,6 +37,7 @@ import { SubscribeToApiComponent } from './api/subscribe-to-api/subscribe-to-api
 import { ApplicationLogComponent } from './applications/application/application-tab-logs/application-log/application-log.component';
 import { ApplicationLogTableComponent } from './applications/application/application-tab-logs/application-log-table/application-log-table.component';
 import { ApplicationTabLogsComponent } from './applications/application/application-tab-logs/application-tab-logs.component';
+import { ApplicationTabMembersComponent } from './applications/application/application-tab-members/application-tab-members.component';
 import { ApplicationTabSettingsComponent } from './applications/application/application-tab-settings/application-tab-settings.component';
 import { ApplicationComponent } from './applications/application/application.component';
 import { ApplicationsComponent } from './applications/applications.component';
@@ -241,6 +242,11 @@ export const routes: Routes = [
               },
               { path: ':logId', component: ApplicationLogComponent, data: { breadcrumb: { skip: true } } },
             ],
+          },
+          {
+            path: 'members',
+            component: ApplicationTabMembersComponent,
+            data: { breadcrumb: { skip: true } },
           },
           {
             path: 'settings',

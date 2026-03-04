@@ -24,6 +24,7 @@ import { BannerComponent } from '../../../components/banner/banner.component';
 import { BreadcrumbNavigationComponent } from '../../../components/breadcrumb-navigation/breadcrumb-navigation.component';
 import { PictureComponent } from '../../../components/picture/picture.component';
 import { Application } from '../../../entities/application/application';
+import { UserApplicationPermissions } from '../../../entities/permission/permission';
 import { CurrentUserService } from '../../../services/current-user.service';
 
 @Component({
@@ -47,13 +48,18 @@ import { CurrentUserService } from '../../../services/current-user.service';
 })
 export class ApplicationComponent implements OnChanges {
   @Input() application!: Application;
+  @Input() userApplicationPermissions!: UserApplicationPermissions;
   isAuthenticated = inject(CurrentUserService).isUserAuthenticated;
+  hasMemberReadPermission = false;
 
   constructor(private breadcrumbService: BreadcrumbService) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['application']) {
       this.breadcrumbService.set('@appName', this.application.name);
+    }
+    if (changes['userApplicationPermissions']) {
+      this.hasMemberReadPermission = this.userApplicationPermissions?.MEMBER?.includes('R') || false;
     }
   }
 }

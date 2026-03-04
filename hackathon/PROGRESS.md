@@ -6,7 +6,7 @@
 - [ ] 1.0 - BE: Define Application Members V2 Portal API Contract
 - [ ] 1.1 - BE: List Application Members (UseCase)
 - [ ] 1.2 - BE: List Application Roles (UseCase)
-- [ ] 1.3 - FE: Members Tab & Routing
+- ✅ 1.3 - FE: Members Tab & Routing
 - [ ] 1.4 - FE: Members Table
 - [ ] 1.5 - FE: Extend Paginated Table for Custom Action Cells
 
@@ -39,7 +39,7 @@
 
 ## Summary of Completed Work
 
-_No stories implemented yet. Planning phase complete._
+- **Story 1.3 (FE: Members Tab & Routing)** — Application tab members shell component, route `members` under `:applicationId`, Members tab link in application nav (gated by `MEMBER` read permission), component spec. Aligned with portal-next design system (theme SCSS, m3 typography) and Angular rules (signal inputs, standalone).
 
 ## Key Decisions
 

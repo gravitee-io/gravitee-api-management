@@ -45,6 +45,18 @@
           >Analytics & Logs</a
         >
 
+        @if (hasMemberReadPermission) {
+          <a
+            mat-tab-link
+            [routerLink]="['.', 'members']"
+            routerLinkActive
+            #membersActive="routerLinkActive"
+            [active]="membersActive.isActive"
+            i18n="@@applicationTabMembers"
+            >Members</a
+          >
+        }
+
         <a
           mat-tab-link
           [routerLink]="['.', 'settings']"
