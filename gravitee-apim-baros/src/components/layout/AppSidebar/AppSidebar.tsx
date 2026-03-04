@@ -1,7 +1,8 @@
 import { forwardRef, type ComponentPropsWithRef, type ElementType, type ReactNode } from 'react';
-import { ChevronsUpDown } from 'lucide-react';
+import { ChevronRight, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@baros/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@baros/components/ui/avatar';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@baros/components/ui/collapsible';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,7 +10,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@baros/components/ui/dropdown-menu';
 import {
@@ -22,6 +22,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail,
   useSidebar,
 } from '@baros/components/ui/sidebar';
@@ -30,24 +33,26 @@ import {
 /*  Types                                               */
 /* ──────────────────────────────────────────────────── */
 
-interface Organization {
-  /** Unique identifier for the organization. */
-  readonly name: string;
-  /** Icon component rendered next to the name. */
-  readonly logo: ElementType;
-  /** Subscription tier or label shown under the name. */
-  readonly plan: string;
-}
-
-interface NavItem {
-  /** Unique key for the item, used for active matching. */
+interface NavSubItem {
+  /** Unique key for the sub-item, used for active matching. */
   readonly key: string;
   /** Display label. */
   readonly title: string;
   /** URL to navigate to. */
   readonly url: string;
+}
+
+interface NavItem {
+  /** Unique key for the parent item. */
+  readonly key: string;
+  /** Display label. */
+  readonly title: string;
+  /** URL to navigate to (used when there are no sub-items). */
+  readonly url: string;
   /** Icon component rendered before the title. */
   readonly icon?: ElementType;
+  /** Child navigation items shown when the parent is expanded. */
+  readonly items?: NavSubItem[];
 }
 
 interface UserInfo {
@@ -59,81 +64,18 @@ interface UserInfo {
 interface AppSidebarProps extends Omit<ComponentPropsWithRef<typeof Sidebar>, 'className'> {
   /** Additional CSS classes. */
   readonly className?: string;
-  /** Branding element rendered above the organization switcher. */
+  /** Branding element shown when the sidebar is expanded. */
   readonly logo?: ReactNode;
-  /** List of organizations available to switch between. */
-  readonly organizations?: Organization[];
-  /** Currently selected organization. */
-  readonly activeOrganization?: Organization;
-  /** Callback when an organization is selected. */
-  readonly onOrganizationChange?: (org: Organization) => void;
+  /** Branding element shown when the sidebar is collapsed to icon mode. */
+  readonly collapsedLogo?: ReactNode;
   /** Main navigation items. */
   readonly navItems?: NavItem[];
-  /** Key of the currently active nav item. */
+  /** Key of the currently active sub-item (or parent item if no sub-items). */
   readonly activeItemKey?: string;
-  /** Callback when a nav item is clicked. */
+  /** Callback when a nav item or sub-item is clicked. */
   readonly onNavItemClick?: (key: string) => void;
   /** User information shown in the sidebar footer. */
   readonly user?: UserInfo;
-}
-
-/* ──────────────────────────────────────────────────── */
-/*  OrganizationSwitcher                                */
-/* ──────────────────────────────────────────────────── */
-
-function OrganizationSwitcher({
-  organizations,
-  activeOrganization,
-  onOrganizationChange,
-}: {
-  readonly organizations: Organization[];
-  readonly activeOrganization: Organization;
-  readonly onOrganizationChange?: (org: Organization) => void;
-}) {
-  const { isMobile } = useSidebar();
-
-  return (
-    <SidebarMenu>
-      <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <activeOrganization.logo className="size-4" />
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{activeOrganization.name}</span>
-                <span className="truncate text-xs">{activeOrganization.plan}</span>
-              </div>
-              <ChevronsUpDown className="ml-auto" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            align="start"
-            side={isMobile ? 'bottom' : 'right'}
-            sideOffset={4}
-          >
-            <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-xs text-muted-foreground">Organizations</DropdownMenuLabel>
-              {organizations.map((org, index) => (
-                <DropdownMenuItem key={org.name} onClick={() => onOrganizationChange?.(org)} className="gap-2 p-2">
-                  <div className="flex size-6 items-center justify-center rounded-md border">
-                    <org.logo className="size-3.5 shrink-0" />
-                  </div>
-                  {org.name}
-                  <DropdownMenuShortcut>{'\u2318'}{index + 1}</DropdownMenuShortcut>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SidebarMenuItem>
-    </SidebarMenu>
-  );
 }
 
 /* ──────────────────────────────────────────────────── */
@@ -153,20 +95,62 @@ function NavMain({
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map(item => (
-          <SidebarMenuItem key={item.key}>
-            <SidebarMenuButton
+        {items.map(item => {
+          const hasChildren = item.items && item.items.length > 0;
+          const isParentActive = hasChildren && item.items!.some(sub => sub.key === activeItemKey);
+
+          if (!hasChildren) {
+            return (
+              <SidebarMenuItem key={item.key}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={item.key === activeItemKey}
+                  tooltip={item.title}
+                >
+                  <a href={item.url} onClick={e => { e.preventDefault(); onNavItemClick?.(item.key); }}>
+                    {item.icon && <item.icon />}
+                    <span>{item.title}</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          }
+
+          return (
+            <Collapsible
+              key={item.key}
               asChild
-              isActive={item.key === activeItemKey}
-              tooltip={item.title}
+              defaultOpen={isParentActive}
+              className="group/collapsible"
             >
-              <a href={item.url} onClick={e => { e.preventDefault(); onNavItemClick?.(item.key); }}>
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        ))}
+              <SidebarMenuItem>
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton tooltip={item.title} isActive={isParentActive}>
+                    {item.icon && <item.icon />}
+                    <span>{item.title}</span>
+                    <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarMenuSub>
+                    {item.items!.map(sub => (
+                      <SidebarMenuSubItem key={sub.key}>
+                        <SidebarMenuSubButton
+                          asChild
+                          isActive={sub.key === activeItemKey}
+                        >
+                          <a href={sub.url} onClick={e => { e.preventDefault(); onNavItemClick?.(sub.key); }}>
+                            <span>{sub.title}</span>
+                          </a>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </SidebarMenuItem>
+            </Collapsible>
+          );
+        })}
       </SidebarMenu>
     </SidebarGroup>
   );
@@ -242,6 +226,28 @@ function NavUser({ user }: { readonly user: UserInfo }) {
 }
 
 /* ──────────────────────────────────────────────────── */
+/*  SidebarLogo                                         */
+/* ──────────────────────────────────────────────────── */
+
+function SidebarLogo({
+  logo,
+  collapsedLogo,
+}: {
+  readonly logo?: ReactNode;
+  readonly collapsedLogo?: ReactNode;
+}) {
+  const { state } = useSidebar();
+
+  if (!logo && !collapsedLogo) return null;
+
+  return (
+    <div className="flex items-center gap-2 px-2 py-1 group-data-[collapsible=icon]:justify-center">
+      {state === 'collapsed' ? (collapsedLogo ?? logo) : logo}
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────── */
 /*  AppSidebar                                          */
 /* ──────────────────────────────────────────────────── */
 
@@ -250,9 +256,7 @@ const AppSidebar = forwardRef<HTMLDivElement, AppSidebarProps>(
     {
       className,
       logo,
-      organizations = [],
-      activeOrganization,
-      onOrganizationChange,
+      collapsedLogo,
       navItems = [],
       activeItemKey,
       onNavItemClick,
@@ -260,45 +264,30 @@ const AppSidebar = forwardRef<HTMLDivElement, AppSidebarProps>(
       ...props
     },
     ref,
-  ) => {
-    const resolvedActiveOrg = activeOrganization ?? organizations[0];
+  ) => (
+    <Sidebar ref={ref} collapsible="icon" className={cn(className)} {...props}>
+      <SidebarHeader>
+        <SidebarLogo logo={logo} collapsedLogo={collapsedLogo} />
+      </SidebarHeader>
 
-    return (
-      <Sidebar ref={ref} collapsible="icon" className={cn(className)} {...props}>
-        <SidebarHeader>
-          {logo && (
-            <div className="flex items-center gap-2 px-2 py-1 group-data-[collapsible=icon]:justify-center">
-              {logo}
-            </div>
-          )}
-          {resolvedActiveOrg && organizations.length > 0 && (
-            <OrganizationSwitcher
-              organizations={organizations}
-              activeOrganization={resolvedActiveOrg}
-              onOrganizationChange={onOrganizationChange}
-            />
-          )}
-        </SidebarHeader>
-
-        <SidebarContent>
-          {navItems.length > 0 && (
-            <NavMain items={navItems} activeItemKey={activeItemKey} onNavItemClick={onNavItemClick} />
-          )}
-        </SidebarContent>
-
-        {user && (
-          <SidebarFooter>
-            <NavUser user={user} />
-          </SidebarFooter>
+      <SidebarContent>
+        {navItems.length > 0 && (
+          <NavMain items={navItems} activeItemKey={activeItemKey} onNavItemClick={onNavItemClick} />
         )}
+      </SidebarContent>
 
-        <SidebarRail />
-      </Sidebar>
-    );
-  },
+      {user && (
+        <SidebarFooter>
+          <NavUser user={user} />
+        </SidebarFooter>
+      )}
+
+      <SidebarRail />
+    </Sidebar>
+  ),
 );
 
 AppSidebar.displayName = 'AppSidebar';
 
 export { AppSidebar };
-export type { AppSidebarProps, Organization, NavItem, UserInfo };
+export type { AppSidebarProps, NavItem, NavSubItem, UserInfo };
