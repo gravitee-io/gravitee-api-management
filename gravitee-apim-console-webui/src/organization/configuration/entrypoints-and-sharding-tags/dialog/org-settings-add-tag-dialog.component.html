@@ -41,7 +41,7 @@
 
       <mat-form-field>
         <mat-label>Key</mat-label>
-        <input matInput formControlName="key" required />
+        <input matInput formControlName="key" required (blur)="onKeyBlur()" />
         <mat-hint align="end">{{ tagForm.controls.key.value?.length ?? 0 }}/64</mat-hint>
         @if (tagForm.controls.key.hasError('maxlength')) {
           <mat-error>Key has to be less than 64 characters long.</mat-error>

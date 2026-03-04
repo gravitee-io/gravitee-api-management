@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed } from '@angular/core/testing';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
@@ -94,6 +94,32 @@ describe('OrgSettingAddTagDialogComponent', () => {
         restricted_groups: ['group-a'],
       });
     });
+
+    it.each`
+      key                                  | sanitized
+      ${'My Tag Key'}                      | ${'my-tag-key'}
+      ${'Tâg Spécîal @#$ Nàme!'}           | ${'tag-special-name'}
+      ${'Tag   With    Multiple---Spaces'} | ${'tag-with-multiple-spaces'}
+      ${'Tag Key---'}                      | ${'tag-key'}
+      ${'UPPERCASE KEY'}                   | ${'uppercase-key'}
+      ${'Key 123 Value 456'}               | ${'key-123-value-456'}
+      ${'eu east 1! @#$%'}                 | ${'eu-east-1'}
+    `(
+      'should sanitize key "$key" to "$sanitized"',
+      fakeAsync(async ({ key, sanitized }) => {
+        fixture.detectChanges();
+        expectGroupListByOrganizationRequest([]);
+
+        component.tagForm.controls.key.setValue(key);
+        fixture.detectChanges();
+
+        const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=key]' }));
+        await keyInput.blur();
+        fixture.detectChanges();
+
+        expect(await keyInput.getValue()).toBe(sanitized);
+      }),
+    );
   });
 
   describe('tag edition', () => {
@@ -139,6 +165,20 @@ describe('OrgSettingAddTagDialogComponent', () => {
         description: 'Internal tenant',
         restricted_groups: [],
       });
+    });
+
+    it('should sanitize key in real-time when editing', async () => {
+      fixture.detectChanges();
+      expectGroupListByOrganizationRequest([]);
+
+      component.tagForm.controls.key.setValue('New KEY With @#$ Special');
+      fixture.detectChanges();
+
+      const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=key]' }));
+      await keyInput.blur();
+      fixture.detectChanges();
+
+      expect(await keyInput.getValue()).toBe('new-key-with-special');
     });
   });
 
