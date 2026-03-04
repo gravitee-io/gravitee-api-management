@@ -7,6 +7,8 @@ import { mockNavItems, mockOrganizations, mockEnvironments, mockUser } from '../
 import { AppSidebar } from '../AppSidebar';
 import { GraviteeLogo, GraviteeIcon } from '../GraviteeLogo';
 import { OrgEnvSelector } from '../OrgEnvSelector';
+import { PageLayout } from '../PageLayout';
+import type { PageBreadcrumbItem } from '../PageLayout';
 import { ThemeToggle } from '../ThemeToggle';
 import { TopNav } from '../TopNav';
 import { TopNavUser } from '../TopNavUser';
@@ -28,6 +30,14 @@ function findSubTitle(key: string): string | undefined {
   return undefined;
 }
 
+function buildBreadcrumbs(key: string): PageBreadcrumbItem[] {
+  const parent = findParentTitle(key);
+  const sub = findSubTitle(key);
+  const crumbs: PageBreadcrumbItem[] = [{ label: parent, href: '#' }];
+  if (sub) crumbs.push({ label: sub });
+  return crumbs;
+}
+
 const meta = {
   title: 'Layout/MainLayout',
   component: MainLayout,
@@ -46,8 +56,7 @@ export const Overview: Story = {
     const [activeOrgKey, setActiveOrgKey] = useState('gravitee');
     const [activeEnvKey, setActiveEnvKey] = useState('prod');
 
-    const parentTitle = findParentTitle(activeKey);
-    const subTitle = findSubTitle(activeKey);
+    const pageTitle = findSubTitle(activeKey) ?? findParentTitle(activeKey);
 
     return (
       <MainLayout
@@ -94,27 +103,11 @@ export const Overview: Story = {
           />
         }
       >
-        <div className="space-y-6">
-          <div>
-            <nav aria-label="Breadcrumb" className="mb-1 flex items-center gap-1 text-sm text-muted-foreground">
-              <span>{parentTitle}</span>
-              {subTitle && (
-                <>
-                  <span className="mx-0.5">&gt;</span>
-                  <span className="font-medium text-foreground">{subTitle}</span>
-                </>
-              )}
-            </nav>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              {subTitle ?? parentTitle}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Manage your {(subTitle ?? parentTitle).toLowerCase()} here.
-            </p>
-          </div>
-
-          <Separator />
-
+        <PageLayout
+          breadcrumbs={buildBreadcrumbs(activeKey)}
+          title={pageTitle}
+          description={`Manage your ${pageTitle.toLowerCase()} here.`}
+        >
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {['Total APIs', 'Active Subscriptions', 'Requests Today'].map(title => (
               <div key={title} className="rounded-lg border border-border bg-card p-6 shadow-sm">
@@ -142,7 +135,7 @@ export const Overview: Story = {
               ))}
             </div>
           </div>
-        </div>
+        </PageLayout>
       </MainLayout>
     );
   },
@@ -183,12 +176,18 @@ export const CollapsedSidebar: Story = {
         />
       }
     >
-      <div className="rounded-lg border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-card-foreground">Content Area</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The sidebar is collapsed, giving more room to the main content area.
-        </p>
-      </div>
+      <PageLayout
+        breadcrumbs={[{ label: 'Governance', href: '#' }, { label: 'Policies' }]}
+        title="Policies"
+        description="The sidebar is collapsed, giving more room to the main content area."
+      >
+        <div className="rounded-lg border border-border bg-card p-6">
+          <h2 className="text-lg font-semibold text-card-foreground">Content Area</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            This demonstrates the layout with a collapsed sidebar.
+          </p>
+        </div>
+      </PageLayout>
     </MainLayout>
   ),
 };
@@ -196,10 +195,18 @@ export const CollapsedSidebar: Story = {
 export const NoSidebar: Story = {
   render: () => (
     <MainLayout topnav={<TopNav leading={<h1 className="text-xs font-semibold">Full Width</h1>} />}>
-      <div className="rounded-lg border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-card-foreground">Full Width Layout</h2>
-        <p className="mt-2 text-sm text-muted-foreground">No sidebar, content takes the full width.</p>
-      </div>
+      <PageLayout
+        breadcrumbs={[{ label: 'Home' }]}
+        title="Full Width Layout"
+        description="No sidebar, content takes the full width."
+      >
+        <div className="rounded-lg border border-border bg-card p-6">
+          <h2 className="text-lg font-semibold text-card-foreground">Content Area</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            This layout has no sidebar — content fills the available space.
+          </p>
+        </div>
+      </PageLayout>
     </MainLayout>
   ),
 };
