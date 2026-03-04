@@ -32,7 +32,7 @@
   --muted-foreground: var(--gravitee-stone-500);
 
   /* ── Accent ──────────────────────────────────────── */
-  --accent: var(--gravitee-stone-100);
+  --accent: var(--gravitee-stone-200);
   --accent-foreground: var(--gravitee-stone-900);
 
   /* ── Destructive ─────────────────────────────────── */
@@ -82,7 +82,7 @@
   --muted-foreground: var(--gravitee-stone-400);
 
   /* ── Accent ──────────────────────────────────────── */
-  --accent: var(--gravitee-stone-800);
+  --accent: var(--gravitee-stone-700);
   --accent-foreground: var(--gravitee-stone-50);
 
   /* ── Destructive ─────────────────────────────────── */
