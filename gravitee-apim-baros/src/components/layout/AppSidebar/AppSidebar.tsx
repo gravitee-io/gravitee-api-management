@@ -1,4 +1,4 @@
-import { forwardRef, type ComponentPropsWithRef, type ElementType, type ReactNode } from 'react';
+import { forwardRef, useCallback, useRef, useState, type ComponentPropsWithRef, type ElementType, type ReactNode } from 'react';
 import { ChevronRight, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@baros/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@baros/components/ui/avatar';
@@ -78,6 +78,69 @@ interface AppSidebarProps extends Omit<ComponentPropsWithRef<typeof Sidebar>, 'c
 }
 
 /* ──────────────────────────────────────────────────── */
+/*  CollapsedNavItem                                    */
+/* ──────────────────────────────────────────────────── */
+
+const FLYOUT_CLOSE_DELAY = 150;
+
+function CollapsedNavItem({
+  item,
+  isParentActive,
+  activeItemKey,
+  onNavItemClick,
+}: {
+  readonly item: NavItem;
+  readonly isParentActive: boolean;
+  readonly activeItemKey?: string;
+  readonly onNavItemClick?: (key: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const closeTimeout = useRef<ReturnType<typeof setTimeout>>(null);
+
+  const scheduleOpen = useCallback(() => {
+    if (closeTimeout.current) clearTimeout(closeTimeout.current);
+    setOpen(true);
+  }, []);
+
+  const scheduleClose = useCallback(() => {
+    closeTimeout.current = setTimeout(() => setOpen(false), FLYOUT_CLOSE_DELAY);
+  }, []);
+
+  return (
+    <SidebarMenuItem onMouseEnter={scheduleOpen} onMouseLeave={scheduleClose}>
+      <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
+        <DropdownMenuTrigger asChild>
+          <SidebarMenuButton isActive={isParentActive}>
+            {item.icon && <item.icon />}
+            <span>{item.title}</span>
+          </SidebarMenuButton>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          side="right"
+          align="start"
+          sideOffset={4}
+          onMouseEnter={scheduleOpen}
+          onMouseLeave={scheduleClose}
+          onCloseAutoFocus={e => e.preventDefault()}
+        >
+          <DropdownMenuLabel>{item.title}</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {item.items!.map(sub => (
+            <DropdownMenuItem
+              key={sub.key}
+              className={cn(sub.key === activeItemKey && 'font-medium bg-accent text-accent-foreground')}
+              onSelect={() => onNavItemClick?.(sub.key)}
+            >
+              {sub.title}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </SidebarMenuItem>
+  );
+}
+
+/* ──────────────────────────────────────────────────── */
 /*  NavMain                                             */
 /* ──────────────────────────────────────────────────── */
 
@@ -90,6 +153,9 @@ function NavMain({
   readonly activeItemKey?: string;
   readonly onNavItemClick?: (key: string) => void;
 }) {
+  const { state } = useSidebar();
+  const isCollapsed = state === 'collapsed';
+
   return (
     <SidebarGroup>
       <SidebarMenu>
@@ -111,6 +177,18 @@ function NavMain({
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+            );
+          }
+
+          if (isCollapsed) {
+            return (
+              <CollapsedNavItem
+                key={item.key}
+                item={item}
+                isParentActive={!!isParentActive}
+                activeItemKey={activeItemKey}
+                onNavItemClick={onNavItemClick}
+              />
             );
           }
 
