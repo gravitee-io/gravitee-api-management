@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { ArrowRight, Mail, Plus, Search, Trash2 } from 'lucide-react';
 import { Button } from './button';
 
 const meta = {
@@ -61,6 +62,41 @@ export const AllVariants: Story = {
       <Button variant="outline">Outline</Button>
       <Button variant="ghost">Ghost</Button>
       <Button variant="link">Link</Button>
+    </div>
+  ),
+};
+
+export const IconLeft: Story = {
+  args: { children: 'Add item', iconLeft: <Plus /> },
+};
+
+export const IconRight: Story = {
+  args: { children: 'Next', iconRight: <ArrowRight /> },
+};
+
+export const IconOnly: Story = {
+  args: { size: 'icon', 'aria-label': 'Search', iconLeft: <Search /> },
+};
+
+export const WithIcons: Story = {
+  render: () => (
+    <div className="flex flex-wrap items-center gap-4">
+      <Button iconLeft={<Plus />}>Add item</Button>
+      <Button variant="secondary" iconLeft={<Mail />}>
+        Send email
+      </Button>
+      <Button variant="destructive" iconLeft={<Trash2 />}>
+        Delete
+      </Button>
+      <Button variant="outline" iconRight={<ArrowRight />}>
+        Next
+      </Button>
+      <Button variant="ghost" iconLeft={<Search />}>
+        Search
+      </Button>
+      <Button size="icon" variant="outline" aria-label="Search">
+        <Search />
+      </Button>
     </div>
   ),
 };

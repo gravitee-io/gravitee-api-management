@@ -1,4 +1,4 @@
-import { forwardRef, type ComponentPropsWithRef } from 'react';
+import { forwardRef, type ComponentPropsWithRef, type ReactNode } from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@baros/lib/utils';
@@ -34,12 +34,22 @@ interface ButtonProps extends Omit<ComponentPropsWithRef<'button'>, 'className'>
   readonly className?: string;
   /** Render as a child element (Slot) instead of a button. */
   readonly asChild?: boolean;
+  /** Icon rendered before the button label. */
+  readonly iconLeft?: ReactNode;
+  /** Icon rendered after the button label. */
+  readonly iconRight?: ReactNode;
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, iconLeft, iconRight, children, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button';
-    return <Comp className={cn(buttonVariants({ variant, size }), className)} ref={ref} {...props} />;
+    return (
+      <Comp className={cn(buttonVariants({ variant, size }), className)} ref={ref} {...props}>
+        {iconLeft}
+        {children}
+        {iconRight}
+      </Comp>
+    );
   },
 );
 
