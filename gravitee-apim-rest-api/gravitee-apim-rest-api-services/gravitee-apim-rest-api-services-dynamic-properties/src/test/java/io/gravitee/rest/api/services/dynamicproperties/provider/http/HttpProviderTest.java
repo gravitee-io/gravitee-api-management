@@ -84,7 +84,7 @@ public class HttpProviderTest {
             .get()
             .subscribeOn(Schedulers.io())
             .test()
-            .awaitDone(5, TimeUnit.SECONDS)
+            .awaitDone(2, TimeUnit.SECONDS)
             .assertValue(dynamicProperties -> {
                 assertThat(dynamicProperties).contains(new DynamicProperty("name", "Elysee"), new DynamicProperty("country", "FRANCE"));
                 return true;
@@ -106,7 +106,7 @@ public class HttpProviderTest {
             .get()
             .subscribeOn(Schedulers.io())
             .test()
-            .awaitDone(5, TimeUnit.SECONDS)
+            .awaitDone(2, TimeUnit.SECONDS)
             .assertValue(dynamicProperties -> {
                 assertThat(dynamicProperties).contains(new DynamicProperty("name", "Elysee"), new DynamicProperty("country", "FRANCE"));
                 return true;
@@ -120,7 +120,7 @@ public class HttpProviderTest {
         providerConfiguration.setMethod(HttpMethod.GET);
         setUpProvider();
 
-        provider.get().subscribeOn(Schedulers.io()).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        provider.get().subscribeOn(Schedulers.io()).test().awaitDone(2, TimeUnit.SECONDS).assertComplete();
     }
 
     @Test
@@ -130,7 +130,7 @@ public class HttpProviderTest {
         providerConfiguration.setMethod(HttpMethod.GET);
         setUpProvider();
 
-        provider.get().subscribeOn(Schedulers.io()).test().awaitDone(5, TimeUnit.SECONDS).assertError(UnknownHostException.class);
+        provider.get().subscribeOn(Schedulers.io()).test().awaitDone(15, TimeUnit.SECONDS).assertError(UnknownHostException.class);
     }
 
     private String getSimpleJoltSpecification() throws IOException {

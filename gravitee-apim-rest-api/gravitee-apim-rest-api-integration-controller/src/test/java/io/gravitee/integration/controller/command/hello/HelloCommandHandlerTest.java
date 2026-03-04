@@ -131,7 +131,7 @@ class HelloCommandHandlerTest {
         commandHandler
             .handle(COMMAND)
             .test()
-            .awaitDone(10, TimeUnit.SECONDS)
+            .awaitDone(2, TimeUnit.SECONDS)
             .assertValue(reply -> {
                 SoftAssertions.assertSoftly(soft -> {
                     soft.assertThat(reply.getCommandStatus()).isEqualTo(CommandStatus.SUCCEEDED);
@@ -149,7 +149,7 @@ class HelloCommandHandlerTest {
         commandHandler
             .handle(COMMAND)
             .test()
-            .awaitDone(10, TimeUnit.SECONDS)
+            .awaitDone(2, TimeUnit.SECONDS)
             .assertValue(reply -> {
                 SoftAssertions.assertSoftly(soft -> {
                     soft.assertThat(reply.getCommandStatus()).isEqualTo(CommandStatus.ERROR);
@@ -188,7 +188,7 @@ class HelloCommandHandlerTest {
         commandHandler
             .handle(COMMAND)
             .test()
-            .awaitDone(10, TimeUnit.SECONDS)
+            .awaitDone(2, TimeUnit.SECONDS)
             .assertValue(reply -> {
                 SoftAssertions.assertSoftly(soft -> {
                     soft.assertThat(reply.getCommandStatus()).isEqualTo(CommandStatus.ERROR);
@@ -215,7 +215,7 @@ class HelloCommandHandlerTest {
         commandHandler
             .handle(COMMAND)
             .test()
-            .awaitDone(10, TimeUnit.SECONDS)
+            .awaitDone(2, TimeUnit.SECONDS)
             .assertValue(reply -> {
                 SoftAssertions.assertSoftly(soft -> {
                     soft.assertThat(reply.getCommandStatus()).isEqualTo(CommandStatus.ERROR);
