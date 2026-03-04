@@ -21,7 +21,6 @@ import lombok.Builder;
 
 @Builder
 public record DateHistoResult(List<Long> timestamps, List<DateHistoBucket> values) {
-
     @Builder
     public record DateHistoBucket(String field, List<Long> buckets, Map<String, String> metadata) {}
 }

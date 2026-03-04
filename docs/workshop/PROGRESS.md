@@ -7,7 +7,7 @@
 - ✅ BE-3 — STATS Query Type
 - ✅ BE-4 — GROUP_BY Query Type
 - ✅ BE-5 — DATE_HISTO Query Type
-- BE-6 — Backend Integration Tests
+- ✅ BE-6 — Backend Integration Tests
 - FE-1 — Angular Service & Models for Unified Endpoint
 - FE-2 — Enhanced Stats Cards
 - FE-3 — HTTP Status Pie Chart
@@ -132,6 +132,18 @@ Time-bucketed histogram data with breakdown by field (e.g. status over time). 3 
 Endpoint: `GET /environments/{envId}/apis/{apiId}/analytics?type=DATE_HISTO&field=status&interval=3600000&from=...&to=...&size=20`
 
 Gotcha: Switch expression block must use `yield` not `return` — added `.cursor/rules/java-conventions.mdc` to document this.
+
+### BE-6: Backend Integration Tests ✅
+
+REST integration tests for the unified analytics endpoint. 1 modified file:
+
+| File | Changes |
+|---|---|
+| `REST_V2/.../ApiAnalyticsResourceTest.java` | Added `UnifiedAnalytics` nested class with validation, COUNT, STATS, GROUP_BY, DATE_HISTO tests |
+
+**Validation tests:** 403 (permissions), 400 (type/from/to/field/interval missing, from≥to, unsupported field), 4xx (TCP API).
+
+**Query tests:** Each of COUNT, STATS, GROUP_BY, DATE_HISTO has happy-path + empty-data tests.
 
 ---
 
@@ -282,3 +294,10 @@ Now implement BE Story 5.
 Include tests that follow the existing test patterns.
 Keep the existing separate endpoints working — don't break them.
 ```
+
+
+### Story 6 prompt
+
+Ran in by the same agent session as Story 5
+
+Now implement BE story 6

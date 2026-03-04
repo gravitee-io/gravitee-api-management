@@ -73,9 +73,7 @@ public class SearchApiAnalyticsUseCase {
         var interval = input.interval() != null ? Duration.ofMillis(input.interval()) : Duration.ofHours(1);
         var dateHisto = analyticsQueryService
             .searchDateHistogram(executionContext, input.apiId(), input.from(), input.to(), input.field(), interval, input.size())
-            .orElse(
-                DateHistoResult.builder().timestamps(java.util.List.of()).values(java.util.List.of()).build()
-            );
+            .orElse(DateHistoResult.builder().timestamps(java.util.List.of()).values(java.util.List.of()).build());
         return new Output(AnalyticsResult.dateHisto(dateHisto));
     }
 

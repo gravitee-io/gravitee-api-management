@@ -54,7 +54,6 @@
             <groupId>io.gravitee.apim.rest.api</groupId>
             <artifactId>gravitee-apim-rest-api-service</artifactId>
             <version>${project.version}</version>
-            <scope>provided</scope>
         </dependency>
 
         <!-- Provided dependencies -->

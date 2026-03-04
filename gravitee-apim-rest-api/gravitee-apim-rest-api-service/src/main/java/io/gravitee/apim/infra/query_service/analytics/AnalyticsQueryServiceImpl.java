@@ -271,10 +271,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         int size
     ) {
         return analyticsRepository
-            .searchDateHistogram(
-                executionContext.getQueryContext(),
-                new DateHistogramQuery(apiId, from, to, field, interval, size)
-            )
+            .searchDateHistogram(executionContext.getQueryContext(), new DateHistogramQuery(apiId, from, to, field, interval, size))
             .map(agg ->
                 DateHistoResult
                     .builder()
@@ -283,13 +280,12 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                         agg
                             .values()
                             .stream()
-                            .map(
-                                b ->
-                                    new DateHistoResult.DateHistoBucket(
-                                        b.field(),
-                                        b.buckets(),
-                                        b.metadata() != null ? b.metadata() : java.util.Map.of()
-                                    )
+                            .map(b ->
+                                new DateHistoResult.DateHistoBucket(
+                                    b.field(),
+                                    b.buckets(),
+                                    b.metadata() != null ? b.metadata() : java.util.Map.of()
+                                )
                             )
                             .toList()
                     )
