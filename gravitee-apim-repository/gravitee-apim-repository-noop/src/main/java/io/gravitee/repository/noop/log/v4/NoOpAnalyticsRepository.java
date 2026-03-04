@@ -76,4 +76,19 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     public Optional<TopFailedAggregate> searchTopFailedApis(QueryContext queryContext, TopFailedQueryCriteria criteria) {
         return Optional.empty();
     }
+
+    @Override
+    public Optional<StatsAggregate> searchStats(QueryContext queryContext, ApiAnalyticsStatsQuery query) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, ApiAnalyticsGroupByQuery query) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<DateHistoAggregate> searchDateHisto(QueryContext queryContext, ApiAnalyticsDateHistoQuery query) {
+        return Optional.empty();
+    }
 }

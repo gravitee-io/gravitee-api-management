@@ -90,6 +90,96 @@ describe('ApiAnalyticsV2Service', () => {
     });
   });
 
+  describe('getV4Analytics', () => {
+    const from = 1000;
+    const to = 2000;
+    const baseUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics`;
+
+    const urlIncludes = (r: { url: string }, type: string, field?: string) => {
+      if (!r.url.startsWith(baseUrl)) return false;
+      if (!r.url.includes(`type=${type}`)) return false;
+      if (field != null && !r.url.includes(`field=${encodeURIComponent(field)}`)) return false;
+      return true;
+    };
+
+    it('should call API with COUNT type and return count', (done) => {
+      service.getV4Analytics(apiId, { type: 'COUNT', from, to }).subscribe((result) => {
+        expect(result).toEqual({ type: 'COUNT', count: 42 });
+        done();
+      });
+
+      const req = httpTestingController.expectOne((r) => urlIncludes(r, 'COUNT'));
+      expect(req.request.url).toContain(`from=${from}`);
+      expect(req.request.url).toContain(`to=${to}`);
+      req.flush({ type: 'COUNT', count: 42 });
+    });
+
+    it('should call API with STATS type and field', (done) => {
+      const statsResponse = {
+        type: 'STATS',
+        count: 10,
+        min: 1,
+        max: 100,
+        avg: 50.5,
+        sum: 505,
+      };
+      service
+        .getV4Analytics(apiId, { type: 'STATS', from, to, field: 'gateway-response-time-ms' })
+        .subscribe((result) => {
+          expect(result).toEqual(statsResponse);
+          done();
+        });
+
+      const req = httpTestingController.expectOne((r) => urlIncludes(r, 'STATS', 'gateway-response-time-ms'));
+      req.flush(statsResponse);
+    });
+
+    it('should call API with GROUP_BY type, field and size', (done) => {
+      const groupByResponse = { type: 'GROUP_BY', values: { '200': 80, '404': 10 }, metadata: {} };
+      service
+        .getV4Analytics(apiId, { type: 'GROUP_BY', from, to, field: 'status', size: 10 })
+        .subscribe((result) => {
+          expect(result).toEqual(groupByResponse);
+          done();
+        });
+
+      const req = httpTestingController.expectOne((r) => urlIncludes(r, 'GROUP_BY', 'status') && r.url.includes('size=10'));
+      req.flush(groupByResponse);
+    });
+
+    it('should call API with DATE_HISTO type, field and interval', (done) => {
+      const dateHistoResponse = {
+        type: 'DATE_HISTO',
+        timestamp: [1000, 2000],
+        values: [{ field: 'status', buckets: [5, 10], metadata: {} }],
+      };
+      service
+        .getV4Analytics(apiId, { type: 'DATE_HISTO', from, to, field: 'status', interval: 3600000 })
+        .subscribe((result) => {
+          expect(result).toEqual(dateHistoResponse);
+          done();
+        });
+
+      const req = httpTestingController.expectOne(
+        (r) => urlIncludes(r, 'DATE_HISTO', 'status') && r.url.includes('interval=3600000'),
+      );
+      req.flush(dateHistoResponse);
+    });
+
+    it('should propagate error on HTTP failure', (done) => {
+      service.getV4Analytics(apiId, { type: 'COUNT', from, to }).subscribe({
+        next: () => fail('should have failed'),
+        error: (err) => {
+          expect(err).toBeDefined();
+          done();
+        },
+      });
+
+      const req = httpTestingController.expectOne((r) => urlIncludes(r, 'COUNT'));
+      req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
+    });
+  });
+
   function expectGetRequestCount() {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics/requests-count`;
     const req = httpTestingController.expectOne((req) => {

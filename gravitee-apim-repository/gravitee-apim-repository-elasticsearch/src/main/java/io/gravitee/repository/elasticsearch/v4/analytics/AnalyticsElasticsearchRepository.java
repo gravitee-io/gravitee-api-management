@@ -33,11 +33,19 @@ import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsC
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusOverTimeAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchTopFailedApisAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.V4ApiAnalyticsDateHistoAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.V4ApiAnalyticsGroupByAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.V4ApiAnalyticsStatsAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsDateHistoQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsGroupByQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsStatsQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
+import io.gravitee.repository.log.v4.model.analytics.DateHistoAggregate;
+import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
@@ -46,6 +54,7 @@ import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
@@ -189,6 +198,30 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Search top failed apis query: {}", esQuery);
         return this.client.search(indexes, null, esQuery).map(SearchTopFailedApisAdapter::adaptResponse).blockingGet();
+    }
+
+    @Override
+    public Optional<StatsAggregate> searchStats(QueryContext queryContext, ApiAnalyticsStatsQuery query) {
+        var index = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = V4ApiAnalyticsStatsAdapter.buildQuery(query);
+        log.debug("V4 API analytics stats query: {}", esQuery);
+        return client.search(index, null, esQuery).map(V4ApiAnalyticsStatsAdapter::adaptResponse).blockingGet();
+    }
+
+    @Override
+    public Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, ApiAnalyticsGroupByQuery query) {
+        var index = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = V4ApiAnalyticsGroupByAdapter.buildQuery(query);
+        log.debug("V4 API analytics group_by query: {}", esQuery);
+        return client.search(index, null, esQuery).map(V4ApiAnalyticsGroupByAdapter::adaptResponse).blockingGet();
+    }
+
+    @Override
+    public Optional<DateHistoAggregate> searchDateHisto(QueryContext queryContext, ApiAnalyticsDateHistoQuery query) {
+        var index = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = V4ApiAnalyticsDateHistoAdapter.buildQuery(query, info);
+        log.debug("V4 API analytics date_histo query: {}", esQuery);
+        return client.search(index, null, esQuery).map(V4ApiAnalyticsDateHistoAdapter::adaptResponse).blockingGet();
     }
 
     private String getIndices(QueryContext queryContext, Collection<DefinitionVersion> definitionVersions) {

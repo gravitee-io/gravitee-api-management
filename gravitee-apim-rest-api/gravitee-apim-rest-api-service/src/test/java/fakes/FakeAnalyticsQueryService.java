@@ -27,6 +27,10 @@ import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
+import io.gravitee.rest.api.model.v4.analytics.V4AnalyticsCount;
+import io.gravitee.rest.api.model.v4.analytics.V4AnalyticsDateHisto;
+import io.gravitee.rest.api.model.v4.analytics.V4AnalyticsGroupBy;
+import io.gravitee.rest.api.model.v4.analytics.V4AnalyticsStats;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import java.time.Duration;
@@ -53,6 +57,11 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public ResponseStatusOvertime responseStatusOvertime;
     public TopHitsApps topHitsApps;
     public TopFailedApis topFailedApis;
+
+    public V4AnalyticsCount v4AnalyticsCount;
+    public V4AnalyticsStats v4AnalyticsStats;
+    public V4AnalyticsGroupBy v4AnalyticsGroupBy;
+    public V4AnalyticsDateHisto v4AnalyticsDateHisto;
 
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
@@ -88,6 +97,51 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
         responseStatusOvertime = null;
         requestResponseTime = null;
         topFailedApis = null;
+        v4AnalyticsCount = null;
+        v4AnalyticsStats = null;
+        v4AnalyticsGroupBy = null;
+        v4AnalyticsDateHisto = null;
+    }
+
+    @Override
+    public Optional<V4AnalyticsCount> searchV4AnalyticsCount(ExecutionContext executionContext, String apiId, long from, long to) {
+        return Optional.ofNullable(v4AnalyticsCount);
+    }
+
+    @Override
+    public Optional<V4AnalyticsStats> searchV4AnalyticsStats(
+        ExecutionContext executionContext,
+        String apiId,
+        long from,
+        long to,
+        String field
+    ) {
+        return Optional.ofNullable(v4AnalyticsStats);
+    }
+
+    @Override
+    public Optional<V4AnalyticsGroupBy> searchV4AnalyticsGroupBy(
+        ExecutionContext executionContext,
+        String apiId,
+        long from,
+        long to,
+        String field,
+        int size,
+        String order
+    ) {
+        return Optional.ofNullable(v4AnalyticsGroupBy);
+    }
+
+    @Override
+    public Optional<V4AnalyticsDateHisto> searchV4AnalyticsDateHisto(
+        ExecutionContext executionContext,
+        String apiId,
+        long from,
+        long to,
+        String field,
+        long interval
+    ) {
+        return Optional.ofNullable(v4AnalyticsDateHisto);
     }
 
     @Override

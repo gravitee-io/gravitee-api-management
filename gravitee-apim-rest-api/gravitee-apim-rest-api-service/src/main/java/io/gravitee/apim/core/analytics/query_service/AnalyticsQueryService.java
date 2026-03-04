@@ -26,6 +26,10 @@ import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
+import io.gravitee.rest.api.model.v4.analytics.V4AnalyticsCount;
+import io.gravitee.rest.api.model.v4.analytics.V4AnalyticsDateHisto;
+import io.gravitee.rest.api.model.v4.analytics.V4AnalyticsGroupBy;
+import io.gravitee.rest.api.model.v4.analytics.V4AnalyticsStats;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import java.time.Duration;
@@ -34,7 +38,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.checkerframework.checker.units.qual.A;
 
 public interface AnalyticsQueryService {
     Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to);
@@ -73,6 +76,41 @@ public interface AnalyticsQueryService {
     RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
     Optional<TopFailedApis> searchTopFailedApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
+
+    /**
+     * V4 API unified analytics: count of requests. Data source: *-v4-metrics-* index only.
+     */
+    Optional<V4AnalyticsCount> searchV4AnalyticsCount(ExecutionContext executionContext, String apiId, long from, long to);
+
+    /**
+     * V4 API unified analytics: stats (min, max, avg, sum, count) on a numeric field. Data source: *-v4-metrics-* index only.
+     */
+    Optional<V4AnalyticsStats> searchV4AnalyticsStats(ExecutionContext executionContext, String apiId, long from, long to, String field);
+
+    /**
+     * V4 API unified analytics: group by field (terms aggregation). Data source: *-v4-metrics-* index only.
+     */
+    Optional<V4AnalyticsGroupBy> searchV4AnalyticsGroupBy(
+        ExecutionContext executionContext,
+        String apiId,
+        long from,
+        long to,
+        String field,
+        int size,
+        String order
+    );
+
+    /**
+     * V4 API unified analytics: date histogram with terms sub-aggregation. Data source: *-v4-metrics-* index only.
+     */
+    Optional<V4AnalyticsDateHisto> searchV4AnalyticsDateHisto(
+        ExecutionContext executionContext,
+        String apiId,
+        long from,
+        long to,
+        String field,
+        long interval
+    );
 
     record ResponseStatusOverTimeQuery(
         List<String> apiIds,

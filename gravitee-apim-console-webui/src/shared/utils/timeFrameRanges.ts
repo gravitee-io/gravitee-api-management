@@ -23,6 +23,7 @@ export interface TimeRangeParams {
 }
 
 export const timeInMilliseconds = {
+  '5m': 5 * 60 * 1000,
   '1m': 1000 * 60,
   '1h': 1000 * 60 * 60,
   '1d': 1000 * 60 * 60 * 24,
@@ -46,8 +47,8 @@ const getTimeFramesRangesParams = function () {
 
 export const timeFrames = [
   {
-    label: 'Last minute',
-    id: '1m',
+    label: 'Last 5 min',
+    id: '5m',
     timeFrameRangesParams: getTimeFramesRangesParams,
   },
   {
@@ -56,17 +57,17 @@ export const timeFrames = [
     timeFrameRangesParams: getTimeFramesRangesParams,
   },
   {
-    label: 'Last day',
+    label: 'Last 24 hours',
     id: '1d',
     timeFrameRangesParams: getTimeFramesRangesParams,
   },
   {
-    label: 'Last week',
+    label: 'Last 7 days',
     id: '1w',
     timeFrameRangesParams: getTimeFramesRangesParams,
   },
   {
-    label: 'Last month',
+    label: 'Last 30 days',
     id: '1M',
     timeFrameRangesParams: getTimeFramesRangesParams,
   },

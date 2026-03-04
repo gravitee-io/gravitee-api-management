@@ -21,12 +21,18 @@ import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.infra.adapter.ResponseStatusQueryCriteriaAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsDateHistoQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsGroupByQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsStatsQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
+import io.gravitee.repository.log.v4.model.analytics.DateHistoAggregate;
+import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
@@ -39,6 +45,10 @@ import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
+import io.gravitee.rest.api.model.v4.analytics.V4AnalyticsCount;
+import io.gravitee.rest.api.model.v4.analytics.V4AnalyticsDateHisto;
+import io.gravitee.rest.api.model.v4.analytics.V4AnalyticsGroupBy;
+import io.gravitee.rest.api.model.v4.analytics.V4AnalyticsStats;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import java.time.Duration;
@@ -47,6 +57,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -247,5 +258,102 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                     .toList()
             )
             .map(topFailedApi -> TopFailedApis.builder().data(topFailedApi).build());
+    }
+
+    @Override
+    public Optional<V4AnalyticsCount> searchV4AnalyticsCount(ExecutionContext executionContext, String apiId, long from, long to) {
+        return analyticsRepository
+            .searchRequestsCount(
+                executionContext.getQueryContext(),
+                new RequestsCountQuery(apiId, Instant.ofEpochMilli(from), Instant.ofEpochMilli(to))
+            )
+            .map(c -> V4AnalyticsCount.builder().count(c.getTotal()).build());
+    }
+
+    @Override
+    public Optional<V4AnalyticsStats> searchV4AnalyticsStats(
+        ExecutionContext executionContext,
+        String apiId,
+        long from,
+        long to,
+        String field
+    ) {
+        return analyticsRepository
+            .searchStats(
+                executionContext.getQueryContext(),
+                ApiAnalyticsStatsQuery
+                    .builder()
+                    .apiId(apiId)
+                    .from(Instant.ofEpochMilli(from))
+                    .to(Instant.ofEpochMilli(to))
+                    .field(field)
+                    .build()
+            )
+            .map(s -> V4AnalyticsStats.builder().count(s.getCount()).min(s.getMin()).max(s.getMax()).avg(s.getAvg()).sum(s.getSum()).build()
+            );
+    }
+
+    @Override
+    public Optional<V4AnalyticsGroupBy> searchV4AnalyticsGroupBy(
+        ExecutionContext executionContext,
+        String apiId,
+        long from,
+        long to,
+        String field,
+        int size,
+        String order
+    ) {
+        return analyticsRepository
+            .searchGroupBy(
+                executionContext.getQueryContext(),
+                ApiAnalyticsGroupByQuery
+                    .builder()
+                    .apiId(apiId)
+                    .from(Instant.ofEpochMilli(from))
+                    .to(Instant.ofEpochMilli(to))
+                    .field(field)
+                    .size(size)
+                    .order(order)
+                    .build()
+            )
+            .map(g -> V4AnalyticsGroupBy.builder().values(g.getValues()).metadata(g.getMetadata()).build());
+    }
+
+    @Override
+    public Optional<V4AnalyticsDateHisto> searchV4AnalyticsDateHisto(
+        ExecutionContext executionContext,
+        String apiId,
+        long from,
+        long to,
+        String field,
+        long interval
+    ) {
+        return analyticsRepository
+            .searchDateHisto(
+                executionContext.getQueryContext(),
+                ApiAnalyticsDateHistoQuery
+                    .builder()
+                    .apiId(apiId)
+                    .from(Instant.ofEpochMilli(from))
+                    .to(Instant.ofEpochMilli(to))
+                    .field(field)
+                    .interval(interval)
+                    .build()
+            )
+            .map(d -> {
+                var values = d
+                    .getValues()
+                    .stream()
+                    .map(v ->
+                        V4AnalyticsDateHisto.DateHistoValue
+                            .builder()
+                            .field(v.getField())
+                            .buckets(v.getBuckets())
+                            .metadata(v.getMetadata())
+                            .build()
+                    )
+                    .collect(Collectors.toList());
+                return V4AnalyticsDateHisto.builder().timestamp(d.getTimestamp()).values(values).build();
+            });
     }
 }

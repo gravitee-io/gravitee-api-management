@@ -28,6 +28,28 @@ import { AnalyticsResponseTimeOverTime } from '../entities/management-api-v2/ana
 import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
 import { ApiAnalyticsFilters } from '../management/api/api-traffic-v4/analytics/components/api-analytics-filters-bar/api-analytics-filters-bar.configuration';
 
+export type V4AnalyticsType = 'COUNT' | 'STATS' | 'GROUP_BY' | 'DATE_HISTO';
+
+export interface V4AnalyticsParams {
+  from: number;
+  to: number;
+  type: V4AnalyticsType;
+  field?: string;
+  interval?: number;
+  size?: number;
+  order?: string;
+}
+
+export type V4AnalyticsResponse =
+  | { type: 'COUNT'; count: number }
+  | { type: 'STATS'; count: number; min: number; max: number; avg: number; sum: number }
+  | { type: 'GROUP_BY'; values: Record<string, number>; metadata: Record<string, Record<string, unknown>> }
+  | {
+      type: 'DATE_HISTO';
+      timestamp: number[];
+      values: { field: string; buckets: number[]; metadata: Record<string, unknown> }[];
+    };
+
 @Injectable({
   providedIn: 'root',
 })
@@ -105,5 +127,29 @@ export class ApiAnalyticsV2Service {
         return this.http.get<AnalyticsResponseTimeOverTime>(url);
       }),
     );
+  }
+
+  /**
+   * V4 API unified analytics endpoint. Data source: *-v4-metrics-* index only.
+   */
+  getV4Analytics(apiId: string, params: V4AnalyticsParams): Observable<V4AnalyticsResponse> {
+    const searchParams = new URLSearchParams();
+    searchParams.set('type', params.type);
+    searchParams.set('from', String(params.from));
+    searchParams.set('to', String(params.to));
+    if (params.field) {
+      searchParams.set('field', params.field);
+    }
+    if (params.interval != null) {
+      searchParams.set('interval', String(params.interval));
+    }
+    if (params.size != null) {
+      searchParams.set('size', String(params.size));
+    }
+    if (params.order) {
+      searchParams.set('order', params.order);
+    }
+    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?${searchParams.toString()}`;
+    return this.http.get<V4AnalyticsResponse>(url);
   }
 }

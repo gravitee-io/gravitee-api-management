@@ -26,12 +26,6 @@ import { ApiAnalyticsProxyHarness } from './api-analytics-proxy.component.harnes
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
-import { fakeAnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount.fixture';
-import { AnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount';
-import { AnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
-import { fakeAnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
-import { AnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
-import { fakeAnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges.fixture';
 import { AnalyticsResponseStatusOvertime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusOvertime';
 import { AnalyticsResponseTimeOverTime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
 import { fakeAnalyticsResponseStatusOvertime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusOvertime.fixture';
@@ -70,6 +64,20 @@ describe('ApiAnalyticsProxyComponent', () => {
   };
 
   afterEach(() => {
+    // Flush any unflushed analytics requests (e.g. from refresh test where chart re-fetches can be async)
+    const remaining = httpTestingController.match((r) => {
+      const u = r.urlWithParams ?? r.url ?? '';
+      return u.includes('response-time-over-time') || u.includes('response-status-overtime');
+    });
+    remaining.forEach((tr) => {
+      try {
+        const u = tr.request.urlWithParams ?? tr.request.url ?? '';
+        if (u.includes('response-status-overtime')) tr.flush(fakeAnalyticsResponseStatusOvertime());
+        else if (u.includes('response-time-over-time')) tr.flush(fakeAnalyticsResponseTimeOverTime());
+      } catch {
+        // Request may already be cancelled (e.g. component destroyed)
+      }
+    });
     httpTestingController.verify();
   });
 
@@ -77,16 +85,18 @@ describe('ApiAnalyticsProxyComponent', () => {
     await initComponent();
     expect(await componentHarness.isLoaderDisplayed()).toBeTruthy();
 
-    httpTestingController.expectOne({
+    const req = httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
       method: 'GET',
     });
+    req.flush(fakeApiV4({ id: API_ID }));
   });
 
   describe('GIVEN an API with analytics.enabled=false', () => {
     beforeEach(async () => {
       await initComponent();
       expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: false } }));
+      fixture.detectChanges();
     });
 
     it('should display empty panel', async () => {
@@ -99,168 +109,168 @@ describe('ApiAnalyticsProxyComponent', () => {
     beforeEach(async () => {
       await initComponent();
       expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
-      expectApiGetResponseStatusOvertime();
-      expectApiGetResponseTimeOverTime();
+      await fixture.whenStable();
+      fixture.detectChanges();
     });
 
-    it('should display HTTP Proxy Entrypoint - Request Stats', async () => {
+    it('should display Request Stats from unified analytics (COUNT + STATS)', async () => {
+      flushV4AnalyticsRequests({
+        count: 100,
+        statsGateway: { avg: 12.5 },
+        statsEndpoint: { avg: 8.3 },
+        statsContentLength: { avg: 256 },
+        groupByStatus: { values: { '200': 80, '404': 10 }, metadata: {} },
+      });
+      await new Promise((r) => setTimeout(r, 0)); // let component delay(0) emit so VM has data
+      fixture.detectChanges(); // mount line charts so they send their requests
+      expectApiGetResponseStatusOvertime();
+      expectApiGetResponseTimeOverTime();
+      fixture.detectChanges();
+
       expect(await componentHarness.isLoaderDisplayed()).toBeFalsy();
       const requestStats = await componentHarness.getRequestStatsHarness('Request Stats');
-
-      // Expect loading
       expect(await requestStats.getValues()).toEqual([
-        {
-          label: 'Total Requests',
-          value: '',
-          isLoading: true,
-        },
-        {
-          label: 'Average Connection Duration',
-          value: '',
-          isLoading: true,
-        },
+        { label: 'Total Requests', value: '100', isLoading: false },
+        { label: 'Avg Gateway Response Time', value: '12.5ms', isLoading: false },
+        { label: 'Avg Upstream Response Time', value: '8.3ms', isLoading: false },
+        { label: 'Avg Content Length', value: '256bytes', isLoading: false },
       ]);
-
-      // Expect incremental loading
-      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
-      expect(await requestStats.getValues()).toEqual([
-        {
-          label: 'Total Requests',
-          value: '0',
-          isLoading: false,
-        },
-        {
-          label: 'Average Connection Duration',
-          value: '',
-          isLoading: true,
-        },
-      ]);
-
-      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
-      expect(await requestStats.getValues()).toEqual([
-        {
-          label: 'Total Requests',
-          value: '0',
-          isLoading: false,
-        },
-        {
-          label: 'Average Connection Duration',
-          value: '42.123ms',
-          isLoading: false,
-        },
-      ]);
-
-      // Expect others analytics
-      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
     });
 
-    it('should display Response Status', async () => {
-      const responseStatusRanges = await componentHarness.getResponseStatusRangesHarness('Response Status');
+    it('should display empty state when no analytics data for period (count 0)', async () => {
+      flushV4AnalyticsRequests({
+        count: 0,
+        statsGateway: { avg: 0 },
+        statsEndpoint: { avg: 0 },
+        statsContentLength: { avg: 0 },
+        groupByStatus: { values: {}, metadata: {} },
+      });
+      await new Promise((r) => setTimeout(r, 0));
+      fixture.detectChanges();
+      // No line charts when hasNoData (empty state shown instead of grid)
+      fixture.detectChanges();
 
-      // Expect loading
-      expect(await responseStatusRanges.hasResponseStatusWithValues()).toBeFalsy();
-
-      // Expect data
-      expectApiAnalyticsResponseStatusRangesGetRequest(
-        fakeAnalyticsResponseStatusRanges({
-          ranges: {
-            '300.0-400.0': 0,
-            '100.0-200.0': 1,
-            '200.0-300.0': 60,
-            '400.0-500.0': 0,
-            '500.0-600.0': 1,
-          },
-          rangesByEntrypoint: {
-            'http-proxy': {
-              '300.0-400.0': 0,
-              '100.0-200.0': 1,
-              '200.0-300.0': 60,
-              '400.0-500.0': 0,
-              '500.0-600.0': 1,
-            },
-          },
-        }),
-      );
-
-      expect(await responseStatusRanges.hasResponseStatusWithValues()).toBeTruthy();
-
-      // Expect others analytics
-      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
-      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
+      const emptyStates = fixture.nativeElement.querySelectorAll('gio-card-empty-state');
+      const noDataTitle = Array.from(emptyStates).find((el: Element) => el.textContent?.includes('No analytics data for this period'));
+      expect(noDataTitle).toBeTruthy();
     });
 
-    it('should refresh', async () => {
-      const requestStats = await componentHarness.getRequestStatsHarness('Request Stats');
-      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
-      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
-      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
-
-      expect(await requestStats.getValues()).toEqual([
-        {
-          label: 'Total Requests',
-          value: '0',
-          isLoading: false,
-        },
-        {
-          label: 'Average Connection Duration',
-          value: '42.123ms',
-          isLoading: false,
-        },
-      ]);
-
-      const filtersBar = await componentHarness.getFiltersBarHarness();
-
-      await filtersBar.refresh();
-
-      expect(await requestStats.getValues()).toEqual([
-        {
-          label: 'Total Requests',
-          value: '',
-          isLoading: true,
-        },
-        {
-          label: 'Average Connection Duration',
-          value: '',
-          isLoading: true,
-        },
-      ]);
-
-      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
-      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
-      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
+    it('should display HTTP Status pie from GROUP_BY', async () => {
+      flushV4AnalyticsRequests({
+        count: 90,
+        statsGateway: { avg: 0 },
+        statsEndpoint: { avg: 0 },
+        statsContentLength: { avg: 0 },
+        groupByStatus: { values: { '200': 70, '404': 15, '500': 5 }, metadata: {} },
+      });
+      await new Promise((r) => setTimeout(r, 0));
+      fixture.detectChanges();
       expectApiGetResponseStatusOvertime();
       expectApiGetResponseTimeOverTime();
+      fixture.detectChanges();
+
+      const responseStatusRanges = await componentHarness.getResponseStatusRangesHarness('HTTP Status');
+      expect(await responseStatusRanges.hasResponseStatusWithValues()).toBeTruthy();
+    });
+
+    it('should refresh and re-fetch unified analytics', async () => {
+      flushV4AnalyticsRequests({
+        count: 42,
+        statsGateway: { avg: 10 },
+        statsEndpoint: { avg: 5 },
+        statsContentLength: { avg: 100 },
+        groupByStatus: { values: { '200': 42 }, metadata: {} },
+      });
+      await new Promise((r) => setTimeout(r, 0));
+      fixture.detectChanges();
+      flushAllLineChartRequests();
+      fixture.detectChanges();
+
+      const requestStats = await componentHarness.getRequestStatsHarness('Request Stats');
+      expect(await requestStats.getValues()).toContainEqual({
+        label: 'Total Requests',
+        value: '42',
+        isLoading: false,
+      });
+
+      const filtersBar = await componentHarness.getFiltersBarHarness();
+      await filtersBar.refresh();
+
+      flushV4AnalyticsRequests({
+        count: 0,
+        statsGateway: { avg: 0 },
+        statsEndpoint: { avg: 0 },
+        statsContentLength: { avg: 0 },
+        groupByStatus: { values: {}, metadata: {} },
+      });
+      await new Promise((r) => setTimeout(r, 0));
+      fixture.detectChanges();
+      flushAllLineChartRequests();
+      fixture.detectChanges();
+
+      // When count is 0 we show empty state "No analytics data for this period" (AC 10)
+      const emptyStates = fixture.nativeElement.querySelectorAll('gio-card-empty-state');
+      const noDataTitle = Array.from(emptyStates).find((el: Element) => el.textContent?.includes('No analytics data for this period'));
+      expect(noDataTitle).toBeTruthy();
+    });
+  });
+
+  describe('GIVEN analytics enabled and one request fails', () => {
+    it('should display error state (Analytics unavailable)', async () => {
+      await initComponent();
+      expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const analyticsUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics`;
+      const countReq = httpTestingController.expectOne((r) => r.url.startsWith(analyticsUrl) && r.url.includes('type=COUNT'));
+      countReq.flush('error', { status: 500, statusText: 'Internal Server Error' });
+
+      flushV4AnalyticsRequests(
+        { count: 0, statsGateway: { avg: 0 }, statsEndpoint: { avg: 0 }, statsContentLength: { avg: 0 }, groupByStatus: { values: {}, metadata: {} } },
+        { skipCount: true },
+      );
+      // No line-chart requests: error view is shown so grid and line charts are never mounted
+      await new Promise((r) => setTimeout(r, 0)); // let component delay(0) emit error state
+      fixture.detectChanges();
+
+      const emptyStates = fixture.nativeElement.querySelectorAll('gio-card-empty-state');
+      const errorTitle = Array.from(emptyStates).find((el: Element) => el.textContent?.includes('Analytics unavailable'));
+      expect(errorTitle).toBeTruthy();
     });
   });
 
   describe('Query parameters for enabled analytics', () => {
     [
-      { input: {}, expected: 'Last day' },
-      { input: { period: '1M' }, expected: 'Last month' },
-      { input: { period: 'incorrect' }, expected: 'Last day' },
-      { input: { otherParameter: 'otherParameter' }, expected: 'Last day' },
+      { input: {}, expected: 'Last 24 hours' },
+      { input: { period: '1M' }, expected: 'Last 30 days' },
+      { input: { period: 'incorrect' }, expected: 'Last 24 hours' },
+      { input: { otherParameter: 'otherParameter' }, expected: 'Last 24 hours' },
     ].forEach((testParams) => {
       it(`should display "${testParams.expected}" time range if query parameter is ${JSON.stringify(testParams.input)}`, async () => {
         await initComponent(testParams.input);
-        expectAllAnalyticsCall();
+        expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
+        await fixture.whenStable();
+        fixture.detectChanges();
+        flushV4AnalyticsRequests({
+          count: 1,
+          statsGateway: { avg: 0 },
+          statsEndpoint: { avg: 0 },
+          statsContentLength: { avg: 0 },
+          groupByStatus: { values: { '200': 1 }, metadata: {} },
+        });
+        await new Promise((r) => setTimeout(r, 0));
+        fixture.detectChanges();
+        expectApiGetResponseStatusOvertime();
+        expectApiGetResponseTimeOverTime();
+        fixture.detectChanges();
 
         const filtersBar = await componentHarness.getFiltersBarHarness();
-
         const matSelect = await filtersBar.getMatSelect();
         const selectedValue = await matSelect.getValueText();
-
         expect(selectedValue).toEqual(testParams.expected);
       });
     });
-
-    function expectAllAnalyticsCall() {
-      expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
-      expectApiGetResponseStatusOvertime();
-      expectApiGetResponseTimeOverTime();
-      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
-      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
-      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
-    }
   });
 
   function expectApiGetRequest(api: ApiV4) {
@@ -268,35 +278,56 @@ describe('ApiAnalyticsProxyComponent', () => {
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
       method: 'GET',
     });
-
     res.flush(api);
-
-    fixture.detectChanges();
   }
 
-  function expectApiAnalyticsRequestsCountGetRequest(analyticsRequestsCount: AnalyticsRequestsCount) {
-    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/requests-count`;
-    const req = httpTestingController.expectOne((req) => {
-      return req.method === 'GET' && req.url.startsWith(url);
-    });
-    req.flush(analyticsRequestsCount);
-  }
+  function flushV4AnalyticsRequests(
+    data: {
+      count: number;
+      statsGateway: { avg: number };
+      statsEndpoint: { avg: number };
+      statsContentLength: { avg: number };
+      groupByStatus: { values: Record<string, number>; metadata: Record<string, unknown> };
+    },
+    options?: { skipCount?: boolean },
+  ) {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics`;
+    const match = (type: string, field?: string) => (req: { url: string }) =>
+      req.url.startsWith(url) && req.url.includes(`type=${type}`) && (field == null || req.url.includes(`field=${encodeURIComponent(field)}`));
 
-  function expectApiAnalyticsAverageConnectionDurationGetRequest(analyticsAverageConnectionDuration: AnalyticsAverageConnectionDuration) {
-    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/average-connection-duration`;
-    const req = httpTestingController.expectOne((req) => {
-      return req.method === 'GET' && req.url.startsWith(url);
+    if (!options?.skipCount) {
+      const countReq = httpTestingController.expectOne((r) => match('COUNT')(r));
+      countReq.flush({ type: 'COUNT', count: data.count });
+    }
+    const statsGatewayReq = httpTestingController.expectOne((r) => match('STATS', 'gateway-response-time-ms')(r));
+    statsGatewayReq.flush({
+      type: 'STATS',
+      count: 1,
+      min: data.statsGateway.avg,
+      max: data.statsGateway.avg,
+      avg: data.statsGateway.avg,
+      sum: data.statsGateway.avg,
     });
-    req.flush(analyticsAverageConnectionDuration);
-  }
-
-  function expectApiAnalyticsResponseStatusRangesGetRequest(analyticsResponseStatusRanges: AnalyticsResponseStatusRanges) {
-    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/response-status-ranges`;
-
-    const req = httpTestingController.expectOne((req) => {
-      return req.method === 'GET' && req.url.startsWith(url);
+    const statsEndpointReq = httpTestingController.expectOne((r) => match('STATS', 'endpoint-response-time-ms')(r));
+    statsEndpointReq.flush({
+      type: 'STATS',
+      count: 1,
+      min: data.statsEndpoint.avg,
+      max: data.statsEndpoint.avg,
+      avg: data.statsEndpoint.avg,
+      sum: data.statsEndpoint.avg,
     });
-    req.flush(analyticsResponseStatusRanges);
+    const statsContentLengthReq = httpTestingController.expectOne((r) => match('STATS', 'request-content-length')(r));
+    statsContentLengthReq.flush({
+      type: 'STATS',
+      count: 1,
+      min: data.statsContentLength.avg,
+      max: data.statsContentLength.avg,
+      avg: data.statsContentLength.avg,
+      sum: data.statsContentLength.avg,
+    });
+    const groupByReq = httpTestingController.expectOne((r) => match('GROUP_BY', 'status')(r));
+    groupByReq.flush({ type: 'GROUP_BY', values: data.groupByStatus.values, metadata: data.groupByStatus.metadata });
   }
 
   function expectApiGetResponseStatusOvertime(res: AnalyticsResponseStatusOvertime = fakeAnalyticsResponseStatusOvertime()) {
@@ -313,5 +344,25 @@ describe('ApiAnalyticsProxyComponent', () => {
       return req.method === 'GET' && req.url.startsWith(url);
     });
     req.flush(res);
+  }
+
+  /** Flush all matching line-chart requests (e.g. after refresh when both charts re-fetch). */
+  function flushAllLineChartRequests() {
+    const statusReqs = httpTestingController.match((r) => r.method === 'GET' && (r.urlWithParams ?? r.url).includes('response-status-overtime'));
+    statusReqs.forEach((req) => {
+      try {
+        req.flush(fakeAnalyticsResponseStatusOvertime());
+      } catch {
+        // Request may be cancelled (e.g. after refresh re-subscribe)
+      }
+    });
+    const timeReqs = httpTestingController.match((r) => r.method === 'GET' && (r.urlWithParams ?? r.url).includes('response-time-over-time'));
+    timeReqs.forEach((req) => {
+      try {
+        req.flush(fakeAnalyticsResponseTimeOverTime());
+      } catch {
+        // Request may be cancelled
+      }
+    });
   }
 });

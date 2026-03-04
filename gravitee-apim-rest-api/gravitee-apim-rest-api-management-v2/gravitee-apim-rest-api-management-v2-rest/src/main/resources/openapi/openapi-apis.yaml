@@ -2137,6 +2137,65 @@ paths:
                     $ref: "#/components/responses/ApiAnalyticsResponseStatusOvertimeResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/analytics:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/from"
+                - $ref: "#/components/parameters/to"
+                - name: type
+                  in: query
+                  required: true
+                  description: The type of analytics to retrieve
+                  schema:
+                    type: string
+                    enum: [COUNT, STATS, GROUP_BY, DATE_HISTO]
+                - name: field
+                  in: query
+                  description: The metric field (required for STATS and GROUP_BY). Supported fields include status, mapped-status, application, plan, host, uri, gateway-latency-ms, gateway-response-time-ms, endpoint-response-time-ms, request-content-length
+                  schema:
+                    type: string
+                - name: interval
+                  in: query
+                  description: Bucket interval in milliseconds (required for DATE_HISTO)
+                  schema:
+                    type: integer
+                    format: int64
+                - name: size
+                  in: query
+                  description: Number of top results for GROUP_BY (default 10)
+                  schema:
+                    type: integer
+                    default: 10
+                - name: order
+                  in: query
+                  description: Sort order for GROUP_BY results
+                  schema:
+                    type: string
+            tags:
+                - API Analytics
+            summary: Get V4 API analytics (unified)
+            description: |-
+                Get V4 API analytics with flexible query types (COUNT, STATS, GROUP_BY, DATE_HISTO).
+                Data source is the *-v4-metrics-* Elasticsearch index only.
+
+                User must have the API_ANALYTICS[READ] permission.
+            operationId: getApiV4Analytics
+            responses:
+                "200":
+                    description: Analytics result (shape depends on type)
+                    content:
+                        application/json:
+                            schema:
+                                oneOf:
+                                    - $ref: "#/components/schemas/ApiV4AnalyticsCountResponse"
+                                    - $ref: "#/components/schemas/ApiV4AnalyticsStatsResponse"
+                                    - $ref: "#/components/schemas/ApiV4AnalyticsGroupByResponse"
+                                    - $ref: "#/components/schemas/ApiV4AnalyticsDateHistoResponse"
+                default:
+                    $ref: "#/components/responses/Error"
 
     # API Analytics - Logs
     /environments/{envId}/apis/{apiId}/logs:
@@ -2762,6 +2821,80 @@ paths:
 
 components:
     schemas:
+        ApiV4AnalyticsCountResponse:
+            type: object
+            required: [type, count]
+            properties:
+                type:
+                    type: string
+                    enum: [COUNT]
+                count:
+                    type: integer
+                    format: int64
+        ApiV4AnalyticsStatsResponse:
+            type: object
+            required: [type, count]
+            properties:
+                type:
+                    type: string
+                    enum: [STATS]
+                count:
+                    type: integer
+                    format: int64
+                min:
+                    type: number
+                    format: double
+                max:
+                    type: number
+                    format: double
+                avg:
+                    type: number
+                    format: double
+                sum:
+                    type: number
+                    format: double
+        ApiV4AnalyticsGroupByResponse:
+            type: object
+            required: [type]
+            properties:
+                type:
+                    type: string
+                    enum: [GROUP_BY]
+                values:
+                    type: object
+                    additionalProperties:
+                        type: integer
+                        format: int64
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: object
+        ApiV4AnalyticsDateHistoResponse:
+            type: object
+            required: [type]
+            properties:
+                type:
+                    type: string
+                    enum: [DATE_HISTO]
+                timestamp:
+                    type: array
+                    items:
+                        type: integer
+                        format: int64
+                values:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            field:
+                                type: string
+                            buckets:
+                                type: array
+                                items:
+                                    type: integer
+                                    format: int64
+                            metadata:
+                                type: object
         Analytics:
             type: object
             properties:

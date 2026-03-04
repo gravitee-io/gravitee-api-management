@@ -26,8 +26,15 @@ import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsDateHistoQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsGroupByQuery;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalyticsStatsQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
+import io.gravitee.repository.log.v4.model.analytics.DateHistoAggregate;
+import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
+import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
+import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
@@ -37,6 +44,10 @@ import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
+import io.gravitee.rest.api.model.v4.analytics.V4AnalyticsCount;
+import io.gravitee.rest.api.model.v4.analytics.V4AnalyticsDateHisto;
+import io.gravitee.rest.api.model.v4.analytics.V4AnalyticsGroupBy;
+import io.gravitee.rest.api.model.v4.analytics.V4AnalyticsStats;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Duration;
 import java.time.Instant;
@@ -298,6 +309,258 @@ class AnalyticsQueryServiceImplTest {
                             TopFailedApis.TopFailedApi.builder().id("app-id-3").failedCalls(3L).failedCallsRatio(0.1).build()
                         )
                 );
+        }
+    }
+
+    @Nested
+    class SearchV4AnalyticsCount {
+
+        @Test
+        void should_return_empty_when_repository_returns_empty() {
+            when(analyticsRepository.searchRequestsCount(any(QueryContext.class), any())).thenReturn(Optional.empty());
+
+            assertThat(cut.searchV4AnalyticsCount(GraviteeContext.getExecutionContext(), "api#1", 1000L, 2000L))
+                .isEmpty();
+        }
+
+        @Test
+        void should_map_repository_count_to_v4_analytics_count() {
+            when(analyticsRepository.searchRequestsCount(any(QueryContext.class), any()))
+                .thenReturn(Optional.of(CountAggregate.builder().total(42L).build()));
+
+            assertThat(cut.searchV4AnalyticsCount(GraviteeContext.getExecutionContext(), "api#1", 1000L, 2000L))
+                .hasValueSatisfying(v4 -> assertThat(v4.getCount()).isEqualTo(42L));
+        }
+
+        @Test
+        void should_call_repository_with_requests_count_query() {
+            var queryCaptor = ArgumentCaptor.forClass(RequestsCountQuery.class);
+            when(analyticsRepository.searchRequestsCount(any(QueryContext.class), queryCaptor.capture()))
+                .thenReturn(Optional.of(CountAggregate.builder().total(1L).build()));
+
+            cut.searchV4AnalyticsCount(GraviteeContext.getExecutionContext(), "api-123", 1000L, 2000L);
+
+            assertThat(queryCaptor.getValue().apiId()).contains("api-123");
+            assertThat(queryCaptor.getValue().from()).contains(Instant.ofEpochMilli(1000L));
+            assertThat(queryCaptor.getValue().to()).contains(Instant.ofEpochMilli(2000L));
+        }
+    }
+
+    @Nested
+    class SearchV4AnalyticsStats {
+
+        @Test
+        void should_return_empty_when_repository_returns_empty() {
+            when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.empty());
+
+            assertThat(
+                cut.searchV4AnalyticsStats(
+                    GraviteeContext.getExecutionContext(),
+                    "api#1",
+                    1000L,
+                    2000L,
+                    "gateway-response-time-ms"
+                )
+            ).isEmpty();
+        }
+
+        @Test
+        void should_map_repository_stats_to_v4_analytics_stats() {
+            when(analyticsRepository.searchStats(any(QueryContext.class), any()))
+                .thenReturn(
+                    Optional.of(
+                        StatsAggregate.builder().count(10L).min(1.0).max(100.0).avg(50.5).sum(505.0).build()
+                    )
+                );
+
+            assertThat(
+                cut.searchV4AnalyticsStats(
+                    GraviteeContext.getExecutionContext(),
+                    "api#1",
+                    1000L,
+                    2000L,
+                    "gateway-response-time-ms"
+                )
+            )
+                .hasValueSatisfying(v4 -> {
+                    assertThat(v4.getCount()).isEqualTo(10L);
+                    assertThat(v4.getMin()).isEqualTo(1.0);
+                    assertThat(v4.getMax()).isEqualTo(100.0);
+                    assertThat(v4.getAvg()).isEqualTo(50.5);
+                    assertThat(v4.getSum()).isEqualTo(505.0);
+                });
+        }
+
+        @Test
+        void should_call_repository_with_stats_query() {
+            var queryCaptor = ArgumentCaptor.forClass(ApiAnalyticsStatsQuery.class);
+            when(analyticsRepository.searchStats(any(QueryContext.class), queryCaptor.capture()))
+                .thenReturn(Optional.of(StatsAggregate.builder().count(1L).min(0).max(0).avg(0).sum(0).build()));
+
+            cut.searchV4AnalyticsStats(
+                GraviteeContext.getExecutionContext(),
+                "api-123",
+                1000L,
+                2000L,
+                "endpoint-response-time-ms"
+            );
+
+            assertThat(queryCaptor.getValue().getApiId()).isEqualTo("api-123");
+            assertThat(queryCaptor.getValue().getFrom()).isEqualTo(Instant.ofEpochMilli(1000L));
+            assertThat(queryCaptor.getValue().getTo()).isEqualTo(Instant.ofEpochMilli(2000L));
+            assertThat(queryCaptor.getValue().getField()).isEqualTo("endpoint-response-time-ms");
+        }
+    }
+
+    @Nested
+    class SearchV4AnalyticsGroupBy {
+
+        @Test
+        void should_return_empty_when_repository_returns_empty() {
+            when(analyticsRepository.searchGroupBy(any(QueryContext.class), any())).thenReturn(Optional.empty());
+
+            assertThat(
+                cut.searchV4AnalyticsGroupBy(
+                    GraviteeContext.getExecutionContext(),
+                    "api#1",
+                    1000L,
+                    2000L,
+                    "status",
+                    10,
+                    null
+                )
+            ).isEmpty();
+        }
+
+        @Test
+        void should_map_repository_group_by_to_v4_analytics_group_by() {
+            when(analyticsRepository.searchGroupBy(any(QueryContext.class), any()))
+                .thenReturn(
+                    Optional.of(
+                        GroupByAggregate.builder().values(Map.of("200", 80L, "404", 10L)).metadata(Map.of()).build()
+                    )
+                );
+
+            assertThat(
+                cut.searchV4AnalyticsGroupBy(
+                    GraviteeContext.getExecutionContext(),
+                    "api#1",
+                    1000L,
+                    2000L,
+                    "status",
+                    10,
+                    null
+                )
+            )
+                .hasValueSatisfying(v4 -> {
+                    assertThat(v4.getValues()).containsAllEntriesOf(Map.of("200", 80L, "404", 10L));
+                });
+        }
+
+        @Test
+        void should_call_repository_with_group_by_query() {
+            var queryCaptor = ArgumentCaptor.forClass(ApiAnalyticsGroupByQuery.class);
+            when(analyticsRepository.searchGroupBy(any(QueryContext.class), queryCaptor.capture()))
+                .thenReturn(Optional.of(GroupByAggregate.builder().values(Map.of()).metadata(Map.of()).build()));
+
+            cut.searchV4AnalyticsGroupBy(
+                GraviteeContext.getExecutionContext(),
+                "api-123",
+                1000L,
+                2000L,
+                "status",
+                20,
+                "-count"
+            );
+
+            assertThat(queryCaptor.getValue().getApiId()).isEqualTo("api-123");
+            assertThat(queryCaptor.getValue().getField()).isEqualTo("status");
+            assertThat(queryCaptor.getValue().getSize()).isEqualTo(20);
+            assertThat(queryCaptor.getValue().getOrder()).isEqualTo("-count");
+        }
+    }
+
+    @Nested
+    class SearchV4AnalyticsDateHisto {
+
+        @Test
+        void should_return_empty_when_repository_returns_empty() {
+            when(analyticsRepository.searchDateHisto(any(QueryContext.class), any())).thenReturn(Optional.empty());
+
+            assertThat(
+                cut.searchV4AnalyticsDateHisto(
+                    GraviteeContext.getExecutionContext(),
+                    "api#1",
+                    1000L,
+                    2000L,
+                    "status",
+                    3600000L
+                )
+            ).isEmpty();
+        }
+
+        @Test
+        void should_map_repository_date_histo_to_v4_analytics_date_histo() {
+            when(analyticsRepository.searchDateHisto(any(QueryContext.class), any()))
+                .thenReturn(
+                    Optional.of(
+                        DateHistoAggregate
+                            .builder()
+                            .timestamp(List.of(1000L, 2000L))
+                            .values(
+                                List.of(
+                                    DateHistoAggregate.DateHistoValue
+                                        .builder()
+                                        .field("status")
+                                        .buckets(List.of(5L, 10L))
+                                        .metadata(Map.of())
+                                        .build()
+                                )
+                            )
+                            .build()
+                    )
+                );
+
+            assertThat(
+                cut.searchV4AnalyticsDateHisto(
+                    GraviteeContext.getExecutionContext(),
+                    "api#1",
+                    1000L,
+                    2000L,
+                    "status",
+                    3600000L
+                )
+            )
+                .hasValueSatisfying(v4 -> {
+                    assertThat(v4.getTimestamp()).containsExactly(1000L, 2000L);
+                    assertThat(v4.getValues()).hasSize(1);
+                    assertThat(v4.getValues().get(0).getField()).isEqualTo("status");
+                    assertThat(v4.getValues().get(0).getBuckets()).containsExactly(5L, 10L);
+                });
+        }
+
+        @Test
+        void should_call_repository_with_date_histo_query() {
+            var queryCaptor = ArgumentCaptor.forClass(ApiAnalyticsDateHistoQuery.class);
+            when(analyticsRepository.searchDateHisto(any(QueryContext.class), queryCaptor.capture()))
+                .thenReturn(
+                    Optional.of(
+                        DateHistoAggregate.builder().timestamp(List.of()).values(List.of()).build()
+                    )
+                );
+
+            cut.searchV4AnalyticsDateHisto(
+                GraviteeContext.getExecutionContext(),
+                "api-123",
+                1000L,
+                2000L,
+                "status",
+                3600000L
+            );
+
+            assertThat(queryCaptor.getValue().getApiId()).isEqualTo("api-123");
+            assertThat(queryCaptor.getValue().getField()).isEqualTo("status");
+            assertThat(queryCaptor.getValue().getInterval()).isEqualTo(3600000L);
         }
     }
 }
