@@ -19,7 +19,7 @@
   --sidebar-ring: var(--ring);
 
   /* ── Top navigation ──────────────────────────────── */
-  --topnav-height: 3.5rem;
+  --topnav-height: 2.5rem;
   --topnav-background: var(--card);
   --topnav-foreground: var(--card-foreground);
   --topnav-border: var(--border);
