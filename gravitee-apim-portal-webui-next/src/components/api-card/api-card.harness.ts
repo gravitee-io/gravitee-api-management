@@ -14,42 +14,26 @@
  * limitations under the License.
  */
 import { BaseHarnessFilters, ContentContainerComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
-import { MatChipHarness } from '@angular/material/chips/testing';
 
 export class ApiCardHarness extends ContentContainerComponentHarness {
   public static hostSelector = 'app-api-card';
-  protected locateHeaderContent = this.locatorFor('.api-card__header__content');
+  protected locateTitle = this.locatorFor('.m3-title-medium');
   protected locateDescription = this.locatorFor('.api-card__description');
-  protected locateMcpServerChip = this.locatorForOptional(MatChipHarness.with({ text: /MCP/ }));
+  protected locateMcpBadge = this.locatorForOptional('app-badge');
 
   public static with(options: BaseHarnessFilters): HarnessPredicate<ApiCardHarness> {
     return new HarnessPredicate(ApiCardHarness, options);
   }
 
   public async getTitle(): Promise<string> {
-    return await this.getTitleAndVersion().then(res => res.title);
-  }
-
-  public async getVersion(): Promise<string> {
-    return await this.getTitleAndVersion().then(res => res.version);
+    return (await this.locateTitle()).text();
   }
 
   public async getDescription(): Promise<string> {
-    const div = await this.locateDescription();
-    return await div.text();
+    return (await this.locateDescription()).text();
   }
 
   public async isMcpServer(): Promise<boolean> {
-    const mcpServerChip = await this.locateMcpServerChip();
-    return mcpServerChip !== null;
-  }
-
-  private async getTitleAndVersion(): Promise<{ title: string; version: string }> {
-    return await this.locateHeaderContent()
-      .then(header => header.text())
-      .then(text => {
-        const split = text.split('Version: ');
-        return { title: split[0], version: split[1] };
-      });
+    return (await this.locateMcpBadge()) !== null;
   }
 }
