@@ -24,12 +24,11 @@ import { isEqual } from 'lodash';
 import { BehaviorSubject, catchError, distinctUntilChanged, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { CardsGridComponent } from 'src/components/cards-grid/cards-grid.component';
-
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
 import { BadgeComponent } from '../../components/badge/badge.component';
 import { ButtonToggleGroupComponent } from '../../components/button-toggle-group/button-toggle-group.component';
 import { ButtonToggleOptionComponent } from '../../components/button-toggle-group/button-toggle-option.component';
+import { CardsGridComponent } from '../../components/cards-grid/cards-grid.component';
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';

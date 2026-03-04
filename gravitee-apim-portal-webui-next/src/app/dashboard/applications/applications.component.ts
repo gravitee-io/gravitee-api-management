@@ -21,9 +21,8 @@ import { Router, RouterLink } from '@angular/router';
 import { BehaviorSubject, catchError, distinctUntilChanged, map, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { CardsGridComponent } from 'src/components/cards-grid/cards-grid.component';
-
 import { ApplicationCardComponent } from '../../../components/application-card/application-card.component';
+import { CardsGridComponent } from '../../../components/cards-grid/cards-grid.component';
 import { PaginationComponent } from '../../../components/pagination/pagination.component';
 import { ApplicationService } from '../../../services/application.service';
 import { CurrentUserService } from '../../../services/current-user.service';
