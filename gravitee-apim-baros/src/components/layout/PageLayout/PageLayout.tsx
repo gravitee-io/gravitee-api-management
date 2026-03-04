@@ -109,7 +109,7 @@ const PageLayout = forwardRef<HTMLDivElement, PageLayoutProps>(
           )}
         </div>
 
-        {children && <div>{children}</div>}
+        {children && <div className="space-y-6">{children}</div>}
       </div>
     );
   },
