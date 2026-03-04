@@ -23,7 +23,7 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 
 export class ApplicationSubscriptionCreationDialogHarness extends ComponentHarness {
   static hostSelector = 'application-subscription-creation-dialog';
-  private getApiInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="selectedApi"]' }));
+  private getApiInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="selectedReference"]' }));
   private getApiAutoComplete = this.locatorFor(MatAutocompleteHarness);
   private getPlansRadioGroup = this.locatorFor(MatRadioGroupHarness.with({ selector: '[formControlName="selectedPlan"]' }));
   private getApiKeyModeRadioGroup = this.locatorForOptional(MatRadioGroupHarness.with({ selector: '[formControlName="apiKeyMode"]' }));

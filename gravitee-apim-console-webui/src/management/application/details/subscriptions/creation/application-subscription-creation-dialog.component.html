@@ -19,25 +19,42 @@
   <h2 mat-dialog-title class="title">Create a subscription</h2>
 
   <mat-dialog-content class="subscription-creation">
-    <label id="api-label">Search an API</label>
+    <label id="api-label">Search an API or API Product</label>
     <mat-form-field aria-labelledby="api-label">
       <mat-icon matPrefix>search</mat-icon>
-      <mat-label>Search an API by name</mat-label>
-      <input matInput type="search" [matAutocomplete]="auto" formControlName="selectedApi" />
+      <mat-label>Search an API or API Product by name</mat-label>
+      <input matInput type="search" [matAutocomplete]="auto" formControlName="selectedReference" />
 
-      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayApi" (optionSelected)="onApiSelection($event.option.value)">
-        @for (api of apis$ | async; track api.id) {
-          <mat-option [value]="api">
+      <mat-autocomplete
+        #auto="matAutocomplete"
+        [displayWith]="displayReference"
+        (optionSelected)="onReferenceSelection($event.option.value)"
+      >
+        @for (item of searchResults$ | async; track item.value.id) {
+          <mat-option [value]="item">
             <div class="subscription-creation__api-option">
-              <gio-avatar [src]="api._links?.pictureUrl.toString()" [name]="api.name" [size]="32" [roundedBorder]="true"></gio-avatar>
-              {{ api.name }} - {{ api.apiVersion }}
-              <small>({{ api.primaryOwner?.displayName }})</small>
+              <gio-avatar
+                [src]="item.type === 'API' ? item.value._links?.pictureUrl?.toString() : null"
+                [name]="item.value.name"
+                [size]="32"
+                [roundedBorder]="true"
+              ></gio-avatar>
+              <div class="subscription-creation__api-option__text">
+                <span class="subscription-creation__api-option__name">
+                  {{ item.value.name }}
+                  @if (item.type === 'API' ? item.value.apiVersion : item.value.version) {
+                    - {{ item.type === 'API' ? item.value.apiVersion : item.value.version }}
+                  }
+                  ({{ item.value.primaryOwner?.displayName }})
+                </span>
+                <span class="subscriptions__table__reference-type">{{ item.type === 'API' ? 'API' : 'API Product' }}</span>
+              </div>
             </div>
           </mat-option>
         }
 
-        @if ((apis$ | async)?.length === 0) {
-          <mat-option disabled>No API found</mat-option>
+        @if ((searchResults$ | async)?.length === 0) {
+          <mat-option disabled>No API or API Product found</mat-option>
         }
       </mat-autocomplete>
     </mat-form-field>

@@ -16,7 +16,7 @@
 import { Component, DestroyRef, inject, Inject } from '@angular/core';
 import { FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Observable, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, share, switchMap, tap } from 'rxjs/operators';
+import { combineLatestWith, debounceTime, distinctUntilChanged, filter, map, share, switchMap, tap } from 'rxjs/operators';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -25,7 +25,10 @@ import { toNewSubscriptionEntity } from './application-subscription-creation-dia
 
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { Api, Plan, PlanV4 } from '../../../../../entities/management-api-v2';
+import { ApiProduct } from '../../../../../entities/management-api-v2/api-product';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
+import { ApiProductPlanV2Service } from '../../../../../services-ngx/api-product-plan-v2.service';
+import { ApiProductV2Service } from '../../../../../services-ngx/api-product-v2.service';
 import { ApplicationService } from '../../../../../services-ngx/application.service';
 import { EnvironmentSettingsService } from '../../../../../services-ngx/environment-settings.service';
 import { ApiKeyMode, Application } from '../../../../../entities/application/Application';
@@ -37,8 +40,10 @@ import {
   ApplicationSubscriptionCreationDialogResult,
 } from '../list/application-subscription-list.component';
 
+export type SearchResultItem = { type: 'API'; value: Api } | { type: 'API_PRODUCT'; value: ApiProduct };
+
 type SubscriptionCreationForm = FormGroup<{
-  selectedApi: FormControl<string | Api>;
+  selectedReference: FormControl<string | SearchResultItem>;
   selectedPlan: FormControl<Plan>;
   request?: FormControl<string>;
   apiKeyMode?: FormControl<ApiKeyMode>;
@@ -63,23 +68,37 @@ export class ApplicationSubscriptionCreationDialogComponent {
   protected application: Application;
   protected selectedSchema: GioJsonSchema;
   protected form: SubscriptionCreationForm = new FormGroup({
-    selectedApi: new FormControl(null),
+    selectedReference: new FormControl(null),
     selectedPlan: new FormControl(null, [Validators.required]),
   });
   protected plans$: Observable<Plan[]>;
-  protected apis$: Observable<Api[]> = this.form.controls.selectedApi.valueChanges.pipe(
+  private readonly SEARCH_PAGE_SIZE = 20;
+  protected searchResults$: Observable<SearchResultItem[]> = this.form.controls.selectedReference.valueChanges.pipe(
     distinctUntilChanged(),
     debounceTime(100),
     filter(term => typeof term === 'string'),
-    switchMap((term: string) => (term.length > 0 ? this.apiService.search({ query: term }, null, 1, 9999, false) : of(null))),
-    tap(_ => this.resetForm()),
-    map(response => response?.data),
+    switchMap((term: string) => {
+      if (term.length === 0) return of([]);
+      this.resetForm();
+      const apis$ = this.apiService
+        .search({ query: term }, null, 1, this.SEARCH_PAGE_SIZE, false)
+        .pipe(map(res => (res?.data ?? []).map(value => ({ type: 'API' as const, value }))));
+      const products$ = this.apiProductService
+        .search({ query: term }, undefined, 1, this.SEARCH_PAGE_SIZE)
+        .pipe(map(res => (res?.data ?? []).map(value => ({ type: 'API_PRODUCT' as const, value }))));
+      return apis$.pipe(
+        combineLatestWith(products$),
+        map(([apis, products]) => [...apis, ...products].sort((a, b) => a.value.name.localeCompare(b.value.name))),
+      );
+    }),
     share(),
   );
 
   constructor(
     private readonly apiService: ApiV2Service,
+    private readonly apiProductService: ApiProductV2Service,
     private readonly apiPlanService: ApiPlanV2Service,
+    private readonly apiProductPlanService: ApiProductPlanV2Service,
     private readonly applicationService: ApplicationService,
     private readonly environmentSettingsService: EnvironmentSettingsService,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
@@ -133,26 +152,39 @@ export class ApplicationSubscriptionCreationDialogComponent {
     });
   }
 
-  protected displayApi(api: Api) {
-    return api?.name;
+  protected displayReference(item: string | SearchResultItem) {
+    if (typeof item === 'string') return item;
+    return item?.value?.name ?? '';
   }
 
-  protected onApiSelection(selectedApi: Api) {
+  protected onReferenceSelection(item: SearchResultItem) {
     this.resetForm();
-    this.plans$ = this.apiPlanService.listSubscribablePlans(selectedApi.id, this.application.id).pipe(
-      map(response => response.data),
-      share(),
-      takeUntilDestroyed(this.destroyRef),
-    );
-    this.isFederatedApi = selectedApi.definitionVersion === 'FEDERATED';
-    if (selectedApi.definitionVersion === 'V4') {
-      this.availableSubscriptionEntrypoints = selectedApi.listeners
-        .filter(listener => listener.type === 'SUBSCRIPTION')
-        .flatMap(listener => listener.entrypoints)
-        .map(listener => {
-          const entrypoint = this.entrypointsMap.get(listener.type);
-          return entrypoint ? { type: listener.type, name: entrypoint.name, icon: entrypoint.icon } : null;
-        });
+    if (item.type === 'API') {
+      const api = item.value;
+      this.plans$ = this.apiPlanService.listSubscribablePlans(api.id, this.application.id).pipe(
+        map(response => response.data),
+        share(),
+        takeUntilDestroyed(this.destroyRef),
+      );
+      this.isFederatedApi = api.definitionVersion === 'FEDERATED';
+      if (api.definitionVersion === 'V4') {
+        this.availableSubscriptionEntrypoints = api.listeners
+          .filter(listener => listener.type === 'SUBSCRIPTION')
+          .flatMap(listener => listener.entrypoints)
+          .map(listener => {
+            const entrypoint = this.entrypointsMap.get(listener.type);
+            return entrypoint ? { type: listener.type, name: entrypoint.name, icon: entrypoint.icon } : null;
+          });
+      }
+    } else {
+      const apiProduct = item.value;
+      this.plans$ = this.apiProductPlanService.listSubscribablePlans(apiProduct.id, this.application.id).pipe(
+        map(response => response.data),
+        share(),
+        takeUntilDestroyed(this.destroyRef),
+      );
+      this.isFederatedApi = false;
+      this.availableSubscriptionEntrypoints = [];
     }
   }
 
@@ -202,6 +234,7 @@ export class ApplicationSubscriptionCreationDialogComponent {
             !this.isFederatedApi &&
               this.canUseSharedApiKeys &&
               this.application.api_key_mode === ApiKeyMode.UNSPECIFIED &&
+              plan.apiId != null &&
               this.apiKeySubscriptions.some(subscription => subscription?.api !== plan.apiId),
           ),
         ),

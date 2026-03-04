@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -70,5 +70,10 @@ export class ApiProductPlanV2Service {
 
   public close(apiProductId: string, planId: string): Observable<Plan> {
     return this.http.post<Plan>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}/plans/${planId}/_close`, {});
+  }
+
+  public listSubscribablePlans(apiProductId: string, applicationId: string): Observable<ApiPlansResponse> {
+    const params = new HttpParams().appendAll({ page: 1, perPage: 9999, subscribableBy: applicationId });
+    return this.http.get<ApiPlansResponse>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}/plans`, { params });
   }
 }
