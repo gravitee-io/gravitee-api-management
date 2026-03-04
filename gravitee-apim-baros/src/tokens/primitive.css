@@ -31,9 +31,9 @@
   --gravitee-solaris-200: oklch(0.89  0.09  48);
   --gravitee-solaris-300: oklch(0.82  0.15  45);
   --gravitee-solaris-400: oklch(0.73  0.18  48);  /* Bright orange (logo top) */
-  --gravitee-solaris-500: oklch(0.65  0.19  44);  /* Brand core */
-  --gravitee-solaris-600: oklch(0.58  0.20  40);  /* Deep orange (logo bottom) */
-  --gravitee-solaris-700: oklch(0.50  0.18  35);
+  --gravitee-solaris-500: oklch(0.65  0.17  46);  /* Brand core */
+  --gravitee-solaris-600: oklch(0.58  0.17  42.97);  /* Deep orange (logo bottom) */
+  --gravitee-solaris-700: oklch(0.50  0.16  38);
   --gravitee-solaris-800: oklch(0.43  0.16  26);
   --gravitee-solaris-900: oklch(0.37  0.13  25);
   --gravitee-solaris-950: oklch(0.27  0.10  25);
