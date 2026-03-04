@@ -52,8 +52,8 @@ class TagQueryServiceImplTest {
         void should_find_groups_matching_the_event_provided() {
             when(tagRepository.findByReference(any(String.class), eq(TagReferenceType.ORGANIZATION))).thenAnswer(invocation ->
                 Set.of(
-                    aTag("1").referenceId(invocation.getArgument(0)).name("tag-1").build(),
-                    aTag("2").referenceId(invocation.getArgument(0)).name("tag-2").build()
+                    aTag("1", "tag-1").referenceId(invocation.getArgument(0)).name("tag-1").build(),
+                    aTag("2", "tag-2").referenceId(invocation.getArgument(0)).name("tag-2").build()
                 )
             );
 
@@ -66,7 +66,7 @@ class TagQueryServiceImplTest {
         @SneakyThrows
         void should_adapt_groups() {
             when(tagRepository.findByReference(any(String.class), eq(TagReferenceType.ORGANIZATION))).thenAnswer(invocation ->
-                Set.of(aTag("1").referenceId(invocation.getArgument(0)).name("tag-1").build())
+                Set.of(aTag("1", "tag-1").referenceId(invocation.getArgument(0)).name("tag-1").build())
             );
 
             var tags = service.findByName(ORGANIZATION_ID, "tag-1");
@@ -76,6 +76,7 @@ class TagQueryServiceImplTest {
                 .containsExactly(
                     Tag.builder()
                         .id("1")
+                        .key("tag-1")
                         .name("tag-1")
                         .description("group-1-description")
                         .restrictedGroups(List.of("group-1-restricted-group"))
@@ -86,9 +87,10 @@ class TagQueryServiceImplTest {
         }
     }
 
-    private io.gravitee.repository.management.model.Tag.TagBuilder aTag(String id) {
+    private io.gravitee.repository.management.model.Tag.TagBuilder aTag(String id, String key) {
         return io.gravitee.repository.management.model.Tag.builder()
             .id(id)
+            .key(key)
             .name("group-1")
             .description("group-1-description")
             .restrictedGroups(List.of("group-1-restricted-group"))

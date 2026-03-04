@@ -30,7 +30,11 @@ public class TagEntity {
     private String id;
 
     @NotNull
-    @Size(min = 1)
+    @Size(min = 1, max = 64)
+    private String key;
+
+    @NotNull
+    @Size(min = 1, max = 64)
     private String name;
 
     private String description;
@@ -44,6 +48,14 @@ public class TagEntity {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getName() {
@@ -77,6 +89,7 @@ public class TagEntity {
         TagEntity tagEntity = (TagEntity) o;
         return (
             Objects.equals(id, tagEntity.id) &&
+            Objects.equals(key, tagEntity.key) &&
             Objects.equals(name, tagEntity.name) &&
             Objects.equals(description, tagEntity.description) &&
             Objects.equals(restrictedGroups, tagEntity.restrictedGroups)
@@ -85,7 +98,7 @@ public class TagEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description, restrictedGroups);
+        return Objects.hash(id, key, name, description, restrictedGroups);
     }
 
     @Override
@@ -94,6 +107,9 @@ public class TagEntity {
             "TagEntity{" +
             "id='" +
             id +
+            '\'' +
+            ", key='" +
+            key +
             '\'' +
             ", name='" +
             name +

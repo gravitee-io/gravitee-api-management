@@ -85,7 +85,7 @@ public class TagsResource extends AbstractResource {
         }
     )
     public TagEntity getTag(@PathParam("tag") String tag) {
-        return tagService.findByIdAndReference(tag, GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION);
+        return tagService.findByKeyAndReference(tag, GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION);
     }
 
     @POST
@@ -125,7 +125,7 @@ public class TagsResource extends AbstractResource {
     @ApiResponse(
         responseCode = "200",
         description = "Sharding tag",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TagEntity.class))
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = UpdateTagEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(
@@ -135,9 +135,10 @@ public class TagsResource extends AbstractResource {
         }
     )
     @GraviteeLicenseFeature("apim-sharding-tags")
-    public TagEntity updateTag(@PathParam("tag") String tagId, @Valid @NotNull final UpdateTagEntity tag) {
+    public TagEntity updateTag(@PathParam("tag") String tagKey, @Valid @NotNull final UpdateTagEntity tag) {
         return tagService.update(
             GraviteeContext.getExecutionContext(),
+            tagKey,
             tag,
             GraviteeContext.getCurrentOrganization(),
             TagReferenceType.ORGANIZATION
