@@ -15,11 +15,15 @@
  */
 export interface MemberV2 {
   id: string;
-  display_name: string;
-  email?: string;
   role: string;
+  status: string;
   created_at?: string;
   updated_at?: string;
+  user: {
+    id: string;
+    display_name: string;
+    email?: string;
+  };
 }
 
 export interface MembersV2Response {

@@ -20,9 +20,13 @@ import { MemberV2, MembersV2Response } from './application-members';
 export function fakeMember(modifier?: Partial<MemberV2> | ((base: MemberV2) => MemberV2)): MemberV2 {
   const base: MemberV2 = {
     id: 'member-1',
-    display_name: 'Admin master',
-    email: 'admin@company.com',
+    user: {
+      id: 'user-1',
+      display_name: 'Admin master',
+      email: 'admin@company.com',
+    },
     role: 'PRIMARY_OWNER',
+    status: 'ACTIVE',
     created_at: '2025-01-15T10:00:00Z',
     updated_at: '2025-01-15T10:00:00Z',
   };
@@ -43,8 +47,8 @@ export function fakeMembersResponse(
   const base: MembersV2Response = {
     data: [
       fakeMember(),
-      fakeMember({ id: 'member-2', display_name: 'Person 3', email: 'person3@company.com', role: 'VIEWER' }),
-      fakeMember({ id: 'member-3', display_name: 'Elliot Goldblatt', email: 'elliot.goldblatt@graviteesource.com', role: 'OWNER' }),
+      fakeMember({ id: 'member-2', user: { id: 'user-2', display_name: 'Person 3', email: 'person3@company.com' }, role: 'VIEWER' }),
+      fakeMember({ id: 'member-3', user: { id: 'user-3', display_name: 'Elliot Goldblatt', email: 'elliot.goldblatt@graviteesource.com' }, role: 'OWNER' }),
     ],
     metadata: {
       pagination: {

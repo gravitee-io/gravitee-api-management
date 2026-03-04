@@ -22,7 +22,7 @@ import { MatInput } from '@angular/material/input';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 
 import { LoaderComponent } from '../../../../components/loader/loader.component';
-import { PaginatedTableComponent, TableColumn } from '../../../../components/paginated-table/paginated-table.component';
+import { PaginatedTableComponent, TableActionEvent, TableColumn } from '../../../../components/paginated-table/paginated-table.component';
 import { UserApplicationPermissions } from '../../../../entities/permission/permission';
 import { ApplicationMembersService } from '../../../../services/application-members.service';
 
@@ -58,6 +58,15 @@ export class ApplicationTabMembersComponent {
   tableColumns: TableColumn[] = [
     { id: 'display_name', label: $localize`:@@membersColumnName:Name` },
     { id: 'role', label: $localize`:@@membersColumnRole:Role` },
+    {
+      id: 'actions',
+      label: $localize`:@@membersColumnActions:Actions`,
+      type: 'actions',
+      actions: [
+        { id: 'edit', icon: 'edit', label: $localize`:@@membersActionEdit:Edit member` },
+        { id: 'delete', icon: 'delete', label: $localize`:@@membersActionDelete:Delete member` },
+      ],
+    },
   ];
 
   canCreate = computed(() => this.userApplicationPermissions()?.MEMBER?.includes('C') || false);
@@ -87,11 +96,15 @@ export class ApplicationTabMembersComponent {
   rows = computed(() => {
     const response = this.membersResource.value();
     if (!response?.data) return [];
-    return response.data.map(member => ({
-      id: member.id,
-      display_name: member.display_name,
-      role: member.role,
-    }));
+    return response.data.map(member => {
+      console.log(member);
+      return {
+        id: member.id,
+        display_name: member.user.display_name,
+        role: member.role,
+        status: member.status,
+      };
+    });
   });
 
   onSearchInput(event: Event): void {
@@ -107,5 +120,9 @@ export class ApplicationTabMembersComponent {
   onPageSizeChange(size: number): void {
     this.pageSize.set(size);
     this.currentPage.set(1);
+  }
+
+  onActionClick(event: TableActionEvent): void {
+    // Placeholder for Story 2.3 (edit) and Story 2.4 (delete) wiring
   }
 }

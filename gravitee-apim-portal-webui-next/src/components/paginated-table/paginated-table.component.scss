@@ -35,11 +35,25 @@
   }
 
   &__row {
-    cursor: pointer;
-
     &:last-child td {
       border-bottom: none;
     }
+
+    &--clickable {
+      cursor: pointer;
+    }
+  }
+
+  &__header-actions,
+  &__cell-actions {
+    text-align: right;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
   }
 
   &__column-expand {

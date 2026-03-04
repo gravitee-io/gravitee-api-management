@@ -67,8 +67,11 @@
         [totalElements]="totalElements()"
         [currentPage]="currentPage()"
         [pageSize]="pageSize()"
+        [rowLink]="false"
+        [showExpandColumn]="false"
         (pageChange)="onPageChange($event)"
         (pageSizeChange)="onPageSizeChange($event)"
+        (actionClick)="onActionClick($event)"
       />
     }
   } @else {

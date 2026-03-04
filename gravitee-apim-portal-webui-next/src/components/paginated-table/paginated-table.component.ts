@@ -15,22 +15,36 @@
  */
 import { DatePipe } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
+import { MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltip } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 
 import { DEFAULT_PAGE_SIZE_OPTIONS, PaginationComponent } from '../pagination/pagination.component';
 
+export interface ActionButton {
+  id: string;
+  icon: string;
+  label: string;
+}
+
 export interface TableColumn {
   id: string;
   label: string;
-  type?: 'text' | 'date';
+  type?: 'text' | 'date' | 'actions';
+  actions?: ActionButton[];
+}
+
+export interface TableActionEvent<T = unknown> {
+  actionId: string;
+  row: T;
 }
 
 @Component({
   selector: 'app-paginated-table',
   standalone: true,
-  imports: [DatePipe, MatTableModule, MatIcon, RouterLink, PaginationComponent],
+  imports: [DatePipe, MatTableModule, MatIcon, MatIconButton, MatTooltip, RouterLink, PaginationComponent],
   templateUrl: './paginated-table.component.html',
   styleUrl: './paginated-table.component.scss',
 })
@@ -41,13 +55,24 @@ export class PaginatedTableComponent<T> {
   currentPage = input.required<number>();
   pageSize = input.required<number>();
   pageSizeOptions = input<number[]>(DEFAULT_PAGE_SIZE_OPTIONS);
+  rowLink = input<boolean>(true);
+  showExpandColumn = input<boolean>(true);
 
   pageChange = output<number>();
   pageSizeChange = output<number>();
+  actionClick = output<TableActionEvent<T>>();
 
-  displayedColumns = computed(() => [...this.columns().map(c => c.id as string), 'expand']);
+  displayedColumns = computed(() => {
+    const colIds = this.columns().map(c => c.id as string);
+    return this.showExpandColumn() ? [...colIds, 'expand'] : colIds;
+  });
 
   onPageChange(page: number): void {
     this.pageChange.emit(page);
+  }
+
+  onActionClick(event: MouseEvent, actionId: string, row: T): void {
+    event.stopPropagation();
+    this.actionClick.emit({ actionId, row });
   }
 }
