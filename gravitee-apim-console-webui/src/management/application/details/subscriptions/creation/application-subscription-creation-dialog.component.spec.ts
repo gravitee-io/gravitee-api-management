@@ -45,6 +45,7 @@ import {
   getEntrypointConnectorSchema,
   Plan,
 } from '../../../../../entities/management-api-v2';
+import { ApiProduct } from '../../../../../entities/management-api-v2/api-product';
 import { ApiKeyMode, Application } from '../../../../../entities/application/Application';
 import { fakeSubscriptionPage } from '../../../../../entities/subscription/subscription.fixture';
 import { PlanSecurityType } from '../../../../../entities/plan';
@@ -169,7 +170,7 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
 
         await dialogHarness.searchApi(API_NAME);
         tick(100);
-        expectApiSearchPost(API);
+        expectApiSearchPost('my-api', [API], []);
 
         await dialogHarness.selectApi(API_NAME);
         expectSubscribableApiPlansGet([API_KEY_PLAN, fakePlanV4({ apiId: API_ID, security: { type: 'JWT' } })]);
@@ -195,7 +196,7 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
 
         await dialogHarness.searchApi(API_NAME);
         tick(100);
-        expectApiSearchPost(API);
+        expectApiSearchPost('my-api', [API], []);
 
         await dialogHarness.selectApi(API_NAME);
         expectSubscribableApiPlansGet([API_KEY_PLAN, fakePlanV4({ apiId: API_ID, security: { type: 'JWT' } })]);
@@ -221,7 +222,7 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
 
         await dialogHarness.searchApi(API_NAME);
         tick(100);
-        expectApiSearchPost(fakeApiFederated({ id: API_ID, name: API_NAME }));
+        expectApiSearchPost('my-api', [fakeApiFederated({ id: API_ID, name: API_NAME })], []);
 
         await dialogHarness.selectApi(API_NAME);
         expectSubscribableApiPlansGet([API_KEY_PLAN, fakePlanFederated({ apiId: API_ID, security: { type: 'JWT' } })]);
@@ -245,7 +246,7 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
 
         await dialogHarness.searchApi(API_NAME);
         tick(200);
-        expectApiSearchPost(API);
+        expectApiSearchPost('my-api', [API], []);
         await dialogHarness.selectApi(API_NAME);
 
         const plan = fakePlanV4({ apiId: API_ID, security: { type: planType }, commentRequired: false, generalConditions: null });
@@ -268,7 +269,7 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
 
         await dialogHarness.searchApi(API_NAME);
         tick(100);
-        expectApiSearchPost(API);
+        expectApiSearchPost('my-api', [API], []);
         await dialogHarness.selectApi(API_NAME);
 
         const plan = fakePlanV4({
@@ -302,7 +303,7 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
 
         await dialogHarness.searchApi(API_NAME);
         tick(100);
-        expectApiSearchPost(API);
+        expectApiSearchPost('my-api', [API], []);
         await dialogHarness.selectApi(API_NAME);
 
         const plan = fakePlanV4({
@@ -331,7 +332,7 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
 
       await dialogHarness.searchApi(API_NAME);
       tick(100);
-      expectApiSearchPost(API);
+      expectApiSearchPost('my-api', [API], []);
       await dialogHarness.selectApi(API_NAME);
 
       const plan = fakePlanV4({
@@ -362,7 +363,7 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
 
       await dialogHarness.searchApi(API_NAME);
       tick(100);
-      expectApiSearchPost(API);
+      expectApiSearchPost('my-api', [API], []);
       await dialogHarness.selectApi(API_NAME);
 
       const plan = fakePlanV4({
@@ -384,7 +385,7 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
 
       await dialogHarness.searchApi(API_NAME);
       tick(100);
-      expectApiSearchPost(API);
+      expectApiSearchPost('my-api', [API], []);
       await dialogHarness.selectApi(API_NAME);
 
       const pushPlan = fakePlanV4({ apiId: API_ID, security: null, mode: 'PUSH', commentRequired: false, generalConditions: null });
@@ -399,6 +400,57 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
       expectApiSubscriptionsPostRequest(subscription, pushPlan.id, null, 'PUSH');
       expect(routerNavigateSpy).toHaveBeenCalledWith(['.', expect.anything()], expect.anything());
     }));
+
+    describe('With API Product', () => {
+      const API_PRODUCT_ID = 'api-product-id';
+      const API_PRODUCT_NAME = 'my-api-product';
+      const API_PRODUCT: ApiProduct = {
+        id: API_PRODUCT_ID,
+        name: API_PRODUCT_NAME,
+        version: '1',
+        primaryOwner: { id: 'owner-id', displayName: 'Product owner' },
+      };
+      const API_PRODUCT_PLAN = fakePlanV4({
+        id: 'product-plan-id',
+        name: 'Product plan',
+        apiId: API_PRODUCT_ID,
+        security: { type: 'API_KEY' },
+        commentRequired: false,
+        generalConditions: null,
+      });
+
+      it('should create a subscription for an API Product', fakeAsync(async () => {
+        await init();
+
+        await dialogHarness.searchApi(API_PRODUCT_NAME);
+        tick(100);
+        expectApiSearchPost(API_PRODUCT_NAME, [], [API_PRODUCT]);
+
+        await dialogHarness.selectApi(API_PRODUCT_NAME);
+        expectSubscribableApiProductPlansGet(API_PRODUCT_ID, [API_PRODUCT_PLAN]);
+
+        await dialogHarness.selectPlan(API_PRODUCT_PLAN.name);
+        await dialogHarness.createSubscription();
+
+        const subscription = fakeNewSubscriptionEntity();
+        expectApiSubscriptionsPostRequest(subscription, API_PRODUCT_PLAN.id);
+        expect(routerNavigateSpy).toHaveBeenCalledWith(['.', expect.anything()], expect.anything());
+      }));
+
+      it('should trigger both API and API Product search when typing in the reference field', fakeAsync(async () => {
+        await init();
+
+        await dialogHarness.searchApi(API_NAME);
+        tick(100);
+        expectApiSearchPost('my-api', [API], [API_PRODUCT]);
+
+        await dialogHarness.selectApi(API_NAME);
+        expectSubscribableApiPlansGet([
+          fakePlanV4({ apiId: API_ID, security: { type: 'API_KEY' } }),
+          fakePlanV4({ apiId: API_ID, security: { type: 'JWT' } }),
+        ]);
+      }));
+    });
   });
 
   const expectSubscriptionsGetRequest = (
@@ -433,19 +485,31 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
       .flush(ENTRYPOINT_LIST);
   };
 
-  const expectApiSearchPost = (api: Api) => {
-    const req = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=9999&manageOnly=false`,
-      method: 'POST',
-    });
-    expect(req.request.body).toEqual({ query: 'my-api' });
-    req.flush(fakePagedResult([api]));
+  const expectApiSearchPost = (query: string, apis: Api[], apiProducts: unknown[] = []) => {
+    const apiReq = httpTestingController.expectOne((req): boolean => req.method === 'POST' && req.url.includes('/apis/_search'));
+    expect(apiReq.request.body).toEqual({ query });
+    apiReq.flush(fakePagedResult(apis));
+
+    const productReq = httpTestingController.expectOne(
+      (req): boolean => req.method === 'POST' && req.url.includes('/api-products/_search'),
+    );
+    expect(productReq.request.body).toEqual({ query });
+    productReq.flush(fakePagedResult(apiProducts));
   };
 
   const expectSubscribableApiPlansGet = (plans: Plan[] = []) => {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=9999&subscribableBy=${APPLICATION_ID}`,
+        method: 'GET',
+      })
+      .flush(fakePagedResult(plans));
+  };
+
+  const expectSubscribableApiProductPlansGet = (apiProductId: string, plans: Plan[] = []) => {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${apiProductId}/plans?page=1&perPage=9999&subscribableBy=${APPLICATION_ID}`,
         method: 'GET',
       })
       .flush(fakePagedResult(plans));
