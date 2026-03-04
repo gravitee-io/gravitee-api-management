@@ -118,8 +118,9 @@ Goal: Display application members in a new tab with role information. After this
 - Actions column shows Edit and Delete icon buttons
 - Search bar above the table to filter members
 - Empty state displayed when no members exist (following subscriptions pattern)
-- Header row: "Members" title on left, "Transfer ownership" + "Add members" buttons on right
-- Members service created to call `GET /applications/{applicationId}/members/v2`
+- Header row: "Members" title on left, "Transfer ownership" button + "Add members" dropdown button on right
+- "Add members" is a dropdown button with options: "Search users" and "Invite users" (dialogs, no page navigation)
+- Members service created to call `GET /applications/{applicationId}/membersV2`
 
 **Layer:** Frontend
 **Complexity:** L
@@ -270,27 +271,7 @@ Goal: Allow searching and adding registered users as members. After this phase, 
 
 ---
 
-### Story 3.3 - FE: Add Members Page (Page 2)
-
-**Title:** Add Members page within the Members tab
-
-**Description:** As a portal user, I want to click "Add members" and see a dedicated view to search and add multiple users so that I can efficiently manage membership.
-
-**Acceptance Criteria:**
-
-- Clicking "Add members" button toggles from Page 1 (table) to Page 2 (add members view)
-- Page 2 header: "Add members (N)" where N = number of pending additions (default 0)
-- "Back to Members" button returns to Page 1
-- Dropdown with 2 options: "Search users" and "Invite users" (invite wired in Phase 4)
-- State management for pending members list
-
-**Layer:** Frontend
-**Complexity:** M
-**Dependencies:** Story 1.4
-
----
-
-### Story 3.4 - FE: Search Users Dialog
+### Story 3.3 - FE: Search Users Dialog (Add Members)
 
 **Title:** Dialog to search and select users for adding
 
@@ -298,18 +279,19 @@ Goal: Allow searching and adding registered users as members. After this phase, 
 
 **Acceptance Criteria:**
 
-- Dialog opens from "Search users" dropdown option
-- Contains: role dropdown, user search input
-- Search calls `POST /applications/{applicationId}/members/v2/_search-users`
+- "Add members" button on the members header is a dropdown with 2 options: "Search users" and "Invite users" (invite wired in Phase 4)
+- "Search users" opens a dialog directly (no page navigation)
+- Dialog contains: role dropdown, user search input (autocomplete)
+- Search calls `POST /applications/{applicationId}/membersV2/_search-users`
 - Selected users appear as `mat-chip-set` with close buttons
 - Checkbox: "Notify members when added"
 - Cancel and "Add members" actions
-- On submit, calls `POST /applications/{applicationId}/members/v2` for each selected user
-- Returns to Page 1 and refreshes table on success
+- On submit, calls `POST /applications/{applicationId}/membersV2` for selected users
+- Refreshes members table on success
 
 **Layer:** Frontend
 **Complexity:** L
-**Dependencies:** Story 3.3
+**Dependencies:** Story 1.4
 
 ---
 
@@ -408,15 +390,16 @@ Goal: Allow inviting unregistered users by email. After this phase, FE+BE can te
 
 **Acceptance Criteria:**
 
-- Dialog opens from "Invite users" dropdown option on Page 2
+- Dialog opens from "Invite users" option in the "Add members" dropdown button
 - Contains: role dropdown, email text input
 - Cancel and "Invite member" actions
 - On submit, calls `POST /applications/{applicationId}/members/v2/_invite`
+- Refreshes members table on success
 - Shows success notification
 
 **Layer:** Frontend
 **Complexity:** S
-**Dependencies:** Story 3.3
+**Dependencies:** Story 1.4
 
 ---
 
@@ -428,7 +411,7 @@ Goal: Allow inviting unregistered users by email. After this phase, FE+BE can te
 
 **Acceptance Criteria:**
 
-- Table fetches both members (`/members/v2`) and invitations (`/members/v2/_invitations`)
+- Table fetches both members (`/membersV2`) and invitations (`/membersV2/_invitations`)
 - Invited members show status "Pending", active members show "Active"
 - Type column distinguishes user vs invited
 - Edit action on invited members calls update invitation endpoint
@@ -437,7 +420,7 @@ Goal: Allow inviting unregistered users by email. After this phase, FE+BE can te
 
 **Layer:** Frontend
 **Complexity:** M
-**Dependencies:** Story 1.4, Story 4.5
+**Dependencies:** Story 1.4, Story 4.2
 
 ---
 
@@ -509,13 +492,37 @@ graph TD
 
     S3_1["3.1 BE: Search Users"]
     S3_2["3.2 BE: Add Member"]
-    S3_3["3.3 FE: Add Members Page"]
-    S3_4["3.4 FE: Search Dialog"]
+    S3_3["3.3 FE: Search Users Dialog"]
 
     S4_1["4.1 BE: Invite User"]
     S4_2["4.2 BE: List Invitations"]
-    S4_3["4.3 BE
+    S4_3["4.3 BE: Delete Invitation"]
+    S4_4["4.4 BE: Update Invitation"]
+    S4_5["4.5 FE: Invite Dialog"]
+    S4_6["4.6 FE: Invitations in Table"]
+
+    S5_1["5.1 BE: Transfer Ownership"]
+    S5_2["5.2 FE: Transfer Dialog"]
+
+    S1_3 --> S1_4
+    S1_1 --> S1_4
+    S1_4 --> S2_3
+    S1_4 --> S2_4
+    S1_2 --> S2_3
+    S2_1 --> S2_3
+    S2_2 --> S2_4
+    S1_4 --> S3_3
+    S3_1 --> S3_3
+    S3_2 --> S3_3
+    S1_4 --> S4_5
+    S4_1 --> S4_5
+    S4_1 --> S4_2
+    S4_2 --> S4_3
+    S4_2 --> S4_4
+    S1_4 --> S4_6
+    S4_2 --> S4_6
+    S1_1 --> S5_1
+    S1_4 --> S5_2
+    S5_1 --> S5_2
+    S1_2 --> S5_2
 ```
-
-
-
