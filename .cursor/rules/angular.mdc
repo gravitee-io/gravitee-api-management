@@ -91,6 +91,40 @@ this.backendService.get().pipe(
 - **Async:** Await all Promises. Use `fixture.destroy()` instead of `discardPeriodicTasks`.
 - **HTTP Testing:** When a component uses services that call the backend, use `HttpTestingController` rather than mocking them.
 
+### Testing components that use `rxResource`
+
+**NEVER** use `HttpClientTestingModule` or `AppTestingModule` for components with `rxResource` — tests will hang on `await fixture.whenStable()`. Use the standalone provider style instead:
+
+```typescript
+// ❌ BAD — hangs with rxResource
+TestBed.configureTestingModule({
+  imports: [MyComponent, HttpClientTestingModule, AppTestingModule],
+});
+
+// ✅ GOOD — works with rxResource
+TestBed.configureTestingModule({
+  imports: [MyComponent],
+  providers: [
+    provideHttpClient(),
+    provideHttpClientTesting(),
+    provideNoopAnimations(),
+    provideRouter([]),
+    { provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL } },
+  ],
+});
+```
+
+Setup pattern — flush HTTP **immediately** after `detectChanges()`, then re-render:
+
+```typescript
+async function setup(response = fakeResponse()) {
+  fixture.detectChanges();                    // triggers rxResource stream
+  http.expectOne(req => req.url.includes('/myEndpoint')).flush(response);
+  await fixture.whenStable();                 // wait for signal propagation
+  fixture.detectChanges();                    // re-render with new signal values
+}
+```
+
 ## Code example (Gold Standard)
 ```typescript
 @Component({

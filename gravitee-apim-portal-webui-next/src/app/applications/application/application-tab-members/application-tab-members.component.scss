@@ -20,9 +20,47 @@
   flex-direction: column;
   gap: 16px;
 
+  &__search {
+    width: 100%;
+    max-width: 400px;
+  }
+
   &__header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+
+    &__actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+
+  &__menu-item {
+    display: flex;
+    flex-direction: column;
+
+    &__description {
+      color: app-theme.$paragraph-color;
+    }
+  }
+
+  &__empty-state,
+  &__empty-filtered {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    h2 {
+      margin-bottom: 8px;
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: app-theme.$paragraph-color;
+    }
   }
 }

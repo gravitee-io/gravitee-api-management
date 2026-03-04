@@ -3,43 +3,49 @@
 ## Phase & Story Checklist
 
 ### Phase 1: View Members
-- [ ] 1.0 - BE: Define Application Members V2 Portal API Contract
-- [ ] 1.1 - BE: List Application Members (UseCase)
-- [ ] 1.2 - BE: List Application Roles (UseCase)
+
+- 1.0 - BE: Define Application Members V2 Portal API Contract
+- 1.1 - BE: List Application Members (UseCase)
+- 1.2 - BE: List Application Roles (UseCase)
 - ✅ 1.3 - FE: Members Tab & Routing
-- [ ] 1.4 - FE: Members Table
-- [ ] 1.5 - FE: Extend Paginated Table for Custom Action Cells
+- ✅ 1.4 - FE: Members Table
+- 1.5 - FE: Extend Paginated Table for Custom Action Cells
 
 ### Phase 2: Edit & Delete Members
-- [ ] 2.1 - BE: Update Member Role (UseCase)
-- [ ] 2.2 - BE: Delete Application Member (UseCase)
-- [ ] 2.3 - FE: Edit Member Role Dialog
-- [ ] 2.4 - FE: Delete Member Dialog
+
+- 2.1 - BE: Update Member Role (UseCase)
+- 2.2 - BE: Delete Application Member (UseCase)
+- 2.3 - FE: Edit Member Role Dialog
+- 2.4 - FE: Delete Member Dialog
 
 ### Phase 3: Add Members
-- [ ] 3.1 - BE: Search Users for Application (UseCase)
-- [ ] 3.2 - BE: Add Application Member (UseCase)
-- [ ] 3.3 - FE: Search Users Dialog (Add Members)
+
+- 3.1 - BE: Search Users for Application (UseCase)
+- 3.2 - BE: Add Application Member (UseCase)
+- 3.3 - FE: Search Users Dialog (Add Members)
 
 ### Phase 4: Invite Users via Email
-- [ ] 4.1 - BE: Invite User to Application (UseCase)
-- [ ] 4.2 - BE: List Pending Invitations (UseCase)
-- [ ] 4.3 - BE: Delete Pending Invitation (UseCase)
-- [ ] 4.4 - BE: Update Invited Member Role (UseCase)
-- [ ] 4.5 - BE: Invitation Acceptance to Membership Flow
-- [ ] 4.6 - BE: Unified Members + Invitations Query (UseCase)
-- [ ] 4.7 - FE: Invite User Dialog
-- [ ] 4.8 - FE: Display Invited Members in Table
+
+- 4.1 - BE: Invite User to Application (UseCase)
+- 4.2 - BE: List Pending Invitations (UseCase)
+- 4.3 - BE: Delete Pending Invitation (UseCase)
+- 4.4 - BE: Update Invited Member Role (UseCase)
+- 4.5 - BE: Invitation Acceptance to Membership Flow
+- 4.6 - BE: Unified Members + Invitations Query (UseCase)
+- 4.7 - FE: Invite User Dialog
+- 4.8 - FE: Display Invited Members in Table
 
 ### Phase 5: Transfer Ownership
-- [ ] 5.1 - BE: Transfer Application Ownership (UseCase)
-- [ ] 5.2 - FE: Transfer Ownership Dialog
+
+- 5.1 - BE: Transfer Application Ownership (UseCase)
+- 5.2 - FE: Transfer Ownership Dialog
 
 ---
 
 ## Summary of Completed Work
 
 - **Story 1.3 (FE: Members Tab & Routing)** — Application tab members shell component, route `members` under `:applicationId`, Members tab link in application nav (gated by `MEMBER` read permission), component spec. Aligned with portal-next design system (theme SCSS, m3 typography) and Angular rules (signal inputs, standalone).
+- **Story 1.4 (FE: Members Table)** — `ApplicationMembersService` (list endpoint), `MemberV2`/`MembersV2Response` entity types + fixtures, full table component with `rxResource`, search bar, header with "Transfer Ownership" + "Add Members" dropdown (User Search / Email Invitation with descriptions), `app-paginated-table`, empty states, permission-gated "Add Members" button. Service spec (3 tests) + component spec (14 tests). 37 total tests pass.
 
 ## Key Decisions
 
@@ -57,3 +63,4 @@ Detailed insights, gotchas, surprises, blockers, and effective prompts are track
 
 - [agent-ivan.md](agent-ivan.md) -- Ivan's agent
 - [agent-jarek.md](agent-jarek.md) -- Jarek's agent
+

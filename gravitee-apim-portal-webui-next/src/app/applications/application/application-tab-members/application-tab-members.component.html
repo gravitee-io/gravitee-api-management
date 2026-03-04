@@ -16,10 +16,66 @@
 
 -->
 <div class="application-tab-members" data-testid="application-tab-members">
-  <div class="application-tab-members__header">
-    <h2 class="m3-title-medium" i18n="@@applicationTabMembersTitle">Members</h2>
-  </div>
-  <div class="application-tab-members__placeholder">
-    <p class="m3-body-medium" i18n="@@applicationTabMembersPlaceholder">Member management coming soon.</p>
-  </div>
+  @if (hasMembers()) {
+    <mat-form-field class="application-tab-members__search" appearance="outline">
+      <mat-label i18n="@@membersSearchLabel">Search by username or email</mat-label>
+      <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+      <input matInput [value]="searchQuery()" (input)="onSearchInput($event)" data-testid="members-search-input" />
+    </mat-form-field>
+
+    <div class="application-tab-members__header">
+      <h2 class="m3-title-medium" i18n="@@applicationTabMembersTitle">Members</h2>
+      <div class="application-tab-members__header__actions">
+        <button mat-button data-testid="transfer-ownership-btn" i18n="@@membersTransferOwnership">Transfer Ownership</button>
+        @if (canCreate()) {
+          <button mat-flat-button [matMenuTriggerFor]="addMembersMenu" data-testid="add-members-btn">
+            <mat-icon>person_add</mat-icon>
+            <span i18n="@@membersAddMembers">Add Members</span>
+          </button>
+          <mat-menu #addMembersMenu="matMenu">
+            <button mat-menu-item data-testid="menu-user-search">
+              <mat-icon aria-hidden="true">search</mat-icon>
+              <div class="application-tab-members__menu-item">
+                <span class="m3-body-medium" i18n="@@membersMenuUserSearch">User Search</span>
+                <span class="m3-body-small application-tab-members__menu-item__description" i18n="@@membersMenuUserSearchDesc">Find registered users</span>
+              </div>
+            </button>
+            <button mat-menu-item data-testid="menu-email-invitation">
+              <mat-icon aria-hidden="true">mail</mat-icon>
+              <div class="application-tab-members__menu-item">
+                <span class="m3-body-medium" i18n="@@membersMenuEmailInvitation">Email Invitation</span>
+                <span class="m3-body-small application-tab-members__menu-item__description" i18n="@@membersMenuEmailInvitationDesc">Invite unregistered users</span>
+              </div>
+            </button>
+          </mat-menu>
+        }
+      </div>
+    </div>
+
+    @if (isLoading()) {
+      <app-loader />
+    } @else if (rows().length === 0) {
+      <div class="application-tab-members__empty-filtered">
+        <span class="material-icons icon-with-background m3-headline-large" aria-hidden="true">filter_list_off</span>
+        <h2 class="m3-title-large" i18n="@@membersNoResultsTitle">No members found</h2>
+        <p i18n="@@membersNoResultsDescription">Try adjusting your search to find members.</p>
+      </div>
+    } @else {
+      <app-paginated-table
+        [columns]="tableColumns"
+        [rows]="rows()"
+        [totalElements]="totalElements()"
+        [currentPage]="currentPage()"
+        [pageSize]="pageSize()"
+        (pageChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)"
+      />
+    }
+  } @else {
+    <div class="application-tab-members__empty-state">
+      <span class="material-icons icon-with-background m3-headline-large" aria-hidden="true">group</span>
+      <h2 class="m3-title-large" i18n="@@membersEmptyTitle">No members yet</h2>
+      <p i18n="@@membersEmptyDescription">Add members to your application to grant them access.</p>
+    </div>
+  }
 </div>
