@@ -93,6 +93,10 @@ export type { ThemeToggleProps } from './components/layout/ThemeToggle';
 export { AppSidebar } from './components/layout/AppSidebar';
 export type { AppSidebarProps, NavItem, NavSubItem, UserInfo } from './components/layout/AppSidebar';
 
+// ── Layout: GraviteeLogo ─────────────────────────────
+export { GraviteeLogo, GraviteeIcon } from './components/layout/GraviteeLogo';
+export type { GraviteeLogoProps, GraviteeIconProps } from './components/layout/GraviteeLogo';
+
 // ── Layout: MainLayout ──────────────────────────────
 export { MainLayout } from './components/layout/MainLayout';
 export type { MainLayoutProps } from './components/layout/MainLayout';

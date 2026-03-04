@@ -239,7 +239,8 @@ function SidebarLogo({
   if (!logo && !collapsedLogo) return null;
 
   return (
-    <div className="flex items-center gap-2 px-2 py-1 group-data-[collapsible=icon]:justify-center">
+    <div 
+    className={cn("flex items-center gap-2 px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0", state === 'collapsed' ? 'py-0' : 'py-2')}>
       {state === 'collapsed' ? (collapsedLogo ?? logo) : logo}
     </div>
   );

@@ -3,6 +3,8 @@
 @import '../tokens/semantic.css';
 @import '../tokens/component.css';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   /* ── Map semantic tokens to Tailwind utilities ──── */
   --color-background: var(--background);
