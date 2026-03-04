@@ -28,5 +28,5 @@ export class ApplicationCardComponent {
   readonly title = input.required<string>();
   readonly description = input<string>();
 
-  select = output<string>();
+  cardSelect = output<string>();
 }

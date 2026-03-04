@@ -16,19 +16,18 @@
 import { Component, Signal, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
-import { MatSelectModule } from '@angular/material/select';
 import { Router, RouterLink } from '@angular/router';
 import { BehaviorSubject, catchError, distinctUntilChanged, map, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
+
+import { CardsGridComponent } from 'src/components/cards-grid/cards-grid.component';
 
 import { ApplicationCardComponent } from '../../../components/application-card/application-card.component';
 import { PaginationComponent } from '../../../components/pagination/pagination.component';
 import { ApplicationService } from '../../../services/application.service';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { ObservabilityBreakpointService } from '../../../services/observability-breakpoint.service';
-import { CardsGridComponent } from 'src/components/cards-grid/cards-grid.component';
 
 export interface ApplicationPaginatorVM {
   data: {
@@ -42,16 +41,7 @@ export interface ApplicationPaginatorVM {
 
 @Component({
   selector: 'app-applications',
-  imports: [
-    ApplicationCardComponent,
-    CardsGridComponent,
-    MatButton,
-    MatFormFieldModule,
-    MatIcon,
-    MatSelectModule,
-    PaginationComponent,
-    RouterLink,
-  ],
+  imports: [ApplicationCardComponent, CardsGridComponent, MatButton, MatIcon, PaginationComponent, RouterLink],
   templateUrl: './applications.component.html',
   styleUrl: './applications.component.scss',
 })
