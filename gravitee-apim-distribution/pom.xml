@@ -166,8 +166,8 @@
             <type>zip</type>
         </dependency>
         <dependency>
-            <groupId>io.gravitee.entrypoint</groupId>
-            <artifactId>gravitee-entrypoint-mcp</artifactId>
+            <groupId>com.graviteesource.entrypoint</groupId>
+            <artifactId>gravitee-entrypoint-mcp-tool-server</artifactId>
             <version>${gravitee-entrypoint-mcp.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
