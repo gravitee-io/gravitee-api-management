@@ -14,6 +14,7 @@ import {
   Command,
   ChevronDown,
   Search,
+  Home,
 } from 'lucide-react';
 import { Button } from '@baros/components/ui/button';
 import {
@@ -47,6 +48,12 @@ const organizations: Organization[] = [
 const environments = ['Production', 'Staging', 'Development'];
 
 const navItems: NavItem[] = [
+  {
+    key: 'dashboard',
+    title: 'Dashboard',
+    url: '#',
+    icon: Home,
+  },
   {
     key: 'apis-events',
     title: 'APIs & Events',
