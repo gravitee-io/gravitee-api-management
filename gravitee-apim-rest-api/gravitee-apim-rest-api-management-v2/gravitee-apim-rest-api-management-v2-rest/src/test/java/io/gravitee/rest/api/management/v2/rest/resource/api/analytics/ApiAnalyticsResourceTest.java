@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -68,6 +70,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
     WebTarget averageMessagesPerRequestTarget;
     WebTarget averageConnectionDurationTarget;
     WebTarget responseTimeOverTimeTarget;
+    WebTarget analyticsTarget;
 
     @Inject
     FakeAnalyticsQueryService fakeAnalyticsQueryService;
@@ -93,6 +96,249 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
         GraviteeContext.cleanContext();
         fakeAnalyticsQueryService.reset();
         apiCrudServiceInMemory.reset();
+    }
+
+    @Nested
+    class UnifiedApiAnalytics {
+
+        @BeforeEach
+        void prepareTarget() {
+            analyticsTarget = rootTarget();
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_ANALYTICS,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = analyticsTarget
+                .queryParam("type", "COUNT")
+                .queryParam("from", 0L)
+                .queryParam("to", 1L)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_return_empty_count_contract() {
+            final Response response = analyticsTarget
+                .queryParam("type", "COUNT")
+                .queryParam("from", 0L)
+                .queryParam("to", 1L)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(Map.class)
+                .satisfies(body -> {
+                    assertThat(body).containsEntry("type", "COUNT");
+                    assertThat(body.get("count")).isEqualTo(0);
+                });
+        }
+
+        @Test
+        void should_return_empty_stats_contract() {
+            final Response response = analyticsTarget
+                .queryParam("type", "STATS")
+                .queryParam("from", 0L)
+                .queryParam("to", 1L)
+                .queryParam("field", "status")
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(Map.class)
+                .satisfies(body -> {
+                    assertThat(body).containsEntry("type", "STATS");
+                    assertThat(body).containsKeys("count", "min", "max", "avg", "sum");
+                    assertThat(body.get("count")).isEqualTo(0);
+                });
+        }
+
+        @Test
+        void should_return_empty_group_by_contract() {
+            final Response response = analyticsTarget
+                .queryParam("type", "GROUP_BY")
+                .queryParam("from", 0L)
+                .queryParam("to", 1L)
+                .queryParam("field", "status")
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(Map.class)
+                .satisfies(body -> {
+                    assertThat(body).containsEntry("type", "GROUP_BY");
+                    assertThat((Map<?, ?>) body.get("values")).isEmpty();
+                    assertThat((Map<?, ?>) body.get("metadata")).isEmpty();
+                });
+        }
+
+        @Test
+        void should_return_empty_date_histo_contract() {
+            final Response response = analyticsTarget
+                .queryParam("type", "DATE_HISTO")
+                .queryParam("from", 0L)
+                .queryParam("to", 1L)
+                .queryParam("interval", 1000L)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(Map.class)
+                .satisfies(body -> {
+                    assertThat(body).containsEntry("type", "DATE_HISTO");
+                    assertThat((List<?>) body.get("timestamp")).isEmpty();
+                    assertThat((List<?>) body.get("values")).isEmpty();
+                });
+        }
+
+        @Test
+        void should_return_400_if_type_is_missing() {
+            final Response response = analyticsTarget.queryParam("from", 0L).queryParam("to", 1L).request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Validation error");
+        }
+
+        @Test
+        void should_return_400_if_from_is_after_to() {
+            final Response response = analyticsTarget
+                .queryParam("type", "COUNT")
+                .queryParam("from", 2L)
+                .queryParam("to", 1L)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Validation error");
+        }
+
+        @Test
+        void should_return_400_if_stats_field_is_missing() {
+            final Response response = analyticsTarget
+                .queryParam("type", "STATS")
+                .queryParam("from", 0L)
+                .queryParam("to", 1L)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_if_group_by_field_is_missing() {
+            final Response response = analyticsTarget
+                .queryParam("type", "GROUP_BY")
+                .queryParam("from", 0L)
+                .queryParam("to", 1L)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_if_date_histo_interval_is_missing() {
+            final Response response = analyticsTarget
+                .queryParam("type", "DATE_HISTO")
+                .queryParam("from", 0L)
+                .queryParam("to", 1L)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_if_period_is_too_large() {
+            final Response response = analyticsTarget
+                .queryParam("type", "COUNT")
+                .queryParam("from", 0L)
+                .queryParam("to", 31_536_000_001L)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_404_if_api_is_not_found() {
+            apiCrudServiceInMemory.reset();
+
+            final Response response = analyticsTarget
+                .queryParam("type", "COUNT")
+                .queryParam("from", 0L)
+                .queryParam("to", 1L)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(NOT_FOUND_404)
+                .asError()
+                .hasHttpStatus(NOT_FOUND_404)
+                .hasMessage("Api not found.");
+        }
+
+        @Test
+        void should_return_400_if_api_definition_is_not_v4() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2().toBuilder().environmentId(ENVIRONMENT).build()));
+
+            final Response response = analyticsTarget
+                .queryParam("type", "COUNT")
+                .queryParam("from", 0L)
+                .queryParam("to", 1L)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_if_api_is_tcp_proxy() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aTcpApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+
+            final Response response = analyticsTarget
+                .queryParam("type", "COUNT")
+                .queryParam("from", 0L)
+                .queryParam("to", 1L)
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+        }
     }
 
     @Nested

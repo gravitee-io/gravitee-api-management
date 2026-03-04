@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
+import io.gravitee.apim.core.analytics.use_case.SearchApiAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
@@ -30,12 +31,16 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountRe
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.analytics.param.SearchApiAnalyticsParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
@@ -45,9 +50,15 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import org.apache.commons.lang.StringUtils;
 
 public class ApiAnalyticsResource extends AbstractResource {
+
+    private static final long MAX_ANALYTICS_PERIOD_IN_MILLIS = Duration.ofDays(365).toMillis();
 
     @PathParam("apiId")
     private String apiId;
@@ -69,6 +80,37 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @Inject
     private SearchResponseStatusOverTimeUseCase searchResponseStatusOverTimeUseCase;
+
+    @Inject
+    private SearchApiAnalyticsUseCase searchApiAnalyticsUseCase;
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public Map<String, Object> getApiAnalytics(@BeanParam @Valid SearchApiAnalyticsParam param) {
+        validateApiAnalyticsParam(param);
+        searchApiAnalyticsUseCase.execute(
+            GraviteeContext.getExecutionContext(),
+            new SearchApiAnalyticsUseCase.Input(
+                apiId,
+                GraviteeContext.getCurrentEnvironment(),
+                SearchApiAnalyticsUseCase.Type.valueOf(param.getType().name())
+            )
+        );
+
+        return switch (param.getType()) {
+            case COUNT -> Map.of("type", param.getType().name(), "count", 0L);
+            case STATS -> Map.of("type", param.getType().name(), "count", 0L, "min", 0D, "max", 0D, "avg", 0D, "sum", 0D);
+            case GROUP_BY -> {
+                var emptyGroupBy = new LinkedHashMap<String, Object>();
+                emptyGroupBy.put("type", param.getType().name());
+                emptyGroupBy.put("values", Map.of());
+                emptyGroupBy.put("metadata", Map.of());
+                yield emptyGroupBy;
+            }
+            case DATE_HISTO -> Map.of("type", param.getType().name(), "timestamp", List.of(), "values", List.of());
+        };
+    }
 
     @Path("/requests-count")
     @GET
@@ -181,5 +223,57 @@ public class ApiAnalyticsResource extends AbstractResource {
         }
 
         return ApiAnalyticsMapper.INSTANCE.map(result);
+    }
+
+    private void validateApiAnalyticsParam(SearchApiAnalyticsParam param) {
+        validateAnalyticsPeriod(param.getFrom(), param.getTo());
+
+        switch (param.getType()) {
+            case COUNT -> validateCountParam(param);
+            case STATS -> validateStatsParam(param);
+            case GROUP_BY -> validateGroupByParam(param);
+            case DATE_HISTO -> validateDateHistoParam(param);
+        }
+    }
+
+    private void validateAnalyticsPeriod(Long from, Long to) {
+        if (to - from > MAX_ANALYTICS_PERIOD_IN_MILLIS) {
+            throw new BadRequestException("Requested period is too large");
+        }
+    }
+
+    private void validateCountParam(SearchApiAnalyticsParam param) {
+        if (
+            StringUtils.isNotBlank(param.getField()) || param.getInterval() != null || param.getSize() != null || param.getOrder() != null
+        ) {
+            throw new BadRequestException("COUNT only supports 'type', 'from' and 'to' query parameters");
+        }
+    }
+
+    private void validateStatsParam(SearchApiAnalyticsParam param) {
+        if (StringUtils.isBlank(param.getField())) {
+            throw new BadRequestException("STATS requires a non-empty 'field' query parameter");
+        }
+        if (param.getInterval() != null || param.getSize() != null || param.getOrder() != null) {
+            throw new BadRequestException("STATS only supports 'type', 'from', 'to' and 'field' query parameters");
+        }
+    }
+
+    private void validateGroupByParam(SearchApiAnalyticsParam param) {
+        if (StringUtils.isBlank(param.getField())) {
+            throw new BadRequestException("GROUP_BY requires a non-empty 'field' query parameter");
+        }
+        if (param.getInterval() != null) {
+            throw new BadRequestException("GROUP_BY does not support 'interval' query parameter");
+        }
+    }
+
+    private void validateDateHistoParam(SearchApiAnalyticsParam param) {
+        if (param.getInterval() == null) {
+            throw new BadRequestException("DATE_HISTO requires 'interval' query parameter");
+        }
+        if (StringUtils.isNotBlank(param.getField()) || param.getSize() != null || param.getOrder() != null) {
+            throw new BadRequestException("DATE_HISTO only supports 'type', 'from', 'to' and 'interval' query parameters");
+        }
     }
 }

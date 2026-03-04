@@ -2015,6 +2015,68 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # API Analytics
+    /environments/{envId}/apis/{apiId}/analytics:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
+            - name: type
+              in: query
+              required: true
+              schema:
+                  type: string
+                  enum:
+                      - COUNT
+                      - STATS
+                      - GROUP_BY
+                      - DATE_HISTO
+            - name: field
+              in: query
+              schema:
+                  type: string
+            - name: interval
+              in: query
+              schema:
+                  type: integer
+                  format: int64
+            - name: size
+              in: query
+              schema:
+                  type: integer
+                  format: int32
+            - name: order
+              in: query
+              schema:
+                  type: string
+                  enum:
+                      - ASC
+                      - DESC
+        get:
+            tags:
+                - API Analytics
+            summary: Get unified API analytics
+            description: |-
+                Get API analytics from a unified endpoint.
+                Request and response shape depends on the `type` query parameter.
+                Only V4 PROXY APIs are supported. TCP Proxy APIs are not supported.
+
+                User must have the API_ANALYTICS[READ] permission.
+                Unauthenticated requests return `401`; authenticated requests without permission return `403`.
+            operationId: getApiAnalytics
+            responses:
+                "200":
+                    description: Unified API analytics response payload.
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                "401":
+                    $ref: "#/components/responses/Error"
+                "403":
+                    $ref: "#/components/responses/Error"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/analytics/requests-count:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
