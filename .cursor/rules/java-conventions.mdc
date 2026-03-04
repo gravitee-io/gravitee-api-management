@@ -1,0 +1,33 @@
+---
+description: Java language conventions and common pitfalls
+globs: "**/*.java"
+alwaysApply: false
+---
+
+# Java Conventions
+
+## Switch expressions: use `yield`, not `return`
+
+In a **switch expression** (Java 14+), each arm must produce a value. When using a block `{ ... }`, use `yield` to return the value—**not** `return`. Using `return` attempts to exit the containing method and causes: "attempt to return out of a switch expression".
+
+```java
+// ❌ BAD – compilation error
+return switch (x) {
+    case A -> a;
+    case B -> {
+        var tmp = compute();
+        return tmp;  // ERROR: attempt to return out of a switch expression
+    }
+};
+
+// ✅ GOOD
+return switch (x) {
+    case A -> a;
+    case B -> {
+        var tmp = compute();
+        yield tmp;
+    }
+};
+```
+
+When the arm is a simple expression, use `->` directly; use `yield` only inside blocks.
