@@ -86,7 +86,13 @@
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="tableColumns()"></tr>
-            <tr mat-row class="api-list__table__row" *matRowDef="let row; columns: tableColumns()" (click)="navigateToApi(row.id)"></tr>
+            <tr
+              mat-row
+              class="api-list__table__row"
+              *matRowDef="let row; columns: tableColumns()"
+              (click)="navigateToApi(row.id)"
+              (keydown.enter)="navigateToApi(row.id)"
+            ></tr>
           </table>
         </div>
       }
