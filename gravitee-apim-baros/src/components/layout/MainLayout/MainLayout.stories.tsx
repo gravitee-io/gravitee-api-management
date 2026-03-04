@@ -29,6 +29,7 @@ import { Separator } from '@baros/components/ui/separator';
 import { SidebarTrigger } from '@baros/components/ui/sidebar';
 import { AppSidebar } from '../AppSidebar';
 import type { NavItem } from '../AppSidebar';
+import { GraviteeLogo, GraviteeIcon } from '../GraviteeLogo';
 import { ThemeToggle } from '../ThemeToggle';
 import { TopNav } from '../TopNav';
 import { MainLayout } from './MainLayout';
@@ -181,8 +182,8 @@ export const Overview: Story = {
       <MainLayout
         sidebar={
           <AppSidebar
-            logo={<span className="text-lg font-bold text-primary">Gravitee</span>}
-            collapsedLogo={<span className="text-lg font-bold text-primary">G</span>}
+            logo={<GraviteeLogo />}
+            collapsedLogo={<GraviteeIcon />}
             navItems={navItems}
             activeItemKey={activeKey}
             onNavItemClick={setActiveKey}
@@ -314,8 +315,8 @@ export const CollapsedSidebar: Story = {
       defaultOpen={false}
       sidebar={
         <AppSidebar
-          logo={<span className="text-lg font-bold text-primary">Gravitee</span>}
-          collapsedLogo={<span className="text-lg font-bold text-primary">G</span>}
+          logo={<GraviteeLogo />}
+          collapsedLogo={<GraviteeIcon />}
           navItems={navItems}
           activeItemKey="policies"
           user={{ name: 'Jane Doe', email: 'jane.doe@gravitee.io' }}

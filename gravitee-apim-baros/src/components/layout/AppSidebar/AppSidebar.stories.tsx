@@ -12,6 +12,7 @@ import {
   Home,
 } from 'lucide-react';
 import { SidebarProvider } from '@baros/components/ui/sidebar';
+import { GraviteeLogo, GraviteeIcon } from '../GraviteeLogo';
 import { AppSidebar } from './AppSidebar';
 import type { NavItem } from './AppSidebar';
 
@@ -136,8 +137,8 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    logo: <span className="text-lg font-bold text-primary">Gravitee</span>,
-    collapsedLogo: <span className="text-lg font-bold text-primary">G</span>,
+    logo: <GraviteeLogo />,
+    collapsedLogo: <GraviteeIcon />,
     navItems: mockNavItems,
     activeItemKey: 'api-list',
     user: mockUser,
@@ -149,8 +150,8 @@ export const WithActiveSubItem: Story = {
     const [activeKey, setActiveKey] = useState('policies');
     return (
       <AppSidebar
-        logo={<span className="text-lg font-bold text-primary">Gravitee</span>}
-        collapsedLogo={<span className="text-lg font-bold text-primary">G</span>}
+        logo={<GraviteeLogo />}
+        collapsedLogo={<GraviteeIcon />}
         navItems={mockNavItems}
         activeItemKey={activeKey}
         onNavItemClick={setActiveKey}
@@ -162,8 +163,8 @@ export const WithActiveSubItem: Story = {
 
 export const Minimal: Story = {
   args: {
-    logo: <span className="text-lg font-bold text-primary">Gravitee</span>,
-    collapsedLogo: <span className="text-lg font-bold text-primary">G</span>,
+    logo: <GraviteeLogo />,
+    collapsedLogo: <GraviteeIcon />,
     navItems: mockNavItems.slice(0, 3),
     activeItemKey: 'agent-overview',
   },
