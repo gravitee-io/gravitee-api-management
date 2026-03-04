@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, getTestBed, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ActivatedRoute, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 
 import { ApiAnalyticsMcpProxyComponent } from './api-analytics-mcp-proxy.component';
 import { ApiAnalyticsMcpProxyHarness } from './api-analytics-mcp-proxy.component.harness';
@@ -37,7 +37,13 @@ describe('ApiAnalyticsMcpProxyComponent', () => {
   let componentHarness: ApiAnalyticsMcpProxyHarness;
   let httpTestingController: HttpTestingController;
 
-  const initComponent = async (queryParams = {}) => {
+  const queryParamsSubject = new BehaviorSubject<any>({});
+  const snapshotQueryParams: Record<string, any> = {};
+
+  const testBedRef = getTestBed();
+  const originalResetTestingModule = testBedRef.resetTestingModule;
+
+  beforeAll(async () => {
     TestBed.configureTestingModule({
       imports: [ApiAnalyticsMcpProxyComponent, NoopAnimationsModule, MatIconTestingModule, GioTestingModule],
       providers: [
@@ -46,9 +52,11 @@ describe('ApiAnalyticsMcpProxyComponent', () => {
           useValue: {
             snapshot: {
               params: { apiId: API_ID },
-              queryParams: queryParams,
+              get queryParams() {
+                return snapshotQueryParams;
+              },
             },
-            queryParams: of(queryParams),
+            queryParams: queryParamsSubject,
             params: of({ apiId: API_ID }),
           },
         },
@@ -56,6 +64,21 @@ describe('ApiAnalyticsMcpProxyComponent', () => {
     });
 
     await TestBed.compileComponents();
+    testBedRef.resetTestingModule = () => testBedRef;
+  });
+
+  afterAll(() => {
+    testBedRef.resetTestingModule = originalResetTestingModule;
+    testBedRef.resetTestingModule();
+  });
+
+  const initComponent = async (queryParams = {}) => {
+    fixture?.destroy();
+
+    Object.keys(snapshotQueryParams).forEach(k => delete snapshotQueryParams[k]);
+    Object.assign(snapshotQueryParams, queryParams);
+    queryParamsSubject.next(queryParams);
+
     fixture = TestBed.createComponent(ApiAnalyticsMcpProxyComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiAnalyticsMcpProxyHarness);

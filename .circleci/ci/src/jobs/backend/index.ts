@@ -25,4 +25,3 @@ export * from './job-test-plugin';
 export * from './job-test-reporter';
 export * from './job-test-repository';
 export * from './job-test-rest-api';
-export * from './job-validate';

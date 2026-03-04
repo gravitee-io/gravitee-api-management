@@ -18,15 +18,11 @@ import { BuildBackendJob, SetupJob } from '../jobs';
 import { E2EGenerateSDKJob, E2ELintBuildJob, E2ETestJob } from '../jobs/e2e';
 import { config } from '../config';
 import { CircleCIEnvironment } from '../pipelines';
-import { ValidateJob } from '../jobs/backend';
 
 export class BridgeCompatibilityTestsWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
     const setupJob = SetupJob.create(dynamicConfig);
     dynamicConfig.addJob(setupJob);
-
-    const validateJob = ValidateJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(validateJob);
 
     const buildBackendJob = BuildBackendJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(buildBackendJob);
@@ -42,8 +38,7 @@ export class BridgeCompatibilityTestsWorkflow {
 
     const jobs = [
       new workflow.WorkflowJob(setupJob, { context: config.jobContext, name: 'Setup' }),
-      new workflow.WorkflowJob(validateJob, { context: config.jobContext, name: 'Validate', requires: ['Setup'] }),
-      new workflow.WorkflowJob(buildBackendJob, { context: config.jobContext, name: 'Build backend', requires: ['Validate'] }),
+      new workflow.WorkflowJob(buildBackendJob, { context: config.jobContext, name: 'Build backend', requires: ['Setup'] }),
       new workflow.WorkflowJob(e2eGenerateSdkJob, {
         context: config.jobContext,
         name: 'Generate e2e tests SDK',

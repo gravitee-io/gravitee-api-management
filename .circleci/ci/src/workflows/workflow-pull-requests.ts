@@ -49,7 +49,6 @@ import {
   TestRepositoryJob,
   TestRestApiJob,
   TriggerSaasDockerImagesJob,
-  ValidateJob,
   NxFormatCheckJob,
   WebuiLintTestJob,
 } from '../jobs';
@@ -132,23 +131,15 @@ export class PullRequestsWorkflow {
       const setupJob = SetupJob.create(dynamicConfig);
       dynamicConfig.addJob(setupJob);
 
-      const validateBackendJob = ValidateJob.create(dynamicConfig, environment);
-      dynamicConfig.addJob(validateBackendJob);
-
       const buildBackendJob = BuildBackendJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(buildBackendJob);
 
       jobs.push(
         new workflow.WorkflowJob(setupJob, { name: 'Setup', context: config.jobContext }),
-        new workflow.WorkflowJob(validateBackendJob, {
-          name: 'Validate backend',
-          context: config.jobContext,
-          requires: ['Setup'],
-        }),
         new workflow.WorkflowJob(buildBackendJob, {
           name: 'Build backend',
           context: config.jobContext,
-          requires: ['Validate backend'],
+          requires: ['Setup'],
         }),
       );
 

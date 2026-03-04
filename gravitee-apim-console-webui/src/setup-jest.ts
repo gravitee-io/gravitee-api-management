@@ -15,10 +15,9 @@
  */
 
 import { setupZoneTestEnv } from 'jest-preset-angular/setup-env/zone';
-import 'chart.js/auto';
-import 'jest-canvas-mock';
-
 setupZoneTestEnv();
+
+jest.mock('chart.js/auto', () => ({}));
 
 // mocking swagger-ui for tests as it contains some JS incompatible with Jest
 // This means we will not be able to test Swagger in our components tests

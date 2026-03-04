@@ -101,22 +101,6 @@ jobs:
           root: .
           paths:
             - .gravitee.settings.xml
-  job-validate:
-    docker:
-      - image: cimg/openjdk:21.0.5
-    resource_class: medium
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - cmd-restore-maven-job-cache:
-          jobName: job-validate
-      - run:
-          name: Validate project
-          command: mvn -s .gravitee.settings.xml validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules,integration-tests-modules -T 2C
-      - cmd-notify-on-failure
-      - cmd-save-maven-job-cache:
-          jobName: job-validate
   job-build:
     docker:
       - image: cimg/openjdk:21.0.5
@@ -249,18 +233,12 @@ workflows:
           name: Setup
           context:
             - cicd-orchestrator
-      - job-validate:
-          name: Validate backend
-          context:
-            - cicd-orchestrator
-          requires:
-            - Setup
       - job-build:
           name: Build backend
           context:
             - cicd-orchestrator
           requires:
-            - Validate backend
+            - Setup
       - job-test-rest-api:
           name: Test rest-api
           context:
