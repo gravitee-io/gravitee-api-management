@@ -28,6 +28,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testi
 import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
 import { fakeAnalyticsCount } from '../../../../../entities/management-api-v2/analytics/analyticsCount.fixture';
 import { fakeAnalyticsStats } from '../../../../../entities/management-api-v2/analytics/analyticsStats.fixture';
+import { fakeAnalyticsGroupBy } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
 import { AnalyticsResponseStatusOvertime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusOvertime';
 import { AnalyticsResponseTimeOverTime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
 import { fakeAnalyticsResponseStatusOvertime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusOvertime.fixture';
@@ -130,12 +131,17 @@ describe('ApiAnalyticsProxyComponent', () => {
 
       expectUnifiedAnalyticsStats('endpoint-response-time-ms', fakeAnalyticsStats({ avg: 12.5 }));
       expectUnifiedAnalyticsStats('request-content-length', fakeAnalyticsStats({ avg: 256 }));
+      expectUnifiedAnalyticsGroupBy(fakeAnalyticsGroupBy());
       expect(await requestStats.getValues()).toEqual([
         { label: 'Total Requests', value: '100', isLoading: false },
         { label: 'Avg Gateway Response Time', value: '42.12ms', isLoading: false },
         { label: 'Avg Upstream Response Time', value: '12.5ms', isLoading: false },
         { label: 'Avg Content Length', value: '256B', isLoading: false },
       ]);
+
+      expect(await componentHarness.isPieChartPresent()).toBeTruthy();
+      expect(await componentHarness.isResponseStatusOvertimePresent()).toBeTruthy();
+      expect(await componentHarness.isResponseTimeOverTimePresent()).toBeTruthy();
     });
 
     it('should refresh', async () => {
@@ -144,6 +150,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectUnifiedAnalyticsStats('gateway-response-time-ms', fakeAnalyticsStats({ avg: 42.12 }));
       expectUnifiedAnalyticsStats('endpoint-response-time-ms', fakeAnalyticsStats({ avg: 12 }));
       expectUnifiedAnalyticsStats('request-content-length', fakeAnalyticsStats({ avg: 256 }));
+      expectUnifiedAnalyticsGroupBy(fakeAnalyticsGroupBy());
 
       expect(await requestStats.getValues()).toEqual([
         { label: 'Total Requests', value: '100', isLoading: false },
@@ -166,8 +173,31 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectUnifiedAnalyticsStats('gateway-response-time-ms', fakeAnalyticsStats());
       expectUnifiedAnalyticsStats('endpoint-response-time-ms', fakeAnalyticsStats());
       expectUnifiedAnalyticsStats('request-content-length', fakeAnalyticsStats());
+      expectUnifiedAnalyticsGroupBy(fakeAnalyticsGroupBy());
       expectApiGetResponseStatusOvertime();
       expectApiGetResponseTimeOverTime();
+    });
+
+    it('should degrade gracefully when unified endpoint returns 500', async () => {
+      const requestStats = await componentHarness.getRequestStatsHarness('Request Stats');
+      const countReq = httpTestingController.expectOne(
+        (r) => r.method === 'GET' && r.url.includes('/analytics') && r.params.get('type') === 'COUNT',
+      );
+      countReq.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(await requestStats.getValues()).toEqual([
+        { label: 'Total Requests', value: '-', isLoading: false },
+        { label: 'Avg Gateway Response Time', value: '', isLoading: true },
+        { label: 'Avg Upstream Response Time', value: '', isLoading: true },
+        { label: 'Avg Content Length', value: '', isLoading: true },
+      ]);
+
+      expectUnifiedAnalyticsStats('gateway-response-time-ms', fakeAnalyticsStats());
+      expectUnifiedAnalyticsStats('endpoint-response-time-ms', fakeAnalyticsStats());
+      expectUnifiedAnalyticsStats('request-content-length', fakeAnalyticsStats());
+      expectUnifiedAnalyticsGroupBy(fakeAnalyticsGroupBy());
     });
   });
 
@@ -199,6 +229,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectUnifiedAnalyticsStats('gateway-response-time-ms', fakeAnalyticsStats());
       expectUnifiedAnalyticsStats('endpoint-response-time-ms', fakeAnalyticsStats());
       expectUnifiedAnalyticsStats('request-content-length', fakeAnalyticsStats());
+      expectUnifiedAnalyticsGroupBy(fakeAnalyticsGroupBy());
     }
   });
 
@@ -227,6 +258,17 @@ describe('ApiAnalyticsProxyComponent', () => {
         r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics`) &&
         r.params.get('type') === 'STATS' &&
         r.params.get('field') === field,
+    );
+    req.flush(response);
+  }
+
+  function expectUnifiedAnalyticsGroupBy(response: { type: 'GROUP_BY'; values: Record<string, number>; metadata: Record<string, Record<string, string>> }) {
+    const req = httpTestingController.expectOne(
+      (r) =>
+        r.method === 'GET' &&
+        r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics`) &&
+        r.params.get('type') === 'GROUP_BY' &&
+        r.params.get('field') === 'status',
     );
     req.flush(response);
   }

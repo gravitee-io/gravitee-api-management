@@ -29,6 +29,7 @@ import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { onlyApiV4Filter } from '../../../../../util/apiFilter.operator';
 import { ApiAnalyticsV2Service } from '../../../../../services-ngx/api-analytics-v2.service';
 import { ApiAnalyticsFiltersBarComponent } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component';
+import { ApiAnalyticsHttpStatusPieChartComponent } from '../components/api-analytics-http-status-pie-chart/api-analytics-http-status-pie-chart.component';
 import { ApiAnalyticsResponseStatusOvertimeComponent } from '../components/api-analytics-response-status-overtime/api-analytics-response-status-overtime.component';
 import { ApiAnalyticsResponseTimeOverTimeComponent } from '../components/api-analytics-response-time-over-time/api-analytics-response-time-over-time.component';
 import { AnalyticsCountResponse } from '../../../../../entities/management-api-v2/analytics/analyticsCount';
@@ -49,6 +50,7 @@ type ApiAnalyticsVM = {
     GioCardEmptyStateModule,
     ApiAnalyticsRequestStatsComponent,
     ApiAnalyticsFiltersBarComponent,
+    ApiAnalyticsHttpStatusPieChartComponent,
     ApiAnalyticsResponseStatusOvertimeComponent,
     ApiAnalyticsResponseTimeOverTimeComponent,
   ],
@@ -56,7 +58,7 @@ type ApiAnalyticsVM = {
   styleUrl: './api-analytics-proxy.component.scss',
 })
 export class ApiAnalyticsProxyComponent {
-  private readonly apiId = this.activatedRoute.snapshot.params.apiId;
+  readonly apiId = this.activatedRoute.snapshot.params.apiId;
 
   private getCount$ = this.apiAnalyticsV2Service
     .getAnalytics<AnalyticsCountResponse>(this.apiId, { type: 'COUNT' })

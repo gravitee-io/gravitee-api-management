@@ -11,7 +11,7 @@
 - ✅ FE-1 — Angular Service & Models for Unified Endpoint
 - ✅ FE-2 — Enhanced Stats Cards
 - ✅ FE-3 — HTTP Status Pie Chart
-- FE-4 — Dashboard Layout, Integration & Tests
+- ✅ FE-4 — Dashboard Layout, Integration & Tests
 
 ---
 
@@ -190,7 +190,16 @@ Standalone pie chart component for request counts by HTTP status. 5 new files:
 | `api-analytics-http-status-pie-chart.component.harness.ts` | isLoaderDisplayed, isEmptyStateDisplayed, isChartDisplayed |
 | `api-analytics-http-status-pie-chart.component.spec.ts` | 5 tests: loading, data mapping, empty values, error, zero filter |
 
-Component not yet added to proxy (FE-4).
+### FE-4: Dashboard Layout, Integration & Tests ✅
+
+Dashboard layout with pie chart, spec updates, error handling. Modified files:
+
+| File | Changes |
+|---|---|
+| `api-analytics-proxy.component.ts` | Added `ApiAnalyticsHttpStatusPieChartComponent`, exposed `apiId` for template |
+| `api-analytics-proxy.component.html` | New layout: Row 1 filters, Row 2 request stats (full-bleed), Row 3 pie chart + status overtime, Row 4 response time over time |
+| `api-analytics-proxy.component.harness.ts` | Added `getHttpStatusPieChartHarness`, `isPieChartPresent`, `isResponseStatusOvertimePresent`, `isResponseTimeOverTimePresent` |
+| `api-analytics-proxy.component.spec.ts` | Added `expectUnifiedAnalyticsGroupBy`, assertions for pie + line charts, "should degrade gracefully when unified endpoint returns 500" |
 
 ---
 
@@ -378,6 +387,18 @@ Keep the existing separate endpoints working — don't break them.
 
 ```
 Proceed with story FE-2
+```
+
+### Story FE-3 prompt
+
+```
+Proceed with story FE-3
+```
+
+### Story FE-4 prompt
+
+```
+Proceed with last story
 ```
 
 ### Story FE-3 prompt
