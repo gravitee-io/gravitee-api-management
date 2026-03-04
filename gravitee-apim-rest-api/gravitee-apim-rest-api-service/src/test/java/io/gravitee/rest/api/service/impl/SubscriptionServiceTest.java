@@ -93,6 +93,7 @@ import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.TransferSubscriptionEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
@@ -134,6 +135,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TransferNotAllowedException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
+import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
@@ -1663,6 +1665,60 @@ public class SubscriptionServiceTest {
             anyMap()
         );
         verify(subscription).setUpdatedAt(any());
+    }
+
+    @Test
+    public void shouldIncludeSubscribedByUserInApiSubscriptionNotificationParams() throws Exception {
+        final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
+        transferSubscription.setId(SUBSCRIPTION_ID);
+        transferSubscription.setPlan(PLAN_ID);
+
+        String subscribedByDisplayName = "Subscriber Display Name";
+        UserEntity subscribedByUser = UserEntity.builder().firstname("Subscriber").lastname("Display Name").build();
+
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getApplication()).thenReturn(APPLICATION_ID);
+        when(subscription.getPlan()).thenReturn(PLAN_ID);
+        when(subscription.getStatus()).thenReturn(ACCEPTED);
+        when(subscription.getReferenceId()).thenReturn(API_ID);
+        when(subscription.getReferenceType()).thenReturn(SubscriptionReferenceType.API);
+        when(subscription.getIdentifier()).thenReturn(API_ID);
+        when(subscription.getSubscribedBy()).thenReturn(SUBSCRIBER_ID);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenReturn(subscription);
+        planEntity.setStatus(PlanStatus.PUBLISHED);
+        planEntity.setSecurity(PlanSecurityType.API_KEY);
+        planEntity.setReferenceId(API_ID);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        application.setPrimaryOwner(new PrimaryOwnerEntity());
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), eq(SUBSCRIBER_ID))).thenReturn(subscribedByUser);
+
+        subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiHook.SUBSCRIPTION_TRANSFERRED),
+            eq(NotificationReferenceType.API),
+            eq(API_ID),
+            argThat(
+                params ->
+                    params.containsKey(NotificationParamsBuilder.PARAM_USER) &&
+                    subscribedByDisplayName.equals(((UserEntity) params.get(NotificationParamsBuilder.PARAM_USER)).getDisplayName())
+            )
+        );
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApplicationHook.SUBSCRIPTION_TRANSFERRED),
+            anyString(),
+            argThat(
+                params ->
+                    params.containsKey(NotificationParamsBuilder.PARAM_USER) &&
+                    subscribedByDisplayName.equals(((UserEntity) params.get(NotificationParamsBuilder.PARAM_USER)).getDisplayName())
+            )
+        );
     }
 
     @Test
