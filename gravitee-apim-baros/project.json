@@ -1,0 +1,40 @@
+{
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "name": "baros",
+  "projectType": "library",
+  "sourceRoot": "gravitee-apim-baros/src",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx vite build",
+        "cwd": "gravitee-apim-baros"
+      },
+      "inputs": ["production", "^production"],
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx vitest run",
+        "cwd": "gravitee-apim-baros"
+      },
+      "inputs": ["default", "^production"]
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx eslint .",
+        "cwd": "gravitee-apim-baros"
+      },
+      "inputs": ["default"]
+    },
+    "storybook": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx storybook dev -p 6007",
+        "cwd": "gravitee-apim-baros"
+      }
+    }
+  }
+}
