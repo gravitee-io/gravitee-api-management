@@ -91,7 +91,15 @@ export type { ThemeToggleProps } from './components/layout/ThemeToggle';
 
 // ── Layout: AppSidebar ───────────────────────────────
 export { AppSidebar } from './components/layout/AppSidebar';
-export type { AppSidebarProps, NavItem, NavSubItem, UserInfo } from './components/layout/AppSidebar';
+export type { AppSidebarProps, NavItem, NavSubItem } from './components/layout/AppSidebar';
+
+// ── Layout: TopNavUser ──────────────────────────────
+export { TopNavUser } from './components/layout/TopNavUser';
+export type { TopNavUserProps, UserInfo } from './components/layout/TopNavUser';
+
+// ── Layout: OrgEnvSelector ──────────────────────────
+export { OrgEnvSelector } from './components/layout/OrgEnvSelector';
+export type { OrgEnvSelectorProps, OrgOption, EnvOption } from './components/layout/OrgEnvSelector';
 
 // ── Layout: GraviteeLogo ─────────────────────────────
 export { GraviteeLogo, GraviteeIcon } from './components/layout/GraviteeLogo';

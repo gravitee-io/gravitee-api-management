@@ -1,12 +1,10 @@
 import { forwardRef, useCallback, useRef, useState, type ComponentPropsWithRef, type ElementType, type ReactNode } from 'react';
-import { ChevronRight, ChevronsUpDown } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { cn } from '@baros/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@baros/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@baros/components/ui/collapsible';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -15,7 +13,6 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarHeader,
   SidebarMenu,
@@ -54,12 +51,6 @@ interface NavItem {
   readonly items?: NavSubItem[];
 }
 
-interface UserInfo {
-  readonly name: string;
-  readonly email: string;
-  readonly avatar?: string;
-}
-
 interface AppSidebarProps extends Omit<ComponentPropsWithRef<typeof Sidebar>, 'className'> {
   /** Additional CSS classes. */
   readonly className?: string;
@@ -73,8 +64,6 @@ interface AppSidebarProps extends Omit<ComponentPropsWithRef<typeof Sidebar>, 'c
   readonly activeItemKey?: string;
   /** Callback when a nav item or sub-item is clicked. */
   readonly onNavItemClick?: (key: string) => void;
-  /** User information shown in the sidebar footer. */
-  readonly user?: UserInfo;
 }
 
 /* ──────────────────────────────────────────────────── */
@@ -236,75 +225,6 @@ function NavMain({
 }
 
 /* ──────────────────────────────────────────────────── */
-/*  NavUser                                             */
-/* ──────────────────────────────────────────────────── */
-
-function NavUser({ user }: { readonly user: UserInfo }) {
-  const { isMobile } = useSidebar();
-  const initials = user.name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-
-  return (
-    <SidebarMenu>
-      <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <Avatar className="h-8 w-8 rounded-lg">
-                {user.avatar && <AvatarImage src={user.avatar} alt={user.name} />}
-                <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
-              </div>
-              <ChevronsUpDown className="ml-auto size-4" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? 'bottom' : 'right'}
-            align="end"
-            sideOffset={4}
-          >
-            <DropdownMenuGroup>
-              <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                  <Avatar className="h-8 w-8 rounded-lg">
-                    {user.avatar && <AvatarImage src={user.avatar} alt={user.name} />}
-                    <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
-                  </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{user.name}</span>
-                    <span className="truncate text-xs">{user.email}</span>
-                  </div>
-                </div>
-              </DropdownMenuLabel>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>Account</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>Log out</DropdownMenuItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SidebarMenuItem>
-    </SidebarMenu>
-  );
-}
-
-/* ──────────────────────────────────────────────────── */
 /*  SidebarLogo                                         */
 /* ──────────────────────────────────────────────────── */
 
@@ -340,7 +260,6 @@ const AppSidebar = forwardRef<HTMLDivElement, AppSidebarProps>(
       navItems = [],
       activeItemKey,
       onNavItemClick,
-      user,
       ...props
     },
     ref,
@@ -356,12 +275,6 @@ const AppSidebar = forwardRef<HTMLDivElement, AppSidebarProps>(
         )}
       </SidebarContent>
 
-      {user && (
-        <SidebarFooter>
-          <NavUser user={user} />
-        </SidebarFooter>
-      )}
-
       <SidebarRail />
     </Sidebar>
   ),
@@ -370,4 +283,4 @@ const AppSidebar = forwardRef<HTMLDivElement, AppSidebarProps>(
 AppSidebar.displayName = 'AppSidebar';
 
 export { AppSidebar };
-export type { AppSidebarProps, NavItem, NavSubItem, UserInfo };
+export type { AppSidebarProps, NavItem, NavSubItem };
