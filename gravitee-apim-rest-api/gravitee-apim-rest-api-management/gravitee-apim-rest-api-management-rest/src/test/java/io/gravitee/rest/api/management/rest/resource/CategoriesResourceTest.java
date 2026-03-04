@@ -35,8 +35,8 @@ import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.List;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Eric LELEU (eric dot leleu at graviteesource dot com)
@@ -51,7 +51,7 @@ public class CategoriesResourceTest extends AbstractResourceTest {
     @Inject
     private CategoryService categoryService;
 
-    @Before
+    @BeforeEach
     public void init() {
         CategoryEntity cat1 = new CategoryEntity();
         cat1.setId("cat1-id");

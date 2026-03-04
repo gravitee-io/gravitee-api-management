@@ -40,8 +40,8 @@ import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 import java.util.Date;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -57,7 +57,7 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
         return "users/" + USER_ID + "/tokens";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(permissionService, tokenService, userService);
         when(

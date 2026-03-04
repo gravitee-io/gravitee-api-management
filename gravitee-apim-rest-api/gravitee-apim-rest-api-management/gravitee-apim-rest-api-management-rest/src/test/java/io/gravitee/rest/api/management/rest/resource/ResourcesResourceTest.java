@@ -27,7 +27,7 @@ import io.gravitee.rest.api.service.ResourceService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.GenericType;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

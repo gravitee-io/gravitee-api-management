@@ -29,8 +29,8 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -43,7 +43,7 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
         return "settings";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(parameterService, configService);
     }

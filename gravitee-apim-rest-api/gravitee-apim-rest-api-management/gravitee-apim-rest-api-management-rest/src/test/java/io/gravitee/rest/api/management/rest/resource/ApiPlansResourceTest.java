@@ -30,9 +30,9 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.Set;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
@@ -49,13 +49,13 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         return "apis";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         Mockito.reset(planService, apiService);
         GraviteeContext.cleanContext();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }

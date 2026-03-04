@@ -26,8 +26,8 @@ import io.gravitee.rest.api.model.audit.AuditEntity;
 import jakarta.ws.rs.core.Response;
 import java.util.*;
 import javax.inject.Inject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
@@ -44,7 +44,7 @@ public class AuditResourceTest extends AbstractResourceTest {
         return "audit/";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         license = mock(License.class);
         when(licenseManager.getPlatformLicense()).thenReturn(license);

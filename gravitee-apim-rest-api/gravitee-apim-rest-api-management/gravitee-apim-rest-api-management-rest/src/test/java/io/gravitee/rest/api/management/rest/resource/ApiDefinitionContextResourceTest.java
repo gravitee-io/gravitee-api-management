@@ -27,7 +27,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.api.DefinitionContextEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import jakarta.ws.rs.core.Response;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team

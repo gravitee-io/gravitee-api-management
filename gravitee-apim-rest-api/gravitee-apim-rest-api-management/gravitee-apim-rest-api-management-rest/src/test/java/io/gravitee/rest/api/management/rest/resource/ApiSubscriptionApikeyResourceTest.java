@@ -49,9 +49,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -78,13 +78,13 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
         return "apis/" + API_ID + "/subscriptions/" + SUBSCRIPTION_ID + "/apikeys/" + APIKEY_ID;
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(apiKeyService, subscriptionService, applicationService);
         GraviteeContext.cleanContext();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         Stream.of(apiKeyCrudServiceInMemory, applicationCrudServiceInMemory, subscriptionCrudServiceInMemory).forEach(
             InMemoryAlternative::reset

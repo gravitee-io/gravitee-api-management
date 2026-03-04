@@ -58,9 +58,9 @@ import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.model.Resource;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -109,7 +109,7 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
         }
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         System.setProperty("auth.external.enabled", "true");
         System.setProperty("auth.external.issuer", JWT_ISSUER);

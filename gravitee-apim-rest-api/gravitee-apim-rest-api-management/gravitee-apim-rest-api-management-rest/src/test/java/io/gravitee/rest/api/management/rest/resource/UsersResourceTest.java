@@ -27,8 +27,8 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -41,7 +41,7 @@ public class UsersResourceTest extends AbstractResourceTest {
         return "users/";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(userService);
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);

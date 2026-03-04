@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource.auth.jwt;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSHeader;
@@ -31,8 +33,8 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.interfaces.ECPrivateKey;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -49,17 +51,18 @@ public class RSAECKeyProcessorTest extends AbstractKeyProcessorTest {
         String token = generateRSAToken(keyPair);
         keyProcessor.setJwkSourceResolver(new RSAJWKSourceResolver<>(() -> formatPem(keyPair.getPublic())));
         JWTClaimsSet process = keyProcessor.process(Algorithm.RS256, token);
-        Assert.assertNotNull(process);
+        Assertions.assertNotNull(process);
     }
 
-    @Test(expected = InvalidTokenException.class)
+    @Test
     public void shouldNotProcessValidRSATokenAndWrongAlgorithm() throws NoSuchAlgorithmException, JOSEException {
         keyProcessor = new RSAECKeyProcessor<>(claimsVerifier);
         KeyPair keyPair = getRsaKeyPair();
         String token = generateRSAToken(keyPair);
         keyProcessor.setJwkSourceResolver(new RSAJWKSourceResolver<>(() -> formatPem(keyPair.getPublic())));
-        keyProcessor.process(Algorithm.ES256, token);
-        Assert.fail("should not parse token with wrong algorithm");
+        assertThrows(InvalidTokenException.class, () -> {
+            keyProcessor.process(Algorithm.ES256, token);
+        });
     }
 
     @Test
@@ -69,16 +72,17 @@ public class RSAECKeyProcessorTest extends AbstractKeyProcessorTest {
         String token = generateECToken(keyPair);
         keyProcessor.setJwkSourceResolver(new ECJWKSourceResolver<>(() -> formatPem(keyPair.getPublic())));
         JWTClaimsSet process = keyProcessor.process(Algorithm.ES256, token);
-        Assert.assertNotNull(process);
+        Assertions.assertNotNull(process);
     }
 
-    @Test(expected = InvalidTokenException.class)
+    @Test
     public void shouldNotProcessValidECTokenAndWrongAlgorithm() throws NoSuchAlgorithmException, JOSEException {
         keyProcessor = new RSAECKeyProcessor<>(claimsVerifier);
         KeyPair keyPair = getCEKeyPair();
         String token = generateECToken(keyPair);
         keyProcessor.setJwkSourceResolver(new ECJWKSourceResolver<>(() -> formatPem(keyPair.getPublic())));
-        keyProcessor.process(Algorithm.RS256, token);
-        Assert.fail("should not parse token with wrong algorithm");
+        assertThrows(InvalidTokenException.class, () -> {
+            keyProcessor.process(Algorithm.RS256, token);
+        });
     }
 }

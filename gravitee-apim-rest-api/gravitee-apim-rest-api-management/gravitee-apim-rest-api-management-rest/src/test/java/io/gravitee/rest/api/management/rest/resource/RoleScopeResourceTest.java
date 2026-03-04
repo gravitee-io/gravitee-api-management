@@ -26,8 +26,8 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import javax.inject.Inject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -42,7 +42,7 @@ public class RoleScopeResourceTest extends AbstractResourceTest {
 
     private License license;
 
-    @Before
+    @BeforeEach
     public void init() {
         license = mock(License.class);
         when(licenseManager.getPlatformLicense()).thenReturn(license);

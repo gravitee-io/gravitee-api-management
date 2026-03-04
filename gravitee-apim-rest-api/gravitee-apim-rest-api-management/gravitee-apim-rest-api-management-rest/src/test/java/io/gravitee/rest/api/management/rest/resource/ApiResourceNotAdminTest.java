@@ -38,9 +38,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.internal.util.collections.Sets;
 
 /**
@@ -62,7 +62,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
         resourceConfig.register(NotAdminAuthenticationFilter.class);
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         mockApi = new ApiEntity();
         mockApi.setId(API);
@@ -74,7 +74,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
         doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
     }
 
-    @After
+    @AfterEach
     public void cleanUp() {
         reset(membershipService);
         reset(roleService);

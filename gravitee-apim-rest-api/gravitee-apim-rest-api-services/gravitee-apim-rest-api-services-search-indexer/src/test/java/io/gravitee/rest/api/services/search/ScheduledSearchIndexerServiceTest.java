@@ -25,22 +25,21 @@ import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
-public class ScheduledSearchIndexerServiceTest {
+@ExtendWith(MockitoExtension.class)
+class ScheduledSearchIndexerServiceTest {
 
     @InjectMocks
     ScheduledSearchIndexerService service = new ScheduledSearchIndexerService();
@@ -55,7 +54,7 @@ public class ScheduledSearchIndexerServiceTest {
     SearchEngineService searchEngineService;
 
     @Test
-    public void shouldDoNothing() throws TechnicalException {
+    void shouldDoNothing() throws TechnicalException {
         final Organization organization = new Organization();
         organization.setId("DEFAULT");
 
@@ -72,7 +71,7 @@ public class ScheduledSearchIndexerServiceTest {
     }
 
     @Test
-    public void shouldRunForEachOrganization() throws TechnicalException {
+    void shouldRunForEachOrganization() throws TechnicalException {
         final Organization org1 = new Organization();
         org1.setId("DEFAULT_1");
 
@@ -109,7 +108,7 @@ public class ScheduledSearchIndexerServiceTest {
     }
 
     @Test
-    public void shouldInsertAndDelete() throws TechnicalException {
+    void shouldInsertAndDelete() throws TechnicalException {
         final Organization organization = new Organization();
         organization.setId("DEFAULT");
 
@@ -125,7 +124,7 @@ public class ScheduledSearchIndexerServiceTest {
         delete.setId("deleteid");
         delete.setTags(Collections.singletonList(CommandTags.DATA_TO_INDEX));
         delete.setContent("{\"id\":\"2\"}");
-        when(commandService.search(eq(expectedExecutionContext), any())).thenReturn(Arrays.asList(delete, insert));
+        when(commandService.search(eq(expectedExecutionContext), any())).thenReturn(List.of(delete, insert));
 
         service.run();
 

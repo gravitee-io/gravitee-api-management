@@ -23,7 +23,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class RoleScopesResourceTest extends AbstractResourceTest {
 

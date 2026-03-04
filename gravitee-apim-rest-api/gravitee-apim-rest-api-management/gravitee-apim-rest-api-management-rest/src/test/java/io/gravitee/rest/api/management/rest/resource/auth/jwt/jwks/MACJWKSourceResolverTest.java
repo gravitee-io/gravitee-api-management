@@ -15,12 +15,12 @@
  */
 package io.gravitee.rest.api.management.rest.resource.auth.jwt.jwks;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.nimbusds.jose.proc.SecurityContext;
 import io.gravitee.rest.api.management.rest.resource.auth.jwt.exceptions.InvalidKeyException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -36,10 +36,10 @@ public class MACJWKSourceResolverTest {
         assertNotNull(sourceResolver.resolve());
     }
 
-    @Test(expected = InvalidKeyException.class)
+    @Test
     public void shouldNotResolveInvalidPublicKey() {
-        sourceResolver = new MACJWKSourceResolver<>(() -> null);
-        sourceResolver.resolve();
-        fail("Source resolver must fail for null public keys");
+        assertThrows(InvalidKeyException.class, () -> {
+            new MACJWKSourceResolver<>(() -> null);
+        });
     }
 }

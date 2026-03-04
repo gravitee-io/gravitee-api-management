@@ -23,8 +23,8 @@ import io.gravitee.rest.api.model.InstanceEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class InstanceResourceTest extends AbstractResourceTest {
 
@@ -33,7 +33,7 @@ public class InstanceResourceTest extends AbstractResourceTest {
         return "instances/123";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(instanceService, parameterService);
     }
