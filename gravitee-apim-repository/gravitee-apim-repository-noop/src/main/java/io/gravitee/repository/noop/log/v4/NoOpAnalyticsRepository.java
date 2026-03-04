@@ -91,4 +91,9 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     public Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQuery query) {
         return Optional.empty();
     }
+
+    @Override
+    public Optional<DateHistoAggregate> searchDateHistogram(QueryContext queryContext, DateHistogramQuery query) {
+        return Optional.empty();
+    }
 }

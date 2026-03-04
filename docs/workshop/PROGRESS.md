@@ -6,7 +6,7 @@
 - ✅ BE-2 — COUNT Query Type + Endpoint Scaffolding
 - ✅ BE-3 — STATS Query Type
 - ✅ BE-4 — GROUP_BY Query Type
-- BE-5 — DATE_HISTO Query Type
+- ✅ BE-5 — DATE_HISTO Query Type
 - BE-6 — Backend Integration Tests
 - FE-1 — Angular Service & Models for Unified Endpoint
 - FE-2 — Enhanced Stats Cards
@@ -107,6 +107,32 @@ Endpoint: `GET /environments/{envId}/apis/{apiId}/analytics?type=GROUP_BY&field=
 
 Gotcha: In adapter tests, use `JsonNode` (not `ObjectNode`) as return type for bucket creation—`List<ObjectNode>` is not assignable to `List<JsonNode>` due to generic invariance.
 
+### BE-5: DATE_HISTO Query Type ✅
+
+Time-bucketed histogram data with breakdown by field (e.g. status over time). 3 new source files + 2 repo models + 2 test files, 9 modified files:
+
+| File | Type | Purpose |
+|---|---|---|
+| `SERVICE/.../model/DateHistoResult.java` | New | Record: `timestamps` (List<Long>), `values` (List<DateHistoBucket>) with field, buckets, metadata |
+| `REPO_API/.../model/analytics/DateHistogramQuery.java` | New | Record: `apiId`, `from`, `to`, `field`, `interval` (Duration), `size` |
+| `REPO_API/.../model/analytics/DateHistoAggregate.java` | New | Record: `timestamps`, `values` (List<DateHistoBucketAggregate>) |
+| `REPO_ES/.../adapter/SearchDateHistogramQueryAdapter.java` | New | ES JSON: filter api-id + @timestamp, `aggs.by_date.date_histogram` with fixed_interval/interval (ES version), sub-agg `by_field.terms` |
+| `REPO_ES/.../adapter/SearchDateHistogramResponseAdapter.java` | New | Parse date_histogram + nested terms buckets → `DateHistoAggregate`; empty → `{timestamps:[], values:[]}` |
+| `REPO_ES/.../adapter/SearchDateHistogramQueryAdapterTest.java` | New | 4 tests: full query, fixed vs legacy interval, minimal query |
+| `REPO_ES/.../adapter/SearchDateHistogramResponseAdapterTest.java` | New | 5 tests: null aggs, empty aggs, date+terms parsing, empty buckets, missing agg |
+| `AnalyticsQueryService` / `AnalyticsQueryServiceImpl` | Modified | Added `searchDateHistogram(ExecutionContext, apiId, from, to, field, Duration, size)` |
+| `AnalyticsRepository` / `AnalyticsElasticsearchRepository` | Modified | Added `searchDateHistogram(QueryContext, DateHistogramQuery)`; passes `info` for ES version |
+| `SearchApiAnalyticsUseCase` | Modified | Added `DATE_HISTO` branch, `DateHistoResultResult` sealed variant |
+| `ApiAnalyticsResource` | Modified | `mapResult()` handles DATE_HISTO → Map with type, timestamps, values |
+| `AnalyticsParam` | Modified | `field` required for DATE_HISTO |
+| `FakeAnalyticsQueryService` | Modified | Added `dateHistoResult` field, `searchDateHistogram()` impl |
+| `NoOpAnalyticsRepository` | Modified | Added `searchDateHistogram()` returning `Optional.empty()` |
+| `SearchApiAnalyticsUseCaseTest` | Modified | `DateHistoQuery` nested class: should_return_date_histo, should_return_empty_date_histo_when_no_data |
+
+Endpoint: `GET /environments/{envId}/apis/{apiId}/analytics?type=DATE_HISTO&field=status&interval=3600000&from=...&to=...&size=20`
+
+Gotcha: Switch expression block must use `yield` not `return` — added `.cursor/rules/java-conventions.mdc` to document this.
+
 ---
 
 ## Key Decisions
@@ -141,7 +167,7 @@ Gotcha: In adapter tests, use `JsonNode` (not `ObjectNode`) as return type for b
 
 ## Current Blockers / Open Questions
 
-- **None blocking.** BE-1 through BE-4 are complete. The unified endpoint supports COUNT, STATS, and GROUP_BY; DATE_HISTO to follow.
+- **None blocking.** BE-1 through BE-5 are complete. The unified endpoint supports all 4 query types: COUNT, STATS, GROUP_BY, DATE_HISTO.
 - **`endpoint-response-time-ms` field** — flagged in STORIES.md Known Risks. Not relevant until FE-2 (stat cards). Must verify against a live `*-v4-metrics-*` index before using it.
 - **OpenAPI spec update** (BE-2.1) — deferred. Response is currently a `Map` body. Will add proper schema when all 4 response types are defined.
 
@@ -231,3 +257,28 @@ Frontend (Angular):
 Now implement Story 4.
 Include tests that follow the existing test patterns.
 Keep the existing separate endpoints working — don't break them.
+
+### Story 5 prompt
+
+```
+Read @docs/workshop/STORIES.md and @docs/workshop/PROGRESS.md for the full list of user stories.
+
+Before starting, study the existing code that we're evolving:
+
+Backend (Java):
+- ApiAnalyticsResource.java in gravitee-apim-rest-api/.../api/analytics/
+  — has existing endpoints: /requests-count, /response-status-ranges, etc.
+- The existing use cases (SearchRequestsCountAnalyticsUseCase, etc.)
+- How Elasticsearch queries are built and executed
+- ApiAnalyticsResourceTest.java for test patterns
+
+Frontend (Angular):
+- ApiAnalyticsProxyComponent in api-traffic-v4/analytics/api-analytics-proxy/
+- ApiAnalyticsV2Service in services-ngx/api-analytics-v2.service.ts
+- Existing widget components in api-traffic-v4/analytics/components/
+- Chart libraries already in use
+
+Now implement BE Story 5.
+Include tests that follow the existing test patterns.
+Keep the existing separate endpoints working — don't break them.
+```

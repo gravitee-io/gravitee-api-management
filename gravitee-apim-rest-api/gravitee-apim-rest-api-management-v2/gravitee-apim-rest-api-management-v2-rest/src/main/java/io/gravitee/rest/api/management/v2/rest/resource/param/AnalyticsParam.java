@@ -117,7 +117,10 @@ public class AnalyticsParam {
             throw badRequest("Query parameter 'field' value '" + field + "' is not supported");
         }
 
-        if ((type == AnalyticsType.STATS || type == AnalyticsType.GROUP_BY) && (field == null || field.trim().isEmpty())) {
+        if (
+            (type == AnalyticsType.STATS || type == AnalyticsType.GROUP_BY || type == AnalyticsType.DATE_HISTO) &&
+            (field == null || field.trim().isEmpty())
+        ) {
             throw badRequest("'field' query parameter is required for '" + type + "' request");
         }
 

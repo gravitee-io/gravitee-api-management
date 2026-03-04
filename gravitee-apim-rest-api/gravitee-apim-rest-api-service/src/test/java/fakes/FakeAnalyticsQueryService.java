@@ -16,6 +16,7 @@
 package fakes;
 
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.DateHistoResult;
 import io.gravitee.apim.core.analytics.model.GroupByResult;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.StatsResult;
@@ -58,6 +59,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public Long countResult;
     public StatsResult statsResult;
     public GroupByResult groupByResult;
+    public DateHistoResult dateHistoResult;
 
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
@@ -96,6 +98,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
         countResult = null;
         statsResult = null;
         groupByResult = null;
+        dateHistoResult = null;
     }
 
     @Override
@@ -163,5 +166,18 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
         int size
     ) {
         return Optional.ofNullable(groupByResult);
+    }
+
+    @Override
+    public Optional<DateHistoResult> searchDateHistogram(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to,
+        String field,
+        Duration interval,
+        int size
+    ) {
+        return Optional.ofNullable(dateHistoResult);
     }
 }

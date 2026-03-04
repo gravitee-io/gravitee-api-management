@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.query_service.analytics;
 
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.DateHistoResult;
 import io.gravitee.apim.core.analytics.model.GroupByResult;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.StatsResult;
@@ -27,6 +28,8 @@ import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountQuery;
+import io.gravitee.repository.log.v4.model.analytics.DateHistoAggregate;
+import io.gravitee.repository.log.v4.model.analytics.DateHistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
@@ -255,6 +258,43 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return analyticsRepository
             .searchGroupBy(executionContext.getQueryContext(), new GroupByQuery(apiId, from, to, field, size))
             .map(agg -> GroupByResult.builder().values(agg.values()).metadata(agg.metadata()).build());
+    }
+
+    @Override
+    public Optional<DateHistoResult> searchDateHistogram(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to,
+        String field,
+        Duration interval,
+        int size
+    ) {
+        return analyticsRepository
+            .searchDateHistogram(
+                executionContext.getQueryContext(),
+                new DateHistogramQuery(apiId, from, to, field, interval, size)
+            )
+            .map(agg ->
+                DateHistoResult
+                    .builder()
+                    .timestamps(agg.timestamps())
+                    .values(
+                        agg
+                            .values()
+                            .stream()
+                            .map(
+                                b ->
+                                    new DateHistoResult.DateHistoBucket(
+                                        b.field(),
+                                        b.buckets(),
+                                        b.metadata() != null ? b.metadata() : java.util.Map.of()
+                                    )
+                            )
+                            .toList()
+                    )
+                    .build()
+            );
     }
 
     @Override

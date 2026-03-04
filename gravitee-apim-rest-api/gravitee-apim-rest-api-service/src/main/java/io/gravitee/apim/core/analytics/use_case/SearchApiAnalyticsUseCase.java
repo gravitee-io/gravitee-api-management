@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics.model.DateHistoResult;
 import io.gravitee.apim.core.analytics.model.GroupByResult;
 import io.gravitee.apim.core.analytics.model.StatsResult;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
@@ -25,6 +26,7 @@ import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.time.Duration;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +46,7 @@ public class SearchApiAnalyticsUseCase {
             case COUNT -> executeCount(executionContext, input);
             case STATS -> executeStats(executionContext, input);
             case GROUP_BY -> executeGroupBy(executionContext, input);
+            case DATE_HISTO -> executeDateHistogram(executionContext, input);
         };
     }
 
@@ -64,6 +67,16 @@ public class SearchApiAnalyticsUseCase {
             .searchGroupBy(executionContext, input.apiId(), input.from(), input.to(), input.field(), input.size())
             .orElse(GroupByResult.builder().values(java.util.Map.of()).metadata(java.util.Map.of()).build());
         return new Output(AnalyticsResult.groupBy(groupBy));
+    }
+
+    private Output executeDateHistogram(ExecutionContext executionContext, Input input) {
+        var interval = input.interval() != null ? Duration.ofMillis(input.interval()) : Duration.ofHours(1);
+        var dateHisto = analyticsQueryService
+            .searchDateHistogram(executionContext, input.apiId(), input.from(), input.to(), input.field(), interval, input.size())
+            .orElse(
+                DateHistoResult.builder().timestamps(java.util.List.of()).values(java.util.List.of()).build()
+            );
+        return new Output(AnalyticsResult.dateHisto(dateHisto));
     }
 
     private void validateApiRequirements(Input input) {
@@ -95,6 +108,7 @@ public class SearchApiAnalyticsUseCase {
         COUNT,
         STATS,
         GROUP_BY,
+        DATE_HISTO,
     }
 
     public record Input(
@@ -117,6 +131,8 @@ public class SearchApiAnalyticsUseCase {
 
         record GroupByResultResult(GroupByResult groupBy) implements AnalyticsResult {}
 
+        record DateHistoResultResult(DateHistoResult dateHisto) implements AnalyticsResult {}
+
         static AnalyticsResult count(long count) {
             return new CountResult(count);
         }
@@ -127,6 +143,10 @@ public class SearchApiAnalyticsUseCase {
 
         static AnalyticsResult groupBy(GroupByResult groupBy) {
             return new GroupByResultResult(groupBy);
+        }
+
+        static AnalyticsResult dateHisto(DateHistoResult dateHisto) {
+            return new DateHistoResultResult(dateHisto);
         }
     }
 }

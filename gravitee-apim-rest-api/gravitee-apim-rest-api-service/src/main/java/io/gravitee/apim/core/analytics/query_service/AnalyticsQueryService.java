@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics.query_service;
 
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.DateHistoResult;
 import io.gravitee.apim.core.analytics.model.GroupByResult;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.StatsResult;
@@ -86,6 +87,16 @@ public interface AnalyticsQueryService {
         Instant from,
         Instant to,
         String field,
+        int size
+    );
+
+    Optional<DateHistoResult> searchDateHistogram(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to,
+        String field,
+        Duration interval,
         int size
     );
 

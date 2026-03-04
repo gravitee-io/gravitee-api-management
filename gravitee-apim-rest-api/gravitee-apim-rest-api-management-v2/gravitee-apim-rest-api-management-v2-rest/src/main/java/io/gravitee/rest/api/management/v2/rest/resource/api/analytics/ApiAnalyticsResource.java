@@ -115,6 +115,26 @@ public class ApiAnalyticsResource extends AbstractResource {
                 "values", r.groupBy().values(),
                 "metadata", r.groupBy().metadata()
             );
+            case SearchApiAnalyticsUseCase.AnalyticsResult.DateHistoResultResult r -> {
+                var dateHisto = r.dateHisto();
+                var values =
+                    dateHisto
+                        .values()
+                        .stream()
+                        .map(
+                            b ->
+                                Map.<String, Object>of(
+                                    "field",
+                                    b.field(),
+                                    "buckets",
+                                    b.buckets(),
+                                    "metadata",
+                                    b.metadata() != null ? b.metadata() : Map.of()
+                                )
+                        )
+                        .toList();
+                yield Map.of("type", "DATE_HISTO", "timestamps", dateHisto.timestamps(), "values", values);
+            }
         };
     }
 

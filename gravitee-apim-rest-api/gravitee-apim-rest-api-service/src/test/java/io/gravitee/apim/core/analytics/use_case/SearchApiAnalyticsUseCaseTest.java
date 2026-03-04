@@ -30,6 +30,7 @@ import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -206,6 +207,61 @@ class SearchApiAnalyticsUseCaseTest {
         }
     }
 
+    @Nested
+    class DateHistoQuery {
+
+        @BeforeEach
+        void setUp() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
+        }
+
+        @Test
+        void should_return_date_histo() {
+            analyticsQueryService.dateHistoResult =
+                io.gravitee.apim.core.analytics.model.DateHistoResult
+                    .builder()
+                    .timestamps(List.of(1609459200000L, 1609462800000L))
+                    .values(
+                        List.of(
+                            new io.gravitee.apim.core.analytics.model.DateHistoResult.DateHistoBucket(
+                                "200",
+                                List.of(100L, 150L),
+                                Map.of("name", "200")
+                            ),
+                            new io.gravitee.apim.core.analytics.model.DateHistoResult.DateHistoBucket(
+                                "404",
+                                List.of(5L, 2L),
+                                Map.of("name", "404")
+                            )
+                        )
+                    )
+                    .build();
+
+            var output = cut.execute(GraviteeContext.getExecutionContext(), dateHistoInput());
+
+            assertThat(output.result()).isInstanceOf(AnalyticsResult.DateHistoResultResult.class);
+            var dateHisto = ((AnalyticsResult.DateHistoResultResult) output.result()).dateHisto();
+            assertThat(dateHisto.timestamps()).containsExactly(1609459200000L, 1609462800000L);
+            assertThat(dateHisto.values()).hasSize(2);
+            assertThat(dateHisto.values().get(0).field()).isEqualTo("200");
+            assertThat(dateHisto.values().get(0).buckets()).containsExactly(100L, 150L);
+            assertThat(dateHisto.values().get(1).field()).isEqualTo("404");
+            assertThat(dateHisto.values().get(1).buckets()).containsExactly(5L, 2L);
+        }
+
+        @Test
+        void should_return_empty_date_histo_when_no_data() {
+            analyticsQueryService.dateHistoResult = null;
+
+            var output = cut.execute(GraviteeContext.getExecutionContext(), dateHistoInput());
+
+            assertThat(output.result()).isInstanceOf(AnalyticsResult.DateHistoResultResult.class);
+            var dateHisto = ((AnalyticsResult.DateHistoResultResult) output.result()).dateHisto();
+            assertThat(dateHisto.timestamps()).isEmpty();
+            assertThat(dateHisto.values()).isEmpty();
+        }
+    }
+
     private static Input countInput() {
         return new Input(MY_API, ENV_ID, AnalyticsQueryType.COUNT, FROM, TO, null, null, 10);
     }
@@ -216,5 +272,9 @@ class SearchApiAnalyticsUseCaseTest {
 
     private static Input groupByInput() {
         return new Input(MY_API, ENV_ID, AnalyticsQueryType.GROUP_BY, FROM, TO, "status", null, 20);
+    }
+
+    private static Input dateHistoInput() {
+        return new Input(MY_API, ENV_ID, AnalyticsQueryType.DATE_HISTO, FROM, TO, "status", 3600000L, 20);
     }
 }
