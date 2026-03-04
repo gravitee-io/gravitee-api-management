@@ -44,6 +44,26 @@ Goal: Display application members in a new tab with role information. After this
 
 ---
 
+### Story 1.0 - BE: Define Application Members V2 Portal API Contract
+
+**Title:** Define the full OpenAPI contract for application member management V2
+
+**Description:** As a frontend developer, I want a complete Portal API contract for the members V2 endpoints so that frontend and backend can develop in parallel against an agreed interface.
+
+**Acceptance Criteria:**
+
+- All new V2 endpoint paths, request/response schemas, and error codes added to `portal-openapi.yaml`
+- Covers: list members, get/add/update/delete member, search users, transfer ownership, invite user, list/update/delete invitations, unified members+invitations query
+- Existing legacy endpoint definitions remain unchanged
+- New paths are distinct from legacy paths (e.g. `/membersV2` vs `/members`)
+- Schemas include all fields needed by the UI: name, email, type, status, role, action identifiers
+
+**Layer:** Backend
+**Complexity:** M
+**Dependencies:** None
+
+---
+
 ### Story 1.1 - BE: List Application Members (UseCase)
 
 **Title:** List Application Members via new Onion Architecture endpoint
@@ -125,6 +145,25 @@ Goal: Display application members in a new tab with role information. After this
 **Layer:** Frontend
 **Complexity:** L
 **Dependencies:** Story 1.3
+
+---
+
+### Story 1.5 - FE: Extend Paginated Table for Custom Action Cells
+
+**Title:** Add action column support to paginated-table component
+
+**Description:** As a frontend developer, I want the paginated-table component to support custom action cells (Edit, Delete buttons) so that row-level actions work without conflicting with row navigation.
+
+**Acceptance Criteria:**
+
+- `paginated-table` supports a new column type (e.g. `actions`) for row-level action buttons
+- Members table can render Edit and Delete icon buttons in the actions column
+- Action clicks do not trigger row navigation (`routerLink`)
+- Existing usages of `paginated-table` (subscriptions, etc.) remain unaffected
+
+**Layer:** Frontend
+**Complexity:** M
+**Dependencies:** Story 1.4
 
 ---
 
@@ -382,7 +421,47 @@ Goal: Allow inviting unregistered users by email. After this phase, FE+BE can te
 
 ---
 
-### Story 4.5 - FE: Invite User Dialog
+### Story 4.5 - BE: Invitation Acceptance to Membership Flow
+
+**Title:** Convert accepted invitation into active application membership
+
+**Description:** As an invited user, I want my invitation to convert into active membership upon acceptance so that I get access to the application after registration.
+
+**Acceptance Criteria:**
+
+- Registration/acceptance flow supports application invitation tokens
+- Accepted invitation creates active application membership with the assigned role
+- Invitation record is marked as consumed/deleted after acceptance
+- If user already exists, acceptance grants membership without re-registration
+
+**Layer:** Backend
+**Complexity:** L
+**Dependencies:** Story 4.1
+
+---
+
+### Story 4.6 - BE: Unified Members + Invitations Query (UseCase)
+
+**Title:** Single endpoint returning active members and pending invitations
+
+**Description:** As a frontend developer, I want a single query endpoint that returns both active members and pending invitations so that the table can be rendered from one data source with proper pagination and search.
+
+**Acceptance Criteria:**
+
+- New UseCase `GetApplicationMembersAndInvitationsUseCase`
+- Endpoint: `GET /applications/{applicationId}/membersV2` enhanced or a new `/applications/{applicationId}/membersV2?includeInvitations=true`
+- Returns unified list with `type` (user/invited) and `status` (active/pending) fields
+- Supports pagination and search (`q` param) across both active members and invitations
+- Permission check: `APPLICATION_MEMBER[READ]`
+- Registered in `portal-openapi.yaml`
+
+**Layer:** Backend
+**Complexity:** M
+**Dependencies:** Story 1.1, Story 4.2
+
+---
+
+### Story 4.7 - FE: Invite User Dialog
 
 **Title:** Dialog to invite a user by email
 
@@ -403,7 +482,7 @@ Goal: Allow inviting unregistered users by email. After this phase, FE+BE can te
 
 ---
 
-### Story 4.6 - FE: Display Invited Members in Table
+### Story 4.8 - FE: Display Invited Members in Table
 
 **Title:** Show pending invitations alongside active members
 
@@ -411,7 +490,7 @@ Goal: Allow inviting unregistered users by email. After this phase, FE+BE can te
 
 **Acceptance Criteria:**
 
-- Table fetches both members (`/membersV2`) and invitations (`/membersV2/_invitations`)
+- Table uses unified members+invitations endpoint (Story 4.6) instead of merging two separate responses
 - Invited members show status "Pending", active members show "Active"
 - Type column distinguishes user vs invited
 - Edit action on invited members calls update invitation endpoint
@@ -420,7 +499,7 @@ Goal: Allow inviting unregistered users by email. After this phase, FE+BE can te
 
 **Layer:** Frontend
 **Complexity:** M
-**Dependencies:** Story 1.4, Story 4.2
+**Dependencies:** Story 1.4, Story 4.6
 
 ---
 
@@ -447,7 +526,7 @@ Goal: Allow transferring application ownership. After this phase, the full featu
 
 **Layer:** Backend
 **Complexity:** M
-**Dependencies:** Story 1.1
+**Dependencies:** Story 1.1, Story 3.1 (user search needed for "Other user"/"Primary owner" transfer modes)
 
 ---
 
@@ -480,10 +559,12 @@ Goal: Allow transferring application ownership. After this phase, the full featu
 
 ```mermaid
 graph TD
+    S1_0["1.0 BE: API Contract"]
     S1_1["1.1 BE: List Members"]
     S1_2["1.2 BE: List Roles"]
     S1_3["1.3 FE: Members Tab"]
     S1_4["1.4 FE: Members Table"]
+    S1_5["1.5 FE: Table Actions Column"]
 
     S2_1["2.1 BE: Update Role"]
     S2_2["2.2 BE: Delete Member"]
@@ -498,31 +579,66 @@ graph TD
     S4_2["4.2 BE: List Invitations"]
     S4_3["4.3 BE: Delete Invitation"]
     S4_4["4.4 BE: Update Invitation"]
-    S4_5["4.5 FE: Invite Dialog"]
-    S4_6["4.6 FE: Invitations in Table"]
+    S4_5["4.5 BE: Invitation Acceptance"]
+    S4_6["4.6 BE: Unified Query"]
+    S4_7["4.7 FE: Invite Dialog"]
+    S4_8["4.8 FE: Invitations in Table"]
 
     S5_1["5.1 BE: Transfer Ownership"]
     S5_2["5.2 FE: Transfer Dialog"]
 
+    S1_0 --> S1_1
+    S1_0 --> S1_2
     S1_3 --> S1_4
     S1_1 --> S1_4
-    S1_4 --> S2_3
-    S1_4 --> S2_4
+    S1_4 --> S1_5
+    S1_5 --> S2_3
+    S1_5 --> S2_4
     S1_2 --> S2_3
     S2_1 --> S2_3
     S2_2 --> S2_4
     S1_4 --> S3_3
     S3_1 --> S3_3
     S3_2 --> S3_3
-    S1_4 --> S4_5
-    S4_1 --> S4_5
+    S1_4 --> S4_7
+    S4_1 --> S4_7
     S4_1 --> S4_2
+    S4_1 --> S4_5
     S4_2 --> S4_3
     S4_2 --> S4_4
-    S1_4 --> S4_6
+    S1_1 --> S4_6
     S4_2 --> S4_6
+    S4_6 --> S4_8
+    S1_5 --> S4_8
     S1_1 --> S5_1
+    S3_1 --> S5_1
     S1_4 --> S5_2
     S5_1 --> S5_2
     S1_2 --> S5_2
 ```
+
+---
+
+## Refinement Notes
+
+Changes made after reviewing a second AI agent's plan against this one:
+
+**Accepted:**
+
+1. **Added Story 1.0 (API Contract)** -- A dedicated story to define the full OpenAPI contract upfront in `portal-openapi.yaml` before any implementation. This enables truly parallel FE/BE work since both teams develop against the agreed interface. Previously, contract definition was implicitly spread across individual BE stories.
+
+2. **Added Story 1.5 (Extend Paginated Table for Actions)** -- The existing `paginated-table` component only supports `text` and `date` column types with a router-link expand column. Adding Edit/Delete action buttons to rows requires extending the shared component. This was previously hand-waved in Story 1.4 with "(or a custom table if columns need actions)".
+
+3. **Added Story 4.5 (Invitation Acceptance to Membership)** -- Critical gap in the original plan. Without this story, invitations are created and listed but never actually convert into memberships when the invited user accepts/registers.
+
+4. **Added Story 4.6 (Unified Members + Invitations Query)** -- Instead of having the frontend fetch from two separate endpoints (`/membersV2` + `/_invitations`) and merge client-side, a single backend endpoint returns both active and invited members. This enables proper server-side pagination and search across both types.
+
+5. **Added search users dependency to Story 5.1 (Transfer Ownership)** -- The transfer dialog's "Other user" and "Primary owner" modes require searching all system users, which is provided by Story 3.1.
+
+**Rejected:**
+
+1. **Merging phases 2+3+5 into a single phase** -- The original requirement asks for testable FE+BE integration after each phase. Keeping smaller phases (Edit/Delete, Add Members, Invitations, Transfer) provides more incremental integration checkpoints and keeps individual phases manageable for parallel work.
+
+2. **Combining Add/Update/Delete into a single BE story (agent's BE-04)** -- Each operation is a distinct UseCase with different validation logic. Separate stories are easier to estimate, assign, and track. The combined story would be size L and harder to review.
+
+3. **Moving Transfer Ownership into Phase 2** -- Transfer Ownership depends on the user search endpoint (Phase 3), and keeping it in a later phase allows the team to ship core CRUD operations first.
