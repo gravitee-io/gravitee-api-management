@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -76,7 +77,10 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
         try {
             Optional<Tag> tag = jdbcTemplate
                 .query(
-                    getOrm().getSelectAllSql() + " t where key = ? and reference_id = ? and reference_type = ? ",
+                    getOrm().getSelectAllSql() +
+                        " t where " +
+                        escapeReservedWord("key") +
+                        "= ? and reference_id = ? and reference_type = ? ",
                     getOrm().getRowMapper(),
                     key,
                     referenceId,
@@ -98,7 +102,9 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
             return jdbcTemplate
                 .query(
                     getOrm().getSelectAllSql() +
-                        " where reference_id = ? and reference_type = ? and key in ( " +
+                        " where reference_id = ? and reference_type = ? and " +
+                        escapeReservedWord("key") +
+                        " in ( " +
                         getOrm().buildInClause(keys) +
                         " )",
                     (PreparedStatement ps) -> {
