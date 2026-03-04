@@ -8,7 +8,7 @@
 - ✅ BE-4 — GROUP_BY Query Type
 - ✅ BE-5 — DATE_HISTO Query Type
 - ✅ BE-6 — Backend Integration Tests
-- FE-1 — Angular Service & Models for Unified Endpoint
+- ✅ FE-1 — Angular Service & Models for Unified Endpoint
 - FE-2 — Enhanced Stats Cards
 - FE-3 — HTTP Status Pie Chart
 - FE-4 — Dashboard Layout, Integration & Tests
@@ -144,6 +144,26 @@ REST integration tests for the unified analytics endpoint. 1 modified file:
 **Validation tests:** 403 (permissions), 400 (type/from/to/field/interval missing, from≥to, unsupported field), 4xx (TCP API).
 
 **Query tests:** Each of COUNT, STATS, GROUP_BY, DATE_HISTO has happy-path + empty-data tests.
+
+### FE-1: Angular Service & Models for Unified Endpoint ✅
+
+TypeScript service method and models for the unified analytics endpoint. 9 new files, 2 modified:
+
+| File | Type | Purpose |
+|---|---|---|
+| `CONSOLE/.../analytics/analyticsCount.ts` | New | `AnalyticsCountResponse` interface |
+| `CONSOLE/.../analytics/analyticsStats.ts` | New | `AnalyticsStatsResponse` interface |
+| `CONSOLE/.../analytics/analyticsGroupBy.ts` | New | `AnalyticsGroupByResponse` interface |
+| `CONSOLE/.../analytics/analyticsDateHisto.ts` | New | `AnalyticsDateHistoResponse` interface |
+| `CONSOLE/.../analytics/analyticsQueryParams.ts` | New | `AnalyticsQueryType`, `AnalyticsQueryParams` |
+| `CONSOLE/.../analytics/analyticsCount.fixture.ts` | New | `fakeAnalyticsCount()` |
+| `CONSOLE/.../analytics/analyticsStats.fixture.ts` | New | `fakeAnalyticsStats()` |
+| `CONSOLE/.../analytics/analyticsGroupBy.fixture.ts` | New | `fakeAnalyticsGroupBy()` |
+| `CONSOLE/.../analytics/analyticsDateHisto.fixture.ts` | New | `fakeAnalyticsDateHisto()` |
+| `CONSOLE/.../api-analytics-v2.service.ts` | Modified | Added `getAnalytics<T>(apiId, params)` |
+| `CONSOLE/.../api-analytics-v2.service.spec.ts` | Modified | 5 tests for getAnalytics (COUNT, STATS, GROUP_BY, DATE_HISTO, explicit from/to) |
+
+`getAnalytics` uses `timeRangeFilter()` for from/to when not provided; supports field, interval, size for STATS/GROUP_BY/DATE_HISTO.
 
 ---
 
@@ -301,3 +321,28 @@ Keep the existing separate endpoints working — don't break them.
 Ran in by the same agent session as Story 5
 
 Now implement BE story 6
+
+### Story FE-1 prompt
+
+```
+Read ./docs/workshop/STORIES.md for the full list of user stories.
+
+Before starting, study the existing code that we're evolving:
+
+Backend (Java):
+- ApiAnalyticsResource.java in gravitee-apim-rest-api/.../api/analytics/
+  — has existing endpoints: /requests-count, /response-status-ranges, etc.
+- The existing use cases (SearchRequestsCountAnalyticsUseCase, etc.)
+- How Elasticsearch queries are built and executed
+- ApiAnalyticsResourceTest.java for test patterns
+
+Frontend (Angular):
+- ApiAnalyticsProxyComponent in api-traffic-v4/analytics/api-analytics-proxy/
+- ApiAnalyticsV2Service in services-ngx/api-analytics-v2.service.ts
+- Existing widget components in api-traffic-v4/analytics/components/
+- Chart libraries already in use
+
+Now implement story FE-1 — Angular Service & Models for Unified Endpoint.
+Include tests that follow the existing test patterns.
+Keep the existing separate endpoints working — don't break them.
+```
