@@ -28,6 +28,7 @@ import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
 import io.gravitee.rest.api.services.dictionary.provider.http.configuration.HttpProviderConfiguration;
 import io.gravitee.rest.api.services.dictionary.provider.http.mapper.JoltMapper;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,7 +37,9 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.apache.commons.io.IOUtils;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -47,6 +50,9 @@ import org.mockito.MockitoAnnotations;
  * @author GraviteeSource Team
  */
 public class HttpProviderTest {
+
+    private static Vertx vertx;
+    private static HttpClient httpClient;
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
@@ -63,10 +69,23 @@ public class HttpProviderTest {
     @Mock
     private HttpClientService httpClientService;
 
+    @BeforeClass
+    public static void setUpClass() {
+        vertx = Vertx.vertx();
+        httpClient = vertx.createHttpClient();
+    }
+
+    @AfterClass
+    public static void tearDownClass() {
+        if (vertx != null) {
+            vertx.close();
+        }
+    }
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        when(httpClientService.createHttpClient(anyString(), anyBoolean())).thenReturn(Vertx.vertx().createHttpClient());
+        when(httpClientService.createHttpClient(anyString(), anyBoolean())).thenReturn(httpClient);
     }
 
     @Test

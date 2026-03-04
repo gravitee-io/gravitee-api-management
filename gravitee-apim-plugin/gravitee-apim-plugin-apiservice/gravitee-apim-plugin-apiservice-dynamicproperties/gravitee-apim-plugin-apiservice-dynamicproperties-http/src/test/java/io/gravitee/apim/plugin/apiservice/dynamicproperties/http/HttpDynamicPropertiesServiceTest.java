@@ -197,7 +197,7 @@ class HttpDynamicPropertiesServiceTest {
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
             await()
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     wiremock.verify(0, getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
                 });
@@ -220,7 +220,7 @@ class HttpDynamicPropertiesServiceTest {
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
             await()
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     wiremock.verify(0, getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
                 });
@@ -240,7 +240,7 @@ class HttpDynamicPropertiesServiceTest {
                         "] (times: 2, see previous log report for details)."
                 );
 
-            cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+            cut.stop().test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
         }
@@ -287,7 +287,7 @@ class HttpDynamicPropertiesServiceTest {
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
             eventObs
-                .awaitDone(30, TimeUnit.SECONDS)
+                .awaitDone(10, TimeUnit.SECONDS)
                 .assertValueCount(1)
                 .assertValue(propertyEvent -> {
                     Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent).contains(
@@ -302,7 +302,7 @@ class HttpDynamicPropertiesServiceTest {
 
             wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
 
-            cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+            cut.stop().test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
         }
@@ -345,7 +345,7 @@ class HttpDynamicPropertiesServiceTest {
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
             eventObs
-                .awaitDone(30, TimeUnit.SECONDS)
+                .awaitDone(10, TimeUnit.SECONDS)
                 .assertValueCount(1)
                 .assertValue(propertyEvent -> {
                     Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent).contains(
@@ -360,7 +360,7 @@ class HttpDynamicPropertiesServiceTest {
 
             wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
 
-            cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+            cut.stop().test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
         }
@@ -403,14 +403,14 @@ class HttpDynamicPropertiesServiceTest {
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
             await()
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     wiremock.verify(1, getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
                 });
 
             TestEventListener.with(eventManager).completeImmediatly().test().assertNoValues().assertComplete();
 
-            cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+            cut.stop().test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
         }
@@ -511,7 +511,7 @@ class HttpDynamicPropertiesServiceTest {
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
             eventObs
-                .awaitDone(30, TimeUnit.SECONDS)
+                .awaitDone(10, TimeUnit.SECONDS)
                 .assertValueCount(4)
                 .assertValueAt(0, propertyEvent -> {
                     Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent).contains(
@@ -546,7 +546,7 @@ class HttpDynamicPropertiesServiceTest {
 
             wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
 
-            cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+            cut.stop().test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
         }
@@ -610,7 +610,7 @@ class HttpDynamicPropertiesServiceTest {
 
             wiremock.verify(1, getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
 
-            cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+            cut.stop().test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
         }
@@ -672,7 +672,7 @@ class HttpDynamicPropertiesServiceTest {
 
             wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
 
-            cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+            cut.stop().test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
         }
@@ -745,7 +745,7 @@ class HttpDynamicPropertiesServiceTest {
             // create new api to not share same object references
             final Api updatedApi = apiWithDynamicPropertiesEnabled();
             Fixtures.configureDynamicPropertiesForApi(updatedConfiguration, updatedApi, objectMapper);
-            cut.update(updatedApi).test().awaitDone(10, TimeUnit.SECONDS).assertComplete().assertNoErrors();
+            cut.update(updatedApi).test().awaitDone(5, TimeUnit.SECONDS).assertComplete().assertNoErrors();
 
             // Wait for the second http call
             advanceTimeBy(5_000, cut, configuration);
@@ -780,7 +780,7 @@ class HttpDynamicPropertiesServiceTest {
             wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
             wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesOtherBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
 
-            cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+            cut.stop().test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
         }
@@ -833,7 +833,7 @@ class HttpDynamicPropertiesServiceTest {
             final Api updatedApi = apiWithDynamicPropertiesEnabled();
             updatedApi.getServices().getDynamicProperty().setEnabled(false);
             Fixtures.configureDynamicPropertiesForApi(configuration, updatedApi, objectMapper);
-            cut.update(updatedApi).test().awaitDone(10, TimeUnit.SECONDS).assertComplete().assertNoErrors();
+            cut.update(updatedApi).test().awaitDone(5, TimeUnit.SECONDS).assertComplete().assertNoErrors();
 
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
 

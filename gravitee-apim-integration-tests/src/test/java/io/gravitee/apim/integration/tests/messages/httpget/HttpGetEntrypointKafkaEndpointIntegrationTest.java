@@ -164,7 +164,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 return response.body();
             })
             .test()
-            .awaitDone(30, TimeUnit.SECONDS)
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertValue(body -> {
                 final JsonObject jsonResponse = new JsonObject(body.toString());
                 final JsonArray items = jsonResponse.getJsonArray("items");
@@ -190,7 +190,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 return response.body();
             })
             .test()
-            .awaitDone(30, TimeUnit.SECONDS)
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertValue(body -> {
                 final JsonObject jsonResponse = new JsonObject(body.toString());
                 final JsonArray items = jsonResponse.getJsonArray("items");
@@ -213,7 +213,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 return response.body();
             })
             .test()
-            .awaitDone(30, TimeUnit.SECONDS)
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertValue(body -> {
                 final JsonObject jsonResponse = new JsonObject(body.toString());
                 final JsonArray items = jsonResponse.getJsonArray("items");
@@ -251,7 +251,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 return response.body();
             })
             .test()
-            .awaitDone(30, TimeUnit.SECONDS)
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertValue(body -> {
                 final JsonObject jsonResponse = new JsonObject(body.toString());
                 final JsonArray items = jsonResponse.getJsonArray("items");
@@ -306,7 +306,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 return response.body();
             })
             .test()
-            .awaitDone(30, TimeUnit.SECONDS)
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertValue(body -> {
                 final JsonObject jsonResponse = new JsonObject(body.toString());
                 final JsonArray items = jsonResponse.getJsonArray("items");
@@ -345,7 +345,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 return response.body();
             })
             .test()
-            .awaitDone(30, TimeUnit.SECONDS)
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertValue(body -> {
                 final JsonObject jsonResponse = new JsonObject(body.toString());
                 assertThat(jsonResponse.getString("message")).isEqualTo("Invalid configuration");
@@ -373,7 +373,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 return response.body();
             })
             .test()
-            .awaitDone(30, TimeUnit.SECONDS)
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertValue(body -> {
                 final JsonObject jsonResponse = new JsonObject(body.toString());
                 final JsonArray items = jsonResponse.getJsonArray("items");
@@ -422,7 +422,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 return response.body();
             })
             .test()
-            .awaitDone(30, TimeUnit.SECONDS)
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertValue(body -> {
                 final JsonObject jsonResponse = new JsonObject(body.toString());
                 final JsonArray items = jsonResponse.getJsonArray("items");
@@ -452,7 +452,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 return response.body();
             })
             .test()
-            .awaitDone(30, TimeUnit.SECONDS)
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertValue(body -> {
                 final JsonObject jsonResponse = new JsonObject(body.toString());
                 final JsonArray items = jsonResponse.getJsonArray("items");
@@ -479,7 +479,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 return response.body();
             })
             .test()
-            .awaitDone(30, TimeUnit.SECONDS)
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertValue(body -> {
                 final JsonObject jsonResponse = new JsonObject(body.toString());
                 final JsonArray items = jsonResponse.getJsonArray("items");
@@ -524,7 +524,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 return response.body();
             })
             .test()
-            .awaitDone(30, TimeUnit.SECONDS)
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertValue(body -> {
                 final JsonObject jsonResponse = new JsonObject(body.toString());
                 final JsonArray items = jsonResponse.getJsonArray("items");
@@ -557,7 +557,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 return response.body();
             })
             .test()
-            .awaitDone(30, TimeUnit.SECONDS)
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertValue(body -> {
                 final JsonObject jsonResponse = new JsonObject(body.toString());
                 final JsonArray items = jsonResponse.getJsonArray("items");
@@ -585,7 +585,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 return response.body();
             })
             .test()
-            .awaitDone(30, TimeUnit.SECONDS)
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertValue(body -> {
                 final JsonObject jsonResponse = new JsonObject(body.toString());
                 final JsonArray items = jsonResponse.getJsonArray("items");

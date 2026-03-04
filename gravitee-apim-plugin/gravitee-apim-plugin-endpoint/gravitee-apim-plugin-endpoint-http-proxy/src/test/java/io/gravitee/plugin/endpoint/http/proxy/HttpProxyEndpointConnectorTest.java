@@ -143,6 +143,12 @@ class HttpProxyEndpointConnectorTest {
         cut = new HttpProxyEndpointConnector(configuration, sharedConfiguration);
     }
 
+    private void injectMockConnector() {
+        Map<String, ProxyConnector> mockConnectors = new ConcurrentHashMap<>();
+        mockConnectors.put("http", proxyConnector);
+        ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
+    }
+
     static Stream<Throwable> timeoutExceptionsProvider() {
         return Stream.of(
             new NoStackTraceTimeoutException("Vertx no stack trace timeout"),
@@ -168,9 +174,7 @@ class HttpProxyEndpointConnectorTest {
 
     @Test
     void should_set_status_to_zero_when_connect_is_called() {
-        Map<String, ProxyConnector> mockConnectors = new ConcurrentHashMap<>();
-        mockConnectors.put("http", proxyConnector);
-        ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
+        injectMockConnector();
 
         cut.connect(ctx).test().assertComplete();
 
@@ -181,9 +185,7 @@ class HttpProxyEndpointConnectorTest {
     @ParameterizedTest
     @MethodSource("timeoutExceptionsProvider")
     void shouldHandle_TimeoutExceptions_And_Interrupt(Throwable timeoutException) {
-        Map<String, ProxyConnector> mockConnectors = new ConcurrentHashMap<>();
-        mockConnectors.put("http", proxyConnector);
-        ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
+        injectMockConnector();
 
         when(proxyConnector.connect(ctx)).thenReturn(Completable.error(timeoutException));
         when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
@@ -201,9 +203,7 @@ class HttpProxyEndpointConnectorTest {
 
     @Test
     void shouldUse_HandleException_In_ErrorResumeNext() {
-        Map<String, ProxyConnector> mockConnectors = new ConcurrentHashMap<>();
-        mockConnectors.put("http", proxyConnector);
-        ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
+        injectMockConnector();
 
         Throwable timeoutException = new NoStackTraceTimeoutException("timeout");
         when(proxyConnector.connect(ctx)).thenReturn(Completable.error(timeoutException));
@@ -218,9 +218,7 @@ class HttpProxyEndpointConnectorTest {
 
     @Test
     void shouldHandle_IOException_And_Interrupt_With_BadGatewayKey() {
-        Map<String, ProxyConnector> mockConnectors = new ConcurrentHashMap<>();
-        mockConnectors.put("http", proxyConnector);
-        ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
+        injectMockConnector();
 
         Throwable badGatewayException = new IOException("Bad Gateway");
         when(proxyConnector.connect(ctx)).thenReturn(Completable.error(badGatewayException));
@@ -238,9 +236,7 @@ class HttpProxyEndpointConnectorTest {
 
     @Test
     void shouldPropagate_InterruptionFailureException() {
-        Map<String, ProxyConnector> mockConnectors = new ConcurrentHashMap<>();
-        mockConnectors.put("http", proxyConnector);
-        ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
+        injectMockConnector();
 
         InterruptionFailureException interruptionFailureException = new InterruptionFailureException(new ExecutionFailure());
         when(proxyConnector.connect(ctx)).thenReturn(Completable.error(interruptionFailureException));
@@ -252,9 +248,7 @@ class HttpProxyEndpointConnectorTest {
 
     @Test
     void should_rewrite_server_null_in_timeout_error_message() {
-        Map<String, ProxyConnector> mockConnectors = new ConcurrentHashMap<>();
-        mockConnectors.put("http", proxyConnector);
-        ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
+        injectMockConnector();
 
         NoStackTraceTimeoutException timeoutException = new NoStackTraceTimeoutException(
             "The timeout period of 10000ms has been exceeded while executing GET /late for server null"

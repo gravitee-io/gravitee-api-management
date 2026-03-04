@@ -90,7 +90,7 @@ class TcpProxyEndpointConnectorTest {
         VertxTcpResponse response = new VertxTcpResponse(request);
         DefaultExecutionContext context = createContext(vertx, request, response);
 
-        connector.connect(context).test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+        connector.connect(context).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
         response
             .chunks()
