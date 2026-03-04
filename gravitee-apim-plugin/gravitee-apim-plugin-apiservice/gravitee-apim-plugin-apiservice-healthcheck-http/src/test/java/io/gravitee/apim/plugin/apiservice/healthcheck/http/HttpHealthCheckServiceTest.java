@@ -57,6 +57,8 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -421,6 +423,8 @@ public class HttpHealthCheckServiceTest {
     @Nested
     class NonHttpBasedEndpointConnector {
 
+        private static final Vertx sharedVertx = Vertx.vertx();
+
         @RegisterExtension
         private WireMockExtension wiremock = WireMockExtension.newInstance()
             .options(WireMockConfiguration.wireMockConfig().dynamicPort().dynamicHttpsPort())
@@ -431,13 +435,18 @@ public class HttpHealthCheckServiceTest {
         @Mock
         private Configuration configuration;
 
+        @AfterAll
+        static void tearDown() {
+            sharedVertx.close();
+        }
+
         @Test
         public void should_call_target_using_instance_of_httpClient() throws Exception {
             when(deploymentContext.getComponent(Api.class)).thenReturn(api);
             when(deploymentContext.getComponent(Node.class)).thenReturn(node);
             when(deploymentContext.getComponent(ReporterService.class)).thenReturn(reporterService);
             when(deploymentContext.getComponent(AlertEventProducer.class)).thenReturn(alertEventProducer);
-            when(deploymentContext.getComponent(Vertx.class)).thenReturn(Vertx.vertx());
+            when(deploymentContext.getComponent(Vertx.class)).thenReturn(sharedVertx);
             when(deploymentContext.getComponent(Configuration.class)).thenReturn(configuration);
 
             wiremock.stubFor(get("/health").willReturn(ok()));
@@ -502,7 +511,7 @@ public class HttpHealthCheckServiceTest {
             when(deploymentContext.getComponent(Node.class)).thenReturn(node);
             when(deploymentContext.getComponent(ReporterService.class)).thenReturn(reporterService);
             when(deploymentContext.getComponent(AlertEventProducer.class)).thenReturn(alertEventProducer);
-            when(deploymentContext.getComponent(Vertx.class)).thenReturn(Vertx.vertx());
+            when(deploymentContext.getComponent(Vertx.class)).thenReturn(sharedVertx);
             when(deploymentContext.getComponent(Configuration.class)).thenReturn(configuration);
 
             hcConfig.setTarget("http://localhost:" + wiremock.getPort() + "/health");

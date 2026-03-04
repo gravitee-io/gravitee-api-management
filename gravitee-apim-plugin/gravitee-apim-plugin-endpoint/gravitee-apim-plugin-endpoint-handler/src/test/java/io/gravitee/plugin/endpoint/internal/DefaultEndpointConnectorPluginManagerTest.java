@@ -48,6 +48,9 @@ class DefaultEndpointConnectorPluginManagerTest {
 
     public static final String FAKE_ENDPOINT = "fake-endpoint";
 
+    private static final DefaultEndpointConnectorClassLoaderFactory classLoaderFactory = new DefaultEndpointConnectorClassLoaderFactory();
+    private static final PluginConfigurationHelper pluginConfigurationHelper = new PluginConfigurationHelper(null, new ObjectMapper());
+
     @Mock
     private DeploymentContext deploymentContext;
 
@@ -55,12 +58,7 @@ class DefaultEndpointConnectorPluginManagerTest {
 
     @BeforeEach
     void beforeEach() {
-        cut = spy(
-            new DefaultEndpointConnectorPluginManager(
-                new DefaultEndpointConnectorClassLoaderFactory(),
-                new PluginConfigurationHelper(null, new ObjectMapper())
-            )
-        );
+        cut = spy(new DefaultEndpointConnectorPluginManager(classLoaderFactory, pluginConfigurationHelper));
     }
 
     @Test
