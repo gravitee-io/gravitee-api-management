@@ -1,24 +1,10 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import {
-  Globe,
-  Bot,
-  Puzzle,
-  FlaskConical,
-  Shield,
-  BarChart3,
-  Users,
-  BookOpen,
-  Building2,
-  Landmark,
-  Command,
-  Search,
-  Home,
-} from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Separator } from '@baros/components/ui/separator';
 import { SidebarTrigger } from '@baros/components/ui/sidebar';
+import { mockNavItems, mockOrganizations, mockEnvironments, mockUser } from '../../../../.storybook/mock-data';
 import { AppSidebar } from '../AppSidebar';
-import type { NavItem } from '../AppSidebar';
 import { GraviteeLogo, GraviteeIcon } from '../GraviteeLogo';
 import { OrgEnvSelector } from '../OrgEnvSelector';
 import { ThemeToggle } from '../ThemeToggle';
@@ -26,113 +12,8 @@ import { TopNav } from '../TopNav';
 import { TopNavUser } from '../TopNavUser';
 import { MainLayout } from './MainLayout';
 
-const organizations = [
-  { key: 'gravitee', name: 'Gravitee Inc', icon: Building2 },
-  { key: 'acme', name: 'Acme Corp.', icon: Landmark },
-  { key: 'wayne', name: 'Wayne Tech', icon: Command },
-];
-
-const environments = [
-  { key: 'prod', name: 'Production' },
-  { key: 'staging', name: 'Staging' },
-  { key: 'dev', name: 'Development' },
-];
-
-const navItems: NavItem[] = [
-  {
-    key: 'dashboard',
-    title: 'Dashboard',
-    url: '#',
-    icon: Home,
-  },
-  {
-    key: 'apis-events',
-    title: 'APIs & Events',
-    url: '#',
-    icon: Globe,
-    items: [
-      { key: 'api-list', title: 'API List', url: '#' },
-      { key: 'event-streams', title: 'Event Streams', url: '#' },
-      { key: 'subscriptions', title: 'Subscriptions', url: '#' },
-    ],
-  },
-  {
-    key: 'ai-agents',
-    title: 'AI & Agents',
-    url: '#',
-    icon: Bot,
-    items: [
-      { key: 'agent-overview', title: 'Overview', url: '#' },
-      { key: 'agent-configs', title: 'Configurations', url: '#' },
-    ],
-  },
-  {
-    key: 'tools-integrations',
-    title: 'Tools & Integrations',
-    url: '#',
-    icon: Puzzle,
-    items: [
-      { key: 'connectors', title: 'Connectors', url: '#' },
-      { key: 'plugins', title: 'Plugins', url: '#' },
-    ],
-  },
-  {
-    key: 'mcp-studio',
-    title: 'MCP Studio',
-    url: '#',
-    icon: FlaskConical,
-    items: [
-      { key: 'mcp-editor', title: 'Editor', url: '#' },
-      { key: 'mcp-deployments', title: 'Deployments', url: '#' },
-    ],
-  },
-  {
-    key: 'governance',
-    title: 'Governance',
-    url: '#',
-    icon: Shield,
-    items: [
-      { key: 'policies', title: 'Policies', url: '#' },
-      { key: 'quality-rules', title: 'Quality Rules', url: '#' },
-    ],
-  },
-  {
-    key: 'observability',
-    title: 'Observability',
-    url: '#',
-    icon: BarChart3,
-    items: [
-      { key: 'dashboards', title: 'Dashboards', url: '#' },
-      { key: 'alerts', title: 'Alerts', url: '#' },
-      { key: 'logs', title: 'Logs', url: '#' },
-    ],
-  },
-  {
-    key: 'access-tenancy',
-    title: 'Access & Tenancy',
-    url: '#',
-    icon: Users,
-    items: [
-      { key: 'users', title: 'Users', url: '#' },
-      { key: 'roles', title: 'Roles', url: '#' },
-      { key: 'tenants', title: 'Tenants', url: '#' },
-    ],
-  },
-  {
-    key: 'developer-portal',
-    title: 'Developer Portal',
-    url: '#',
-    icon: BookOpen,
-    items: [
-      { key: 'portal-home', title: 'Portal Home', url: '#' },
-      { key: 'api-catalog', title: 'API Catalog', url: '#' },
-      { key: 'portal-docs', title: 'Documentation', url: '#' },
-    ],
-  },
-];
-
 function findParentTitle(key: string): string {
-  for (const item of navItems) {
+  for (const item of mockNavItems) {
     if (item.key === key) return item.title;
     if (item.items?.some(sub => sub.key === key)) return item.title;
   }
@@ -140,7 +21,7 @@ function findParentTitle(key: string): string {
 }
 
 function findSubTitle(key: string): string | undefined {
-  for (const item of navItems) {
+  for (const item of mockNavItems) {
     const sub = item.items?.find(s => s.key === key);
     if (sub) return sub.title;
   }
@@ -174,7 +55,7 @@ export const Overview: Story = {
           <AppSidebar
             logo={<GraviteeLogo />}
             collapsedLogo={<GraviteeIcon />}
-            navItems={navItems}
+            navItems={mockNavItems}
             activeItemKey={activeKey}
             onNavItemClick={setActiveKey}
           />
@@ -186,8 +67,8 @@ export const Overview: Story = {
                 <SidebarTrigger />
                 <Separator orientation="vertical" className="mx-1 h-4" />
                 <OrgEnvSelector
-                  organizations={organizations}
-                  environments={environments}
+                  organizations={mockOrganizations}
+                  environments={mockEnvironments}
                   activeOrgKey={activeOrgKey}
                   activeEnvKey={activeEnvKey}
                   onOrgChange={setActiveOrgKey}
@@ -207,7 +88,7 @@ export const Overview: Story = {
                   />
                 </div>
                 <ThemeToggle />
-                <TopNavUser user={{ name: 'Jane Doe', email: 'jane.doe@gravitee.io' }} />
+                <TopNavUser user={mockUser} />
               </div>
             }
           />
@@ -275,7 +156,7 @@ export const CollapsedSidebar: Story = {
         <AppSidebar
           logo={<GraviteeLogo />}
           collapsedLogo={<GraviteeIcon />}
-          navItems={navItems}
+          navItems={mockNavItems}
           activeItemKey="policies"
         />
       }
@@ -286,8 +167,8 @@ export const CollapsedSidebar: Story = {
               <SidebarTrigger />
               <Separator orientation="vertical" className="mx-1 h-4" />
               <OrgEnvSelector
-                organizations={organizations}
-                environments={environments}
+                organizations={mockOrganizations}
+                environments={mockEnvironments}
                 activeOrgKey="gravitee"
                 activeEnvKey="prod"
               />
@@ -296,7 +177,7 @@ export const CollapsedSidebar: Story = {
           trailing={
             <div className="flex items-center gap-1">
               <ThemeToggle />
-              <TopNavUser user={{ name: 'Jane Doe', email: 'jane.doe@gravitee.io' }} />
+              <TopNavUser user={mockUser} />
             </div>
           }
         />
