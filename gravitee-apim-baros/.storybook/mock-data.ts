@@ -11,9 +11,12 @@ import {
   Landmark,
   Command,
   Home,
+  Radio,
+  ShieldCheck,
 } from 'lucide-react';
 import type { NavItem } from '@baros/components/layout/AppSidebar';
 import type { OrgOption, EnvOption } from '@baros/components/layout/OrgEnvSelector';
+import type { AppOption } from '@baros/components/layout/AppDropdown';
 
 export const mockNavItems: NavItem[] = [
   {
@@ -108,10 +111,17 @@ export const mockNavItems: NavItem[] = [
   },
 ];
 
+export const mockApps: AppOption[] = [
+  { key: 'api-management', name: 'API Management', description: 'Gateway & Proxy', icon: Globe },
+  { key: 'kafka', name: 'Kafka', description: 'Event Streaming', icon: Radio },
+  { key: 'developer-portal', name: 'Developer Portal', description: 'API Catalog', icon: BookOpen },
+  { key: 'access-management', name: 'Access Management', description: 'IAM & SSO', icon: ShieldCheck },
+];
+
 export const mockOrganizations: OrgOption[] = [
-  { key: 'gravitee', name: 'Gravitee Inc', icon: Building2 },
-  { key: 'acme', name: 'Acme Corp.', icon: Landmark },
-  { key: 'wayne', name: 'Wayne Tech', icon: Command },
+  { key: 'gravitee', name: 'Gravitee Inc', description: 'Enterprise', icon: Building2 },
+  { key: 'acme', name: 'Acme Corp.', description: 'Startup', icon: Landmark },
+  { key: 'wayne', name: 'Wayne Tech', description: 'Enterprise', icon: Command },
 ];
 
 export const mockEnvironments: EnvOption[] = [

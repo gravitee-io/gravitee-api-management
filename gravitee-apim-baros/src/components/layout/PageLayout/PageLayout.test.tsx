@@ -3,12 +3,6 @@ import userEvent from '@testing-library/user-event';
 import type { PageLayoutProps } from './PageLayout';
 import { PageLayout } from './PageLayout';
 
-const defaultBreadcrumbs = [
-  { label: 'Home', href: '/' },
-  { label: 'APIs', href: '/apis' },
-  { label: 'My API' },
-];
-
 const defaultTabs = [
   { key: 'activity', label: 'Activity', href: '/apis/1/activity' },
   { key: 'config', label: 'Configuration', href: '/apis/1/config' },
@@ -18,7 +12,7 @@ const defaultTabs = [
 function setupPageLayoutHarness(props?: Partial<PageLayoutProps>) {
   const user = userEvent.setup();
   render(
-    <PageLayout breadcrumbs={defaultBreadcrumbs} title="My API" description="A test API." {...props}>
+    <PageLayout title="My API" description="A test API." {...props}>
       <div data-testid="content">Page content</div>
     </PageLayout>,
   );
@@ -27,7 +21,6 @@ function setupPageLayoutHarness(props?: Partial<PageLayoutProps>) {
     user,
     getHeading: () => screen.getByRole('heading', { level: 1 }),
     getDescription: () => screen.getByText('A test API.'),
-    getBreadcrumb: () => screen.getByRole('navigation', { name: /breadcrumb/i }),
     getTabNav: () => screen.queryByRole('navigation', { name: /page sections/i }),
     getSeparator: () => document.querySelector('[data-orientation="horizontal"]'),
     getContent: () => screen.getByTestId('content'),
@@ -36,10 +29,9 @@ function setupPageLayoutHarness(props?: Partial<PageLayoutProps>) {
 }
 
 describe('PageLayout', () => {
-  it('renders breadcrumbs, title, description, and content', () => {
+  it('renders title, description, and content', () => {
     const harness = setupPageLayoutHarness();
 
-    expect(harness.getBreadcrumb()).toBeInTheDocument();
     expect(harness.getHeading()).toHaveTextContent('My API');
     expect(harness.getDescription()).toBeInTheDocument();
     expect(harness.getContent()).toHaveTextContent('Page content');
@@ -82,18 +74,6 @@ describe('PageLayout', () => {
     );
   });
 
-  it('renders breadcrumb links for non-last items', () => {
-    setupPageLayoutHarness();
-
-    const homeLink = screen.getByRole('link', { name: 'Home' });
-    expect(homeLink).toHaveAttribute('href', '/');
-
-    const apisLink = screen.getByRole('link', { name: 'APIs' });
-    expect(apisLink).toHaveAttribute('href', '/apis');
-
-    expect(screen.getByText('My API', { selector: '[data-slot="breadcrumb-page"]' })).toBeInTheDocument();
-  });
-
   it('renders the actions slot', () => {
     setupPageLayoutHarness({ actions: <button>Deploy</button> });
 
@@ -102,7 +82,7 @@ describe('PageLayout', () => {
 
   it('renders without description', () => {
     render(
-      <PageLayout breadcrumbs={[{ label: 'Home' }]} title="Simple Page">
+      <PageLayout title="Simple Page">
         <p>Content</p>
       </PageLayout>,
     );

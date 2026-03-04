@@ -18,6 +18,7 @@ function setupMainLayoutHarness(props?: Partial<MainLayoutProps>) {
     getSidebar: () => screen.getByTestId('sidebar'),
     getTopNav: () => screen.getByTestId('topnav'),
     getContent: () => screen.getByTestId('content'),
+    getSubheader: () => screen.getByTestId('subheader'),
   };
 }
 
@@ -29,6 +30,14 @@ describe('MainLayout', () => {
     expect(harness.getTopNav()).toBeInTheDocument();
     expect(harness.getMain()).toBeInTheDocument();
     expect(harness.getContent()).toHaveTextContent('Page content');
+  });
+
+  it('renders subheader between topnav and content', () => {
+    const harness = setupMainLayoutHarness({
+      subheader: <div data-testid="subheader">Breadcrumb</div>,
+    });
+
+    expect(harness.getSubheader()).toHaveTextContent('Breadcrumb');
   });
 
   it('renders without sidebar', () => {

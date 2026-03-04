@@ -1,16 +1,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Building2, Landmark, Command } from 'lucide-react';
-import { OrgEnvSelector } from './OrgEnvSelector';
-
-const meta = {
-  title: 'Layout/OrgEnvSelector',
-  component: OrgEnvSelector,
-  tags: ['autodocs'],
-} satisfies Meta<typeof OrgEnvSelector>;
-
-export default meta;
-type Story = StoryObj<typeof meta>;
+import { OrgSelector, EnvSelector } from './OrgEnvSelector';
 
 const orgs = [
   { key: 'gravitee', name: 'Gravitee Inc', icon: Building2 },
@@ -24,29 +15,46 @@ const envs = [
   { key: 'dev', name: 'Development' },
 ];
 
-export const Default: Story = {
+const orgMeta = {
+  title: 'Layout/OrgSelector',
+  component: OrgSelector,
+  tags: ['autodocs'],
+} satisfies Meta<typeof OrgSelector>;
+
+export default orgMeta;
+type Story = StoryObj<typeof orgMeta>;
+
+export const DefaultOrg: Story = {
   args: {
     organizations: orgs,
-    environments: envs,
     activeOrgKey: 'gravitee',
-    activeEnvKey: 'prod',
   },
 };
 
-export const Interactive: Story = {
+export const InteractiveOrg: Story = {
+  render: () => {
+    const [orgKey, setOrgKey] = useState('gravitee');
+    return <OrgSelector organizations={orgs} activeOrgKey={orgKey} onOrgChange={setOrgKey} />;
+  },
+};
+
+export const DefaultEnv: Story = {
+  render: () => {
+    const [envKey, setEnvKey] = useState('prod');
+    return <EnvSelector environments={envs} activeEnvKey={envKey} onEnvChange={setEnvKey} />;
+  },
+};
+
+export const Combined: Story = {
   render: () => {
     const [orgKey, setOrgKey] = useState('gravitee');
     const [envKey, setEnvKey] = useState('prod');
 
     return (
-      <OrgEnvSelector
-        organizations={orgs}
-        environments={envs}
-        activeOrgKey={orgKey}
-        activeEnvKey={envKey}
-        onOrgChange={setOrgKey}
-        onEnvChange={setEnvKey}
-      />
+      <div className="flex items-center gap-2">
+        <OrgSelector organizations={orgs} activeOrgKey={orgKey} onOrgChange={setOrgKey} />
+        <EnvSelector environments={envs} activeEnvKey={envKey} onEnvChange={setEnvKey} />
+      </div>
     );
   },
 };
