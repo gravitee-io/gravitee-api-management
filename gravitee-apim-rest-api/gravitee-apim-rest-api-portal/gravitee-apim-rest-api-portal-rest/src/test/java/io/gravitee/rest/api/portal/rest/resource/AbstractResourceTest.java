@@ -97,6 +97,7 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -110,6 +111,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { ResourceContextConfiguration.class })
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired

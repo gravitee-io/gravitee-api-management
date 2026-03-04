@@ -51,11 +51,9 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
     }
 
     @AfterEach
-    @Override
-    public void tearDown() throws Exception {
+    void cleanUp() {
         GraviteeContext.cleanContext();
         subscriptionFormQueryService.reset();
-        super.tearDown();
     }
 
     @Test
