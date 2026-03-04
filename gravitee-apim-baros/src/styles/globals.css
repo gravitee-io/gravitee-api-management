@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap');
 @import 'tailwindcss';
 @import '../tokens/primitive.css';
 @import '../tokens/semantic.css';
@@ -46,6 +47,9 @@
   --color-topnav-foreground: var(--topnav-foreground);
   --color-topnav-border: var(--topnav-border);
 
+  /* ── Typography ─────────────────────────────────── */
+  --font-sans: 'Nunito Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
   /* ── Radius ──────────────────────────────────────── */
   --radius-sm: calc(var(--radius) - 0.125rem);
   --radius-md: var(--radius);
@@ -61,11 +65,30 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family:
-      'Inter',
-      ui-sans-serif,
-      system-ui,
-      -apple-system,
-      sans-serif;
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.025em;
+  }
+
+  h1 {
+    font-size: var(--baros-text-3xl);
+    font-weight: 800;
+    line-height: var(--baros-leading-tight);
+  }
+
+  h2 {
+    font-size: var(--baros-text-2xl);
+    font-weight: 700;
+    line-height: var(--baros-leading-tight);
+  }
+
+  h3 {
+    font-size: var(--baros-text-xl);
+    font-weight: 600;
+    line-height: var(--baros-leading-snug);
   }
 }
