@@ -134,9 +134,9 @@ describe('ApiPlanFormComponent', () => {
 
   describe('Create mode V2 with API', () => {
     describe('OAuth2 plan', () => {
-      const TAG_1_ID = 'tag-1';
+      const TAG_1_KEY = 'tag-1';
       const API = fakeApiV2({
-        tags: [TAG_1_ID],
+        tags: [TAG_1_KEY],
         resources: [
           {
             name: 'OAuth2 AM Resource',
@@ -207,9 +207,10 @@ describe('ApiPlanFormComponent', () => {
       });
     });
     describe('JWT plan', () => {
-      const TAG_1_ID = 'tag-1';
+      const TAG_1_ID = 'tag-1-id';
+      const TAG_1_KEY = 'tag-1';
       const API = fakeApiV2({
-        tags: [TAG_1_ID],
+        tags: [TAG_1_KEY],
         resources: [
           {
             name: 'OAuth2 AM Resource',
@@ -231,12 +232,15 @@ describe('ApiPlanFormComponent', () => {
 
         planForm
           .httpRequest(httpTestingController)
-          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+          .expectTagsListRequest([
+            fakeTag({ id: TAG_1_ID, key: TAG_1_KEY, name: 'Tag 1' }),
+            fakeTag({ id: 'tag-2-id', key: 'tag-2', name: 'Tag 2' }),
+          ]);
         planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
         planForm
           .httpRequest(httpTestingController)
           .expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1', published: true }]);
-        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_KEY]);
         fixture.detectChanges();
 
         expect(testComponent.planControl.touched).toEqual(false);
@@ -320,7 +324,7 @@ describe('ApiPlanFormComponent', () => {
             configuration: {},
           },
           selectionRule: '{ #el ...}',
-          tags: [TAG_1_ID],
+          tags: [TAG_1_KEY],
           validation: 'AUTO',
           flows: [
             {
@@ -356,9 +360,10 @@ describe('ApiPlanFormComponent', () => {
       });
     });
     describe('API Key plan', () => {
-      const TAG_1_ID = 'tag-1';
+      const TAG_1_ID = 'tag-1-id';
+      const TAG_1_KEY = 'tag-1';
       const API = fakeApiV2({
-        tags: [TAG_1_ID],
+        tags: [TAG_1_KEY],
         resources: [
           {
             name: 'OAuth2 AM Resource',
@@ -380,12 +385,15 @@ describe('ApiPlanFormComponent', () => {
 
         planForm
           .httpRequest(httpTestingController)
-          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+          .expectTagsListRequest([
+            fakeTag({ id: TAG_1_ID, key: TAG_1_KEY, name: 'Tag 1' }),
+            fakeTag({ id: 'tag-2-id', key: 'tag-2', name: 'Tag 2' }),
+          ]);
         planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
         planForm
           .httpRequest(httpTestingController)
           .expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1', published: true }]);
-        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_KEY]);
         fixture.detectChanges();
 
         expect(testComponent.planControl.touched).toEqual(false);
@@ -474,7 +482,7 @@ describe('ApiPlanFormComponent', () => {
             },
           },
           selectionRule: null,
-          tags: [TAG_1_ID],
+          tags: [TAG_1_KEY],
           validation: 'AUTO',
           flows: [
             {
@@ -510,9 +518,10 @@ describe('ApiPlanFormComponent', () => {
       });
     });
     describe('API Keyless plan', () => {
-      const TAG_1_ID = 'tag-1';
+      const TAG_1_ID = 'tag-1-id';
+      const TAG_1_KEY = 'tag-1';
       const API = fakeApiV2({
-        tags: [TAG_1_ID],
+        tags: [TAG_1_KEY],
         resources: [
           {
             name: 'OAuth2 AM Resource',
@@ -533,12 +542,15 @@ describe('ApiPlanFormComponent', () => {
 
         planForm
           .httpRequest(httpTestingController)
-          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+          .expectTagsListRequest([
+            fakeTag({ id: TAG_1_ID, key: TAG_1_KEY, name: 'Tag 1' }),
+            fakeTag({ id: 'tag-2', key: 'tag-2', name: 'Tag 2' }),
+          ]);
         planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
         planForm
           .httpRequest(httpTestingController)
           .expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1', published: true }]);
-        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_KEY]);
         fixture.detectChanges();
 
         expect(testComponent.planControl.touched).toEqual(false);
@@ -609,7 +621,7 @@ describe('ApiPlanFormComponent', () => {
             configuration: {},
           },
           selectionRule: null,
-          tags: [TAG_1_ID],
+          tags: [TAG_1_KEY],
           validation: 'MANUAL',
           flows: [
             {
@@ -1113,9 +1125,10 @@ describe('ApiPlanFormComponent', () => {
   });
 
   describe('Edit mode V2', () => {
-    const TAG_1_ID = 'tag-1';
+    const TAG_1_ID = 'tag-1-id';
+    const TAG_1_KEY = 'tag-1';
     const API = fakeApiV2({
-      tags: [TAG_1_ID],
+      tags: [TAG_1_KEY],
     });
     const PLAN_ID = 'plan-1';
 
@@ -1124,7 +1137,7 @@ describe('ApiPlanFormComponent', () => {
     });
 
     it('should edit plan', async () => {
-      const planToUpdate = fakePlanV2({ id: PLAN_ID, name: 'Old 🗺', description: 'Old Description', tags: [TAG_1_ID] });
+      const planToUpdate = fakePlanV2({ id: PLAN_ID, name: 'Old 🗺', description: 'Old Description', tags: [TAG_1_KEY] });
       testComponent.planControl = new FormControl(planToUpdate);
       fixture.detectChanges();
 
@@ -1132,12 +1145,15 @@ describe('ApiPlanFormComponent', () => {
 
       planForm
         .httpRequest(httpTestingController)
-        .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+        .expectTagsListRequest([
+          fakeTag({ id: TAG_1_ID, key: TAG_1_KEY, name: 'Tag 1' }),
+          fakeTag({ id: 'tag-2', key: 'tag-2', name: 'Tag 2' }),
+        ]);
       planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       planForm
         .httpRequest(httpTestingController)
         .expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1', published: true }]);
-      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_KEY]);
       fixture.detectChanges();
 
       expect(testComponent.planControl.touched).toEqual(false);
@@ -1196,9 +1212,10 @@ describe('ApiPlanFormComponent', () => {
   });
 
   describe('Edit mode V2 with disabled control', () => {
-    const TAG_1_ID = 'tag-1';
+    const TAG_1_ID = 'tag-1-id';
+    const TAG_1_KEY = 'tag-1';
     const API = fakeApiV2({
-      tags: [TAG_1_ID],
+      tags: [TAG_1_KEY],
       definitionContext: { origin: 'KUBERNETES' },
     });
     const PLAN_ID = 'plan-1';
@@ -1208,7 +1225,7 @@ describe('ApiPlanFormComponent', () => {
     });
 
     it('should access plan in read only ', async () => {
-      const planToUpdate = fakePlanV2({ id: PLAN_ID, name: 'Old 🗺', description: 'Old Description', tags: [TAG_1_ID] });
+      const planToUpdate = fakePlanV2({ id: PLAN_ID, name: 'Old 🗺', description: 'Old Description', tags: [TAG_1_KEY] });
       testComponent.planControl = new FormControl({
         value: planToUpdate,
         disabled: true,
@@ -1219,10 +1236,13 @@ describe('ApiPlanFormComponent', () => {
 
       planForm
         .httpRequest(httpTestingController)
-        .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+        .expectTagsListRequest([
+          fakeTag({ id: TAG_1_ID, key: TAG_1_KEY, name: 'Tag 1' }),
+          fakeTag({ id: 'tag-2', key: 'tag-2', name: 'Tag 2' }),
+        ]);
       planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
-      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_KEY]);
       fixture.detectChanges();
 
       expect(testComponent.planControl.touched).toEqual(false);
@@ -1259,16 +1279,17 @@ describe('ApiPlanFormComponent', () => {
   });
 
   describe('Edit mode V4', () => {
-    const TAG_1_ID = 'tag-1';
+    const TAG_1_ID = 'tag-1-id';
+    const TAG_1_KEY = 'tag-1';
     const API = fakeApiV4({
-      tags: [TAG_1_ID],
+      tags: [TAG_1_KEY],
     });
     const PLAN_ID = 'plan-1';
 
     describe('Keyless plan', () => {
       it('should edit plan', async () => {
         configureTestingModule('edit', 'KEY_LESS', API);
-        const planToUpdate = fakePlanV4({ id: PLAN_ID, name: 'Old 🗺', description: 'Old Description', tags: [TAG_1_ID] });
+        const planToUpdate = fakePlanV4({ id: PLAN_ID, name: 'Old 🗺', description: 'Old Description', tags: [TAG_1_KEY] });
         testComponent.planControl = new FormControl(planToUpdate);
         fixture.detectChanges();
 
@@ -1276,12 +1297,15 @@ describe('ApiPlanFormComponent', () => {
 
         planForm
           .httpRequest(httpTestingController)
-          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+          .expectTagsListRequest([
+            fakeTag({ id: TAG_1_ID, key: TAG_1_KEY, name: 'Tag 1' }),
+            fakeTag({ id: 'tag-2', key: 'tag-2', name: 'Tag 2' }),
+          ]);
         planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
         planForm
           .httpRequest(httpTestingController)
           .expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1', published: true }]);
-        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_KEY]);
         fixture.detectChanges();
 
         expect(testComponent.planControl.touched).toEqual(false);
@@ -1344,13 +1368,16 @@ describe('ApiPlanFormComponent', () => {
 
         planForm
           .httpRequest(httpTestingController)
-          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+          .expectTagsListRequest([
+            fakeTag({ id: TAG_1_ID, key: TAG_1_KEY, name: 'Tag 1' }),
+            fakeTag({ id: 'tag-2', key: 'tag-2', name: 'Tag 2' }),
+          ]);
         planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
         planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [
           { id: 'doc-1', name: 'Doc 1', published: true },
           { id: 'doc-2', name: 'Doc 2', published: false },
         ]);
-        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_KEY]);
 
         const generalConditionsInput = await planForm.getGeneralConditionsInput();
         await generalConditionsInput.open();
@@ -1395,7 +1422,7 @@ describe('ApiPlanFormComponent', () => {
             type: 'API_KEY',
             configuration: { propagateApiKey: true },
           },
-          tags: [TAG_1_ID],
+          tags: [TAG_1_KEY],
         });
         testComponent.planControl = new FormControl(planToUpdate);
         fixture.detectChanges();
@@ -1404,10 +1431,13 @@ describe('ApiPlanFormComponent', () => {
 
         planForm
           .httpRequest(httpTestingController)
-          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+          .expectTagsListRequest([
+            fakeTag({ id: TAG_1_ID, key: TAG_1_KEY, name: 'Tag 1' }),
+            fakeTag({ id: 'tag-2', key: 'tag-2', name: 'Tag 2' }),
+          ]);
         planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
         planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
-        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_KEY]);
         planForm.httpRequest(httpTestingController).expectPolicySchemaV2GetRequest('api-key', fakeApiKeySchema);
         fixture.detectChanges();
 
