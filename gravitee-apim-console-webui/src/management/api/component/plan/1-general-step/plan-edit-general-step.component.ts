@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, inject, OnInit, DestroyRef } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { includes } from 'lodash';
-import { combineLatest, of, ReplaySubject, Subject } from 'rxjs';
-import { map, startWith, switchMap, takeUntil } from 'rxjs/operators';
+import { combineLatest, of, ReplaySubject } from 'rxjs';
+import { map, startWith, switchMap } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ApiFederated, ApiV2, ApiV4, PlanStatus } from '../../../../../entities/management-api-v2';
 import { CurrentUserService } from '../../../../../services-ngx/current-user.service';
@@ -31,8 +32,13 @@ import { TagService } from '../../../../../services-ngx/tag.service';
   styleUrls: ['./plan-edit-general-step.component.scss'],
   standalone: false,
 })
-export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+export class PlanEditGeneralStepComponent implements OnInit {
+  private readonly tagService = inject(TagService);
+  private readonly groupService = inject(GroupService);
+  private readonly documentationService = inject(DocumentationService);
+  private readonly currentUserService = inject(CurrentUserService);
+  private readonly destroyRef = inject(DestroyRef);
+
   public api$ = new ReplaySubject<ApiV2 | ApiV4 | ApiFederated>(1);
 
   public generalForm: UntypedFormGroup;
@@ -75,19 +81,12 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
     map(([tags, api, userTags]) => {
       return tags.map(tag => ({
         ...tag,
-        disabled: !includes(userTags, tag.id) || !includes(api.tags, tag.id),
+        disabled: !includes(userTags, tag.key) || !includes(api.tags, tag.key),
       }));
     }),
   );
 
   groups$ = this.groupService.list();
-
-  constructor(
-    private readonly tagService: TagService,
-    private readonly groupService: GroupService,
-    private readonly documentationService: DocumentationService,
-    private readonly currentUserService: CurrentUserService,
-  ) {}
 
   ngOnInit(): void {
     this.generalForm = new UntypedFormGroup({
@@ -105,14 +104,9 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
     // Enable comment message only if comment required is checked
     this.generalForm
       .get('commentRequired')
-      .valueChanges.pipe(startWith(this.generalForm.get('commentRequired').value), takeUntil(this.unsubscribe$))
+      .valueChanges.pipe(startWith(this.generalForm.get('commentRequired').value), takeUntilDestroyed(this.destroyRef))
       .subscribe(value => {
         value ? this.generalForm.get('commentMessage').enable() : this.generalForm.get('commentMessage').disable();
       });
-  }
-
-  ngOnDestroy() {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.unsubscribe();
   }
 }
