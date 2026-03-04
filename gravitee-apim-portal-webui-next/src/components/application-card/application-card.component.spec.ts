@@ -74,9 +74,9 @@ describe('ApplicationCardComponent', () => {
 
   it('should emit select event with applicationId on click', () => {
     const selectSpy = jest.fn();
-    component.select.subscribe(selectSpy);
+    component.cardSelect.subscribe(selectSpy);
 
-    fixture.nativeElement.querySelector('gmd-card').click();
+    fixture.nativeElement.querySelector('mat-card').click();
     expect(selectSpy).toHaveBeenCalledWith(mockData.applicationId);
   });
 });
