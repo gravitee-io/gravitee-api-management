@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
-import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { combineLatest, EMPTY, Observable, of } from 'rxjs';
+import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData } from './dialog/org-settings-add-tag-dialog.component';
 import { OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData } from './dialog/org-settings-add-mapping-dialog.component';
@@ -67,7 +68,17 @@ type EntrypointTableDS = {
   styleUrls: ['./org-settings-entrypoints-and-sharding-tags.component.scss'],
   standalone: false,
 })
-export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, OnDestroy {
+export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit {
+  private readonly tagService = inject(TagService);
+  private readonly groupService = inject(GroupService);
+  private readonly portalSettingsService = inject(PortalSettingsService);
+  private readonly environmentService = inject(EnvironmentService);
+  private readonly entrypointService = inject(EntrypointService);
+  private readonly snackBarService = inject(SnackBarService);
+  private readonly matDialog = inject(MatDialog);
+  private readonly gioLicenseService = inject(GioLicenseService);
+  private readonly destroyRef = inject(DestroyRef);
+
   isLoading = true;
 
   providedConfigurationMessage = 'Configuration provided by the system';
@@ -90,19 +101,6 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
   shardingTagsLicenseOptions = { feature: ApimFeature.APIM_SHARDING_TAGS };
   hasShardingTagsLock$: Observable<boolean>;
 
-  private unsubscribe$ = new Subject<boolean>();
-
-  constructor(
-    private readonly tagService: TagService,
-    private readonly groupService: GroupService,
-    private readonly portalSettingsService: PortalSettingsService,
-    private readonly environmentService: EnvironmentService,
-    private readonly entrypointService: EntrypointService,
-    private readonly snackBarService: SnackBarService,
-    private readonly matDialog: MatDialog,
-    private readonly gioLicenseService: GioLicenseService,
-  ) {}
-
   ngOnInit(): void {
     this.hasShardingTagsLock$ = this.gioLicenseService.isMissingFeature$(this.shardingTagsLicenseOptions.feature);
 
@@ -122,7 +120,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
       environmentsPortalSettings$,
       this.entrypointService.list(),
     ])
-      .pipe(takeUntil(this.unsubscribe$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(([tags, groups, environmentsPortalSettings, entrypoints]) => {
         this.tags = tags;
         this.tagsTableDS = tags.map(tag => ({
@@ -198,11 +196,6 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
       });
   }
 
-  ngOnDestroy() {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.unsubscribe();
-  }
-
   onTagsFiltersChanged(filters: GioTableWrapperFilters) {
     const filtered = gioTableFilterCollection(this.tagsTableDS, filters);
     this.filteredTagsTableDS = filtered.filteredCollection;
@@ -251,7 +244,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
@@ -275,7 +268,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -301,7 +294,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -371,7 +364,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -403,7 +396,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -432,7 +425,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -458,7 +451,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.ngOnInit());
   }
