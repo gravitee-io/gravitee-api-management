@@ -64,6 +64,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @ActiveProfiles("basic")
 @TestPropertySource(
     properties = {
+        "spring.main.lazy-initialization=true",
         "jwt.secret=my-secret-for-tests",
         "http.secureHeaders.xframe.enabled=true",
         "http.secureHeaders.xframe.action=SAMEORIGIN",
