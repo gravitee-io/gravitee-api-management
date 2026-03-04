@@ -1,0 +1,82 @@
+---
+description: Tailwind CSS conventions for Gamma and Baros React projects
+globs: gravitee-apim-gamma-react/**/*.tsx, gravitee-apim-baros/**/*.tsx
+alwaysApply: false
+---
+
+# Tailwind CSS Standards
+
+## Conditional Classes
+
+Use `clsx` for simple conditionals, `tailwind-merge` (via `twMerge` or a `cn` helper) when merging consumer classes with component defaults.
+
+```tsx
+import { twMerge } from 'tailwind-merge';
+import clsx from 'clsx';
+
+// Simple conditional
+<div className={clsx('rounded-lg', isActive && 'ring-2 ring-blue-500')} />
+
+// Merging with consumer override (design system components)
+export function Button({ className, ...props }: ButtonProps) {
+  return <button className={twMerge('px-4 py-2 rounded-md font-medium', className)} {...props} />;
+}
+```
+
+## Design Tokens Over Arbitrary Values
+
+Prefer Tailwind theme values. Avoid arbitrary values (`text-[13px]`, `bg-[#1a2b3c]`).
+
+```tsx
+// ❌ BAD
+<p className="text-[13px] text-[#6b7280]">...</p>
+
+// ✅ GOOD
+<p className="text-sm text-gray-500">...</p>
+```
+
+If a value doesn't exist in the theme, extend the Tailwind config rather than using arbitrary syntax.
+
+## Responsive Design
+
+Mobile-first: base styles for mobile, then layer up with `sm:`, `md:`, `lg:`, `xl:`.
+
+```tsx
+<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3" />
+```
+
+## Dark Mode
+
+Use the `dark:` variant. Every color must have a dark counterpart.
+
+```tsx
+<div className="bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100" />
+```
+
+## No `@apply` for Reuse
+
+Extract repeated class sets into React components, not `@apply` in CSS files.
+
+```tsx
+// ❌ BAD — in CSS
+// .card { @apply rounded-lg border p-4 shadow-sm; }
+
+// ✅ GOOD — as a component
+export function Card({ className, children }: CardProps) {
+  return <div className={twMerge('rounded-lg border p-4 shadow-sm', className)}>{children}</div>;
+}
+```
+
+## Class Ordering Convention
+
+Order Tailwind classes by concern for readability:
+
+1. **Layout** — `flex`, `grid`, `block`, `relative`
+2. **Sizing** — `w-*`, `h-*`, `min-w-*`
+3. **Spacing** — `p-*`, `m-*`, `gap-*`
+4. **Typography** — `text-*`, `font-*`, `leading-*`
+5. **Colors** — `bg-*`, `text-*`, `border-*`
+6. **Effects** — `shadow-*`, `opacity-*`, `ring-*`
+7. **Transitions** — `transition-*`, `duration-*`
+
+Use the `prettier-plugin-tailwindcss` plugin to automate class sorting.

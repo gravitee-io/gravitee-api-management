@@ -1,0 +1,84 @@
+---
+description: React 19+ architectural standards for Gamma and Baros projects
+globs: gravitee-apim-gamma-react/**/*.{ts,tsx}, gravitee-apim-baros/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# React Architecture Standards
+
+## Components
+
+- Functional components only. No class components.
+- Named exports only — never `export default`.
+- One component per file. File name matches component name in PascalCase (`Button.tsx`).
+
+```tsx
+// ❌ BAD
+export default function Button() { ... }
+
+// ✅ GOOD
+export function Button({ variant, children }: ButtonProps) { ... }
+```
+
+## File Structure — Feature-Based Colocation
+
+Group by feature, not by type. Each feature folder colocates its component, hook, test, and types.
+
+```
+src/features/
+  api-keys/
+    ApiKeyList.tsx
+    ApiKeyList.test.tsx
+    use-api-keys.ts
+    api-key.types.ts
+    index.ts            # barrel export
+```
+
+## Naming Conventions
+
+| Kind | Pattern | Example |
+|------|---------|---------|
+| Component | `PascalCase.tsx` | `ApiKeyList.tsx` |
+| Hook | `use-camelCase.ts` | `use-api-keys.ts` |
+| Test | `PascalCase.test.tsx` | `ApiKeyList.test.tsx` |
+| Types | `camelCase.types.ts` | `api-key.types.ts` |
+| Utility | `camelCase.ts` | `formatDate.ts` |
+
+## React 19 Patterns
+
+- Use `useActionState` for form submission state (replaces manual `useState` + `try/catch`).
+- Use `useOptimistic` for optimistic UI updates.
+- Use `use()` to unwrap promises and context — replaces `useContext`.
+- Use `<form action={fn}>` for mutations instead of `onSubmit` + `preventDefault`.
+
+## State Management Layering
+
+1. **Local state** (`useState`, `useReducer`) — component-scoped UI state
+2. **Context** (`createContext` + `use()`) — shared UI state (theme, sidebar open)
+3. **TanStack Query** — all server/async state (API data, caching, revalidation)
+4. **Zustand** — complex client-side state that spans multiple components
+
+Never store server data in Zustand or Context. Server state belongs in TanStack Query.
+
+## Barrel Exports
+
+Only export the **public API** of a feature from its `index.ts`. Never export internal utilities, helper functions, or sub-components that aren't meant to be consumed outside the feature folder.
+
+```ts
+// ❌ BAD — leaking internals
+export { ApiKeyList } from './ApiKeyList';
+export { formatKeyExpiry } from './utils';      // internal helper
+export { KeyBadge } from './KeyBadge';           // private sub-component
+
+// ✅ GOOD — public API only
+export { ApiKeyList } from './ApiKeyList';
+export type { ApiKey } from './api-key.types';
+```
+
+Keep barrel files flat — an `index.ts` should only re-export from its own folder, never from nested feature folders. This prevents circular dependencies and keeps Vite's dev server fast.
+
+## Composition
+
+- Prefer `children` and render-slot props over deep prop drilling.
+- Extract shared logic into custom hooks (`use-*`). Hooks must be pure — no direct DOM manipulation.
+- Limit component files to ~150 lines. Extract sub-components when exceeded.

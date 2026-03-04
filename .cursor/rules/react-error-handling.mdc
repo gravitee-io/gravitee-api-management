@@ -1,0 +1,87 @@
+---
+description: Error boundary and Suspense patterns for Gamma and Baros
+globs: gravitee-apim-gamma-react/**/*.tsx, gravitee-apim-baros/**/*.tsx
+alwaysApply: false
+---
+
+# Error Boundaries & Suspense
+
+## Error Boundaries
+
+Wrap route-level and feature-level components in Error Boundaries. Never let an unhandled error crash the entire app.
+
+```tsx
+import { Component, type ErrorInfo, type ReactNode } from 'react';
+
+interface ErrorBoundaryProps {
+  readonly fallback: ReactNode | ((error: Error, reset: () => void) => ReactNode);
+  readonly onError?: (error: Error, info: ErrorInfo) => void;
+  readonly children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  readonly error: Error | null;
+}
+
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  state: ErrorBoundaryState = { error: null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    this.props.onError?.(error, info);
+  }
+
+  private reset = () => this.setState({ error: null });
+
+  render() {
+    if (this.state.error) {
+      const { fallback } = this.props;
+      return typeof fallback === 'function'
+        ? fallback(this.state.error, this.reset)
+        : fallback;
+    }
+    return this.props.children;
+  }
+}
+```
+
+## Usage Pattern
+
+```tsx
+<ErrorBoundary
+  fallback={(error, reset) => (
+    <div role="alert">
+      <p>Something went wrong: {error.message}</p>
+      <button onClick={reset}>Try again</button>
+    </div>
+  )}
+  onError={(error, info) => logToMonitoring(error, info)}
+>
+  <ApiKeyList />
+</ErrorBoundary>
+```
+
+## Suspense
+
+Use `<Suspense>` with skeleton/spinner fallbacks for components that load async data or are lazy-loaded.
+
+```tsx
+import { Suspense, lazy } from 'react';
+
+const ApiKeyList = lazy(() => import('./ApiKeyList'));
+
+<Suspense fallback={<ApiKeyListSkeleton />}>
+  <ApiKeyList />
+</Suspense>
+```
+
+## Rules
+
+1. Every route-level component must be wrapped in an Error Boundary.
+2. Suspense fallbacks must be meaningful skeletons — not just a spinner.
+3. Never swallow errors — always log to monitoring via the `onError` callback.
+4. Error UI must be accessible: use `role="alert"` and provide a recovery action.
+5. Nest Error Boundaries — a feature-level boundary should catch before the route-level one.

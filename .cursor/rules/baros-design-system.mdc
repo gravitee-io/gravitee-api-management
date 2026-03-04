@@ -1,0 +1,94 @@
+---
+description: Design system component API standards for the Baros library
+globs: gravitee-apim-baros/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Baros Design System Standards
+
+## Mandatory Storybook Stories
+
+Every exported component MUST have a corresponding `ComponentName.stories.tsx` with at least a `Default` story and one story per variant.
+
+## Component API Template
+
+Every Baros component must follow this structure:
+
+```tsx
+import { forwardRef, type ComponentPropsWithRef } from 'react';
+import { twMerge } from 'tailwind-merge';
+import { cva, type VariantProps } from 'class-variance-authority';
+
+const buttonVariants = cva('inline-flex items-center justify-center font-medium transition-colors', {
+  variants: {
+    variant: {
+      primary: 'bg-blue-600 text-white hover:bg-blue-700',
+      secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200',
+      ghost: 'hover:bg-gray-100',
+    },
+    size: {
+      sm: 'h-8 px-3 text-sm rounded-md',
+      md: 'h-10 px-4 text-sm rounded-lg',
+      lg: 'h-12 px-6 text-base rounded-lg',
+    },
+  },
+  defaultVariants: { variant: 'primary', size: 'md' },
+});
+
+interface ButtonProps
+  extends Omit<ComponentPropsWithRef<'button'>, 'className'>,
+    VariantProps<typeof buttonVariants> {
+  readonly className?: string;
+}
+
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ variant, size, className, ...props }, ref) => (
+    <button ref={ref} className={twMerge(buttonVariants({ variant, size }), className)} {...props} />
+  ),
+);
+
+Button.displayName = 'Button';
+```
+
+## Rules
+
+1. **`forwardRef`** on every component that renders a DOM element.
+2. **`className` prop** on every component — merge with `twMerge` so consumers can override.
+3. **`cva`** for variant/size props — provides type-safe, consistent variant management.
+4. **JSDoc** on all prop interfaces — describe each prop's purpose and valid values.
+5. **Sensible defaults** — every variant prop must have a `defaultVariants` entry in `cva`.
+
+## Polymorphic `as` Prop
+
+For components that should render as different HTML elements:
+
+```tsx
+interface BoxProps<T extends React.ElementType = 'div'> {
+  readonly as?: T;
+  readonly className?: string;
+  readonly children: React.ReactNode;
+}
+
+export function Box<T extends React.ElementType = 'div'>({
+  as, className, children, ...props
+}: BoxProps<T> & Omit<React.ComponentPropsWithoutRef<T>, keyof BoxProps<T>>) {
+  const Element = as ?? 'div';
+  return <Element className={twMerge('', className)} {...props}>{children}</Element>;
+}
+```
+
+## Compound Components
+
+For complex multi-part components, use the compound pattern:
+
+```tsx
+export function Select({ children, ...props }: SelectProps) { ... }
+Select.Option = function SelectOption({ ... }: OptionProps) { ... };
+Select.Group = function SelectGroup({ ... }: GroupProps) { ... };
+```
+
+## Exports
+
+- Every component folder has an `index.ts` barrel export.
+- The library root `src/index.ts` re-exports all public components.
+- Only consume Tailwind theme tokens — never hardcoded colors or spacing values.

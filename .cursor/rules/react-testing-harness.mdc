@@ -1,0 +1,90 @@
+---
+description: Component harness testing pattern for Gamma and Baros (React Testing Library)
+globs: gravitee-apim-gamma-react/**/*.test.{ts,tsx}, gravitee-apim-baros/**/*.test.{ts,tsx}
+alwaysApply: false
+---
+
+# Testing — Component Harness Pattern
+
+Every component test file must define a `setup*Harness()` function that encapsulates DOM queries and user interactions, mirroring Angular CDK's `ComponentHarness`.
+
+## Harness Structure
+
+The harness returns an object with **actions** (user interactions) and **getters** (DOM queries).
+
+```tsx
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { LoginForm } from './LoginForm';
+
+function setupLoginFormHarness(props?: Partial<LoginFormProps>) {
+  const user = userEvent.setup();
+  render(<LoginForm {...props} />);
+
+  return {
+    // Actions
+    typeEmail: (value: string) => user.type(screen.getByLabelText(/email/i), value),
+    typePassword: (value: string) => user.type(screen.getByLabelText(/password/i), value),
+    submit: () => user.click(screen.getByRole('button', { name: /log in/i })),
+
+    // Getters
+    getErrorMessage: () => screen.queryByRole('alert')?.textContent ?? null,
+    isSubmitDisabled: () => screen.getByRole('button', { name: /log in/i }).hasAttribute('disabled'),
+  };
+}
+
+it('shows error on invalid credentials', async () => {
+  const harness = setupLoginFormHarness();
+
+  await harness.typeEmail('wrong@test.com');
+  await harness.typePassword('bad');
+  await harness.submit();
+
+  await waitFor(() => {
+    expect(harness.getErrorMessage()).toBe('Invalid credentials');
+  });
+});
+```
+
+## Rules
+
+1. **Query priority**: `getByRole` > `getByLabelText` > `getByText` > `getByTestId` (last resort).
+2. **Always `userEvent`** over `fireEvent` — it simulates real browser behavior (focus, keystrokes, clicks).
+3. **Await all actions** — `userEvent` methods are async.
+4. **Use `waitFor`** when asserting on state that updates asynchronously.
+5. **No snapshot tests** — prefer explicit assertions on harness getters.
+
+## Test Structure — AAA
+
+```
+Arrange:  render component, create harness
+Act:      call harness actions
+Assert:   check harness getters
+```
+
+## API Mocking — MSW
+
+Use MSW (Mock Service Worker) for API mocking. Define handlers alongside tests.
+
+```ts
+import { http, HttpResponse } from 'msw';
+import { server } from '@/test/msw-server';
+
+beforeEach(() => {
+  server.use(
+    http.post('/api/login', () =>
+      HttpResponse.json({ error: 'Invalid credentials' }, { status: 401 }),
+    ),
+  );
+});
+```
+
+## Test Data — Factories
+
+Create factory functions for test data. Never hardcode objects inline.
+
+```ts
+function buildUser(overrides?: Partial<User>): User {
+  return { id: crypto.randomUUID(), name: 'Ada Lovelace', role: 'viewer', ...overrides };
+}
+```
