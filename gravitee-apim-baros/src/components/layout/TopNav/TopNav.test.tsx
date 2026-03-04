@@ -8,6 +8,7 @@ function setupTopNavHarness(props?: Partial<TopNavProps>) {
   return {
     getHeader: () => screen.getByRole('banner'),
     queryLeading: (text: string) => screen.queryByText(text),
+    queryCenter: (text: string) => screen.queryByText(text),
     queryTrailing: (text: string) => screen.queryByText(text),
   };
 }
@@ -23,6 +24,12 @@ describe('TopNav', () => {
     const harness = setupTopNavHarness({ leading: <span>Breadcrumbs</span> });
 
     expect(harness.queryLeading('Breadcrumbs')).toBeInTheDocument();
+  });
+
+  it('renders center content', () => {
+    const harness = setupTopNavHarness({ center: <span>Environment</span> });
+
+    expect(harness.queryCenter('Environment')).toBeInTheDocument();
   });
 
   it('renders trailing content', () => {
