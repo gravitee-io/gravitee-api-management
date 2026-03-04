@@ -1,13 +1,15 @@
 [
    {
-      "id":"international",
+      "id":"70237305-6f68-450e-a373-056f68750e50",
+      "key":"international",
       "name":"International",
       "description": "Description for international tag",
       "referenceId": "DEFAULT",
       "referenceType": "ORGANIZATION"
    },
    {
-      "id":"products",
+      "id":"1d114170-466d-4952-9141-70466de95213",
+      "key":"products",
       "name":"Products",
       "description": "Description for products tag",
       "restrictedGroups" : ["group1", "group2"],
@@ -15,28 +17,32 @@
       "referenceType": "ORGANIZATION"
    },
    {
-      "id":"stores",
+      "id":"69201f80-994b-4a55-a01f-80994b0a5509",
+      "key":"stores",
       "name":"Stores",
       "description": "Description for stores tag",
       "referenceId": "DEFAULT",
       "referenceType": "ORGANIZATION"
    },
    {
-      "id":"other",
+      "id":"1052671b-7a32-475a-9267-1b7a32875a5d",
+      "key":"other",
       "name":"Other",
       "description": "Description for other tag",
       "referenceId": "OTHER",
       "referenceType": "ORGANIZATION"
    },
    {
-     "id":"ro-be-deleted-1",
+     "id":"e90708f3-80f4-42b7-8708-f380f472b7f3",
+     "key":"ro-be-deleted-1",
      "name":"Other",
      "description": "Description for other tag",
      "referenceId": "ToBeDeleted",
      "referenceType": "ORGANIZATION"
    },
    {
-     "id":"ro-be-deleted-2",
+     "id":"4072895f-3652-4113-b289-5f3652711319",
+     "key":"ro-be-deleted-2",
      "name":"Other",
      "description": "Description for other tag",
      "referenceId": "ToBeDeleted",
