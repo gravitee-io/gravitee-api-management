@@ -31,8 +31,8 @@ import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class ApiGroupsResourceTest extends AbstractResourceTest {
@@ -50,7 +50,7 @@ public class ApiGroupsResourceTest extends AbstractResourceTest {
         resourceConfig.register(NotAdminAuthenticationFilter.class);
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         Mockito.reset(apiService);
         Mockito.reset(apiGroupService);

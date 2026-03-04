@@ -28,8 +28,8 @@ import io.gravitee.rest.api.model.UpdateTagEntity;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import javax.inject.Inject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -42,7 +42,7 @@ public class TagsResourceTest extends AbstractResourceTest {
 
     private License license;
 
-    @Before
+    @BeforeEach
     public void init() {
         license = mock(License.class);
         when(licenseManager.getPlatformLicense()).thenReturn(license);

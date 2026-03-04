@@ -60,9 +60,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.*;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Christophe LANNOY (chrislannoy.java at gmail.com)
@@ -84,7 +84,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         return "auth/oauth2/" + USER_SOURCE_OAUTH2;
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         identityProvider = new SocialIdentityProviderEntity() {
             private Map<String, String> userProfileMapping = new HashMap<>();

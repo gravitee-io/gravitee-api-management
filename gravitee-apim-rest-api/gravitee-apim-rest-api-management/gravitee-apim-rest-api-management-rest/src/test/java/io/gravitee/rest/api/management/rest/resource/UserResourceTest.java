@@ -23,8 +23,8 @@ import io.gravitee.rest.api.model.*;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 import java.util.*;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
@@ -35,7 +35,7 @@ public class UserResourceTest extends AbstractResourceTest {
     private static final String USER_ID = "test-user";
     private static final String ENV_ID = "test-env";
 
-    @Before
+    @BeforeEach
     public void resetMocks() {
         Mockito.reset(groupService, membershipService);
     }

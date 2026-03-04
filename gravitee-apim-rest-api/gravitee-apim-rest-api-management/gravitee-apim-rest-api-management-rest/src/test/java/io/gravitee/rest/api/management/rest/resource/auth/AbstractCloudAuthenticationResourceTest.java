@@ -58,9 +58,9 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
@@ -103,7 +103,7 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
 
     protected abstract String getKeystorePropertyPrefix();
 
-    @Before
+    @BeforeEach
     public void init() {
         System.setProperty(getPropertyPrefix() + ".enabled", "true");
         System.setProperty(
@@ -117,7 +117,7 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         reset(userService);
     }
 
-    @After
+    @AfterEach
     public void teardown() {
         System.clearProperty(getPropertyPrefix() + ".enabled");
         System.clearProperty(getKeystorePropertyPrefix() + ".keystore.path");

@@ -36,8 +36,8 @@ import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -63,7 +63,7 @@ public class ApplicationSubscriptionApikeyResourceTest extends AbstractResourceT
         return "applications/" + APPLICATION_ID + "/subscriptions/" + SUBSCRIPTION_ID + "/apikeys/" + APIKEY_ID;
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         Stream.of(apiKeyCrudServiceInMemory, applicationCrudServiceInMemory, subscriptionCrudServiceInMemory).forEach(
             InMemoryAlternative::reset

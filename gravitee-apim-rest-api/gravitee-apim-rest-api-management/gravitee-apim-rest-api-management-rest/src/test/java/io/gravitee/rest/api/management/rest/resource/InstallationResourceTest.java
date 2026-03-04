@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

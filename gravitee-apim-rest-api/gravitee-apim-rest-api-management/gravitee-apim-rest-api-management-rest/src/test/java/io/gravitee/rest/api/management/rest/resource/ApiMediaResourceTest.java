@@ -26,8 +26,8 @@ import io.gravitee.rest.api.service.exceptions.ApiMediaNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import jakarta.ws.rs.client.Invocation;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
@@ -49,7 +49,7 @@ public class ApiMediaResourceTest extends AbstractResourceTest {
         resourceConfig.register(NotAdminAuthenticationFilter.class);
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         Mockito.reset(mediaService);
         Mockito.reset(configService);

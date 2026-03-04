@@ -31,8 +31,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Eric LELEU (eric dot leleu at graviteesource dot com)
@@ -50,7 +50,7 @@ public class CategoryResourceTest extends AbstractResourceTest {
     private CategoryEntity mockCategory;
     private UpdateCategoryEntity updateCategoryEntity;
 
-    @Before
+    @BeforeEach
     public void init() {
         mockCategory = new CategoryEntity();
         mockCategory.setId(CATEGORY);

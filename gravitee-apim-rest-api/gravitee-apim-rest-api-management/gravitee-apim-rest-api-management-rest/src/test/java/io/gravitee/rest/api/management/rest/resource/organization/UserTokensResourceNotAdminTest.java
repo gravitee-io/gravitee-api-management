@@ -28,8 +28,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -50,7 +50,7 @@ public class UserTokensResourceNotAdminTest extends AbstractResourceTest {
         resourceConfig.register(NotAdminAuthenticationFilter.class);
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         when(
             permissionService.hasPermission(

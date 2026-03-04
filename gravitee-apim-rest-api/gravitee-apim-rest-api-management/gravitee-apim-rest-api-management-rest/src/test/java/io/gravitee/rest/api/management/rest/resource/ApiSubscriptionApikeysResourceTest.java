@@ -30,8 +30,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
@@ -49,7 +49,7 @@ public class ApiSubscriptionApikeysResourceTest extends AbstractResourceTest {
         return "apis/" + API_ID + "/subscriptions/" + SUBSCRIPTION_ID + "/apikeys";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(apiKeyService);
     }

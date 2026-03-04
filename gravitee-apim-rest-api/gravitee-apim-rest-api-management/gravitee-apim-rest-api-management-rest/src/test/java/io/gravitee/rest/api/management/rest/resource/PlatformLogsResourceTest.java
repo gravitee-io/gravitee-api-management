@@ -33,8 +33,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.Objects;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at gravitee.io
@@ -47,7 +47,7 @@ public class PlatformLogsResourceTest extends AbstractResourceTest {
         return "platform/logs/";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(logsService, applicationService, apiAuthorizationServiceV4);
     }
