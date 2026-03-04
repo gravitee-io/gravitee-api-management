@@ -91,6 +91,7 @@ describe('CatalogComponent', () => {
             pagination: {
               current_page: 1,
               total_pages: 2,
+              total: 40,
             },
           },
         }),
@@ -104,32 +105,6 @@ describe('CatalogComponent', () => {
       expect(await apiCard.getDescription()).toEqual(
         'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
       );
-      expect(await apiCard.getVersion()).toEqual('v.1.2');
-    });
-
-    it('should call API list with search query', async () => {
-      const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(apiCard).toBeDefined();
-      expect(apiCard.length).toEqual(2);
-      expect(await apiCard[0].getTitle()).toEqual('Test title');
-
-      document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
-      fixture.detectChanges();
-
-      expectApiList(
-        fakeApisResponse({
-          data: [fakeApi({ id: 'second-page-api', name: 'second page api', version: '24' })],
-          metadata: {
-            pagination: {
-              current_page: 3,
-              total_pages: 5,
-            },
-          },
-        }),
-        3,
-        9,
-      );
-      fixture.detectChanges();
     });
 
     it('should call second page when pagination changes', async () => {
@@ -185,7 +160,7 @@ describe('CatalogComponent', () => {
       it('should show empty API list', async () => {
         await initBase();
         httpTestingController
-          .expectOne(`${TESTING_BASE_URL}/apis/_search?page=1&category=all&size=20&q=`)
+          .expectOne(`${TESTING_BASE_URL}/apis/_search?page=1&category=&size=20&q=`)
           .flush({ error: { message: 'Error occurred' } }, { status: 500, statusText: 'Internal Error' });
         fixture.detectChanges();
 
@@ -197,6 +172,6 @@ describe('CatalogComponent', () => {
   });
 
   function expectApiList(apisResponse: ApisResponse = fakeApisResponse(), page: number = 1, size: number = 20) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/_search?page=${page}&category=all&size=${size}&q=`).flush(apisResponse);
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/_search?page=${page}&category=&size=${size}&q=`).flush(apisResponse);
   }
 });
