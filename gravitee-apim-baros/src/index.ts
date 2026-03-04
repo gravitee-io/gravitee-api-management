@@ -119,3 +119,7 @@ export type { GraviteeLogoProps, GraviteeIconProps } from './components/layout/G
 // ── Layout: MainLayout ──────────────────────────────
 export { MainLayout } from './components/layout/MainLayout';
 export type { MainLayoutProps } from './components/layout/MainLayout';
+
+// ── Layout: PageLayout ──────────────────────────────
+export { PageLayout } from './components/layout/PageLayout';
+export type { PageLayoutProps, PageBreadcrumbItem, TabItem } from './components/layout/PageLayout';
