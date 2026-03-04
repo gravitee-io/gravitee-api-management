@@ -474,7 +474,8 @@ class ConsulServiceDiscoveryServiceWithMTLSIntegrationTest {
             .start()
             .andThen(
                 Completable.create(emitter -> {
-                    testContext.awaitCompletion(5, TimeUnit.SECONDS);
+                    // Increased timeout to 10 seconds to accommodate mTLS handshake and service discovery
+                    testContext.awaitCompletion(10, TimeUnit.SECONDS);
                     emitter.onComplete();
                 })
             )

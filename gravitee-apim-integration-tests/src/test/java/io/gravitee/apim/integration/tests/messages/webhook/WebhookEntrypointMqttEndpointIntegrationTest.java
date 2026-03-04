@@ -71,6 +71,8 @@ class WebhookEntrypointMqttEndpointIntegrationTest extends AbstractMqtt5Endpoint
 
     @BeforeEach
     void setUp() {
+        // Reset wiremock to clear requests from previous parameterized test runs
+        wiremock.resetRequests();
         webhookActions = new WebhookTestingActions(wiremock, getBean(SubscriptionDispatcher.class));
     }
 

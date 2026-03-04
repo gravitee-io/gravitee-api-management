@@ -19,8 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -128,8 +131,11 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
 
         var result = useCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(AUDIT_ACTOR));
 
-        assertThat(result.transitionedCertificates()).hasSize(1);
-        assertThat(result.transitionedCertificates().get(0).getStatus()).isEqualTo(ClientCertificateStatus.REVOKED);
+        assertThat(result.transitionedCertificates())
+            .hasSize(1)
+            .map(ClientCertificate::getStatus)
+            .first()
+            .isEqualTo(ClientCertificateStatus.REVOKED);
         assertThat(clientCertificateCrudService.storage())
             .filteredOn(c -> "cert1".equals(c.getId()))
             .extracting(ClientCertificate::getStatus)
@@ -159,8 +165,11 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
 
         var result = useCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(AUDIT_ACTOR));
 
-        assertThat(result.transitionedCertificates()).hasSize(1);
-        assertThat(result.transitionedCertificates().get(0).getStatus()).isEqualTo(ClientCertificateStatus.ACTIVE_WITH_END);
+        assertThat(result.transitionedCertificates())
+            .hasSize(1)
+            .map(ClientCertificate::getStatus)
+            .first()
+            .isEqualTo(ClientCertificateStatus.ACTIVE_WITH_END);
         assertThat(clientCertificateCrudService.storage())
             .filteredOn(c -> "cert2".equals(c.getId()))
             .extracting(ClientCertificate::getStatus)
@@ -189,8 +198,11 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
 
         var result = useCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(AUDIT_ACTOR));
 
-        assertThat(result.transitionedCertificates()).hasSize(1);
-        assertThat(result.transitionedCertificates().get(0).getStatus()).isEqualTo(ClientCertificateStatus.ACTIVE);
+        assertThat(result.transitionedCertificates())
+            .hasSize(1)
+            .map(ClientCertificate::getStatus)
+            .first()
+            .isEqualTo(ClientCertificateStatus.ACTIVE);
         assertThat(clientCertificateCrudService.storage())
             .filteredOn(c -> "cert3".equals(c.getId()))
             .extracting(ClientCertificate::getStatus)
@@ -422,8 +434,11 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
 
         var result = useCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(AUDIT_ACTOR));
 
-        assertThat(result.transitionedCertificates()).hasSize(1);
-        assertThat(result.transitionedCertificates().get(0).getStatus()).isEqualTo(ClientCertificateStatus.REVOKED);
+        assertThat(result.transitionedCertificates())
+            .hasSize(1)
+            .map(ClientCertificate::getStatus)
+            .first()
+            .isEqualTo(ClientCertificateStatus.REVOKED);
         assertThat(auditCrudService.storage()).isEmpty();
     }
 
@@ -509,15 +524,8 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
             )
         );
 
-        doAnswer(invocation -> {
-            String certId = invocation.getArgument(0);
-            if ("cert-fail".equals(certId)) {
-                throw new RuntimeException("Update failed");
-            }
-            return invocation.callRealMethod();
-        })
-            .when(spiedService)
-            .update(anyString(), any());
+        doThrow(new RuntimeException("Update failed")).when(spiedService).update(eq("cert-fail"), any());
+        doCallRealMethod().when(spiedService).update(eq("cert-succeed"), any());
 
         spiedUseCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(AUDIT_ACTOR));
 
@@ -565,20 +573,12 @@ class ProcessPendingCertificateTransitionsUseCaseTest {
             )
         );
 
-        doAnswer(invocation -> {
-            String certId = invocation.getArgument(0);
-            if ("cert-fail".equals(certId)) {
-                throw new RuntimeException("Update failed");
-            }
-            return invocation.callRealMethod();
-        })
-            .when(spiedService)
-            .update(anyString(), any());
+        doThrow(new RuntimeException("Update failed")).when(spiedService).update(eq("cert-fail"), any());
+        doCallRealMethod().when(spiedService).update(eq("cert-succeed"), any());
 
         var result = spiedUseCase.execute(new ProcessPendingCertificateTransitionsUseCase.Input(AUDIT_ACTOR));
 
-        assertThat(result.transitionedCertificates()).hasSize(1);
-        assertThat(result.transitionedCertificates().get(0).getId()).isEqualTo("cert-succeed");
+        assertThat(result.transitionedCertificates()).hasSize(1).map(ClientCertificate::getId).first().isEqualTo("cert-succeed");
 
         // The failed certificate should remain unchanged in storage
         assertThat(clientCertificateCrudService.storage())

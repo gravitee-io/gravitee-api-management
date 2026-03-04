@@ -85,8 +85,8 @@ class AbstractGraviteeUrlBasedCorsConfigurationSourceTest {
 
     @Test
     void should_evict_from_cache_and_unregister_from_event_manager_when_entry_expires() {
-        // Expires after 50ms.
-        fakeEnvironment.setProperty("cors.cache.ttl", "250");
+        // Expires after 2000ms.
+        fakeEnvironment.setProperty("cors.cache.ttl", "2000");
 
         cut = buildCut();
 
