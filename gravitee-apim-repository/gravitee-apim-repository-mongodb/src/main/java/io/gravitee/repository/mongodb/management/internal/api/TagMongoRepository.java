@@ -32,9 +32,9 @@ import org.springframework.stereotype.Repository;
 public interface TagMongoRepository extends MongoRepository<TagMongo, String> {
     List<TagMongo> findByReferenceIdAndReferenceType(String referenceId, TagReferenceType referenceType);
 
-    Optional<TagMongo> findByIdAndReferenceIdAndReferenceType(String tagId, String referenceId, TagReferenceType referenceType);
+    Optional<TagMongo> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, TagReferenceType referenceType);
 
-    List<TagMongo> findByIdInAndReferenceIdAndReferenceType(Set<String> ids, String referenceId, TagReferenceType referenceType);
+    List<TagMongo> findByKeyInAndReferenceIdAndReferenceType(Set<String> keys, String referenceId, TagReferenceType referenceType);
 
     @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)
     List<TagMongo> deleteByReferenceIdAndReferenceType(String referenceId, String name);

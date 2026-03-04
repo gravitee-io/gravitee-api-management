@@ -17,7 +17,11 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static jakarta.ws.rs.client.Entity.json;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.license.License;
@@ -26,7 +30,6 @@ import io.gravitee.rest.api.model.NewTagEntity;
 import io.gravitee.rest.api.model.TagEntity;
 import io.gravitee.rest.api.model.UpdateTagEntity;
 import jakarta.ws.rs.core.Response;
-import java.util.List;
 import javax.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,6 +61,7 @@ public class TagsResourceTest extends AbstractResourceTest {
         when(license.isFeatureEnabled("apim-sharding-tags")).thenReturn(false);
         when(permissionService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
         NewTagEntity newTag = new NewTagEntity();
+        newTag.setKey("tag-key");
         newTag.setName("tag-name");
         Response response = orgTarget().request().post(json(newTag));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
@@ -68,9 +72,12 @@ public class TagsResourceTest extends AbstractResourceTest {
         when(license.isFeatureEnabled("apim-sharding-tags")).thenReturn(true);
         when(permissionService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
         NewTagEntity newTag = new NewTagEntity();
+        newTag.setKey("tag-key");
         newTag.setName("tag-name");
         TagEntity tag = new TagEntity();
         tag.setId("tag-id");
+        tag.setKey("tag-key");
+        tag.setName("tag-name");
         when(tagService.create(any(), any(NewTagEntity.class), any(), any())).thenReturn(tag);
         Response response = orgTarget().request().post(json(newTag));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -84,7 +91,7 @@ public class TagsResourceTest extends AbstractResourceTest {
         when(permissionService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
         UpdateTagEntity tag = new UpdateTagEntity();
         tag.setName("tag-name");
-        Response response = orgTarget("tag-id").request().put(json(tag));
+        Response response = orgTarget("tag-key").request().put(json(tag));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
@@ -92,15 +99,15 @@ public class TagsResourceTest extends AbstractResourceTest {
     public void should_allow_update_tag_with_sharding_tags_feature() {
         when(license.isFeatureEnabled("apim-sharding-tags")).thenReturn(true);
         when(permissionService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
-        when(tagService.update(any(), any(UpdateTagEntity.class), anyString(), any())).thenAnswer(i -> {
+        when(tagService.update(any(), eq("tag-key"), any(UpdateTagEntity.class), anyString(), any())).thenAnswer(i -> {
             final TagEntity tagEntity = new TagEntity();
-            tagEntity.setName(i.<UpdateTagEntity>getArgument(1).getName());
+            tagEntity.setName(i.<UpdateTagEntity>getArgument(2).getName());
             return tagEntity;
         });
 
         UpdateTagEntity tag = new UpdateTagEntity();
-        tag.setName("tag-name");
-        Response response = orgTarget("tag-id").request().put(json(tag));
+        tag.setName("Tag");
+        Response response = orgTarget("tag-key").request().put(json(tag));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         TagEntity tagEntity = response.readEntity(TagEntity.class);
         assertEquals(tag.getName(), tagEntity.getName());
@@ -110,7 +117,7 @@ public class TagsResourceTest extends AbstractResourceTest {
     public void should_forbid_delete_tag_without_sharding_tags_feature() {
         when(license.isFeatureEnabled("apim-sharding-tags")).thenReturn(false);
         when(permissionService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
-        Response response = orgTarget().path("tag-id").request().delete();
+        Response response = orgTarget().path("tag-key").request().delete();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
@@ -118,7 +125,7 @@ public class TagsResourceTest extends AbstractResourceTest {
     public void should_allow_delete_tag_with_sharding_tags_feature() {
         when(license.isFeatureEnabled("apim-sharding-tags")).thenReturn(true);
         when(permissionService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
-        Response response = orgTarget().path("tag-id").request().delete();
+        Response response = orgTarget().path("tag-key").request().delete();
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
     }
 }

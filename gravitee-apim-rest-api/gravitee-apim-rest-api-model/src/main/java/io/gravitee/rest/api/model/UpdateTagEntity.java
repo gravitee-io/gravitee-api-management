@@ -27,24 +27,14 @@ import java.util.Objects;
  */
 public class UpdateTagEntity {
 
-    private String id;
-
     @NotNull
-    @Size(min = 1)
+    @Size(min = 1, max = 64)
     private String name;
 
     private String description;
 
     @JsonProperty("restricted_groups")
     private List<String> restrictedGroups;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;
@@ -76,7 +66,6 @@ public class UpdateTagEntity {
         if (!(o instanceof UpdateTagEntity)) return false;
         UpdateTagEntity that = (UpdateTagEntity) o;
         return (
-            Objects.equals(id, that.id) &&
             Objects.equals(name, that.name) &&
             Objects.equals(description, that.description) &&
             Objects.equals(restrictedGroups, that.restrictedGroups)
@@ -85,17 +74,14 @@ public class UpdateTagEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description, restrictedGroups);
+        return Objects.hash(name, description, restrictedGroups);
     }
 
     @Override
     public String toString() {
         return (
             "UpdateTagEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", name='" +
+            "name='" +
             name +
             '\'' +
             ", description='" +
