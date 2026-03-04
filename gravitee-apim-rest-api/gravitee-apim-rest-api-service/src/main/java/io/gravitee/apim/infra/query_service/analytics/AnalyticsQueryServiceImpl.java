@@ -27,6 +27,7 @@ import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQu
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.StatsQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
@@ -37,6 +38,7 @@ import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
+import io.gravitee.rest.api.model.v4.analytics.Stats;
 import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -71,6 +73,22 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             .searchRequestsCount(executionContext.getQueryContext(), new RequestsCountQuery(apiId, from, to))
             .map(countAggregate ->
                 RequestsCount.builder().total(countAggregate.getTotal()).countsByEntrypoint(countAggregate.getCountBy()).build()
+            );
+    }
+
+    @Override
+    public Optional<Stats> searchStats(ExecutionContext executionContext, String apiId, Instant from, Instant to, String field) {
+        return analyticsRepository
+            .searchStats(executionContext.getQueryContext(), new StatsQueryCriteria(apiId, from, to, field))
+            .map(statsAggregate ->
+                Stats
+                    .builder()
+                    .count(statsAggregate.getCount())
+                    .min(statsAggregate.getMin())
+                    .max(statsAggregate.getMax())
+                    .avg(statsAggregate.getAvg())
+                    .sum(statsAggregate.getSum())
+                    .build()
             );
     }
 

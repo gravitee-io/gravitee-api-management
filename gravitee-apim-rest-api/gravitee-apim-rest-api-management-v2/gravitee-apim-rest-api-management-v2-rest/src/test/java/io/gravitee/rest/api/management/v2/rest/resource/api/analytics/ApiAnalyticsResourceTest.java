@@ -40,6 +40,7 @@ import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
+import io.gravitee.rest.api.model.v4.analytics.Stats;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
@@ -154,6 +155,27 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
         }
 
         @Test
+        void should_return_count_contract_with_data() {
+            fakeAnalyticsQueryService.requestsCount = RequestsCount.builder().total(42L).build();
+
+            final Response response = analyticsTarget
+                .queryParam("type", "COUNT")
+                .queryParam("from", 0L)
+                .queryParam("to", 1L)
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(Map.class)
+                .satisfies(body -> {
+                    assertThat(body).containsEntry("type", "COUNT");
+                    assertThat(body.get("count")).isEqualTo(42);
+                });
+        }
+
+        @Test
         void should_return_empty_stats_contract() {
             final Response response = analyticsTarget
                 .queryParam("type", "STATS")
@@ -171,6 +193,32 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     assertThat(body).containsEntry("type", "STATS");
                     assertThat(body).containsKeys("count", "min", "max", "avg", "sum");
                     assertThat(body.get("count")).isEqualTo(0);
+                });
+        }
+
+        @Test
+        void should_return_stats_contract_with_data() {
+            fakeAnalyticsQueryService.stats = Stats.builder().count(12345L).min(2D).max(1500D).avg(125.5D).sum(1549567D).build();
+
+            final Response response = analyticsTarget
+                .queryParam("type", "STATS")
+                .queryParam("from", 0L)
+                .queryParam("to", 1L)
+                .queryParam("field", "status")
+                .request()
+                .get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(Map.class)
+                .satisfies(body -> {
+                    assertThat(body).containsEntry("type", "STATS");
+                    assertThat(body.get("count")).isEqualTo(12345);
+                    assertThat(body.get("min")).isEqualTo(2.0);
+                    assertThat(body.get("max")).isEqualTo(1500.0);
+                    assertThat(body.get("avg")).isEqualTo(125.5);
+                    assertThat(body.get("sum")).isEqualTo(1549567.0);
                 });
         }
 
@@ -255,6 +303,19 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 .get();
 
             MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_400_if_stats_field_is_not_supported() {
+            final Response response = analyticsTarget
+                .queryParam("type", "STATS")
+                .queryParam("from", 0L)
+                .queryParam("to", 1L)
+                .queryParam("field", "unknown-field")
+                .request()
+                .get();
+
+            MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasMessage("Unsupported stats field");
         }
 
         @Test

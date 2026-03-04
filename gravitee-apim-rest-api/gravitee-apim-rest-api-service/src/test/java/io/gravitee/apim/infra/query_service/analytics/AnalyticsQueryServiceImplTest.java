@@ -31,10 +31,12 @@ import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregat
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
+import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
+import io.gravitee.rest.api.model.v4.analytics.Stats;
 import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -191,6 +193,26 @@ class AnalyticsQueryServiceImplTest {
                         .responseAvgTime(159.2d)
                         .build()
                 );
+        }
+    }
+
+    @Nested
+    class StatsAnalytics {
+
+        @Test
+        void should_return_empty_stats() {
+            when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.empty());
+
+            assertThat(cut.searchStats(GraviteeContext.getExecutionContext(), "api#1", null, null, "status")).isEmpty();
+        }
+
+        @Test
+        void should_map_repository_response_to_stats() {
+            when(analyticsRepository.searchStats(any(QueryContext.class), any()))
+                .thenReturn(Optional.of(StatsAggregate.builder().count(12L).min(2D).max(500D).avg(123.4D).sum(1480.8D).build()));
+
+            assertThat(cut.searchStats(GraviteeContext.getExecutionContext(), "api#1", null, null, "status"))
+                .hasValue(Stats.builder().count(12L).min(2D).max(500D).avg(123.4D).sum(1480.8D).build());
         }
     }
 

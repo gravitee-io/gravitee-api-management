@@ -89,18 +89,34 @@ public class ApiAnalyticsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
     public Map<String, Object> getApiAnalytics(@BeanParam @Valid SearchApiAnalyticsParam param) {
         validateApiAnalyticsParam(param);
-        searchApiAnalyticsUseCase.execute(
+        var output = searchApiAnalyticsUseCase.execute(
             GraviteeContext.getExecutionContext(),
             new SearchApiAnalyticsUseCase.Input(
                 apiId,
                 GraviteeContext.getCurrentEnvironment(),
-                SearchApiAnalyticsUseCase.Type.valueOf(param.getType().name())
+                SearchApiAnalyticsUseCase.Type.valueOf(param.getType().name()),
+                Instant.ofEpochMilli(param.getFrom()),
+                Instant.ofEpochMilli(param.getTo()),
+                param.getField()
             )
         );
 
         return switch (param.getType()) {
-            case COUNT -> Map.of("type", param.getType().name(), "count", 0L);
-            case STATS -> Map.of("type", param.getType().name(), "count", 0L, "min", 0D, "max", 0D, "avg", 0D, "sum", 0D);
+            case COUNT -> Map.of("type", param.getType().name(), "count", output.count());
+            case STATS -> Map.of(
+                "type",
+                param.getType().name(),
+                "count",
+                output.count() == null ? 0L : output.count(),
+                "min",
+                output.min() == null ? 0D : output.min(),
+                "max",
+                output.max() == null ? 0D : output.max(),
+                "avg",
+                output.avg() == null ? 0D : output.avg(),
+                "sum",
+                output.sum() == null ? 0D : output.sum()
+            );
             case GROUP_BY -> {
                 var emptyGroupBy = new LinkedHashMap<String, Object>();
                 emptyGroupBy.put("type", param.getType().name());

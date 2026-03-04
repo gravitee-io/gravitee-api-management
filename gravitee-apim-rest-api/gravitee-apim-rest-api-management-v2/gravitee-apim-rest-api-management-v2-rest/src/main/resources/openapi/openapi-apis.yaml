@@ -2035,6 +2035,11 @@ paths:
               in: query
               schema:
                   type: string
+              description: >-
+                  Aggregation field used by `STATS` and `GROUP_BY`.
+                  Supported values: `status`, `mapped-status`, `application`, `plan`, `host`, `uri`,
+                  `gateway-latency-ms`, `gateway-response-time-ms`, `endpoint-response-time-ms`,
+                  `request-content-length`.
             - name: interval
               in: query
               schema:
@@ -2059,6 +2064,7 @@ paths:
             description: |-
                 Get API analytics from a unified endpoint.
                 Request and response shape depends on the `type` query parameter.
+                For `COUNT`, response payload contains `type` and `count`.
                 Only V4 PROXY APIs are supported. TCP Proxy APIs are not supported.
 
                 User must have the API_ANALYTICS[READ] permission.

@@ -16,32 +16,69 @@
 package io.gravitee.apim.core.analytics.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.time.Instant;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @UseCase
 public class SearchApiAnalyticsUseCase {
 
+    private static final Set<String> SUPPORTED_STATS_FIELDS = Set.of(
+        "status",
+        "mapped-status",
+        "application",
+        "plan",
+        "host",
+        "uri",
+        "gateway-latency-ms",
+        "gateway-response-time-ms",
+        "endpoint-response-time-ms",
+        "request-content-length"
+    );
+
+    private final AnalyticsQueryService analyticsQueryService;
     private final ApiCrudService apiCrudService;
 
     public Output execute(ExecutionContext executionContext, Input input) {
         validateApiRequirements(input.apiId(), input.environmentId());
 
         return switch (input.type()) {
-            case COUNT -> new Output(Type.COUNT);
-            case STATS -> new Output(Type.STATS);
+            case COUNT -> new Output(
+                Type.COUNT,
+                analyticsQueryService
+                    .searchRequestsCount(executionContext, input.apiId(), input.from(), input.to())
+                    .map(requestsCount -> requestsCount.getTotal() == null ? 0L : requestsCount.getTotal())
+                    .orElse(0L)
+            );
+            case STATS -> {
+                validateStatsField(input.field());
+                yield analyticsQueryService
+                    .searchStats(executionContext, input.apiId(), input.from(), input.to(), input.field())
+                    .map(stats -> new Output(Type.STATS, stats.getCount(), stats.getMin(), stats.getMax(), stats.getAvg(), stats.getSum()))
+                    .orElse(new Output(Type.STATS, 0L, 0D, 0D, 0D, 0D));
+            }
             case GROUP_BY -> new Output(Type.GROUP_BY);
             case DATE_HISTO -> new Output(Type.DATE_HISTO);
         };
+    }
+
+    private static void validateStatsField(String field) {
+        if (!SUPPORTED_STATS_FIELDS.contains(field)) {
+            throw new ValidationDomainException("Unsupported stats field", Map.of("field", String.valueOf(field)));
+        }
     }
 
     private void validateApiRequirements(String apiId, String environmentId) {
@@ -76,9 +113,17 @@ public class SearchApiAnalyticsUseCase {
         }
     }
 
-    public record Input(String apiId, String environmentId, Type type) {}
+    public record Input(String apiId, String environmentId, Type type, Instant from, Instant to, String field) {}
 
-    public record Output(Type type) {}
+    public record Output(Type type, Long count, Double min, Double max, Double avg, Double sum) {
+        Output(Type type) {
+            this(type, null, null, null, null, null);
+        }
+
+        Output(Type type, Long count) {
+            this(type, count, null, null, null, null);
+        }
+    }
 
     public enum Type {
         COUNT,

@@ -35,6 +35,7 @@ import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.StatsQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
@@ -143,6 +144,42 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .hasValueSatisfying(averageAggregate -> {
                     assertThat(averageAggregate.getAverage()).isCloseTo(332.5, offset(0.1d));
                     assertThat(averageAggregate.getAverageBy()).containsAllEntriesOf(Map.of("sse", 645.0, "http-post", 20.0));
+                });
+        }
+    }
+
+    @Nested
+    class Stats {
+
+        @Test
+        void should_return_stats_for_a_given_api() {
+            var result = cut.searchStats(new QueryContext("org#1", "env#1"), new StatsQueryCriteria(API_ID, null, null, "status"));
+
+            assertThat(result)
+                .hasValueSatisfying(statsAggregate -> {
+                    assertThat(statsAggregate.getCount()).isEqualTo(10L);
+                    assertThat(statsAggregate.getMin()).isGreaterThanOrEqualTo(100D);
+                    assertThat(statsAggregate.getMax()).isLessThan(600D);
+                    assertThat(statsAggregate.getAvg()).isGreaterThan(0D);
+                    assertThat(statsAggregate.getSum()).isGreaterThan(0D);
+                });
+        }
+
+        @Test
+        void should_return_stats_for_a_given_time_period() {
+            var now = Instant.now();
+            var from = now.truncatedTo(ChronoUnit.DAYS).minus(Duration.ofDays(1));
+            var to = now.truncatedTo(ChronoUnit.DAYS);
+
+            var result = cut.searchStats(new QueryContext("org#1", "env#1"), new StatsQueryCriteria(API_ID, from, to, "status"));
+
+            assertThat(result)
+                .hasValueSatisfying(statsAggregate -> {
+                    assertThat(statsAggregate.getCount()).isEqualTo(2L);
+                    assertThat(statsAggregate.getMin()).isGreaterThanOrEqualTo(100D);
+                    assertThat(statsAggregate.getMax()).isLessThan(600D);
+                    assertThat(statsAggregate.getAvg()).isGreaterThan(0D);
+                    assertThat(statsAggregate.getSum()).isGreaterThan(0D);
                 });
         }
     }

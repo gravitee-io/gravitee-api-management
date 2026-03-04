@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
+import io.gravitee.rest.api.model.v4.analytics.Stats;
 import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -44,6 +45,7 @@ import java.util.Optional;
 public class FakeAnalyticsQueryService implements AnalyticsQueryService {
 
     public RequestsCount requestsCount;
+    public Stats stats;
     public AverageMessagesPerRequest averageMessagesPerRequest;
     public AverageConnectionDuration averageConnectionDuration;
     public ResponseStatusRanges responseStatusRanges;
@@ -57,6 +59,11 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
         return Optional.ofNullable(requestsCount);
+    }
+
+    @Override
+    public Optional<Stats> searchStats(ExecutionContext executionContext, String apiId, Instant from, Instant to, String field) {
+        return Optional.ofNullable(stats);
     }
 
     @Override
@@ -81,6 +88,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
 
     public void reset() {
         requestsCount = null;
+        stats = null;
         averageMessagesPerRequest = null;
         averageConnectionDuration = null;
         averageAggregate = new LinkedHashMap<>();
