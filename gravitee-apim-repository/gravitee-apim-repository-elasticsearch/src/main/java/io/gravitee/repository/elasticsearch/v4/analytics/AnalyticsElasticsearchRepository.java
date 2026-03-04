@@ -29,6 +29,8 @@ import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageMe
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageMessagesPerRequestResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchCountQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchCountResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchGroupByQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchGroupByResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestResponseTimeAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountResponseAdapter;
@@ -43,6 +45,8 @@ import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQu
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.CountQuery;
+import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
+import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
@@ -208,6 +212,14 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     public Optional<StatsAggregate> searchStats(QueryContext queryContext, StatsQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         return this.client.search(index, null, SearchStatsQueryAdapter.adapt(query)).map(SearchStatsResponseAdapter::adapt).blockingGet();
+    }
+
+    @Override
+    public Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        return this.client.search(index, null, SearchGroupByQueryAdapter.adapt(query))
+            .map(SearchGroupByResponseAdapter::adapt)
+            .blockingGet();
     }
 
     private String getIndices(QueryContext queryContext, Collection<DefinitionVersion> definitionVersions) {

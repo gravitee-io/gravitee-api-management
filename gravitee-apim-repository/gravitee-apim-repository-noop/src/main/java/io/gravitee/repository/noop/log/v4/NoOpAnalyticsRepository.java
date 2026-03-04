@@ -86,4 +86,9 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     public Optional<StatsAggregate> searchStats(QueryContext queryContext, StatsQuery query) {
         return Optional.empty();
     }
+
+    @Override
+    public Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQuery query) {
+        return Optional.empty();
+    }
 }

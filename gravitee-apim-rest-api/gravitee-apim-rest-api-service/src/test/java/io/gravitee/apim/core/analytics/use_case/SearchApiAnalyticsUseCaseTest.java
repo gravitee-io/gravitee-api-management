@@ -160,11 +160,61 @@ class SearchApiAnalyticsUseCaseTest {
         }
     }
 
+    @Nested
+    class GroupByQuery {
+
+        @BeforeEach
+        void setUp() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
+        }
+
+        @Test
+        void should_return_group_by() {
+            analyticsQueryService.groupByResult =
+                io.gravitee.apim.core.analytics.model.GroupByResult
+                    .builder()
+                    .values(java.util.Map.of("200", 100L, "404", 5L, "500", 2L))
+                    .metadata(
+                        java.util.Map.of(
+                            "200",
+                            java.util.Map.of("name", "200"),
+                            "404",
+                            java.util.Map.of("name", "404"),
+                            "500",
+                            java.util.Map.of("name", "500")
+                        )
+                    )
+                    .build();
+
+            var output = cut.execute(GraviteeContext.getExecutionContext(), groupByInput());
+
+            assertThat(output.result()).isInstanceOf(AnalyticsResult.GroupByResultResult.class);
+            var groupBy = ((AnalyticsResult.GroupByResultResult) output.result()).groupBy();
+            assertThat(groupBy.values()).containsExactlyInAnyOrderEntriesOf(java.util.Map.of("200", 100L, "404", 5L, "500", 2L));
+        }
+
+        @Test
+        void should_return_empty_group_by_when_no_data() {
+            analyticsQueryService.groupByResult = null;
+
+            var output = cut.execute(GraviteeContext.getExecutionContext(), groupByInput());
+
+            assertThat(output.result()).isInstanceOf(AnalyticsResult.GroupByResultResult.class);
+            var groupBy = ((AnalyticsResult.GroupByResultResult) output.result()).groupBy();
+            assertThat(groupBy.values()).isEmpty();
+            assertThat(groupBy.metadata()).isEmpty();
+        }
+    }
+
     private static Input countInput() {
         return new Input(MY_API, ENV_ID, AnalyticsQueryType.COUNT, FROM, TO, null, null, 10);
     }
 
     private static Input statsInput() {
         return new Input(MY_API, ENV_ID, AnalyticsQueryType.STATS, FROM, TO, "gateway-response-time-ms", null, 10);
+    }
+
+    private static Input groupByInput() {
+        return new Input(MY_API, ENV_ID, AnalyticsQueryType.GROUP_BY, FROM, TO, "status", null, 20);
     }
 }

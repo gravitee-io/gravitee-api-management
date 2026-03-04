@@ -110,6 +110,11 @@ public class ApiAnalyticsResource extends AbstractResource {
                 "avg", r.stats().avg(),
                 "sum", r.stats().sum()
             );
+            case SearchApiAnalyticsUseCase.AnalyticsResult.GroupByResultResult r -> Map.of(
+                "type", "GROUP_BY",
+                "values", r.groupBy().values(),
+                "metadata", r.groupBy().metadata()
+            );
         };
     }
 

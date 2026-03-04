@@ -5,7 +5,7 @@
 - ✅ BE-1 — Query Parameter Model & Validation
 - ✅ BE-2 — COUNT Query Type + Endpoint Scaffolding
 - ✅ BE-3 — STATS Query Type
-- BE-4 — GROUP_BY Query Type
+- ✅ BE-4 — GROUP_BY Query Type
 - BE-5 — DATE_HISTO Query Type
 - BE-6 — Backend Integration Tests
 - FE-1 — Angular Service & Models for Unified Endpoint
@@ -82,6 +82,31 @@ Endpoint: `GET /environments/{envId}/apis/{apiId}/analytics?type=STATS&field=gat
 
 Gotcha: gravitee `Aggregation` uses `Float` for count/min/max/avg/sum; adapter uses `longValue()` for count and `safeDouble()` for numeric fields.
 
+### BE-4: GROUP_BY Query Type ✅
+
+Request counts broken down by field (e.g. HTTP status code). 3 new source files + 2 repo models + 2 test files, 8 modified files:
+
+| File | Type | Purpose |
+|---|---|---|
+| `SERVICE/.../model/GroupByResult.java` | New | Record: `values` (Map<String,Long>), `metadata` (Map<String,Map<String,String>>) |
+| `REPO_API/.../model/analytics/GroupByQuery.java` | New | Record: `apiId`, `from`, `to`, `field`, `size` |
+| `REPO_API/.../model/analytics/GroupByAggregate.java` | New | Record: `values`, `metadata` |
+| `REPO_ES/.../adapter/SearchGroupByQueryAdapter.java` | New | ES JSON: filter api-id + @timestamp, `aggs.group_by_field.terms` on field with size |
+| `REPO_ES/.../adapter/SearchGroupByResponseAdapter.java` | New | Parse terms buckets → `GroupByAggregate`; empty result → `{values:{}, metadata:{}}` |
+| `REPO_ES/.../adapter/SearchGroupByQueryAdapterTest.java` | New | 3 tests: full query, field variants, minimal query |
+| `REPO_ES/.../adapter/SearchGroupByResponseAdapterTest.java` | New | 5 tests: null aggs, empty aggs, buckets parsing, empty docs, missing agg |
+| `AnalyticsQueryService` / `AnalyticsQueryServiceImpl` | Modified | Added `searchGroupBy(ExecutionContext, apiId, from, to, field, size)` |
+| `AnalyticsRepository` / `AnalyticsElasticsearchRepository` | Modified | Added `searchGroupBy(QueryContext, GroupByQuery)` |
+| `SearchApiAnalyticsUseCase` | Modified | Added `GROUP_BY` branch, `GroupByResultResult` sealed variant |
+| `ApiAnalyticsResource` | Modified | `mapResult()` handles GROUP_BY → Map with type, values, metadata |
+| `FakeAnalyticsQueryService` | Modified | Added `groupByResult` field, `searchGroupBy()` impl |
+| `NoOpAnalyticsRepository` | Modified | Added `searchGroupBy()` returning `Optional.empty()` |
+| `SearchApiAnalyticsUseCaseTest` | Modified | `GroupByQuery` nested class: should_return_group_by, should_return_empty_group_by_when_no_data |
+
+Endpoint: `GET /environments/{envId}/apis/{apiId}/analytics?type=GROUP_BY&field=status&from=...&to=...&size=20`
+
+Gotcha: In adapter tests, use `JsonNode` (not `ObjectNode`) as return type for bucket creation—`List<ObjectNode>` is not assignable to `List<JsonNode>` due to generic invariance.
+
 ---
 
 ## Key Decisions
@@ -116,7 +141,7 @@ Gotcha: gravitee `Aggregation` uses `Float` for count/min/max/avg/sum; adapter u
 
 ## Current Blockers / Open Questions
 
-- **None blocking.** BE-1, BE-2, and BE-3 are complete. The unified endpoint supports COUNT and STATS; GROUP_BY and DATE_HISTO to follow.
+- **None blocking.** BE-1 through BE-4 are complete. The unified endpoint supports COUNT, STATS, and GROUP_BY; DATE_HISTO to follow.
 - **`endpoint-response-time-ms` field** — flagged in STORIES.md Known Risks. Not relevant until FE-2 (stat cards). Must verify against a live `*-v4-metrics-*` index before using it.
 - **OpenAPI spec update** (BE-2.1) — deferred. Response is currently a `Map` body. Will add proper schema when all 4 response types are defined.
 
@@ -180,5 +205,29 @@ Frontend (Angular):
 - Chart libraries already in use
 
 Now implement Story 3.
+Include tests that follow the existing test patterns.
+Keep the existing separate endpoints working — don't break them.
+
+
+### Story 4 prompt
+
+Read @docs/workshop/STORIES.md  and @docs/workshop/PROGRESS.md for the full list of user stories.
+
+Before starting, study the existing code that we're evolving:
+
+Backend (Java):
+- ApiAnalyticsResource.java in gravitee-apim-rest-api/.../api/analytics/
+  — has existing endpoints: /requests-count, /response-status-ranges, etc.
+- The existing use cases (SearchRequestsCountAnalyticsUseCase, etc.)
+- How Elasticsearch queries are built and executed
+- ApiAnalyticsResourceTest.java for test patterns
+
+Frontend (Angular):
+- ApiAnalyticsProxyComponent in api-traffic-v4/analytics/api-analytics-proxy/
+- ApiAnalyticsV2Service in services-ngx/api-analytics-v2.service.ts
+- Existing widget components in api-traffic-v4/analytics/components/
+- Chart libraries already in use
+
+Now implement Story 4.
 Include tests that follow the existing test patterns.
 Keep the existing separate endpoints working — don't break them.

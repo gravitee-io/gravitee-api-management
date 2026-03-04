@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics.query_service;
 
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.GroupByResult;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.StatsResult;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -78,6 +79,15 @@ public interface AnalyticsQueryService {
     Optional<Long> searchCount(ExecutionContext executionContext, String apiId, Instant from, Instant to);
 
     Optional<StatsResult> searchStats(ExecutionContext executionContext, String apiId, Instant from, Instant to, String field);
+
+    Optional<GroupByResult> searchGroupBy(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to,
+        String field,
+        int size
+    );
 
     record ResponseStatusOverTimeQuery(
         List<String> apiIds,

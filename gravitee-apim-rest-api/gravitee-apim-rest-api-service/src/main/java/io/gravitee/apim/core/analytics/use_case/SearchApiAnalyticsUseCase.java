@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics.model.GroupByResult;
 import io.gravitee.apim.core.analytics.model.StatsResult;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
@@ -42,6 +43,7 @@ public class SearchApiAnalyticsUseCase {
         return switch (input.type()) {
             case COUNT -> executeCount(executionContext, input);
             case STATS -> executeStats(executionContext, input);
+            case GROUP_BY -> executeGroupBy(executionContext, input);
         };
     }
 
@@ -55,6 +57,13 @@ public class SearchApiAnalyticsUseCase {
             .searchStats(executionContext, input.apiId(), input.from(), input.to(), input.field())
             .orElse(StatsResult.builder().count(0).min(0).max(0).avg(0).sum(0).build());
         return new Output(AnalyticsResult.stats(stats));
+    }
+
+    private Output executeGroupBy(ExecutionContext executionContext, Input input) {
+        var groupBy = analyticsQueryService
+            .searchGroupBy(executionContext, input.apiId(), input.from(), input.to(), input.field(), input.size())
+            .orElse(GroupByResult.builder().values(java.util.Map.of()).metadata(java.util.Map.of()).build());
+        return new Output(AnalyticsResult.groupBy(groupBy));
     }
 
     private void validateApiRequirements(Input input) {
@@ -85,6 +94,7 @@ public class SearchApiAnalyticsUseCase {
     public enum AnalyticsQueryType {
         COUNT,
         STATS,
+        GROUP_BY,
     }
 
     public record Input(
@@ -105,12 +115,18 @@ public class SearchApiAnalyticsUseCase {
 
         record StatsResultResult(StatsResult stats) implements AnalyticsResult {}
 
+        record GroupByResultResult(GroupByResult groupBy) implements AnalyticsResult {}
+
         static AnalyticsResult count(long count) {
             return new CountResult(count);
         }
 
         static AnalyticsResult stats(StatsResult stats) {
             return new StatsResultResult(stats);
+        }
+
+        static AnalyticsResult groupBy(GroupByResult groupBy) {
+            return new GroupByResultResult(groupBy);
         }
     }
 }

@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.query_service.analytics;
 
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.GroupByResult;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.StatsResult;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
@@ -26,6 +27,8 @@ import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountQuery;
+import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
+import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
@@ -238,6 +241,20 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return analyticsRepository
             .searchStats(executionContext.getQueryContext(), new StatsQuery(apiId, from, to, field))
             .map(agg -> StatsResult.builder().count(agg.count()).min(agg.min()).max(agg.max()).avg(agg.avg()).sum(agg.sum()).build());
+    }
+
+    @Override
+    public Optional<GroupByResult> searchGroupBy(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to,
+        String field,
+        int size
+    ) {
+        return analyticsRepository
+            .searchGroupBy(executionContext.getQueryContext(), new GroupByQuery(apiId, from, to, field, size))
+            .map(agg -> GroupByResult.builder().values(agg.values()).metadata(agg.metadata()).build());
     }
 
     @Override
