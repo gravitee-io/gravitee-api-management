@@ -15,6 +15,7 @@
  */
 import { Component, Input, output } from '@angular/core';
 import { MatTooltip } from '@angular/material/tooltip';
+
 import { GmdCardModule } from '@gravitee/gravitee-markdown';
 
 import { BadgeComponent } from '../badge/badge.component';
@@ -39,5 +40,5 @@ export class ApiCardComponent {
   @Input()
   content?: string;
 
-  select = output<string>();
+  cardSelect = output<string>();
 }
