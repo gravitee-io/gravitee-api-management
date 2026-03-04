@@ -92,6 +92,7 @@ import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.TransferSubscriptionEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
@@ -1173,6 +1174,10 @@ public class SubscriptionServiceTest {
     }
 
     private SecurityContext generateSecurityContext() {
+        return generateSecurityContext(new UserDetails("tester", "password", Collections.emptyList()));
+    }
+
+    private SecurityContext generateSecurityContext(UserDetails principal) {
         return new SecurityContext() {
             @Override
             public Authentication getAuthentication() {
@@ -1194,7 +1199,7 @@ public class SubscriptionServiceTest {
 
                     @Override
                     public Object getPrincipal() {
-                        return new UserDetails("tester", "password", Collections.emptyList());
+                        return principal;
                     }
 
                     @Override
@@ -1207,7 +1212,7 @@ public class SubscriptionServiceTest {
 
                     @Override
                     public String getName() {
-                        return null;
+                        return principal != null ? principal.getUsername() : null;
                     }
                 };
             }
@@ -2983,6 +2988,76 @@ public class SubscriptionServiceTest {
 
         // The original request should not be changed
         assertThat(subscriptionEntity.getRequest()).isEqualTo(newSubscriptionEntity.getRequest());
+    }
+
+    @Test
+    public void should_add_user_to_notification_params_when_authenticated_user_resolved() throws TechnicalException {
+        when(planSearchService.findById(any(), any())).thenReturn(
+            BasePlanEntity.builder()
+                .status(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)
+                .referenceId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .build()
+        );
+        ApplicationEntity applicationEntity = mock(ApplicationEntity.class);
+        when(applicationEntity.getEnvironmentId()).thenReturn(GraviteeContext.getExecutionContext().getEnvironmentId());
+        when(applicationService.findById(any(), any())).thenReturn(applicationEntity);
+        when(subscriptionRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
+        ApiModel apiModel = new ApiModel();
+        apiModel.setPrimaryOwner(primaryOwnerEntity);
+        when(apiTemplateService.findByIdForTemplates(any(), any())).thenReturn(apiModel);
+
+        UserDetails userDetails = new UserDetails("tester", "password", Collections.emptyList());
+        userDetails.setId(USER_ID);
+        SecurityContextHolder.setContext(generateSecurityContext(userDetails));
+
+        UserEntity subscribedByUser = io.gravitee.rest.api.model.UserEntity.builder()
+            .id(USER_ID)
+            .firstname("Test")
+            .lastname("Subscriber")
+            .build();
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), eq(USER_ID))).thenReturn(subscribedByUser);
+
+        subscriptionService.create(
+            GraviteeContext.getExecutionContext(),
+            new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID),
+            "customApiKey",
+            "customId"
+        );
+
+        ArgumentCaptor<Map> paramsCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(notifierService, times(1)).trigger(any(), eq(ApiHook.SUBSCRIPTION_NEW), any(), paramsCaptor.capture());
+        Map<String, Object> params = paramsCaptor.getValue();
+        assertThat(params).containsKey("user");
+        assertThat(params.get("user")).isSameAs(subscribedByUser);
+        assertThat(((io.gravitee.rest.api.model.UserEntity) params.get("user")).getDisplayName()).isEqualTo("Test Subscriber");
+    }
+
+    @Test
+    public void should_not_throw_when_authenticated_user_null_and_still_trigger_notification() throws TechnicalException {
+        when(planSearchService.findById(any(), any())).thenReturn(
+            BasePlanEntity.builder()
+                .status(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)
+                .referenceId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .build()
+        );
+        when(applicationService.findById(any(), any())).thenReturn(
+            ApplicationEntity.builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()
+        );
+        when(subscriptionRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
+        when(apiTemplateService.findByIdForTemplates(any(), any())).thenReturn(new ApiModel());
+        SecurityContextHolder.setContext(mock(SecurityContext.class));
+
+        subscriptionService.create(
+            GraviteeContext.getExecutionContext(),
+            new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID),
+            "customApiKey",
+            "customId"
+        );
+
+        verify(notifierService, times(1)).trigger(any(), eq(ApiHook.SUBSCRIPTION_NEW), any(), any());
+        verify(notifierService, times(1)).trigger(any(), eq(ApplicationHook.SUBSCRIPTION_NEW), any(), any());
     }
 
     @Test

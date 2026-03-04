@@ -62,6 +62,7 @@ import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -696,7 +697,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setUpdatedAt(subscription.getCreatedAt());
             subscription.setStatus(Subscription.Status.PENDING);
             subscription.setRequest(newSubscriptionEntity.getRequest());
-            subscription.setSubscribedBy(getAuthenticatedUser().getUsername());
+            subscription.setSubscribedBy(Optional.ofNullable(getAuthenticatedUser()).map(UserDetails::getUsername).orElse(null));
             subscription.setClientId(clientId);
             subscription.setClientCertificate(clientCertificate);
             subscription.setMetadata(newSubscriptionEntity.getMetadata());
@@ -789,14 +790,22 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
                 // Notifications are not applicable for API Product subscriptions (TODO: implement notifications for API Product subscriptions)
                 if (!isApiProduct && api != null) {
-                    final Map<String, Object> params = new NotificationParamsBuilder()
+                    NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder()
                         .api(api)
                         .plan(genericPlanEntity)
                         .application(applicationEntity)
                         .owner(apiOwner)
                         .subscription(paramSubscription)
-                        .subscriptionsUrl(subscriptionsUrl)
-                        .build();
+                        .subscriptionsUrl(subscriptionsUrl);
+                    // Resolve "user" for template (the one who performed the subscription) so ${user.displayName} works
+                    UserDetails authenticatedUser = getAuthenticatedUser();
+                    if (authenticatedUser != null && authenticatedUser.getId() != null) {
+                        UserEntity subscribedByUser = userService.findById(executionContext, authenticatedUser.getId());
+                        if (subscribedByUser != null) {
+                            paramsBuilder.user(subscribedByUser);
+                        }
+                    }
+                    final Map<String, Object> params = paramsBuilder.build();
 
                     notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_NEW, apiId, params);
                     notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_NEW, application, params);
