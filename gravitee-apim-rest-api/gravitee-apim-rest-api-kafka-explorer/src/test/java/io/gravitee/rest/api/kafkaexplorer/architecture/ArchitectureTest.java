@@ -39,11 +39,11 @@ class ArchitectureTest {
     private static final String MAPPER_PACKAGE = BASE_PACKAGE + ".mapper..";
     private static final String GENERATED_MODEL_PACKAGE = BASE_PACKAGE + ".rest.model..";
 
-    private final JavaClasses classes = new ClassFileImporter()
+    private static final JavaClasses classes = new ClassFileImporter()
         .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
         .importPackages(BASE_PACKAGE);
 
-    private final JavaClasses allClasses = new ClassFileImporter().importPackages(BASE_PACKAGE);
+    private static final JavaClasses allClasses = new ClassFileImporter().importPackages(BASE_PACKAGE);
 
     @Nested
     class DomainLayer {
