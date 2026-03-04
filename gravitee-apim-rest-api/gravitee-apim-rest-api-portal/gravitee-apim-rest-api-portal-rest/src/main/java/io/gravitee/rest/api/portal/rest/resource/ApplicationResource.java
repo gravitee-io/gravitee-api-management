@@ -200,6 +200,11 @@ public class ApplicationResource extends AbstractResource {
         return resourceContext.getResource(ApplicationMembersResource.class);
     }
 
+    @Path("membersV2")
+    public ApplicationMembersResourceV2 getApplicationMembersResourceV2() {
+        return resourceContext.getResource(ApplicationMembersResourceV2.class);
+    }
+
     @Path("metadata")
     public ApplicationMetadataResource getApplicationMetadataResource() {
         return resourceContext.getResource(ApplicationMetadataResource.class);

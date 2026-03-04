@@ -1318,6 +1318,300 @@ paths:
                                 $ref: "#/components/schemas/ErrorResponse"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+    /applications/{applicationId}/membersV2:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+        get:
+            tags:
+                - Application
+            parameters:
+                - $ref: "#/components/parameters/pageNumberParam"
+                - $ref: "#/components/parameters/pageSizeParam"
+                - $ref: "#/components/parameters/usersQueryParam"
+            summary: List application members (V2)
+            description: |
+                List application members.
+
+                User must have the APPLICATION_MEMBER[READ] permission.
+            operationId: getMembersByApplicationIdV2
+            responses:
+                200:
+                    description: List of members
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MembersV2Response"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+        post:
+            tags:
+                - Application
+            requestBody:
+                description: Use to create a member.
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/MemberV2Input"
+            summary: Create an application member (V2)
+            description: |
+                Create an application member.
+
+                User must have the APPLICATION_MEMBER[CREATE] permission.
+            operationId: createApplicationMemberV2
+            responses:
+                201:
+                    description: Created member
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MemberV2"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /applications/{applicationId}/membersV2/{memberId}:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+            - $ref: "#/components/parameters/memberIdParam"
+        put:
+            tags:
+                - Application
+            requestBody:
+                description: Use to update a member.
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/MemberV2Input"
+            summary: Update an application member (V2).
+            description: |
+                Update an application member.
+
+                User must have the APPLICATION_MEMBER[UPDATE] permission.
+            operationId: updateApplicationMemberByApplicationIdAndMemberIdV2
+            responses:
+                200:
+                    description: Updated member.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MemberV2"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    description: Application or Member not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+        delete:
+            tags:
+                - Application
+            summary: Remove an application member (V2)
+            description: |
+                Remove an application member.
+
+                User must have the APPLICATION_MEMBER[DELETE] permission.
+            operationId: deleteApplicationMemberV2
+            responses:
+                204:
+                    description: No-Content
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    description: Application or Member not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /applications/{applicationId}/membersV2/_search-users:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+        post:
+            tags:
+                - Application
+            parameters:
+                - $ref: "#/components/parameters/pageNumberParam"
+                - $ref: "#/components/parameters/pageSizeParam"
+                - $ref: "#/components/parameters/usersQueryParam"
+            summary: Search users for application membership (V2)
+            description: |
+                Search users from identity providers to add as application members.
+
+                User must have the APPLICATION_MEMBER[CREATE] permission.
+            operationId: searchUsersForApplicationMembersV2
+            responses:
+                200:
+                    description: List of platform users
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/SearchUsersV2Response"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /applications/{applicationId}/membersV2/_transfer-ownership:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+        post:
+            tags:
+                - Application
+            requestBody:
+                description: Use to transfer ownership of an application.
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/TransferOwnershipV2Input"
+            summary: Transfer the ownership of the application (V2)
+            description: |
+                Transfer the ownership of the application.
+
+                User must have the APPLICATION_MEMBER[UPDATE] permission.
+            operationId: transferMemberOwnershipV2
+            responses:
+                204:
+                    description: No-Content
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /applications/{applicationId}/membersV2/_invite:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+        post:
+            tags:
+                - Application
+            requestBody:
+                description: Use to create an invitation for an application member.
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/InvitationInput"
+            summary: Create an invitation for application membership (V2)
+            description: |
+                Create an invitation for application membership.
+
+                User must have the APPLICATION_MEMBER[CREATE] permission.
+            operationId: inviteApplicationMemberV2
+            responses:
+                200:
+                    description: Invitation sent successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/InvitationV2"
+                202:
+                    description: Request accepted and users to select and invite returned
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/SearchUsersV2Response"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /applications/{applicationId}/membersV2/_invitations:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+        get:
+            tags:
+                - Application
+            parameters:
+                - $ref: "#/components/parameters/pageNumberParam"
+                - $ref: "#/components/parameters/pageSizeParam"
+            summary: List application invitations (V2)
+            description: |
+                List invitations for application membership.
+
+                User must have the APPLICATION_MEMBER[READ] permission.
+            operationId: getApplicationInvitationsV2
+            responses:
+                200:
+                    description: List of invitations
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/InvitationsV2Response"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /applications/{applicationId}/membersV2/_invitations/{invitationId}:
+        parameters:
+            - $ref: "#/components/parameters/applicationIdParam"
+            - $ref: "#/components/parameters/invitationIdParam"
+        put:
+            tags:
+                - Application
+            requestBody:
+                description: Use to update an invitation for application membership.
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/InvitationInput"
+            summary: Update an invitation for application membership (V2)
+            description: |
+                Update an invitation for application membership.
+
+                User must have the APPLICATION_MEMBER[UPDATE] permission.
+            operationId: updateApplicationInvitationV2
+            responses:
+                200:
+                    description: Updated invitation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/InvitationV2"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    description: Application or Invitation not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+        delete:
+            tags:
+                - Application
+            summary: Delete an invitation for application membership (V2)
+            description: |
+                Delete an invitation for application membership.
+
+                User must have the APPLICATION_MEMBER[DELETE] permission.
+            operationId: deleteApplicationInvitationV2
+            responses:
+                204:
+                    description: No-Content
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    description: Application or Invitation not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
     /applications/{applicationId}/metadata:
         parameters:
             - $ref: "#/components/parameters/applicationIdParam"
@@ -2899,6 +3193,27 @@ paths:
                                 $ref: "#/components/schemas/ConfigurationApplicationRolesResponse"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+    /configuration/applications/rolesV2:
+        get:
+            tags:
+                - Portal
+            summary: Get the application roles list (V2).
+            operationId: getApplicationRolesV2
+            description: |
+                Get application roles.
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    description: List of application roles
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ConfigurationApplicationRolesResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
     /configuration/users/custom-fields:
         get:
             tags:
@@ -3318,6 +3633,13 @@ components:
             in: path
             required: true
             description: Id of a member.
+            schema:
+                type: string
+        invitationIdParam:
+            name: invitationId
+            in: path
+            required: true
+            description: Id of an invitation.
             schema:
                 type: string
         metadataIdParam:
@@ -4016,6 +4338,39 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/Member"
+                metadata:
+                    $ref: "#/components/schemas/MetadataMap"
+                links:
+                    $ref: "#/components/schemas/Links"
+        MembersV2Response:
+            properties:
+                data:
+                    description: List of members.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/MemberV2"
+                metadata:
+                    $ref: "#/components/schemas/MetadataMap"
+                links:
+                    $ref: "#/components/schemas/Links"
+        InvitationsV2Response:
+            properties:
+                data:
+                    description: List of invitations.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/InvitationV2"
+                metadata:
+                    $ref: "#/components/schemas/MetadataMap"
+                links:
+                    $ref: "#/components/schemas/Links"
+        SearchUsersV2Response:
+            properties:
+                data:
+                    description: List of users.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/SearchUserV2"
                 metadata:
                     $ref: "#/components/schemas/MetadataMap"
                 links:
@@ -4745,6 +5100,79 @@ components:
                     format: date-time
                 role:
                     description: Role of the member. (OWNER, USER, ...).
+                    type: string
+        MemberV2:
+            properties:
+                id:
+                    description: Unique identifier of a member.
+                    type: string
+                user:
+                    $ref: "#/components/schemas/User"
+                created_at:
+                    description: Creation date and time of the member.
+                    type: string
+                    format: date-time
+                updated_at:
+                    description: Last update date and time of the member.
+                    type: string
+                    format: date-time
+                role:
+                    description: Role of the member. (OWNER, USER, ...).
+                    type: string
+                status:
+                    description: Status of the member.
+                    type: string
+                    enum:
+                        - active
+                        - pending
+                type:
+                    description: Type of the member.
+                    type: string
+                    enum:
+                        - user
+                        - invited
+        InvitationV2:
+            properties:
+                id:
+                    description: Unique identifier of an invitation.
+                    type: string
+                reference_type:
+                    description: Type of the invitation reference.
+                    type: string
+                    enum:
+                        - APPLICATION
+                reference_id:
+                    description: Identifier of the referenced application.
+                    type: string
+                email:
+                    description: Email targeted by the invitation.
+                    type: string
+                application_role:
+                    description: Application role granted after invitation acceptance.
+                    type: string
+                created_at:
+                    description: Creation date and time of the invitation.
+                    type: string
+                    format: date-time
+                updated_at:
+                    description: Last update date and time of the invitation.
+                    type: string
+                    format: date-time
+        SearchUserV2:
+            properties:
+                id:
+                    description: Unique identifier of a user.
+                    type: string
+                reference:
+                    description: Unique reference if user comes from external source.
+                    type: string
+                first_name:
+                    type: string
+                last_name:
+                    type: string
+                display_name:
+                    type: string
+                email:
                     type: string
         ReferenceMetadata:
             required:
@@ -5721,6 +6149,27 @@ components:
                 role:
                     type: string
                     description: Role's name
+        MemberV2Input:
+            properties:
+                user:
+                    type: string
+                    description: User's technical identifier.
+                reference:
+                    type: string
+                    description: User's reference for user providing from an identity provider.
+                role:
+                    type: string
+                    description: Role's name
+        InvitationInput:
+            required:
+                - email
+            properties:
+                email:
+                    type: string
+                    description: Email to invite.
+                application_role:
+                    type: string
+                    description: Role to assign after invitation acceptance.
         AlertInput:
             properties:
                 application:
@@ -5822,6 +6271,17 @@ components:
                     description: The entrypoint configuration if needed
                     type: object
         TransferOwnershipInput:
+            properties:
+                new_primary_owner_id:
+                    description: User identifier of the new Primary Owner of the application.
+                    type: string
+                new_primary_owner_reference:
+                    description: User reference of the new Primary Owner of the application.
+                    type: string
+                primary_owner_newrole:
+                    description: New role to be affected to the current PrimaryOwner.
+                    type: string
+        TransferOwnershipV2Input:
             properties:
                 new_primary_owner_id:
                     description: User identifier of the new Primary Owner of the application.
