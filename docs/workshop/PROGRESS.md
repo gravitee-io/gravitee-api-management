@@ -9,7 +9,7 @@
 - ✅ BE-5 — DATE_HISTO Query Type
 - ✅ BE-6 — Backend Integration Tests
 - ✅ FE-1 — Angular Service & Models for Unified Endpoint
-- FE-2 — Enhanced Stats Cards
+- ✅ FE-2 — Enhanced Stats Cards
 - FE-3 — HTTP Status Pie Chart
 - FE-4 — Dashboard Layout, Integration & Tests
 
@@ -164,6 +164,19 @@ TypeScript service method and models for the unified analytics endpoint. 9 new f
 | `CONSOLE/.../api-analytics-v2.service.spec.ts` | Modified | 5 tests for getAnalytics (COUNT, STATS, GROUP_BY, DATE_HISTO, explicit from/to) |
 
 `getAnalytics` uses `timeRangeFilter()` for from/to when not provided; supports field, interval, size for STATS/GROUP_BY/DATE_HISTO.
+
+### FE-2: Enhanced Stats Cards ✅
+
+Proxy component now fetches 4 stat cards via unified endpoint. 1 modified, 1 deleted from template:
+
+| Change | Details |
+|---|---|
+| `api-analytics-proxy.component.ts` | Replaced `getRequestsCount$`, `getAverageConnectionDuration$`, `getResponseStatusRanges$` with 4 `getAnalytics()` calls: COUNT, STATS (gateway-response-time-ms), STATS (endpoint-response-time-ms), STATS (request-content-length). Removed `ApiAnalyticsResponseStatusRangesComponent`. |
+| `api-analytics-proxy.component.html` | Removed `<api-analytics-response-status-ranges>`. |
+| `api-analytics-proxy.component.harness.ts` | Removed `getResponseStatusRangesHarness`. |
+| `api-analytics-proxy.component.spec.ts` | Replaced old endpoint expectations with `expectUnifiedAnalyticsCount`, `expectUnifiedAnalyticsStats`. Removed "should display Response Status" test. |
+
+Stat cards: Total Requests, Avg Gateway Response Time, Avg Upstream Response Time, Avg Content Length. Each observable has `catchError` for graceful degradation.
 
 ---
 
@@ -345,4 +358,10 @@ Frontend (Angular):
 Now implement story FE-1 — Angular Service & Models for Unified Endpoint.
 Include tests that follow the existing test patterns.
 Keep the existing separate endpoints working — don't break them.
+```
+
+### Story FE-2 prompt
+
+```
+Proceed with story FE-2
 ```
