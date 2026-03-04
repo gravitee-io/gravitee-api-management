@@ -9,12 +9,19 @@ import {
   BarChart3,
   Users,
   BookOpen,
+  Home,
 } from 'lucide-react';
 import { SidebarProvider } from '@baros/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import type { NavItem } from './AppSidebar';
 
 const mockNavItems: NavItem[] = [
+  {
+    key: 'dashboard',
+    title: 'Dashboard',
+    url: '#',
+    icon: Home,
+  },
   {
     key: 'apis-events',
     title: 'APIs & Events',
