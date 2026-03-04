@@ -55,23 +55,22 @@ public class MongoTagRepository implements TagRepository {
     }
 
     @Override
-    public Optional<Tag> findByIdAndReference(String tagId, String referenceId, TagReferenceType referenceType) {
-        log.debug("Find tag by ID and reference [{}, {}, {}]", tagId, referenceId, referenceType);
+    public Optional<Tag> findByKeyAndReference(String key, String referenceId, TagReferenceType referenceType) {
+        log.debug("Find tag by key and reference [{}, {}, {}]", key, referenceId, referenceType);
 
-        final TagMongo tag = internalTagRepo.findByIdAndReferenceIdAndReferenceType(tagId, referenceId, referenceType).orElse(null);
+        final TagMongo tag = internalTagRepo.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType).orElse(null);
 
-        log.debug("Find tag by ID and reference[{}, {}, {}] - Done", tagId, referenceId, referenceType);
+        log.debug("Find tag by key and reference[{}, {}, {}] - Done", key, referenceId, referenceType);
         return Optional.ofNullable(mapper.map(tag));
     }
 
     @Override
-    public Set<Tag> findByIdsAndReference(Set<String> tagIds, String referenceId, TagReferenceType referenceType)
-        throws TechnicalException {
-        log.debug("Find tags by IDs and reference [{}, {}, {}]", tagIds, referenceId, referenceType);
+    public Set<Tag> findByKeysAndReference(Set<String> keys, String referenceId, TagReferenceType referenceType) throws TechnicalException {
+        log.debug("Find tags by keys and reference [{}, {}, {}]", keys, referenceId, referenceType);
 
-        final List<TagMongo> tags = internalTagRepo.findByIdInAndReferenceIdAndReferenceType(tagIds, referenceId, referenceType);
+        final List<TagMongo> tags = internalTagRepo.findByKeyInAndReferenceIdAndReferenceType(keys, referenceId, referenceType);
 
-        log.debug("Find tag by IDs and reference[{}, {}, {}] - Done", tagIds, referenceId, referenceType);
+        log.debug("Find tag by keys and reference[{}, {}, {}] - Done", keys, referenceId, referenceType);
         return tags
             .stream()
             .map(tagMongo -> mapper.map(tagMongo))
@@ -121,6 +120,7 @@ public class MongoTagRepository implements TagRepository {
         try {
             //Update
             tagMongo.setName(tag.getName());
+            tagMongo.setKey(tag.getKey());
             tagMongo.setDescription(tag.getDescription());
             tagMongo.setRestrictedGroups(tag.getRestrictedGroups());
             tagMongo.setReferenceId(tag.getReferenceId());

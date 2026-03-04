@@ -163,7 +163,13 @@ public class DeployModelToApiCreateUseCaseTest {
         var tagQueryService = new TagQueryServiceInMemory();
         tagQueryService.initWith(
             List.of(
-                Tag.builder().id("1").name("tag1").referenceId(ORGANIZATION_ID).referenceType(Tag.TagReferenceType.ORGANIZATION).build()
+                Tag.builder()
+                    .id("1")
+                    .key("tag-1")
+                    .name("tag1")
+                    .referenceId(ORGANIZATION_ID)
+                    .referenceType(Tag.TagReferenceType.ORGANIZATION)
+                    .build()
             )
         );
 

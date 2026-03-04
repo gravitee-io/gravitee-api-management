@@ -258,15 +258,15 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
                 final Map<String, String> tagMap = tagService
                     .findByReference(executionContext.getOrganizationId(), TagReferenceType.ORGANIZATION)
                     .stream()
-                    .collect(toMap(TagEntity::getId, TagEntity::getName));
-                final Set<String> tagIdToAdd = xGraviteeIODefinition
+                    .collect(toMap(TagEntity::getKey, TagEntity::getName));
+                final Set<String> tagKeyToAdd = xGraviteeIODefinition
                     .getTags()
                     .stream()
-                    .map(tag -> findTagIdByName(tagMap, tag))
+                    .map(tag -> findTagKeyByName(tagMap, tag))
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
-                if (tagIdToAdd != null && !tagIdToAdd.isEmpty()) {
-                    apiEntity.setTags(tagIdToAdd);
+                if (!tagKeyToAdd.isEmpty()) {
+                    apiEntity.setTags(tagKeyToAdd);
                 }
             }
 
@@ -348,7 +348,7 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
         return apiEntity;
     }
 
-    private String findTagIdByName(Map<String, String> tagMap, String tag) {
+    private String findTagKeyByName(Map<String, String> tagMap, String tag) {
         for (Map.Entry<String, String> entry : tagMap.entrySet()) {
             if (entry.getValue().equals(tag)) {
                 return entry.getKey();

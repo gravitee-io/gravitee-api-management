@@ -30,22 +30,21 @@ import java.util.Set;
  */
 public interface TagService {
     List<TagEntity> findByReference(String referenceId, TagReferenceType referenceType);
-    TagEntity findByIdAndReference(String tagId, String referenceId, TagReferenceType referenceType);
-    void checkTagsExist(Set<String> tagIds, String referenceId, TagReferenceType referenceType) throws TechnicalException;
-    TagEntity create(final ExecutionContext executionContext, NewTagEntity tag, String referenceId, TagReferenceType referenceType);
-    TagEntity update(final ExecutionContext executionContext, UpdateTagEntity tag, String referenceId, TagReferenceType referenceType);
-    List<TagEntity> create(
+    TagEntity findByKeyAndReference(String key, String referenceId, TagReferenceType referenceType);
+    void checkTagsExist(Set<String> keys, String referenceId, TagReferenceType referenceType) throws TechnicalException;
+    TagEntity create(
         final ExecutionContext executionContext,
-        List<NewTagEntity> tags,
+        NewTagEntity newTagEntity,
         String referenceId,
         TagReferenceType referenceType
     );
-    List<TagEntity> update(
+    TagEntity update(
         final ExecutionContext executionContext,
-        List<UpdateTagEntity> tags,
+        String tagKey,
+        UpdateTagEntity updateTagEntity,
         String referenceId,
         TagReferenceType referenceType
     );
-    void delete(final ExecutionContext executionContext, String tagId, String referenceId, TagReferenceType referenceType);
+    void delete(final ExecutionContext executionContext, String key, String referenceId, TagReferenceType referenceType);
     Set<String> findByUser(String user, String referenceId, TagReferenceType referenceType);
 }
