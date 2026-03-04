@@ -28,18 +28,24 @@ import { AnalyticsResponseTimeOverTime } from '../entities/management-api-v2/ana
 import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
 import { ApiAnalyticsFilters } from '../management/api/api-traffic-v4/analytics/components/api-analytics-filters-bar/api-analytics-filters-bar.configuration';
 
+/** Query type for the unified V4 analytics endpoint. */
 export type V4AnalyticsType = 'COUNT' | 'STATS' | 'GROUP_BY' | 'DATE_HISTO';
 
+/** Parameters for {@link ApiAnalyticsV2Service.getV4Analytics}. */
 export interface V4AnalyticsParams {
   from: number;
   to: number;
   type: V4AnalyticsType;
+  /** Required for STATS, GROUP_BY, DATE_HISTO (e.g. status, gateway-response-time-ms). */
   field?: string;
+  /** Required for DATE_HISTO; bucket interval in milliseconds. */
   interval?: number;
+  /** For GROUP_BY; max number of top buckets (default 10). */
   size?: number;
   order?: string;
 }
 
+/** Response shape for the unified V4 analytics endpoint; discriminator is {@code type}. */
 export type V4AnalyticsResponse =
   | { type: 'COUNT'; count: number }
   | { type: 'STATS'; count: number; min: number; max: number; avg: number; sum: number }
@@ -62,9 +68,12 @@ export class ApiAnalyticsV2Service {
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
+  /** Observable of the current analytics time range (from/to in ms). Set by the filters bar. */
   public timeRangeFilter(): Observable<TimeRangeParams> {
     return this.timeRangeFilter$.asObservable();
   }
+
+  /** Updates the current time range; triggers re-fetch of all analytics widgets. */
   public setTimeRangeFilter(timeRangeParams: TimeRangeParams) {
     this.timeRangeFilter$.next(timeRangeParams);
   }
@@ -130,7 +139,12 @@ export class ApiAnalyticsV2Service {
   }
 
   /**
-   * V4 API unified analytics endpoint. Data source: *-v4-metrics-* index only.
+   * Calls the unified V4 analytics endpoint GET /v2/apis/{apiId}/analytics.
+   * Data source: *-v4-metrics-* index only. Requires API_ANALYTICS:READ.
+   *
+   * @param apiId - API id
+   * @param params - type, from, to; field/interval/size/order as required by type
+   * @returns Observable of the response (COUNT, STATS, GROUP_BY, or DATE_HISTO shape)
    */
   getV4Analytics(apiId: string, params: V4AnalyticsParams): Observable<V4AnalyticsResponse> {
     const searchParams = new URLSearchParams();

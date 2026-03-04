@@ -37,15 +37,22 @@ import {
 import { ApiAnalyticsResponseStatusOvertimeComponent } from '../components/api-analytics-response-status-overtime/api-analytics-response-status-overtime.component';
 import { ApiAnalyticsResponseTimeOverTimeComponent } from '../components/api-analytics-response-time-over-time/api-analytics-response-time-over-time.component';
 
+/** View model for the analytics proxy: loading state, stats, status pie data, error or empty-data flags. */
 type ApiAnalyticsVM = {
   isLoading: boolean;
   isAnalyticsEnabled?: boolean;
   requestStats?: AnalyticsRequestStats;
   responseStatusRanges?: ApiAnalyticsResponseStatusRanges;
   error?: boolean;
+  /** True when the period has zero requests (show "No analytics data" empty state). */
   hasNoData?: boolean;
 };
 
+/**
+ * Analytics dashboard for V4 HTTP Proxy APIs. Fetches stats and HTTP status from the unified
+ * V4 analytics endpoint; line charts use existing per-metric endpoints. Handles loading, error,
+ * and empty-data states.
+ */
 @Component({
   selector: 'api-analytics-proxy',
   imports: [
@@ -65,9 +72,11 @@ type ApiAnalyticsVM = {
 export class ApiAnalyticsProxyComponent {
   private readonly apiId = this.activatedRoute.snapshot.params.apiId;
 
+  /** Fetches COUNT + STATS + GROUP_BY from unified endpoint when time range is set. */
   private v4AnalyticsData$: Observable<Omit<ApiAnalyticsVM, 'isLoading' | 'isAnalyticsEnabled'>> = this.apiAnalyticsV2Service
     .timeRangeFilter()
     .pipe(
+      // Filters bar can re-emit same range on init; avoid re-subscribing and flashing loading
       distinctUntilChanged((a, b) => a?.from === b?.from && a?.to === b?.to),
       switchMap((timeRange) => {
         if (!timeRange?.from || !timeRange?.to) {
@@ -145,11 +154,13 @@ export class ApiAnalyticsProxyComponent {
             const hasNoData = !hasError && count === 0;
             return { requestStats, responseStatusRanges, error: hasError, hasNoData };
           }),
-          delay(0), // Defer to next tick to avoid ExpressionChangedAfterItHasBeenCheckedError when forkJoin completes
+          // Defer emission so template doesn't see loading→data in same CD cycle (avoids NG0100)
+          delay(0),
         );
       }),
     );
 
+  /** Single stream driving the template: loading, disabled, error, no-data, or dashboard content. */
   public apiAnalyticsVM$: Observable<ApiAnalyticsVM> = combineLatest([
     this.apiService.getLastApiFetch(this.apiId).pipe(onlyApiV4Filter()),
     this.apiAnalyticsV2Service.timeRangeFilter(),

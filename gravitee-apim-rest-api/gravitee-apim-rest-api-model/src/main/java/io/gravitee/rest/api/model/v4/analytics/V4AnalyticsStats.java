@@ -20,6 +20,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Result of a V4 analytics STATS query: min, max, avg, sum and count for a numeric field over the time range.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

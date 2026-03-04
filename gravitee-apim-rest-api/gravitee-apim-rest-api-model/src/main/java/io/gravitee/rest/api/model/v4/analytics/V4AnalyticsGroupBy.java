@@ -21,6 +21,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Result of a V4 analytics GROUP_BY query: term values (e.g. status code -> count) and optional metadata per bucket.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

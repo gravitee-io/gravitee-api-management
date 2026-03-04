@@ -63,6 +63,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 /**
+ * Implementation of {@link AnalyticsQueryService}. Delegates to {@link AnalyticsRepository} for v4-metrics
+ * and other analytics indexes.
+ *
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */

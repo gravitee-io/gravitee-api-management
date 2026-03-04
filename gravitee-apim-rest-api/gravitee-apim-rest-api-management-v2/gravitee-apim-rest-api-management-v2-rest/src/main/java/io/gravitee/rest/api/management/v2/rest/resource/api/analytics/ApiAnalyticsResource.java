@@ -54,6 +54,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * REST resource for API analytics in the Management API v2.
+ * Exposes the unified V4 analytics endpoint plus legacy per-metric endpoints for compatibility.
+ */
 public class ApiAnalyticsResource extends AbstractResource {
 
     @PathParam("apiId")
@@ -80,6 +84,19 @@ public class ApiAnalyticsResource extends AbstractResource {
     @Inject
     private AnalyticsQueryService analyticsQueryService;
 
+    /**
+     * Unified V4 analytics endpoint. Returns one of COUNT, STATS, GROUP_BY, or DATE_HISTO depending on {@code type}.
+     * Requires API_ANALYTICS:READ. Data is sourced from the v4-metrics index only.
+     *
+     * @param type    required; one of COUNT, STATS, GROUP_BY, DATE_HISTO
+     * @param from    required; start time (epoch ms)
+     * @param to      required; end time (epoch ms), must be &gt; from
+     * @param field   required for STATS, GROUP_BY, DATE_HISTO; metric field name
+     * @param interval required for DATE_HISTO; bucket size in ms (1000–1000000000)
+     * @param size    optional; for GROUP_BY, max number of buckets (default 10)
+     * @param order   optional; for GROUP_BY, sort order
+     * @return 200 with JSON body per type, or 400 if validation fails
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
@@ -151,6 +168,7 @@ public class ApiAnalyticsResource extends AbstractResource {
                 if (field == null || field.isBlank()) {
                     throw new BadRequestException("Query parameter 'field' is required for type DATE_HISTO");
                 }
+                // Bound interval to avoid unbounded bucket counts or sub-millisecond buckets
                 if (interval == null || interval < 1000 || interval > 1_000_000_000) {
                     throw new BadRequestException(
                         "Query parameter 'interval' is required for type DATE_HISTO (milliseconds, 1000-1000000000)"

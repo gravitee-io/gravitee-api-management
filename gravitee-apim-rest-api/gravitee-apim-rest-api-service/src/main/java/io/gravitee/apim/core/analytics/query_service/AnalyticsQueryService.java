@@ -39,6 +39,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Query service for API analytics. Supports legacy use-case–based queries and the unified V4 analytics
+ * operations (COUNT, STATS, GROUP_BY, DATE_HISTO) backed by the *-v4-metrics-* index.
+ */
 public interface AnalyticsQueryService {
     Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to);
 

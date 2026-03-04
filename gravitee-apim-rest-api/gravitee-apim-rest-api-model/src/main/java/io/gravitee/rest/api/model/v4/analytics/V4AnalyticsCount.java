@@ -20,6 +20,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Result of a V4 analytics COUNT query: total number of request hits in the time range.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

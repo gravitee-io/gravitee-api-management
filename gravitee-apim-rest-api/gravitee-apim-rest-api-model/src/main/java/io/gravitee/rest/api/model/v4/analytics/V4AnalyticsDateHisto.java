@@ -22,6 +22,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Result of a V4 analytics DATE_HISTO query: shared time buckets (timestamp) and per-field bucket counts (values).
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,6 +34,7 @@ public class V4AnalyticsDateHisto {
     private List<Long> timestamp;
     private List<DateHistoValue> values;
 
+    /** One series in the histogram: field name, counts per bucket, optional metadata. */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
