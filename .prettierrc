@@ -28,3 +28,6 @@ overrides:
   - files: "gravitee-apim-webui-libs/**/*.html"
     options:
       parser: angular
+  - files: "gravitee-apim-baros/**/*"
+    options:
+      tabWidth: 2
