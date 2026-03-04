@@ -27,7 +27,7 @@ export class ApplicationTabSettingsEditHarness extends ContentContainerComponent
   public static hostSelector = 'app-application-tab-settings-edit';
   protected locateAppName = this.getHarness(MatInputHarness.with({ selector: '[data-testId="name"]' }));
   protected locateAppDescription = this.getHarness(MatInputHarness.with({ selector: '[data-testId="description"]' }));
-  protected locateIntegrationTitle = this.locatorFor('[data-testId="integrationTitle"]');
+  protected locateAppDomain = this.getHarnessOrNull(MatInputHarness.with({ selector: '[data-testId="domain"]' }));
   protected locateSimpleType = this.getHarnessOrNull(MatInputHarness.with({ selector: '[data-testId="simple-type"]' }));
   protected locateSimpleClientId = this.getHarnessOrNull(MatInputHarness.with({ selector: '[data-testId="simple-clientId"]' }));
   protected locateType = this.locatorForOptional('[data-testId="type"]');
@@ -74,8 +74,11 @@ export class ApplicationTabSettingsEditHarness extends ContentContainerComponent
     return this.locateAppDescription.then(input => input.setValue(newDescription));
   }
 
-  public async getIntegrationTitle(): Promise<string> {
-    return this.locateIntegrationTitle().then(title => title.text());
+  public async getDomain(): Promise<string | undefined> {
+    return this.locateAppDomain.then(input => input?.getValue());
+  }
+  public async changeDomain(newDomain: string): Promise<void> {
+    return this.locateAppDomain.then(input => input?.setValue(newDomain));
   }
 
   public async getSimpleType(): Promise<string | undefined> {

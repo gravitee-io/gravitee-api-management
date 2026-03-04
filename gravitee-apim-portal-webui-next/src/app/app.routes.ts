@@ -205,7 +205,7 @@ export const routes: Routes = [
         children: [
           {
             path: '',
-            redirectTo: 'logs',
+            redirectTo: 'settings',
             pathMatch: 'full',
           },
           {

@@ -121,7 +121,6 @@ describe('ApplicationTabSettingsComponent', () => {
       expect(await updateHarness.getName()).toEqual('Simple application');
       expect(await updateHarness.getDescription()).toEqual('Simple description');
       expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
-      expect(await updateHarness.getIntegrationTitle()).toEqual('OAuth2 Integration');
       expect(await updateHarness.getSimpleClientId()).toEqual('Custom Client ID');
       expect(await updateHarness.getSimpleType()).toEqual('Custom Application Type');
       expect(await updateHarness.getType()).toBeUndefined();
@@ -185,7 +184,6 @@ describe('ApplicationTabSettingsComponent', () => {
       expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
       expect(await updateHarness.getSimpleClientId()).toBeUndefined();
       expect(await updateHarness.getSimpleType()).toBeUndefined();
-      expect(await updateHarness.getIntegrationTitle()).toEqual('OpenID Connect Integration');
       expect(await updateHarness.getType()).toEqual('Backend to backend');
       expect(await updateHarness.getTypeDescription()).toEqual('Machine to machine');
       expect(await updateHarness.getClientId()).toEqual('my client id');
@@ -244,7 +242,6 @@ describe('ApplicationTabSettingsComponent', () => {
       expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
       expect(await updateHarness.getSimpleClientId()).toBeUndefined();
       expect(await updateHarness.getSimpleType()).toBeUndefined();
-      expect(await updateHarness.getIntegrationTitle()).toEqual('OpenID Connect Integration');
       expect(await updateHarness.getType()).toEqual('Native');
       expect(await updateHarness.getTypeDescription()).toEqual('iOS, Android, ...');
       expect(await updateHarness.getClientId()).toEqual('my client id');
@@ -315,7 +312,6 @@ describe('ApplicationTabSettingsComponent', () => {
       expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
       expect(await updateHarness.getSimpleClientId()).toBeUndefined();
       expect(await updateHarness.getSimpleType()).toBeUndefined();
-      expect(await updateHarness.getIntegrationTitle()).toEqual('OpenID Connect Integration');
       expect(await updateHarness.getType()).toEqual('SPA');
       expect(await updateHarness.getTypeDescription()).toEqual('Angular, React, Ember, ...');
       expect(await updateHarness.getClientId()).toEqual('my client id');
@@ -386,7 +382,6 @@ describe('ApplicationTabSettingsComponent', () => {
       expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
       expect(await updateHarness.getSimpleClientId()).toBeUndefined();
       expect(await updateHarness.getSimpleType()).toBeUndefined();
-      expect(await updateHarness.getIntegrationTitle()).toEqual('OpenID Connect Integration');
       expect(await updateHarness.getType()).toEqual('Web');
       expect(await updateHarness.getTypeDescription()).toEqual('Java, .Net, ...');
       expect(await updateHarness.getClientId()).toEqual('my client id');
