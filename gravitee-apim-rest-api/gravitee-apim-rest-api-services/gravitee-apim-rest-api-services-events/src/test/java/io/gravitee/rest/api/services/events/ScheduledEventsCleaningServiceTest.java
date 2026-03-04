@@ -150,118 +150,6 @@ class ScheduledEventsCleaningServiceTest {
     }
 
     @Test
-    void should_use_correct_events_keep_value() {
-        // Given
-        int eventsKeep = 10;
-        scheduledEventsCleaningService = new ScheduledEventsCleaningService(
-            cleanupEventsUseCase,
-            organizationService,
-            environmentService,
-            scheduler,
-            clusterManager,
-            "@daily",
-            eventsKeep,
-            true,
-            30
-        );
-
-        // When
-        int actualEventsKeep = (int) ReflectionTestUtils.getField(scheduledEventsCleaningService, "eventsKeep");
-
-        // Then
-        assertThat(actualEventsKeep).isEqualTo(10);
-    }
-
-    @Test
-    void should_use_correct_time_to_live_value() {
-        // Given
-        long timeToLiveMinutes = 60;
-        scheduledEventsCleaningService = new ScheduledEventsCleaningService(
-            cleanupEventsUseCase,
-            organizationService,
-            environmentService,
-            scheduler,
-            clusterManager,
-            "@daily",
-            5,
-            true,
-            timeToLiveMinutes
-        );
-
-        // When
-        Duration actualTimeToLive = (Duration) ReflectionTestUtils.getField(scheduledEventsCleaningService, "timeToLive");
-
-        // Then
-        assertThat(actualTimeToLive.toMinutes()).isEqualTo(60);
-    }
-
-    @Test
-    void should_use_default_events_keep_when_not_specified() {
-        // Given
-        scheduledEventsCleaningService = new ScheduledEventsCleaningService(
-            cleanupEventsUseCase,
-            organizationService,
-            environmentService,
-            scheduler,
-            clusterManager,
-            "@daily",
-            5, // Use default value instead of null
-            true,
-            30
-        );
-
-        // When
-        int actualEventsKeep = (int) ReflectionTestUtils.getField(scheduledEventsCleaningService, "eventsKeep");
-
-        // Then
-        assertThat(actualEventsKeep).isEqualTo(5); // Default value
-    }
-
-    @Test
-    void should_use_default_time_to_live_when_not_specified() {
-        // Given
-        scheduledEventsCleaningService = new ScheduledEventsCleaningService(
-            cleanupEventsUseCase,
-            organizationService,
-            environmentService,
-            scheduler,
-            clusterManager,
-            "@daily",
-            5,
-            true,
-            30 // Use default value instead of null
-        );
-
-        // When
-        Duration actualTimeToLive = (Duration) ReflectionTestUtils.getField(scheduledEventsCleaningService, "timeToLive");
-
-        // Then
-        assertThat(actualTimeToLive.toMinutes()).isEqualTo(30); // Default value
-    }
-
-    @Test
-    void should_use_default_enabled_when_not_specified() {
-        // Given
-        scheduledEventsCleaningService = new ScheduledEventsCleaningService(
-            cleanupEventsUseCase,
-            organizationService,
-            environmentService,
-            scheduler,
-            clusterManager,
-            "@daily",
-            5,
-            true, // Use default value instead of null
-            30
-        );
-
-        // When
-        boolean actualEnabled = (boolean) ReflectionTestUtils.getField(scheduledEventsCleaningService, "enabled");
-
-        // Then
-        assertThat(actualEnabled).isTrue(); // Default value is now true
-    }
-
-    @Test
     void should_have_correct_constructor_parameters() {
         // Given & When
         ScheduledEventsCleaningService service = new ScheduledEventsCleaningService(
@@ -289,7 +177,7 @@ class ScheduledEventsCleaningServiceTest {
     }
 
     @Test
-    void should_log_info_message_when_starting() throws Exception {
+    void should_start_successfully_when_enabled() throws Exception {
         // Given
         Member mockMember = org.mockito.Mockito.mock(Member.class);
         when(mockMember.primary()).thenReturn(true);
@@ -310,35 +198,6 @@ class ScheduledEventsCleaningServiceTest {
         scheduledEventsCleaningService.doStart();
 
         // Then
-        // The service should log an info message about initialization
-        // This is verified by the fact that the service starts without throwing exceptions
-        assertThat(scheduledEventsCleaningService).isNotNull();
-    }
-
-    @Test
-    void should_not_log_warning_when_enabled() throws Exception {
-        // Given
-        Member mockMember = org.mockito.Mockito.mock(Member.class);
-        when(mockMember.primary()).thenReturn(true);
-        when(clusterManager.self()).thenReturn(mockMember);
-        scheduledEventsCleaningService = new ScheduledEventsCleaningService(
-            cleanupEventsUseCase,
-            organizationService,
-            environmentService,
-            scheduler,
-            clusterManager,
-            "@daily",
-            5,
-            true, // enabled = true
-            30
-        );
-
-        // When
-        scheduledEventsCleaningService.doStart();
-
-        // Then
-        // No warning should be logged when the service is enabled
-        // This is verified by the fact that the service starts without throwing exceptions
         assertThat(scheduledEventsCleaningService).isNotNull();
     }
 }
