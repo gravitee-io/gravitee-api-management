@@ -20,6 +20,7 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 
+import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.management.model.Tag;
 import io.gravitee.repository.management.model.TagReferenceType;
 import java.util.Optional;
@@ -53,7 +54,8 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldCreate() throws Exception {
         final Tag tag = new Tag();
-        tag.setId("new-tag");
+        tag.setId(UUID.random().toString());
+        tag.setKey("new-tag");
         tag.setName("Tag name");
         tag.setDescription("Description for the new tag");
         tag.setRestrictedGroups(asList("g1", "groupNew"));
@@ -66,11 +68,12 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
 
         Assert.assertEquals(nbTagsBeforeCreation + 1, nbTagsAfterCreation);
 
-        Optional<Tag> optional = tagRepository.findById("new-tag");
+        Optional<Tag> optional = tagRepository.findById(tag.getId());
         Assert.assertTrue("Tag saved not found", optional.isPresent());
 
         final Tag tagSaved = optional.get();
         Assert.assertEquals("Invalid saved tag name.", tag.getName(), tagSaved.getName());
+        Assert.assertEquals("Invalid saved tag key.", tag.getKey(), tagSaved.getKey());
         Assert.assertEquals("Invalid tag description.", tag.getDescription(), tagSaved.getDescription());
         Assert.assertEquals("Invalid tag groups.", tag.getRestrictedGroups(), tagSaved.getRestrictedGroups());
     }
@@ -130,6 +133,7 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertTrue(tag.isPresent());
         assertEquals("Other", tag.get().getName());
+        assertEquals("other", tag.get().getKey());
         assertEquals("Description for other tag", tag.get().getDescription());
     }
 
@@ -143,7 +147,12 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertThat(tags)
             .hasSize(2)
-            .anyMatch(tag -> tag.getId().equals("70237305-6f68-450e-a373-056f68750e50") && tag.getName().equals("International"));
+            .anyMatch(
+                tag ->
+                    tag.getId().equals("70237305-6f68-450e-a373-056f68750e50") &&
+                    tag.getName().equals("International") &&
+                    tag.getKey().equals("international")
+            );
     }
 
     @Test

@@ -28,9 +28,11 @@ import java.util.Objects;
 public class NewTagEntity {
 
     @NotNull
-    @Size(min = 1)
+    @Size(min = 1, max = 64)
     private String name;
 
+    @NotNull
+    @Size(min = 1, max = 64)
     private String key;
 
     private String description;
