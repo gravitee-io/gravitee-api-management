@@ -14,6 +14,9 @@
   --sidebar-border: var(--border);
   --sidebar-accent: var(--accent);
   --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-ring: var(--ring);
 
   /* ── Top navigation ──────────────────────────────── */
   --topnav-height: 3.5rem;
