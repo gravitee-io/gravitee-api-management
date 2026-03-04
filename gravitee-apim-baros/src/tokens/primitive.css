@@ -6,33 +6,39 @@
  */
 
 :root {
-  /* ── Gray ─────────────────────────────────────────── */
-  --baros-gray-50: oklch(0.985 0.002 247);
-  --baros-gray-100: oklch(0.967 0.003 264);
-  --baros-gray-200: oklch(0.928 0.006 264);
-  --baros-gray-300: oklch(0.872 0.01 258);
-  --baros-gray-400: oklch(0.707 0.015 261);
-  --baros-gray-500: oklch(0.551 0.018 264);
-  --baros-gray-600: oklch(0.446 0.02 264);
-  --baros-gray-700: oklch(0.373 0.018 260);
-  --baros-gray-800: oklch(0.278 0.014 256);
-  --baros-gray-900: oklch(0.21 0.012 254);
-  --baros-gray-950: oklch(0.13 0.01 256);
+  /* ── Stone (Warm Neutrals) ──────────────────────────
+     Hue ~55 complements the Solaris orange brand.
+     Low chroma reads as neutral with subtle warmth.
+  */
+  --gravitee-stone-50:  oklch(0.985 0.002 60);
+  --gravitee-stone-100: oklch(0.970 0.003 58);
+  --gravitee-stone-200: oklch(0.923 0.006 56);
+  --gravitee-stone-300: oklch(0.869 0.008 55);
+  --gravitee-stone-400: oklch(0.709 0.010 55);
+  --gravitee-stone-500: oklch(0.553 0.013 55);
+  --gravitee-stone-600: oklch(0.444 0.014 55);
+  --gravitee-stone-700: oklch(0.374 0.012 55);
+  --gravitee-stone-800: oklch(0.268 0.010 55);
+  --gravitee-stone-900: oklch(0.216 0.008 55);
+  --gravitee-stone-950: oklch(0.147 0.006 55);
 
-  /* ── Blue (brand primary) ────────────────────────── */
-  --baros-blue-50: oklch(0.97 0.014 254);
-  --baros-blue-100: oklch(0.932 0.032 255);
-  --baros-blue-200: oklch(0.882 0.059 254);
-  --baros-blue-300: oklch(0.809 0.105 251);
-  --baros-blue-400: oklch(0.707 0.165 254);
-  --baros-blue-500: oklch(0.623 0.214 259);
-  --baros-blue-600: oklch(0.546 0.245 262);
-  --baros-blue-700: oklch(0.488 0.227 264);
-  --baros-blue-800: oklch(0.424 0.189 265);
-  --baros-blue-900: oklch(0.379 0.146 265);
-  --baros-blue-950: oklch(0.283 0.108 267);
+  /* ── Solaris (Brand) ────────────────────────────────
+     Hue arc sweeps from warm amber (55) to deep red-orange (25),
+     matching the Gravitee "G" logo gradient.
+  */
+  --gravitee-solaris-50:  oklch(0.98  0.015 55);
+  --gravitee-solaris-100: oklch(0.95  0.04  52);
+  --gravitee-solaris-200: oklch(0.89  0.09  48);
+  --gravitee-solaris-300: oklch(0.82  0.15  45);
+  --gravitee-solaris-400: oklch(0.73  0.18  42);  /* Bright orange (logo top) */
+  --gravitee-solaris-500: oklch(0.65  0.20  38);  /* Brand core */
+  --gravitee-solaris-600: oklch(0.58  0.22  32);  /* Deep orange-red (logo bottom) */
+  --gravitee-solaris-700: oklch(0.50  0.19  28);
+  --gravitee-solaris-800: oklch(0.43  0.16  26);
+  --gravitee-solaris-900: oklch(0.37  0.13  25);
+  --gravitee-solaris-950: oklch(0.27  0.10  25);
 
-  /* ── Red (destructive) ───────────────────────────── */
+  /* ── Red (destructive) ─────────────────────────────── */
   --baros-red-50: oklch(0.971 0.013 17);
   --baros-red-100: oklch(0.936 0.032 17);
   --baros-red-200: oklch(0.885 0.062 18);
@@ -45,7 +51,7 @@
   --baros-red-900: oklch(0.396 0.141 25);
   --baros-red-950: oklch(0.258 0.092 26);
 
-  /* ── Green (success) ─────────────────────────────── */
+  /* ── Green (success) ───────────────────────────────── */
   --baros-green-50: oklch(0.982 0.018 155);
   --baros-green-100: oklch(0.962 0.044 156);
   --baros-green-200: oklch(0.925 0.084 155);
@@ -58,7 +64,7 @@
   --baros-green-900: oklch(0.393 0.095 152);
   --baros-green-950: oklch(0.266 0.065 152);
 
-  /* ── Amber (warning) ─────────────────────────────── */
+  /* ── Amber (warning) ───────────────────────────────── */
   --baros-amber-50: oklch(0.987 0.022 95);
   --baros-amber-100: oklch(0.962 0.059 95);
   --baros-amber-200: oklch(0.924 0.12 95);
@@ -71,11 +77,11 @@
   --baros-amber-900: oklch(0.414 0.112 45);
   --baros-amber-950: oklch(0.279 0.077 45);
 
-  /* ── White / Black ───────────────────────────────── */
+  /* ── White / Black ─────────────────────────────────── */
   --baros-white: oklch(1 0 0);
   --baros-black: oklch(0 0 0);
 
-  /* ── Spacing scale ───────────────────────────────── */
+  /* ── Spacing scale ─────────────────────────────────── */
   --baros-spacing-0: 0;
   --baros-spacing-0-5: 0.125rem;
   --baros-spacing-1: 0.25rem;
@@ -94,7 +100,7 @@
   --baros-spacing-20: 5rem;
   --baros-spacing-24: 6rem;
 
-  /* ── Border radius ───────────────────────────────── */
+  /* ── Border radius ─────────────────────────────────── */
   --baros-radius-none: 0;
   --baros-radius-sm: 0.25rem;
   --baros-radius-md: 0.375rem;
@@ -103,7 +109,7 @@
   --baros-radius-2xl: 1rem;
   --baros-radius-full: 9999px;
 
-  /* ── Font sizes ──────────────────────────────────── */
+  /* ── Font sizes ────────────────────────────────────── */
   --baros-text-xs: 0.75rem;
   --baros-text-sm: 0.875rem;
   --baros-text-base: 1rem;
@@ -112,20 +118,20 @@
   --baros-text-2xl: 1.5rem;
   --baros-text-3xl: 1.875rem;
 
-  /* ── Font weights ────────────────────────────────── */
+  /* ── Font weights ──────────────────────────────────── */
   --baros-font-normal: 400;
   --baros-font-medium: 500;
   --baros-font-semibold: 600;
   --baros-font-bold: 700;
 
-  /* ── Line heights ────────────────────────────────── */
+  /* ── Line heights ──────────────────────────────────── */
   --baros-leading-none: 1;
   --baros-leading-tight: 1.25;
   --baros-leading-snug: 1.375;
   --baros-leading-normal: 1.5;
   --baros-leading-relaxed: 1.625;
 
-  /* ── Shadows ─────────────────────────────────────── */
+  /* ── Shadows ───────────────────────────────────────── */
   --baros-shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.05);
   --baros-shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.1), 0 2px 4px -2px oklch(0 0 0 / 0.1);
   --baros-shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.1), 0 4px 6px -4px oklch(0 0 0 / 0.1);

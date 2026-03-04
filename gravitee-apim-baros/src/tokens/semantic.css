@@ -9,31 +9,31 @@
 :root {
   /* ── Surface ─────────────────────────────────────── */
   --background: var(--baros-white);
-  --foreground: var(--baros-gray-950);
+  --foreground: var(--gravitee-stone-900);
 
   /* ── Card ────────────────────────────────────────── */
   --card: var(--baros-white);
-  --card-foreground: var(--baros-gray-950);
+  --card-foreground: var(--gravitee-stone-900);
 
   /* ── Popover ─────────────────────────────────────── */
   --popover: var(--baros-white);
-  --popover-foreground: var(--baros-gray-950);
+  --popover-foreground: var(--gravitee-stone-900);
 
-  /* ── Primary ─────────────────────────────────────── */
-  --primary: var(--baros-blue-600);
+  /* ── Primary (Brand) ─────────────────────────────── */
+  --primary: var(--gravitee-solaris-600);
   --primary-foreground: var(--baros-white);
 
   /* ── Secondary ───────────────────────────────────── */
-  --secondary: var(--baros-gray-100);
-  --secondary-foreground: var(--baros-gray-900);
+  --secondary: var(--gravitee-stone-100);
+  --secondary-foreground: var(--gravitee-stone-800);
 
   /* ── Muted ───────────────────────────────────────── */
-  --muted: var(--baros-gray-100);
-  --muted-foreground: var(--baros-gray-500);
+  --muted: var(--gravitee-stone-100);
+  --muted-foreground: var(--gravitee-stone-500);
 
   /* ── Accent ──────────────────────────────────────── */
-  --accent: var(--baros-gray-100);
-  --accent-foreground: var(--baros-gray-900);
+  --accent: var(--gravitee-stone-100);
+  --accent-foreground: var(--gravitee-stone-900);
 
   /* ── Destructive ─────────────────────────────────── */
   --destructive: var(--baros-red-600);
@@ -47,10 +47,10 @@
   --warning: var(--baros-amber-500);
   --warning-foreground: var(--baros-amber-950);
 
-  /* ── Border / Input / Ring ───────────────────────── */
-  --border: var(--baros-gray-200);
-  --input: var(--baros-gray-200);
-  --ring: var(--baros-blue-600);
+  /* ── Border / Input / Ring ─────────────────────────  */
+  --border: var(--gravitee-stone-200);
+  --input: var(--gravitee-stone-200);
+  --ring: var(--gravitee-solaris-500);
 
   /* ── Radius ──────────────────────────────────────── */
   --radius: var(--baros-radius-lg);
@@ -58,32 +58,32 @@
 
 .dark {
   /* ── Surface ─────────────────────────────────────── */
-  --background: var(--baros-gray-950);
-  --foreground: var(--baros-gray-50);
+  --background: var(--gravitee-stone-950);
+  --foreground: var(--gravitee-stone-50);
 
   /* ── Card ────────────────────────────────────────── */
-  --card: var(--baros-gray-900);
-  --card-foreground: var(--baros-gray-50);
+  --card: var(--gravitee-stone-900);
+  --card-foreground: var(--gravitee-stone-50);
 
   /* ── Popover ─────────────────────────────────────── */
-  --popover: var(--baros-gray-900);
-  --popover-foreground: var(--baros-gray-50);
+  --popover: var(--gravitee-stone-900);
+  --popover-foreground: var(--gravitee-stone-50);
 
-  /* ── Primary ─────────────────────────────────────── */
-  --primary: var(--baros-blue-500);
+  /* ── Primary (Brand) ─────────────────────────────── */
+  --primary: var(--gravitee-solaris-500);
   --primary-foreground: var(--baros-white);
 
   /* ── Secondary ───────────────────────────────────── */
-  --secondary: var(--baros-gray-800);
-  --secondary-foreground: var(--baros-gray-50);
+  --secondary: var(--gravitee-stone-800);
+  --secondary-foreground: var(--gravitee-stone-50);
 
   /* ── Muted ───────────────────────────────────────── */
-  --muted: var(--baros-gray-800);
-  --muted-foreground: var(--baros-gray-400);
+  --muted: var(--gravitee-stone-800);
+  --muted-foreground: var(--gravitee-stone-400);
 
   /* ── Accent ──────────────────────────────────────── */
-  --accent: var(--baros-gray-800);
-  --accent-foreground: var(--baros-gray-50);
+  --accent: var(--gravitee-stone-800);
+  --accent-foreground: var(--gravitee-stone-50);
 
   /* ── Destructive ─────────────────────────────────── */
   --destructive: var(--baros-red-500);
@@ -97,8 +97,8 @@
   --warning: var(--baros-amber-400);
   --warning-foreground: var(--baros-amber-950);
 
-  /* ── Border / Input / Ring ───────────────────────── */
-  --border: var(--baros-gray-800);
-  --input: var(--baros-gray-800);
-  --ring: var(--baros-blue-500);
+  /* ── Border / Input / Ring ─────────────────────────  */
+  --border: var(--gravitee-stone-800);
+  --input: var(--gravitee-stone-800);
+  --ring: var(--gravitee-solaris-400);
 }
