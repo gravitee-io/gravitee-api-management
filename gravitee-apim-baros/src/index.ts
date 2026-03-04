@@ -21,3 +21,12 @@ export {
 } from './components/ui/sheet';
 
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './components/ui/tooltip';
+
+export { SideNav, SideNavItem } from './components/layout/SideNav';
+export type { SideNavProps, SideNavItemProps } from './components/layout/SideNav';
+
+export { TopNav } from './components/layout/TopNav';
+export type { TopNavProps } from './components/layout/TopNav';
+
+export { MainLayout } from './components/layout/MainLayout';
+export type { MainLayoutProps } from './components/layout/MainLayout';
