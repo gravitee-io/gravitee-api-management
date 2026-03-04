@@ -22,7 +22,7 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

@@ -25,8 +25,8 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.InstanceQuery;
 import jakarta.ws.rs.core.Response;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class InstancesResourceTest extends AbstractResourceTest {
 
@@ -35,7 +35,7 @@ public class InstancesResourceTest extends AbstractResourceTest {
         return "instances";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(instanceService);
     }

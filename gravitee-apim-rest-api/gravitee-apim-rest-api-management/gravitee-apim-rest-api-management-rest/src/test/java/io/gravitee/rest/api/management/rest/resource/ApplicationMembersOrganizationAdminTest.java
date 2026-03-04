@@ -31,7 +31,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team

@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.services.subscriptionpreexpirationnotif;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.model.*;
@@ -27,14 +27,14 @@ import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Instant;
 import java.util.*;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
-public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
+@ExtendWith(MockitoExtension.class)
+class ScheduledSubscriptionPreExpirationNotificationServiceTest {
 
     @InjectMocks
     ScheduledSubscriptionPreExpirationNotificationService service = new ScheduledSubscriptionPreExpirationNotificationService();
@@ -52,15 +52,15 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
     EmailService emailService;
 
     @Test
-    public void shouldCleanNotificationDays() {
+    void shouldCleanNotificationDays() {
         List<Integer> inputNotificationDays = Arrays.asList(-1, 150, 75, 10, 30, 400, 45);
         List<Integer> cleanedNotificationDays = service.getCleanedNotificationDays(inputNotificationDays);
 
-        assertEquals(Arrays.asList(150, 75, 45, 30, 10), cleanedNotificationDays);
+        assertThat(cleanedNotificationDays).isEqualTo(Arrays.asList(150, 75, 45, 30, 10));
     }
 
     @Test
-    public void shouldFindSubscriptionExpirationsToNotify() {
+    void shouldFindSubscriptionExpirationsToNotify() {
         Instant now = Instant.ofEpochMilli(1469022010000L);
         Integer daysBeforeNotification = 10;
 
@@ -72,7 +72,7 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
 
         Collection<SubscriptionEntity> subscriptionsToNotify = service.findSubscriptionExpirationsToNotify(now, daysBeforeNotification);
 
-        assertEquals(Collections.singletonList(subscription), subscriptionsToNotify);
+        assertThat(subscriptionsToNotify).isEqualTo(Collections.singletonList(subscription));
 
         verify(subscriptionService, times(1)).search(
             eq(GraviteeContext.getExecutionContext()),
@@ -90,7 +90,7 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
     }
 
     @Test
-    public void shouldFindEmailToNotifyWithDifferentSubscriberAndPrimaryOwner() {
+    void shouldFindEmailToNotifyWithDifferentSubscriberAndPrimaryOwner() {
         String subscriberId = UUID.randomUUID().toString();
         UserEntity subscriber = mock(UserEntity.class);
         when(subscriber.getEmail()).thenReturn("subscriber@gravitee.io");
@@ -111,11 +111,11 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         Set<String> expected = new HashSet<>();
         expected.add("subscriber@gravitee.io");
         expected.add("primary_owner@gravitee.io");
-        assertEquals(expected, usersToNotify);
+        assertThat(usersToNotify).isEqualTo(expected);
     }
 
     @Test
-    public void shouldFindEmailToNotifyWithSameSubscriberAndPrimaryOwner() {
+    void shouldFindEmailToNotifyWithSameSubscriberAndPrimaryOwner() {
         String subscriberId = UUID.randomUUID().toString();
         UserEntity subscriber = mock(UserEntity.class);
         when(subscriber.getEmail()).thenReturn("primary_owner@gravitee.io");
@@ -135,11 +135,11 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
 
         Set<String> expected = new HashSet<>();
         expected.add("primary_owner@gravitee.io");
-        assertEquals(expected, usersToNotify);
+        assertThat(usersToNotify).isEqualTo(expected);
     }
 
     @Test
-    public void shouldSendEmail() {
+    void shouldSendEmail() {
         int day = 30;
         String subscriberEmail = "subscriber@gravitee.io";
 
@@ -165,7 +165,7 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
     }
 
     @Test
-    public void shouldFindApiKeyExpirationsToNotify() {
+    void shouldFindApiKeyExpirationsToNotify() {
         Instant now = Instant.ofEpochMilli(1469022010000L);
         Integer daysBeforeNotification = 10;
 
@@ -177,7 +177,7 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
 
         Collection<ApiKeyEntity> apiKeysToNotify = service.findApiKeyExpirationsToNotify(now, daysBeforeNotification);
 
-        assertEquals(Collections.singletonList(apiKey), apiKeysToNotify);
+        assertThat(apiKeysToNotify).isEqualTo(Collections.singletonList(apiKey));
 
         verify(apiKeyService, times(1)).search(
             eq(GraviteeContext.getExecutionContext()),

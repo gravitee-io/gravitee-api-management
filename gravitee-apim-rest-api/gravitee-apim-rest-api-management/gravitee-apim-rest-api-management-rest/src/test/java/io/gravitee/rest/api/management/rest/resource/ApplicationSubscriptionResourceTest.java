@@ -35,8 +35,8 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
@@ -55,7 +55,7 @@ public class ApplicationSubscriptionResourceTest extends AbstractResourceTest {
         return "applications/" + APPLICATION_ID + "/subscriptions/";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(subscriptionService, userService, applicationService, planSearchService, apiSearchServiceV4, permissionService);
 

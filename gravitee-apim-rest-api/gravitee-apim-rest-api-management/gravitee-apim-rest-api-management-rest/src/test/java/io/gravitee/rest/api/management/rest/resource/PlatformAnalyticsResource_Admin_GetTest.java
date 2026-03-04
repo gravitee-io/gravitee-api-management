@@ -29,8 +29,8 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTest {
 
@@ -39,7 +39,7 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
         return "platform/analytics/";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(applicationService, apiAuthorizationServiceV4, permissionService);
         when(

@@ -37,9 +37,9 @@ import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -55,7 +55,7 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         return "apis/" + API_ID + "";
     }
 
-    @Before
+    @BeforeEach
     public void init() throws IOException {
         reset(apiKeyService, subscriptionService, applicationService);
         GraviteeContext.cleanContext();
@@ -68,7 +68,7 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         mockApi.setPrimaryOwner(primaryOwner);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }

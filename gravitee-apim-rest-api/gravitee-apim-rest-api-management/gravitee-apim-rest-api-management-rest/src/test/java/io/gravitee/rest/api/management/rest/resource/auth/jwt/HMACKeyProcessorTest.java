@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource.auth.jwt;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.proc.SecurityContext;
@@ -30,8 +32,8 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashSet;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -48,27 +50,29 @@ public class HMACKeyProcessorTest extends AbstractKeyProcessorTest {
         String token = generateMacToken(key);
         keyProcessor.setJwkSourceResolver(new MACJWKSourceResolver<>(() -> key));
         JWTClaimsSet process = keyProcessor.process(Algorithm.HS256, token);
-        Assert.assertNotNull(process);
+        Assertions.assertNotNull(process);
     }
 
-    @Test(expected = InvalidTokenException.class)
+    @Test
     public void shouldNotProcessValidTokenAndKeyButWrongAlgorithm() throws JOSEException {
         keyProcessor = new HMACKeyProcessor<>(claimsVerifier);
         String key = generateKey();
         String token = generateMacToken(key);
         keyProcessor.setJwkSourceResolver(new MACJWKSourceResolver<>(() -> key));
-        keyProcessor.process(Algorithm.RS256, token);
-        Assert.fail("should not process a token with wrong algorithm");
+        assertThrows(InvalidTokenException.class, () -> {
+            keyProcessor.process(Algorithm.RS256, token);
+        });
     }
 
-    @Test(expected = KeyLengthException.class)
+    @Test
     public void shouldNotProcessValidTokenAndWrongKey() throws JOSEException {
         keyProcessor = new HMACKeyProcessor<>(claimsVerifier);
         String key = "ozhbx5HJCS41NzKrBSQ0vZU1WO";
         String token = generateMacToken(key);
         keyProcessor.setJwkSourceResolver(new MACJWKSourceResolver<>(() -> key));
-        keyProcessor.process(Algorithm.HS256, token);
-        Assert.fail("should not process a token generated with a short key");
+        assertThrows(KeyLengthException.class, () -> {
+            keyProcessor.process(Algorithm.HS256, token);
+        });
     }
 
     private static String generateMacToken(String key) throws JOSEException {

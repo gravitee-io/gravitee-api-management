@@ -27,8 +27,8 @@ import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class MonitoringResourceTest extends AbstractResourceTest {
 
@@ -37,7 +37,7 @@ public class MonitoringResourceTest extends AbstractResourceTest {
         return "instances/123/monitoring/456";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(instanceService, monitoringService);
     }

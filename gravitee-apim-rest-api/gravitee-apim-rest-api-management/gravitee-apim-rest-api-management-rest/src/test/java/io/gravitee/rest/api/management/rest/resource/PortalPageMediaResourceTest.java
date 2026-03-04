@@ -41,9 +41,9 @@ import java.util.Optional;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
@@ -59,13 +59,13 @@ public class PortalPageMediaResourceTest extends AbstractResourceTest {
         return "portal";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         Mockito.reset(mediaService);
         GraviteeContext.cleanContext();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }

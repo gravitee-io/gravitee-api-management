@@ -38,8 +38,8 @@ import jakarta.ws.rs.core.Response;
 import java.util.Objects;
 import java.util.Set;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at gravitee.io
@@ -57,7 +57,7 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
         resourceConfig.register(NotAdminAuthenticationFilter.class);
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(apiAuthorizationServiceV4);
         reset(applicationService);

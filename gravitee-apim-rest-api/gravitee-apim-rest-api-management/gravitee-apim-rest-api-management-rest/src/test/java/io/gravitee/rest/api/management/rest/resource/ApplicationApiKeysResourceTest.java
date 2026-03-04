@@ -26,8 +26,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
@@ -41,7 +41,7 @@ public class ApplicationApiKeysResourceTest extends AbstractResourceTest {
         return "applications/" + APPLICATION_ID + "/apikeys";
     }
 
-    @Before
+    @BeforeEach
     public void initTest() {
         reset(apiKeyService);
         reset(applicationService);
