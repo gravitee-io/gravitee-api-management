@@ -238,6 +238,22 @@ class AnalyticsQueryServiceImplTest {
     }
 
     @Nested
+    class SearchCount {
+
+        @Test
+        void should_return_empty_when_repository_returns_empty() {
+            when(analyticsRepository.searchCount(any(QueryContext.class), any())).thenReturn(Optional.empty());
+            assertThat(cut.searchCount(GraviteeContext.getExecutionContext(), "api#1", null, null)).isEmpty();
+        }
+
+        @Test
+        void should_return_count_from_repository() {
+            when(analyticsRepository.searchCount(any(QueryContext.class), any())).thenReturn(Optional.of(42L));
+            assertThat(cut.searchCount(GraviteeContext.getExecutionContext(), "api#1", null, null)).hasValue(42L);
+        }
+    }
+
+    @Nested
     class SearchTopApps {
 
         @Test

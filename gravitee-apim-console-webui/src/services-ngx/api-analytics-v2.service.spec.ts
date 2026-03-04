@@ -20,6 +20,10 @@ import { ApiAnalyticsV2Service } from './api-analytics-v2.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeAnalyticsRequestsCount } from '../entities/management-api-v2/analytics/analyticsRequestsCount.fixture';
+import { fakeAnalyticsCount } from '../entities/management-api-v2/analytics/analyticsCount.fixture';
+import { fakeAnalyticsStats } from '../entities/management-api-v2/analytics/analyticsStats.fixture';
+import { fakeAnalyticsGroupBy } from '../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
+import { fakeAnalyticsDateHisto } from '../entities/management-api-v2/analytics/analyticsDateHisto.fixture';
 import { fakeAnalyticsAverageConnectionDuration } from '../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
 import { fakeAnalyticsAverageMessagesPerRequest } from '../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest.fixture';
 import { fakeAnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges.fixture';
@@ -87,6 +91,75 @@ describe('ApiAnalyticsV2Service', () => {
       });
 
       expectApiAnalyticsResponseStatusRangesGetRequest();
+    });
+  });
+
+  describe('getAnalytics', () => {
+    const baseUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics`;
+
+    it('should call unified endpoint with COUNT type', (done) => {
+      service.getAnalytics(apiId, { type: 'COUNT' }).subscribe((result) => {
+        expect(result).toEqual(fakeAnalyticsCount());
+        done();
+      });
+
+      const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url.startsWith(baseUrl));
+      expect(req.request.params.get('type')).toBe('COUNT');
+      expect(req.request.params.get('from')).toBeDefined();
+      expect(req.request.params.get('to')).toBeDefined();
+      req.flush(fakeAnalyticsCount());
+    });
+
+    it('should call unified endpoint with STATS type and field', (done) => {
+      service.getAnalytics(apiId, { type: 'STATS', field: 'gateway-response-time-ms' }).subscribe((result) => {
+        expect(result).toEqual(fakeAnalyticsStats());
+        done();
+      });
+
+      const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url.startsWith(baseUrl));
+      expect(req.request.params.get('type')).toBe('STATS');
+      expect(req.request.params.get('field')).toBe('gateway-response-time-ms');
+      req.flush(fakeAnalyticsStats());
+    });
+
+    it('should call unified endpoint with GROUP_BY type, field and size', (done) => {
+      service.getAnalytics(apiId, { type: 'GROUP_BY', field: 'status', size: 20 }).subscribe((result) => {
+        expect(result).toEqual(fakeAnalyticsGroupBy());
+        done();
+      });
+
+      const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url.startsWith(baseUrl));
+      expect(req.request.params.get('type')).toBe('GROUP_BY');
+      expect(req.request.params.get('field')).toBe('status');
+      expect(req.request.params.get('size')).toBe('20');
+      req.flush(fakeAnalyticsGroupBy());
+    });
+
+    it('should call unified endpoint with DATE_HISTO type, field and interval', (done) => {
+      service.getAnalytics(apiId, { type: 'DATE_HISTO', field: 'status', interval: 3600000 }).subscribe((result) => {
+        expect(result).toEqual(fakeAnalyticsDateHisto());
+        done();
+      });
+
+      const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url.startsWith(baseUrl));
+      expect(req.request.params.get('type')).toBe('DATE_HISTO');
+      expect(req.request.params.get('field')).toBe('status');
+      expect(req.request.params.get('interval')).toBe('3600000');
+      req.flush(fakeAnalyticsDateHisto());
+    });
+
+    it('should use explicit from/to when provided', (done) => {
+      const from = 1700000000000;
+      const to = 1700086400000;
+      service.getAnalytics(apiId, { type: 'COUNT', from, to }).subscribe((result) => {
+        expect(result).toEqual(fakeAnalyticsCount());
+        done();
+      });
+
+      const req = httpTestingController.expectOne((r) => r.method === 'GET' && r.url.startsWith(baseUrl));
+      expect(req.request.params.get('from')).toBe('1700000000000');
+      expect(req.request.params.get('to')).toBe('1700086400000');
+      req.flush(fakeAnalyticsCount());
     });
   });
 

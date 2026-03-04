@@ -16,7 +16,10 @@
 package fakes;
 
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.DateHistoResult;
+import io.gravitee.apim.core.analytics.model.GroupByResult;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
+import io.gravitee.apim.core.analytics.model.StatsResult;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
@@ -53,6 +56,10 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public ResponseStatusOvertime responseStatusOvertime;
     public TopHitsApps topHitsApps;
     public TopFailedApis topFailedApis;
+    public Long countResult;
+    public StatsResult statsResult;
+    public GroupByResult groupByResult;
+    public DateHistoResult dateHistoResult;
 
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
@@ -88,6 +95,10 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
         responseStatusOvertime = null;
         requestResponseTime = null;
         topFailedApis = null;
+        countResult = null;
+        statsResult = null;
+        groupByResult = null;
+        dateHistoResult = null;
     }
 
     @Override
@@ -133,5 +144,40 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public Optional<TopFailedApis> searchTopFailedApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
         return Optional.ofNullable(topFailedApis);
+    }
+
+    @Override
+    public Optional<Long> searchCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
+        return Optional.ofNullable(countResult);
+    }
+
+    @Override
+    public Optional<StatsResult> searchStats(ExecutionContext executionContext, String apiId, Instant from, Instant to, String field) {
+        return Optional.ofNullable(statsResult);
+    }
+
+    @Override
+    public Optional<GroupByResult> searchGroupBy(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to,
+        String field,
+        int size
+    ) {
+        return Optional.ofNullable(groupByResult);
+    }
+
+    @Override
+    public Optional<DateHistoResult> searchDateHistogram(
+        ExecutionContext executionContext,
+        String apiId,
+        Instant from,
+        Instant to,
+        String field,
+        Duration interval,
+        int size
+    ) {
+        return Optional.ofNullable(dateHistoResult);
     }
 }

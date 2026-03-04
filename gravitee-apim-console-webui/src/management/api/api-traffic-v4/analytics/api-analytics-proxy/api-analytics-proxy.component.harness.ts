@@ -17,7 +17,7 @@ import { ComponentHarness } from '@angular/cdk/testing';
 
 import { ApiAnalyticsRequestStatsHarness } from '../components/api-analytics-requests-stats/api-analytics-request-stats.component.harness';
 import { ApiAnalyticsFiltersBarHarness } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component.harness';
-import { ApiAnalyticsResponseStatusRangesHarness } from '../../../../../shared/components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component.harness';
+import { ApiAnalyticsHttpStatusPieChartHarness } from '../components/api-analytics-http-status-pie-chart/api-analytics-http-status-pie-chart.component.harness';
 
 export class ApiAnalyticsProxyHarness extends ComponentHarness {
   static hostSelector = 'api-analytics-proxy';
@@ -25,7 +25,9 @@ export class ApiAnalyticsProxyHarness extends ComponentHarness {
   protected emptyPanelHarness = this.locatorForOptional('gio-card-empty-state');
   protected loaderElement = this.locatorForOptional('.loader gio-loader');
   protected requestStats = (title: string) => this.locatorForOptional(ApiAnalyticsRequestStatsHarness.with({ title }));
-  protected responseStatusRanges = (title: string) => this.locatorForOptional(ApiAnalyticsResponseStatusRangesHarness.with({ title }));
+  protected httpStatusPieChart = this.locatorForOptional(ApiAnalyticsHttpStatusPieChartHarness);
+  protected responseStatusOvertime = this.locatorForOptional('api-analytics-response-status-overtime');
+  protected responseTimeOverTime = this.locatorForOptional('api-analytics-response-time-over-time');
 
   getFiltersBarHarness = this.locatorForOptional(ApiAnalyticsFiltersBarHarness);
 
@@ -41,7 +43,19 @@ export class ApiAnalyticsProxyHarness extends ComponentHarness {
     return this.requestStats(title)();
   }
 
-  async getResponseStatusRangesHarness(title: string): Promise<ApiAnalyticsResponseStatusRangesHarness> {
-    return this.responseStatusRanges(title)();
+  async getHttpStatusPieChartHarness(): Promise<ApiAnalyticsHttpStatusPieChartHarness> {
+    return this.httpStatusPieChart();
+  }
+
+  async isPieChartPresent(): Promise<boolean> {
+    return (await this.httpStatusPieChart()) !== null;
+  }
+
+  async isResponseStatusOvertimePresent(): Promise<boolean> {
+    return (await this.responseStatusOvertime()) !== null;
+  }
+
+  async isResponseTimeOverTimePresent(): Promise<boolean> {
+    return (await this.responseTimeOverTime()) !== null;
   }
 }

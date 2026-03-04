@@ -26,12 +26,9 @@ import { ApiAnalyticsProxyHarness } from './api-analytics-proxy.component.harnes
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
-import { fakeAnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount.fixture';
-import { AnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount';
-import { AnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
-import { fakeAnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
-import { AnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
-import { fakeAnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges.fixture';
+import { fakeAnalyticsCount } from '../../../../../entities/management-api-v2/analytics/analyticsCount.fixture';
+import { fakeAnalyticsStats } from '../../../../../entities/management-api-v2/analytics/analyticsStats.fixture';
+import { fakeAnalyticsGroupBy } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
 import { AnalyticsResponseStatusOvertime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusOvertime';
 import { AnalyticsResponseTimeOverTime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
 import { fakeAnalyticsResponseStatusOvertime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusOvertime.fixture';
@@ -107,129 +104,100 @@ describe('ApiAnalyticsProxyComponent', () => {
       expect(await componentHarness.isLoaderDisplayed()).toBeFalsy();
       const requestStats = await componentHarness.getRequestStatsHarness('Request Stats');
 
-      // Expect loading
+      // Expect loading (4 cards)
       expect(await requestStats.getValues()).toEqual([
-        {
-          label: 'Total Requests',
-          value: '',
-          isLoading: true,
-        },
-        {
-          label: 'Average Connection Duration',
-          value: '',
-          isLoading: true,
-        },
+        { label: 'Total Requests', value: '', isLoading: true },
+        { label: 'Avg Gateway Response Time', value: '', isLoading: true },
+        { label: 'Avg Upstream Response Time', value: '', isLoading: true },
+        { label: 'Avg Content Length', value: '', isLoading: true },
       ]);
 
       // Expect incremental loading
-      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
+      expectUnifiedAnalyticsCount(fakeAnalyticsCount({ count: 100 }));
       expect(await requestStats.getValues()).toEqual([
-        {
-          label: 'Total Requests',
-          value: '0',
-          isLoading: false,
-        },
-        {
-          label: 'Average Connection Duration',
-          value: '',
-          isLoading: true,
-        },
+        { label: 'Total Requests', value: '100', isLoading: false },
+        { label: 'Avg Gateway Response Time', value: '', isLoading: true },
+        { label: 'Avg Upstream Response Time', value: '', isLoading: true },
+        { label: 'Avg Content Length', value: '', isLoading: true },
       ]);
 
-      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
+      expectUnifiedAnalyticsStats('gateway-response-time-ms', fakeAnalyticsStats({ avg: 42.12 }));
       expect(await requestStats.getValues()).toEqual([
-        {
-          label: 'Total Requests',
-          value: '0',
-          isLoading: false,
-        },
-        {
-          label: 'Average Connection Duration',
-          value: '42.123ms',
-          isLoading: false,
-        },
+        { label: 'Total Requests', value: '100', isLoading: false },
+        { label: 'Avg Gateway Response Time', value: '42.12ms', isLoading: false },
+        { label: 'Avg Upstream Response Time', value: '', isLoading: true },
+        { label: 'Avg Content Length', value: '', isLoading: true },
       ]);
 
-      // Expect others analytics
-      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
-    });
+      expectUnifiedAnalyticsStats('endpoint-response-time-ms', fakeAnalyticsStats({ avg: 12.5 }));
+      expectUnifiedAnalyticsStats('request-content-length', fakeAnalyticsStats({ avg: 256 }));
+      expectUnifiedAnalyticsGroupBy(fakeAnalyticsGroupBy());
+      expect(await requestStats.getValues()).toEqual([
+        { label: 'Total Requests', value: '100', isLoading: false },
+        { label: 'Avg Gateway Response Time', value: '42.12ms', isLoading: false },
+        { label: 'Avg Upstream Response Time', value: '12.5ms', isLoading: false },
+        { label: 'Avg Content Length', value: '256B', isLoading: false },
+      ]);
 
-    it('should display Response Status', async () => {
-      const responseStatusRanges = await componentHarness.getResponseStatusRangesHarness('Response Status');
-
-      // Expect loading
-      expect(await responseStatusRanges.hasResponseStatusWithValues()).toBeFalsy();
-
-      // Expect data
-      expectApiAnalyticsResponseStatusRangesGetRequest(
-        fakeAnalyticsResponseStatusRanges({
-          ranges: {
-            '300.0-400.0': 0,
-            '100.0-200.0': 1,
-            '200.0-300.0': 60,
-            '400.0-500.0': 0,
-            '500.0-600.0': 1,
-          },
-          rangesByEntrypoint: {
-            'http-proxy': {
-              '300.0-400.0': 0,
-              '100.0-200.0': 1,
-              '200.0-300.0': 60,
-              '400.0-500.0': 0,
-              '500.0-600.0': 1,
-            },
-          },
-        }),
-      );
-
-      expect(await responseStatusRanges.hasResponseStatusWithValues()).toBeTruthy();
-
-      // Expect others analytics
-      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
-      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
+      expect(await componentHarness.isPieChartPresent()).toBeTruthy();
+      expect(await componentHarness.isResponseStatusOvertimePresent()).toBeTruthy();
+      expect(await componentHarness.isResponseTimeOverTimePresent()).toBeTruthy();
     });
 
     it('should refresh', async () => {
       const requestStats = await componentHarness.getRequestStatsHarness('Request Stats');
-      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
-      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
-      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
+      expectUnifiedAnalyticsCount(fakeAnalyticsCount({ count: 100 }));
+      expectUnifiedAnalyticsStats('gateway-response-time-ms', fakeAnalyticsStats({ avg: 42.12 }));
+      expectUnifiedAnalyticsStats('endpoint-response-time-ms', fakeAnalyticsStats({ avg: 12 }));
+      expectUnifiedAnalyticsStats('request-content-length', fakeAnalyticsStats({ avg: 256 }));
+      expectUnifiedAnalyticsGroupBy(fakeAnalyticsGroupBy());
 
       expect(await requestStats.getValues()).toEqual([
-        {
-          label: 'Total Requests',
-          value: '0',
-          isLoading: false,
-        },
-        {
-          label: 'Average Connection Duration',
-          value: '42.123ms',
-          isLoading: false,
-        },
+        { label: 'Total Requests', value: '100', isLoading: false },
+        { label: 'Avg Gateway Response Time', value: '42.12ms', isLoading: false },
+        { label: 'Avg Upstream Response Time', value: '12ms', isLoading: false },
+        { label: 'Avg Content Length', value: '256B', isLoading: false },
       ]);
 
       const filtersBar = await componentHarness.getFiltersBarHarness();
-
       await filtersBar.refresh();
 
       expect(await requestStats.getValues()).toEqual([
-        {
-          label: 'Total Requests',
-          value: '',
-          isLoading: true,
-        },
-        {
-          label: 'Average Connection Duration',
-          value: '',
-          isLoading: true,
-        },
+        { label: 'Total Requests', value: '', isLoading: true },
+        { label: 'Avg Gateway Response Time', value: '', isLoading: true },
+        { label: 'Avg Upstream Response Time', value: '', isLoading: true },
+        { label: 'Avg Content Length', value: '', isLoading: true },
       ]);
 
-      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
-      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
-      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
+      expectUnifiedAnalyticsCount(fakeAnalyticsCount());
+      expectUnifiedAnalyticsStats('gateway-response-time-ms', fakeAnalyticsStats());
+      expectUnifiedAnalyticsStats('endpoint-response-time-ms', fakeAnalyticsStats());
+      expectUnifiedAnalyticsStats('request-content-length', fakeAnalyticsStats());
+      expectUnifiedAnalyticsGroupBy(fakeAnalyticsGroupBy());
       expectApiGetResponseStatusOvertime();
       expectApiGetResponseTimeOverTime();
+    });
+
+    it('should degrade gracefully when unified endpoint returns 500', async () => {
+      const requestStats = await componentHarness.getRequestStatsHarness('Request Stats');
+      const countReq = httpTestingController.expectOne(
+        (r) => r.method === 'GET' && r.url.includes('/analytics') && r.params.get('type') === 'COUNT',
+      );
+      countReq.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(await requestStats.getValues()).toEqual([
+        { label: 'Total Requests', value: '-', isLoading: false },
+        { label: 'Avg Gateway Response Time', value: '', isLoading: true },
+        { label: 'Avg Upstream Response Time', value: '', isLoading: true },
+        { label: 'Avg Content Length', value: '', isLoading: true },
+      ]);
+
+      expectUnifiedAnalyticsStats('gateway-response-time-ms', fakeAnalyticsStats());
+      expectUnifiedAnalyticsStats('endpoint-response-time-ms', fakeAnalyticsStats());
+      expectUnifiedAnalyticsStats('request-content-length', fakeAnalyticsStats());
+      expectUnifiedAnalyticsGroupBy(fakeAnalyticsGroupBy());
     });
   });
 
@@ -257,9 +225,11 @@ describe('ApiAnalyticsProxyComponent', () => {
       expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
       expectApiGetResponseStatusOvertime();
       expectApiGetResponseTimeOverTime();
-      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
-      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
-      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
+      expectUnifiedAnalyticsCount(fakeAnalyticsCount());
+      expectUnifiedAnalyticsStats('gateway-response-time-ms', fakeAnalyticsStats());
+      expectUnifiedAnalyticsStats('endpoint-response-time-ms', fakeAnalyticsStats());
+      expectUnifiedAnalyticsStats('request-content-length', fakeAnalyticsStats());
+      expectUnifiedAnalyticsGroupBy(fakeAnalyticsGroupBy());
     }
   });
 
@@ -274,29 +244,33 @@ describe('ApiAnalyticsProxyComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectApiAnalyticsRequestsCountGetRequest(analyticsRequestsCount: AnalyticsRequestsCount) {
-    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/requests-count`;
-    const req = httpTestingController.expectOne((req) => {
-      return req.method === 'GET' && req.url.startsWith(url);
-    });
-    req.flush(analyticsRequestsCount);
+  function expectUnifiedAnalyticsCount(response: { type: 'COUNT'; count: number }) {
+    const req = httpTestingController.expectOne(
+      (r) => r.method === 'GET' && r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics`) && r.params.get('type') === 'COUNT',
+    );
+    req.flush(response);
   }
 
-  function expectApiAnalyticsAverageConnectionDurationGetRequest(analyticsAverageConnectionDuration: AnalyticsAverageConnectionDuration) {
-    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/average-connection-duration`;
-    const req = httpTestingController.expectOne((req) => {
-      return req.method === 'GET' && req.url.startsWith(url);
-    });
-    req.flush(analyticsAverageConnectionDuration);
+  function expectUnifiedAnalyticsStats(field: string, response: { type: 'STATS'; count: number; min: number; max: number; avg: number; sum: number }) {
+    const req = httpTestingController.expectOne(
+      (r) =>
+        r.method === 'GET' &&
+        r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics`) &&
+        r.params.get('type') === 'STATS' &&
+        r.params.get('field') === field,
+    );
+    req.flush(response);
   }
 
-  function expectApiAnalyticsResponseStatusRangesGetRequest(analyticsResponseStatusRanges: AnalyticsResponseStatusRanges) {
-    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/response-status-ranges`;
-
-    const req = httpTestingController.expectOne((req) => {
-      return req.method === 'GET' && req.url.startsWith(url);
-    });
-    req.flush(analyticsResponseStatusRanges);
+  function expectUnifiedAnalyticsGroupBy(response: { type: 'GROUP_BY'; values: Record<string, number>; metadata: Record<string, Record<string, string>> }) {
+    const req = httpTestingController.expectOne(
+      (r) =>
+        r.method === 'GET' &&
+        r.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics`) &&
+        r.params.get('type') === 'GROUP_BY' &&
+        r.params.get('field') === 'status',
+    );
+    req.flush(response);
   }
 
   function expectApiGetResponseStatusOvertime(res: AnalyticsResponseStatusOvertime = fakeAnalyticsResponseStatusOvertime()) {

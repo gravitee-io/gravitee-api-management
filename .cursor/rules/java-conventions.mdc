@@ -1,0 +1,97 @@
+---
+description: Java style, conventions, and common pitfalls
+globs: "**/*.java"
+alwaysApply: false
+---
+
+# Java
+
+## Style & Structure (Gravitee Standard)
+
+- **Version**: Target Java 21+.
+- **Build**: Maven.
+- **Format**: Google Java Style.
+- **Lombok**: Use for boilerplate (`@Data`, `@Builder`, `@Slf4j`).
+- **Var**: Use `var` where type is obvious.
+- **Architecture**: Hexagonal / Clean where applicable.
+- **Testing**: JUnit 5, AssertJ, Testcontainers for integration tests.
+- **BOM**: Align with `gravitee-apim-bom`.
+
+## Switch expressions: use `yield`, not `return`
+
+In a **switch expression** (Java 14+), each arm must produce a value. When using a block `{ ... }`, use `yield` to return the value—**not** `return`. Using `return` attempts to exit the containing method and causes: "attempt to return out of a switch expression".
+
+```java
+// ❌ BAD – compilation error
+return switch (x) {
+    case A -> a;
+    case B -> {
+        var tmp = compute();
+        return tmp;  // ERROR: attempt to return out of a switch expression
+    }
+};
+
+// ✅ GOOD
+return switch (x) {
+    case A -> a;
+    case B -> {
+        var tmp = compute();
+        yield tmp;
+    }
+};
+```
+
+When the arm is a simple expression, use `->` directly; use `yield` only inside blocks.
+
+## JsonNode vs ObjectNode in Lists
+
+**Problem**: `List<ObjectNode>` cannot be assigned to `List<JsonNode>`—Java generics are invariant.
+
+```java
+// ❌ BAD – compilation error: incompatible types
+private static ObjectNode createBucket(String key, long docCount) { ... }
+var buckets = List.of(createBucket("200", 1500L));
+agg.setBuckets(buckets);  // List<ObjectNode> ≠ List<JsonNode>
+
+// ✅ GOOD
+private static JsonNode createBucket(String key, long docCount) { ... }
+List<JsonNode> buckets = List.of(createBucket("200", 1500L));
+agg.setBuckets(buckets);
+```
+
+When creating nodes for `Aggregation.setBuckets()`, return `JsonNode` (not `ObjectNode`) so the list type matches.
+
+## Lambda Variable Shadowing
+
+**Problem**: Reusing an outer variable name as a lambda parameter causes "variable is already defined".
+
+```java
+// ❌ BAD
+var agg = new Aggregation();
+agg.setBuckets(...);
+assertThat(result).hasValueSatisfying(agg -> { ... });  // 'agg' shadows outer
+
+// ✅ GOOD
+var aggregation = new Aggregation();
+assertThat(result).hasValueSatisfying(g -> { ... });
+```
+
+Use distinct names: `aggregation` / `agg` for the object, `g` / `result` for lambda params.
+
+## Maven Multi-Module Builds
+
+Run tests from the **parent** module so dependencies compile first:
+
+```bash
+mvn -f gravitee-apim-repository/pom.xml test -pl gravitee-apim-repository-elasticsearch -Dtest=... -am
+```
+
+Or build the full reactor; running `mvn test` on a child alone can fail with "cannot find symbol" for types from sibling modules.
+
+## Formatting Before Tests
+
+Run `prettier:write` on modified modules before tests—the build fails on formatting checks:
+
+```bash
+mvn prettier:write -pl <module>
+```

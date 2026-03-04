@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, switchMap } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
+import { AnalyticsQueryParams } from '../entities/management-api-v2/analytics/analyticsQueryParams';
 import { AnalyticsRequestsCount } from '../entities/management-api-v2/analytics/analyticsRequestsCount';
 import { AnalyticsAverageConnectionDuration } from '../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
 import { AnalyticsAverageMessagesPerRequest } from '../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest';
@@ -103,6 +104,29 @@ export class ApiAnalyticsV2Service {
       switchMap(({ from, to }) => {
         const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-time-over-time?from=${from}&to=${to}`;
         return this.http.get<AnalyticsResponseTimeOverTime>(url);
+      }),
+    );
+  }
+
+  getAnalytics<T>(apiId: string, params: AnalyticsQueryParams): Observable<T> {
+    return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
+      switchMap(({ from, to }) => {
+        let queryParams = new HttpParams()
+          .set('type', params.type)
+          .set('from', String(params.from ?? from))
+          .set('to', String(params.to ?? to));
+        if (params.field !== undefined) {
+          queryParams = queryParams.set('field', params.field);
+        }
+        if (params.interval !== undefined) {
+          queryParams = queryParams.set('interval', String(params.interval));
+        }
+        if (params.size !== undefined) {
+          queryParams = queryParams.set('size', String(params.size));
+        }
+        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics`;
+        return this.http.get<T>(url, { params: queryParams });
       }),
     );
   }
