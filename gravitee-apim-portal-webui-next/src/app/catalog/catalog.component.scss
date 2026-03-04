@@ -140,24 +140,6 @@
   }
 
   &__pagination {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     margin-top: 16px;
-
-    &--mobile {
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    &__page-size {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-
-      mat-form-field {
-        width: 80px;
-      }
-    }
   }
 }
