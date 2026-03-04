@@ -10,7 +10,7 @@
 - ✅ BE-6 — Backend Integration Tests
 - ✅ FE-1 — Angular Service & Models for Unified Endpoint
 - ✅ FE-2 — Enhanced Stats Cards
-- FE-3 — HTTP Status Pie Chart
+- ✅ FE-3 — HTTP Status Pie Chart
 - FE-4 — Dashboard Layout, Integration & Tests
 
 ---
@@ -177,6 +177,20 @@ Proxy component now fetches 4 stat cards via unified endpoint. 1 modified, 1 del
 | `api-analytics-proxy.component.spec.ts` | Replaced old endpoint expectations with `expectUnifiedAnalyticsCount`, `expectUnifiedAnalyticsStats`. Removed "should display Response Status" test. |
 
 Stat cards: Total Requests, Avg Gateway Response Time, Avg Upstream Response Time, Avg Content Length. Each observable has `catchError` for graceful degradation.
+
+### FE-3: HTTP Status Pie Chart ✅
+
+Standalone pie chart component for request counts by HTTP status. 5 new files:
+
+| File | Purpose |
+|---|---|
+| `api-analytics-http-status-pie-chart.component.ts` | Fetches GROUP_BY status via `getAnalytics`, maps to `GioChartPieInput` with color by status prefix (2xx green, 3xx blue, 4xx orange, 5xx red). OnPush, `@Input() apiId`. |
+| `api-analytics-http-status-pie-chart.component.html` | mat-card, loader, gio-chart-pie, gio-card-empty-state for no data |
+| `api-analytics-http-status-pie-chart.component.scss` | Matches response-status-ranges pattern |
+| `api-analytics-http-status-pie-chart.component.harness.ts` | isLoaderDisplayed, isEmptyStateDisplayed, isChartDisplayed |
+| `api-analytics-http-status-pie-chart.component.spec.ts` | 5 tests: loading, data mapping, empty values, error, zero filter |
+
+Component not yet added to proxy (FE-4).
 
 ---
 
@@ -364,4 +378,10 @@ Keep the existing separate endpoints working — don't break them.
 
 ```
 Proceed with story FE-2
+```
+
+### Story FE-3 prompt
+
+```
+Proceed with story FE-3
 ```
