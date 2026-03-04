@@ -1,18 +1,31 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Globe, Shield, Building2 } from 'lucide-react';
+import { Globe, Shield } from 'lucide-react';
 import { SidebarProvider } from '@baros/components/ui/sidebar';
-import type { AppSidebarProps, Organization, NavItem } from './AppSidebar';
+import type { AppSidebarProps, NavItem } from './AppSidebar';
 import { AppSidebar } from './AppSidebar';
 
-const mockOrgs: Organization[] = [
-  { name: 'Org Alpha', logo: Building2, plan: 'Enterprise' },
-  { name: 'Org Beta', logo: Building2, plan: 'Free' },
-];
-
 const mockNavItems: NavItem[] = [
-  { key: 'apis', title: 'APIs & Events', url: '#', icon: Globe },
-  { key: 'gov', title: 'Governance', url: '#', icon: Shield },
+  {
+    key: 'apis',
+    title: 'APIs & Events',
+    url: '#',
+    icon: Globe,
+    items: [
+      { key: 'api-list', title: 'API List', url: '#' },
+      { key: 'event-streams', title: 'Event Streams', url: '#' },
+    ],
+  },
+  {
+    key: 'gov',
+    title: 'Governance',
+    url: '#',
+    icon: Shield,
+    items: [
+      { key: 'policies', title: 'Policies', url: '#' },
+      { key: 'quality-rules', title: 'Quality Rules', url: '#' },
+    ],
+  },
 ];
 
 const mockUser = { name: 'Jane Doe', email: 'jane@example.com' };
@@ -22,7 +35,6 @@ function setupAppSidebarHarness(props?: Partial<AppSidebarProps>) {
   render(
     <SidebarProvider defaultOpen>
       <AppSidebar
-        organizations={mockOrgs}
         navItems={mockNavItems}
         user={mockUser}
         {...props}
@@ -32,29 +44,57 @@ function setupAppSidebarHarness(props?: Partial<AppSidebarProps>) {
 
   return {
     getNav: () => screen.getByRole('navigation'),
-    getNavItems: () => within(screen.getByRole('navigation')).getAllByRole('link'),
-    getOrgTrigger: () => screen.getByText('Org Alpha'),
     getUserTrigger: () => screen.getByText('Jane Doe'),
-    clickOrgTrigger: () => user.click(screen.getByText('Org Alpha')),
-    clickNavItem: (name: string) =>
-      user.click(screen.getByRole('link', { name: new RegExp(name, 'i') })),
+    clickParentItem: (name: string) =>
+      user.click(screen.getByRole('button', { name: new RegExp(name, 'i') })),
+    querySubItem: (name: string) => screen.queryByText(name),
   };
 }
 
 describe('AppSidebar', () => {
-  it('renders navigation items', () => {
+  it('renders parent navigation items', () => {
     const harness = setupAppSidebarHarness();
 
     expect(harness.getNav()).toBeInTheDocument();
-    expect(harness.getNavItems()).toHaveLength(2);
     expect(screen.getByText('APIs & Events')).toBeInTheDocument();
     expect(screen.getByText('Governance')).toBeInTheDocument();
   });
 
-  it('renders the active organization name', () => {
+  it('auto-expands the parent containing the active sub-item', () => {
+    const harness = setupAppSidebarHarness({ activeItemKey: 'api-list' });
+
+    expect(harness.querySubItem('API List')).toBeInTheDocument();
+    expect(harness.querySubItem('Event Streams')).toBeInTheDocument();
+  });
+
+  it('expands sub-items when a parent item is clicked', async () => {
     const harness = setupAppSidebarHarness();
 
-    expect(harness.getOrgTrigger()).toBeInTheDocument();
+    expect(harness.querySubItem('Policies')).not.toBeInTheDocument();
+
+    await harness.clickParentItem('Governance');
+
+    expect(harness.querySubItem('Policies')).toBeInTheDocument();
+    expect(harness.querySubItem('Quality Rules')).toBeInTheDocument();
+  });
+
+  it('calls onNavItemClick when a sub-item is clicked', async () => {
+    const onNavItemClick = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <SidebarProvider defaultOpen>
+        <AppSidebar
+          navItems={mockNavItems}
+          activeItemKey="api-list"
+          onNavItemClick={onNavItemClick}
+          user={mockUser}
+        />
+      </SidebarProvider>,
+    );
+
+    await user.click(screen.getByText('Event Streams'));
+
+    expect(onNavItemClick).toHaveBeenCalledWith('event-streams');
   });
 
   it('renders user info in the footer', () => {
@@ -64,25 +104,24 @@ describe('AppSidebar', () => {
     expect(screen.getByText('jane@example.com')).toBeInTheDocument();
   });
 
-  it('marks the active nav item', () => {
-    setupAppSidebarHarness({ activeItemKey: 'apis' });
-
-    const link = screen.getByRole('link', { name: /apis & events/i });
-    expect(link.closest('[data-active="true"]')).toBeTruthy();
-  });
-
-  it('calls onNavItemClick when a nav item is clicked', async () => {
-    const onNavItemClick = vi.fn();
-    const harness = setupAppSidebarHarness({ onNavItemClick });
-
-    await harness.clickNavItem('Governance');
-
-    expect(onNavItemClick).toHaveBeenCalledWith('gov');
-  });
-
   it('renders logo when provided', () => {
-    setupAppSidebarHarness({ logo: <span>Logo</span> });
+    setupAppSidebarHarness({ logo: <span>WideLogo</span> });
 
-    expect(screen.getByText('Logo')).toBeInTheDocument();
+    expect(screen.getByText('WideLogo')).toBeInTheDocument();
+  });
+
+  it('renders collapsedLogo when sidebar is collapsed', () => {
+    render(
+      <SidebarProvider defaultOpen={false}>
+        <AppSidebar
+          navItems={mockNavItems}
+          logo={<span>WideLogo</span>}
+          collapsedLogo={<span>IconLogo</span>}
+          user={mockUser}
+        />
+      </SidebarProvider>,
+    );
+
+    expect(screen.getByText('IconLogo')).toBeInTheDocument();
   });
 });
