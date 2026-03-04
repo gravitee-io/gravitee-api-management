@@ -107,7 +107,7 @@ describe('CatalogComponent', () => {
       expect(await apiCard.getVersion()).toEqual('v.1.2');
     });
 
-        it('should call API list with search query', async () => {
+    it('should call API list with search query', async () => {
       const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
       expect(apiCard).toBeDefined();
       expect(apiCard.length).toEqual(2);
