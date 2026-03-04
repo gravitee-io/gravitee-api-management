@@ -58,7 +58,7 @@ import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.model.Resource;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,7 +93,7 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
         resourceConfig.registerResources(resourceBuilder.build());
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void initKeyPairs() {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");

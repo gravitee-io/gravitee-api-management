@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.rest.resource.auth;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static jakarta.ws.rs.client.Entity.form;
 import static jakarta.ws.rs.client.Entity.json;
 import static jakarta.ws.rs.client.Entity.text;
@@ -32,9 +31,10 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.rest.api.management.rest.model.ExchangePayloadEntity;
@@ -60,7 +60,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.*;
 import org.apache.commons.io.IOUtils;
-import org.junit.Rule;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -74,8 +74,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String USER_SOURCE_OAUTH2 = "oauth2";
 
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
+    private WireMockServer wireMockServer;
 
     private SocialIdentityProviderEntity identityProvider = null;
 
@@ -86,6 +85,10 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
     @BeforeEach
     public void init() {
+        wireMockServer = new WireMockServer(WireMockConfiguration.options().dynamicPort());
+        wireMockServer.start();
+        WireMock.configureFor("localhost", wireMockServer.port());
+
         identityProvider = new SocialIdentityProviderEntity() {
             private Map<String, String> userProfileMapping = new HashMap<>();
             private List<GroupMappingEntity> groupMappings = new ArrayList<>();
@@ -108,12 +111,12 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
             @Override
             public String getTokenEndpoint() {
-                return "http://localhost:" + wireMockRule.port() + "/token";
+                return "http://localhost:" + wireMockServer.port() + "/token";
             }
 
             @Override
             public String getUserInfoEndpoint() {
-                return "http://localhost:" + wireMockRule.port() + "/userinfo";
+                return "http://localhost:" + wireMockServer.port() + "/userinfo";
             }
 
             @Override
@@ -168,7 +171,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
             @Override
             public String getTokenIntrospectionEndpoint() {
-                return "http://localhost:" + wireMockRule.port() + "/introspect";
+                return "http://localhost:" + wireMockServer.port() + "/introspect";
             }
 
             @Override
@@ -181,6 +184,11 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         cleanEnvironment();
         cleanRolesGroupMapping();
         reset(userService, groupService, roleService, membershipService);
+    }
+
+    @AfterEach
+    public void cleanUp() {
+        wireMockServer.stop();
     }
 
     private void cleanEnvironment() {

@@ -170,10 +170,8 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         configureFor("localhost", wireMockServer.port());
     }
 
-    @Override
     @AfterEach
-    public void tearDown() throws Exception {
-        super.tearDown();
+    void cleanUp() {
         wireMockServer.stop();
     }
 
