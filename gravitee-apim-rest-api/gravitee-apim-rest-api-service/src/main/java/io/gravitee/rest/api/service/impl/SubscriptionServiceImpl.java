@@ -615,6 +615,159 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         return Optional.ofNullable(Base64.getEncoder().encodeToString(settings.getTls().getClientCertificate().getBytes()));
     }
 
+<<<<<<< HEAD
+=======
+    /**
+     * Triggers subscription notifications for both API and API Product. Caller builds params with either "api" or "api-product".
+     */
+    private void triggerSubscriptionNotifications(
+        ExecutionContext executionContext,
+        NotificationReferenceType referenceType,
+        String referenceId,
+        String applicationId,
+        Map<String, Object> params,
+        ApiHook hook
+    ) {
+        notifierService.trigger(executionContext, hook, referenceType, referenceId, params);
+        notifierService.trigger(executionContext, ApplicationHook.valueOf(hook.name()), applicationId, params);
+    }
+
+    private void triggerSubscriptionNotificationsForApi(
+        ExecutionContext executionContext,
+        String apiId,
+        String applicationId,
+        PrimaryOwnerEntity owner,
+        GenericApiModel genericApiModel,
+        GenericPlanEntity genericPlanEntity,
+        ApplicationEntity applicationEntity,
+        SubscriptionEntity subscriptionEntity,
+        String subscriptionsUrl,
+        ApiHook hook
+    ) {
+        if (owner == null) {
+            return;
+        }
+        NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder()
+            .owner(owner)
+            .api(genericApiModel)
+            .plan(genericPlanEntity)
+            .application(applicationEntity);
+        if (subscriptionEntity != null) {
+            paramsBuilder.subscription(subscriptionEntity);
+            String subscribedBy = subscriptionEntity.getSubscribedBy();
+            if (subscribedBy != null) {
+                try {
+                    UserEntity subscribedByUser = userService.findById(executionContext, subscribedBy);
+                    if (subscribedByUser != null) {
+                        paramsBuilder.user(subscribedByUser);
+                    }
+                } catch (Exception e) {
+                    log.debug("Could not resolve subscribed-by user {} for API subscription notification params", subscribedBy, e);
+                }
+            }
+        }
+        if (subscriptionsUrl != null) {
+            paramsBuilder.subscriptionsUrl(subscriptionsUrl);
+        }
+        triggerSubscriptionNotifications(
+            executionContext,
+            NotificationReferenceType.API,
+            apiId,
+            applicationId,
+            paramsBuilder.build(),
+            hook
+        );
+    }
+
+    private Map<String, Object> buildSubscriptionNotificationParamsForApiProduct(
+        ExecutionContext executionContext,
+        String apiProductId,
+        ApplicationEntity applicationEntity,
+        GenericPlanEntity genericPlanEntity,
+        SubscriptionEntity subscriptionEntity,
+        Optional<String> subscriptionsUrl,
+        boolean includeSubscribedByUser
+    ) throws TechnicalException {
+        Optional<ApiProduct> apiProductOpt = apiProductsRepository.findById(apiProductId);
+        if (apiProductOpt.isEmpty()) {
+            log.debug("API Product [{}] not found, skipping subscription notification params", apiProductId);
+            return Map.of();
+        }
+        ApiProduct apiProduct = apiProductOpt.get();
+        PrimaryOwnerEntity productOwner = null;
+        String ownerUserId = getPrimaryOwnerUserIdOrNull(executionContext, apiProductId);
+        if (ownerUserId != null) {
+            try {
+                productOwner = new PrimaryOwnerEntity(userService.findById(executionContext, ownerUserId));
+            } catch (Exception e) {
+                log.debug("Could not resolve primary owner user {} for API Product notification", ownerUserId, e);
+            }
+        }
+        ApiProductTemplateModel apiProductModel = ApiProductTemplateModel.builder()
+            .id(apiProduct.getId())
+            .name(apiProduct.getName())
+            .version(apiProduct.getVersion() != null ? apiProduct.getVersion() : "")
+            .primaryOwner(productOwner)
+            .build();
+        PrimaryOwnerEntity owner = productOwner != null ? productOwner : applicationEntity.getPrimaryOwner();
+        NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder()
+            .apiProduct(apiProductModel)
+            .plan(genericPlanEntity)
+            .application(applicationEntity)
+            .subscription(subscriptionEntity);
+        if (owner != null) {
+            paramsBuilder.owner(owner);
+        }
+        subscriptionsUrl.ifPresent(paramsBuilder::subscriptionsUrl);
+        if (includeSubscribedByUser) {
+            UserDetails authenticatedUser = getAuthenticatedUser();
+            if (authenticatedUser != null && authenticatedUser.getId() != null) {
+                try {
+                    UserEntity subscribedByUser = userService.findById(executionContext, authenticatedUser.getId());
+                    if (subscribedByUser != null) {
+                        paramsBuilder.user(subscribedByUser);
+                    }
+                } catch (Exception e) {
+                    log.debug("Could not resolve subscribed-by user {} for notification params", authenticatedUser.getId(), e);
+                }
+            }
+        }
+        return paramsBuilder.build();
+    }
+
+    private void triggerSubscriptionNotificationsForApiProduct(
+        ExecutionContext executionContext,
+        String apiProductId,
+        String applicationId,
+        ApplicationEntity applicationEntity,
+        GenericPlanEntity genericPlanEntity,
+        SubscriptionEntity subscriptionEntity,
+        Optional<String> subscriptionsUrl,
+        boolean includeSubscribedByUser,
+        ApiHook hook
+    ) throws TechnicalException {
+        Map<String, Object> params = buildSubscriptionNotificationParamsForApiProduct(
+            executionContext,
+            apiProductId,
+            applicationEntity,
+            genericPlanEntity,
+            subscriptionEntity,
+            subscriptionsUrl,
+            includeSubscribedByUser
+        );
+        if (!params.isEmpty()) {
+            triggerSubscriptionNotifications(
+                executionContext,
+                NotificationReferenceType.API_PRODUCT,
+                apiProductId,
+                applicationId,
+                params,
+                hook
+            );
+        }
+    }
+
+>>>>>>> 33dbd93a6b (fix: allow user attributes in mail templates)
     private long countSubscriptionMatchingPredicate(
         ExecutionContext executionContext,
         List<Subscription> subscriptions,
