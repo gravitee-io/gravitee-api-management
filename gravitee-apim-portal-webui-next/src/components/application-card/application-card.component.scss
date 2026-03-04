@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 @use '../../scss/theme' as theme;
-@use '@gravitee/gravitee-markdown' as gmd;
 
 :host {
-  @include gmd.card-overrides((
-    outline-color: theme.$card-border-color,
-    outline-width: 1px,
-    container-shape: theme.$container-shape
-  ));
   display: flex;
   min-height: 138px;
   flex-flow: column;

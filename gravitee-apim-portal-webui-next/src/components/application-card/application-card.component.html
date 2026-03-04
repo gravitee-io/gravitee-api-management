@@ -15,8 +15,8 @@
     limitations under the License.
 
 -->
-<gmd-card class="app-card" (click)="select.emit(applicationId())">
-  <div class="app-card__content">
+<mat-card class="app-card" appearance="outlined" (click)="select.emit(applicationId())">
+  <mat-card-content class="app-card__content">
     <div class="app-card__header">
       <div class="app-card__header__content">
         <div class="m3-title-medium" [matTooltip]="title()">{{ title() }}</div>
@@ -29,5 +29,5 @@
         <span i18n="@@appDescriptionMissing">Description for this application is missing.</span>
       }
     </div>
-  </div>
-</gmd-card>
+  </mat-card-content>
+</mat-card>

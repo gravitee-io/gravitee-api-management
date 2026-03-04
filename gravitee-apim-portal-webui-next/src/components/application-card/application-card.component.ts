@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import { Component, input, output } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
 import { MatTooltip } from '@angular/material/tooltip';
-import { GmdCardModule } from '@gravitee/gravitee-markdown';
 
 @Component({
   selector: 'app-application-card',
-  imports: [GmdCardModule, MatTooltip],
+  imports: [MatCardModule, MatTooltip],
   templateUrl: './application-card.component.html',
   styleUrl: './application-card.component.scss',
 })

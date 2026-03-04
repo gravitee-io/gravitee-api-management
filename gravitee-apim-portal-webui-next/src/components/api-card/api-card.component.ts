@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 import { Component, Input, output } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
 import { MatTooltip } from '@angular/material/tooltip';
-
-import { GmdCardModule } from '@gravitee/gravitee-markdown';
 
 import { BadgeComponent } from '../badge/badge.component';
 
 @Component({
   selector: 'app-api-card',
-  imports: [GmdCardModule, MatTooltip, BadgeComponent],
+  imports: [MatCardModule, MatTooltip, BadgeComponent],
   templateUrl: './api-card.component.html',
   styleUrl: './api-card.component.scss',
 })
