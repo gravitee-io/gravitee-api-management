@@ -67,7 +67,6 @@ class GraviteeDefinitionAdapterTest {
             .displayName("PO")
             .type(PrimaryOwnerEntity.Type.USER)
             .build();
-        var metadata = java.util.Collections.<NewApiMetadata>emptyList();
 
         // When
         ApiDescriptor.ApiDescriptorV4 descriptor = GraviteeDefinitionAdapter.INSTANCE.mapV4(
@@ -75,7 +74,7 @@ class GraviteeDefinitionAdapterTest {
             primaryOwner,
             WorkflowState.REVIEW_OK,
             Set.of("group-1"),
-            (java.util.Collection<NewApiMetadata>) metadata,
+            List.of(),
             List.of(new Flow()),
             false
         );
@@ -108,14 +107,13 @@ class GraviteeDefinitionAdapterTest {
             .displayName("PO")
             .type(PrimaryOwnerEntity.Type.USER)
             .build();
-        var metadata = java.util.Collections.<NewApiMetadata>emptyList();
 
         ApiDescriptor.ApiDescriptorV4 descriptor = GraviteeDefinitionAdapter.INSTANCE.mapV4(
             coreApi,
             primaryOwner,
             WorkflowState.REVIEW_OK,
             Set.of("group-1"),
-            (java.util.Collection<NewApiMetadata>) metadata,
+            List.of(),
             List.of(new Flow()),
             false
         );
@@ -153,7 +151,7 @@ class GraviteeDefinitionAdapterTest {
             primaryOwner,
             WorkflowState.REVIEW_OK,
             Set.of("group-1"),
-            (java.util.Collection<NewApiMetadata>) metadata,
+            metadata,
             List.of(new Flow()),
             false
         );

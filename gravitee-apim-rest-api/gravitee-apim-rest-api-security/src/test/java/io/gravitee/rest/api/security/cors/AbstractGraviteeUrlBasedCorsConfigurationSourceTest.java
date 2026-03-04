@@ -85,8 +85,8 @@ class AbstractGraviteeUrlBasedCorsConfigurationSourceTest {
 
     @Test
     void should_evict_from_cache_and_unregister_from_event_manager_when_entry_expires() {
-        // Expires after 50ms.
-        fakeEnvironment.setProperty("cors.cache.ttl", "250");
+        // Expires after 2000ms.
+        fakeEnvironment.setProperty("cors.cache.ttl", "2000");
 
         cut = buildCut();
 
@@ -96,7 +96,7 @@ class AbstractGraviteeUrlBasedCorsConfigurationSourceTest {
         assertThat(cut.getCorsConfiguration(request)).isSameAs(corsConfiguration);
         assertThat(cut.getCorsConfiguration(buildRequest("other.gravitee.dev", null, null))).isNotSameAs(corsConfiguration);
 
-        Awaitility.waitAtMost(2000, TimeUnit.MILLISECONDS)
+        Awaitility.waitAtMost(2200, TimeUnit.MILLISECONDS)
             .pollInterval(50, TimeUnit.MILLISECONDS)
             .untilAsserted(() -> {
                 // Eviction only occurs on next access after TTL, so we need to call getCorsConfiguration again to trigger eviction of the expired entry.
