@@ -19,6 +19,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
+import { MatDivider } from '@angular/material/divider';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
@@ -36,6 +37,7 @@ import { ApplicationService } from '../../../../../services/application.service'
 interface ApplicationSettingsVM {
   name: string;
   description: string | undefined;
+  domain: string | undefined;
   picture: string | undefined;
   appType: string | undefined;
   appClientId: string | undefined;
@@ -46,6 +48,7 @@ interface ApplicationSettingsVM {
 interface ApplicationSettingsForm {
   name: FormControl<string>;
   description: FormControl<string | undefined>;
+  domain: FormControl<string | undefined>;
   picture: FormControl<string | undefined>;
   appType: FormControl<string | undefined>;
   appClientId: FormControl<string | undefined>;
@@ -64,6 +67,7 @@ interface ApplicationGrantTypeVM {
   imports: [
     CopyCodeComponent,
     MatButtonModule,
+    MatDivider,
     MatCardModule,
     MatChipsModule,
     MatFormFieldModule,
@@ -87,6 +91,7 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
   initialValues: ApplicationSettingsVM = {
     name: '',
     description: undefined,
+    domain: undefined,
     picture: undefined,
     appType: undefined,
     appClientId: undefined,
@@ -97,6 +102,7 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
   applicationSettingsForm: FormGroup<ApplicationSettingsForm> = new FormGroup<ApplicationSettingsForm>({
     name: new FormControl<string>('', { nonNullable: true }),
     description: new FormControl<string | undefined>(undefined, { nonNullable: true }),
+    domain: new FormControl<string | undefined>(undefined, { nonNullable: true }),
     picture: new FormControl<string | undefined>(undefined, { nonNullable: true }),
     appType: new FormControl<string | undefined>(undefined, { nonNullable: true }),
     appClientId: new FormControl<string | undefined>(undefined, { nonNullable: true }),
@@ -198,6 +204,7 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
     return {
       name: application.name,
       description: application.description,
+      domain: application.domain,
       picture: application.picture,
       appType: application.settings.app?.type,
       appClientId: application.settings.app?.client_id,
@@ -235,6 +242,7 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
       ...this.application,
       name: appVM.name,
       description: appVM.description,
+      domain: appVM.domain,
       picture: appVM.picture,
     };
     if (appToUpdate.settings.app) {
