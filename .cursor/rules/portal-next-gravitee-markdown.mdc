@@ -1,0 +1,45 @@
+---
+description: Project rules for the gravitee-markdown library: GMD component file set, SCSS pattern, Storybook, testing, gmd- prefix.
+globs: ["**/gravitee-markdown/**/*.ts", "**/gravitee-markdown/**/*.html", "**/gravitee-markdown/**/*.scss", "**/gravitee-markdown/**/*.md"]
+---
+
+# Portal-next: Gravitee Markdown Library
+
+Project rules for the **gravitee-markdown** library only. This is not a design system; it defines how GMD components are structured, styled, and tested.
+
+## Full file set for a new GMD component
+
+When adding a new GMD component, create the full set of files:
+
+- **Component:** `.ts`, `.html`, `.scss` (logic, template, styles).
+- **Spec:** `.spec.ts` (unit tests).
+- **Harness:** Component harness for tests (e.g. `MyComponentHarness`).
+- **Stories:** Storybook stories file and a dedicated **stories scss** file for story-level overrides.
+- **Suggestions:** Register the component in the suggestions system so it can be suggested in the editor.
+- **Overrides:** `_overrides.scss` (or component-level overrides) for token/theme overrides.
+- **Public API:** Export the component (and any public types) via the library’s **public-api** (e.g. `public-api.ts` or `public-api.scss`).
+- **README:** Document the component (usage, inputs/outputs, theming) in a README (library or component level as appropriate).
+
+## Public API and suggestions registration
+
+- Every public GMD component must be exported through the library’s **public API** (e.g. `public-api.ts`).
+- Register the component in the **suggestions** registry so it appears in GMD suggestion lists. Do not ship a new component without both public-api and suggestions registration.
+
+## GMD SCSS pattern
+
+- **Token utils:** Use shared token utilities for colors, spacing, typography where provided.
+- **_overrides:** Use an `_overrides` partial with a `tokens()` (or equivalent) and an **overrides mixin** so the main app (or Storybook) can apply overrides in one place.
+- **Component scss:** Use **slot()** (or the project’s slot mixin) for slotted content styling; do not rely on global element selectors for slot styling.
+- **public-api forward:** In the library’s SCSS public API, forward the component styles and overrides so consumers import one entry point (e.g. `@use '.../public-api'`).
+
+## Storybook
+
+- **Stories** must use the component’s **public API** for overrides (the same entry point as the main app). Do not duplicate override logic in stories; import the public-api (or overrides) and use the same mixin/tokens so behavior matches the main app.
+
+## Testing
+
+- GMD components **should have a harness** for use in unit tests and (where applicable) in integration tests. Prefer the harness over raw DOM queries in specs.
+
+## Naming
+
+- Use the **gmd-** prefix only for selectors and component names in this library. Do not use `gd-*` (reserved for gravitee-dashboard) or other prefixes for GMD-specific UI.

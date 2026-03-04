@@ -1,0 +1,39 @@
+---
+description: Particles design system: Particles-first, 4px grid, WCAG 2.1 AA, no hard-coded values.
+globs: ["**/*.component.ts", "**/*.module.ts", "**/*.directive.ts", "**/*.pipe.ts", "**/*.scss", "**/projects/**/*.ts"]
+---
+
+# Particles Design System
+
+Applies in **yarn Angular projects** (directory with `package.json` + `yarn.lock`). Does not apply in `gravitee-apim-portal-webui-next` or `gravitee-apim-portal-webui`.
+
+## Components & icons
+
+- Particles (`gio-*`) first. Angular Material (`mat-*`) only when no Particles equivalent exists.
+- `gio-icons` first. Material Icons only as fallback.
+
+## Styling
+
+- Tokens only: no hex/RGB or arbitrary font-size px. Use design tokens, CSS/SCSS variables.
+- 4px grid: all margins, padding, gaps MUST be multiples of 4.
+- Material overrides via SCSS mixins (e.g. `@include mat.button-overrides`), not ad-hoc CSS variables.
+- Card surfaces MUST be distinct from app background.
+- Use Flexbox/Grid for layout.
+
+## Layout & UI patterns
+
+- Layout MUST use containers with centered content (not full-width where a centered layout is intended)
+- Cards MUST have proper spacing between elements (4px grid)
+- Each screen MUST have a single primary CTA (clear hierarchy)
+- Button spacing and placement MUST be consistent
+- Table headers MUST align with cell content and use current header styles
+- Tables MUST use appropriate padding and action column sizing
+- Page titles MUST be placed correctly outside cards at the top
+- Links MUST use themed colors
+
+## Accessibility (WCAG 2.1 AA)
+
+- Color contrast MUST meet AA for text and interactive elements.
+- Focus outlines MUST remain visible (or provide a replacement).
+- Use native elements (e.g. `<button>`) over clickable divs/spans.
+- Respect `prefers-reduced-motion`.
