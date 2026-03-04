@@ -81,10 +81,11 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
         try {
             final String logQueryString = getQuery(query.query(), true);
             if (isEmpty(logQueryString)) {
+                String safeQuery = this.createSafeElasticsearchJsonQuery(query);
                 final Single<SearchResponse> result = this.client.search(
                     this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.REQUEST, from, to, clusters),
                     !info.getVersion().canUseTypeRequests() ? null : Type.REQUEST.getType(),
-                    this.createElasticsearchJsonQuery(query)
+                    safeQuery
                 );
 
                 return this.toTabularResponse(result.blockingGet());
@@ -95,7 +96,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                     .size(MAX_RESULT_WINDOW)
                     .query(logQueryString)
                     .build();
-                final String sQuery = this.createElasticsearchJsonQuery(logQuery);
+                final String sQuery = this.createSafeElasticsearchJsonQuery(logQuery);
 
                 Single<SearchResponse> result = this.client.search(
                     this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.LOG, from, to, clusters),
@@ -126,7 +127,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                     result = this.client.search(
                         this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.REQUEST, from, to, clusters),
                         !info.getVersion().canUseTypeRequests() ? null : Type.REQUEST.getType(),
-                        this.createElasticsearchJsonQuery(requestQueryBuilder.build())
+                        this.createSafeElasticsearchJsonQuery(requestQueryBuilder.build())
                     );
                 }
 
@@ -248,5 +249,26 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
         tabularResponse.setLogs(logs);
 
         return tabularResponse;
+    }
+
+    /**
+     * Fix APIM-12955: Escapes Lucene special characters in the query string.
+     * Quadruple backslashes are required to survive both Java and JSON parsing levels
+     * so that Lucene finally receives the mandatory single backslash escape (e.g., \( ).
+     */
+    private String createSafeElasticsearchJsonQuery(final TabularQuery query) {
+        String json = this.createElasticsearchJsonQuery(query);
+
+        if (query != null && query.query() != null && query.query().filter() != null) {
+            String filter = query.query().filter();
+
+            if (!filter.isEmpty()) {
+                String escaped = filter.replace("\\", "\\\\\\\\").replace("/", "\\\\/").replace("(", "\\\\(").replace(")", "\\\\)");
+
+                // Targeted replacement within quotes to protect JSON structure
+                json = json.replace("\"" + filter + "\"", "\"" + escaped + "\"");
+            }
+        }
+        return json;
     }
 }
