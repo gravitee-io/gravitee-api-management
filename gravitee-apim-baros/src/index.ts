@@ -5,6 +5,17 @@ export { cn } from './lib/utils';
 export { Button, buttonVariants } from './components/ui/button';
 export type { ButtonProps } from './components/ui/button';
 
+// ── UI: Breadcrumb ───────────────────────────────────
+export {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  BreadcrumbEllipsis,
+} from './components/ui/breadcrumb';
+
 // ── UI: Separator ────────────────────────────────────
 export { Separator } from './components/ui/separator';
 
