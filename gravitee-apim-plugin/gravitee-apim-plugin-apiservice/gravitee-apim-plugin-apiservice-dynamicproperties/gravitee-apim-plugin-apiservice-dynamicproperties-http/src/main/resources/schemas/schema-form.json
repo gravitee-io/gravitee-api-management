@@ -91,7 +91,9 @@
   ],
   "gioExternalDefinitions": {
     "maxConcurrentConnections": {
+      "type": "integer",
       "description": "Hide the field because in the case of Http Dynamic Properties, the number of concurrent connections is fixed to 1.",
+      "default": 1,
       "x-schema-form": {
         "type": "hidden"
       }
