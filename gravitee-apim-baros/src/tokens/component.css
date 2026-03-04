@@ -1,0 +1,27 @@
+/*
+ * Tier 3 — Component Tokens
+ *
+ * Layout and component-specific tokens that reference
+ * semantic or primitive values where appropriate.
+ */
+
+:root {
+  /* ── Sidebar ─────────────────────────────────────── */
+  --sidebar-width: 16rem;
+  --sidebar-width-collapsed: 4rem;
+  --sidebar-background: var(--card);
+  --sidebar-foreground: var(--card-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+
+  /* ── Top navigation ──────────────────────────────── */
+  --topnav-height: 3.5rem;
+  --topnav-background: var(--card);
+  --topnav-foreground: var(--card-foreground);
+  --topnav-border: var(--border);
+
+  /* ── Content area ────────────────────────────────── */
+  --content-padding: var(--baros-spacing-6);
+  --content-max-width: 80rem;
+}
