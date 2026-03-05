@@ -252,12 +252,26 @@ class RejectSubscriptionUseCaseTest {
 
         // Then
         assertThat(triggerNotificationService.getApiNotifications()).containsExactly(
-            new SubscriptionRejectedApiHookContext("api-id", "application-id", "plan-published", "subscription-id", USER_ID)
+            new SubscriptionRejectedApiHookContext(
+                SubscriptionReferenceType.API,
+                "api-id",
+                "application-id",
+                "plan-published",
+                "subscription-id",
+                USER_ID
+            )
         );
 
         assertThat(triggerNotificationService.getApplicationNotifications()).containsExactly(
             new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
-                new SubscriptionRejectedApplicationHookContext("application-id", "api-id", "plan-published", "subscription-id", USER_ID)
+                new SubscriptionRejectedApplicationHookContext(
+                    "application-id",
+                    SubscriptionReferenceType.API,
+                    "api-id",
+                    "plan-published",
+                    "subscription-id",
+                    USER_ID
+                )
             )
         );
     }
@@ -283,7 +297,14 @@ class RejectSubscriptionUseCaseTest {
         assertThat(triggerNotificationService.getApplicationNotifications()).contains(
             new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
                 new Recipient("EMAIL", "subscriber@mail.fake"),
-                new SubscriptionRejectedApplicationHookContext("application-id", "api-id", "plan-published", "subscription-id", USER_ID)
+                new SubscriptionRejectedApplicationHookContext(
+                    "application-id",
+                    SubscriptionReferenceType.API,
+                    "api-id",
+                    "plan-published",
+                    "subscription-id",
+                    USER_ID
+                )
             )
         );
     }

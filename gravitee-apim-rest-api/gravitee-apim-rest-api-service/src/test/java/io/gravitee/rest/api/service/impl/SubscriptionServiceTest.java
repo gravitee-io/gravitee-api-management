@@ -69,6 +69,7 @@ import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
@@ -1410,7 +1411,8 @@ public class SubscriptionServiceTest {
         verify(notifierService).trigger(
             eq(GraviteeContext.getExecutionContext()),
             eq(ApiHook.SUBSCRIPTION_FAILED),
-            nullable(String.class),
+            eq(NotificationReferenceType.API),
+            eq(API_ID),
             anyMap()
         );
         verify(notifierService).trigger(
@@ -1501,11 +1503,17 @@ public class SubscriptionServiceTest {
         subscriptionService.pause(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
 
         verify(apiKeyService).update(GraviteeContext.getExecutionContext(), apiKey);
-        verify(notifierService).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.SUBSCRIPTION_PAUSED), anyString(), anyMap());
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiHook.SUBSCRIPTION_PAUSED),
+            eq(NotificationReferenceType.API),
+            eq(API_ID),
+            anyMap()
+        );
         verify(notifierService).trigger(
             eq(GraviteeContext.getExecutionContext()),
             eq(ApplicationHook.SUBSCRIPTION_PAUSED),
-            nullable(String.class),
+            anyString(),
             anyMap()
         );
     }
@@ -1634,21 +1642,24 @@ public class SubscriptionServiceTest {
         when(subscriptionRepository.update(any())).thenReturn(subscription);
         planEntity.setStatus(PlanStatus.PUBLISHED);
         planEntity.setSecurity(PlanSecurityType.API_KEY);
+        planEntity.setReferenceId(API_ID);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        application.setPrimaryOwner(new PrimaryOwnerEntity());
 
         subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
 
         verify(notifierService).trigger(
             eq(GraviteeContext.getExecutionContext()),
             eq(ApiHook.SUBSCRIPTION_TRANSFERRED),
-            anyString(),
+            eq(NotificationReferenceType.API),
+            eq(API_ID),
             anyMap()
         );
         verify(notifierService).trigger(
             eq(GraviteeContext.getExecutionContext()),
             eq(ApplicationHook.SUBSCRIPTION_TRANSFERRED),
-            nullable(String.class),
+            anyString(),
             anyMap()
         );
         verify(subscription).setUpdatedAt(any());
@@ -1676,21 +1687,24 @@ public class SubscriptionServiceTest {
         when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Set.of(apiKey));
         planEntity.setStatus(PlanStatus.PUBLISHED);
         planEntity.setSecurity(PlanSecurityType.API_KEY);
+        planEntity.setReferenceId(API_ID);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        application.setPrimaryOwner(new PrimaryOwnerEntity());
 
         subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
 
         verify(notifierService).trigger(
             eq(GraviteeContext.getExecutionContext()),
             eq(ApiHook.SUBSCRIPTION_TRANSFERRED),
-            anyString(),
+            eq(NotificationReferenceType.API),
+            eq(API_ID),
             anyMap()
         );
         verify(notifierService).trigger(
             eq(GraviteeContext.getExecutionContext()),
             eq(ApplicationHook.SUBSCRIPTION_TRANSFERRED),
-            nullable(String.class),
+            anyString(),
             anyMap()
         );
         verify(subscription).setUpdatedAt(any());
@@ -1720,21 +1734,24 @@ public class SubscriptionServiceTest {
         when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Set.of(apiKey));
         planEntity.setStatus(PlanStatus.PUBLISHED);
         planEntity.setSecurity(PlanSecurityType.API_KEY);
+        planEntity.setReferenceId(API_ID);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        application.setPrimaryOwner(new PrimaryOwnerEntity());
 
         subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
 
         verify(notifierService).trigger(
             eq(GraviteeContext.getExecutionContext()),
             eq(ApiHook.SUBSCRIPTION_TRANSFERRED),
-            anyString(),
+            eq(NotificationReferenceType.API),
+            eq(API_ID),
             anyMap()
         );
         verify(notifierService).trigger(
             eq(GraviteeContext.getExecutionContext()),
             eq(ApplicationHook.SUBSCRIPTION_TRANSFERRED),
-            nullable(String.class),
+            anyString(),
             anyMap()
         );
         verify(subscription).setUpdatedAt(any());
@@ -2890,7 +2907,8 @@ public class SubscriptionServiceTest {
         verify(notifierService).trigger(
             eq(GraviteeContext.getExecutionContext()),
             eq(ApiHook.SUBSCRIPTION_FAILED),
-            nullable(String.class),
+            eq(NotificationReferenceType.API),
+            eq(API_ID),
             anyMap()
         );
         verify(notifierService).trigger(
@@ -2949,7 +2967,8 @@ public class SubscriptionServiceTest {
         );
         // We return the same object passed to the method
         when(subscriptionRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
-        when(apiTemplateService.findByIdForTemplates(any(), any())).thenReturn(new ApiModel());
+        when(apiTemplateService.findByIdForTemplates(any(), any())).thenReturn(apiModelEntity);
+        when(apiModelEntity.getPrimaryOwner()).thenReturn(primaryOwnerEntity);
         SecurityContextHolder.setContext(generateSecurityContext());
 
         NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
@@ -2971,13 +2990,14 @@ public class SubscriptionServiceTest {
         verify(notifierService, times(1)).trigger(
             any(),
             eq(ApiHook.SUBSCRIPTION_NEW),
-            any(),
+            eq(NotificationReferenceType.API),
+            anyString(),
             argThat(params -> ((SubscriptionEntity) params.get("subscription")).getRequest().equals("Hello click me"))
         );
         verify(notifierService, times(1)).trigger(
             any(),
             eq(ApplicationHook.SUBSCRIPTION_NEW),
-            any(),
+            nullable(String.class),
             argThat(params -> ((SubscriptionEntity) params.get("subscription")).getRequest().equals("Hello click me"))
         );
 
