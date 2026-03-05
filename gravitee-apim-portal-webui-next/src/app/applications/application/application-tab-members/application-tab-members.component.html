@@ -69,6 +69,7 @@
         [pageSize]="pageSize()"
         [rowLink]="false"
         [showExpandColumn]="false"
+        [rowActionsHidden]="isPrimaryOwner"
         (pageChange)="onPageChange($event)"
         (pageSizeChange)="onPageSizeChange($event)"
         (actionClick)="onActionClick($event)"

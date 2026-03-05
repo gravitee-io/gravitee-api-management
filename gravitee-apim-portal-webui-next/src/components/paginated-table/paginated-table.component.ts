@@ -57,6 +57,7 @@ export class PaginatedTableComponent<T> {
   pageSizeOptions = input<number[]>(DEFAULT_PAGE_SIZE_OPTIONS);
   rowLink = input<boolean>(true);
   showExpandColumn = input<boolean>(true);
+  rowActionsHidden = input<(row: T) => boolean>(() => false);
 
   pageChange = output<number>();
   pageSizeChange = output<number>();

@@ -130,6 +130,8 @@ export class ApplicationTabMembersComponent {
 
   canUpdate = computed(() => this.userApplicationPermissions()?.MEMBER?.includes('U') || false);
 
+  isPrimaryOwner = (row: Record<string, unknown>): boolean => row['role'] === 'PRIMARY_OWNER';
+
   onActionClick(event: TableActionEvent<Record<string, unknown>>): void {
     switch (event.actionId) {
       case 'edit':

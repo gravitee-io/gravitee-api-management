@@ -26,19 +26,21 @@
               {{ element[column.id] | date: 'yyyy-MM-dd' }}
             }
             @case ('actions') {
-              <div class="paginated-table__actions">
-                @for (action of column.actions; track action.id) {
-                  <button
-                    mat-icon-button
-                    [attr.aria-label]="action.label"
-                    [matTooltip]="action.label"
-                    [attr.data-testid]="'action-' + action.id"
-                    (click)="onActionClick($event, action.id, element)"
-                  >
-                    <mat-icon>{{ action.icon }}</mat-icon>
-                  </button>
-                }
-              </div>
+              @if (!rowActionsHidden()(element)) {
+                <div class="paginated-table__actions">
+                  @for (action of column.actions; track action.id) {
+                    <button
+                      mat-icon-button
+                      [attr.aria-label]="action.label"
+                      [matTooltip]="action.label"
+                      [attr.data-testid]="'action-' + action.id"
+                      (click)="onActionClick($event, action.id, element)"
+                    >
+                      <mat-icon>{{ action.icon }}</mat-icon>
+                    </button>
+                  }
+                </div>
+              }
             }
             @default {
               {{ element[column.id] }}
