@@ -229,26 +229,52 @@ describe('ApplicationGeneralInfoComponent', () => {
       fixture.detectChanges();
       await waitImageCheck();
 
-      const banner = fixture.nativeElement.querySelector('gio-banner-warning');
+      const banner = getBanner();
       expect(banner).toBeTruthy();
-      expect(banner.textContent).toContain('This application has 3 certificates');
+      expect(banner.textContent).toContain('This application has 3 active certificates');
     });
 
-    it('should not display warning when application has one or no certificate', async () => {
+    it('should not display warning when application has one certificate', async () => {
       const applicationDetails = fakeApplication({ type: 'SIMPLE' });
       applicationDetails.settings.tls = {
         client_certificate: 'pem certificate',
         certificate_count: 1,
       };
+
+      await assertNoBanner(applicationDetails);
+    });
+
+    it('should not display warning when application no certificate', async () => {
+      const applicationDetails = fakeApplication({ type: 'SIMPLE' });
+      applicationDetails.settings.tls = {
+        client_certificate: 'pem certificate',
+        certificate_count: 0,
+      };
+
+      await assertNoBanner(applicationDetails);
+    });
+
+    it('should not display warning when application has no TLS settings', async () => {
+      const applicationDetails = fakeApplication({ type: 'SIMPLE' });
+      applicationDetails.settings = {};
+
+      await assertNoBanner(applicationDetails);
+    });
+
+    async function assertNoBanner(applicationDetails: Application) {
       const applicationType = fakeApplicationType();
       expectListApplicationRequest(applicationDetails);
       expectApplicationTypeRequest(applicationType);
       fixture.detectChanges();
       await waitImageCheck();
 
-      const banner = fixture.nativeElement.querySelector('gio-banner-warning');
+      const banner = getBanner();
       expect(banner).toBeFalsy();
-    });
+    }
+
+    function getBanner() {
+      return fixture.nativeElement.querySelector('gio-banner-warning');
+    }
   });
 
   describe('Application General details status is ARCHIVED', () => {
