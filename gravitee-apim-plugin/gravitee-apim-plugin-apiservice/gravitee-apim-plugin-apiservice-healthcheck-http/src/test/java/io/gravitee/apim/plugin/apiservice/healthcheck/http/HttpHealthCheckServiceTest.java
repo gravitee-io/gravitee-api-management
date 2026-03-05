@@ -118,7 +118,7 @@ public class HttpHealthCheckServiceTest {
     public void setup() {
         when(deploymentContext.getComponent(EndpointManager.class)).thenReturn(endpointManager);
         when(deploymentContext.getComponent(PluginConfigurationHelper.class)).thenReturn(pluginConfigurationHelper);
-        lenient().when(gatewayConfig.healthCheckJitterInMs()).thenReturn(900);
+        lenient().when(gatewayConfig.healthCheckJitterInMs()).thenReturn(0);
 
         apiDefinition.setId(API_ID);
     }
