@@ -395,7 +395,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
     });
 
     it('should update a tag', async () => {
-      expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] })]);
+      expectTagsListRequest([fakeTag({ id: 'tag-1-id', key: 'tag-1', restricted_groups: ['group-a'] })]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' }), fakeGroup({ id: 'group-b', name: 'Group B' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest();
@@ -424,8 +424,6 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
 
       const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags/tag-1` });
       expect(req.request.body).toStrictEqual({
-        id: 'tag-1',
-        key: 'external',
         name: 'New tag name',
         description: 'New tag description',
         restricted_groups: ['group-a', 'group-b'],
