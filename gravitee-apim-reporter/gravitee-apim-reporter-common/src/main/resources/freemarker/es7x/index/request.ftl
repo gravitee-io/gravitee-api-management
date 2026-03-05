@@ -32,6 +32,8 @@
   </#if>
   <#if metrics.getApi()??>
   ,"api":"${metrics.getApi()}"
+  </#if>
+  <#if metrics.getApiName()??>
   ,"api-name":"${metrics.getApiName()?j_string}"
   </#if>
   <#if metrics.getOrganizationId()??>
