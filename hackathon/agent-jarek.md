@@ -17,6 +17,11 @@
   - `PUT /applications/{applicationId}/membersV2/{memberId}` in `ApplicationMembersResourceV2`
   - use case tests (success, role not found, primary owner rejected, member not found)
   - REST tests for update flow (`200`, `400`, `403`) in `ApplicationMembersResourceV2Test`.
+- Implemented **Phase 2 / Story 2.2** backend delete-member flow in Onion style:
+  - `DeleteApplicationMemberUseCase` with member existence check and `PRIMARY_OWNER` deletion rejection
+  - `DELETE /applications/{applicationId}/membersV2/{memberId}` in `ApplicationMembersResourceV2`
+  - use case tests (success, primary owner rejected, member not found)
+  - REST tests for delete flow (`204`, `400`, `403`) in `ApplicationMembersResourceV2Test`.
 
 ## Key Decisions Made and Why
 
@@ -26,6 +31,8 @@
 - **Reused in-memory test doubles** (`RoleQueryServiceInMemory`, etc.) to match existing test style and keep tests fast/deterministic.
 - **Used `NotFoundDomainException` in the new use case when update returns null** so missing members are mapped as proper domain-level 404 in V2 flow.
 - **Kept the legacy consistency check (`memberInput.user` must match path `memberId`)** in V2 update endpoint to preserve behavior and avoid silent mismatches.
+- **Used the same `PRIMARY_OWNER` protection for delete as for update** to preserve ownership safety invariants across member-management actions.
+- **Returned `204 No Content` from V2 delete endpoint** to align with REST semantics and existing Gravitee endpoint behavior.
 
 ## Gotchas or Surprises
 
@@ -33,6 +40,7 @@
 - `rg` was unavailable in this environment, so fallback shell tools (`grep`, `find`) were used for lookups.
 - Running a single REST test in this module still triggers heavy OpenAPI generation/compilation before test execution.
 - Portal REST module initially failed to compile against the new use case until the updated service module artifact was installed locally (`mvn ...service -DskipTests install`).
+- Maven run for a single resource test still performs expensive OpenAPI generation and broad module compilation, so feedback loops are slower than expected.
 
 ## Blockers / Open Questions
 
@@ -61,4 +69,8 @@ Include tests following the existing patterns in the codebase.
 
 ```text
 Implement Pahase 2 Story 2.1 from ./hackathon/STORIES.md. Include tests following the existing patterns in the codebase.
+```
+
+```text
+Implement Phase 2 Story 2.2 from ./hackathon/STORIES.md. Include tests following the existing patterns in the codebase.
 ```

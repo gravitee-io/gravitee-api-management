@@ -180,6 +180,38 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
         }
     }
 
+    @Nested
+    class DeleteMemberTest {
+
+        @Test
+        void should_delete_application_member_v2() {
+            final var response = target(APPLICATION_ID).path("membersV2").path("member-2").request().delete();
+
+            assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
+            assertEquals(2, memberQueryService.storage().size());
+        }
+
+        @Test
+        void should_return_400_when_deleting_primary_owner() {
+            memberQueryService.initWith(
+                List.of(aMember("member-primary-owner", "John Primary", "primary@gravitee.io", APPLICATION_ID, "PRIMARY_OWNER"))
+            );
+
+            final var response = target(APPLICATION_ID).path("membersV2").path("member-primary-owner").request().delete();
+
+            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        }
+
+        @Test
+        void should_return_403_when_missing_delete_permission() {
+            doReturn(false).when(permissionService).hasPermission(any(), any(), any(), any());
+
+            final var response = target(APPLICATION_ID).path("membersV2").path("member-2").request().delete();
+
+            assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+        }
+    }
+
     private static Member aMember(String id, String displayName, String email, String applicationId, String role) {
         return Member.builder()
             .id(id)

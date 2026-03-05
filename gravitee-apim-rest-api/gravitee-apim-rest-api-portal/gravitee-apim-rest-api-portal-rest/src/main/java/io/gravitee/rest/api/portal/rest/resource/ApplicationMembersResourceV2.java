@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.apim.core.application_member.use_case.DeleteApplicationMemberUseCase;
 import io.gravitee.apim.core.application_member.use_case.GetApplicationMembersUseCase;
 import io.gravitee.apim.core.application_member.use_case.UpdateApplicationMemberUseCase;
 import io.gravitee.common.http.MediaType;
@@ -34,6 +35,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -54,6 +56,9 @@ public class ApplicationMembersResourceV2 extends AbstractResource {
 
     @Inject
     private UpdateApplicationMemberUseCase updateApplicationMemberUseCase;
+
+    @Inject
+    private DeleteApplicationMemberUseCase deleteApplicationMemberUseCase;
 
     private static final MemberV2Mapper MEMBER_V2_MAPPER = MemberV2Mapper.INSTANCE;
 
@@ -109,5 +114,18 @@ public class ApplicationMembersResourceV2 extends AbstractResource {
         );
 
         return Response.ok(MEMBER_V2_MAPPER.map(result.updatedMember())).build();
+    }
+
+    @DELETE
+    @Path("{memberId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.DELETE) })
+    public Response deleteApplicationMemberV2(@PathParam("applicationId") String applicationId, @PathParam("memberId") String memberId) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        applicationService.findById(executionContext, applicationId);
+
+        deleteApplicationMemberUseCase.execute(new DeleteApplicationMemberUseCase.Input(applicationId, memberId));
+
+        return Response.noContent().build();
     }
 }

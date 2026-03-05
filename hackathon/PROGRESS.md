@@ -12,7 +12,7 @@
 
 ### Phase 2: Edit & Delete Members
 - ✅ 2.1 - BE: Update Member Role (UseCase)
-- [ ] 2.2 - BE: Delete Application Member (UseCase)
+- ✅ 2.2 - BE: Delete Application Member (UseCase)
 - ✅ 2.3 - FE: Edit Member Role Dialog
 - ✅ 2.4 - FE: Delete Member Dialog
 
@@ -48,6 +48,7 @@
 - **Story 2.3 (FE: Edit Member Role Dialog)** — `EditMemberRoleDialogComponent` with `mat-select` role dropdown, pre-selected current role, Save disabled until changed. Service: `listRoles()`, `updateMemberRole()`. Edit action wired in members table (fetches roles → opens dialog → calls PUT → snackbar → reload). `rowActionsHidden` input on paginated-table to hide actions for PRIMARY_OWNER rows. Dialog harness + spec (7 tests), service spec (2 new tests). BE not ready — endpoints will 404 at runtime until Stories 2.1/1.2 land.
 - **Story 2.4 (FE: Delete Member Dialog)** — Reuses existing `ConfirmDialogComponent` (no new dialog component). Delete action wired in members table: opens confirm dialog ("Remove Member" / red "Remove" button, matching `delete-member-dialog.png`), on confirm calls `deleteMember()` → snackbar → reloads table. Service: `deleteMember(applicationId, memberId)` → `DELETE /membersV2/{memberId}`. Component spec: 4 new tests (dialog opens, cancel no-op, confirm calls API + reload, PRIMARY_OWNER has no actions). Service spec: 1 new test. All 24 component + 6 service tests pass.
 - **Story 2.1 (BE: Update Member Role (UseCase))** — Added `UpdateApplicationMemberUseCase` (role validation + PRIMARY_OWNER guard + member update), wired `PUT /applications/{applicationId}/membersV2/{memberId}` in `ApplicationMembersResourceV2`, and added use case + REST tests (`200` success, `400` bad role, `403` no permission).
+- **Story 2.2 (BE: Delete Application Member (UseCase))** — Added `DeleteApplicationMemberUseCase` (not found handling + PRIMARY_OWNER guard + member deletion), wired `DELETE /applications/{applicationId}/membersV2/{memberId}` in `ApplicationMembersResourceV2`, and added use case + REST tests (`204` success, `400` primary owner, `403` no permission).
 
 ## Key Decisions
 
@@ -65,4 +66,3 @@ Detailed insights, gotchas, surprises, blockers, and effective prompts are track
 
 - [agent-ivan.md](agent-ivan.md) -- Ivan's agent
 - [agent-jarek.md](agent-jarek.md) -- Jarek's agent
-
