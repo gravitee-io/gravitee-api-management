@@ -1,4 +1,4 @@
 declare module 'app_alpha/Module';
-declare module 'app_beta/Module' {
-    export function mount(hostElement: HTMLElement): Promise<() => void>;
-}
+
+declare function __webpack_init_sharing__(scope: string): Promise<void>;
+declare const __webpack_share_scopes__: Record<string, unknown>;
