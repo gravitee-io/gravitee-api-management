@@ -2,4 +2,4 @@ title: |
   [${application.name}] Subscription Resumed
 message: |
   The subscription request to the plan "${plan.name}" 
-  of the api "${api.name}" was resumed.
+  of the <#if api??>api "${api.name}"<#elseif apiProduct??>API Product "${apiProduct.name}"<#else>api/product</#if> was resumed.
