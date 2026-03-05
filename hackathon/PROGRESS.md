@@ -14,7 +14,7 @@
 - ✅ 2.1 - BE: Update Member Role (UseCase)
 - [ ] 2.2 - BE: Delete Application Member (UseCase)
 - ✅ 2.3 - FE: Edit Member Role Dialog
-- [ ] 2.4 - FE: Delete Member Dialog
+- ✅ 2.4 - FE: Delete Member Dialog
 
 ### Phase 3: Add Members
 - [ ] 3.1 - BE: Search Users for Application (UseCase)
@@ -45,8 +45,9 @@
 - **Story 1.3 (FE: Members Tab & Routing)** — Application tab members shell component, route `members` under `:applicationId`, Members tab link in application nav (gated by `MEMBER` read permission), component spec. Aligned with portal-next design system (theme SCSS, m3 typography) and Angular rules (signal inputs, standalone).
 - **Story 1.4 (FE: Members Table)** — `ApplicationMembersService` (list endpoint), `MemberV2`/`MembersV2Response` entity types + fixtures, full table component with `rxResource`, search bar, header with "Transfer Ownership" + "Add Members" dropdown (User Search / Email Invitation with descriptions), `app-paginated-table`, empty states, permission-gated "Add Members" button. Service spec (3 tests) + component spec (14 tests).
 - **Story 1.5 (FE: Extend Paginated Table for Custom Action Cells)** — Added `actions` column type to `TableColumn` with `ActionButton[]`, `actionClick` output with `TableActionEvent`, edit/delete icon buttons per row. Members table wired with Actions column. Post-story refinements: `rowLink`/`showExpandColumn` inputs (members: no chevron, no row click), actions column right-aligned. Paginated-table spec (12 tests). 65+ tests pass.
+- **Story 2.3 (FE: Edit Member Role Dialog)** — `EditMemberRoleDialogComponent` with `mat-select` role dropdown, pre-selected current role, Save disabled until changed. Service: `listRoles()`, `updateMemberRole()`. Edit action wired in members table (fetches roles → opens dialog → calls PUT → snackbar → reload). `rowActionsHidden` input on paginated-table to hide actions for PRIMARY_OWNER rows. Dialog harness + spec (7 tests), service spec (2 new tests). BE not ready — endpoints will 404 at runtime until Stories 2.1/1.2 land.
+- **Story 2.4 (FE: Delete Member Dialog)** — Reuses existing `ConfirmDialogComponent` (no new dialog component). Delete action wired in members table: opens confirm dialog ("Remove Member" / red "Remove" button, matching `delete-member-dialog.png`), on confirm calls `deleteMember()` → snackbar → reloads table. Service: `deleteMember(applicationId, memberId)` → `DELETE /membersV2/{memberId}`. Component spec: 4 new tests (dialog opens, cancel no-op, confirm calls API + reload, PRIMARY_OWNER has no actions). Service spec: 1 new test. All 24 component + 6 service tests pass.
 - **Story 2.1 (BE: Update Member Role (UseCase))** — Added `UpdateApplicationMemberUseCase` (role validation + PRIMARY_OWNER guard + member update), wired `PUT /applications/{applicationId}/membersV2/{memberId}` in `ApplicationMembersResourceV2`, and added use case + REST tests (`200` success, `400` bad role, `403` no permission).
-- **Story 2.3 (FE: Edit Member Role Dialog)** — `EditMemberRoleDialogComponent` with `mat-select` role dropdown, pre-selected current role, Save disabled until changed. Service: `listRoles()`, `updateMemberRole()`. Edit action wired in members table (fetches roles → opens dialog → calls PUT → snackbar → reload). `rowActionsHidden` input on paginated-table to hide actions for PRIMARY_OWNER rows. Dialog harness + spec (7 tests), service spec (2 new tests). All 33 tests pass. BE not ready — endpoints will 404 at runtime until Stories 2.1/1.2 land.
 
 ## Key Decisions
 
@@ -64,3 +65,4 @@ Detailed insights, gotchas, surprises, blockers, and effective prompts are track
 
 - [agent-ivan.md](agent-ivan.md) -- Ivan's agent
 - [agent-jarek.md](agent-jarek.md) -- Jarek's agent
+

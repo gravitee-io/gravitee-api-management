@@ -42,6 +42,13 @@
   - Service spec: 2 new tests (`listRoles`, `updateMemberRole`).
   - BE not ready — endpoints will 404 at runtime until Stories 2.1/1.2 land.
 
+- **Story 2.4 – FE: Delete Member Dialog**
+  - Reuses existing `ConfirmDialogComponent` — no new dialog component needed.
+  - Service: `deleteMember(applicationId, memberId)` → `DELETE /applications/{id}/membersV2/{memberId}`.
+  - Wiring: Delete action in `onActionClick` → opens `ConfirmDialogComponent` with title "Remove Member", content includes member name and "They will lose all access." (matched `delete-member-dialog.png`), red "Remove" confirm button (`color="warn"`). On confirm → calls `deleteMember` → snackbar "Member removed" → `membersResource.reload()`. Error handling with snackbar.
+  - Component spec: 4 new tests (dialog opens on delete click, cancel doesn't call API, confirm calls DELETE + reloads, PRIMARY_OWNER rows have no action buttons).
+  - Service spec: 1 new test (`deleteMember`).
+
 ### Key decisions
 
 - **Signal inputs on new component** — `ApplicationTabMembersComponent` uses `input.required<>()` per Angular rules; existing `ApplicationComponent` kept on `@Input()` + `OnChanges` to avoid refactoring scope.
@@ -52,6 +59,7 @@
 - **Optional row nav + expand** — `rowLink` and `showExpandColumn` keep subscriptions behavior, members table disables both.
 - **`rowActionsHidden` predicate** — Generic paginated-table input rather than hardcoding PRIMARY_OWNER logic in the shared component. Keeps the table reusable.
 - **Dialog design from screenshot** — Title "Edit Member" (not "Edit Role"), standalone label "Member Role" above the select, no member name shown in dialog body. Matched `edit-member-dialog.png`.
+- **Reuse `ConfirmDialogComponent` for delete** — No ad-hoc dialog needed. The existing component already supports title/content/confirmLabel/cancelLabel and has `color="warn"` for the red confirm button, matching the `delete-member-dialog.png` design exactly.
 
 ### Gotchas & surprises
 
@@ -62,6 +70,8 @@
 - Route binding: `userApplicationPermissions` is populated by the parent route's `applicationPermissionResolver`; `ApplicationComponent` receives it via `withComponentInputBinding()`, so no manual pass-through from a parent template.
 - **`rxResource` test gotcha:** Using `HttpClientTestingModule` + `AppTestingModule` with `rxResource` causes tests to hang on `await fixture.whenStable()`. Must use `provideHttpClient()` + `provideHttpClientTesting()` + `provideRouter([])` instead. Also need a final `fixture.detectChanges()` after `await fixture.whenStable()` to re-render after signal updates.
 - **No `$on-surface` SCSS variable** — The theme module doesn't export surface color variables. Removed the `@use 'theme'` import and let text color inherit naturally.
+- **`overrideProvider` must come before `compileComponents`** — Calling `TestBed.overrideProvider(InteractivityChecker, ...)` inside a nested `beforeEach` after the module is already instantiated throws. Must be chained onto `configureTestingModule` in the top-level `beforeEach`.
+- **First fixture row is PRIMARY_OWNER** — `fakeMembersResponse()` returns member-1 as PRIMARY_OWNER (hidden actions), so the first visible delete button belongs to member-2. Tests must account for this when asserting DELETE URL.
 
 ### Blockers / open questions
 
@@ -98,3 +108,6 @@
 
 - **Business rule feedback:**  
   `also, the row with the primary owner shouldn't have the edit or delete actions`
+
+- **Start Story 2.4 with reuse directive:**  
+  `Now let's proceed with 2.4 - FE: Delete Member Dialog. use @hackathon/screenshots/ as design guide. use @gravitee-apim-portal-webui-next/src/components/confirm-dialog/confirm-dialog.component.ts instead of creating an ad hoc component`

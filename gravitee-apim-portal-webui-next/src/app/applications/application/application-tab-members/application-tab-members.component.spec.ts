@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { InteractivityChecker } from '@angular/cdk/a11y';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -20,8 +23,9 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 
 import { ApplicationTabMembersComponent } from './application-tab-members.component';
+import { ConfirmDialogHarness } from '../../../../components/confirm-dialog/confirm-dialog.harness';
 import { MembersV2Response } from '../../../../entities/application-members/application-members';
-import { fakeMembersResponse } from '../../../../entities/application-members/application-members.fixture';
+import { fakeMember, fakeMembersResponse } from '../../../../entities/application-members/application-members.fixture';
 import { fakeUserApplicationPermissions } from '../../../../entities/permission/permission.fixtures';
 import { ConfigService } from '../../../../services/config.service';
 import { TESTING_BASE_URL } from '../../../../testing/app-testing.module';
@@ -41,7 +45,11 @@ describe('ApplicationTabMembersComponent', () => {
         provideRouter([]),
         { provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL } },
       ],
-    }).compileComponents();
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: { isFocusable: () => true, isTabbable: () => true },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {
@@ -174,6 +182,64 @@ describe('ApplicationTabMembersComponent', () => {
       fixture.componentInstance.onPageSizeChange(25);
       expect(fixture.componentInstance.pageSize()).toBe(25);
       expect(fixture.componentInstance.currentPage()).toBe(1);
+    });
+  });
+
+  describe('delete member', () => {
+    let rootLoader: HarnessLoader;
+
+    beforeEach(async () => {
+      rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+      await setup();
+    });
+
+    function clickDeleteButton(): void {
+      const el: HTMLElement = fixture.nativeElement;
+      const deleteBtn = el.querySelector<HTMLButtonElement>('[data-testid="action-delete"]');
+      expect(deleteBtn).toBeTruthy();
+      deleteBtn!.click();
+      fixture.detectChanges();
+    }
+
+    it('should open confirm dialog on delete click', async () => {
+      clickDeleteButton();
+      const dialog = await rootLoader.getHarnessOrNull(ConfirmDialogHarness);
+      expect(dialog).not.toBeNull();
+    });
+
+    it('should not call API when cancel is clicked', async () => {
+      clickDeleteButton();
+      const dialog = await rootLoader.getHarness(ConfirmDialogHarness);
+      await dialog.cancel();
+      http.expectNone(req => req.method === 'DELETE');
+    });
+
+    it('should call DELETE API and reload table on confirm', async () => {
+      const deletableMember = fakeMember({ id: 'member-2' });
+      clickDeleteButton();
+      const dialog = await rootLoader.getHarness(ConfirmDialogHarness);
+      await dialog.confirm();
+
+      const deleteReq = http.expectOne(req => req.method === 'DELETE' && req.url.includes(`/membersV2/${deletableMember.id}`));
+      deleteReq.flush(null);
+
+      flushMembers();
+    });
+  });
+
+  describe('primary owner actions', () => {
+    beforeEach(async () => {
+      const poOnlyResponse = fakeMembersResponse({
+        data: [fakeMember({ role: 'PRIMARY_OWNER' })],
+        metadata: { pagination: { total: 1, current_page: 1, size: 1, first: 1, last: 1, total_pages: 1 } },
+      });
+      await setup(poOnlyResponse);
+    });
+
+    it('should not show action buttons for PRIMARY_OWNER', () => {
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.querySelector('[data-testid="action-edit"]')).toBeFalsy();
+      expect(el.querySelector('[data-testid="action-delete"]')).toBeFalsy();
     });
   });
 });

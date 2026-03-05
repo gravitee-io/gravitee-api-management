@@ -43,4 +43,8 @@ export class ApplicationMembersService {
   updateMemberRole(applicationId: string, memberId: string, role: string): Observable<MemberV2> {
     return this.http.put<MemberV2>(`${this.configService.baseURL}/applications/${applicationId}/membersV2/${memberId}`, { role });
   }
+
+  deleteMember(applicationId: string, memberId: string): Observable<void> {
+    return this.http.delete<void>(`${this.configService.baseURL}/applications/${applicationId}/membersV2/${memberId}`);
+  }
 }

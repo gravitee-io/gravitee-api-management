@@ -26,6 +26,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { EMPTY, switchMap, take } from 'rxjs';
 
 import { EditMemberRoleDialogComponent, EditMemberRoleDialogData } from './edit-member-role-dialog/edit-member-role-dialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../components/confirm-dialog/confirm-dialog.component';
 import { LoaderComponent } from '../../../../components/loader/loader.component';
 import { PaginatedTableComponent, TableActionEvent, TableColumn } from '../../../../components/paginated-table/paginated-table.component';
 import { ApplicationRoleV2 } from '../../../../entities/application-members/application-members';
@@ -138,7 +139,7 @@ export class ApplicationTabMembersComponent {
         this.openEditRoleDialog(event.row);
         break;
       case 'delete':
-        // Placeholder for Story 2.4
+        this.openDeleteMemberDialog(event.row);
         break;
     }
   }
@@ -177,6 +178,38 @@ export class ApplicationTabMembersComponent {
         error: (err) => {
           console.error('Failed to update member role', err);
           this.snackBar.open($localize`:@@memberRoleUpdateFailed:Failed to update member role`, '', { duration: 5000 });
+        },
+      });
+  }
+
+  private openDeleteMemberDialog(row: Record<string, unknown>): void {
+    const memberName = row['display_name'] as string;
+    const dialogData: ConfirmDialogData = {
+      title: $localize`:@@deleteMemberDialogTitle:Remove Member`,
+      content: $localize`:@@deleteMemberDialogContent:Are you sure you want to remove "${memberName}" from this application? They will lose all access.`,
+      confirmLabel: $localize`:@@deleteMemberDialogConfirm:Remove`,
+      cancelLabel: $localize`:@@deleteMemberDialogCancel:Cancel`,
+    };
+
+    this.matDialog
+      .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
+        role: 'alertdialog',
+        id: 'deleteMemberDialog',
+        data: dialogData,
+      })
+      .afterClosed()
+      .pipe(
+        switchMap(confirmed => (confirmed ? this.membersService.deleteMember(this.applicationId(), row['id'] as string) : EMPTY)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.snackBar.open($localize`:@@memberDeleted:Member removed`, '', { duration: 3000 });
+          this.membersResource.reload();
+        },
+        error: (err) => {
+          console.error('Failed to remove member', err);
+          this.snackBar.open($localize`:@@memberDeleteFailed:Failed to remove member`, '', { duration: 5000 });
         },
       });
   }

@@ -102,4 +102,15 @@ describe('ApplicationMembersService', () => {
     expect(req.request.body).toEqual({ role: 'VIEWER' });
     req.flush({ id: memberId, role: 'VIEWER', status: 'ACTIVE', user: { id: 'user-1', display_name: 'Admin master' } });
   });
+
+  it('should delete member', done => {
+    const memberId = 'member-1';
+    service.deleteMember(applicationId, memberId).subscribe(() => {
+      done();
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${applicationId}/membersV2/${memberId}`);
+    expect(req.request.method).toEqual('DELETE');
+    req.flush(null);
+  });
 });
