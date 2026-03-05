@@ -16,6 +16,8 @@
 package io.gravitee.gateway.handlers.sharedpolicygroup.manager.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -24,6 +26,8 @@ import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.event.SharedPolicyGroupEvent;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
+import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
@@ -61,6 +65,7 @@ class SharedPolicyGroupManagerImplTest {
     void should_deploy_shared_policy_group() {
         final ReactableSharedPolicyGroup sharedPolicyGroup = new SharedPolicyGroupBuilder().id(SHARED_POLICY_GROUP_ID).build();
         cut.register(sharedPolicyGroup);
+        verify(eventManager).publishEvent(eq(SecretDiscoveryEventType.DISCOVER), any(SecretDiscoveryEvent.class));
         verify(eventManager).publishEvent(SharedPolicyGroupEvent.DEPLOY, sharedPolicyGroup);
         assertThat(cut.sharedPolicyGroups()).hasSize(1);
     }
@@ -79,6 +84,7 @@ class SharedPolicyGroupManagerImplTest {
 
         cut.register(sharedPolicyGroup2);
         verify(eventManager).publishEvent(SharedPolicyGroupEvent.UPDATE, sharedPolicyGroup2);
+        verify(eventManager).publishEvent(eq(SecretDiscoveryEventType.REVOKE), any(SecretDiscoveryEvent.class));
         assertThat(cut.sharedPolicyGroups()).hasSize(1);
     }
 
@@ -109,6 +115,7 @@ class SharedPolicyGroupManagerImplTest {
 
         cut.unregister(sharedPolicyGroup.getId());
         verify(eventManager).publishEvent(SharedPolicyGroupEvent.UNDEPLOY, sharedPolicyGroup);
+        verify(eventManager).publishEvent(eq(SecretDiscoveryEventType.REVOKE), any(SecretDiscoveryEvent.class));
         assertThat(cut.sharedPolicyGroups()).isEmpty();
     }
 
