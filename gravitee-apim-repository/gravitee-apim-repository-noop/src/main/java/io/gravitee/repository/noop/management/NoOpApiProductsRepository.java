@@ -15,10 +15,16 @@
  */
 package io.gravitee.repository.noop.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiProductsRepository;
+import io.gravitee.repository.management.api.search.ApiProductCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiProduct;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -73,5 +79,11 @@ public class NoOpApiProductsRepository implements ApiProductsRepository {
     @Override
     public Set<ApiProduct> findApiProductsByApiIds(Collection<String> apiIds) throws TechnicalException {
         return Set.of();
+    }
+
+    @Override
+    public Page<String> searchIds(List<ApiProductCriteria> apiProductCriteriaList, Pageable pageable, Sortable sortable)
+        throws TechnicalException {
+        return new Page<>(Collections.emptyList(), 0, 0, 0);
     }
 }

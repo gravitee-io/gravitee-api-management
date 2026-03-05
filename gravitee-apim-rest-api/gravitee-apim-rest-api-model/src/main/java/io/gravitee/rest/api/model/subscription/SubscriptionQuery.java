@@ -35,6 +35,8 @@ public class SubscriptionQuery {
 
     private Collection<String> apis;
 
+    private Collection<String> apiProducts;
+
     private Collection<String> excludedApis;
 
     private Collection<String> plans;

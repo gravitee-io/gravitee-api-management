@@ -143,10 +143,22 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     @Override
     @Async
     public void trigger(final ExecutionContext executionContext, final ApiHook hook, final String apiId, Map<String, Object> params) {
+        trigger(executionContext, hook, NotificationReferenceType.API, apiId, params);
+    }
+
+    @Override
+    @Async
+    public void trigger(
+        final ExecutionContext executionContext,
+        final ApiHook hook,
+        final NotificationReferenceType referenceType,
+        final String referenceId,
+        Map<String, Object> params
+    ) {
         var triggerNotificationsData = TriggerNotificationsData.builder()
             .hook(hook)
-            .referenceType(NotificationReferenceType.API)
-            .referenceId(apiId)
+            .referenceType(referenceType)
+            .referenceId(referenceId)
             .params(params)
             .build();
         triggerPortalNotifications(executionContext, triggerNotificationsData);

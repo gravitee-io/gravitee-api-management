@@ -15,11 +15,17 @@
  */
 package io.gravitee.repository.mongodb.management.internal.apiproducts;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.ApiProductCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiProductMongo;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 public interface ApiProductsMongoRepositoryCustom {
     Set<ApiProductMongo> findByApiId(String apiId);
     Set<ApiProductMongo> findApiProductsByApiIds(Collection<String> apiIds);
+    Page<String> searchIds(List<ApiProductCriteria> apiProductCriteriaList, Pageable pageable, Sortable sortable);
 }

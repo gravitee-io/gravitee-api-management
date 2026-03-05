@@ -20,7 +20,9 @@ import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
 import io.gravitee.apim.core.notification.model.hook.portal.PortalHookContext;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.infra.notification.internal.TemplateDataFetcher;
+import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collections;
@@ -42,13 +44,32 @@ public class TriggerNotificationDomainServiceFacadeImpl implements TriggerNotifi
 
     @Override
     public void triggerApiNotification(String organizationId, String environmentId, ApiHookContext context) {
+        var executionContext = new ExecutionContext(organizationId, environmentId);
         var notificationParameters = templateDataFetcher.fetchData(organizationId, context);
-        notifierService.trigger(
-            new ExecutionContext(organizationId, environmentId),
-            context.getHook(),
-            context.getApiId(),
-            notificationParameters
-        );
+        if (context.getReferenceType() != null) {
+            var refType = context.getReferenceType() == SubscriptionReferenceType.API_PRODUCT
+                ? NotificationReferenceType.API_PRODUCT
+                : NotificationReferenceType.API;
+            notifierService.trigger(executionContext, context.getHook(), refType, context.getReferenceId(), notificationParameters);
+        } else {
+            notifierService.trigger(executionContext, context.getHook(), context.getReferenceId(), notificationParameters);
+        }
+    }
+
+    @Override
+    public void triggerSubscriptionReferenceNotification(
+        String organizationId,
+        String environmentId,
+        SubscriptionReferenceType referenceType,
+        String referenceId,
+        ApiHookContext context
+    ) {
+        var executionContext = new ExecutionContext(organizationId, environmentId);
+        var notificationParameters = templateDataFetcher.fetchData(organizationId, context);
+        var refType = referenceType == SubscriptionReferenceType.API_PRODUCT
+            ? NotificationReferenceType.API_PRODUCT
+            : NotificationReferenceType.API;
+        notifierService.trigger(executionContext, context.getHook(), refType, referenceId, notificationParameters);
     }
 
     @Override

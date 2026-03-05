@@ -26,8 +26,8 @@ import lombok.ToString;
 @ToString(callSuper = true)
 public class ApiDeprecatedApiHookContext extends ApiHookContext {
 
-    public ApiDeprecatedApiHookContext(String apiId) {
-        super(ApiHook.API_DEPRECATED, apiId);
+    public ApiDeprecatedApiHookContext(String referenceId) {
+        super(ApiHook.API_DEPRECATED, referenceId);
     }
 
     @Override

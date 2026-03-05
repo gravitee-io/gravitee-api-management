@@ -15,25 +15,22 @@
  */
 package io.gravitee.rest.api.service.notification;
 
-/**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
- * @author GraviteeSource Team
- */
-public enum HookScope {
-    API(true),
-    APPLICATION(true),
-    PORTAL(true),
-    TEMPLATES_FOR_ACTION(false),
-    TEMPLATES_FOR_ALERT(false),
-    API_PRODUCT(true);
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-    private boolean hasPortalNotification;
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ApiProductTemplateModel {
 
-    HookScope(boolean hasPortalNotification) {
-        this.hasPortalNotification = hasPortalNotification;
-    }
-
-    public boolean hasPortalNotification() {
-        return hasPortalNotification;
-    }
+    private String id;
+    private String name;
+    private String version;
+    private PrimaryOwnerEntity primaryOwner;
 }

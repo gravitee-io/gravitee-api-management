@@ -63,11 +63,7 @@ public class RejectSubscriptionDomainService {
         var rejectedSubscriptionEntity = subscriptionEntity.rejectBy(auditInfo.actor().userId(), reason);
 
         subscriptionRepository.update(rejectedSubscriptionEntity);
-        boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT.equals(subscriptionEntity.getReferenceType());
-        if (!isApiProduct) {
-            triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), rejectedSubscriptionEntity);
-        }
-        // API Product: notifications not yet supported (TemplateDataFetcher expects API, not API Product).
+        triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), rejectedSubscriptionEntity);
         createAudit(subscriptionEntity, rejectedSubscriptionEntity, auditInfo);
 
         return rejectedSubscriptionEntity;
@@ -87,23 +83,30 @@ public class RejectSubscriptionDomainService {
             rejectedSubscriptionEntity.getApplicationId()
         );
 
-        triggerNotificationDomainService.triggerApiNotification(
+        String referenceId = rejectedSubscriptionEntity.getReferenceId();
+        var referenceType = rejectedSubscriptionEntity.getReferenceType();
+        var apiContext = new SubscriptionRejectedApiHookContext(
+            referenceType,
+            referenceId,
+            rejectedSubscriptionEntity.getApplicationId(),
+            rejectedSubscriptionEntity.getPlanId(),
+            rejectedSubscriptionEntity.getId(),
+            applicationPrimaryOwner.id()
+        );
+        triggerNotificationDomainService.triggerSubscriptionReferenceNotification(
             organizationId,
             environmentId,
-            new SubscriptionRejectedApiHookContext(
-                rejectedSubscriptionEntity.getApiId(),
-                rejectedSubscriptionEntity.getApplicationId(),
-                rejectedSubscriptionEntity.getPlanId(),
-                rejectedSubscriptionEntity.getId(),
-                applicationPrimaryOwner.id()
-            )
+            referenceType,
+            referenceId,
+            apiContext
         );
         triggerNotificationDomainService.triggerApplicationNotification(
             organizationId,
             environmentId,
             new SubscriptionRejectedApplicationHookContext(
                 rejectedSubscriptionEntity.getApplicationId(),
-                rejectedSubscriptionEntity.getApiId(),
+                referenceType,
+                referenceId,
                 rejectedSubscriptionEntity.getPlanId(),
                 rejectedSubscriptionEntity.getId(),
                 applicationPrimaryOwner.id()

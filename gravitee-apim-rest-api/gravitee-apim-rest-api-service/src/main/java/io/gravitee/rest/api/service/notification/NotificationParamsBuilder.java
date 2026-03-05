@@ -33,6 +33,7 @@ public class NotificationParamsBuilder {
 
     public static final String PARAM_APPLICATION = "application";
     public static final String PARAM_API = "api";
+    public static final String PARAM_API_PRODUCT = "apiProduct";
     public static final String PARAM_OWNER = "owner";
     public static final String PARAM_API_KEY = "apiKey";
     public static final String PARAM_PLAN = "plan";
@@ -86,6 +87,11 @@ public class NotificationParamsBuilder {
 
     public NotificationParamsBuilder api(GenericApiEntity api) {
         this.params.put(PARAM_API, api);
+        return this;
+    }
+
+    public NotificationParamsBuilder apiProduct(ApiProductTemplateModel apiProduct) {
+        this.params.put(PARAM_API_PRODUCT, apiProduct);
         return this;
     }
 
