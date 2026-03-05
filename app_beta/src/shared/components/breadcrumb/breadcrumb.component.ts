@@ -1,18 +1,17 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatIconButton } from '@angular/material/button';
-import { MatDivider } from '@angular/material/divider';
 
 @Component({
     selector: 'app-breadcrumb',
     standalone: true,
-    imports: [MatIconModule, MatIconButton, MatDivider],
+    imports: [MatIconModule, MatIconButton],
     template: `
         <nav class="breadcrumb" aria-label="Breadcrumb">
             <button mat-icon-button (click)="toggleSidebar.emit()" aria-label="Toggle sidebar">
                 <mat-icon svgIcon="gio:sidebar"></mat-icon>
             </button>
-            <mat-divider vertical></mat-divider>
+            <span class="divider"></span>
             <ol>
                 <li><a href="/app-beta">Home</a></li>
                 <li>
@@ -36,8 +35,11 @@ import { MatDivider } from '@angular/material/divider';
                 --mdc-icon-button-state-layer-size: 1.75rem;
                 --mdc-icon-button-icon-size: 1rem;
             }
-            mat-divider {
+            .divider {
+                width: 1px;
                 height: 1rem;
+                background-color: var(--border);
+                flex-shrink: 0;
             }
             ol {
                 display: flex;
