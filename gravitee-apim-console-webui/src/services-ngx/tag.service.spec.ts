@@ -21,6 +21,7 @@ import { TagService } from './tag.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeTag } from '../entities/tag/tag.fixture';
 import { fakeNewTag } from '../entities/tag/newTag.fixture';
+import { UpdateTagEntity } from '../entities/tag/tag';
 
 describe('TagService', () => {
   let httpTestingController: HttpTestingController;
@@ -93,20 +94,25 @@ describe('TagService', () => {
 
   describe('update', () => {
     it('should call the API', done => {
-      const tag = fakeTag({ id: 'tag#1' });
+      const tagKey = 'external';
+      const updateTagEntity: UpdateTagEntity = {
+        name: 'External',
+        description: 'A tag for all external stuff',
+        restricted_groups: [],
+      };
 
-      tagService.update(tag).subscribe(response => {
-        expect(response).toStrictEqual(tag);
+      tagService.update(tagKey, updateTagEntity).subscribe(response => {
+        expect(response).toStrictEqual(updateTagEntity);
         done();
       });
 
       const req = httpTestingController.expectOne({
         method: 'PUT',
-        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags/tag#1`,
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags/${tagKey}`,
       });
-      expect(req.request.body).toEqual(tag);
+      expect(req.request.body).toEqual(updateTagEntity);
 
-      req.flush(tag);
+      req.flush(updateTagEntity);
     });
   });
 

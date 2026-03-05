@@ -20,3 +20,9 @@ export interface Tag {
   description: string;
   restricted_groups?: string[];
 }
+
+export interface UpdateTagEntity {
+  name: string;
+  description: string;
+  restricted_groups?: string[];
+}
