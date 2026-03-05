@@ -21,7 +21,9 @@ import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testin
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { of } from 'rxjs';
 import { MatTableHarness } from '@angular/material/table/testing';
 
 import { ApplicationSubscriptionListModule } from './application-subscription-list.module';
@@ -269,6 +271,56 @@ describe('ApplicationSubscriptionListComponent', () => {
       expect(rowCells[0][2]).toContain('Api Name - 1');
       expect(rowCells[0][2]).toContain('API Product');
       expect(rowCells[0][7]).toBe('Accepted');
+    }));
+
+    it('should show API product in close confirmation when subscription is API Product', fakeAsync(async () => {
+      const subscription = fakeSubscriptionPage({
+        referenceType: 'API_PRODUCT',
+        referenceId: 'product-id',
+        application: APPLICATION_ID,
+        plan: PLAN_ID,
+      });
+      await initComponent([subscription], undefined, [...DEFAULT_PERMISSIONS, 'application-subscription-d']);
+
+      const matDialog = fixture.debugElement.injector.get(MatDialog);
+      const openSpy = jest.spyOn(matDialog, 'open').mockReturnValue({ afterClosed: () => of(undefined) } as any);
+
+      const listComp = fixture.componentInstance.subscriptionListComponent;
+      const apiProductRow = listComp.subscriptionsTableDS[0];
+      listComp.closeSubscription(apiProductRow);
+
+      expect(openSpy).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          data: expect.objectContaining({
+            content: expect.stringContaining('API product'),
+          }),
+        }),
+      );
+      openSpy.mockRestore();
+    }));
+
+    it('should show API in close confirmation when subscription is API', fakeAsync(async () => {
+      const subscription = fakeSubscriptionPage({ api: API_ID, application: APPLICATION_ID, plan: PLAN_ID });
+      await initComponent([subscription], undefined, [...DEFAULT_PERMISSIONS, 'application-subscription-d']);
+
+      const matDialog = fixture.debugElement.injector.get(MatDialog);
+      const openSpy = jest.spyOn(matDialog, 'open').mockReturnValue({ afterClosed: () => of(undefined) } as any);
+
+      const listComp = fixture.componentInstance.subscriptionListComponent;
+      const apiRow = listComp.subscriptionsTableDS[0];
+      listComp.closeSubscription(apiRow);
+
+      expect(openSpy).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          data: expect.objectContaining({
+            content: expect.stringContaining('consume this API anymore'),
+          }),
+        }),
+      );
+      expect((openSpy.mock.calls[0][1] as { data: { content: string } }).data.content).not.toContain('API product');
+      openSpy.mockRestore();
     }));
   });
 

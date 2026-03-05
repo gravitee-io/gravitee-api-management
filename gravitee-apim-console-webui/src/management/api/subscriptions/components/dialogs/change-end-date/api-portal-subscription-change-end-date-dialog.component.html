@@ -21,7 +21,8 @@
   <mat-dialog-content class="change-end-date__dialog-content">
     <div class="change-end-date__content">
       <div class="change-end-date__warning">
-        Be careful, by changing the end date, {{ data.applicationName }} may no longer have access to this API.
+        Be careful, by changing the end date, {{ data.applicationName }} may no longer have access to this
+        {{ data.isApiProduct ? 'API product' : 'API' }}.
       </div>
       <div *ngIf="data.securityType === 'API_KEY'">All API Keys after the new end date will be revoked.</div>
       <mat-form-field>
