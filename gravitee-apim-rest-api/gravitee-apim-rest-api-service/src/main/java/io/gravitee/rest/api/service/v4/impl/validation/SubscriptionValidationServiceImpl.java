@@ -81,9 +81,15 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
                 applicationId,
                 ClientCertificateStatus.ACTIVE_WITH_END
             );
+
+            if (byApplicationIdAndStatuses.isEmpty()) {
+                // match all returns true on empty collections
+                return;
+            }
             boolean subscriptionEndsAfterCertificate = byApplicationIdAndStatuses
                 .stream()
-                .anyMatch(clientCertificate -> clientCertificate.endsAt().toInstant().isAfter(subscription.getEndingAt().toInstant()));
+                // all ending certificates must be before the subscription ending date
+                .allMatch(clientCertificate -> clientCertificate.endsAt().toInstant().isBefore(subscription.getEndingAt().toInstant()));
             if (subscriptionEndsAfterCertificate) {
                 throw new SubscriptionEndsAfterClientCertificateException();
             }

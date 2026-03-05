@@ -162,7 +162,7 @@ public class SubscriptionCacheService implements SubscriptionService {
     private void registerFromClientCertificate(final Subscription subscription) {
         final Set<String> servers = extractApiServersId(subscription);
 
-        // register new certs and remove old one
+        // Ensure trust store is updated before cache to maintain certificate validation consistency
         subscriptionTrustStoreLoaderManager.registerSubscription(subscription, servers);
 
         // keep the old one

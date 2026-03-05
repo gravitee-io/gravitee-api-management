@@ -141,8 +141,6 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
             for (var cert : tls.getClientCertificates()) {
                 errors.addAll(validateCertificateEntry(cert));
             }
-        } else {
-            errors.add(Error.severe("tls configuration must contain either clientCertificate or clientCertificates"));
         }
 
         return errors;
