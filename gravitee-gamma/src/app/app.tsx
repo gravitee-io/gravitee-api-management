@@ -69,7 +69,7 @@ export function App() {
     };
 
     return (
-        <div className="flex min-h-svh w-full flex-col">
+        <div className="flex h-svh w-full flex-col">
             <TopNav
                 leading={
                     <div className="flex items-center gap-2">
