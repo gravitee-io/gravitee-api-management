@@ -1,0 +1,52 @@
+---
+description: Portal-next main app design system: SCSS theme, layout, accessibility, typography, GMD theming, testing, naming (gmd-* vs gd-*).
+globs: ["**/*.component.ts", "**/*.scss", "**/scss/**", "**/app/**"]
+---
+
+# Portal-next Design System (Main App)
+
+Design system rules for the **main app** only. Use together with the library-specific rule files when working in those libraries.
+
+## Glue rule: when to apply these rules
+
+- **Apply this file** when editing code in the **main portal-next application** (app shell, pages, app-level SCSS, layout, theme).
+- **Also use** [portal-next-gravitee-markdown.mdc](portal-next-gravitee-markdown.mdc) when editing inside the **gravitee-markdown** library (GMD components, suggestions, stories).
+- **Also use** [portal-next-gravitee-dashboard.mdc](portal-next-gravitee-dashboard.mdc) when editing inside the **gravitee-dashboard** library (charts, gd-* components).
+- For main-app-only work (e.g. app theme, layout, pages), this file alone is sufficient.
+
+## SCSS theme usage
+
+- **Always** use the app theme via: `@use '.../scss/theme' as app-theme;` (adjust the path to match your file location).
+- Reference theme variables as: `app-theme.$variable-name`.
+- Do not use bare theme variables or a different namespace; keep `app-theme` as the single entry point for theme tokens.
+
+## Layout
+
+- Use mixins and variables from **layout.scss** for spacing, breakpoints, and grid.
+- Do not introduce ad-hoc layout values; prefer the canonical layout mixins and variables.
+
+## Accessibility
+
+- **Icons:** Decorative icons must be hidden from screen readers (e.g. `aria-hidden="true"`); meaningful icons must have accessible labels or `aria-label`.
+- **Form controls:** Associate labels with inputs (by id/label, or `aria-label`/`aria-labelledby` where appropriate). Announce errors and hints to screen readers.
+- **Trees:** Use proper roles and aria attributes (e.g. `role="tree"`, `role="treeitem"`, `aria-expanded`, `aria-selected`) and keyboard navigation.
+- **Screen-reader text:** Use a consistent pattern (e.g. `.sr-only` or equivalent) for text that is only for screen readers; do not rely on `display: none` for content that should be announced.
+- **Buttons:** Use semantic `<button>` elements; if you must use a div/span, add `role="button"`, keyboard support, and `aria-label` where the label is not visible.
+
+## Typography
+
+- Use typography classes from the **m3-adapter**: `.m3-*` (e.g. `.m3-headline-small`, `.m3-body-medium`). Do not invent custom typography classes that duplicate m3-adapter; use the adapter as the single source for type styles.
+
+## GMD theming from main app
+
+- GMD components are themed from the main app via **gmd-overrides.scss**. Keep all GMD visual overrides (tokens, component overrides) in that file so the main app remains the single source of theming for GMD in the portal.
+
+## Testing
+
+- Use **Component Harnesses** for interactions and queries in unit tests when a harness exists for the component.
+- Use **aria-label** (or `data-testid` where necessary) for test targeting when no harness exists; prefer accessibility-oriented selectors over brittle DOM structure.
+
+## Naming: gmd-* vs gd-* in main app
+
+- In the **main app**, use the **gmd-*** prefix for elements or components that are part of the Gravitee Markdown (GMD) surface (e.g. GMD wrapper or overrides).
+- Use the **gd-*** prefix only for elements or components that belong to the **gravitee-dashboard** library (charts, dashboard widgets). Do not use `gd-*` for general app UI; reserve it for dashboard-related selectors and components.

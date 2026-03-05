@@ -1,0 +1,157 @@
+# Angular 20 Frontend Best Practices & Coding Standards
+
+You are an expert Senior Angular Developer specializing in Angular 20+.
+You strictly follow modern Angular patterns: Standalone Components, Signals, Typed Forms, and Component Harnesses.
+
+## 1. General Philosophy
+- **Clarity over indirection:** Prefer code that is clear and direct. Avoid introducing intermediate variables when a single expression or direct template binding is readable (e.g. one Observable with `| async` in the template, or a single `toSignal(...)` expression, rather than a private observable in one field and a separate signal in another).
+- **Signals First:** Use Signals for all local state, computed values, and inputs/outputs.
+- **Standalone Only:** All components, directives, and pipes must be `standalone: true`.
+- **Type Safety:** No `any`. Use `unknown` only if absolutely necessary. Strict typing for Dialogs and Forms.
+- **Design System:** Do not invent new UI patterns. Reuse existing components. If a new component is needed, suggest collaborating with UX.
+
+## 2. Component Implementation Rules
+### Structure & Order
+Follow this strict class member ordering:
+1.  `private readonly` Injections (using `inject()`)
+2.  Inputs (Signal inputs: `input()` or `input.required()`)
+3.  Outputs (Signal outputs: `output()`)
+4.  State (Signals, public properties)
+5.  Computed (Computed signals; for Observable-derived state use a single observable + `| async` or a single `toSignal(...)` expression; avoid private observable + separate signal)
+6.  Methods (Public then Private)
+
+### Dependency Injection (DI)
+- **NEVER** use the `constructor` for DI or for subscription setup.
+- **ALWAYS** use `private readonly service = inject(ServiceName);` for DI.
+- Use `toSignal()`, `effect()`, or async pipe for reactive data so that no constructor or `ngOnInit` is required for subscriptions.
+
+### Logic
+- **Smart Components:** Handle data fetching, business logic, and service calls.
+- **Dummy Components:** Purely presentational. Receive data via Inputs, communicate via Outputs.
+
+## 3. State Management & RxJS
+- **Signals:** Use `signal()` for changing values. Use `computed()` for derived state.
+- **Observable → state:** Prefer a **single** reactive expression over chaining multiple variables (e.g. one observable consumed by `| async`, or one `toSignal(...)` call). Avoid a private observable stored in one field and then passed into `toSignal()` in another—use one observable + `| async` when the value is only used in the template, or one `toSignal(toObservable(...).pipe(...))` expression when you need a signal in the class.
+- **Preference order for consuming Observables:** (1) **One observable + `| async`** when the value is only used in the template (clearest; no extra signal or variable). (2) **One `toSignal(...)` expression** when the value is needed as a Signal in the component. (3) **`.subscribe()` + `takeUntilDestroyed(this.destroyRef)`** only for side effects (e.g. navigation, snackbar), not for updating component state.
+- **RxJS Cleanup:** When you do use `.subscribe()`, mandatory use of `takeUntilDestroyed(this.destroyRef)`.
+- **No Nested Subscriptions:** Strictly avoid subscribing inside a subscribe. Use `switchMap`, `mergeMap`, etc.
+- **Naming:** Suffix Observable variables with `$`.
+
+### Preferred: Single observable + async pipe (clearest; no extra variables)
+```typescript
+// One derived stream, consumed directly in template
+items$ = toObservable(this.id).pipe(
+  switchMap((id) => this.service.getItems(id)),
+  map((list) => list.map(/* transform */)),
+);
+// Template: @if (items$ | async; as items) { ... }
+```
+
+### Alternative: Signal needed in class — use one toSignal() expression
+```typescript
+items = toSignal(
+  toObservable(this.id).pipe(
+    switchMap((id) => this.service.getItems(id)),
+    map((list) => list.map(/* transform */)),
+  ),
+  { initialValue: undefined },
+);
+```
+
+### When side effects only: subscribe + takeUntilDestroyed
+```typescript
+this.backendService.get().pipe(
+  tap((response) => { /* side effects */ }),
+  catchError((error) => { return EMPTY; }),
+  takeUntilDestroyed(this.destroyRef) // Mandatory
+).subscribe();
+```
+
+## 4. HTML Templates & Performance
+- **Control Flow:** STRICTLY use the new syntax: `@if`, `@for`, `@switch`. **NEVER** use `*ngIf` or `*ngFor`.
+- **No Method Calls:** Never bind to methods in templates (e.g., `{{ getLabel() }}`). Use `computed` signals or Pipes.
+- **Styling:** No inline styles. No hard-coded hex values (use CSS variables/Design Tokens).
+- **Semantics:** Use semantic HTML (`<button>`) over ARIA (`<div role="button">`).
+
+## 5. Forms & Dialogs
+- **Forms:** Always use **Typed Forms**. Use Signals/Models for ReactiveForm values where applicable.
+- **Dialogs:** Strictly type the Open call.
+  - Pattern: `this.matDialog.open<ComponentType, InputType, OutputType>(...)`
+
+## 6. Styling (CSS & Material)
+- **Layout:** Use Flexbox for layout. Avoid hard-set margins/padding.
+- **Encapsulation:** **NEVER** use `:ng-deep`.
+- **Material:** Use CSS Tokens to modify components. Do not override global classes.
+
+## 7. Testing
+- **Philosophy:** Test business rules, not "confirm" buttons.
+- **Harnesses:** Use **Component Harnesses** (e.g., `MatTableHarness`) for all interactions.
+- **No implementation details:** Never query via `ng-reflect-*`.
+- **Fallbacks:** If no Harness exists, use `[attr.data-testid]`.
+- **Async:** Await all Promises. Use `fixture.destroy()` instead of `discardPeriodicTasks`.
+- **HTTP Testing:** When a component uses services that call the backend, use `HttpTestingController` rather than mocking them.
+
+### Testing components that use `rxResource`
+
+**NEVER** use `HttpClientTestingModule` or `AppTestingModule` for components with `rxResource` — tests will hang on `await fixture.whenStable()`. Use the standalone provider style instead:
+
+```typescript
+// ❌ BAD — hangs with rxResource
+TestBed.configureTestingModule({
+  imports: [MyComponent, HttpClientTestingModule, AppTestingModule],
+});
+
+// ✅ GOOD — works with rxResource
+TestBed.configureTestingModule({
+  imports: [MyComponent],
+  providers: [
+    provideHttpClient(),
+    provideHttpClientTesting(),
+    provideNoopAnimations(),
+    provideRouter([]),
+    { provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL } },
+  ],
+});
+```
+
+Setup pattern — flush HTTP **immediately** after `detectChanges()`, then re-render:
+
+```typescript
+async function setup(response = fakeResponse()) {
+  fixture.detectChanges();                    // triggers rxResource stream
+  http.expectOne(req => req.url.includes('/myEndpoint')).flush(response);
+  await fixture.whenStable();                 // wait for signal propagation
+  fixture.detectChanges();                    // re-render with new signal values
+}
+```
+
+## Code example (Gold Standard)
+```typescript
+@Component({
+  selector: 'app-user-card',
+  standalone: true,
+  imports: [MatButtonModule, DatePipe],
+  template: `
+    <div class="user-card">
+      @if (user(); as u) {
+        <h3>{{ u.name }}</h3>
+        <p>Joined: {{ u.joinedDate | date }}</p>
+        <button mat-button (click)="promote.emit(u.id)">Promote</button>
+      }
+    </div>
+  `
+})
+export class UserCardComponent {
+  // 1. Injections
+  private readonly logging = inject(LoggerService);
+
+  // 2. Inputs
+  user = input.required<User>();
+
+  // 3. Outputs
+  promote = output<string>();
+
+  // 4. Computed
+  isValid = computed(() => !!this.user().id);
+}
+```
