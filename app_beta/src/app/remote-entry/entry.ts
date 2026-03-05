@@ -1,9 +1,17 @@
 import { Component } from '@angular/core';
-import { NxWelcome } from './nx-welcome';
+import { SideNavComponent } from './side-nav.component';
 
 @Component({
-    imports: [NxWelcome],
+    imports: [SideNavComponent],
     selector: 'app-app_beta-entry',
-    template: `<app-nx-welcome></app-nx-welcome>`,
+    template: `<app-side-nav></app-side-nav>`,
+    styles: [
+        `
+            :host {
+                display: block;
+                height: 100%;
+            }
+        `,
+    ],
 })
 export class RemoteEntry {}

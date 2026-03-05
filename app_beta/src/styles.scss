@@ -8,9 +8,8 @@ html {
     @include mat.theme((
         color: (
             primary: mat.$orange-palette,
-            tertiary: mat.$neutral-palette,
         ),
-        typography: Nunito Sans,
+        typography: 'Nunito Sans',
         density: 0,
     ));
 }
