@@ -86,9 +86,13 @@ import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeExcep
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.exception.SubscriptionEndsAfterClientCertificateException;
 import jakarta.ws.rs.BadRequestException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1068,6 +1072,53 @@ public class ApplicationService_UpdateTest {
         verify(clientCertificateCrudService, never()).update(eq("kept-cert-id"), any());
         // No new certs to create
         verify(clientCertificateCrudService, never()).create(any(), any());
+    }
+
+    @Test
+    public void should_fail_updating_multiple_certificates_from_list() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setApp(new SimpleApplicationSettings());
+        Instant maxDate = Instant.now().plus(10, ChronoUnit.DAYS);
+        settings.setTls(
+            TlsSettings.builder()
+                .clientCertificates(
+                    java.util.List.of(
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate(
+                            "cert-1",
+                            null,
+                            Date.from(Instant.now().plus(5, ChronoUnit.DAYS)),
+                            VALID_PEM_1
+                        ),
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate(
+                            "cert-2",
+                            null,
+                            Date.from(maxDate),
+                            "another-pem-content"
+                        )
+                    )
+                )
+                .build()
+        );
+        ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
+
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+
+        // Mocks subscription search returning active subscriptions for the application
+        when(subscriptionService.search(any(), any())).thenReturn(List.of(mock(SubscriptionEntity.class)));
+
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        assertThrows(SubscriptionEndsAfterClientCertificateException.class, () ->
+            applicationService.update(executionContext, APPLICATION_ID, updateApplication)
+        );
+
+        // Verify both certificates were created
+        verify(clientCertificateCrudService, never()).create(eq(APPLICATION_ID), any());
+        verify(clientCertificateCrudService, never()).update(any(), any());
     }
 
     private static @NotNull ConsoleConfigEntity getConsoleConfigEntity(boolean enabled) {

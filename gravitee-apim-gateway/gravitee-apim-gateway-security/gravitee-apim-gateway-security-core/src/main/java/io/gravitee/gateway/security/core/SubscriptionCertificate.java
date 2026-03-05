@@ -26,30 +26,7 @@ import org.jspecify.annotations.NonNull;
  * <p>A record that encapsulates information about a subscription certificate,
  * including the associated subscription, certificate, and certificate fingerprint.</p>
  *
- * <p>This record ensures that all fields are non-null through its constructor validation
- * and provides additional methods for equality and hashing based on the subscription ID
- * and fingerprint.</p>
- *
- * <p>The SubscriptionCertificate is typically used to bind a subscription to its corresponding
- * security certificate along with a unique fingerprint representation of the certificate.</p>
- *
- * <h3>Components:</h3>
- * <ul>
- * <li><code>subscription</code>: The subscription associated with the certificate.</li>
- * <li><code>certificate</code>: The security certificate associated with the subscription.</li>
- * <li><code>fingerprint</code>: A unique hash representation (fingerprint) of the certificate.</li>
- * </ul>
- *
- * <h3>Additional Constructor:</h3>
- * <p>Includes a secondary constructor that generates a SHA-256 fingerprint automatically
- * from the given certificate using the {@code CertificateUtils.generateThumbprint} method.</p>
- *
- * <h3>Overrides:</h3>
- * <ul>
- * <li><code>hashCode</code>: Computes a hash code based on the subscription ID and fingerprint.</li>
- * <li><code>equals</code>: Provides equality comparison based on the subscription ID and fingerprint.</li>
- * <li><code>toString</code>: Provides a string representation including the subscription ID and fingerprint.</li>
- * </ul>
+ * <code>hashCode() toString() equals()</code> use subscription ID and fingerprint only to avoid performing equal on the certificate.
  *
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
