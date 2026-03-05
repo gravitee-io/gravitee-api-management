@@ -192,9 +192,10 @@ export class TasksComponent implements OnInit, OnDestroy {
       case 'SUBSCRIPTION_APPROVAL': {
         const appName = this.tasks.metadata[task.data.application].name;
         const planName = this.tasks.metadata[task.data.plan].name;
-        const apiId = this.tasks.metadata[task.data.plan].api;
-        const apiName = this.tasks.metadata[apiId].name;
-        return `The application <code>${appName}</code> requested a subscription for API <code>${apiName}</code> (plan: ${planName})`;
+        const refId = this.tasks.metadata[task.data.plan].api;
+        const refName = this.tasks.metadata[refId]?.name ?? refId;
+        const refLabel = task.data.referenceType === 'API_PRODUCT' ? 'API Product' : 'API';
+        return `The application <code>${appName}</code> requested a subscription for ${refLabel} <code>${refName}</code> (plan: ${planName})`;
       }
       case 'IN_REVIEW':
         return `The API <code>${this.tasks.metadata[task.data.referenceId].name}</code> is ready to be reviewed`;

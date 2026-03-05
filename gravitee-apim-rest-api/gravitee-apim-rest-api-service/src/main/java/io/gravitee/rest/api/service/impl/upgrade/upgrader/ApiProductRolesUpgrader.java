@@ -24,9 +24,13 @@ import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.rest.api.model.NewRoleEntity;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UpdateRoleEntity;
 import io.gravitee.rest.api.model.permissions.ApiProductPermission;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -53,6 +57,7 @@ public class ApiProductRolesUpgrader implements Upgrader {
                 .forEach(organization -> {
                     ExecutionContext executionContext = new ExecutionContext(organization);
                     initializeApiProductRoles(executionContext);
+                    ensureApiProductRolesHaveNotificationPermission(executionContext);
                     ensureApiProductPrimaryOwner(executionContext, organization.getId());
                 });
             return true;
@@ -69,6 +74,45 @@ public class ApiProductRolesUpgrader implements Upgrader {
             log.info("     - <API_PRODUCT> {}", role.getName());
             roleService.create(executionContext, role);
         }
+    }
+
+    private void ensureApiProductRolesHaveNotificationPermission(ExecutionContext executionContext) {
+        String orgId = executionContext.getOrganizationId();
+        roleService
+            .findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_OWNER.getName(), orgId)
+            .ifPresent(role ->
+                addNotificationPermissionIfMissing(
+                    executionContext,
+                    role,
+                    ROLE_API_PRODUCT_OWNER.getPermissions().get(ApiProductPermission.NOTIFICATION.getName())
+                )
+            );
+        roleService
+            .findByScopeAndName(API_PRODUCT, ROLE_API_PRODUCT_USER.getName(), orgId)
+            .ifPresent(role ->
+                addNotificationPermissionIfMissing(
+                    executionContext,
+                    role,
+                    ROLE_API_PRODUCT_USER.getPermissions().get(ApiProductPermission.NOTIFICATION.getName())
+                )
+            );
+    }
+
+    private void addNotificationPermissionIfMissing(ExecutionContext executionContext, RoleEntity role, char[] expectedNotificationPerms) {
+        if (expectedNotificationPerms == null) {
+            return;
+        }
+        Map<String, char[]> perms = role.getPermissions();
+        String notifKey = ApiProductPermission.NOTIFICATION.getName();
+        if (perms != null && perms.containsKey(notifKey)) {
+            return;
+        }
+        Map<String, char[]> newPerms = perms == null ? new HashMap<>() : new HashMap<>(perms);
+        newPerms.put(notifKey, expectedNotificationPerms);
+        UpdateRoleEntity update = UpdateRoleEntity.from(role);
+        update.setPermissions(newPerms);
+        roleService.update(executionContext, update);
+        log.info("     - <API_PRODUCT> {}: added NOTIFICATION permission", role.getName());
     }
 
     private void ensureApiProductPrimaryOwner(ExecutionContext executionContext, String organizationId) {
