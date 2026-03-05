@@ -219,6 +219,11 @@
         </div>
         <div class="details-card__header__info-inputs">
           <div class="details-card__header__info-inputs__client_id-row">
+            @if (certificateCount > 1) {
+              <gio-banner-warning>
+                This application has {{ certificateCount }} active certificates. The one displayed is the most recently created.
+              </gio-banner-warning>
+            }
             <mat-form-field>
               <mat-label>Client Certificate</mat-label>
               <textarea formControlName="client_certificate" matInput type="text" rows="6" gioClipboardCopyWrapper></textarea>
@@ -226,11 +231,6 @@
                 >The <code>client_certificate</code> of the application. This field is required to subscribe to mTLS plans.
               </mat-hint>
             </mat-form-field>
-            @if (certificateCount > 1) {
-              <gio-banner-warning>
-                This application has {{ certificateCount }} active certificates. The one displayed is the most recently created.
-              </gio-banner-warning>
-            }
           </div>
         </div>
       </mat-card-content>
