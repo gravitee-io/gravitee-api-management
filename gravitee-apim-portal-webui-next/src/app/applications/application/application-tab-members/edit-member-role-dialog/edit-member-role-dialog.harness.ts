@@ -23,10 +23,10 @@ export class EditMemberRoleDialogHarness extends ComponentHarness {
   private readonly getSelectHarness = this.locatorFor(MatSelectHarness);
   private readonly getSaveButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="save-button"]' }));
   private readonly getCancelButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="cancel-button"]' }));
-  private readonly getMemberName = this.locatorFor('[data-testid="dialog-member-name"]');
+  private readonly getRoleLabel = this.locatorFor('.edit-member-role-dialog__label');
 
-  async getMemberNameText(): Promise<string> {
-    const el = await this.getMemberName();
+  async getRoleLabelText(): Promise<string> {
+    const el = await this.getRoleLabel();
     return el.text();
   }
 

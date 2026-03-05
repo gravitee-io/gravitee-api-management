@@ -83,9 +83,9 @@ describe('EditMemberRoleDialogComponent', () => {
     return rootHarnessLoader.getHarness(EditMemberRoleDialogHarness);
   }
 
-  it('should display member name', async () => {
+  it('should display Member Role label', async () => {
     const dialog = await getDialog();
-    expect(await dialog.getMemberNameText()).toBe('Admin master');
+    expect(await dialog.getRoleLabelText()).toBe('Member Role');
   });
 
   it('should render all roles as options', async () => {

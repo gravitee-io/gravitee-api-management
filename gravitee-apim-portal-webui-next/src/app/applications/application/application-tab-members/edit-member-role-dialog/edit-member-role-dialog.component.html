@@ -15,13 +15,11 @@
     limitations under the License.
 
 -->
-<h2 mat-dialog-title class="edit-member-role-dialog__title" i18n="@@editMemberRoleDialogTitle">Edit Role</h2>
+<h2 mat-dialog-title class="edit-member-role-dialog__title" i18n="@@editMemberRoleDialogTitle">Edit Member</h2>
 
 <mat-dialog-content class="edit-member-role-dialog__content">
-  <p class="m3-body-medium" data-testid="dialog-member-name">{{ data.memberName }}</p>
-
+  <label class="m3-body-medium edit-member-role-dialog__label" i18n="@@editMemberRoleDialogRoleLabel">Member Role</label>
   <mat-form-field appearance="outline" class="edit-member-role-dialog__select-field">
-    <mat-label i18n="@@editMemberRoleDialogRoleLabel">Role</mat-label>
     <mat-select [(value)]="selectedRole" data-testid="role-select">
       @for (role of data.roles; track role.id) {
         <mat-option [value]="role.name" [attr.data-testid]="'role-option-' + role.name">{{ role.name }}</mat-option>
