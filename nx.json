@@ -13,7 +13,11 @@
             "!{projectRoot}/eslint.config.js",
             "!{projectRoot}/**/*.stories.@(js|jsx|ts|tsx|mdx)",
             "!{projectRoot}/.storybook/**/*",
-            "!{projectRoot}/tsconfig.storybook.json"
+            "!{projectRoot}/tsconfig.storybook.json",
+            "!{projectRoot}/eslint.config.mjs",
+            "!{projectRoot}/jest.config.[jt]s",
+            "!{projectRoot}/src/test-setup.[jt]s",
+            "!{projectRoot}/test-setup.[jt]s"
         ],
         "sharedGlobals": ["{workspaceRoot}/.prettierrc", "{workspaceRoot}/tsconfig.base.json"]
     },
@@ -54,20 +58,56 @@
         },
         "lint": {
             "dependsOn": [
-                { "target": "lint-eslint", "params": "forward" },
-                { "target": "lint-license", "params": "forward" },
-                { "target": "lint-prettier", "params": "forward" }
+                {
+                    "target": "lint-eslint",
+                    "params": "forward"
+                },
+                {
+                    "target": "lint-license",
+                    "params": "forward"
+                },
+                {
+                    "target": "lint-prettier",
+                    "params": "forward"
+                }
             ],
             "cache": true
         },
-        "serve": {}
+        "serve": {},
+        "@nx/rspack:rspack": {
+            "inputs": [
+                "production",
+                "^production",
+                {
+                    "env": "NX_MF_DEV_REMOTES"
+                }
+            ],
+            "dependsOn": ["^build"],
+            "cache": true
+        },
+        "@angular-devkit/build-angular:browser": {
+            "cache": true,
+            "dependsOn": ["^build"],
+            "inputs": ["production", "^production"]
+        },
+        "@nx/angular:webpack-browser": {
+            "cache": true,
+            "dependsOn": ["^build"],
+            "inputs": [
+                "production",
+                "^production",
+                {
+                    "env": "NX_MF_DEV_REMOTES"
+                }
+            ]
+        }
     },
     "generators": {
         "@nx/angular:application": {
-            "style": "scss",
+            "e2eTestRunner": "none",
             "linter": "eslint",
-            "unitTestRunner": "jest",
-            "e2eTestRunner": "none"
+            "style": "scss",
+            "unitTestRunner": "jest"
         },
         "@nx/angular:library": {
             "linter": "eslint",
@@ -75,6 +115,34 @@
         },
         "@nx/angular:component": {
             "style": "scss"
+        },
+        "@nx/react": {
+            "application": {
+                "babel": true,
+                "style": "tailwind",
+                "linter": "eslint",
+                "bundler": "rspack"
+            },
+            "component": {
+                "style": "tailwind"
+            },
+            "library": {
+                "style": "tailwind",
+                "linter": "eslint"
+            }
         }
-    }
+    },
+    "plugins": [
+        {
+            "plugin": "@nx/rspack/plugin",
+            "options": {
+                "buildTargetName": "build",
+                "serveTargetName": "serve",
+                "serveStaticTargetName": "serve-static",
+                "previewTargetName": "preview",
+                "buildDepsTargetName": "build-deps",
+                "watchDepsTargetName": "watch-deps"
+            }
+        }
+    ]
 }
