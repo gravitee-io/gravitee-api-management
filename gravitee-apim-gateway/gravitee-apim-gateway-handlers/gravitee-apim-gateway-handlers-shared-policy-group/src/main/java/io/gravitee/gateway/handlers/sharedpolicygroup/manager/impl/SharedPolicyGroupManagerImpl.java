@@ -23,6 +23,10 @@ import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupM
 import io.gravitee.node.api.license.ForbiddenFeatureException;
 import io.gravitee.node.api.license.InvalidLicenseException;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.secrets.api.discovery.Definition;
+import io.gravitee.secrets.api.discovery.DefinitionMetadata;
+import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
+import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +47,7 @@ import lombok.CustomLog;
 public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
 
     private static final int PARALLELISM = Runtime.getRuntime().availableProcessors() * 2;
+    private static final String SHARED_POLICY_GROUP_DEFINITION_KIND = "shared-policy-group";
     private final Map<String, ReactableSharedPolicyGroup> sharedPolicyGroups = new ConcurrentHashMap<>();
 
     private final EventManager eventManager;
@@ -51,6 +56,29 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
     public SharedPolicyGroupManagerImpl(EventManager eventManager, LicenseManager licenseManager) {
         this.eventManager = eventManager;
         this.licenseManager = licenseManager;
+
+        eventManager.subscribeForEvents(
+            event -> {
+                if (event.content() instanceof SecretDiscoveryEvent secretDiscoveryEvent) {
+                    if (secretDiscoveryEvent.definition() instanceof Definition definition) {
+                        if (!SHARED_POLICY_GROUP_DEFINITION_KIND.equals(definition.kind())) {
+                            return;
+                        }
+                        ReactableSharedPolicyGroup spg = sharedPolicyGroups.get(definition.id());
+                        if (spg != null) {
+                            log.info("Secret value changed for Shared Policy Group {}, updating it", definition.id());
+                            eventManager.publishEvent(SharedPolicyGroupEvent.UPDATE, spg);
+                        } else {
+                            log.trace(
+                                "Received SecretDiscoveryEvent for Shared Policy Group {}, but not found in manager",
+                                definition.id()
+                            );
+                        }
+                    }
+                }
+            },
+            SecretDiscoveryEventType.VALUE_CHANGED
+        );
     }
 
     @Override
@@ -151,6 +179,14 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
     private void deploy(ReactableSharedPolicyGroup sharedPolicyGroup) {
         log.debug("Deployment of {}", sharedPolicyGroup);
 
+        eventManager.publishEvent(
+            SecretDiscoveryEventType.DISCOVER,
+            new SecretDiscoveryEvent(
+                sharedPolicyGroup.getEnvironmentId(),
+                sharedPolicyGroup.getDefinition(),
+                new DefinitionMetadata(sharedPolicyGroup.getDefinition().getVersion())
+            )
+        );
         sharedPolicyGroups.put(sharedPolicyGroup.getId(), sharedPolicyGroup);
         eventManager.publishEvent(SharedPolicyGroupEvent.DEPLOY, sharedPolicyGroup);
         log.info("Shared Policy Group [{}] has been deployed", sharedPolicyGroup.getId());
@@ -159,8 +195,27 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
     private void update(ReactableSharedPolicyGroup sharedPolicyGroup) {
         log.debug("Updating {}", sharedPolicyGroup);
 
+        eventManager.publishEvent(
+            SecretDiscoveryEventType.DISCOVER,
+            new SecretDiscoveryEvent(
+                sharedPolicyGroup.getEnvironmentId(),
+                sharedPolicyGroup.getDefinition(),
+                new DefinitionMetadata(sharedPolicyGroup.getDefinition().getVersion())
+            )
+        );
+        ReactableSharedPolicyGroup previousSharedPolicyGroup = sharedPolicyGroups.get(sharedPolicyGroup.getId());
         sharedPolicyGroups.put(sharedPolicyGroup.getId(), sharedPolicyGroup);
         eventManager.publishEvent(SharedPolicyGroupEvent.UPDATE, sharedPolicyGroup);
+        if (previousSharedPolicyGroup != null) {
+            eventManager.publishEvent(
+                SecretDiscoveryEventType.REVOKE,
+                new SecretDiscoveryEvent(
+                    previousSharedPolicyGroup.getEnvironmentId(),
+                    previousSharedPolicyGroup.getDefinition(),
+                    new DefinitionMetadata(previousSharedPolicyGroup.getDefinition().getVersion())
+                )
+            );
+        }
         log.info("Shared Policy Group [{}] has been updated", sharedPolicyGroup.getId());
     }
 
@@ -170,6 +225,14 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
             log.debug("Undeployment of Shared Policy Group [{}]", currentSharedPolicyGroup.getEnvironmentId());
 
             eventManager.publishEvent(SharedPolicyGroupEvent.UNDEPLOY, currentSharedPolicyGroup);
+            eventManager.publishEvent(
+                SecretDiscoveryEventType.REVOKE,
+                new SecretDiscoveryEvent(
+                    currentSharedPolicyGroup.getEnvironmentId(),
+                    currentSharedPolicyGroup.getDefinition(),
+                    new DefinitionMetadata(currentSharedPolicyGroup.getDefinition().getVersion())
+                )
+            );
             log.info("[{}] has been undeployed", currentSharedPolicyGroup.getId());
         }
     }
