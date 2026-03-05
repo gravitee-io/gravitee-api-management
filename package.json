@@ -130,7 +130,7 @@
         "@gravitee/ui-schematics": "17.7.0",
         "@nx/angular": "21.6.10",
         "@nx/jest": "22.4.5",
-        "@schematics/angular": "20.3.14",
+        "@schematics/angular": "20.3.19",
         "@storybook/addon-docs": "9.1.17",
         "@storybook/addon-links": "9.1.17",
         "@storybook/angular": "9.1.17",
