@@ -271,6 +271,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public MembershipDomainServiceInMemory membershipDomainService() {
+        return new MembershipDomainServiceInMemory();
+    }
+
+    @Bean
     public ApplicationMemberUserQueryServiceInMemory applicationMemberUserQueryService() {
         return new ApplicationMemberUserQueryServiceInMemory();
     }

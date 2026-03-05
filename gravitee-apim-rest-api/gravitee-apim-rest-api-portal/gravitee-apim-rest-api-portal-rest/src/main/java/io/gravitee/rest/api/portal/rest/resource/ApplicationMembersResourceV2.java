@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.apim.core.application_member.use_case.AddApplicationMemberUseCase;
 import io.gravitee.apim.core.application_member.use_case.DeleteApplicationMemberUseCase;
 import io.gravitee.apim.core.application_member.use_case.GetApplicationMembersUseCase;
 import io.gravitee.apim.core.application_member.use_case.SearchUsersForApplicationMemberUseCase;
@@ -38,6 +39,7 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
@@ -47,6 +49,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ApplicationMembersResourceV2 extends AbstractResource {
@@ -65,6 +68,9 @@ public class ApplicationMembersResourceV2 extends AbstractResource {
 
     @Inject
     private SearchUsersForApplicationMemberUseCase searchUsersForApplicationMemberUseCase;
+
+    @Inject
+    private AddApplicationMemberUseCase addApplicationMemberUseCase;
 
     private static final MemberV2Mapper MEMBER_V2_MAPPER = MemberV2Mapper.INSTANCE;
 
@@ -96,6 +102,45 @@ public class ApplicationMembersResourceV2 extends AbstractResource {
 
         var mappedMembers = result.members().stream().map(MEMBER_V2_MAPPER::map).toList();
         return createListResponse(executionContext, mappedMembers, paginationParam, metadata);
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.CREATE) })
+    public Response createApplicationMemberV2(
+        @PathParam("applicationId") String applicationId,
+        @QueryParam("notify") @DefaultValue("true") boolean notify,
+        @Valid @NotNull(message = "Input must not be null.") MemberV2Input memberInput
+    ) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        applicationService.findById(executionContext, applicationId);
+
+        var result = addApplicationMemberUseCase.execute(
+            new AddApplicationMemberUseCase.Input(
+                applicationId,
+                List.of(
+                    new AddApplicationMemberUseCase.AddMemberRequest(
+                        memberInput.getUser(),
+                        memberInput.getReference(),
+                        memberInput.getRole()
+                    )
+                ),
+                notify,
+                executionContext.getEnvironmentId(),
+                executionContext.getOrganizationId()
+            )
+        );
+
+        var createdMember = result
+            .createdMembers()
+            .stream()
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("No member created."));
+        var responseBuilder = createdMember.getId() == null
+            ? Response.status(Response.Status.CREATED)
+            : Response.created(this.getLocationHeader(createdMember.getId()));
+        return responseBuilder.entity(MEMBER_V2_MAPPER.map(createdMember)).build();
     }
 
     @PUT

@@ -29,8 +29,10 @@ import io.gravitee.apim.core.member.model.Member;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.MemberV2;
@@ -78,6 +80,23 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
         doReturn(new ApplicationEntity()).when(applicationService).findById(GraviteeContext.getExecutionContext(), OTHER_APPLICATION_ID);
         doReturn(new ApplicationEntity()).when(applicationService).findById(GraviteeContext.getExecutionContext(), EMPTY_APPLICATION_ID);
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+        when(membershipService.createNewMembership(any(), any(), any(), any(), any(), any())).thenAnswer(invocation ->
+            MemberEntity.builder()
+                .referenceType(invocation.getArgument(1))
+                .referenceId(invocation.getArgument(2))
+                .id(invocation.getArgument(3))
+                .type(MembershipMemberType.USER)
+                .roles(
+                    List.of(
+                        RoleEntity.builder()
+                            .id("role-" + invocation.<String>getArgument(5).toLowerCase())
+                            .name(invocation.getArgument(5))
+                            .scope(RoleScope.APPLICATION)
+                            .build()
+                    )
+                )
+                .build()
+        );
 
         memberQueryService.initWith(
             List.of(
@@ -190,6 +209,66 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
                 .path("member-1")
                 .request()
                 .put(Entity.json(new MemberV2Input().user("member-1").role("ADMIN")));
+
+            assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+        }
+    }
+
+    @Nested
+    class AddMemberTest {
+
+        @Test
+        void should_create_application_member_v2() {
+            final var response = target(APPLICATION_ID)
+                .path("membersV2")
+                .request()
+                .post(Entity.json(new MemberV2Input().user("member-4").reference("ref-4").role("ADMIN")));
+
+            assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
+            final var member = response.readEntity(MemberV2.class);
+            assertNotNull(member);
+            assertEquals("member-4", member.getUser().getId());
+            assertEquals("ADMIN", member.getRole());
+        }
+
+        @Test
+        void should_return_400_when_adding_existing_member() {
+            final var response = target(APPLICATION_ID)
+                .path("membersV2")
+                .request()
+                .post(Entity.json(new MemberV2Input().user("member-1").reference("ref-1").role("USER")));
+
+            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        }
+
+        @Test
+        void should_return_400_when_adding_primary_owner() {
+            final var response = target(APPLICATION_ID)
+                .path("membersV2")
+                .request()
+                .post(Entity.json(new MemberV2Input().user("member-4").reference("ref-4").role("PRIMARY_OWNER")));
+
+            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        }
+
+        @Test
+        void should_return_400_when_role_does_not_exist_on_add_member() {
+            final var response = target(APPLICATION_ID)
+                .path("membersV2")
+                .request()
+                .post(Entity.json(new MemberV2Input().user("member-4").reference("ref-4").role("UNKNOWN")));
+
+            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        }
+
+        @Test
+        void should_return_403_when_missing_create_permission_on_add_member() {
+            doReturn(false).when(permissionService).hasPermission(any(), any(), any(), any());
+
+            final var response = target(APPLICATION_ID)
+                .path("membersV2")
+                .request()
+                .post(Entity.json(new MemberV2Input().user("member-4").reference("ref-4").role("ADMIN")));
 
             assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
         }

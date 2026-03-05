@@ -29,6 +29,11 @@
   - existing application members are excluded from search results
   - use case tests (matching users, exclude existing members, empty query)
   - REST tests for search flow (`200`, exclusion behavior, `403` on missing permission) in `ApplicationMembersResourceV2Test`.
+- Implemented **Phase 3 / Story 3.2** backend add-member flow in Onion style:
+  - `AddApplicationMemberUseCase` with role validation, `PRIMARY_OWNER` rejection, duplicate-membership rejection, and batch-capable input model
+  - `POST /applications/{applicationId}/membersV2` in `ApplicationMembersResourceV2`
+  - use case tests (single add, batch add, duplicate rejected, `PRIMARY_OWNER` rejected, invalid role)
+  - REST tests for add flow (`201`, `400`, `403`) in `ApplicationMembersResourceV2Test`.
 
 ## Key Decisions Made and Why
 
@@ -43,6 +48,8 @@
 - **Introduced a dedicated application-member user query service** instead of using `IdentityService` directly in use case to keep Onion boundaries clean and testable.
 - **Normalized blank search query to `*`** to keep behavior consistent with existing users search and return full candidate set when no filter is provided.
 - **Excluded existing application members in use case layer** so endpoint always returns addable users only, independent of frontend filtering.
+- **Used `MembershipDomainService.createNewMembership(...)` in add-member use case** to keep business logic aligned with Onion boundaries and avoid direct legacy-service calls from resource layer.
+- **Kept POST payload as `MemberV2Input`, but mapped to batch-capable use case input** so current API contract remains simple while backend stays ready for future bulk-add use.
 
 ## Gotchas or Surprises
 
@@ -52,6 +59,8 @@
 - Portal REST module initially failed to compile against the new use case until the updated service module artifact was installed locally (`mvn ...service -DskipTests install`).
 - Maven run for a single resource test still performs expensive OpenAPI generation and broad module compilation, so feedback loops are slower than expected.
 - `portal-rest` compile failed until the updated `service` module was installed locally after adding new core classes (`mvn ...service -DskipTests install`).
+- Java record component name `notify` caused compilation failure (`illegal record component name notify`) and had to be renamed (`sendNotification`).
+- Portal REST test context failed because `AddApplicationMemberUseCase` required `MembershipDomainService`; fixed by registering `MembershipDomainServiceInMemory` in `InMemoryConfiguration`.
 
 ## Blockers / Open Questions
 
@@ -88,4 +97,8 @@ Implement Phase 2 Story 2.2 from ./hackathon/STORIES.md. Include tests following
 
 ```text
 Implement Phase 3 Story 3.1 from ./hackathon/STORIES.md. Include tests following the existing patterns in the codebase.
+```
+
+```text
+Implement Phase 3 Story 3.2 from ./hackathon/STORIES.md. Include tests following the existing patterns in the codebase.
 ```
