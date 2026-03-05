@@ -148,7 +148,7 @@ describe('OrgSettingAddTagDialogComponent', () => {
       await nameInput.setValue('Internal');
 
       const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=key]' }));
-      await keyInput.setValue('internal-key');
+      expect(await keyInput.isDisabled()).toBeTruthy();
 
       const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=description' }));
       await descriptionInput.setValue('Internal tenant');
@@ -161,24 +161,10 @@ describe('OrgSettingAddTagDialogComponent', () => {
       expect(matDialogRefMock.close).toHaveBeenCalledWith({
         id: '875fb0a0-1ea2-3a1d-bfd6-f59f9a18bd5b',
         name: 'Internal',
-        key: 'internal-key',
+        key: 'tag-key',
         description: 'Internal tenant',
         restricted_groups: [],
       });
-    });
-
-    it('should sanitize key in real-time when editing', async () => {
-      fixture.detectChanges();
-      expectGroupListByOrganizationRequest([]);
-
-      component.tagForm.controls.key.setValue('New KEY With @#$ Special');
-      fixture.detectChanges();
-
-      const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=key]' }));
-      await keyInput.blur();
-      fixture.detectChanges();
-
-      expect(await keyInput.getValue()).toBe('new-key-with-special');
     });
   });
 
