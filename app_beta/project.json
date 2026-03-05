@@ -20,6 +20,11 @@
                     {
                         "glob": "**/*",
                         "input": "app_beta/public"
+                    },
+                    {
+                        "glob": "**/*",
+                        "input": "node_modules/@gravitee/ui-particles-angular/assets",
+                        "output": "assets/"
                     }
                 ],
                 "styles": ["app_beta/src/styles.scss"],
