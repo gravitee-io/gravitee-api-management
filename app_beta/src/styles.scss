@@ -10,7 +10,7 @@ html {
             primary: mat.$orange-palette,
         ),
         typography: 'Nunito Sans',
-        density: 0,
+        density: -2,
     ));
 }
 
@@ -27,6 +27,8 @@ html {
         active-indicator-color: var(--sidebar-accent),
         list-item-label-text-color: var(--sidebar-foreground),
         list-item-hover-state-layer-color: var(--sidebar-accent),
+        list-item-leading-icon-size: 1rem,
+        list-item-label-text-size: 0.875rem,
     ));
 
     @include mat.icon-overrides((
@@ -39,6 +41,10 @@ html {
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap');
+
+mat-sidenav-content {
+    overflow: hidden !important;
+}
 
 body {
     margin: 0;

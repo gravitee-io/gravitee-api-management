@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { SideNavComponent } from './side-nav.component';
+import { SideNavComponent } from '../../shared/components/side-nav/side-nav.component';
 
 @Component({
     imports: [SideNavComponent],

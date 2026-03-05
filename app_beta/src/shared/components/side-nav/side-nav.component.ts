@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
-import { MatSidenavModule } from '@angular/material/sidenav';
+import { Component, ViewChild } from '@angular/core';
+import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
-import { BreadcrumbComponent } from './breadcrumb.component';
+import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
 
 @Component({
     selector: 'app-side-nav',
@@ -10,7 +10,7 @@ import { BreadcrumbComponent } from './breadcrumb.component';
     imports: [MatSidenavModule, MatListModule, MatIconModule, BreadcrumbComponent],
     template: `
         <mat-sidenav-container class="sidenav-container">
-            <mat-sidenav mode="side" opened>
+            <mat-sidenav #sidenav mode="side" opened>
                 <mat-nav-list>
                     <a mat-list-item>
                         <mat-icon matListItemIcon svgIcon="gio:home"></mat-icon>
@@ -27,7 +27,7 @@ import { BreadcrumbComponent } from './breadcrumb.component';
                 </mat-nav-list>
             </mat-sidenav>
             <mat-sidenav-content>
-                <app-breadcrumb></app-breadcrumb>
+                <app-breadcrumb (toggleSidebar)="sidenav.toggle()"></app-breadcrumb>
                 <div class="content">
                     <h1>Dashboard</h1>
                     <p>Welcome to App Beta.</p>
@@ -37,6 +37,10 @@ import { BreadcrumbComponent } from './breadcrumb.component';
     `,
     styles: [
         `
+            :host {
+                display: block;
+                height: 100%;
+            }
             .sidenav-container {
                 height: 100%;
             }
@@ -56,4 +60,6 @@ import { BreadcrumbComponent } from './breadcrumb.component';
         `,
     ],
 })
-export class SideNavComponent {}
+export class SideNavComponent {
+    @ViewChild('sidenav') sidenav!: MatSidenav;
+}
