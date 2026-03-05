@@ -1,0 +1,159 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`commands > add ssh keys 1`] = `
+{
+  "add_ssh_keys": {
+    "fingerprints": [
+      "ab:cd:ef",
+    ],
+  },
+}
+`;
+
+exports[`commands > cache restore 1`] = `
+{
+  "restore_cache": {
+    "keys": [
+      "v1-{{ checksum "pom.xml" }}",
+      "v1-",
+    ],
+  },
+}
+`;
+
+exports[`commands > cache save 1`] = `
+{
+  "save_cache": {
+    "key": "v1-{{ checksum "pom.xml" }}",
+    "paths": [
+      "~/.m2",
+    ],
+    "when": "always",
+  },
+}
+`;
+
+exports[`commands > checkout default 1`] = `
+{
+  "checkout": {
+    "path": ".",
+  },
+}
+`;
+
+exports[`commands > checkout with path 1`] = `
+{
+  "checkout": {
+    "path": "/tmp/src",
+  },
+}
+`;
+
+exports[`commands > run with name and command string 1`] = `
+{
+  "run": {
+    "command": "npm ci",
+    "name": "Install",
+  },
+}
+`;
+
+exports[`commands > run with name and options object 1`] = `
+{
+  "run": {
+    "command": "mvn install",
+    "environment": {
+      "CI": "true",
+    },
+    "name": "Build",
+    "working_directory": "backend",
+  },
+}
+`;
+
+exports[`commands > run with options only 1`] = `
+{
+  "run": {
+    "command": "echo hello",
+    "name": "Greet",
+    "when": "always",
+  },
+}
+`;
+
+exports[`commands > setup remote docker 1`] = `
+{
+  "setup_remote_docker": {
+    "docker_layer_caching": true,
+    "version": "20.10.24",
+  },
+}
+`;
+
+exports[`commands > store artifacts 1`] = `
+{
+  "store_artifacts": {
+    "destination": "build",
+    "path": "dist/",
+  },
+}
+`;
+
+exports[`commands > store test results 1`] = `
+{
+  "store_test_results": {
+    "path": "~/test-results",
+  },
+}
+`;
+
+exports[`commands > unless conditional 1`] = `
+{
+  "unless": {
+    "condition": "<< parameters.skip >>",
+    "steps": [
+      {
+        "run": {
+          "command": "npm test",
+          "name": "Test",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`commands > when conditional 1`] = `
+{
+  "when": {
+    "condition": "<< parameters.deploy >>",
+    "steps": [
+      {
+        "run": {
+          "command": "deploy.sh",
+          "name": "Deploy",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`commands > workspace attach 1`] = `
+{
+  "attach_workspace": {
+    "at": ".",
+  },
+}
+`;
+
+exports[`commands > workspace persist 1`] = `
+{
+  "persist_to_workspace": {
+    "paths": [
+      "target/",
+    ],
+    "root": ".",
+  },
+}
+`;
