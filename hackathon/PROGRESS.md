@@ -17,7 +17,7 @@
 - ✅ 2.4 - FE: Delete Member Dialog
 
 ### Phase 3: Add Members
-- [ ] 3.1 - BE: Search Users for Application (UseCase)
+- ✅ 3.1 - BE: Search Users for Application (UseCase)
 - [ ] 3.2 - BE: Add Application Member (UseCase)
 - [ ] 3.3 - FE: Search Users Dialog (Add Members)
 
@@ -49,6 +49,7 @@
 - **Story 2.4 (FE: Delete Member Dialog)** — Reuses existing `ConfirmDialogComponent` (no new dialog component). Delete action wired in members table: opens confirm dialog ("Remove Member" / red "Remove" button, matching `delete-member-dialog.png`), on confirm calls `deleteMember()` → snackbar → reloads table. Service: `deleteMember(applicationId, memberId)` → `DELETE /membersV2/{memberId}`. Component spec: 4 new tests (dialog opens, cancel no-op, confirm calls API + reload, PRIMARY_OWNER has no actions). Service spec: 1 new test. All 24 component + 6 service tests pass.
 - **Story 2.1 (BE: Update Member Role (UseCase))** — Added `UpdateApplicationMemberUseCase` (role validation + PRIMARY_OWNER guard + member update), wired `PUT /applications/{applicationId}/membersV2/{memberId}` in `ApplicationMembersResourceV2`, and added use case + REST tests (`200` success, `400` bad role, `403` no permission).
 - **Story 2.2 (BE: Delete Application Member (UseCase))** — Added `DeleteApplicationMemberUseCase` (not found handling + PRIMARY_OWNER guard + member deletion), wired `DELETE /applications/{applicationId}/membersV2/{memberId}` in `ApplicationMembersResourceV2`, and added use case + REST tests (`204` success, `400` primary owner, `403` no permission).
+- **Story 3.1 (BE: Search Users for Application (UseCase))** — Added `SearchUsersForApplicationMemberUseCase`, introduced `ApplicationMemberUserQueryService` + legacy wrapper over `IdentityService.search(...)`, implemented `POST /applications/{applicationId}/membersV2/_search-users` with `APPLICATION_MEMBER[CREATE]`, filtered out existing app members, and added use case + REST tests.
 
 ## Key Decisions
 

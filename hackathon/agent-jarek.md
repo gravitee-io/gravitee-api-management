@@ -22,6 +22,13 @@
   - `DELETE /applications/{applicationId}/membersV2/{memberId}` in `ApplicationMembersResourceV2`
   - use case tests (success, primary owner rejected, member not found)
   - REST tests for delete flow (`204`, `400`, `403`) in `ApplicationMembersResourceV2Test`.
+- Implemented **Phase 3 / Story 3.1** backend search-users flow in Onion style:
+  - `SearchUsersForApplicationMemberUseCase`
+  - `ApplicationMemberUserQueryService` + legacy wrapper over `IdentityService.search(...)`
+  - `POST /applications/{applicationId}/membersV2/_search-users` in `ApplicationMembersResourceV2`
+  - existing application members are excluded from search results
+  - use case tests (matching users, exclude existing members, empty query)
+  - REST tests for search flow (`200`, exclusion behavior, `403` on missing permission) in `ApplicationMembersResourceV2Test`.
 
 ## Key Decisions Made and Why
 
@@ -33,6 +40,9 @@
 - **Kept the legacy consistency check (`memberInput.user` must match path `memberId`)** in V2 update endpoint to preserve behavior and avoid silent mismatches.
 - **Used the same `PRIMARY_OWNER` protection for delete as for update** to preserve ownership safety invariants across member-management actions.
 - **Returned `204 No Content` from V2 delete endpoint** to align with REST semantics and existing Gravitee endpoint behavior.
+- **Introduced a dedicated application-member user query service** instead of using `IdentityService` directly in use case to keep Onion boundaries clean and testable.
+- **Normalized blank search query to `*`** to keep behavior consistent with existing users search and return full candidate set when no filter is provided.
+- **Excluded existing application members in use case layer** so endpoint always returns addable users only, independent of frontend filtering.
 
 ## Gotchas or Surprises
 
@@ -41,6 +51,7 @@
 - Running a single REST test in this module still triggers heavy OpenAPI generation/compilation before test execution.
 - Portal REST module initially failed to compile against the new use case until the updated service module artifact was installed locally (`mvn ...service -DskipTests install`).
 - Maven run for a single resource test still performs expensive OpenAPI generation and broad module compilation, so feedback loops are slower than expected.
+- `portal-rest` compile failed until the updated `service` module was installed locally after adding new core classes (`mvn ...service -DskipTests install`).
 
 ## Blockers / Open Questions
 
@@ -73,4 +84,8 @@ Implement Pahase 2 Story 2.1 from ./hackathon/STORIES.md. Include tests followin
 
 ```text
 Implement Phase 2 Story 2.2 from ./hackathon/STORIES.md. Include tests following the existing patterns in the codebase.
+```
+
+```text
+Implement Phase 3 Story 3.1 from ./hackathon/STORIES.md. Include tests following the existing patterns in the codebase.
 ```

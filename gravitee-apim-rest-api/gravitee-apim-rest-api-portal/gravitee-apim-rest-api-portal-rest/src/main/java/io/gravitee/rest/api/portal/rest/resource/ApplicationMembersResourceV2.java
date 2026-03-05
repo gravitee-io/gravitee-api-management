@@ -17,12 +17,14 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.apim.core.application_member.use_case.DeleteApplicationMemberUseCase;
 import io.gravitee.apim.core.application_member.use_case.GetApplicationMembersUseCase;
+import io.gravitee.apim.core.application_member.use_case.SearchUsersForApplicationMemberUseCase;
 import io.gravitee.apim.core.application_member.use_case.UpdateApplicationMemberUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.MemberV2Mapper;
 import io.gravitee.rest.api.portal.rest.model.MemberV2Input;
+import io.gravitee.rest.api.portal.rest.model.SearchUserV2;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
@@ -37,6 +39,7 @@ import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -59,6 +62,9 @@ public class ApplicationMembersResourceV2 extends AbstractResource {
 
     @Inject
     private DeleteApplicationMemberUseCase deleteApplicationMemberUseCase;
+
+    @Inject
+    private SearchUsersForApplicationMemberUseCase searchUsersForApplicationMemberUseCase;
 
     private static final MemberV2Mapper MEMBER_V2_MAPPER = MemberV2Mapper.INSTANCE;
 
@@ -127,5 +133,36 @@ public class ApplicationMembersResourceV2 extends AbstractResource {
         deleteApplicationMemberUseCase.execute(new DeleteApplicationMemberUseCase.Input(applicationId, memberId));
 
         return Response.noContent().build();
+    }
+
+    @POST
+    @Path("_search-users")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.CREATE) })
+    public Response searchUsersForApplicationMembersV2(
+        @PathParam("applicationId") String applicationId,
+        @QueryParam("q") String query,
+        @BeanParam PaginationParam paginationParam
+    ) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        applicationService.findById(executionContext, applicationId);
+
+        var result = searchUsersForApplicationMemberUseCase.execute(
+            new SearchUsersForApplicationMemberUseCase.Input(applicationId, query, executionContext.getEnvironmentId())
+        );
+
+        var mappedUsers = result
+            .users()
+            .stream()
+            .map(user ->
+                new SearchUserV2()
+                    .id(user.id())
+                    .reference(user.reference())
+                    .firstName(user.firstName())
+                    .lastName(user.lastName())
+                    .displayName(user.displayName())
+                    .email(user.email())
+            );
+        return createListResponse(executionContext, mappedUsers.toList(), paginationParam);
     }
 }

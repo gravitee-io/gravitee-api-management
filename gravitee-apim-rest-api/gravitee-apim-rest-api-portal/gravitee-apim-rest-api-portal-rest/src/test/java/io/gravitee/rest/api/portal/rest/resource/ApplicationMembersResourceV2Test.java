@@ -21,8 +21,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+import inmemory.ApplicationMemberUserQueryServiceInMemory;
 import inmemory.MemberQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
+import io.gravitee.apim.core.application_member.model.ApplicationMemberSearchUser;
 import io.gravitee.apim.core.member.model.Member;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.common.http.HttpStatusCode;
@@ -34,6 +36,7 @@ import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.MemberV2;
 import io.gravitee.rest.api.portal.rest.model.MemberV2Input;
 import io.gravitee.rest.api.portal.rest.model.MembersV2Response;
+import io.gravitee.rest.api.portal.rest.model.SearchUsersV2Response;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import java.util.Date;
@@ -56,6 +59,9 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
     @Autowired
     private RoleQueryServiceInMemory roleQueryService;
 
+    @Autowired
+    private ApplicationMemberUserQueryServiceInMemory applicationMemberUserQueryService;
+
     @Override
     protected String contextPath() {
         return "applications/";
@@ -66,6 +72,7 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
         resetAllMocks();
         memberQueryService.reset();
         roleQueryService.reset();
+        applicationMemberUserQueryService.reset();
 
         doReturn(new ApplicationEntity()).when(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
         doReturn(new ApplicationEntity()).when(applicationService).findById(GraviteeContext.getExecutionContext(), OTHER_APPLICATION_ID);
@@ -82,12 +89,20 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
         roleQueryService.initWith(
             List.of(aRole("USER", GraviteeContext.getCurrentOrganization()), aRole("ADMIN", GraviteeContext.getCurrentOrganization()))
         );
+        applicationMemberUserQueryService.initWith(
+            List.of(
+                aSearchUser("member-1", "ref-1", "Jane", "Doe", "Jane Doe", "jane@gravitee.io"),
+                aSearchUser("member-4", "ref-4", "Bob", "Smith", "Bob Smith", "bob@gravitee.io"),
+                aSearchUser("member-5", "ref-5", "Alice", "Cooper", "Alice Cooper", "alice@gravitee.io")
+            )
+        );
     }
 
     @AfterEach
     void cleanup() {
         memberQueryService.reset();
         roleQueryService.reset();
+        applicationMemberUserQueryService.reset();
     }
 
     @Test
@@ -212,6 +227,50 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
         }
     }
 
+    @Nested
+    class SearchUsersTest {
+
+        @Test
+        void should_search_users_for_application_member_v2() {
+            final var response = target(APPLICATION_ID)
+                .path("membersV2")
+                .path("_search-users")
+                .queryParam("q", "smith")
+                .request()
+                .post(null);
+
+            assertEquals(HttpStatusCode.OK_200, response.getStatus());
+            final var searchUsersResponse = response.readEntity(SearchUsersV2Response.class);
+            assertNotNull(searchUsersResponse);
+            assertEquals(1, searchUsersResponse.getData().size());
+            assertEquals("member-4", searchUsersResponse.getData().get(0).getId());
+        }
+
+        @Test
+        void should_exclude_existing_members_from_search_result() {
+            final var response = target(APPLICATION_ID).path("membersV2").path("_search-users").queryParam("q", "").request().post(null);
+
+            assertEquals(HttpStatusCode.OK_200, response.getStatus());
+            final var searchUsersResponse = response.readEntity(SearchUsersV2Response.class);
+            assertNotNull(searchUsersResponse);
+            assertEquals(2, searchUsersResponse.getData().size());
+        }
+
+        @Test
+        void should_return_403_when_missing_create_permission_on_search_users() {
+            doReturn(false).when(permissionService).hasPermission(any(), any(), any(), any());
+
+            final var response = target(APPLICATION_ID)
+                .path("membersV2")
+                .path("_search-users")
+                .queryParam("q", "smith")
+                .request()
+                .post(null);
+
+            assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+        }
+    }
+
     private static Member aMember(String id, String displayName, String email, String applicationId, String role) {
         return Member.builder()
             .id(id)
@@ -234,5 +293,16 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
             .referenceType(Role.ReferenceType.ORGANIZATION)
             .referenceId(organizationId)
             .build();
+    }
+
+    private static ApplicationMemberSearchUser aSearchUser(
+        String id,
+        String reference,
+        String firstName,
+        String lastName,
+        String displayName,
+        String email
+    ) {
+        return new ApplicationMemberSearchUser(id, reference, firstName, lastName, displayName, email);
     }
 }

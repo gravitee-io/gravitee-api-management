@@ -271,6 +271,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public ApplicationMemberUserQueryServiceInMemory applicationMemberUserQueryService() {
+        return new ApplicationMemberUserQueryServiceInMemory();
+    }
+
+    @Bean
     public RoleQueryServiceInMemory roleQueryService() {
         return new RoleQueryServiceInMemory();
     }
