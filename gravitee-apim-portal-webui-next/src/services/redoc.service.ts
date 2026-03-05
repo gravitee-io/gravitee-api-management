@@ -23,13 +23,45 @@ declare let Redoc: any;
 
 const DEFAULT_PRIMARY_COLOR = '#32329f';
 
+interface RedocThemeColors {
+  primary?: {
+    main: string;
+  };
+  http?: {
+    get: string;
+    post: string;
+    put: string;
+    patch: string;
+    delete: string;
+    options: string;
+    head: string;
+    link: string;
+    basic: string;
+  };
+
+  [key: string]: unknown;
+}
+
+interface RedocTheme {
+  colors?: RedocThemeColors;
+
+  [key: string]: unknown;
+}
+
+interface RedocOptions {
+  theme?: RedocTheme;
+
+  [key: string]: unknown;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class RedocService {
   private readonly document = inject(DOCUMENT);
+  private cachedPrimaryColor: string | null = null;
 
-  init(content: string | undefined, options: Record<string, unknown>, element: HTMLElement): void {
+  init(content: string | undefined, options: RedocOptions, element: HTMLElement): void {
     if (content) {
       const swaggerSpec = this.parseContent(content);
       const mergedOptions = this.mergeThemeWithPrimary(options);
@@ -38,17 +70,21 @@ export class RedocService {
   }
 
   private getPrimaryColor(): string {
+    if (this.cachedPrimaryColor !== null) {
+      return this.cachedPrimaryColor;
+    }
     const value = this.document.defaultView
       ?.getComputedStyle(this.document.documentElement)
       ?.getPropertyValue('--gio-app-primary-main-color')
       ?.trim();
-    return value || DEFAULT_PRIMARY_COLOR;
+    this.cachedPrimaryColor = value || DEFAULT_PRIMARY_COLOR;
+    return this.cachedPrimaryColor;
   }
 
-  private mergeThemeWithPrimary(options: Record<string, unknown>): Record<string, unknown> {
+  private mergeThemeWithPrimary(options: RedocOptions): RedocOptions {
     const primary = this.getPrimaryColor();
-    const baseTheme = (options['theme'] as Record<string, unknown>) ?? {};
-    const baseColors = (baseTheme['colors'] as Record<string, unknown>) ?? {};
+    const baseTheme = options.theme ?? {};
+    const baseColors = baseTheme.colors ?? {};
     return {
       ...options,
       theme: {

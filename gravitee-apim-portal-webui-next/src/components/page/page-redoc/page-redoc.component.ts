@@ -13,20 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input } from '@angular/core';
 
 import { Page } from '../../../entities/page/page';
-import { RedocContentViewerComponent } from '../../redoc-content-viewer/redoc-content-viewer.component';
+import { RedocService } from '../../../services/redoc.service';
 
+/**
+ * @deprecated
+ * @use RedocContentViewerComponent instead
+ */
 @Component({
   selector: 'app-page-redoc',
-  imports: [RedocContentViewerComponent],
-  template: `
-    @if (page().content; as content) {
-      <app-redoc-content-viewer [content]="content" />
-    }
-  `,
+  imports: [],
+  template: `<div id="redoc"></div>`,
 })
-export class PageRedocComponent {
-  page = input.required<Page>();
+export class PageRedocComponent implements AfterViewInit {
+  @Input()
+  page!: Page;
+
+  constructor(
+    private element: ElementRef,
+    private redocService: RedocService,
+  ) {}
+
+  ngAfterViewInit() {
+    const redocElement = this.element.nativeElement.querySelector('#redoc');
+
+    // Force the right-side panel to join into the middle panel with an extremely high value for the medium breakpoint
+    const options = { theme: { breakpoints: { medium: '599rem', large: '600rem' } } };
+
+    this.redocService.init(this.page.content, options, redocElement);
+  }
 }

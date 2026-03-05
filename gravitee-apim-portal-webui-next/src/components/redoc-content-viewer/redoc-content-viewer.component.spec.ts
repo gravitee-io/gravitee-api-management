@@ -46,8 +46,8 @@ describe('RedocContentViewerComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should call RedocService.init with content and options', async () => {
-    await new Promise(resolve => setTimeout(resolve, 0)); // Flush setTimeout so RedocService.init is called
+  it('should call RedocService.init with content and options', () => {
+    jest.advanceTimersByTime(0); // Flush setTimeout so RedocService.init is called
     expect(redocServiceInitSpy).toHaveBeenCalledWith(
       openApiSpec,
       expect.objectContaining({
