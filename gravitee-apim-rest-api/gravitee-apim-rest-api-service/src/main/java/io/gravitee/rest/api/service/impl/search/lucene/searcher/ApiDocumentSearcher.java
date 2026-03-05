@@ -115,6 +115,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         FIELD_HAS_HEALTH_CHECK,
         FIELD_DEFINITION_VERSION,
         FIELD_ALLOW_IN_API_PRODUCTS,
+        FIELD_API_PRODUCT_IDS, // Allow query: api_product_ids:product-123
     };
 
     public ApiDocumentSearcher(IndexWriter indexWriter) {
@@ -401,7 +402,8 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             !FIELD_ORIGIN.equals(term.field()) &&
             !FIELD_HAS_HEALTH_CHECK.equals(term.field()) &&
             !FIELD_DEFINITION_VERSION.equals(term.field()) &&
-            !FIELD_ALLOW_IN_API_PRODUCTS.equals(term.field())
+            !FIELD_ALLOW_IN_API_PRODUCTS.equals(term.field()) &&
+            !FIELD_API_PRODUCT_IDS.equals(term.field())
         ) {
             text = text.toLowerCase();
             field = field.concat("_lowercase");

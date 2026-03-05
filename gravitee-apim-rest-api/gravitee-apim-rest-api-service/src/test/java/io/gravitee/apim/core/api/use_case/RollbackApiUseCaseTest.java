@@ -125,6 +125,7 @@ class RollbackApiUseCaseTest {
     private final ApiStateDomainService apiStateDomainService = mock(ApiStateDomainServiceLegacyWrapper.class);
     private final ApiMetadataQueryServiceInMemory metadataQueryService = new ApiMetadataQueryServiceInMemory();
     private final ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
+    private final ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
     private final IndexerInMemory indexer = new IndexerInMemory();
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
@@ -179,6 +180,7 @@ class RollbackApiUseCaseTest {
             new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
             this.apiPrimaryOwnerDomainService,
             apiCategoryQueryService,
+            apiProductQueryService,
             indexer
         );
 

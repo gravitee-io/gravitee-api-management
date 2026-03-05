@@ -43,6 +43,13 @@ public class IndexableApi implements Indexable {
     /** API categories' keys */
     private Collection<String> categoryKeys;
 
+    /**
+     * IDs of API Products that contain this API. Indexed in Lucene as api_product_ids
+     * so we can filter "APIs in product X" with a single lookup instead of loading all API IDs.
+     */
+    @Builder.Default
+    private Collection<String> apiProductIds = null;
+
     @Override
     public String getId() {
         return api.getId();

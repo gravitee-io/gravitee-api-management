@@ -22,6 +22,7 @@ import fakes.FakeApiImagesService;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
@@ -123,6 +124,7 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
             new ApiMetadataDecoderDomainService(apiMetadataQueryServiceInMemory, new FreemarkerTemplateProcessor()),
             apiPrimaryOwnerDomainService,
             new ApiCategoryQueryServiceInMemory(),
+            new ApiProductQueryServiceInMemory(),
             indexer
         );
         updateNativeApiDomainService = new UpdateNativeApiDomainService(

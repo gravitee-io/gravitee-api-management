@@ -61,7 +61,7 @@ export type ApiProductApiTableDS = {
 interface ApiProductApisTableWrapperFilters extends GioTableWrapperFilters {}
 
 const DEFAULT_FILTERS: ApiProductApisTableWrapperFilters = {
-  pagination: { index: 1, size: 5 },
+  pagination: { index: 1, size: 25 },
   searchTerm: '',
 };
 
@@ -163,7 +163,7 @@ export class ApiProductApisComponent implements OnInit {
     };
     const order = toOrder(filters.sort) ?? 'name';
     return this.apiV2Service
-      .search(searchBody, apiSortByParamFromString(order), filters.pagination?.index ?? 1, filters.pagination?.size ?? 5)
+      .search(searchBody, apiSortByParamFromString(order), filters.pagination?.index ?? 1, filters.pagination?.size ?? 25)
       .pipe(
         catchError(
           this.handleError('An error occurred while loading APIs', of({ data: [], pagination: { totalCount: 0 } } as ApisResponse)),

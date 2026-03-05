@@ -137,6 +137,14 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
             doc.add(new SortedDocValuesField(FIELD_CATEGORIES_DESC_SORTED, toSortedValue(categoriesDesc)));
         }
 
+        // api_product_ids: multi-valued field (one StringField per product ID, like tags). Lucene builds inverted index
+        // so "product-1" -> [api-1, api-2]. At search time: filter api_product_ids:product-1 = single TermQuery.
+        if (indexableApi.getApiProductIds() != null && !indexableApi.getApiProductIds().isEmpty()) {
+            for (String productId : indexableApi.getApiProductIds()) {
+                doc.add(new StringField(FIELD_API_PRODUCT_IDS, productId, Field.Store.NO)); // Each product = one index entry
+            }
+        }
+
         if (api.getCreatedAt() != null) {
             doc.add(new LongPoint(FIELD_CREATED_AT, api.getCreatedAt().toInstant().toEpochMilli()));
         }

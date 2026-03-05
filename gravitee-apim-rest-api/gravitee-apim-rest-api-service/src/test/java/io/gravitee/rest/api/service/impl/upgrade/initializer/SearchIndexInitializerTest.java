@@ -320,7 +320,7 @@ public class SearchIndexInitializerTest {
                 lenient()
                     .when(apiIndexerDomainService.toIndexableApi(any(Indexer.IndexationContext.class), any()))
                     .thenAnswer(invocation ->
-                        new IndexableApi(invocation.getArgument(1), null, Collections.emptyMap(), Collections.emptyList())
+                        new IndexableApi(invocation.getArgument(1), null, Collections.emptyMap(), Collections.emptyList(), null)
                     );
             } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
                 lenient()

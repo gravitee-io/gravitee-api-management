@@ -25,6 +25,7 @@ import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
@@ -131,6 +132,7 @@ class UpdateFederatedApiUseCaseTest {
                 ),
                 apiPrimaryOwnerService,
                 new ApiCategoryQueryServiceInMemory(),
+                new ApiProductQueryServiceInMemory(),
                 indexer
             )
         );

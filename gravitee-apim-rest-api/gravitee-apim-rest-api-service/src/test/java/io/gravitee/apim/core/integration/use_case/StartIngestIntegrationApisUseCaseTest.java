@@ -28,6 +28,7 @@ import inmemory.A2aAgentFetcherInMemory;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.AsyncJobCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.CreateCategoryApiDomainServiceInMemory;
@@ -175,6 +176,7 @@ class StartIngestIntegrationApisUseCaseTest {
         new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
         apiPrimaryOwnerDomainService,
         apiCategoryQueryService1,
+        new ApiProductQueryServiceInMemory(),
         indexer
     );
 
@@ -246,6 +248,7 @@ class StartIngestIntegrationApisUseCaseTest {
             new ApiMetadataDecoderDomainService(metadataQueryService1, new FreemarkerTemplateProcessor()),
             apiPrimaryOwnerService,
             apiCategoryQueryService2,
+            new ApiProductQueryServiceInMemory(),
             indexer
         )
     );
@@ -256,6 +259,7 @@ class StartIngestIntegrationApisUseCaseTest {
             new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
             apiPrimaryOwnerDomainService,
             apiCategoryQueryService,
+            new ApiProductQueryServiceInMemory(),
             indexer
         ),
         new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryService, auditDomainService),

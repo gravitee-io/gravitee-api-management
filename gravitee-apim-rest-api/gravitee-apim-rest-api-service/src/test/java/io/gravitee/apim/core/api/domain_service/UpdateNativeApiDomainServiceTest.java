@@ -147,6 +147,7 @@ class UpdateNativeApiDomainServiceTest {
                 ),
                 apiPrimaryOwnerService,
                 new ApiCategoryQueryServiceInMemory(),
+                new ApiProductQueryServiceInMemory(),
                 indexer
             )
         );
@@ -347,7 +348,8 @@ class UpdateNativeApiDomainServiceTest {
                     updatedApi,
                     new PrimaryOwnerEntity(MY_MEMBER_ID, MEMBER_EMAIL, MEMBER_EMAIL, PrimaryOwnerEntity.Type.USER),
                     Map.of(),
-                    Collections.emptySet()
+                    Collections.emptySet(),
+                    null
                 )
             );
     }

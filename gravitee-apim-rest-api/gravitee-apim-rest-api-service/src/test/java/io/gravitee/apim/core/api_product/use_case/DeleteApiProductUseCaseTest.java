@@ -34,6 +34,7 @@ import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.IndexerInMemory;
 import inmemory.PlanQueryServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
@@ -60,6 +61,7 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private final EventCrudService eventCrudService = mock(EventCrudService.class);
     private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
+    private final ApiIndexerDomainService apiIndexerDomainService = mock(ApiIndexerDomainService.class);
     private final ApiStateDomainService apiStateDomainService = mock(ApiStateDomainService.class);
     private final ApiProductIndexerDomainService apiProductIndexerDomainService = mock(ApiProductIndexerDomainService.class);
     private DeleteApiProductUseCase deleteApiProductUseCase;
@@ -75,6 +77,8 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
         );
         deleteApiProductUseCase = new DeleteApiProductUseCase(
             apiProductCrudService,
+            apiCrudService,
+            apiIndexerDomainService,
             auditService,
             apiProductQueryService,
             validateApiProductService,
@@ -124,6 +128,8 @@ class DeleteApiProductUseCaseTest extends AbstractUseCaseTest {
         var realIndexerDomainService = new ApiProductIndexerDomainService(primaryOwnerDomainService, indexer);
         var useCaseWithRealIndexer = new DeleteApiProductUseCase(
             apiProductCrudService,
+            apiCrudService,
+            mock(ApiIndexerDomainService.class),
             new io.gravitee.apim.core.audit.domain_service.AuditDomainService(
                 auditCrudService,
                 userCrudService,

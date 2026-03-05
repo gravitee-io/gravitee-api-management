@@ -48,6 +48,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
@@ -451,6 +452,7 @@ class ImportApiCRDUseCaseTest {
                 ),
                 apiPrimaryOwnerService,
                 new ApiCategoryQueryServiceInMemory(),
+                new ApiProductQueryServiceInMemory(),
                 indexer
             )
         );
@@ -575,6 +577,7 @@ class ImportApiCRDUseCaseTest {
                 new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
                 apiPrimaryOwnerDomainService,
                 apiCategoryQueryService,
+                new ApiProductQueryServiceInMemory(),
                 indexer
             ),
             new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryService, auditDomainService),
@@ -643,7 +646,8 @@ class ImportApiCRDUseCaseTest {
                             expected,
                             new PrimaryOwnerEntity(ACTOR_USER_ID, "devops@gravitee.io", "devops@gravitee.io", PrimaryOwnerEntity.Type.USER),
                             Map.ofEntries(Map.entry("email-support", "devops@gravitee.io")),
-                            Collections.emptySet()
+                            Collections.emptySet(),
+                            null
                         )
                     );
             });
@@ -667,7 +671,8 @@ class ImportApiCRDUseCaseTest {
                             expected,
                             new PrimaryOwnerEntity(ACTOR_USER_ID, "devops@gravitee.io", "devops@gravitee.io", PrimaryOwnerEntity.Type.USER),
                             Map.ofEntries(Map.entry("email-support", "devops@gravitee.io")),
-                            Collections.emptySet()
+                            Collections.emptySet(),
+                            null
                         )
                     );
             });

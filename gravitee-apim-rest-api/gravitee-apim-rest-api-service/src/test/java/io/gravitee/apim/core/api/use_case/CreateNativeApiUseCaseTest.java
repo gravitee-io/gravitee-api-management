@@ -27,6 +27,7 @@ import fixtures.core.model.NewApiFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.CreateCategoryApiDomainServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
@@ -166,6 +167,7 @@ class CreateNativeApiUseCaseTest {
                 new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
                 apiPrimaryOwnerDomainService,
                 new ApiCategoryQueryServiceInMemory(),
+                new ApiProductQueryServiceInMemory(),
                 indexer
             ),
             new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryService, auditService),
@@ -268,7 +270,8 @@ class CreateNativeApiUseCaseTest {
                         expectedApi,
                         new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
                         Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io")),
-                        Collections.emptySet()
+                        Collections.emptySet(),
+                        null
                     )
                 );
         });

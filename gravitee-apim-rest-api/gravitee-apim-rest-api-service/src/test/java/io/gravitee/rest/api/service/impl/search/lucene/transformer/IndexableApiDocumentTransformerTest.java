@@ -103,7 +103,8 @@ public class IndexableApiDocumentTransformerTest {
             Api.builder().id(API_ID).lifecycleState(Api.LifecycleState.STARTED).build(),
             PRIMARY_OWNER,
             Map.of(),
-            Set.of()
+            Set.of(),
+            null
         );
 
         // When
@@ -124,7 +125,8 @@ public class IndexableApiDocumentTransformerTest {
             ApiFixtures.aProxyApiV4().toBuilder().labels(List.of("Label1, Label2")).build(),
             PRIMARY_OWNER,
             Map.of(),
-            Set.of("category1", "category2")
+            Set.of("category1", "category2"),
+            null
         );
 
         // When
@@ -186,7 +188,7 @@ public class IndexableApiDocumentTransformerTest {
     @Test
     void should_transform_primary_owner_info() {
         // Given
-        var indexable = new IndexableApi(ApiFixtures.aProxyApiV4(), PRIMARY_OWNER, Map.of(), Set.of());
+        var indexable = new IndexableApi(ApiFixtures.aProxyApiV4(), PRIMARY_OWNER, Map.of(), Set.of(), null);
 
         // When
         var result = cut.transform(indexable);
@@ -207,7 +209,8 @@ public class IndexableApiDocumentTransformerTest {
             ApiFixtures.aProxyApiV4(),
             PRIMARY_OWNER,
             Map.of("metadata1", "value1", "metadata2", "value2"),
-            Set.of()
+            Set.of(),
+            null
         );
 
         // When
@@ -224,7 +227,7 @@ public class IndexableApiDocumentTransformerTest {
     void should_throw_when_not_V4_api() {
         // Given
         var apiV1 = Api.builder().id(API_ID).lifecycleState(Api.LifecycleState.STARTED).definitionVersion(DefinitionVersion.V1).build();
-        var indexable = new IndexableApi(apiV1, PRIMARY_OWNER, Map.of(), Set.of());
+        var indexable = new IndexableApi(apiV1, PRIMARY_OWNER, Map.of(), Set.of(), null);
 
         // When
         var throwable = catchThrowable(() -> cut.transform(indexable));
@@ -246,7 +249,8 @@ public class IndexableApiDocumentTransformerTest {
                 .build(),
             PRIMARY_OWNER,
             Map.of(),
-            Set.of("Category1", "Category2")
+            Set.of("Category1", "Category2"),
+            null
         );
 
         // When
@@ -294,7 +298,8 @@ public class IndexableApiDocumentTransformerTest {
             ApiFixtures.aNativeApi().toBuilder().id(API_ID).description("A Description").labels(List.of("Label1, Label2")).build(),
             PRIMARY_OWNER,
             Map.of(),
-            Set.of("Category1", "Category2")
+            Set.of("Category1", "Category2"),
+            null
         );
 
         // When
@@ -362,7 +367,7 @@ public class IndexableApiDocumentTransformerTest {
                     .build()
             )
             .build();
-        var indexable = new IndexableApi(api, PRIMARY_OWNER, Map.of(), Set.of());
+        var indexable = new IndexableApi(api, PRIMARY_OWNER, Map.of(), Set.of(), null);
         var result = cut.transform(indexable);
         assertThat(result.getFields("paths_lowercase")[0].stringValue()).isEqualTo("/testpath");
         assertThat(result.getFields("hosts_lowercase")[0].stringValue()).isEqualTo("api.testhost.com");
@@ -441,7 +446,13 @@ public class IndexableApiDocumentTransformerTest {
         void should_transform_v2_api_with_same_fields_as_api_document_transformer() {
             // Given
             var v2Api = createV2ApiWithFullData();
-            var indexableApi = new IndexableApi(v2Api, PRIMARY_OWNER, Map.of("metadata1", "value1"), Set.of("category1", "category2"));
+            var indexableApi = new IndexableApi(
+                v2Api,
+                PRIMARY_OWNER,
+                Map.of("metadata1", "value1"),
+                Set.of("category1", "category2"),
+                null
+            );
             var genericApiEntity = convertToGenericApiEntity(v2Api);
 
             // When
@@ -456,7 +467,7 @@ public class IndexableApiDocumentTransformerTest {
         void should_handle_v2_api_paths_correctly() {
             // Given
             var v2Api = createV2ApiWithPaths();
-            var indexableApi = new IndexableApi(v2Api, PRIMARY_OWNER, Map.of(), Set.of());
+            var indexableApi = new IndexableApi(v2Api, PRIMARY_OWNER, Map.of(), Set.of(), null);
             var genericApiEntity = convertToGenericApiEntity(v2Api);
 
             // When
@@ -484,7 +495,7 @@ public class IndexableApiDocumentTransformerTest {
         void should_handle_v2_api_tags_correctly() {
             // Given
             var v2Api = createV2ApiWithTags();
-            var indexableApi = new IndexableApi(v2Api, PRIMARY_OWNER, Map.of(), Set.of());
+            var indexableApi = new IndexableApi(v2Api, PRIMARY_OWNER, Map.of(), Set.of(), null);
             var genericApiEntity = convertToGenericApiEntity(v2Api);
 
             // When
@@ -512,7 +523,7 @@ public class IndexableApiDocumentTransformerTest {
         void should_handle_v2_api_health_check_correctly() {
             // Given
             var v2Api = createV2ApiWithHealthCheck();
-            var indexableApi = new IndexableApi(v2Api, PRIMARY_OWNER, Map.of(), Set.of());
+            var indexableApi = new IndexableApi(v2Api, PRIMARY_OWNER, Map.of(), Set.of(), null);
             var genericApiEntity = convertToGenericApiEntity(v2Api);
             when(apiService.hasHealthCheckEnabled(any(), eq(false))).thenReturn(true);
 
@@ -530,7 +541,7 @@ public class IndexableApiDocumentTransformerTest {
         void should_handle_v2_api_origin_context_correctly() {
             // Given
             var v2Api = createV2ApiWithOriginContext();
-            var indexableApi = new IndexableApi(v2Api, PRIMARY_OWNER, Map.of(), Set.of());
+            var indexableApi = new IndexableApi(v2Api, PRIMARY_OWNER, Map.of(), Set.of(), null);
             var genericApiEntity = convertToGenericApiEntity(v2Api);
 
             // When

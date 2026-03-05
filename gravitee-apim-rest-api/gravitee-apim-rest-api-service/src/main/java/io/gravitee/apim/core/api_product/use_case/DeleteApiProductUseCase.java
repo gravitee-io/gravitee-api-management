@@ -19,7 +19,10 @@ import static io.gravitee.apim.core.api_product.domain_service.ApiProductIndexer
 import static java.util.Map.entry;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
@@ -36,6 +39,7 @@ import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.EventType;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +49,8 @@ import lombok.RequiredArgsConstructor;
 public class DeleteApiProductUseCase {
 
     private final ApiProductCrudService apiProductCrudService;
+    private final ApiCrudService apiCrudService;
+    private final ApiIndexerDomainService apiIndexerDomainService;
     private final AuditDomainService auditService;
     private final ApiProductQueryService apiProductQueryService;
     private final ValidateApiProductService validateApiProductService;
@@ -66,8 +72,20 @@ public class DeleteApiProductUseCase {
 
         publishUndeployEvent(input.auditInfo(), apiProduct);
 
+        // Save apiIds before delete - we need them for re-indexing (findByApiId won't return deleted product after).
+        Set<String> apiIdsToReindex = apiProduct.getApiIds() != null ? Set.copyOf(apiProduct.getApiIds()) : Set.of();
+
         apiProductCrudService.delete(input.apiProductId());
         apiProductIndexerDomainService.delete(oneShotIndexation(input.auditInfo()), apiProduct);
+
+        List<Api> apisToReindex = apiIdsToReindex
+            .stream()
+            .flatMap(apiId -> apiCrudService.findById(apiId).stream())
+            .toList();
+        var indexation = ApiIndexerDomainService.oneShotIndexation(input.auditInfo());
+        for (Api api : apisToReindex) {
+            apiIndexerDomainService.index(indexation, api);
+        }
         createAuditLog(input.apiProductId, input.auditInfo());
     }
 

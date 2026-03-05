@@ -37,6 +37,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AsyncJobCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
@@ -266,6 +267,7 @@ class IngestFederatedApisUseCaseTest {
                 new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
                 apiPrimaryOwnerDomainService,
                 new ApiCategoryQueryServiceInMemory(),
+                new ApiProductQueryServiceInMemory(),
                 indexer
             ),
             apiMetadataDomainService,
@@ -331,6 +333,7 @@ class IngestFederatedApisUseCaseTest {
             new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
             apiPrimaryOwnerDomainService,
             new ApiCategoryQueryServiceInMemory(),
+            new ApiProductQueryServiceInMemory(),
             indexer
         );
 
@@ -527,7 +530,8 @@ class IngestFederatedApisUseCaseTest {
                             expectedApi,
                             new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
                             Map.of(),
-                            Set.of()
+                            Set.of(),
+                            null
                         )
                     );
             });
@@ -781,7 +785,8 @@ class IngestFederatedApisUseCaseTest {
                             expectedApi,
                             new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
                             Map.of(),
-                            Collections.emptySet()
+                            Collections.emptySet(),
+                            null
                         )
                     );
             });

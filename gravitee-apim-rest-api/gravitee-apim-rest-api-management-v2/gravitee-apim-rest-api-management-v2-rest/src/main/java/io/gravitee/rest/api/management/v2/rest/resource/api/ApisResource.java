@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ALLOW_IN_API_PRODUCTS;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_PRODUCT_IDS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
@@ -39,7 +40,6 @@ import io.gravitee.apim.core.api.use_case.OAIToImportApiUseCase;
 import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiHostsUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
-import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
@@ -153,9 +153,6 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private OAIToImportApiUseCase oaiToImportApiUseCase;
-
-    @Inject
-    private ApiProductQueryService apiProductQueryService;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -304,15 +301,10 @@ public class ApisResource extends AbstractResource {
             apiQueryBuilder.setQuery(apiSearchQuery.getQuery());
         }
 
+        // apiProductId: filter by Lucene field "api_product_ids" (indexed on each API doc at write time).
+        // Single TermQuery instead of loading hundreds of API IDs from DB - scales with product size.
         if (!Strings.isNullOrEmpty(apiSearchQuery.getApiProductId())) {
-            var apiProductOpt = apiProductQueryService.findById(apiSearchQuery.getApiProductId());
-            if (apiProductOpt.isEmpty() || apiProductOpt.get().getApiIds() == null || apiProductOpt.get().getApiIds().isEmpty()) {
-                return new ApisResponse()
-                    .data(List.of())
-                    .pagination(PaginationInfo.computePaginationInfo(0, 0, paginationParam))
-                    .links(computePaginationLinks(0, paginationParam));
-            }
-            apiQueryBuilder.addFilter(FIELD_TYPE_VALUE, new ArrayList<>(apiProductOpt.get().getApiIds()));
+            apiQueryBuilder.addFilter(FIELD_API_PRODUCT_IDS, List.of(apiSearchQuery.getApiProductId()));
         } else if (Objects.nonNull(apiSearchQuery.getIds()) && !apiSearchQuery.getIds().isEmpty()) {
             apiQueryBuilder.addFilter(FIELD_TYPE_VALUE, apiSearchQuery.getIds());
         }

@@ -35,6 +35,7 @@ import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
@@ -68,6 +69,7 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final EventCrudService eventCrudService = mock(EventCrudService.class);
     private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
     private final LicenseManager licenseManager = mock(LicenseManager.class);
+    private final ApiIndexerDomainService apiIndexerDomainService = mock(ApiIndexerDomainService.class);
     private final ApiStateDomainService apiStateDomainService = mock(ApiStateDomainService.class);
     private final ApiProductIndexerDomainService apiProductIndexerDomainService = mock(ApiProductIndexerDomainService.class);
     private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService = mock(ApiProductPrimaryOwnerDomainService.class);
@@ -86,6 +88,8 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
         updateApiProductUseCase = new UpdateApiProductUseCase(
             apiProductCrudService,
+            apiCrudService,
+            apiIndexerDomainService,
             auditService,
             apiProductQueryService,
             validateApiProductService,

@@ -27,6 +27,7 @@ import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.IndexerInMemory;
@@ -137,6 +138,7 @@ class UpdateFederatedApiDomainServiceTest {
                 ),
                 apiPrimaryOwnerService,
                 new ApiCategoryQueryServiceInMemory(),
+                new ApiProductQueryServiceInMemory(),
                 indexer
             )
         );
@@ -300,7 +302,8 @@ class UpdateFederatedApiDomainServiceTest {
                     updatedApi,
                     new PrimaryOwnerEntity(MY_MEMBER_ID, MEMBER_EMAIL, MEMBER_EMAIL, PrimaryOwnerEntity.Type.USER),
                     Map.of(),
-                    Collections.emptySet()
+                    Collections.emptySet(),
+                    null
                 )
             );
     }

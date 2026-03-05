@@ -19,7 +19,10 @@ import static io.gravitee.apim.core.api_product.domain_service.ApiProductIndexer
 import static java.util.Map.entry;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
@@ -43,9 +46,11 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -55,6 +60,8 @@ import lombok.RequiredArgsConstructor;
 public class UpdateApiProductUseCase {
 
     private final ApiProductCrudService apiProductCrudService;
+    private final ApiCrudService apiCrudService;
+    private final ApiIndexerDomainService apiIndexerDomainService;
     private final AuditDomainService auditService;
     private final ApiProductQueryService apiProductQueryService;
     private final ValidateApiProductService validateApiProductService;
@@ -102,6 +109,25 @@ public class UpdateApiProductUseCase {
         existingApiProduct.update(updateApiProduct);
 
         ApiProduct updated = apiProductCrudService.update(existingApiProduct);
+
+        // Re-index APIs whose product membership changed so Lucene api_product_ids stays in sync.
+        // Removed APIs: api_product_ids must drop this product. Added APIs: api_product_ids must include it.
+        Set<String> beforeIds = beforeUpdate.getApiIds() != null ? beforeUpdate.getApiIds() : Set.of();
+        Set<String> afterIds = updated.getApiIds() != null ? updated.getApiIds() : Set.of();
+        Set<String> removed = new HashSet<>(beforeIds);
+        removed.removeAll(afterIds);
+        Set<String> added = new HashSet<>(afterIds);
+        added.removeAll(beforeIds);
+
+        List<String> apiIdsToReindex = Stream.concat(removed.stream(), added.stream()).toList();
+        List<Api> apisToReindex = apiIdsToReindex
+            .stream()
+            .flatMap(apiId -> apiCrudService.findById(apiId).stream())
+            .toList();
+        var indexation = ApiIndexerDomainService.oneShotIndexation(input.auditInfo());
+        for (Api api : apisToReindex) {
+            apiIndexerDomainService.index(indexation, api);
+        }
 
         PrimaryOwnerEntity primaryOwner = null;
         try {

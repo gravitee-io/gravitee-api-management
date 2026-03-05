@@ -111,6 +111,8 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_VISIBILITY = "visibility";
     public static final String FIELD_VISIBILITY_SORTED = "visibility_sorted";
     public static final String FIELD_ALLOW_IN_API_PRODUCTS = "allow_in_api_products";
+    /** Multi-valued field: each API Product ID that contains this API. Enables efficient "APIs in product X" search. */
+    public static final String FIELD_API_PRODUCT_IDS = "api_product_ids";
 
     private final ApiService apiService;
     private final Collator collator = Collator.getInstance(Locale.ENGLISH);

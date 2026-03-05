@@ -19,6 +19,8 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.ApiMetadataDecodeContext;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiCategoryQueryService;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.model.PrimaryOwnerApiTemplateData;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
@@ -27,7 +29,9 @@ import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import java.util.Date;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 
 @DomainService
@@ -37,22 +41,34 @@ public class ApiIndexerDomainService {
     private final ApiMetadataDecoderDomainService apiMetadataDecoderDomainService;
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final ApiCategoryQueryService apiCategoryQueryService;
+    private final ApiProductQueryService apiProductQueryService;
     private final Indexer indexer;
 
     public ApiIndexerDomainService(
         ApiMetadataDecoderDomainService apiMetadataDecoderDomainService,
         ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
         ApiCategoryQueryService apiCategoryQueryService,
+        ApiProductQueryService apiProductQueryService,
         Indexer indexer
     ) {
         this.apiMetadataDecoderDomainService = apiMetadataDecoderDomainService;
         this.apiPrimaryOwnerDomainService = apiPrimaryOwnerDomainService;
         this.apiCategoryQueryService = apiCategoryQueryService;
+        this.apiProductQueryService = apiProductQueryService;
         this.indexer = indexer;
     }
 
     public void index(Context context, Api apiToIndex, PrimaryOwnerEntity primaryOwner) {
+        // Send IndexableApi (includes apiProductIds from findByApiId) to Lucene - each API doc gets api_product_ids field
         indexer.index(context.toIndexationContext(), toIndexableApi(apiToIndex, primaryOwner));
+    }
+
+    /**
+     * Re-index an API using context (fetches primary owner internally).
+     * Used when re-indexing APIs after product membership changes - e.g. API added/removed from product.
+     */
+    public void index(Context context, Api apiToIndex) {
+        indexer.index(context.toIndexationContext(), toIndexableApi(context.toIndexationContext(), apiToIndex));
     }
 
     public void delete(Context context, Api apiToDelete) {
@@ -108,7 +124,13 @@ public class ApiIndexerDomainService {
                 .build()
         );
         var categoryKeys = apiCategoryQueryService.findApiCategoryKeys(apiToIndex);
-        return new IndexableApi(apiToIndex, primaryOwner, metadata, categoryKeys);
+        // Inverse lookup: which products contain this API? Stored in Lucene as api_product_ids for efficient search.
+        Set<String> apiProductIds = apiProductQueryService
+            .findByApiId(apiToIndex.getId())
+            .stream()
+            .map(ApiProduct::getId)
+            .collect(Collectors.toSet());
+        return new IndexableApi(apiToIndex, primaryOwner, metadata, categoryKeys, apiProductIds);
     }
 
     public static Context oneShotIndexation(AuditInfo auditInfo) {

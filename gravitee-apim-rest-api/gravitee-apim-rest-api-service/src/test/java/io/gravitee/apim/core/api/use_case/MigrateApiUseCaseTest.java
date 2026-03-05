@@ -32,6 +32,7 @@ import fixtures.core.model.PlanFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
@@ -143,6 +144,7 @@ class MigrateApiUseCaseTest {
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     private final MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     private final ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
+    private final ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
     private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
     private final PageQueryService pageQueryService = mock(PageQueryService.class);
     private final EventManager eventManager = mock(EventManager.class);
@@ -163,6 +165,7 @@ class MigrateApiUseCaseTest {
         new ApiMetadataDecoderDomainService(apiMetadataQueryService, new FreemarkerTemplateProcessor()),
         apiPrimaryOwnerDomainService,
         apiCategoryQueryService,
+        apiProductQueryService,
         indexer
     );
     private final ApiStateDomainService apiStateDomainService = new ApiStateDomainServiceLegacyWrapper(

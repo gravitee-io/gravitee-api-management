@@ -22,6 +22,7 @@ import fixtures.core.model.MembershipFixtures;
 import fixtures.core.model.MetadataFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
@@ -59,6 +60,7 @@ class ApiIndexerDomainServiceTest {
 
     ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
     ApiMetadataQueryServiceInMemory apiMetadataQueryService = new ApiMetadataQueryServiceInMemory();
+    ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
     MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
@@ -77,6 +79,7 @@ class ApiIndexerDomainServiceTest {
                 userCrudService
             ),
             apiCategoryQueryService,
+            apiProductQueryService,
             null
         );
 
@@ -168,6 +171,7 @@ class ApiIndexerDomainServiceTest {
                     apiToIndex,
                     null,
                     Map.ofEntries(Map.entry("api-name", apiToIndex.getName()), Map.entry("support", "")),
+                    Set.of(),
                     Set.of()
                 )
             );

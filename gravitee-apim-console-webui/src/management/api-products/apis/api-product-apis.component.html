@@ -31,6 +31,7 @@
     [length]="apisTableDSUnpaginatedLength"
     [searchLabel]="searchLabel"
     (filtersChange)="onFiltersChanged($event)"
+    [paginationPageSizeOptions]="[25, 50, 100, 200]"
   >
     <table mat-table [dataSource]="apisTableDS">
       <ng-container matColumnDef="picture">

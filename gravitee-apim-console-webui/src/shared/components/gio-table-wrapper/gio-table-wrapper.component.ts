@@ -90,7 +90,7 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
 
   /** Pagination available page size options */
   @Input()
-  paginationPageSizeOptions = [25, 50, 100, 200];
+  paginationPageSizeOptions = [5, 10, 25, 100];
 
   // Combine the paginator, sort and filter into a single output
   // Alway sent initial filters values

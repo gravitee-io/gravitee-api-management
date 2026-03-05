@@ -40,7 +40,7 @@ function expectApisSearchRequest(
   apis: Api[],
   options?: { apiProductId?: string; query?: string; page?: number; perPage?: number; totalCount?: number },
 ) {
-  const { apiProductId = 'product-1', query, page = 1, perPage = 5, totalCount = apis.length } = options ?? {};
+  const { apiProductId = 'product-1', query, page = 1, perPage = 25, totalCount = apis.length } = options ?? {};
   const baseUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search`;
   const req = httpTestingController.expectOne((r: { method: string; urlWithParams?: string; url?: string }) => {
     const url = r.urlWithParams ?? r.url ?? '';

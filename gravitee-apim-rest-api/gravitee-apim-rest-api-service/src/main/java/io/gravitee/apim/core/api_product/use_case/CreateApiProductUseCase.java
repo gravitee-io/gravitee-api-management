@@ -19,6 +19,9 @@ import static io.gravitee.apim.core.api_product.domain_service.ApiProductIndexer
 import static java.util.Map.entry;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
@@ -53,6 +56,8 @@ public class CreateApiProductUseCase {
 
     private final ApiProductQueryService apiProductQueryService;
     private final ApiProductCrudService apiProductCrudService;
+    private final ApiCrudService apiCrudService;
+    private final ApiIndexerDomainService apiIndexerDomainService;
     private final ValidateApiProductService validateApiProductService;
     private final AuditDomainService auditService;
     private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService;
@@ -113,6 +118,15 @@ public class CreateApiProductUseCase {
         apiProductPrimaryOwnerDomainService.createApiProductPrimaryOwnerMembership(created.getId(), primaryOwner, auditInfo);
 
         apiProductIndexerDomainService.index(oneShotIndexation(auditInfo), created, primaryOwner);
+
+        List<Api> apisToReindex = apiIds
+            .stream()
+            .flatMap(apiId -> apiCrudService.findById(apiId).stream())
+            .toList();
+        var indexation = ApiIndexerDomainService.oneShotIndexation(auditInfo);
+        for (Api api : apisToReindex) {
+            apiIndexerDomainService.index(indexation, api);
+        }
 
         publishDeployEvent(auditInfo, created);
         createAuditLog(created, auditInfo);

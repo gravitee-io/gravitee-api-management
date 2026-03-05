@@ -31,6 +31,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
@@ -203,6 +204,7 @@ class DeleteIngestedApisUseCaseTest {
             apiMetadataDecoderDomainService,
             apiPrimaryOwnerDomainService,
             apiCategoryQueryServiceInMemory,
+            new ApiProductQueryServiceInMemory(),
             indexer
         );
 
@@ -490,7 +492,7 @@ class DeleteIngestedApisUseCaseTest {
     void should_delete_api_index() {
         var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).type(PrimaryOwnerEntity.Type.USER).build();
         var apiToDelete = ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED).build();
-        var apiToIndex = new IndexableApi(apiToDelete, primaryOwner, null, null);
+        var apiToIndex = new IndexableApi(apiToDelete, primaryOwner, null, null, null);
         indexer.initWith(List.of(apiToIndex));
         apiCrudServiceInMemory.initWith(List.of(apiToDelete));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);

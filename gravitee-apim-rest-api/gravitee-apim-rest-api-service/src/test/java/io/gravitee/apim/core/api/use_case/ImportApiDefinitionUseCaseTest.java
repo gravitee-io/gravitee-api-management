@@ -248,7 +248,8 @@ class ImportApiDefinitionUseCaseTest {
                             expected,
                             new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
                             Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
+                            Collections.emptySet(),
+                            null
                         )
                     );
             });
@@ -284,7 +285,8 @@ class ImportApiDefinitionUseCaseTest {
                             expected,
                             new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
                             Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
+                            Collections.emptySet(),
+                            null
                         )
                     );
             });
@@ -320,7 +322,8 @@ class ImportApiDefinitionUseCaseTest {
                             expected,
                             new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
                             Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
+                            Collections.emptySet(),
+                            null
                         )
                     );
             });
@@ -349,7 +352,8 @@ class ImportApiDefinitionUseCaseTest {
                             expected,
                             new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
                             Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
+                            Collections.emptySet(),
+                            null
                         )
                     );
             });
@@ -662,7 +666,8 @@ class ImportApiDefinitionUseCaseTest {
                             expected,
                             new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
                             Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
+                            Collections.emptySet(),
+                            null
                         )
                     );
             });
@@ -691,7 +696,8 @@ class ImportApiDefinitionUseCaseTest {
                             expected,
                             new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
                             Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
+                            Collections.emptySet(),
+                            null
                         )
                     );
             });
