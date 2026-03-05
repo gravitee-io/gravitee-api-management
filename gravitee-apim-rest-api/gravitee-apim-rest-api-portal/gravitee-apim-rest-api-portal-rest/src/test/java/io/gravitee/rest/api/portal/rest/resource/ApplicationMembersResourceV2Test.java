@@ -435,6 +435,58 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
         }
 
         @Test
+        void should_transfer_application_ownership_v2_with_camel_case_payload() {
+            membershipDomainService.initWith(
+                List.of(
+                    MemberEntity.builder()
+                        .id("member-primary-owner")
+                        .referenceType(MembershipReferenceType.APPLICATION)
+                        .referenceId(APPLICATION_ID)
+                        .roles(List.of(RoleEntity.builder().name("PRIMARY_OWNER").scope(RoleScope.APPLICATION).build()))
+                        .build(),
+                    MemberEntity.builder()
+                        .id("member-4")
+                        .referenceType(MembershipReferenceType.APPLICATION)
+                        .referenceId(APPLICATION_ID)
+                        .roles(List.of(RoleEntity.builder().name("USER").scope(RoleScope.APPLICATION).build()))
+                        .build()
+                )
+            );
+
+            final var response = target(APPLICATION_ID)
+                .path("membersV2")
+                .path("_transfer-ownership")
+                .request()
+                .post(Entity.json("{\"newOwnerId\":\"member-4\",\"newOwnerReference\":\"member\",\"previousOwnerNewRole\":\"USER\"}"));
+
+            assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
+            assertEquals(
+                "USER",
+                membershipDomainService
+                    .storage()
+                    .stream()
+                    .filter(member -> "member-primary-owner".equals(member.getId()))
+                    .findFirst()
+                    .orElseThrow()
+                    .getRoles()
+                    .get(0)
+                    .getName()
+            );
+            assertEquals(
+                "PRIMARY_OWNER",
+                membershipDomainService
+                    .storage()
+                    .stream()
+                    .filter(member -> "member-4".equals(member.getId()))
+                    .findFirst()
+                    .orElseThrow()
+                    .getRoles()
+                    .get(0)
+                    .getName()
+            );
+        }
+
+        @Test
         void should_return_400_when_previous_owner_new_role_does_not_exist() {
             final var response = target(APPLICATION_ID)
                 .path("membersV2")

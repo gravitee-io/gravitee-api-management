@@ -39,6 +39,9 @@
   - `POST /applications/{applicationId}/membersV2/_transfer-ownership` in `ApplicationMembersResourceV2`
   - use case tests (success, invalid role, previous owner cannot stay `PRIMARY_OWNER`, target user not found propagation)
   - REST tests under `ApplicationMembersResourceV2Test.TransferOwnershipTest` (`204`, `400`, `403`).
+- Implemented **compatibility fix for Phase 5 transfer-ownership runtime issue**:
+  - root cause: frontend sends camelCase payload (`newOwnerId`, `newOwnerReference`, `previousOwnerNewRole`) while generated V2 input model expected different property names, causing `previousOwnerNewRole` to map as `null`
+  - updated `POST /membersV2/_transfer-ownership` to support both payload shapes (frontend camelCase + generated naming variants) and added a regression REST test with the exact frontend payload.
 - Implemented **compatibility fix for Phase 3 add-members runtime issue**:
   - root cause: frontend sends batch payload (`members[]`, `notify`) while V2 resource initially parsed single `MemberV2Input`, causing `role = null` and `Role 'null' ... not found`
   - updated `POST /membersV2` to support both payload shapes (single + batch) and added a regression REST test with exact batch payload from frontend flow.
@@ -60,6 +63,7 @@
 - **Kept POST payload as `MemberV2Input`, but mapped to batch-capable use case input** so current API contract remains simple while backend stays ready for future bulk-add use.
 - **Added backward-compatible request parsing for `POST /membersV2`** to support both existing single-member contract and frontend batch payload without breaking current callers.
 - **Added transfer ownership in dedicated use case instead of resource-level logic** to keep validations/testability aligned with Onion patterns and mirror existing cluster ownership approach.
+- **Added defensive transfer-ownership input parsing with field aliases** to preserve runtime compatibility with existing frontend payload while keeping current backend contract behavior unchanged for existing callers.
 
 ## Gotchas or Surprises
 
@@ -72,11 +76,12 @@
 - Java record component name `notify` caused compilation failure (`illegal record component name notify`) and had to be renamed (`sendNotification`).
 - Portal REST test context failed because `AddApplicationMemberUseCase` required `MembershipDomainService`; fixed by registering `MembershipDomainServiceInMemory` in `InMemoryConfiguration`.
 - Runtime integration surprise: frontend add-members dialog sends `{"members":[...],"notify":...}` to `/membersV2`, while backend endpoint initially expected only `MemberV2Input`; this mismatch only surfaced during end-to-end UI test, not in earlier BE-only tests.
+- Runtime integration surprise: transfer-ownership frontend payload uses camelCase names (`newOwnerId`, `newOwnerReference`, `previousOwnerNewRole`) while generated model property names differ; this silently produced `null` role and `400 Role 'null' ... not found`.
 
 ## Blockers / Open Questions
 
 - No functional blockers at the moment.
-- Open question: none currently.
+- Open question: should transfer-ownership payload naming be unified in FE + OpenAPI contract to remove backend alias parsing in a future cleanup?
 
 ## Prompts That Were Particularly Effective (Exact Text)
 
@@ -117,6 +122,21 @@ Implement Phase 3 Story 3.2 from ./hackathon/STORIES.md. Include tests following
 ```text
 Implement Phase 5 Story 5.1 from ./hackathon/STORIES.md. Include tests following the existing patterns in the codebase.
 ```
+
+~~~text
+testuję fazę 5 próba wywołania `http://localhost:4101/portal/environments/DEFAULT/applications/7bd63c35-844a-4c0b-963c-35844a4c0be4/membersV2/_transfer-ownership` z payload ```{"newOwnerId":"173cb6c5-dd1d-4bbe-bcb6-c5dd1d5bbe36","newOwnerReference":"member","previousOwnerNewRole":"USER"}``` kończy się błędem 
+```
+{
+  "errors" : [ {
+    "status" : "400",
+    "message" : "Role 'null' for ReferenceContext(referenceType=ORGANIZATION, referenceId=DEFAULT) not found.",
+    "code" : "errors.validation",
+    "parameters" : { }
+  } ]
+}
+```
+przeanalizuj przyczyny, popraw, w razie potrzeby dodaj test który będzie testował ten przypadek
+~~~
 
 ~~~text
 Testuję implementację fazy 3 po wywołaniu okna do dodawania membera i próbie zapisu dostaję bład 

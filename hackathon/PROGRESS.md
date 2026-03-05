@@ -33,7 +33,8 @@
 
 ### Phase 5: Transfer Ownership
 - ✅ 5.1 - BE: Transfer Application Ownership (UseCase)
-- [ ] 5.2 - FE: Transfer Ownership Dialog
+- ✅ 5.1a - BE: Transfer Ownership Payload Compatibility Fix
+- ✅ 5.2 - FE: Transfer Ownership Dialog
 
 ---
 
@@ -54,6 +55,7 @@
 - **Story 3.3 (FE: Search Users Dialog (Add Members))** — `SearchUsersDialogComponent` with role `mat-select` (pre-selects default non-system role), user search `mat-autocomplete` (debounced 300ms, min 2 chars), `mat-chip-set` for selected users with remove, notify `mat-checkbox`. Service: `searchUsers()` (POST `_search-users`), `addMembers()` (POST `/membersV2`). "User Search" menu item wired to open dialog → on result calls `addMembers()` → snackbar → reload. Dialog harness + spec (4 tests), service spec (2 new tests). All 37 tests pass. BE not ready — endpoints will 404 at runtime until Stories 3.1/3.2 land.
 - **Story 5.1 (BE: Transfer Application Ownership (UseCase))** — Added `TransferApplicationOwnershipUseCase`, implemented `POST /applications/{applicationId}/membersV2/_transfer-ownership` in `ApplicationMembersResourceV2`, and added use case + REST tests (success transfer, invalid role, previous-owner role cannot be `PRIMARY_OWNER`, forbidden without permission).
 - **Post-Story Fix (Phase 3 add flow compatibility)** — Fixed `POST /applications/{applicationId}/membersV2` to accept both single-member payload (`MemberV2Input`) and batch payload (`members[] + notify`) used by frontend add-members dialog; added REST regression test reproducing the `Role 'null' ... not found` failure scenario.
+- **Post-Story Fix (Phase 5 transfer ownership compatibility)** — Fixed `POST /applications/{applicationId}/membersV2/_transfer-ownership` to accept frontend camelCase payload fields (`newOwnerId`, `newOwnerReference`, `previousOwnerNewRole`) in addition to generated contract naming, and added REST regression test reproducing the `Role 'null' ... not found` scenario.
 
 ## Key Decisions
 

@@ -28,7 +28,6 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.MemberV2Mapper;
 import io.gravitee.rest.api.portal.rest.model.MemberV2Input;
 import io.gravitee.rest.api.portal.rest.model.SearchUserV2;
-import io.gravitee.rest.api.portal.rest.model.TransferOwnershipV2Input;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
@@ -225,17 +224,18 @@ public class ApplicationMembersResourceV2 extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE) })
     public Response transferApplicationOwnershipV2(
         @PathParam("applicationId") String applicationId,
-        @Valid @NotNull(message = "Input must not be null.") TransferOwnershipV2Input transferOwnershipInput
+        @Valid @NotNull(message = "Input must not be null.") JsonNode transferOwnershipInput
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         applicationService.findById(executionContext, applicationId);
 
+        var parsedInput = parseTransferOwnershipInput(transferOwnershipInput);
         transferApplicationOwnershipUseCase.execute(
             new TransferApplicationOwnershipUseCase.Input(
                 applicationId,
-                transferOwnershipInput.getNewPrimaryOwnerId(),
-                transferOwnershipInput.getNewPrimaryOwnerReference(),
-                transferOwnershipInput.getPrimaryOwnerNewrole(),
+                parsedInput.newPrimaryOwnerId(),
+                parsedInput.newPrimaryOwnerReference(),
+                parsedInput.previousOwnerNewRole(),
                 executionContext.getOrganizationId()
             )
         );
@@ -283,9 +283,40 @@ public class ApplicationMembersResourceV2 extends AbstractResource {
         return node.get(field).asText();
     }
 
+    private ParsedTransferOwnershipInput parseTransferOwnershipInput(JsonNode transferOwnershipInput) {
+        return new ParsedTransferOwnershipInput(
+            firstNonBlank(
+                nullableText(transferOwnershipInput, "newOwnerId"),
+                nullableText(transferOwnershipInput, "newPrimaryOwnerId"),
+                nullableText(transferOwnershipInput, "new_primary_owner_id")
+            ),
+            firstNonBlank(
+                nullableText(transferOwnershipInput, "newOwnerReference"),
+                nullableText(transferOwnershipInput, "newPrimaryOwnerReference"),
+                nullableText(transferOwnershipInput, "new_primary_owner_reference")
+            ),
+            firstNonBlank(
+                nullableText(transferOwnershipInput, "previousOwnerNewRole"),
+                nullableText(transferOwnershipInput, "primaryOwnerNewrole"),
+                nullableText(transferOwnershipInput, "primary_owner_newrole")
+            )
+        );
+    }
+
+    private String firstNonBlank(String... candidates) {
+        for (String candidate : candidates) {
+            if (candidate != null && !candidate.isBlank()) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
     private record ParsedAddMembersInput(
         List<AddApplicationMemberUseCase.AddMemberRequest> members,
         boolean sendNotification,
         boolean batchRequest
     ) {}
+
+    private record ParsedTransferOwnershipInput(String newPrimaryOwnerId, String newPrimaryOwnerReference, String previousOwnerNewRole) {}
 }
