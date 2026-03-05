@@ -25,12 +25,14 @@ import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.UserStatus;
@@ -47,6 +49,7 @@ import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.WorkflowType;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
+import io.gravitee.rest.api.model.permissions.ApiProductPermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -112,6 +115,10 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
     @Autowired
     private ApiRepository apiRepository;
 
+    @Lazy
+    @Autowired
+    private ApiProductsRepository apiProductsRepository;
+
     @Autowired
     private EnvironmentService environmentService;
 
@@ -127,16 +134,27 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             // because Tasks only consists on subscriptions, we can optimize the search by only look for apis where
             // the user has a SUBSCRIPTION_UPDATE permission
 
-            // search for PENDING subscriptions
+            // search for PENDING subscriptions (APIs)
             Set<String> apiIds = getApisForAPermission(executionContext, userMembershipsAndPermissions, SUBSCRIPTION.getName());
-            final List<TaskEntity> tasks;
-            if (apiIds.isEmpty()) {
-                tasks = new ArrayList<>();
-            } else {
-                SubscriptionQuery query = new SubscriptionQuery();
-                query.setStatuses(singleton(PENDING));
-                query.setApis(apiIds);
-                tasks = subscriptionService.search(executionContext, query).stream().map(this::convert).collect(toList());
+            final List<TaskEntity> tasks = new ArrayList<>();
+            if (!apiIds.isEmpty()) {
+                SubscriptionQuery apiQuery = new SubscriptionQuery();
+                apiQuery.setStatuses(singleton(PENDING));
+                apiQuery.setApis(apiIds);
+                tasks.addAll(subscriptionService.search(executionContext, apiQuery).stream().map(this::convert).collect(toList()));
+            }
+
+            // search for PENDING subscriptions (API Products)
+            Set<String> apiProductIds = getApiProductsForAPermission(
+                executionContext,
+                userMembershipsAndPermissions,
+                ApiProductPermission.SUBSCRIPTION.getName()
+            );
+            if (!apiProductIds.isEmpty()) {
+                SubscriptionQuery apiProductQuery = new SubscriptionQuery();
+                apiProductQuery.setStatuses(singleton(PENDING));
+                apiProductQuery.setApiProducts(apiProductIds);
+                tasks.addAll(subscriptionService.search(executionContext, apiProductQuery).stream().map(this::convert).collect(toList()));
             }
 
             if (isEnvironmentAdmin()) {
@@ -214,12 +232,20 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             )
         );
 
+        memberships.addAll(
+            membershipService.getMembershipsByMemberAndReference(
+                MembershipMemberType.USER,
+                userId,
+                io.gravitee.rest.api.model.MembershipReferenceType.API_PRODUCT
+            )
+        );
+
         List<MembershipAndPermissions> userMembershipAndPermissions = new ArrayList<>();
 
         for (MembershipEntity membership : memberships) {
-            // 2. get API roles in each memberships and search for roleEntity only once
+            // 2. get API/API Product roles in each memberships and search for roleEntity only once
             RoleEntity role = roleService.findById(membership.getRoleId());
-            if (role.getScope() == RoleScope.API) {
+            if (role.getScope() == RoleScope.API || role.getScope() == RoleScope.API_PRODUCT) {
                 userMembershipAndPermissions.add(new MembershipAndPermissions(membership, role.getPermissions()));
             }
         }
@@ -287,6 +313,50 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
         return apiIds;
     }
 
+    private Set<String> getApiProductsForAPermission(
+        ExecutionContext executionContext,
+        List<MembershipAndPermissions> membershipsAndPermissions,
+        final String permission
+    ) throws TechnicalException {
+        Set<String> apiProductIds = new HashSet<>();
+
+        for (MembershipAndPermissions membershipAndPermissions : membershipsAndPermissions) {
+            if (membershipAndPermissions != null) {
+                RoleEntity role = roleService.findById(membershipAndPermissions.membership.getRoleId());
+                if (role.getScope() != RoleScope.API_PRODUCT) {
+                    continue;
+                }
+                final char[] rights = membershipAndPermissions.permission.get(permission);
+                if (rights != null) {
+                    for (char c : rights) {
+                        if (c == 'U') {
+                            if (
+                                membershipAndPermissions.membership.getReferenceType() ==
+                                io.gravitee.rest.api.model.MembershipReferenceType.API_PRODUCT
+                            ) {
+                                apiProductIds.add(membershipAndPermissions.membership.getReferenceId());
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (isEnvironmentAdmin() && executionContext.hasEnvironmentId()) {
+            try {
+                Set<ApiProduct> envProducts = apiProductsRepository.findByEnvironmentId(executionContext.getEnvironmentId());
+                if (envProducts != null) {
+                    envProducts.stream().map(ApiProduct::getId).forEach(apiProductIds::add);
+                }
+            } catch (TechnicalException e) {
+                log.error("Error retrieving API Products for environment admin tasks: {}", e.getMessage());
+            }
+        }
+
+        return apiProductIds;
+    }
+
     @Override
     public Metadata getMetadata(ExecutionContext executionContext, List<TaskEntity> tasks) {
         final Metadata metadata = new Metadata();
@@ -342,13 +412,20 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             Optional<Plan> optPlan = planRepository.findById(subscription.getPlan());
 
             if (optPlan.isPresent()) {
-                String apiId = optPlan.get().getReferenceId();
-                metadata.put(subscription.getPlan(), "name", optPlan.get().getName());
-                metadata.put(subscription.getPlan(), "api", apiId);
+                Plan plan = optPlan.get();
+                String referenceId = plan.getReferenceId();
+                metadata.put(subscription.getPlan(), "name", plan.getName());
+                metadata.put(subscription.getPlan(), "api", referenceId);
 
-                Optional<Api> optionalApi = apiRepository.findById(apiId);
-                optionalApi.ifPresent(api -> metadata.put(apiId, "name", api.getName()));
-                optionalApi.ifPresent(api -> metadata.put(apiId, "environmentId", api.getEnvironmentId()));
+                if (plan.getReferenceType() == Plan.PlanReferenceType.API_PRODUCT) {
+                    Optional<ApiProduct> optionalApiProduct = apiProductsRepository.findById(referenceId);
+                    optionalApiProduct.ifPresent(product -> metadata.put(referenceId, "name", product.getName()));
+                    optionalApiProduct.ifPresent(product -> metadata.put(referenceId, "environmentId", product.getEnvironmentId()));
+                } else {
+                    Optional<Api> optionalApi = apiRepository.findById(referenceId);
+                    optionalApi.ifPresent(api -> metadata.put(referenceId, "name", api.getName()));
+                    optionalApi.ifPresent(api -> metadata.put(referenceId, "environmentId", api.getEnvironmentId()));
+                }
             }
         } catch (TechnicalException e) {
             log.error("Error retrieving plan task metadata {}", e.getMessage());
