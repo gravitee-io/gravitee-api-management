@@ -10,6 +10,11 @@ export default {
         path: join(__dirname, '../dist/gravitee-gamma'),
         publicPath: 'auto',
     },
+    resolve: {
+        alias: {
+            '@baros': join(__dirname, '../gravitee-apim-baros/src'),
+        },
+    },
     devServer: {
         port: 4200,
         historyApiFallback: {
