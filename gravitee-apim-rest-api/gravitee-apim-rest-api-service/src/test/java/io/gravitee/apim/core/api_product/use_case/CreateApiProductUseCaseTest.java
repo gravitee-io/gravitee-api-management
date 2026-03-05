@@ -33,6 +33,7 @@ import inmemory.GroupQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
+import inmemory.NotificationConfigCrudServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
@@ -83,6 +84,7 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
     private final LicenseManager licenseManager = mock(LicenseManager.class);
     private final ApiProductIndexerDomainService apiProductIndexerDomainService = mock(ApiProductIndexerDomainService.class);
+    private final NotificationConfigCrudServiceInMemory notificationConfigCrudService = new NotificationConfigCrudServiceInMemory();
 
     private CreateApiProductUseCase createApiProductUseCase;
 
@@ -133,7 +135,8 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
             eventCrudService,
             eventLatestCrudService,
             new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
-            apiProductIndexerDomainService
+            apiProductIndexerDomainService,
+            notificationConfigCrudService
         );
 
         initRoles();

@@ -465,12 +465,26 @@ class AcceptSubscriptionUseCaseTest {
 
         // Then
         assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
-            new SubscriptionAcceptedApiHookContext("api-id", application.getId(), plan.getId(), subscription.getId(), null)
+            new SubscriptionAcceptedApiHookContext(
+                SubscriptionReferenceType.API,
+                "api-id",
+                application.getId(),
+                plan.getId(),
+                subscription.getId(),
+                null
+            )
         );
 
         assertThat(triggerNotificationDomainService.getApplicationNotifications()).containsExactly(
             new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
-                new SubscriptionAcceptedApplicationHookContext(application.getId(), "api-id", plan.getId(), subscription.getId(), USER_ID)
+                new SubscriptionAcceptedApplicationHookContext(
+                    application.getId(),
+                    SubscriptionReferenceType.API,
+                    "api-id",
+                    plan.getId(),
+                    subscription.getId(),
+                    USER_ID
+                )
             )
         );
     }
@@ -503,7 +517,14 @@ class AcceptSubscriptionUseCaseTest {
         assertThat(triggerNotificationDomainService.getApplicationNotifications()).contains(
             new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
                 new Recipient("EMAIL", "subscriber@mail.fake"),
-                new SubscriptionAcceptedApplicationHookContext(application.getId(), "api-id", plan.getId(), subscription.getId(), USER_ID)
+                new SubscriptionAcceptedApplicationHookContext(
+                    application.getId(),
+                    SubscriptionReferenceType.API,
+                    "api-id",
+                    plan.getId(),
+                    subscription.getId(),
+                    USER_ID
+                )
             )
         );
     }

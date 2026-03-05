@@ -18,15 +18,19 @@ package io.gravitee.rest.api.service.impl;
 import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiProductCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.UserCriteria;
@@ -95,6 +99,9 @@ public class TaskServiceTest {
 
     @Mock
     private ApiRepository apiRepository;
+
+    @Mock
+    private ApiProductsRepository apiProductsRepository;
 
     @Mock
     private EnvironmentService environmentService;
@@ -218,6 +225,18 @@ public class TaskServiceTest {
 
         when(environmentService.findByOrganization(GraviteeContext.getCurrentOrganization())).thenReturn(List.of(environment));
         when(
+            apiProductsRepository.searchIds(
+                argThat(
+                    (List<ApiProductCriteria> list) ->
+                        list.size() == 1 &&
+                        list.get(0).getEnvironments() != null &&
+                        list.get(0).getEnvironments().contains(environment.getId())
+                ),
+                any(Pageable.class),
+                isNull()
+            )
+        ).thenReturn(new Page<>(emptyList(), 0, 0, 0));
+        when(
             apiRepository.searchIds(
                 List.of(new ApiCriteria.Builder().environments(List.of(environment.getId())).build()),
                 new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build(),
@@ -230,6 +249,7 @@ public class TaskServiceTest {
         verify(subscriptionService, times(1)).search(eq(GraviteeContext.getExecutionContext()), any());
         verify(promotionTasksService, times(1)).getPromotionTasks(GraviteeContext.getExecutionContext());
         verify(userService, times(1)).search(eq(GraviteeContext.getExecutionContext()), any(UserCriteria.class), any());
+        verify(apiProductsRepository, times(1)).searchIds(any(), any(Pageable.class), isNull());
     }
 
     @Test

@@ -19,8 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.ApiProductCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.ApiProduct;
 import java.util.Date;
 import java.util.List;
@@ -231,6 +234,63 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
         Set<ApiProduct> apiProducts = apiProductsRepository.findAll();
 
         assertThat(apiProducts).isNotEmpty();
+    }
+
+    @Test
+    public void searchIdsByEnvironments() throws TechnicalException {
+        Page<String> page = apiProductsRepository.searchIds(
+            List.of(new ApiProductCriteria.Builder().environments(List.of("my-env")).build()),
+            new PageableBuilder().pageNumber(0).pageSize(10).build(),
+            null
+        );
+
+        assertThat(page.getTotalElements()).isEqualTo(3);
+        assertThat(page.getContent()).hasSize(3).contains("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3");
+    }
+
+    @Test
+    public void searchIdsByEnvironmentId() throws TechnicalException {
+        Page<String> page = apiProductsRepository.searchIds(
+            List.of(new ApiProductCriteria.Builder().environmentId("my-env").build()),
+            new PageableBuilder().pageNumber(0).pageSize(10).build(),
+            null
+        );
+
+        assertThat(page.getTotalElements()).isEqualTo(3);
+        assertThat(page.getContent()).hasSize(3);
+    }
+
+    @Test
+    public void searchIdsReturnsEmptyForUnknownEnvironment() throws TechnicalException {
+        Page<String> page = apiProductsRepository.searchIds(
+            List.of(new ApiProductCriteria.Builder().environments(List.of("other-env")).build()),
+            new PageableBuilder().pageNumber(0).pageSize(10).build(),
+            null
+        );
+
+        assertThat(page.getTotalElements()).isEqualTo(0);
+        assertThat(page.getContent()).isEmpty();
+    }
+
+    @Test
+    public void searchIdsWithPageable() throws TechnicalException {
+        Page<String> page = apiProductsRepository.searchIds(
+            List.of(new ApiProductCriteria.Builder().environments(List.of("my-env")).build()),
+            new PageableBuilder().pageNumber(0).pageSize(2).build(),
+            null
+        );
+
+        assertThat(page.getTotalElements()).isEqualTo(3);
+        assertThat(page.getContent()).hasSize(2);
+
+        page = apiProductsRepository.searchIds(
+            List.of(new ApiProductCriteria.Builder().environments(List.of("my-env")).build()),
+            new PageableBuilder().pageNumber(1).pageSize(2).build(),
+            null
+        );
+
+        assertThat(page.getTotalElements()).isEqualTo(3);
+        assertThat(page.getContent()).hasSize(1);
     }
 
     private static ApiProduct createApiProduct(
