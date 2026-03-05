@@ -13,29 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type FacetName =
-  | 'API'
-  | 'APPLICATION'
-  | 'PLAN'
-  | 'GATEWAY'
-  | 'TENANT'
-  | 'ZONE'
+export type GlobalFacetName = 'API' | 'APPLICATION' | 'PLAN' | 'GATEWAY' | 'TENANT' | 'ZONE' | 'HOST' | 'CONSUMER_IP';
+
+export type HttpFacetName =
   | 'HTTP_METHOD'
   | 'HTTP_STATUS_CODE_GROUP'
   | 'HTTP_STATUS'
   | 'HTTP_PATH'
   | 'HTTP_PATH_MAPPING'
-  | 'HOST'
-  | 'GEO_IP_COUNTRY'
-  | 'GEO_IP_REGION'
-  | 'GEO_IP_CITY'
-  | 'GEO_IP_CONTINENT'
-  | 'CONSUMER_IP'
   | 'HTTP_USER_AGENT_OS_NAME'
-  | 'HTTP_USER_AGENT_DEVICE'
-  | 'MESSAGE_CONNECTOR_TYPE'
-  | 'MESSAGE_OPERATION_TYPE'
-  | 'KAFKA_TOPIC'
-  | 'API_STATE'
-  | 'API_LIFECYCLE_STATE'
-  | 'API_VISIBILITY';
+  | 'HTTP_USER_AGENT_DEVICE';
+
+export type GeoIpFacetName = 'GEO_IP_COUNTRY' | 'GEO_IP_REGION' | 'GEO_IP_CITY' | 'GEO_IP_CONTINENT';
+
+export type MessageFacetName = 'MESSAGE_CONNECTOR_TYPE' | 'MESSAGE_CONNECTOR_ID' | 'MESSAGE_OPERATION_TYPE';
+
+export type KafkaFacetName = 'KAFKA_TOPIC';
+
+export type ApiFacetName = 'API_STATE' | 'API_LIFECYCLE_STATE' | 'API_VISIBILITY';
+
+export type LlmFacetName = 'LLM_PROXY_MODEL' | 'LLM_PROXY_PROVIDER';
+
+export type McpFacetName = 'MCP_PROXY_METHOD' | 'MCP_PROXY_TOOL' | 'MCP_PROXY_RESOURCE' | 'MCP_PROXY_PROMPT';
+
+export type FacetName =
+  | GlobalFacetName
+  | HttpFacetName
+  | GeoIpFacetName
+  | MessageFacetName
+  | KafkaFacetName
+  | ApiFacetName
+  | LlmFacetName
+  | McpFacetName;

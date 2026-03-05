@@ -140,7 +140,7 @@ export class GraviteeDashboardComponent {
     return widgets.map(widget => {
       if (!widget.request) return widget;
 
-      const finalFilters = newFilters;
+      const finalFilters = [...(widget.request.filters ?? []), ...newFilters];
 
       if (isTimeSeriesWidget(widget) && interval !== undefined) {
         return {

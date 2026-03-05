@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PROXY_DASHBOARD_TEMPLATE } from './proxy-dashboard.template';
-import { AI_GATEWAY_TEMPLATE } from './ai-gateway.template';
+import { HTTP_PROXY_TEMPLATE } from './http-proxy.template';
+import { LLM_TEMPLATE } from './llm.template';
 
 /**
  * List of all available dashboard templates.
  * Used by the template selection modal.
  */
-export const ALL_DASHBOARD_TEMPLATES = [PROXY_DASHBOARD_TEMPLATE, AI_GATEWAY_TEMPLATE];
+export const ALL_DASHBOARD_TEMPLATES = [HTTP_PROXY_TEMPLATE, LLM_TEMPLATE];
 
-export * from './proxy-dashboard.template';
+export * from './http-proxy.template';
 export * from './dashboard-template.model';

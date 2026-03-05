@@ -617,4 +617,80 @@ describe('GraviteeDashboardComponent', () => {
     expect(selectedFilters.find(f => f.parentKey === 'API' && f.value === 'api-1')).toBeDefined();
     expect(selectedFilters.find(f => f.parentKey === 'API' && f.value === 'api-2')).toBeDefined();
   });
+
+  it('should merge dashboard filters with widget-level filters at request time', fakeAsync(() => {
+    const widgetLevelFilter: RequestFilter = { name: 'HTTP_STATUS', operator: 'IN', value: ['2xx'] };
+
+    const queryParams = {
+      period: '1d',
+      API: 'api-1',
+    };
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [GraviteeDashboardComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            queryParams: of(queryParams),
+            snapshot: { params: {}, queryParams },
+          },
+        },
+        {
+          provide: Router,
+          useValue: {
+            navigate: jest.fn().mockResolvedValue(true),
+          },
+        },
+      ],
+    });
+
+    const widgetConfigs: Widget[] = [
+      {
+        id: '1',
+        title: 'Widget with own filter',
+        type: 'stats',
+        layout: { cols: 1, rows: 1, x: 0, y: 0 },
+        request: {
+          type: 'measures',
+          metrics: [],
+          filters: [widgetLevelFilter],
+        },
+      },
+    ];
+
+    const newFixture = TestBed.createComponent(GraviteeDashboardComponent);
+    const newHttpTestingController = TestBed.inject(HttpTestingController);
+    newFixture.componentRef.setInput('baseURL', mockBaseURL);
+    newFixture.componentRef.setInput('filters', mockFilters);
+    newFixture.componentRef.setInput('widgetConfigs', widgetConfigs);
+    newFixture.detectChanges();
+    tick();
+
+    const req = newHttpTestingController.expectOne(`${mockBaseURL}/analytics/measures`);
+    const requestBody = req.request.body as MeasuresRequest;
+
+    // Should contain both widget-level and dashboard-level filters
+    expect(requestBody.filters).toBeDefined();
+    expect(requestBody.filters!.length).toBe(2);
+
+    const httpStatusFilter = requestBody.filters!.find((f: RequestFilter) => f.name === 'HTTP_STATUS');
+    expect(httpStatusFilter).toBeDefined();
+    expect(httpStatusFilter!.value).toEqual(['2xx']);
+
+    const apiFilter = requestBody.filters!.find((f: RequestFilter) => f.name === 'API');
+    expect(apiFilter).toBeDefined();
+    expect(apiFilter!.value).toEqual(['api-1']);
+
+    // Original widget config should not be mutated
+    expect(widgetConfigs[0].request!.filters).toEqual([widgetLevelFilter]);
+
+    req.flush({
+      metrics: [{ name: 'HTTP_REQUESTS', measures: [{ name: 'COUNT', value: 50 }] }],
+    });
+    tick();
+  }));
 });

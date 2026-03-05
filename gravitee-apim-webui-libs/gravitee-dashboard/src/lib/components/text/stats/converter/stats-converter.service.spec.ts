@@ -50,7 +50,7 @@ describe('StatsConverterService', () => {
 
       const result = service.convert(data);
 
-      expect(result).toEqual(['46 ms', '10 ms', '1,200 ms', '1,234', '6 req/s', '76 %']);
+      expect(result).toEqual(['46', '10 ms', '1,200 ms', '1,234', '6 req/s', '76 %']);
     });
 
     it('should truncate decimal values using Math.trunc', () => {
@@ -69,7 +69,7 @@ describe('StatsConverterService', () => {
 
       const result = service.convert(data);
 
-      expect(result).toEqual(['46 ms', '10 ms', '1,201 ms']);
+      expect(result).toEqual(['46', '10 ms', '1,201 ms']);
     });
 
     it('should handle zero values', () => {
@@ -88,7 +88,7 @@ describe('StatsConverterService', () => {
 
       const result = service.convert(data);
 
-      expect(result).toEqual(['0 ms', '0', '0 req/s']);
+      expect(result).toEqual(['0', '0', '0 req/s']);
     });
 
     it('should handle negative values', () => {
@@ -106,7 +106,7 @@ describe('StatsConverterService', () => {
 
       const result = service.convert(data);
 
-      expect(result).toEqual(['-46 ms', '-10 ms']);
+      expect(result).toEqual(['-46', '-10 ms']);
     });
 
     it('should handle large values with proper formatting', () => {
@@ -124,7 +124,7 @@ describe('StatsConverterService', () => {
 
       const result = service.convert(data);
 
-      expect(result).toEqual(['1,234,567', '1,000,000 ms']);
+      expect(result).toEqual(['1,234,567', '1,000,000']);
     });
 
     it('should handle percentile measures (P50, P90, P95, P99)', () => {
@@ -204,7 +204,7 @@ describe('StatsConverterService', () => {
 
       const result = service.convert(data);
 
-      expect(result).toEqual(['45 ms', '100']);
+      expect(result).toEqual(['45', '100']);
     });
 
     it('should handle single measure', () => {
@@ -219,7 +219,7 @@ describe('StatsConverterService', () => {
 
       const result = service.convert(data);
 
-      expect(result).toEqual(['42 ms']);
+      expect(result).toEqual(['42']);
     });
 
     it('should format numbers according to locale', () => {

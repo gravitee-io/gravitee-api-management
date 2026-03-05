@@ -22,8 +22,7 @@ import { switchMap, tap, catchError, filter } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
-import { PROXY_DASHBOARD_TEMPLATE } from './templates';
-import { DashboardTemplate } from './templates/dashboard-template.model';
+import { HTTP_PROXY_TEMPLATE, DashboardTemplate } from './templates';
 
 import { Constants } from '../../../entities/Constants';
 import { PagedResult } from '../../../entities/management-api-v2';
@@ -129,15 +128,16 @@ export class DashboardService {
   }
 
   private createInitialOverview(): Dashboard {
+    const template = HTTP_PROXY_TEMPLATE;
     return {
-      ...PROXY_DASHBOARD_TEMPLATE.initialConfig,
+      ...template.initialConfig,
       id: 'default-overview',
-      name: PROXY_DASHBOARD_TEMPLATE.name,
+      name: template.name,
       createdBy: 'System',
       createdAt: new Date().toDateString(),
       lastModified: new Date().toDateString(),
-      labels: PROXY_DASHBOARD_TEMPLATE.initialConfig.labels ?? {},
-      widgets: PROXY_DASHBOARD_TEMPLATE.initialConfig.widgets ?? [],
+      labels: template.initialConfig.labels ?? {},
+      widgets: template.initialConfig.widgets ?? [],
     } satisfies Dashboard;
   }
 }
