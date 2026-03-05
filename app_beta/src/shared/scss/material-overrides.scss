@@ -1,13 +1,18 @@
 @use '@angular/material' as mat;
 @use './variables' as v;
 
-:root {
+app-side-nav {
+    background-color: blue;
+}
+
+body {
     @include mat.sidenav-overrides((
         container-background-color: var(--sidebar-background),
         content-background-color: var(--background),
         container-divider-color: var(--sidebar-border),
         container-text-color: var(--sidebar-foreground),
         container-width: var(--sidebar-width),
+        container-shape: 0,
     ));
 
     @include mat.list-overrides((
@@ -21,13 +26,14 @@
         list-item-leading-icon-start-space: v.$spacing-2,
         list-item-leading-icon-end-space: v.$spacing-2,
     ));
+;
 
+}
+
+mat-icon {
     @include mat.icon-overrides((
         color: var(--sidebar-foreground),
-        size: v.$size-4,
     ));
-
-    @include mat.divider-overrides((
-        color: var(--border),
-    ));
+    width: v.$size-4;
+    height: v.$size-4;
 }
