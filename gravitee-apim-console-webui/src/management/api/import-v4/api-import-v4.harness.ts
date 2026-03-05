@@ -17,7 +17,6 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { GioFormFilePickerInputHarness, GioFormSelectionInlineHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 export class ApiImportV4Harness extends ComponentHarness {
@@ -28,7 +27,7 @@ export class ApiImportV4Harness extends ComponentHarness {
   private getFilePicker = this.locatorFor(GioFormFilePickerInputHarness);
   private getSaveButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Import API"]' }));
   private getCancelButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Cancel"]' }));
-  private getFormatErrorBanner = this.locatorForOptional(DivHarness.with({ selector: '.banner' }));
+  private getFormatErrorBanner = this.locatorForOptional('gio-banner-error');
   private getImportDocumentationToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="withDocumentation"]' }));
   private getImportOASValidationPolicyToggle = this.locatorFor(
     MatSlideToggleHarness.with({ selector: '[formControlName="withOASValidationPolicy"]' }),

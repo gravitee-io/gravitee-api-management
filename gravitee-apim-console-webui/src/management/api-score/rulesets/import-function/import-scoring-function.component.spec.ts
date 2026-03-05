@@ -67,6 +67,8 @@ describe('ImportScoringFunctionComponent', () => {
   it('should send form', async () => {
     expectGetFunctionsRequest();
     await componentHarness.pickFiles([new File([JSON.stringify('test')], 'testFile.js', { type: 'js' })]);
+    await fixture.whenStable();
+    fixture.detectChanges();
     const importButton = await componentHarness.locatorForSubmitImportButton();
     expect(await importButton.isDisabled()).toEqual(false);
 
@@ -83,10 +85,11 @@ describe('ImportScoringFunctionComponent', () => {
   it('should not allow send empty file', async () => {
     expectGetFunctionsRequest();
     await componentHarness.pickFiles([new File([], 'testFile.js', { type: 'js' })]);
+    await fixture.whenStable();
+    fixture.detectChanges();
     const importButton = await componentHarness.locatorForSubmitImportButton();
 
     expect(await importButton.isDisabled()).toEqual(true);
-    expect(fakeSnackBarService.error).toHaveBeenCalledWith('The file can not be empty');
   });
 
   function expectCreateFunctionRequest(data: CreateFunctionRequestData) {

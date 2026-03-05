@@ -56,6 +56,8 @@ describe('ImportV4Component', () => {
     expect(await componentHarness.isSaveDisabled()).toBeTruthy();
 
     await componentHarness.pickFiles([new File([importDefinition], 'gravitee-api-definition.json', { type: 'application/json' })]);
+    await fixture.whenStable();
+    fixture.detectChanges();
     expect(await componentHarness.isSaveDisabled()).toBeFalsy();
 
     await componentHarness.save();
@@ -74,6 +76,8 @@ describe('ImportV4Component', () => {
     expect(await componentHarness.isSaveDisabled()).toBeTruthy();
 
     await componentHarness.pickFiles([new File([importDefinition], 'openapi.yml', { type: 'application/x-yaml' })]);
+    await fixture.whenStable();
+    fixture.detectChanges();
     expect(await componentHarness.isSaveDisabled()).toBeFalsy();
 
     await componentHarness.save();
@@ -126,6 +130,8 @@ describe('ImportV4Component', () => {
       expect(await componentHarness.isSaveDisabled()).toBeTruthy();
 
       await componentHarness.pickFiles([new File([importDefinition], fileName, { type })]);
+      await fixture.whenStable();
+      fixture.detectChanges();
       expect(await componentHarness.isSaveDisabled()).toBeTruthy();
       expect(await componentHarness.isFormatErrorBannerDisplayed()).toBeTruthy();
     },

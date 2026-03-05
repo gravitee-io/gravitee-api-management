@@ -28,7 +28,7 @@ export class PortalThemeHarness extends ComponentHarness {
   private newPortalBadgeLocator = this.locatorFor('[data-testid="new-portal-badge"]');
 
   private getRestoreDefaultsButton = this.locatorFor(MatButtonHarness.with({ selector: '[matTooltip="Restore default values"]' }));
-  private getMonacoEditor = this.locatorFor(GioMonacoEditorHarness.with({ selector: '[formControlName="customCSS"]' }));
+  private getMonacoEditor = this.locatorFor(GioMonacoEditorHarness.with({ selector: '[data-testid="theme-custom-css-editor"]' }));
 
   public async setPrimaryColor(color: string) {
     return this.getPrimaryColorInput().then(input => input.setValue(color));

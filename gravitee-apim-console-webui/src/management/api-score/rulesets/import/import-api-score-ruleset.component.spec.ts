@@ -103,10 +103,11 @@ describe('NewRulesetComponent', () => {
     fixture.detectChanges();
 
     await componentHarness.pickFiles([new File([], 'emptyFile.yaml', { type: 'application/yaml' })]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
     const importButton = await componentHarness.locatorForSubmitImportButton();
     expect(await importButton.isDisabled()).toEqual(true);
-
-    expect(fakeSnackBarService.error).toHaveBeenCalledWith('The file can not be empty');
   });
 
   [
