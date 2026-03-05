@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @use '../../../scss/theme';
+@use '@angular/material' as mat;
 
 @use '../../../scss/layout' as layout;
 
@@ -46,7 +47,41 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    p {
+      margin: 0;
+    }
+
+    mat-form-field {
+      width: 100%;
+
+      @include mat.form-field-overrides(
+        (
+          container-height: 40px,
+          container-vertical-padding: 8px,
+          subscript-text-line-height: 0,
+          subscript-text-size: 0,
+          outlined-outline-color: theme.$border-color,
+          outlined-hover-outline-color: theme.$border-color,
+        )
+      );
+    }
+
+    &--certificate mat-form-field {
+      @include mat.form-field-overrides(
+        (
+          container-height: auto,
+          container-vertical-padding: 12px,
+        )
+      );
+    }
+  }
 }
 
 .radio-group-label {

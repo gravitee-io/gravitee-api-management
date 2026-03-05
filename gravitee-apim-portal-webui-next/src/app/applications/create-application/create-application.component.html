@@ -59,36 +59,39 @@
               <h3 class="section-title" i18n="@@createApplicationDetailsTitle">Application details</h3>
               @if (selectedType()) {
                 <form class="form" [formGroup]="form">
-                  <mat-form-field appearance="outline">
-                    <mat-label i18n="@@createApplicationName">Application name</mat-label>
-                    <input matInput formControlName="name" />
-                    @if (form.controls.name.touched && form.controls.name.hasError('required')) {
-                      <mat-error i18n="@@createApplicationNameRequired">Name is required</mat-error>
-                    }
-                  </mat-form-field>
+                  <div class="form__field">
+                    <p class="m3-label-large" i18n="@@createApplicationName">Application name *</p>
+                    <mat-form-field appearance="outline">
+                      <input matInput formControlName="name" aria-label="Application name" />
+                    </mat-form-field>
+                  </div>
 
-                  <mat-form-field appearance="outline">
-                    <mat-label i18n="@@createApplicationDescription">Description (optional)</mat-label>
-                    <textarea matInput formControlName="description" rows="3"></textarea>
-                  </mat-form-field>
+                  <div class="form__field">
+                    <p class="m3-label-large" i18n="@@createApplicationDescription">Description (optional)</p>
+                    <mat-form-field appearance="outline">
+                      <textarea matInput formControlName="description" rows="1" aria-label="Description"></textarea>
+                    </mat-form-field>
+                  </div>
 
                   <mat-divider />
                   <h3 class="section-title" i18n="@@createApplicationSecurityTitle">Security</h3>
 
                   @if (isSimpleType()) {
-                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                      <mat-label i18n="@@createApplicationType">Type</mat-label>
-                      <input matInput formControlName="appType" />
-                      <mat-hint i18n="@@createApplicationTypeHint">Type of the application (mobile, web, ...)</mat-hint>
-                    </mat-form-field>
+                    <div class="form__field">
+                      <p class="m3-label-large" i18n="@@createApplicationType">Type</p>
+                      <p class="m3-body-small" i18n="@@createApplicationTypeHint">Type of the application (mobile, web, ...)</p>
+                      <mat-form-field appearance="outline">
+                        <input matInput formControlName="appType" aria-label="Application type" />
+                      </mat-form-field>
+                    </div>
 
-                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                      <mat-label i18n="@@createApplicationClientId">Client ID</mat-label>
-                      <input matInput formControlName="appClientId" />
-                      <mat-hint i18n="@@createApplicationClientIdHint"
-                        >The client_id of the application. This field is required to subscribe to certain types of API Plan (OAuth2, JWT)
-                      </mat-hint>
-                    </mat-form-field>
+                    <div class="form__field">
+                      <p class="m3-label-large" i18n="@@createApplicationClientId">Client ID</p>
+                      <p class="m3-body-small" i18n="@@createApplicationClientIdHint">The client_id of the application. This field is required to subscribe to certain types of API Plan (OAuth2, JWT)</p>
+                      <mat-form-field appearance="outline">
+                        <input matInput formControlName="appClientId" aria-label="Client ID" />
+                      </mat-form-field>
+                    </div>
                   }
 
                   @if (grantTypesList().length > 0) {
@@ -116,40 +119,37 @@
                   }
 
                   @if (requiresRedirectUris() && redirectUrisControl; as redirectUrisCtrl) {
-                    <mat-form-field appearance="outline" floatLabel="always" subscriptSizing="dynamic">
-                      <mat-label i18n="@@applicationRedirectUris">Redirect URIs</mat-label>
-                      <mat-chip-grid #redirectURIChipGrid aria-label="Redirect URIs" [formControl]="redirectUrisCtrl">
-                        @for (uri of redirectUrisCtrl.value; track uri) {
-                          <mat-chip-row (removed)="removeRedirectUri(uri)">
-                            {{ uri }}
-                            <button matChipRemove [attr.aria-label]="'remove redirect URI ' + uri">
-                              <mat-icon>cancel</mat-icon>
-                            </button>
-                          </mat-chip-row>
-                        }
+                    <div class="form__field">
+                      <p class="m3-label-large" i18n="@@applicationRedirectUris">Redirect URIs *</p>
+                      <p class="m3-body-small" i18n="@@applicationRedirectUrisHint">The URI where the authorization server sends OAuth responses.</p>
+                      <mat-form-field appearance="outline">
+                        <mat-chip-grid #redirectURIChipGrid aria-label="Redirect URIs" [formControl]="redirectUrisCtrl">
+                          @for (uri of redirectUrisCtrl.value; track uri) {
+                            <mat-chip-row (removed)="removeRedirectUri(uri)">
+                              {{ uri }}
+                              <button matChipRemove [attr.aria-label]="'remove redirect URI ' + uri">
+                                <mat-icon>cancel</mat-icon>
+                              </button>
+                            </mat-chip-row>
+                          }
 
-                        <input
-                          [matChipInputFor]="redirectURIChipGrid"
-                          [matChipInputAddOnBlur]="true"
-                          (matChipInputTokenEnd)="addRedirectUri($event)"
-                        />
-                      </mat-chip-grid>
-                      <mat-hint i18n="@@applicationRedirectUrisHint">
-                        The URI where the authorization server sends OAuth responses.
-                      </mat-hint>
-                      @if (redirectUrisCtrl.touched && (redirectUrisCtrl.hasError('required') || redirectUrisCtrl.hasError('minlength'))) {
-                        <mat-error i18n="@@redirectUrisRequired">At least one valid redirect URI is required</mat-error>
-                      }
-                    </mat-form-field>
+                          <input
+                            [matChipInputFor]="redirectURIChipGrid"
+                            [matChipInputAddOnBlur]="true"
+                            (matChipInputTokenEnd)="addRedirectUri($event)"
+                          />
+                        </mat-chip-grid>
+                      </mat-form-field>
+                    </div>
                   }
 
-                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                    <mat-label i18n="@@createApplicationClientCertificate">Client Certificate (PEM Only)</mat-label>
-                    <textarea matInput formControlName="clientCertificate" rows="6"></textarea>
-                    <mat-hint i18n="@@createApplicationClientCertificateHint"
-                      >The client_certificate of the application. This field is required to subscribe to certain mTLS plans.
-                    </mat-hint>
-                  </mat-form-field>
+                  <div class="form__field">
+                    <p class="m3-label-large" i18n="@@createApplicationClientCertificate">Client Certificate (PEM Only)</p>
+                    <p class="m3-body-small" i18n="@@createApplicationClientCertificateHint">The client_certificate of the application. This field is required to subscribe to certain mTLS plans.</p>
+                    <mat-form-field appearance="outline" class="form__field--certificate">
+                      <textarea matInput formControlName="clientCertificate" rows="6" aria-label="Client Certificate"></textarea>
+                    </mat-form-field>
+                  </div>
 
                   @if (!isSimpleType()) {
                     <div class="metadata-container">

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @use '../../../../../scss/theme';
+@use '@angular/material' as mat;
 
 .settings-edit {
   mat-card-content {
@@ -45,12 +46,17 @@
 
       mat-form-field {
         width: 100%;
-        --mat-form-field-container-height: 40px;
-        --mat-form-field-container-vertical-padding: 8px;
-        --mat-form-field-subscript-text-line-height: 0;
-        --mat-form-field-subscript-text-size: 0;
-        --mdc-outlined-text-field-outline-color: #{theme.$border-color};
-        --mdc-outlined-text-field-hover-outline-color: #{theme.$border-color};
+
+        @include mat.form-field-overrides(
+          (
+            container-height: 40px,
+            container-vertical-padding: 8px,
+            subscript-text-line-height: 0,
+            subscript-text-size: 0,
+            outlined-outline-color: theme.$border-color,
+            outlined-hover-outline-color: theme.$border-color,
+          )
+        );
       }
     }
 
