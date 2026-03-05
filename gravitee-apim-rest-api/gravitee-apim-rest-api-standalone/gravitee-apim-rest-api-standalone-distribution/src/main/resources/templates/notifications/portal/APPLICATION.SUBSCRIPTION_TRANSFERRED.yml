@@ -2,4 +2,4 @@ title: |
   [${application.name}] Subscription Transferred
 message: |
   The subscription to the plan "${plan.name}"
-  of the api "${api.name}" was transferred.
+  of the <#if api??>api "${api.name}"<#elseif apiProduct??>API Product "${apiProduct.name}"<#else>api/product</#if> was transferred.
