@@ -46,7 +46,14 @@ public class DefaultThemeDomainService {
         Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_PAGE,
         Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_CARD,
         Key.PORTAL_NEXT_THEME_CUSTOM_CSS,
-        Key.PORTAL_NEXT_THEME_FONT_FAMILY
+        Key.PORTAL_NEXT_THEME_FONT_FAMILY,
+        Key.PORTAL_NEXT_THEME_DARK_COLOR_PRIMARY,
+        Key.PORTAL_NEXT_THEME_DARK_COLOR_SECONDARY,
+        Key.PORTAL_NEXT_THEME_DARK_COLOR_TERTIARY,
+        Key.PORTAL_NEXT_THEME_DARK_COLOR_ERROR,
+        Key.PORTAL_NEXT_THEME_DARK_COLOR_BACKGROUND_PAGE,
+        Key.PORTAL_NEXT_THEME_DARK_COLOR_BACKGROUND_CARD,
+        Key.PORTAL_NEXT_THEME_DARK_CUSTOM_CSS
     );
 
     public Theme getDefaultTheme(ThemeType themeType, ExecutionContext executionContext) {
@@ -107,6 +114,25 @@ public class DefaultThemeDomainService {
                     )
                     .customCss(parameters.get(Key.PORTAL_NEXT_THEME_CUSTOM_CSS))
                     .font(ThemeDefinition.Font.builder().fontFamily(parameters.get(Key.PORTAL_NEXT_THEME_FONT_FAMILY)).build())
+                    .dark(
+                        ThemeDefinition.DarkMode.builder()
+                            .color(
+                                ThemeDefinition.Color.builder()
+                                    .primary(parameters.get(Key.PORTAL_NEXT_THEME_DARK_COLOR_PRIMARY))
+                                    .secondary(parameters.get(Key.PORTAL_NEXT_THEME_DARK_COLOR_SECONDARY))
+                                    .tertiary(parameters.get(Key.PORTAL_NEXT_THEME_DARK_COLOR_TERTIARY))
+                                    .error(parameters.get(Key.PORTAL_NEXT_THEME_DARK_COLOR_ERROR))
+                                    .background(
+                                        ThemeDefinition.Background.builder()
+                                            .card(parameters.get(Key.PORTAL_NEXT_THEME_DARK_COLOR_BACKGROUND_CARD))
+                                            .page(parameters.get(Key.PORTAL_NEXT_THEME_DARK_COLOR_BACKGROUND_PAGE))
+                                            .build()
+                                    )
+                                    .build()
+                            )
+                            .customCss(parameters.get(Key.PORTAL_NEXT_THEME_DARK_CUSTOM_CSS))
+                            .build()
+                    )
                     .build()
             )
             .build();

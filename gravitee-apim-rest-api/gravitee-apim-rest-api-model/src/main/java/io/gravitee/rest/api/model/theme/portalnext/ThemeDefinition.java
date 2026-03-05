@@ -31,6 +31,7 @@ public class ThemeDefinition {
     private String customCss;
     private Font font;
     private Color color;
+    private DarkMode dark;
 
     @Data
     @Builder
@@ -63,5 +64,15 @@ public class ThemeDefinition {
     public static class Font {
 
         private String fontFamily;
+    }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class DarkMode {
+
+        private Color color;
+        private String customCss;
     }
 }

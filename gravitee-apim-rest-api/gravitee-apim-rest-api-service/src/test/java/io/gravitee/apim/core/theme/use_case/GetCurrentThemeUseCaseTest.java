@@ -122,6 +122,48 @@ public class GetCurrentThemeUseCaseTest {
                     .referenceType(ParameterReferenceType.ENVIRONMENT)
                     .key(Key.PORTAL_NEXT_THEME_FONT_FAMILY.key())
                     .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getFont().getFontFamily())
+                    .build(),
+                Parameter.builder()
+                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                    .referenceType(ParameterReferenceType.ENVIRONMENT)
+                    .key(Key.PORTAL_NEXT_THEME_DARK_COLOR_PRIMARY.key())
+                    .value("#8BABF8")
+                    .build(),
+                Parameter.builder()
+                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                    .referenceType(ParameterReferenceType.ENVIRONMENT)
+                    .key(Key.PORTAL_NEXT_THEME_DARK_COLOR_SECONDARY.key())
+                    .value("#6A95D4")
+                    .build(),
+                Parameter.builder()
+                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                    .referenceType(ParameterReferenceType.ENVIRONMENT)
+                    .key(Key.PORTAL_NEXT_THEME_DARK_COLOR_TERTIARY.key())
+                    .value("#8BABF8")
+                    .build(),
+                Parameter.builder()
+                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                    .referenceType(ParameterReferenceType.ENVIRONMENT)
+                    .key(Key.PORTAL_NEXT_THEME_DARK_COLOR_ERROR.key())
+                    .value("#F2B8B5")
+                    .build(),
+                Parameter.builder()
+                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                    .referenceType(ParameterReferenceType.ENVIRONMENT)
+                    .key(Key.PORTAL_NEXT_THEME_DARK_COLOR_BACKGROUND_PAGE.key())
+                    .value("#1C1B1F")
+                    .build(),
+                Parameter.builder()
+                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                    .referenceType(ParameterReferenceType.ENVIRONMENT)
+                    .key(Key.PORTAL_NEXT_THEME_DARK_COLOR_BACKGROUND_CARD.key())
+                    .value("#2B2930")
+                    .build(),
+                Parameter.builder()
+                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                    .referenceType(ParameterReferenceType.ENVIRONMENT)
+                    .key(Key.PORTAL_NEXT_THEME_DARK_CUSTOM_CSS.key())
+                    .value("")
                     .build()
             )
         );

@@ -33,6 +33,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PortalCssDefinition;
 import io.gravitee.rest.api.management.v2.rest.model.PortalDefinition;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNextDefinition;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNextDefinitionColor;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNextDefinitionDarkMode;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNextDefinitionFont;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateThemePortal;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateThemePortalNext;
@@ -216,6 +217,50 @@ public class ThemeResourceTest extends AbstractResourceTest {
                     assertThat(theme.getEnabled()).isEqualTo(updateTheme.getEnabled());
                     assertThat(theme.getLogo()).isEqualTo(updateTheme.getLogo());
                     assertThat(theme.getOptionalLogo()).isEqualTo(updateTheme.getOptionalLogo());
+                });
+        }
+
+        @Test
+        public void should_update_portal_next_theme_with_dark_mode() {
+            themeQueryService.initWith(List.of(aPortalNextTheme()));
+            themeCrudService.initWith(List.of(aPortalNextTheme()));
+
+            var updateTheme = (UpdateThemePortalNext) new UpdateThemePortalNext()
+                .definition(
+                    new PortalNextDefinition()
+                        .color(new PortalNextDefinitionColor().primary("#666").secondary("#444"))
+                        .font(new PortalNextDefinitionFont().fontFamily("Comic Sans"))
+                        .customCss("a new style")
+                        .dark(
+                            new PortalNextDefinitionDarkMode()
+                                .color(
+                                    new PortalNextDefinitionColor()
+                                        .primary("#8BABF8")
+                                        .secondary("#6A95D4")
+                                        .pageBackground("#1C1B1F")
+                                        .cardBackground("#2B2930")
+                                )
+                                .customCss(".dark { }")
+                        )
+                )
+                .id(THEME_ID)
+                .name("new name")
+                .enabled(false)
+                .optionalLogo("background image")
+                .logo("background image");
+
+            final Response response = rootTarget().request().put(Entity.json(updateTheme));
+
+            MAPIAssertions.assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
+                .extracting(io.gravitee.rest.api.management.v2.rest.model.Theme::getThemePortalNext)
+                .satisfies(theme -> {
+                    assertThat(theme.getDefinition()).isEqualTo(updateTheme.getDefinition());
+                    assertThat(theme.getDefinition().getDark()).isNotNull();
+                    assertThat(theme.getDefinition().getDark().getColor().getPrimary()).isEqualTo("#8BABF8");
+                    assertThat(theme.getDefinition().getDark().getColor().getPageBackground()).isEqualTo("#1C1B1F");
+                    assertThat(theme.getDefinition().getDark().getCustomCss()).isEqualTo(".dark { }");
                 });
         }
 

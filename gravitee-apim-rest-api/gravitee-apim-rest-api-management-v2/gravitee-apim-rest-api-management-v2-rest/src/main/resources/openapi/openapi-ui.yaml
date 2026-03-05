@@ -645,6 +645,18 @@ components:
                 customCss:
                     type: string
                     description: Custom CSS for Portal-Next
+                dark:
+                    $ref: "#/components/schemas/PortalNextDefinitionDarkMode"
+
+        PortalNextDefinitionDarkMode:
+            type: object
+            description: Dark mode overrides for Portal-Next theme
+            properties:
+                color:
+                    $ref: "#/components/schemas/PortalNextDefinitionColor"
+                customCss:
+                    type: string
+                    description: Custom CSS for Portal-Next dark mode
 
         PortalNextDefinitionColor:
             type: object

@@ -39,6 +39,8 @@ public interface ThemeMapper {
     @Mapping(source = "definitionPortalNext", target = "definition")
     @Mapping(source = "definitionPortalNext.color.background.page", target = "definition.color.pageBackground")
     @Mapping(source = "definitionPortalNext.color.background.card", target = "definition.color.cardBackground")
+    @Mapping(source = "definitionPortalNext.dark.color.background.page", target = "definition.dark.color.pageBackground")
+    @Mapping(source = "definitionPortalNext.dark.color.background.card", target = "definition.dark.color.cardBackground")
     ThemePortalNext mapToThemePortalNext(Theme theme);
 
     List<io.gravitee.rest.api.management.v2.rest.model.Theme> map(List<Theme> themes);
@@ -49,6 +51,8 @@ public interface ThemeMapper {
     @Mapping(target = "definitionPortalNext", source = "definition")
     @Mapping(target = "definitionPortalNext.color.background.page", source = "definition.color.pageBackground")
     @Mapping(target = "definitionPortalNext.color.background.card", source = "definition.color.cardBackground")
+    @Mapping(target = "definitionPortalNext.dark.color.background.page", source = "definition.dark.color.pageBackground")
+    @Mapping(target = "definitionPortalNext.dark.color.background.card", source = "definition.dark.color.cardBackground")
     UpdateTheme map(UpdateThemePortalNext updateThemePortalNext);
 
     default io.gravitee.rest.api.management.v2.rest.model.Theme map(Theme theme) {

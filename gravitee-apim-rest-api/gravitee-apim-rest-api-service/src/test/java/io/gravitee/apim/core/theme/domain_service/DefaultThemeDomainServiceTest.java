@@ -52,6 +52,20 @@ public class DefaultThemeDomainServiceTest {
         )
         .font(ThemeDefinition.Font.builder().fontFamily("Comic Sans").build())
         .customCss(".style { }")
+        .dark(
+            ThemeDefinition.DarkMode.builder()
+                .color(
+                    ThemeDefinition.Color.builder()
+                        .primary("#d_fff")
+                        .secondary("#d_000")
+                        .tertiary("#d_111")
+                        .error("#d_222")
+                        .background(ThemeDefinition.Background.builder().page("#d_333").card("#d_444").build())
+                        .build()
+                )
+                .customCss(".dark-style { }")
+                .build()
+        )
         .build();
 
     private final Theme EXPECTED_DEFAULT_PORTAL_NEXT_THEME = Theme.builder()
@@ -121,6 +135,48 @@ public class DefaultThemeDomainServiceTest {
                     .referenceType(ParameterReferenceType.ENVIRONMENT)
                     .key(Key.PORTAL_NEXT_THEME_FONT_FAMILY.key())
                     .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getFont().getFontFamily())
+                    .build(),
+                Parameter.builder()
+                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                    .referenceType(ParameterReferenceType.ENVIRONMENT)
+                    .key(Key.PORTAL_NEXT_THEME_DARK_COLOR_PRIMARY.key())
+                    .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getDark().getColor().getPrimary())
+                    .build(),
+                Parameter.builder()
+                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                    .referenceType(ParameterReferenceType.ENVIRONMENT)
+                    .key(Key.PORTAL_NEXT_THEME_DARK_COLOR_SECONDARY.key())
+                    .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getDark().getColor().getSecondary())
+                    .build(),
+                Parameter.builder()
+                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                    .referenceType(ParameterReferenceType.ENVIRONMENT)
+                    .key(Key.PORTAL_NEXT_THEME_DARK_COLOR_TERTIARY.key())
+                    .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getDark().getColor().getTertiary())
+                    .build(),
+                Parameter.builder()
+                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                    .referenceType(ParameterReferenceType.ENVIRONMENT)
+                    .key(Key.PORTAL_NEXT_THEME_DARK_COLOR_ERROR.key())
+                    .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getDark().getColor().getError())
+                    .build(),
+                Parameter.builder()
+                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                    .referenceType(ParameterReferenceType.ENVIRONMENT)
+                    .key(Key.PORTAL_NEXT_THEME_DARK_COLOR_BACKGROUND_PAGE.key())
+                    .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getDark().getColor().getBackground().getPage())
+                    .build(),
+                Parameter.builder()
+                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                    .referenceType(ParameterReferenceType.ENVIRONMENT)
+                    .key(Key.PORTAL_NEXT_THEME_DARK_COLOR_BACKGROUND_CARD.key())
+                    .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getDark().getColor().getBackground().getCard())
+                    .build(),
+                Parameter.builder()
+                    .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
+                    .referenceType(ParameterReferenceType.ENVIRONMENT)
+                    .key(Key.PORTAL_NEXT_THEME_DARK_CUSTOM_CSS.key())
+                    .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getDark().getCustomCss())
                     .build()
             )
         );

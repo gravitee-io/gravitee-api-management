@@ -143,6 +143,21 @@ public enum Key {
     ),
     PORTAL_NEXT_THEME_CUSTOM_CSS("portal.next.theme.customCss", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_THEME_FONT_FAMILY("portal.next.theme.font.family", "\"Roboto\", sans-serif", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_THEME_DARK_COLOR_PRIMARY("portal.next.theme.dark.color.primary", "#8BABF8", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_THEME_DARK_COLOR_SECONDARY("portal.next.theme.dark.color.secondary", "#6A95D4", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_THEME_DARK_COLOR_TERTIARY("portal.next.theme.dark.color.tertiary", "#8BABF8", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_THEME_DARK_COLOR_ERROR("portal.next.theme.dark.color.error", "#F2B8B5", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_THEME_DARK_COLOR_BACKGROUND_PAGE(
+        "portal.next.theme.dark.color.background.page",
+        "#1C1B1F",
+        new HashSet<>(singletonList(ENVIRONMENT))
+    ),
+    PORTAL_NEXT_THEME_DARK_COLOR_BACKGROUND_CARD(
+        "portal.next.theme.dark.color.background.card",
+        "#2B2930",
+        new HashSet<>(singletonList(ENVIRONMENT))
+    ),
+    PORTAL_NEXT_THEME_DARK_CUSTOM_CSS("portal.next.theme.dark.customCss", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_CATALOG_VIEW_MODE("portal.next.catalog.viewMode", new HashSet<>(singletonList(ENVIRONMENT))),
 
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
