@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import inmemory.ApplicationMemberUserQueryServiceInMemory;
 import inmemory.MemberQueryServiceInMemory;
+import inmemory.MembershipDomainServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import io.gravitee.apim.core.application_member.model.ApplicationMemberSearchUser;
 import io.gravitee.apim.core.member.model.Member;
@@ -39,6 +40,7 @@ import io.gravitee.rest.api.portal.rest.model.MemberV2;
 import io.gravitee.rest.api.portal.rest.model.MemberV2Input;
 import io.gravitee.rest.api.portal.rest.model.MembersV2Response;
 import io.gravitee.rest.api.portal.rest.model.SearchUsersV2Response;
+import io.gravitee.rest.api.portal.rest.model.TransferOwnershipV2Input;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import java.util.Date;
@@ -64,6 +66,9 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
     @Autowired
     private ApplicationMemberUserQueryServiceInMemory applicationMemberUserQueryService;
 
+    @Autowired
+    private MembershipDomainServiceInMemory membershipDomainService;
+
     @Override
     protected String contextPath() {
         return "applications/";
@@ -75,6 +80,7 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
         memberQueryService.reset();
         roleQueryService.reset();
         applicationMemberUserQueryService.reset();
+        membershipDomainService.reset();
 
         doReturn(new ApplicationEntity()).when(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
         doReturn(new ApplicationEntity()).when(applicationService).findById(GraviteeContext.getExecutionContext(), OTHER_APPLICATION_ID);
@@ -122,6 +128,7 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
         memberQueryService.reset();
         roleQueryService.reset();
         applicationMemberUserQueryService.reset();
+        membershipDomainService.reset();
     }
 
     @Test
@@ -229,6 +236,21 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
             assertNotNull(member);
             assertEquals("member-4", member.getUser().getId());
             assertEquals("ADMIN", member.getRole());
+        }
+
+        @Test
+        void should_create_application_members_v2_from_batch_payload() {
+            final var response = target(APPLICATION_ID)
+                .path("membersV2")
+                .request()
+                .post(Entity.json("{\"members\":[{\"userId\":\"member-4\",\"role\":\"USER\"}],\"notify\":false}"));
+
+            assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
+            final var members = response.readEntity(MemberV2[].class);
+            assertNotNull(members);
+            assertEquals(1, members.length);
+            assertEquals("member-4", members[0].getUser().getId());
+            assertEquals("USER", members[0].getRole());
         }
 
         @Test
@@ -345,6 +367,125 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
                 .queryParam("q", "smith")
                 .request()
                 .post(null);
+
+            assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+        }
+    }
+
+    @Nested
+    class TransferOwnershipTest {
+
+        @Test
+        void should_transfer_application_ownership_v2() {
+            membershipDomainService.initWith(
+                List.of(
+                    MemberEntity.builder()
+                        .id("member-primary-owner")
+                        .referenceType(MembershipReferenceType.APPLICATION)
+                        .referenceId(APPLICATION_ID)
+                        .roles(List.of(RoleEntity.builder().name("PRIMARY_OWNER").scope(RoleScope.APPLICATION).build()))
+                        .build(),
+                    MemberEntity.builder()
+                        .id("member-4")
+                        .referenceType(MembershipReferenceType.APPLICATION)
+                        .referenceId(APPLICATION_ID)
+                        .roles(List.of(RoleEntity.builder().name("USER").scope(RoleScope.APPLICATION).build()))
+                        .build()
+                )
+            );
+
+            final var response = target(APPLICATION_ID)
+                .path("membersV2")
+                .path("_transfer-ownership")
+                .request()
+                .post(
+                    Entity.json(
+                        new TransferOwnershipV2Input()
+                            .newPrimaryOwnerId("member-4")
+                            .newPrimaryOwnerReference("ref-4")
+                            .primaryOwnerNewrole("USER")
+                    )
+                );
+
+            assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
+            assertEquals(
+                "USER",
+                membershipDomainService
+                    .storage()
+                    .stream()
+                    .filter(member -> "member-primary-owner".equals(member.getId()))
+                    .findFirst()
+                    .orElseThrow()
+                    .getRoles()
+                    .get(0)
+                    .getName()
+            );
+            assertEquals(
+                "PRIMARY_OWNER",
+                membershipDomainService
+                    .storage()
+                    .stream()
+                    .filter(member -> "member-4".equals(member.getId()))
+                    .findFirst()
+                    .orElseThrow()
+                    .getRoles()
+                    .get(0)
+                    .getName()
+            );
+        }
+
+        @Test
+        void should_return_400_when_previous_owner_new_role_does_not_exist() {
+            final var response = target(APPLICATION_ID)
+                .path("membersV2")
+                .path("_transfer-ownership")
+                .request()
+                .post(
+                    Entity.json(
+                        new TransferOwnershipV2Input()
+                            .newPrimaryOwnerId("member-4")
+                            .newPrimaryOwnerReference("ref-4")
+                            .primaryOwnerNewrole("UNKNOWN")
+                    )
+                );
+
+            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        }
+
+        @Test
+        void should_return_400_when_previous_owner_new_role_is_primary_owner() {
+            final var response = target(APPLICATION_ID)
+                .path("membersV2")
+                .path("_transfer-ownership")
+                .request()
+                .post(
+                    Entity.json(
+                        new TransferOwnershipV2Input()
+                            .newPrimaryOwnerId("member-4")
+                            .newPrimaryOwnerReference("ref-4")
+                            .primaryOwnerNewrole("PRIMARY_OWNER")
+                    )
+                );
+
+            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        }
+
+        @Test
+        void should_return_403_when_missing_update_permission_on_transfer_ownership() {
+            doReturn(false).when(permissionService).hasPermission(any(), any(), any(), any());
+
+            final var response = target(APPLICATION_ID)
+                .path("membersV2")
+                .path("_transfer-ownership")
+                .request()
+                .post(
+                    Entity.json(
+                        new TransferOwnershipV2Input()
+                            .newPrimaryOwnerId("member-4")
+                            .newPrimaryOwnerReference("ref-4")
+                            .primaryOwnerNewrole("USER")
+                    )
+                );
 
             assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
         }

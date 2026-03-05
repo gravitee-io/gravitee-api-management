@@ -15,10 +15,12 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.application_member.use_case.AddApplicationMemberUseCase;
 import io.gravitee.apim.core.application_member.use_case.DeleteApplicationMemberUseCase;
 import io.gravitee.apim.core.application_member.use_case.GetApplicationMembersUseCase;
 import io.gravitee.apim.core.application_member.use_case.SearchUsersForApplicationMemberUseCase;
+import io.gravitee.apim.core.application_member.use_case.TransferApplicationOwnershipUseCase;
 import io.gravitee.apim.core.application_member.use_case.UpdateApplicationMemberUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -26,6 +28,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.MemberV2Mapper;
 import io.gravitee.rest.api.portal.rest.model.MemberV2Input;
 import io.gravitee.rest.api.portal.rest.model.SearchUserV2;
+import io.gravitee.rest.api.portal.rest.model.TransferOwnershipV2Input;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
@@ -48,6 +51,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +75,9 @@ public class ApplicationMembersResourceV2 extends AbstractResource {
 
     @Inject
     private AddApplicationMemberUseCase addApplicationMemberUseCase;
+
+    @Inject
+    private TransferApplicationOwnershipUseCase transferApplicationOwnershipUseCase;
 
     private static final MemberV2Mapper MEMBER_V2_MAPPER = MemberV2Mapper.INSTANCE;
 
@@ -110,27 +117,27 @@ public class ApplicationMembersResourceV2 extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.CREATE) })
     public Response createApplicationMemberV2(
         @PathParam("applicationId") String applicationId,
-        @QueryParam("notify") @DefaultValue("true") boolean notify,
-        @Valid @NotNull(message = "Input must not be null.") MemberV2Input memberInput
+        @QueryParam("notify") @DefaultValue("true") boolean queryNotify,
+        @Valid @NotNull(message = "Input must not be null.") JsonNode addMemberInput
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         applicationService.findById(executionContext, applicationId);
 
+        var parsedPayload = parseAddMembersInput(addMemberInput, queryNotify);
         var result = addApplicationMemberUseCase.execute(
             new AddApplicationMemberUseCase.Input(
                 applicationId,
-                List.of(
-                    new AddApplicationMemberUseCase.AddMemberRequest(
-                        memberInput.getUser(),
-                        memberInput.getReference(),
-                        memberInput.getRole()
-                    )
-                ),
-                notify,
+                parsedPayload.members(),
+                parsedPayload.sendNotification(),
                 executionContext.getEnvironmentId(),
                 executionContext.getOrganizationId()
             )
         );
+
+        if (parsedPayload.batchRequest()) {
+            var createdMembers = result.createdMembers().stream().map(MEMBER_V2_MAPPER::map).toList();
+            return Response.status(Response.Status.CREATED).entity(createdMembers).build();
+        }
 
         var createdMember = result
             .createdMembers()
@@ -210,4 +217,75 @@ public class ApplicationMembersResourceV2 extends AbstractResource {
             );
         return createListResponse(executionContext, mappedUsers.toList(), paginationParam);
     }
+
+    @POST
+    @Path("_transfer-ownership")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE) })
+    public Response transferApplicationOwnershipV2(
+        @PathParam("applicationId") String applicationId,
+        @Valid @NotNull(message = "Input must not be null.") TransferOwnershipV2Input transferOwnershipInput
+    ) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        applicationService.findById(executionContext, applicationId);
+
+        transferApplicationOwnershipUseCase.execute(
+            new TransferApplicationOwnershipUseCase.Input(
+                applicationId,
+                transferOwnershipInput.getNewPrimaryOwnerId(),
+                transferOwnershipInput.getNewPrimaryOwnerReference(),
+                transferOwnershipInput.getPrimaryOwnerNewrole(),
+                executionContext.getOrganizationId()
+            )
+        );
+        return Response.noContent().build();
+    }
+
+    private ParsedAddMembersInput parseAddMembersInput(JsonNode addMemberInput, boolean queryNotify) {
+        if (addMemberInput.has("members") && addMemberInput.get("members").isArray()) {
+            var members = new ArrayList<AddApplicationMemberUseCase.AddMemberRequest>();
+            addMemberInput
+                .get("members")
+                .forEach(member ->
+                    members.add(
+                        new AddApplicationMemberUseCase.AddMemberRequest(
+                            nullableText(member, "userId"),
+                            nullableText(member, "reference"),
+                            nullableText(member, "role")
+                        )
+                    )
+                );
+
+            var notify = addMemberInput.has("notify") && addMemberInput.get("notify").isBoolean()
+                ? addMemberInput.get("notify").asBoolean()
+                : queryNotify;
+            return new ParsedAddMembersInput(members, notify, true);
+        }
+
+        var memberInput = new MemberV2Input()
+            .user(nullableText(addMemberInput, "user"))
+            .reference(nullableText(addMemberInput, "reference"))
+            .role(nullableText(addMemberInput, "role"));
+        return new ParsedAddMembersInput(
+            List.of(
+                new AddApplicationMemberUseCase.AddMemberRequest(memberInput.getUser(), memberInput.getReference(), memberInput.getRole())
+            ),
+            queryNotify,
+            false
+        );
+    }
+
+    private String nullableText(JsonNode node, String field) {
+        if (!node.has(field) || node.get(field).isNull()) {
+            return null;
+        }
+        return node.get(field).asText();
+    }
+
+    private record ParsedAddMembersInput(
+        List<AddApplicationMemberUseCase.AddMemberRequest> members,
+        boolean sendNotification,
+        boolean batchRequest
+    ) {}
 }

@@ -34,6 +34,14 @@
   - `POST /applications/{applicationId}/membersV2` in `ApplicationMembersResourceV2`
   - use case tests (single add, batch add, duplicate rejected, `PRIMARY_OWNER` rejected, invalid role)
   - REST tests for add flow (`201`, `400`, `403`) in `ApplicationMembersResourceV2Test`.
+- Implemented **Phase 5 / Story 5.1** backend transfer-ownership flow in Onion style:
+  - `TransferApplicationOwnershipUseCase` with validation (`PRIMARY_OWNER` forbidden as previous-owner role) and role lookup via `RoleQueryService.findApplicationRole(...)`
+  - `POST /applications/{applicationId}/membersV2/_transfer-ownership` in `ApplicationMembersResourceV2`
+  - use case tests (success, invalid role, previous owner cannot stay `PRIMARY_OWNER`, target user not found propagation)
+  - REST tests under `ApplicationMembersResourceV2Test.TransferOwnershipTest` (`204`, `400`, `403`).
+- Implemented **compatibility fix for Phase 3 add-members runtime issue**:
+  - root cause: frontend sends batch payload (`members[]`, `notify`) while V2 resource initially parsed single `MemberV2Input`, causing `role = null` and `Role 'null' ... not found`
+  - updated `POST /membersV2` to support both payload shapes (single + batch) and added a regression REST test with exact batch payload from frontend flow.
 
 ## Key Decisions Made and Why
 
@@ -50,6 +58,8 @@
 - **Excluded existing application members in use case layer** so endpoint always returns addable users only, independent of frontend filtering.
 - **Used `MembershipDomainService.createNewMembership(...)` in add-member use case** to keep business logic aligned with Onion boundaries and avoid direct legacy-service calls from resource layer.
 - **Kept POST payload as `MemberV2Input`, but mapped to batch-capable use case input** so current API contract remains simple while backend stays ready for future bulk-add use.
+- **Added backward-compatible request parsing for `POST /membersV2`** to support both existing single-member contract and frontend batch payload without breaking current callers.
+- **Added transfer ownership in dedicated use case instead of resource-level logic** to keep validations/testability aligned with Onion patterns and mirror existing cluster ownership approach.
 
 ## Gotchas or Surprises
 
@@ -61,6 +71,7 @@
 - `portal-rest` compile failed until the updated `service` module was installed locally after adding new core classes (`mvn ...service -DskipTests install`).
 - Java record component name `notify` caused compilation failure (`illegal record component name notify`) and had to be renamed (`sendNotification`).
 - Portal REST test context failed because `AddApplicationMemberUseCase` required `MembershipDomainService`; fixed by registering `MembershipDomainServiceInMemory` in `InMemoryConfiguration`.
+- Runtime integration surprise: frontend add-members dialog sends `{"members":[...],"notify":...}` to `/membersV2`, while backend endpoint initially expected only `MemberV2Input`; this mismatch only surfaced during end-to-end UI test, not in earlier BE-only tests.
 
 ## Blockers / Open Questions
 
@@ -102,3 +113,28 @@ Implement Phase 3 Story 3.1 from ./hackathon/STORIES.md. Include tests following
 ```text
 Implement Phase 3 Story 3.2 from ./hackathon/STORIES.md. Include tests following the existing patterns in the codebase.
 ```
+
+```text
+Implement Phase 5 Story 5.1 from ./hackathon/STORIES.md. Include tests following the existing patterns in the codebase.
+```
+
+~~~text
+Testuję implementację fazy 3 po wywołaniu okna do dodawania membera i próbie zapisu dostaję bład 
+
+```{
+     "errors" : [ {
+       "status" : "400",
+       "message" : "Role 'null' for ReferenceContext(referenceType=ORGANIZATION, referenceId=DEFAULT) not found.",
+       "code" : "errors.validation",
+       "parameters" : { }
+     } ]
+   }```
+
+Wygląda na to że poprawne dane zostały wysłane z frontu na endpoint `http://localhost:4101/portal/environments/DEFAULT/applications/7bd63c35-844a-4c0b-963c-35844a4c0be4/membersV2` 
+bo w body jest właściwa wartość dla roli
+```
+{"members":[{"userId":"d5977237-1141-4b41-9772-3711415b41ae","role":"USER"}],"notify":false}
+```
+
+Przeanalizuj przyczyny błędu, dodaj przypadek testowy na resource weryfikujący ten problem i spróbuj naprawić
+~~~
