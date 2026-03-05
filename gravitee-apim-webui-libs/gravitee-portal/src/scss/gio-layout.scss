@@ -1,0 +1,34 @@
+$small-desktop-width: 905px;
+$desktop-width: 1240px;
+$large-desktop-width: 1440px;
+
+$container-padding-top: 24px;
+$container-padding-bottom: 48px;
+
+@mixin small-desktop() {
+  @media (min-width: #{$small-desktop-width}) and (max-width: #{$desktop-width - 1px}) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: #{$desktop-width}) and (max-width: #{$large-desktop-width - 1px}) {
+    @content;
+  }
+}
+
+@mixin large-desktop {
+  @media (min-width: #{$large-desktop-width}) {
+    @content;
+  }
+}
+
+@mixin gio-responsive-content-container {
+  display: block;
+  padding: $container-padding-top 8px $container-padding-bottom 8px;
+
+  @include large-desktop {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+}

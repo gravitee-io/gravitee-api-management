@@ -1,0 +1,27 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "portal",
+  "projectType": "library",
+  "sourceRoot": "gravitee-apim-webui-libs/gravitee-portal/src",
+  "prefix": "portal",
+  "targets": {
+    "build": {
+      "executor": "@angular-devkit/build-angular:ng-packagr",
+      "outputs": ["{workspaceRoot}/dist/@gravitee/gravitee-portal"],
+      "options": {
+        "project": "gravitee-apim-webui-libs/gravitee-portal/ng-package.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "gravitee-apim-webui-libs/gravitee-portal/tsconfig.lib.prod.json"
+        },
+        "development": {
+          "tsConfig": "gravitee-apim-webui-libs/gravitee-portal/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "lint": {}
+  },
+  "tags": ["type:lib", "scope:shared"]
+}

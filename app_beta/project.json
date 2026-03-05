@@ -28,6 +28,9 @@
                     }
                 ],
                 "styles": ["app_beta/src/styles.scss"],
+                "stylePreprocessorOptions": {
+                    "includePaths": ["node_modules/", "gravitee-apim-webui-libs/", "dist/"]
+                },
                 "customWebpackConfig": {
                     "path": "app_beta/webpack.config.ts"
                 }
