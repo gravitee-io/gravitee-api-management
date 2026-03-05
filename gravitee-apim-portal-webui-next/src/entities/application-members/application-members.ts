@@ -37,6 +37,26 @@ export interface ApplicationRolesV2Response {
   data: ApplicationRoleV2[];
 }
 
+export interface SearchableUser {
+  id: string;
+  display_name: string;
+  email?: string;
+}
+
+export interface SearchUsersV2Response {
+  data: SearchableUser[];
+}
+
+export interface AddMemberInput {
+  userId: string;
+  role: string;
+}
+
+export interface AddMembersRequest {
+  members: AddMemberInput[];
+  notify: boolean;
+}
+
 export interface MembersV2Response {
   data: MemberV2[];
   metadata?: {

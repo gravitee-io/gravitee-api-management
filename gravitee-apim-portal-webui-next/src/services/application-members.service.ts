@@ -18,7 +18,13 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { ApplicationRolesV2Response, MemberV2, MembersV2Response } from '../entities/application-members/application-members';
+import {
+  AddMembersRequest,
+  ApplicationRolesV2Response,
+  MemberV2,
+  MembersV2Response,
+  SearchUsersV2Response,
+} from '../entities/application-members/application-members';
 
 @Injectable({
   providedIn: 'root',
@@ -46,5 +52,17 @@ export class ApplicationMembersService {
 
   deleteMember(applicationId: string, memberId: string): Observable<void> {
     return this.http.delete<void>(`${this.configService.baseURL}/applications/${applicationId}/membersV2/${memberId}`);
+  }
+
+  searchUsers(applicationId: string, query: string): Observable<SearchUsersV2Response> {
+    return this.http.post<SearchUsersV2Response>(
+      `${this.configService.baseURL}/applications/${applicationId}/membersV2/_search-users`,
+      null,
+      { params: { q: query } },
+    );
+  }
+
+  addMembers(applicationId: string, request: AddMembersRequest): Observable<MemberV2[]> {
+    return this.http.post<MemberV2[]>(`${this.configService.baseURL}/applications/${applicationId}/membersV2`, request);
   }
 }

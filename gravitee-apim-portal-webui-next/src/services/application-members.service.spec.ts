@@ -17,8 +17,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { ApplicationMembersService } from './application-members.service';
-import { ApplicationRolesV2Response, MembersV2Response } from '../entities/application-members/application-members';
-import { fakeApplicationRolesResponse, fakeMembersResponse } from '../entities/application-members/application-members.fixture';
+import { ApplicationRolesV2Response, MembersV2Response, SearchUsersV2Response } from '../entities/application-members/application-members';
+import { fakeApplicationRolesResponse, fakeMembersResponse, fakeSearchUsersResponse } from '../entities/application-members/application-members.fixture';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('ApplicationMembersService', () => {
@@ -112,5 +112,31 @@ describe('ApplicationMembersService', () => {
     const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${applicationId}/membersV2/${memberId}`);
     expect(req.request.method).toEqual('DELETE');
     req.flush(null);
+  });
+
+  it('should search users', done => {
+    const response: SearchUsersV2Response = fakeSearchUsersResponse();
+    service.searchUsers(applicationId, 'alice').subscribe(result => {
+      expect(result).toMatchObject(response);
+      done();
+    });
+
+    const req = httpTestingController.expectOne(
+      r => r.url.includes(`/applications/${applicationId}/membersV2/_search-users`) && r.params.get('q') === 'alice',
+    );
+    expect(req.request.method).toEqual('POST');
+    req.flush(response);
+  });
+
+  it('should add members', done => {
+    const request = { members: [{ userId: 'user-10', role: 'VIEWER' }], notify: true };
+    service.addMembers(applicationId, request).subscribe(() => {
+      done();
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${applicationId}/membersV2`);
+    expect(req.request.method).toEqual('POST');
+    expect(req.request.body).toEqual(request);
+    req.flush([]);
   });
 });

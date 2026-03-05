@@ -33,7 +33,7 @@
             <span i18n="@@membersAddMembers">Add Members</span>
           </button>
           <mat-menu #addMembersMenu="matMenu">
-            <button mat-menu-item data-testid="menu-user-search">
+            <button mat-menu-item data-testid="menu-user-search" (click)="openSearchUsersDialog()">
               <mat-icon aria-hidden="true">search</mat-icon>
               <div class="application-tab-members__menu-item">
                 <span class="m3-body-medium" i18n="@@membersMenuUserSearch">User Search</span>

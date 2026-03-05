@@ -19,7 +19,7 @@
 ### Phase 3: Add Members
 - ✅ 3.1 - BE: Search Users for Application (UseCase)
 - ✅ 3.2 - BE: Add Application Member (UseCase)
-- [ ] 3.3 - FE: Search Users Dialog (Add Members)
+- ✅ 3.3 - FE: Search Users Dialog (Add Members)
 
 ### Phase 4: Invite Users via Email
 - [ ] 4.1 - BE: Invite User to Application (UseCase)
@@ -51,6 +51,7 @@
 - **Story 2.2 (BE: Delete Application Member (UseCase))** — Added `DeleteApplicationMemberUseCase` (not found handling + PRIMARY_OWNER guard + member deletion), wired `DELETE /applications/{applicationId}/membersV2/{memberId}` in `ApplicationMembersResourceV2`, and added use case + REST tests (`204` success, `400` primary owner, `403` no permission).
 - **Story 3.1 (BE: Search Users for Application (UseCase))** — Added `SearchUsersForApplicationMemberUseCase`, introduced `ApplicationMemberUserQueryService` + legacy wrapper over `IdentityService.search(...)`, implemented `POST /applications/{applicationId}/membersV2/_search-users` with `APPLICATION_MEMBER[CREATE]`, filtered out existing app members, and added use case + REST tests.
 - **Story 3.2 (BE: Add Application Member (UseCase))** — Added `AddApplicationMemberUseCase` (role validation, `PRIMARY_OWNER` rejection, duplicate member rejection, batch-capable input), implemented `POST /applications/{applicationId}/membersV2` in `ApplicationMembersResourceV2`, and added use case + REST tests (`201` success, `400` invalid role / primary owner / duplicate, `403` missing permission).
+- **Story 3.3 (FE: Search Users Dialog (Add Members))** — `SearchUsersDialogComponent` with role `mat-select` (pre-selects default non-system role), user search `mat-autocomplete` (debounced 300ms, min 2 chars), `mat-chip-set` for selected users with remove, notify `mat-checkbox`. Service: `searchUsers()` (POST `_search-users`), `addMembers()` (POST `/membersV2`). "User Search" menu item wired to open dialog → on result calls `addMembers()` → snackbar → reload. Dialog harness + spec (4 tests), service spec (2 new tests). All 37 tests pass. BE not ready — endpoints will 404 at runtime until Stories 3.1/3.2 land.
 
 ## Key Decisions
 

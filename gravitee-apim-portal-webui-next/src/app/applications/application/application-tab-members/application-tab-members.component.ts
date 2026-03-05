@@ -26,10 +26,15 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { EMPTY, switchMap, take } from 'rxjs';
 
 import { EditMemberRoleDialogComponent, EditMemberRoleDialogData } from './edit-member-role-dialog/edit-member-role-dialog.component';
+import {
+  SearchUsersDialogComponent,
+  SearchUsersDialogData,
+  SearchUsersDialogResult,
+} from './search-users-dialog/search-users-dialog.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../components/confirm-dialog/confirm-dialog.component';
 import { LoaderComponent } from '../../../../components/loader/loader.component';
 import { PaginatedTableComponent, TableActionEvent, TableColumn } from '../../../../components/paginated-table/paginated-table.component';
-import { ApplicationRoleV2 } from '../../../../entities/application-members/application-members';
+import { AddMembersRequest, ApplicationRoleV2 } from '../../../../entities/application-members/application-members';
 import { UserApplicationPermissions } from '../../../../entities/permission/permission';
 import { ApplicationMembersService } from '../../../../services/application-members.service';
 
@@ -142,6 +147,47 @@ export class ApplicationTabMembersComponent {
         this.openDeleteMemberDialog(event.row);
         break;
     }
+  }
+
+  openSearchUsersDialog(): void {
+    this.membersService
+      .listRoles()
+      .pipe(
+        take(1),
+        switchMap(rolesResponse => {
+          const roles = rolesResponse.data.filter(r => !r.system);
+          const dialogData: SearchUsersDialogData = {
+            applicationId: this.applicationId(),
+            roles,
+          };
+          return this.matDialog
+            .open<SearchUsersDialogComponent, SearchUsersDialogData, SearchUsersDialogResult | null>(SearchUsersDialogComponent, {
+              id: 'searchUsersDialog',
+              data: dialogData,
+              width: '520px',
+            })
+            .afterClosed();
+        }),
+        switchMap(result => {
+          if (!result || result.users.length === 0) return EMPTY;
+          const request: AddMembersRequest = {
+            members: result.users.map(u => ({ userId: u.id, role: result.role })),
+            notify: result.notify,
+          };
+          return this.membersService.addMembers(this.applicationId(), request);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.snackBar.open($localize`:@@membersAdded:Members added successfully`, '', { duration: 3000 });
+          this.membersResource.reload();
+        },
+        error: err => {
+          console.error('Failed to add members', err);
+          this.snackBar.open($localize`:@@membersAddFailed:Failed to add members`, '', { duration: 5000 });
+        },
+      });
   }
 
   private openEditRoleDialog(row: Record<string, unknown>): void {
