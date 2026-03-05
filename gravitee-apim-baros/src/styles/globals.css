@@ -48,7 +48,7 @@
   --color-topnav-border: var(--topnav-border);
 
   /* ── Typography ─────────────────────────────────── */
-  --font-sans: 'Nunito Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: var(--baros-font-sans);
 
   /* ── Radius ──────────────────────────────────────── */
   --radius-sm: calc(var(--radius) - 0.125rem);

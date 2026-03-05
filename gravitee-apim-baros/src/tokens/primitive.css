@@ -109,6 +109,9 @@
   --baros-radius-2xl: 1rem;
   --baros-radius-full: 9999px;
 
+  /* ── Font family ──────────────────────────────────── */
+  --baros-font-sans: 'Nunito Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
   /* ── Font sizes ────────────────────────────────────── */
   --baros-text-xs: 0.75rem;
   --baros-text-sm: 0.875rem;
