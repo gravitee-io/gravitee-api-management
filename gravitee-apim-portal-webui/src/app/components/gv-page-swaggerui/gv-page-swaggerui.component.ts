@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { PlatformLocation } from '@angular/common';
 import SwaggerUI, { SwaggerUIOptions, SwaggerUIPlugin } from 'swagger-ui';
 
@@ -30,8 +30,9 @@ type docExpansion = 'list' | 'full' | 'none';
   styleUrls: ['./gv-page-swaggerui.component.css'],
   standalone: false,
 })
-export class GvPageSwaggerUIComponent implements OnInit {
+export class GvPageSwaggerUIComponent implements OnInit, OnDestroy {
   currentUser: User;
+  @ViewChild('swaggerContainer', { static: true }) private swaggerContainer: ElementRef<HTMLDivElement>;
 
   constructor(
     private currentUserService: CurrentUserService,
@@ -46,10 +47,19 @@ export class GvPageSwaggerUIComponent implements OnInit {
     this.refresh(this.pageService.getCurrentPage());
   }
 
+  ngOnDestroy() {
+    if (this.swaggerContainer?.nativeElement) {
+      this.swaggerContainer.nativeElement.innerHTML = '';
+    }
+
+    // Clean up global side effects leakage from SwaggerUI / React
+    document.getElementById('preact-border-shadow-host')?.remove();
+  }
+
   private refresh(page: Page) {
-    if (page) {
+    if (page && this.swaggerContainer?.nativeElement) {
       const ui = SwaggerUI({
-        dom_id: '#swagger',
+        domNode: this.swaggerContainer.nativeElement,
         ...this.buildConfig(page),
       });
       ui.initOAuth({ usePkceWithAuthorizationCodeGrant: page.configuration?.use_pkce });
@@ -61,7 +71,6 @@ export class GvPageSwaggerUIComponent implements OnInit {
     const plugins = this.buildPlugins(page);
 
     const config: SwaggerUIOptions = {
-      dom_id: '#swagger',
       defaultModelsExpandDepth: 0,
       layout: 'BaseLayout',
       plugins,
