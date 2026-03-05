@@ -1,1 +1,50 @@
-/* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat;
+
+@import '../../gravitee-apim-baros/src/tokens/primitive.css';
+@import '../../gravitee-apim-baros/src/tokens/semantic.css';
+@import '../../gravitee-apim-baros/src/tokens/component.css';
+
+html {
+    @include mat.theme((
+        color: (
+            primary: mat.$orange-palette,
+            tertiary: mat.$neutral-palette,
+        ),
+        typography: Nunito Sans,
+        density: 0,
+    ));
+}
+
+:root {
+    @include mat.sidenav-overrides((
+        container-background-color: var(--sidebar-background),
+        content-background-color: var(--background),
+        container-divider-color: var(--sidebar-border),
+        container-text-color: var(--sidebar-foreground),
+        container-width: var(--sidebar-width),
+    ));
+
+    @include mat.list-overrides((
+        active-indicator-color: var(--sidebar-accent),
+        active-indicator-text-color: var(--sidebar-accent-foreground),
+        list-item-label-text-color: var(--sidebar-foreground),
+        list-item-hover-state-layer-color: var(--sidebar-accent),
+    ));
+
+    @include mat.icon-overrides((
+        color: var(--sidebar-foreground),
+    ));
+
+    @include mat.divider-overrides((
+        color: var(--border),
+    ));
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap');
+
+body {
+    margin: 0;
+    font-family: 'Nunito Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    background-color: var(--background);
+    color: var(--foreground);
+}
