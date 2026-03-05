@@ -13,40 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface MemberV2 {
-  id: string;
-  role: string;
-  status: string;
-  created_at?: string;
-  updated_at?: string;
-  user: {
-    id: string;
-    display_name: string;
-    email?: string;
-  };
-}
+@use 'theme';
 
-export interface ApplicationRoleV2 {
-  id: string;
-  name: string;
-  default?: boolean;
-  system?: boolean;
-}
+.edit-member-role-dialog {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 360px;
+  }
 
-export interface ApplicationRolesV2Response {
-  data: ApplicationRoleV2[];
-}
+  &__select-field {
+    width: 100%;
+  }
 
-export interface MembersV2Response {
-  data: MemberV2[];
-  metadata?: {
-    pagination?: {
-      current_page?: number;
-      first?: number;
-      last?: number;
-      size?: number;
-      total?: number;
-      total_pages?: number;
-    };
-  };
+  &__actions {
+    padding: 8px 24px 16px;
+  }
 }

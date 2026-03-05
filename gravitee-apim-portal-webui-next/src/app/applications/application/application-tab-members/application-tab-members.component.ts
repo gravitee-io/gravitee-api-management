@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, input, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormField, MatLabel, MatPrefix } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { EMPTY, switchMap, take } from 'rxjs';
 
+import { EditMemberRoleDialogComponent, EditMemberRoleDialogData } from './edit-member-role-dialog/edit-member-role-dialog.component';
 import { LoaderComponent } from '../../../../components/loader/loader.component';
 import { PaginatedTableComponent, TableActionEvent, TableColumn } from '../../../../components/paginated-table/paginated-table.component';
+import { ApplicationRoleV2 } from '../../../../entities/application-members/application-members';
 import { UserApplicationPermissions } from '../../../../entities/permission/permission';
 import { ApplicationMembersService } from '../../../../services/application-members.service';
 
@@ -47,6 +53,9 @@ import { ApplicationMembersService } from '../../../../services/application-memb
 })
 export class ApplicationTabMembersComponent {
   private readonly membersService = inject(ApplicationMembersService);
+  private readonly matDialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   applicationId = input.required<string>();
   userApplicationPermissions = input.required<UserApplicationPermissions>();
@@ -96,15 +105,12 @@ export class ApplicationTabMembersComponent {
   rows = computed(() => {
     const response = this.membersResource.value();
     if (!response?.data) return [];
-    return response.data.map(member => {
-      console.log(member);
-      return {
-        id: member.id,
-        display_name: member.user.display_name,
-        role: member.role,
-        status: member.status,
-      };
-    });
+    return response.data.map(member => ({
+      id: member.id,
+      display_name: member.user.display_name,
+      role: member.role,
+      status: member.status,
+    }));
   });
 
   onSearchInput(event: Event): void {
@@ -122,7 +128,54 @@ export class ApplicationTabMembersComponent {
     this.currentPage.set(1);
   }
 
-  onActionClick(event: TableActionEvent): void {
-    // Placeholder for Story 2.3 (edit) and Story 2.4 (delete) wiring
+  canUpdate = computed(() => this.userApplicationPermissions()?.MEMBER?.includes('U') || false);
+
+  onActionClick(event: TableActionEvent<Record<string, unknown>>): void {
+    switch (event.actionId) {
+      case 'edit':
+        this.openEditRoleDialog(event.row);
+        break;
+      case 'delete':
+        // Placeholder for Story 2.4
+        break;
+    }
+  }
+
+  private openEditRoleDialog(row: Record<string, unknown>): void {
+    this.membersService
+      .listRoles()
+      .pipe(
+        take(1),
+        switchMap((rolesResponse) => {
+          const roles: ApplicationRoleV2[] = rolesResponse.data;
+          const dialogData: EditMemberRoleDialogData = {
+            memberName: row['display_name'] as string,
+            currentRole: row['role'] as string,
+            roles,
+          };
+          return this.matDialog
+            .open<EditMemberRoleDialogComponent, EditMemberRoleDialogData, string | null>(EditMemberRoleDialogComponent, {
+              id: 'editMemberRoleDialog',
+              data: dialogData,
+              width: '440px',
+            })
+            .afterClosed();
+        }),
+        switchMap((selectedRole) => {
+          if (!selectedRole) return EMPTY;
+          return this.membersService.updateMemberRole(this.applicationId(), row['id'] as string, selectedRole);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.snackBar.open($localize`:@@memberRoleUpdated:Member role updated`, '', { duration: 3000 });
+          this.membersResource.reload();
+        },
+        error: (err) => {
+          console.error('Failed to update member role', err);
+          this.snackBar.open($localize`:@@memberRoleUpdateFailed:Failed to update member role`, '', { duration: 5000 });
+        },
+      });
   }
 }

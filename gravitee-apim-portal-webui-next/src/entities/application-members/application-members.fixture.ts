@@ -15,7 +15,7 @@
  */
 import { isFunction } from 'rxjs/internal/util/isFunction';
 
-import { MemberV2, MembersV2Response } from './application-members';
+import { ApplicationRoleV2, ApplicationRolesV2Response, MemberV2, MembersV2Response } from './application-members';
 
 export function fakeMember(modifier?: Partial<MemberV2> | ((base: MemberV2) => MemberV2)): MemberV2 {
   const base: MemberV2 = {
@@ -39,6 +39,19 @@ export function fakeMember(modifier?: Partial<MemberV2> | ((base: MemberV2) => M
     ...base,
     ...modifier,
   };
+}
+
+export function fakeApplicationRoles(): ApplicationRoleV2[] {
+  return [
+    { id: 'role-po', name: 'PRIMARY_OWNER', system: true },
+    { id: 'role-owner', name: 'OWNER' },
+    { id: 'role-viewer', name: 'VIEWER', default: true },
+    { id: 'role-member', name: 'MEMBER' },
+  ];
+}
+
+export function fakeApplicationRolesResponse(): ApplicationRolesV2Response {
+  return { data: fakeApplicationRoles() };
 }
 
 export function fakeMembersResponse(

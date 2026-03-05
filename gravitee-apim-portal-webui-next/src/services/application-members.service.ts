@@ -18,7 +18,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { MembersV2Response } from '../entities/application-members/application-members';
+import { ApplicationRolesV2Response, MemberV2, MembersV2Response } from '../entities/application-members/application-members';
 
 @Injectable({
   providedIn: 'root',
@@ -34,5 +34,13 @@ export class ApplicationMembersService {
     if (query) params['query'] = query;
 
     return this.http.get<MembersV2Response>(`${this.configService.baseURL}/applications/${applicationId}/membersV2`, { params });
+  }
+
+  listRoles(): Observable<ApplicationRolesV2Response> {
+    return this.http.get<ApplicationRolesV2Response>(`${this.configService.baseURL}/configuration/applications/rolesV2`);
+  }
+
+  updateMemberRole(applicationId: string, memberId: string, role: string): Observable<MemberV2> {
+    return this.http.put<MemberV2>(`${this.configService.baseURL}/applications/${applicationId}/membersV2/${memberId}`, { role });
   }
 }

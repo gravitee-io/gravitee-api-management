@@ -17,8 +17,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { ApplicationMembersService } from './application-members.service';
-import { MembersV2Response } from '../entities/application-members/application-members';
-import { fakeMembersResponse } from '../entities/application-members/application-members.fixture';
+import { ApplicationRolesV2Response, MembersV2Response } from '../entities/application-members/application-members';
+import { fakeApplicationRolesResponse, fakeMembersResponse } from '../entities/application-members/application-members.fixture';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('ApplicationMembersService', () => {
@@ -76,5 +76,30 @@ describe('ApplicationMembersService', () => {
     );
     expect(req.request.method).toEqual('GET');
     req.flush(response);
+  });
+
+  it('should list roles', done => {
+    const response: ApplicationRolesV2Response = fakeApplicationRolesResponse();
+    service.listRoles().subscribe(result => {
+      expect(result).toMatchObject(response);
+      done();
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/configuration/applications/rolesV2`);
+    expect(req.request.method).toEqual('GET');
+    req.flush(response);
+  });
+
+  it('should update member role', done => {
+    const memberId = 'member-1';
+    service.updateMemberRole(applicationId, memberId, 'VIEWER').subscribe(result => {
+      expect(result.role).toBe('VIEWER');
+      done();
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${applicationId}/membersV2/${memberId}`);
+    expect(req.request.method).toEqual('PUT');
+    expect(req.request.body).toEqual({ role: 'VIEWER' });
+    req.flush({ id: memberId, role: 'VIEWER', status: 'ACTIVE', user: { id: 'user-1', display_name: 'Admin master' } });
   });
 });
