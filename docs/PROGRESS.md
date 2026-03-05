@@ -4,7 +4,7 @@
 
 - ✅ **Story 1:** Backend -- Extend theme model for dark mode
 - ✅ **Story 2:** Console -- Dark theme customization UI
--  **Story 3:** Portal -- ThemeService dark mode support
+- ✅ **Story 3:** Portal -- ThemeService dark mode support
 -  **Story 4:** Portal -- Material dark theme SCSS integration
 -  **Story 5:** Portal -- Toggle button in nav bar
 
@@ -75,6 +75,19 @@ All dark form controls exist in the form at all times (not swapped). The toggle 
 ---
 
 ### Story 3: Portal -- ThemeService
+
+**Status:** Done
+
+**What was done:**
+- Extracted `ThemeColorDefinition` interface for reuse between light and dark
+- Added `dark` field to `Theme.definition` interface
+- Added `darkMode` signal (boolean) and `toggleDarkMode()` method
+- Stores both `lightDefinition` and `darkDefinition` in memory on `loadTheme()`
+- `applyTheme(mode)` swaps all `--gio-app-*` CSS vars to the active color set and toggles `.dark-mode` class on `<html>`
+- Custom CSS handled via a single `<style id="gio-theme-custom-css">` element that's replaced on each toggle
+- Initial mode resolved from `localStorage` (`gio-portal-dark-mode`), falling back to `prefers-color-scheme: dark`, then light
+- Dark mode falls back to light colors if dark definition is absent (backward compat)
+- 4 tests: light default, localStorage restore, toggle + persist, CSS swap on toggle
 
 **Feedback:**
 

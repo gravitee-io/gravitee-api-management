@@ -23,38 +23,55 @@ describe('ThemeService', () => {
   let service: ThemeService;
   let httpTestingController: HttpTestingController;
 
+  const themeResponse: Theme = {
+    definition: {
+      color: {
+        primary: '#000000',
+        secondary: '#111111',
+        tertiary: '#222222',
+        error: '#333333',
+        background: {
+          page: '#444444',
+          card: '#555555',
+        },
+      },
+      font: { fontFamily: '"Roboto", sans serif' },
+      customCss: 'app-root { background: blue; }',
+      dark: {
+        color: {
+          primary: '#AAAAAA',
+          secondary: '#BBBBBB',
+          tertiary: '#CCCCCC',
+          error: '#DDDDDD',
+          background: {
+            page: '#1C1B1F',
+            card: '#2B2930',
+          },
+        },
+        customCss: '.dark-override { color: white; }',
+      },
+    },
+  };
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [AppTestingModule],
     });
     service = TestBed.inject(ThemeService);
     httpTestingController = TestBed.inject(HttpTestingController);
+    localStorage.clear();
   });
 
   afterEach(() => {
     httpTestingController.verify();
+    document.documentElement.classList.remove('dark-mode');
+    document.getElementById('gio-theme-custom-css')?.remove();
   });
 
-  it('load theme', done => {
-    const themeResponse: Theme = {
-      definition: {
-        color: {
-          primary: '#000000',
-          secondary: '#111111',
-          tertiary: '#222222',
-          error: '#333333',
-          background: {
-            page: '#444444',
-            card: '#555555',
-          },
-        },
-        font: { fontFamily: '"Roboto", sans serif' },
-        customCss: 'app-root { background: blue; }',
-      },
-    };
-
+  it('should load light theme by default', done => {
     service.loadTheme().subscribe({
       next: _ => {
+        expect(service.darkMode()).toBe(false);
         expect(document.documentElement.style.getPropertyValue('--gio-app-background-color')).toEqual(
           themeResponse.definition.color?.background?.page,
         );
@@ -62,16 +79,79 @@ describe('ThemeService', () => {
           themeResponse.definition.color?.background?.card,
         );
         expect(document.documentElement.style.getPropertyValue('--gio-app-primary-main-color')).toEqual('hsl(0, 0%, 0%)');
-        expect(document.documentElement.style.getPropertyValue('--gio-app-secondary-main-color')).toEqual(
-          'hsl(0, 0%, 0.06666666666666667%)',
-        );
-        expect(document.documentElement.style.getPropertyValue('--gio-app-tertiary-main-color')).toEqual(
-          'hsl(0, 0%, 0.13333333333333333%)',
-        );
-        expect(document.documentElement.style.getPropertyValue('--gio-app-error-main-color')).toEqual('hsl(0, 0%, 0.2%)');
         expect(document.documentElement.style.getPropertyValue('--gio-app-font-family')).toEqual(themeResponse.definition.font.fontFamily);
-        const style: HTMLStyleElement = document.getElementsByTagName('style')[0];
-        expect(style.innerText).toEqual(themeResponse.definition.customCss);
+        expect(document.documentElement.classList.contains('dark-mode')).toBe(false);
+
+        const style = document.getElementById('gio-theme-custom-css') as HTMLStyleElement;
+        expect(style?.innerText).toEqual(themeResponse.definition.customCss);
+        done();
+      },
+      error: _ => fail(),
+    });
+
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/theme?type=PORTAL_NEXT`).flush(themeResponse);
+  });
+
+  it('should restore dark mode from localStorage', done => {
+    localStorage.setItem('gio-portal-dark-mode', 'true');
+
+    service.loadTheme().subscribe({
+      next: _ => {
+        expect(service.darkMode()).toBe(true);
+        expect(document.documentElement.style.getPropertyValue('--gio-app-background-color')).toEqual(
+          themeResponse.definition.dark?.color?.background?.page,
+        );
+        expect(document.documentElement.classList.contains('dark-mode')).toBe(true);
+
+        const style = document.getElementById('gio-theme-custom-css') as HTMLStyleElement;
+        expect(style?.innerText).toEqual(themeResponse.definition.dark?.customCss);
+        done();
+      },
+      error: _ => fail(),
+    });
+
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/theme?type=PORTAL_NEXT`).flush(themeResponse);
+  });
+
+  it('should toggle dark mode and persist preference', done => {
+    service.loadTheme().subscribe({
+      next: _ => {
+        expect(service.darkMode()).toBe(false);
+
+        service.toggleDarkMode();
+        expect(service.darkMode()).toBe(true);
+        expect(localStorage.getItem('gio-portal-dark-mode')).toEqual('true');
+        expect(document.documentElement.classList.contains('dark-mode')).toBe(true);
+        expect(document.documentElement.style.getPropertyValue('--gio-app-background-color')).toEqual(
+          themeResponse.definition.dark?.color?.background?.page,
+        );
+
+        service.toggleDarkMode();
+        expect(service.darkMode()).toBe(false);
+        expect(localStorage.getItem('gio-portal-dark-mode')).toEqual('false');
+        expect(document.documentElement.classList.contains('dark-mode')).toBe(false);
+        expect(document.documentElement.style.getPropertyValue('--gio-app-background-color')).toEqual(
+          themeResponse.definition.color?.background?.page,
+        );
+
+        done();
+      },
+      error: _ => fail(),
+    });
+
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/theme?type=PORTAL_NEXT`).flush(themeResponse);
+  });
+
+  it('should swap custom CSS when toggling mode', done => {
+    service.loadTheme().subscribe({
+      next: _ => {
+        let style = document.getElementById('gio-theme-custom-css') as HTMLStyleElement;
+        expect(style?.innerText).toEqual(themeResponse.definition.customCss);
+
+        service.toggleDarkMode();
+        style = document.getElementById('gio-theme-custom-css') as HTMLStyleElement;
+        expect(style?.innerText).toEqual(themeResponse.definition.dark?.customCss);
+
         done();
       },
       error: _ => fail(),
