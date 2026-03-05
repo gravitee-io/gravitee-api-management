@@ -25,7 +25,6 @@ html {
 
     @include mat.list-overrides((
         active-indicator-color: var(--sidebar-accent),
-        active-indicator-text-color: var(--sidebar-accent-foreground),
         list-item-label-text-color: var(--sidebar-foreground),
         list-item-hover-state-layer-color: var(--sidebar-accent),
     ));
