@@ -15,7 +15,7 @@
  */
 import { DashboardTemplate } from './dashboard-template.model';
 
-export const PROXY_DASHBOARD_TEMPLATE: DashboardTemplate = {
+export const HTTP_PROXY_TEMPLATE: DashboardTemplate = {
   id: 'proxy-performance',
   name: 'Proxy Generic Protocol',
   shortDescription: 'Monitor real-time API health, traffic trends, and service reliability.',
@@ -34,7 +34,7 @@ export const PROXY_DASHBOARD_TEMPLATE: DashboardTemplate = {
         layout: { cols: 1, rows: 1, y: 0, x: 0 },
         request: {
           type: 'measures',
-          metrics: [{ name: 'HTTP_REQUESTS', measures: ['COUNT'] }],
+          metrics: [{ name: 'HTTP_REQUESTS', measures: ['COUNT'], filters: [{ name: 'API_TYPE', operator: 'EQ', value: 'HTTP_PROXY' }] }],
         },
       },
       {
@@ -50,7 +50,7 @@ export const PROXY_DASHBOARD_TEMPLATE: DashboardTemplate = {
       },
       {
         id: crypto.randomUUID(),
-        title: 'Average Latency',
+        title: 'Average Latency in ms',
         description: 'Average latency of the Gateway',
         type: 'stats',
         layout: { cols: 1, rows: 1, y: 0, x: 2 },
@@ -61,7 +61,7 @@ export const PROXY_DASHBOARD_TEMPLATE: DashboardTemplate = {
       },
       {
         id: crypto.randomUUID(),
-        title: 'Average Response Time',
+        title: 'Average Response Time in ms',
         description: 'Average response time of the Gateway',
         type: 'stats',
         layout: { cols: 1, rows: 1, y: 0, x: 3 },
@@ -85,7 +85,7 @@ export const PROXY_DASHBOARD_TEMPLATE: DashboardTemplate = {
       {
         id: crypto.randomUUID(),
         title: 'Response Time',
-        description: 'Average response time of the Endpoint and Gateway',
+        description: 'Average response time of the Endpoint and Gateway in ms',
         type: 'line',
         layout: { cols: 3, rows: 2, y: 1, x: 1 },
         request: {

@@ -93,6 +93,6 @@ describe('StatsComponent', () => {
     component.data.set(mockData);
     fixture.detectChanges();
 
-    expect(component.dataFormatted()).toEqual(['15', '30 ms']);
+    expect(component.dataFormatted()).toEqual(['15', '30']);
   });
 });

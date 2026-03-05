@@ -13,22 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type MetricName =
+export type HttpMetricName =
   | 'HTTP_REQUESTS'
   | 'HTTP_ERRORS'
   | 'HTTP_REQUEST_CONTENT_LENGTH'
   | 'HTTP_RESPONSE_CONTENT_LENGTH'
   | 'HTTP_ENDPOINT_RESPONSE_TIME'
   | 'HTTP_GATEWAY_RESPONSE_TIME'
-  | 'HTTP_GATEWAY_LATENCY'
+  | 'HTTP_GATEWAY_LATENCY';
+
+export type LlmMetricName =
   | 'LLM_PROMPT_TOKEN_SENT'
   | 'LLM_PROMPT_TOKEN_RECEIVED'
   | 'LLM_PROMPT_TOKEN_SENT_COST'
   | 'LLM_PROMPT_TOKEN_RECEIVED_COST'
-  | 'MESSAGE_PAYLOAD_SIZE'
-  | 'MESSAGES'
-  | 'MESSAGE_ERRORS'
-  | 'MESSAGE_GATEWAY_LATENCY'
+  | 'LLM_PROMPT_TOTAL_TOKEN'
+  | 'LLM_PROMPT_TOKEN_TOTAL_COST';
+
+export type MessageMetricName = 'MESSAGE_PAYLOAD_SIZE' | 'MESSAGES' | 'MESSAGE_ERRORS' | 'MESSAGE_GATEWAY_LATENCY';
+
+export type KafkaMetricName =
   | 'KAFKA_DOWNSTREAM_PUBLISH_MESSAGES'
   | 'KAFKA_DOWNSTREAM_SUBSCRIBE_MESSAGES'
   | 'KAFKA_DOWNSTREAM_PUBLISH_MESSAGES_BYTES'
@@ -44,6 +48,8 @@ export type MetricName =
   | 'KAFKA_UPSTREAM_AUTHENTICATION_ERRORS'
   | 'KAFKA_DOWNSTREAM_AUTHENTICATION_ERRORS'
   | 'KAFKA_DOWNSTREAM_ACTIVE_CONNECTIONS'
-  | 'KAFKA_UPSTREAM_ACTIVE_CONNECTIONS'
-  | 'SUBSCRIPTIONS'
-  | 'APIS';
+  | 'KAFKA_UPSTREAM_ACTIVE_CONNECTIONS';
+
+export type GlobalMetricName = 'SUBSCRIPTIONS' | 'APIS';
+
+export type MetricName = HttpMetricName | LlmMetricName | MessageMetricName | KafkaMetricName | GlobalMetricName;

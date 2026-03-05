@@ -13,37 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type FilterName =
-  | 'API'
-  | 'APPLICATION'
-  | 'PLAN'
-  | 'GATEWAY'
-  | 'TENANT'
-  | 'ZONE'
+export type GlobalFilterName = 'API' | 'APPLICATION' | 'PLAN' | 'GATEWAY' | 'TENANT' | 'ZONE' | 'HOST' | 'CONSUMER_IP';
+
+export type HttpFilterName =
   | 'HTTP_METHOD'
   | 'HTTP_STATUS_CODE_GROUP'
   | 'HTTP_STATUS'
   | 'HTTP_PATH'
   | 'HTTP_PATH_MAPPING'
-  | 'HOST'
-  | 'GEO_IP_COUNTRY'
-  | 'GEO_IP_REGION'
-  | 'GEO_IP_CITY'
-  | 'GEO_IP_CONTINENT'
-  | 'CONSUMER_IP'
   | 'HTTP_USER_AGENT_OS_NAME'
   | 'HTTP_USER_AGENT_DEVICE'
-  | 'MESSAGE_CONNECTOR_TYPE'
-  | 'MESSAGE_OPERATION_TYPE'
-  | 'KAFKA_TOPIC'
-  | 'API_STATE'
-  | 'API_LIFECYCLE_STATE'
-  | 'API_VISIBILITY'
-  | 'MESSAGE_SIZE'
-  | 'MESSAGE_COUNT'
-  | 'MESSAGE_ERROR_COUNT'
   | 'HTTP_ENDPOINT_RESPONSE_TIME'
   | 'HTTP_GATEWAY_LATENCY'
   | 'HTTP_GATEWAY_RESPONSE_TIME'
   | 'HTTP_REQUEST_CONTENT_LENGTH'
   | 'HTTP_RESPONSE_CONTENT_LENGTH';
+
+export type GeoIpFilterName = 'GEO_IP_COUNTRY' | 'GEO_IP_REGION' | 'GEO_IP_CITY' | 'GEO_IP_CONTINENT';
+
+export type MessageFilterName =
+  | 'MESSAGE_CONNECTOR_TYPE'
+  | 'MESSAGE_CONNECTOR_ID'
+  | 'MESSAGE_OPERATION_TYPE'
+  | 'MESSAGE_SIZE'
+  | 'MESSAGE_COUNT'
+  | 'MESSAGE_ERROR_COUNT';
+
+export type KafkaFilterName = 'KAFKA_TOPIC';
+
+export type ApiFilterName = 'API_STATE' | 'API_LIFECYCLE_STATE' | 'API_VISIBILITY' | 'API_TYPE';
+
+export type LlmFilterName = 'LLM_PROXY_MODEL' | 'LLM_PROXY_PROVIDER';
+
+export type McpFilterName = 'MCP_PROXY_METHOD' | 'MCP_PROXY_TOOL' | 'MCP_PROXY_RESOURCE' | 'MCP_PROXY_PROMPT';
+
+export type FilterName =
+  | GlobalFilterName
+  | HttpFilterName
+  | GeoIpFilterName
+  | MessageFilterName
+  | KafkaFilterName
+  | ApiFilterName
+  | LlmFilterName
+  | McpFilterName;
