@@ -14,32 +14,7 @@ html {
     ));
 }
 
-:root {
-    @include mat.sidenav-overrides((
-        container-background-color: var(--sidebar-background),
-        content-background-color: var(--background),
-        container-divider-color: var(--sidebar-border),
-        container-text-color: var(--sidebar-foreground),
-        container-width: var(--sidebar-width),
-    ));
-
-    @include mat.list-overrides((
-        active-indicator-color: var(--sidebar-accent),
-        list-item-label-text-color: var(--sidebar-foreground),
-        list-item-hover-state-layer-color: var(--sidebar-accent),
-        list-item-leading-icon-size: 1rem,
-        list-item-label-text-size: 0.875rem,
-    ));
-
-    @include mat.icon-overrides((
-        color: var(--sidebar-foreground),
-    ));
-
-    @include mat.divider-overrides((
-        color: var(--border),
-    ));
-}
-
+@import './shared/scss/material-overrides';
 @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap');
 
 mat-sidenav-content {
@@ -48,7 +23,7 @@ mat-sidenav-content {
 
 body {
     margin: 0;
-    font-family: 'Nunito Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-family: var(--baros-font-sans);
     background-color: var(--background);
     color: var(--foreground);
 }
