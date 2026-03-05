@@ -47,10 +47,16 @@ export interface PortalCssDefinition {
   type: 'color' | 'length' | 'string' | 'image';
 }
 
+export interface PortalNextDefinitionDarkMode {
+  color: PortalNextDefinitionColor;
+  customCss?: string;
+}
+
 export interface PortalNextDefinition {
   color: PortalNextDefinitionColor;
   font: PortalNextDefinitionFont;
   customCss?: string;
+  dark?: PortalNextDefinitionDarkMode;
 }
 
 export interface PortalNextDefinitionColor {

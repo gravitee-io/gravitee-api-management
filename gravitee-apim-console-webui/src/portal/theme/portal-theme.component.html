@@ -69,60 +69,130 @@
               </mat-form-field>
             </div>
           </mat-expansion-panel>
+          <div class="portal-theme__left__form__content__mode-toggle">
+            <mat-button-toggle-group
+              [value]="themeMode()"
+              (change)="onThemeModeChange($event.value)"
+              aria-label="Theme mode"
+              data-testid="theme-mode-toggle"
+            >
+              <mat-button-toggle value="light">
+                <mat-icon>light_mode</mat-icon>
+                Light
+              </mat-button-toggle>
+              <mat-button-toggle value="dark">
+                <mat-icon>dark_mode</mat-icon>
+                Dark
+              </mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
           <mat-expansion-panel class="portal-theme__left__form__content__panel" expanded>
             <mat-expansion-panel-header>
               <mat-panel-title>Colors</mat-panel-title>
             </mat-expansion-panel-header>
-            <div class="portal-theme__left__form__content__panel__colors">
-              <mat-form-field>
-                <mat-label>Primary Color</mat-label>
-                <gio-form-color-input formControlName="primaryColor"></gio-form-color-input>
-                <mat-hint>Applies to active buttons and banner</mat-hint>
-                <mat-error *ngIf="portalThemeForm.controls.primaryColor.hasError('color')">
-                  {{ portalThemeForm.controls.primaryColor.getError('color').message }}
-                </mat-error>
-              </mat-form-field>
-              <mat-form-field>
-                <mat-label>Secondary Color</mat-label>
-                <gio-form-color-input formControlName="secondaryColor"></gio-form-color-input>
-                <mat-hint>Applies to secondary buttons</mat-hint>
-                <mat-error *ngIf="portalThemeForm.controls.secondaryColor.hasError('color')">
-                  {{ portalThemeForm.controls.secondaryColor.getError('color').message }}
-                </mat-error>
-              </mat-form-field>
-              <mat-form-field>
-                <mat-label>Tertiary Color</mat-label>
-                <gio-form-color-input formControlName="tertiaryColor"></gio-form-color-input>
-                <mat-hint>Applies to accent colors</mat-hint>
-                <mat-error *ngIf="portalThemeForm.controls.tertiaryColor.hasError('color')">
-                  {{ portalThemeForm.controls.tertiaryColor.getError('color').message }}
-                </mat-error>
-              </mat-form-field>
-              <mat-form-field>
-                <mat-label>Error Color</mat-label>
-                <gio-form-color-input formControlName="errorColor"></gio-form-color-input>
-                <mat-hint>Applies to errors</mat-hint>
-                <mat-error *ngIf="portalThemeForm.controls.errorColor.hasError('color')">
-                  {{ portalThemeForm.controls.errorColor.getError('color').message }}
-                </mat-error>
-              </mat-form-field>
-              <mat-form-field>
-                <mat-label>Page Background Color</mat-label>
-                <gio-form-color-input formControlName="pageBackgroundColor"></gio-form-color-input>
-                <mat-hint>Applies to main page background</mat-hint>
-                <mat-error *ngIf="portalThemeForm.controls.pageBackgroundColor.hasError('color')">
-                  {{ portalThemeForm.controls.pageBackgroundColor.getError('color').message }}
-                </mat-error>
-              </mat-form-field>
-              <mat-form-field>
-                <mat-label>Card Background Color</mat-label>
-                <gio-form-color-input formControlName="cardBackgroundColor"></gio-form-color-input>
-                <mat-hint>Applies to all cards background</mat-hint>
-                <mat-error *ngIf="portalThemeForm.controls.cardBackgroundColor.hasError('color')">
-                  {{ portalThemeForm.controls.cardBackgroundColor.getError('color').message }}
-                </mat-error>
-              </mat-form-field>
-            </div>
+            @if (themeMode() === 'light') {
+              <div class="portal-theme__left__form__content__panel__colors">
+                <mat-form-field>
+                  <mat-label>Primary Color</mat-label>
+                  <gio-form-color-input formControlName="primaryColor"></gio-form-color-input>
+                  <mat-hint>Applies to active buttons and banner</mat-hint>
+                  @if (portalThemeForm.controls.primaryColor.hasError('color')) {
+                    <mat-error>{{ portalThemeForm.controls.primaryColor.getError('color').message }}</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Secondary Color</mat-label>
+                  <gio-form-color-input formControlName="secondaryColor"></gio-form-color-input>
+                  <mat-hint>Applies to secondary buttons</mat-hint>
+                  @if (portalThemeForm.controls.secondaryColor.hasError('color')) {
+                    <mat-error>{{ portalThemeForm.controls.secondaryColor.getError('color').message }}</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Tertiary Color</mat-label>
+                  <gio-form-color-input formControlName="tertiaryColor"></gio-form-color-input>
+                  <mat-hint>Applies to accent colors</mat-hint>
+                  @if (portalThemeForm.controls.tertiaryColor.hasError('color')) {
+                    <mat-error>{{ portalThemeForm.controls.tertiaryColor.getError('color').message }}</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Error Color</mat-label>
+                  <gio-form-color-input formControlName="errorColor"></gio-form-color-input>
+                  <mat-hint>Applies to errors</mat-hint>
+                  @if (portalThemeForm.controls.errorColor.hasError('color')) {
+                    <mat-error>{{ portalThemeForm.controls.errorColor.getError('color').message }}</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Page Background Color</mat-label>
+                  <gio-form-color-input formControlName="pageBackgroundColor"></gio-form-color-input>
+                  <mat-hint>Applies to main page background</mat-hint>
+                  @if (portalThemeForm.controls.pageBackgroundColor.hasError('color')) {
+                    <mat-error>{{ portalThemeForm.controls.pageBackgroundColor.getError('color').message }}</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Card Background Color</mat-label>
+                  <gio-form-color-input formControlName="cardBackgroundColor"></gio-form-color-input>
+                  <mat-hint>Applies to all cards background</mat-hint>
+                  @if (portalThemeForm.controls.cardBackgroundColor.hasError('color')) {
+                    <mat-error>{{ portalThemeForm.controls.cardBackgroundColor.getError('color').message }}</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            } @else {
+              <div class="portal-theme__left__form__content__panel__colors">
+                <mat-form-field>
+                  <mat-label>Primary Color</mat-label>
+                  <gio-form-color-input formControlName="darkPrimaryColor"></gio-form-color-input>
+                  <mat-hint>Applies to active buttons and banner</mat-hint>
+                  @if (portalThemeForm.controls.darkPrimaryColor.hasError('color')) {
+                    <mat-error>{{ portalThemeForm.controls.darkPrimaryColor.getError('color').message }}</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Secondary Color</mat-label>
+                  <gio-form-color-input formControlName="darkSecondaryColor"></gio-form-color-input>
+                  <mat-hint>Applies to secondary buttons</mat-hint>
+                  @if (portalThemeForm.controls.darkSecondaryColor.hasError('color')) {
+                    <mat-error>{{ portalThemeForm.controls.darkSecondaryColor.getError('color').message }}</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Tertiary Color</mat-label>
+                  <gio-form-color-input formControlName="darkTertiaryColor"></gio-form-color-input>
+                  <mat-hint>Applies to accent colors</mat-hint>
+                  @if (portalThemeForm.controls.darkTertiaryColor.hasError('color')) {
+                    <mat-error>{{ portalThemeForm.controls.darkTertiaryColor.getError('color').message }}</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Error Color</mat-label>
+                  <gio-form-color-input formControlName="darkErrorColor"></gio-form-color-input>
+                  <mat-hint>Applies to errors</mat-hint>
+                  @if (portalThemeForm.controls.darkErrorColor.hasError('color')) {
+                    <mat-error>{{ portalThemeForm.controls.darkErrorColor.getError('color').message }}</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Page Background Color</mat-label>
+                  <gio-form-color-input formControlName="darkPageBackgroundColor"></gio-form-color-input>
+                  <mat-hint>Applies to main page background</mat-hint>
+                  @if (portalThemeForm.controls.darkPageBackgroundColor.hasError('color')) {
+                    <mat-error>{{ portalThemeForm.controls.darkPageBackgroundColor.getError('color').message }}</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Card Background Color</mat-label>
+                  <gio-form-color-input formControlName="darkCardBackgroundColor"></gio-form-color-input>
+                  <mat-hint>Applies to all cards background</mat-hint>
+                  @if (portalThemeForm.controls.darkCardBackgroundColor.hasError('color')) {
+                    <mat-error>{{ portalThemeForm.controls.darkCardBackgroundColor.getError('color').message }}</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            }
           </mat-expansion-panel>
           <mat-expansion-panel class="portal-theme__left__form__content__panel" expanded>
             <mat-expansion-panel-header>
@@ -146,7 +216,7 @@
                 <mat-form-field>
                   <gio-monaco-editor
                     gioMonacoEditorFormField
-                    formControlName="customCSS"
+                    [formControlName]="themeMode() === 'light' ? 'customCSS' : 'darkCustomCSS'"
                     [languageConfig]="{ language: 'css' }"
                     [disableMiniMap]="true"
                     [disableAutoFormat]="true"

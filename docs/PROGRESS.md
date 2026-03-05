@@ -3,7 +3,7 @@
 ## Stories
 
 - ✅ **Story 1:** Backend -- Extend theme model for dark mode
--  **Story 2:** Console -- Dark theme customization UI
+- ✅ **Story 2:** Console -- Dark theme customization UI
 -  **Story 3:** Portal -- ThemeService dark mode support
 -  **Story 4:** Portal -- Material dark theme SCSS integration
 -  **Story 5:** Portal -- Toggle button in nav bar
@@ -49,6 +49,22 @@ Estimated effort: ~2 hours of mechanical refactoring. No architectural impact --
 ---
 
 ### Story 2: Console
+
+**Status:** Done
+
+**What was done:**
+- Added `PortalNextDefinitionDarkMode` TS interface and `dark` field to `PortalNextDefinition` in `portalCustomization.ts`
+- Added Light/Dark segmented toggle (`mat-button-toggle-group` with sun/moon icons) between Font and Colors panels
+- Added 7 dark form controls (`darkPrimaryColor`, `darkSecondaryColor`, etc.) to the reactive form
+- Colors and Advanced CSS sections conditionally show light or dark controls based on `themeMode` signal
+- `convertThemeToThemeVM` and `convertThemeVMToUpdateTheme` map dark fields to/from the API
+- `restoreDefaultValues` restores both light and dark defaults
+- Monaco editor refreshes on mode switch via `onThemeModeChange()`
+- Updated test fixtures with dark mode data, updated submit expectation to include `dark`
+- Converted `*ngIf` → `@if` in the color error messages per Angular rules
+
+**Design approach:**
+All dark form controls exist in the form at all times (not swapped). The toggle only controls visibility. On submit, both light and dark values are always sent. This avoids value-swapping complexity and makes dirty-checking work naturally.
 
 **Feedback:**
 

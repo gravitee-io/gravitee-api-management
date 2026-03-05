@@ -69,6 +69,17 @@ describe('PortalThemeComponent', () => {
         font: {
           fontFamily: '"Roboto", sans-serif',
         },
+        dark: {
+          color: {
+            primary: '#8BABF8',
+            secondary: '#6A95D4',
+            tertiary: '#8BABF8',
+            error: '#F2B8B5',
+            pageBackground: '#1C1B1F',
+            cardBackground: '#2B2930',
+          },
+          customCss: '',
+        },
       },
       name: 'Default Portal Next Theme',
       enabled: false,
@@ -95,6 +106,17 @@ describe('PortalThemeComponent', () => {
           fontFamily: '"Roboto", sans-serif',
         },
         customCss: '',
+        dark: {
+          color: {
+            primary: '#AABBCC',
+            secondary: '#DDEEFF',
+            tertiary: '#112233',
+            error: '#445566',
+            pageBackground: '#778899',
+            cardBackground: '#AABBDD',
+          },
+          customCss: '.dark {}',
+        },
       },
       name: 'Current Portal Next Theme',
       enabled: false,
@@ -134,6 +156,17 @@ describe('PortalThemeComponent', () => {
         },
         customCss: '',
         font: { fontFamily: '"Roboto", sans-serif' },
+        dark: {
+          color: {
+            primary: '#AABBCC',
+            secondary: '#DDEEFF',
+            tertiary: '#112233',
+            error: '#445566',
+            pageBackground: '#778899',
+            cardBackground: '#AABBDD',
+          },
+          customCss: '.dark {}',
+        },
       },
       enabled: true,
       favicon: 'favicon',
@@ -175,6 +208,13 @@ describe('PortalThemeComponent', () => {
       pageBackgroundColor: '#F7F8FD',
       cardBackgroundColor: '#FFFFFF',
       customCSS: 'body { color: red; }',
+      darkPrimaryColor: '#8BABF8',
+      darkSecondaryColor: '#6A95D4',
+      darkTertiaryColor: '#8BABF8',
+      darkErrorColor: '#F2B8B5',
+      darkPageBackgroundColor: '#1C1B1F',
+      darkCardBackgroundColor: '#2B2930',
+      darkCustomCSS: '',
     };
 
     it('should allow publish when initial form values differ from new form values', async () => {

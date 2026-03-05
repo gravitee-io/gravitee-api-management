@@ -23,6 +23,7 @@ import { GioAvatarModule, GioFormFilePickerModule, GioMonacoEditorModule, GioSav
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { catchError, map, tap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
@@ -49,7 +50,16 @@ export interface ThemeVM {
   pageBackgroundColor?: string;
   cardBackgroundColor?: string;
   customCSS?: string;
+  darkPrimaryColor?: string;
+  darkSecondaryColor?: string;
+  darkTertiaryColor?: string;
+  darkErrorColor?: string;
+  darkPageBackgroundColor?: string;
+  darkCardBackgroundColor?: string;
+  darkCustomCSS?: string;
 }
+
+export type ThemeMode = 'light' | 'dark';
 
 @Component({
   selector: 'portal-theme',
@@ -65,6 +75,7 @@ export interface ThemeVM {
     MatIconModule,
     MatTooltipModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatSelectModule,
     GioFormColorInputModule,
     GioAvatarModule,
@@ -106,6 +117,13 @@ export class PortalThemeComponent implements OnInit {
     pageBackgroundColor: FormControl<string>;
     cardBackgroundColor: FormControl<string>;
     customCSS: FormControl<string>;
+    darkPrimaryColor: FormControl<string>;
+    darkSecondaryColor: FormControl<string>;
+    darkTertiaryColor: FormControl<string>;
+    darkErrorColor: FormControl<string>;
+    darkPageBackgroundColor: FormControl<string>;
+    darkCardBackgroundColor: FormControl<string>;
+    darkCustomCSS: FormControl<string>;
   }> = new FormGroup({
     logo: new FormControl<string[]>([]),
     favicon: new FormControl<string[]>([]),
@@ -117,8 +135,16 @@ export class PortalThemeComponent implements OnInit {
     pageBackgroundColor: new FormControl<string>(''),
     cardBackgroundColor: new FormControl<string>(''),
     customCSS: new FormControl<string>(''),
+    darkPrimaryColor: new FormControl<string>(''),
+    darkSecondaryColor: new FormControl<string>(''),
+    darkTertiaryColor: new FormControl<string>(''),
+    darkErrorColor: new FormControl<string>(''),
+    darkPageBackgroundColor: new FormControl<string>(''),
+    darkCardBackgroundColor: new FormControl<string>(''),
+    darkCustomCSS: new FormControl<string>(''),
   });
 
+  themeMode: WritableSignal<ThemeMode> = signal('light');
   isReadOnly: boolean = true;
   showMonacoEditor = true;
 
@@ -173,6 +199,13 @@ export class PortalThemeComponent implements OnInit {
             pageBackgroundColor: theme.definition.color.pageBackground,
             cardBackgroundColor: theme.definition.color.cardBackground,
             customCSS: theme.definition.customCss ?? '',
+            darkPrimaryColor: theme.definition.dark?.color?.primary ?? '',
+            darkSecondaryColor: theme.definition.dark?.color?.secondary ?? '',
+            darkTertiaryColor: theme.definition.dark?.color?.tertiary ?? '',
+            darkErrorColor: theme.definition.dark?.color?.error ?? '',
+            darkPageBackgroundColor: theme.definition.dark?.color?.pageBackground ?? '',
+            darkCardBackgroundColor: theme.definition.dark?.color?.cardBackground ?? '',
+            darkCustomCSS: theme.definition.dark?.customCss ?? '',
           });
           this.initialFormValue$.set(this.portalThemeForm.getRawValue());
         }),
@@ -187,6 +220,15 @@ export class PortalThemeComponent implements OnInit {
 
   restoreDefaultValues() {
     this.portalThemeForm.patchValue(this.defaultValues);
+    this.refreshMonacoEditor();
+  }
+
+  onThemeModeChange(mode: ThemeMode) {
+    this.themeMode.set(mode);
+    this.refreshMonacoEditor();
+  }
+
+  private refreshMonacoEditor() {
     this.showMonacoEditor = false;
     setTimeout(() => {
       this.showMonacoEditor = true;
@@ -228,6 +270,13 @@ export class PortalThemeComponent implements OnInit {
       pageBackgroundColor: theme.definition.color.pageBackground,
       cardBackgroundColor: theme.definition.color.cardBackground,
       customCSS: theme.definition.customCss ?? '',
+      darkPrimaryColor: theme.definition.dark?.color?.primary ?? '',
+      darkSecondaryColor: theme.definition.dark?.color?.secondary ?? '',
+      darkTertiaryColor: theme.definition.dark?.color?.tertiary ?? '',
+      darkErrorColor: theme.definition.dark?.color?.error ?? '',
+      darkPageBackgroundColor: theme.definition.dark?.color?.pageBackground ?? '',
+      darkCardBackgroundColor: theme.definition.dark?.color?.cardBackground ?? '',
+      darkCustomCSS: theme.definition.dark?.customCss ?? '',
     };
   }
 
@@ -253,6 +302,17 @@ export class PortalThemeComponent implements OnInit {
           fontFamily: themeForm.font,
         },
         customCss: themeForm.customCSS,
+        dark: {
+          color: {
+            primary: themeForm.darkPrimaryColor,
+            secondary: themeForm.darkSecondaryColor,
+            tertiary: themeForm.darkTertiaryColor,
+            error: themeForm.darkErrorColor,
+            pageBackground: themeForm.darkPageBackgroundColor,
+            cardBackground: themeForm.darkCardBackgroundColor,
+          },
+          customCss: themeForm.darkCustomCSS,
+        },
       },
     };
   }

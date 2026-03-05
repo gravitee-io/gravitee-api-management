@@ -49,6 +49,12 @@
           overflow: visible;
         }
 
+        &__mode-toggle {
+          display: flex;
+          justify-content: center;
+          padding: 16px 24px 0;
+        }
+
         &__panel {
           &__pictures {
             display: flex;
