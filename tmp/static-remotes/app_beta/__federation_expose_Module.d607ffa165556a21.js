@@ -1,0 +1,1 @@
+(self.webpackChunkapp_beta=self.webpackChunkapp_beta||[]).push([[936],{6126:(p,a,_)=>{_.r(a),_.d(a,{mount:()=>l});var r=_(4523),t=_(6425),s=_(5074),u=_(2247);function l(o){return n.apply(this,arguments)}function n(){return(n=(0,r.A)(function*(o){const e=yield(0,t.createApplication)(s.U),m=e.bootstrap(u.b,o);return()=>{m.destroy(),e.destroy()}})).apply(this,arguments)}}}]);

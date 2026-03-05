@@ -1,0 +1,217 @@
+{
+  "id": "app_beta",
+  "name": "app_beta",
+  "metaData": {
+    "name": "app_beta",
+    "type": "app",
+    "buildInfo": {
+      "buildVersion": "0.0.0",
+      "buildName": "gravitee-apim-workspace"
+    },
+    "remoteEntry": {
+      "name": "remoteEntry.mjs",
+      "path": "",
+      "type": "module"
+    },
+    "types": {
+      "path": "",
+      "name": "",
+      "zip": "",
+      "api": ""
+    },
+    "globalName": "app_beta",
+    "pluginVersion": "0.18.4",
+    "prefetchInterface": false,
+    "publicPath": "auto"
+  },
+  "shared": [
+    {
+      "singleton": true,
+      "requiredVersion": "20.3.16",
+      "shareScope": "default",
+      "strictVersion": true,
+      "name": "@angular/common/http",
+      "version": "20.3.16",
+      "eager": false,
+      "id": "app_beta:@angular/common/http",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "111.e5704a91bfba2a1d.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      },
+      "usedIn": []
+    },
+    {
+      "singleton": true,
+      "requiredVersion": "20.3.16",
+      "shareScope": "default",
+      "strictVersion": true,
+      "name": "@angular/common",
+      "version": "20.3.16",
+      "eager": false,
+      "id": "app_beta:@angular/common",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "705.d766b4836512f54d.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      },
+      "usedIn": []
+    },
+    {
+      "singleton": true,
+      "requiredVersion": "20.3.16",
+      "shareScope": "default",
+      "strictVersion": true,
+      "name": "@angular/core/primitives/di",
+      "version": "20.3.16",
+      "eager": false,
+      "id": "app_beta:@angular/core/primitives/di",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "common.58fe0de19bf42d29.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      },
+      "usedIn": []
+    },
+    {
+      "singleton": true,
+      "requiredVersion": "20.3.16",
+      "shareScope": "default",
+      "strictVersion": true,
+      "name": "@angular/core/primitives/signals",
+      "version": "20.3.16",
+      "eager": false,
+      "id": "app_beta:@angular/core/primitives/signals",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "common.58fe0de19bf42d29.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      },
+      "usedIn": []
+    },
+    {
+      "singleton": true,
+      "requiredVersion": "20.3.16",
+      "shareScope": "default",
+      "strictVersion": true,
+      "name": "@angular/core",
+      "version": "20.3.16",
+      "eager": false,
+      "id": "app_beta:@angular/core",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "295.b9175033d466738c.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      },
+      "usedIn": []
+    },
+    {
+      "singleton": true,
+      "requiredVersion": "20.3.16",
+      "shareScope": "default",
+      "strictVersion": true,
+      "name": "@angular/platform-browser",
+      "version": "20.3.16",
+      "eager": false,
+      "id": "app_beta:@angular/platform-browser",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "567.37cc1f344061b774.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      },
+      "usedIn": []
+    },
+    {
+      "singleton": true,
+      "requiredVersion": "20.3.16",
+      "shareScope": "default",
+      "strictVersion": true,
+      "name": "@angular/router",
+      "version": "20.3.16",
+      "eager": false,
+      "id": "app_beta:@angular/router",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "451.e70e91d0f04538cf.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      },
+      "usedIn": []
+    }
+  ],
+  "remotes": [],
+  "exposes": [
+    {
+      "path": "./Module",
+      "id": "app_beta:Module",
+      "name": "Module",
+      "requires": [],
+      "file": "app_beta/src/app/remote-entry/mount.ts",
+      "assets": {
+        "js": {
+          "sync": [
+            "986.ccbbba1068ba97e2.js",
+            "__federation_expose_Module.d607ffa165556a21.js"
+          ],
+          "async": [
+            "440.e00078198ce72672.js",
+            "203.aa17e1a68d3f653c.js",
+            "755.ef60621f7eca3c8a.js"
+          ]
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      }
+    }
+  ]
+}
