@@ -38,5 +38,5 @@ export function AngularWrapper() {
         };
     }, []);
 
-    return <div ref={mountPointRef} className="angular-micro-frontend-container" />;
+    return <div ref={mountPointRef} className="angular-micro-frontend-container h-full w-full" />;
 }
