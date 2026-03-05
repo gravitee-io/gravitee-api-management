@@ -1,0 +1,18 @@
+// Baros-equivalent design values for App Beta.
+// Maps to Tailwind utilities used in gravitee-apim-baros.
+// Single source of truth — import this wherever a Baros value is needed.
+
+// -- Typography (Tailwind text-sm) --
+$text-sm-size: 0.875rem;
+$text-sm-line-height: 1.25rem;
+
+// -- Spacing (Tailwind p-2, gap-2) --
+$spacing-2: 0.5rem;
+
+// -- Sizing (Tailwind size-4, h-8) --
+$size-4: 1rem;
+$size-8: 2rem;
+
+// -- Separator (matches Baros Separator component) --
+$separator-width: 1px;
+$separator-height: 1rem;
