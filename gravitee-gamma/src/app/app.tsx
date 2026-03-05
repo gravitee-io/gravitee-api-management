@@ -1,7 +1,10 @@
 import * as React from 'react';
 import NxWelcome from './nx-welcome';
-import { Link, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { AngularWrapper } from './angular-wrapper';
+import { TopNav } from '@baros/components/layout/TopNav';
+import { TopNavUser } from '@baros/components/layout/TopNavUser';
+import { GraviteeLogo } from '@baros/components/layout/GraviteeLogo';
 
 const APP_ALPHA_ENTRY_URL = 'http://localhost:4201/remoteEntry.js';
 
@@ -32,24 +35,28 @@ const AppAlpha = React.lazy(async () => {
 
 export function App() {
     return (
-        <React.Suspense fallback={null}>
-            <ul>
-                <li>
-                    <Link to="/">Home</Link>
-                </li>
-                <li>
-                    <Link to="/app-alpha">AppAlpha</Link>
-                </li>
-                <li>
-                    <Link to="/app-beta">AppBeta</Link>
-                </li>
-            </ul>
-            <Routes>
-                <Route path="/" element={<NxWelcome title="gravitee-gamma" />} />
-                <Route path="/app-alpha" element={<AppAlpha />} />
-                <Route path="/app-beta" element={<AngularWrapper />} />
-            </Routes>
-        </React.Suspense>
+        <div className="flex min-h-svh w-full flex-col">
+            <TopNav
+                leading={<GraviteeLogo />}
+                center={
+                    <input
+                        type="text"
+                        placeholder="Search..."
+                        className="h-7 w-64 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                    />
+                }
+                trailing={<TopNavUser user={{ name: 'Jane Doe', email: 'jane@gravitee.io' }} />}
+            />
+            <div className="flex flex-1 overflow-hidden">
+                <React.Suspense fallback={null}>
+                    <Routes>
+                        <Route path="/" element={<NxWelcome title="gravitee-gamma" />} />
+                        <Route path="/app-alpha/*" element={<AppAlpha />} />
+                        <Route path="/app-beta/*" element={<AngularWrapper />} />
+                    </Routes>
+                </React.Suspense>
+            </div>
+        </div>
     );
 }
 
