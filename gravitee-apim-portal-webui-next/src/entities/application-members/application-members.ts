@@ -57,6 +57,12 @@ export interface AddMembersRequest {
   notify: boolean;
 }
 
+export interface TransferOwnershipRequest {
+  newOwnerId: string;
+  newOwnerReference: 'member' | 'user' | 'group';
+  previousOwnerNewRole: string;
+}
+
 export interface MembersV2Response {
   data: MemberV2[];
   metadata?: {

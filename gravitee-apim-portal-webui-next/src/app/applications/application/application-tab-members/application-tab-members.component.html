@@ -26,7 +26,7 @@
     <div class="application-tab-members__header">
       <h2 class="m3-title-medium" i18n="@@applicationTabMembersTitle">Members</h2>
       <div class="application-tab-members__header__actions">
-        <button mat-stroked-button data-testid="transfer-ownership-btn" i18n="@@membersTransferOwnership">Transfer Ownership</button>
+        <button mat-stroked-button data-testid="transfer-ownership-btn" (click)="openTransferOwnershipDialog()" i18n="@@membersTransferOwnership">Transfer Ownership</button>
         @if (canCreate()) {
           <button mat-flat-button [matMenuTriggerFor]="addMembersMenu" data-testid="add-members-btn">
             <mat-icon>person_add</mat-icon>

@@ -24,6 +24,7 @@ import {
   MemberV2,
   MembersV2Response,
   SearchUsersV2Response,
+  TransferOwnershipRequest,
 } from '../entities/application-members/application-members';
 
 @Injectable({
@@ -64,5 +65,12 @@ export class ApplicationMembersService {
 
   addMembers(applicationId: string, request: AddMembersRequest): Observable<MemberV2[]> {
     return this.http.post<MemberV2[]>(`${this.configService.baseURL}/applications/${applicationId}/membersV2`, request);
+  }
+
+  transferOwnership(applicationId: string, request: TransferOwnershipRequest): Observable<void> {
+    return this.http.post<void>(
+      `${this.configService.baseURL}/applications/${applicationId}/membersV2/_transfer-ownership`,
+      request,
+    );
   }
 }

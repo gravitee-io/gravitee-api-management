@@ -128,6 +128,18 @@ describe('ApplicationMembersService', () => {
     req.flush(response);
   });
 
+  it('should transfer ownership', done => {
+    const request = { newOwnerId: 'member-2', newOwnerReference: 'member' as const, previousOwnerNewRole: 'VIEWER' };
+    service.transferOwnership(applicationId, request).subscribe(() => {
+      done();
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${applicationId}/membersV2/_transfer-ownership`);
+    expect(req.request.method).toEqual('POST');
+    expect(req.request.body).toEqual(request);
+    req.flush(null);
+  });
+
   it('should add members', done => {
     const request = { members: [{ userId: 'user-10', role: 'VIEWER' }], notify: true };
     service.addMembers(applicationId, request).subscribe(() => {

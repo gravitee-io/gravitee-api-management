@@ -31,10 +31,14 @@ import {
   SearchUsersDialogData,
   SearchUsersDialogResult,
 } from './search-users-dialog/search-users-dialog.component';
+import {
+  TransferOwnershipDialogComponent,
+  TransferOwnershipDialogData,
+} from './transfer-ownership-dialog/transfer-ownership-dialog.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../components/confirm-dialog/confirm-dialog.component';
 import { LoaderComponent } from '../../../../components/loader/loader.component';
 import { PaginatedTableComponent, TableActionEvent, TableColumn } from '../../../../components/paginated-table/paginated-table.component';
-import { AddMembersRequest, ApplicationRoleV2 } from '../../../../entities/application-members/application-members';
+import { AddMembersRequest, ApplicationRoleV2, TransferOwnershipRequest } from '../../../../entities/application-members/application-members';
 import { UserApplicationPermissions } from '../../../../entities/permission/permission';
 import { ApplicationMembersService } from '../../../../services/application-members.service';
 
@@ -224,6 +228,48 @@ export class ApplicationTabMembersComponent {
         error: (err) => {
           console.error('Failed to update member role', err);
           this.snackBar.open($localize`:@@memberRoleUpdateFailed:Failed to update member role`, '', { duration: 5000 });
+        },
+      });
+  }
+
+  openTransferOwnershipDialog(): void {
+    const currentMembers = this.membersResource.value()?.data ?? [];
+    this.membersService
+      .listRoles()
+      .pipe(
+        take(1),
+        switchMap(rolesResponse => {
+          const roles = rolesResponse.data.filter(r => !r.system && r.name !== 'PRIMARY_OWNER');
+          const dialogData: TransferOwnershipDialogData = {
+            applicationId: this.applicationId(),
+            members: currentMembers,
+            roles,
+          };
+          return this.matDialog
+            .open<TransferOwnershipDialogComponent, TransferOwnershipDialogData, TransferOwnershipRequest | null>(
+              TransferOwnershipDialogComponent,
+              {
+                id: 'transferOwnershipDialog',
+                data: dialogData,
+                width: '560px',
+              },
+            )
+            .afterClosed();
+        }),
+        switchMap(result => {
+          if (!result) return EMPTY;
+          return this.membersService.transferOwnership(this.applicationId(), result);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.snackBar.open($localize`:@@ownershipTransferred:Ownership transferred`, '', { duration: 3000 });
+          this.membersResource.reload();
+        },
+        error: err => {
+          console.error('Failed to transfer ownership', err);
+          this.snackBar.open($localize`:@@ownershipTransferFailed:Failed to transfer ownership`, '', { duration: 5000 });
         },
       });
   }

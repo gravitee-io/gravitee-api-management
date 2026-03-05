@@ -1,0 +1,96 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2 mat-dialog-title class="transfer-ownership-dialog__title" i18n="@@transferOwnershipDialogTitle">Transfer Ownership</h2>
+
+<mat-dialog-content class="transfer-ownership-dialog__content">
+  <p class="m3-body-medium" i18n="@@transferOwnershipDialogSubtitle">Transfer ownership and grant access to your Application to another user</p>
+  <p class="m3-body-medium" i18n="@@transferOwnershipDialogInstruction">Select your preferred method for granting complete Application access</p>
+
+  <mat-button-toggle-group
+    [(value)]="mode"
+    class="transfer-ownership-dialog__toggle"
+    data-testid="mode-toggle"
+  >
+    <mat-button-toggle value="member" data-testid="toggle-member" i18n="@@transferOwnershipToggleMember">Application member</mat-button-toggle>
+    <mat-button-toggle value="user" data-testid="toggle-user" i18n="@@transferOwnershipToggleUser">Other user</mat-button-toggle>
+    <mat-button-toggle value="group" data-testid="toggle-group" i18n="@@transferOwnershipToggleGroup">Primary owner group</mat-button-toggle>
+  </mat-button-toggle-group>
+
+  @switch (mode) {
+    @case ('member') {
+      <label class="m3-body-medium transfer-ownership-dialog__label" i18n="@@transferOwnershipMemberLabel">Select API member</label>
+      <mat-form-field appearance="outline" class="transfer-ownership-dialog__field">
+        <mat-select [(value)]="selectedMemberId" data-testid="member-select">
+          @for (member of nonPrimaryMembers; track member.id) {
+            <mat-option [value]="member.id" [attr.data-testid]="'member-option-' + member.id">{{ member.user.display_name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+    @case ('user') {
+      <label class="m3-body-medium transfer-ownership-dialog__label" i18n="@@transferOwnershipUserLabel">Search user</label>
+      <mat-form-field appearance="outline" class="transfer-ownership-dialog__field">
+        <input
+          matInput
+          [formControl]="userSearchControl"
+          [matAutocomplete]="userAuto"
+          data-testid="user-search-input"
+          placeholder="Search by name or email"
+          i18n-placeholder="@@transferOwnershipUserPlaceholder"
+        />
+        <mat-autocomplete #userAuto="matAutocomplete" [displayWith]="displayFn" (optionSelected)="onUserSelected($event)">
+          @for (user of filteredUsers; track user.id) {
+            <mat-option [value]="user" [attr.data-testid]="'user-option-' + user.id">
+              <span class="m3-body-medium">{{ user.display_name }}</span>
+              @if (user.email) {
+                <span class="m3-body-small transfer-ownership-dialog__option-email">{{ user.email }}</span>
+              }
+            </mat-option>
+          }
+        </mat-autocomplete>
+      </mat-form-field>
+    }
+    @case ('group') {
+      <label class="m3-body-medium transfer-ownership-dialog__label" i18n="@@transferOwnershipGroupLabel">Select a primary owner shop</label>
+      <mat-form-field appearance="outline" class="transfer-ownership-dialog__field">
+        <mat-select data-testid="group-select" disabled>
+          <mat-option i18n="@@transferOwnershipGroupPlaceholder">No groups available</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="transfer-ownership-dialog__warning" data-testid="warning-box">
+        <mat-icon class="transfer-ownership-dialog__warning-icon">warning</mat-icon>
+        <p class="m3-body-medium" i18n="@@transferOwnershipWarning">This action cannot be undone. If you are the primary owner of this Application, your role will be set to OWNER.</p>
+      </div>
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="transfer-ownership-dialog__actions">
+  <button mat-button [mat-dialog-close]="null" data-testid="cancel-button" i18n="@@transferOwnershipCancel">Cancel</button>
+  <button
+    mat-flat-button
+    color="primary"
+    [mat-dialog-close]="dialogResult"
+    [disabled]="isTransferDisabled"
+    data-testid="transfer-button"
+    i18n="@@transferOwnershipConfirm"
+  >
+    Transfer
+  </button>
+</mat-dialog-actions>
