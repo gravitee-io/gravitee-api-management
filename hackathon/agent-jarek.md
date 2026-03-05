@@ -12,6 +12,11 @@
   - `RoleQueryService.findByScope(...)` in core + infra + in-memory implementation
   - `ApplicationRolesResourceV2` + registration under configuration resource
   - use case and REST tests added and passing in module-scoped runs.
+- Implemented **Phase 2 / Story 2.1** backend update-member-role flow in Onion style:
+  - `UpdateApplicationMemberUseCase` with role validation and `PRIMARY_OWNER` rejection
+  - `PUT /applications/{applicationId}/membersV2/{memberId}` in `ApplicationMembersResourceV2`
+  - use case tests (success, role not found, primary owner rejected, member not found)
+  - REST tests for update flow (`200`, `400`, `403`) in `ApplicationMembersResourceV2Test`.
 
 ## Key Decisions Made and Why
 
@@ -19,17 +24,20 @@
 - **Kept business logic in UseCases** and resources as thin adapters to stay consistent with Onion architecture and improve testability.
 - **Extended `RoleQueryService` with `findByScope`** instead of ad-hoc lookups, because this keeps role retrieval reusable and avoids duplicated query logic.
 - **Reused in-memory test doubles** (`RoleQueryServiceInMemory`, etc.) to match existing test style and keep tests fast/deterministic.
+- **Used `NotFoundDomainException` in the new use case when update returns null** so missing members are mapped as proper domain-level 404 in V2 flow.
+- **Kept the legacy consistency check (`memberInput.user` must match path `memberId`)** in V2 update endpoint to preserve behavior and avoid silent mismatches.
 
 ## Gotchas or Surprises
 
 - `prettier` checks in `portal-rest` failed on newly added files until `prettier:write` was run.
 - `rg` was unavailable in this environment, so fallback shell tools (`grep`, `find`) were used for lookups.
 - Running a single REST test in this module still triggers heavy OpenAPI generation/compilation before test execution.
+- Portal REST module initially failed to compile against the new use case until the updated service module artifact was installed locally (`mvn ...service -DskipTests install`).
 
 ## Blockers / Open Questions
 
 - No functional blockers at the moment.
-- Open question for team alignment: should completed checklist items in `PROGRESS.md` consistently use `:white_check_mark:` or mixed styles (`✅` and markdown checkboxes)?
+- Open question: none currently.
 
 ## Prompts That Were Particularly Effective (Exact Text)
 
@@ -49,4 +57,8 @@ Include tests following the existing patterns in the codebase.
 ```text
 Implement Pahase 1 Story 1.2 from ./hackathon/STORIES.md.
 Include tests following the existing patterns in the codebase.
+```
+
+```text
+Implement Pahase 2 Story 2.1 from ./hackathon/STORIES.md. Include tests following the existing patterns in the codebase.
 ```

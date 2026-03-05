@@ -22,7 +22,9 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import inmemory.MemberQueryServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
 import io.gravitee.apim.core.member.model.Member;
+import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
@@ -30,12 +32,15 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.MemberV2;
+import io.gravitee.rest.api.portal.rest.model.MemberV2Input;
 import io.gravitee.rest.api.portal.rest.model.MembersV2Response;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.ws.rs.client.Entity;
 import java.util.Date;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,6 +53,9 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
     @Autowired
     private MemberQueryServiceInMemory memberQueryService;
 
+    @Autowired
+    private RoleQueryServiceInMemory roleQueryService;
+
     @Override
     protected String contextPath() {
         return "applications/";
@@ -57,6 +65,7 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
     void init() {
         resetAllMocks();
         memberQueryService.reset();
+        roleQueryService.reset();
 
         doReturn(new ApplicationEntity()).when(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
         doReturn(new ApplicationEntity()).when(applicationService).findById(GraviteeContext.getExecutionContext(), OTHER_APPLICATION_ID);
@@ -70,11 +79,15 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
                 aMember("member-3", "Alice Smith", "alice@example.org", OTHER_APPLICATION_ID, "USER")
             )
         );
+        roleQueryService.initWith(
+            List.of(aRole("USER", GraviteeContext.getCurrentOrganization()), aRole("ADMIN", GraviteeContext.getCurrentOrganization()))
+        );
     }
 
     @AfterEach
     void cleanup() {
         memberQueryService.reset();
+        roleQueryService.reset();
     }
 
     @Test
@@ -124,6 +137,49 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
         assertEquals("member-2", membersResponse.getData().get(0).getUser().getId());
     }
 
+    @Nested
+    class UpdateMemberTest {
+
+        @Test
+        void should_update_application_member_role_v2() {
+            final var response = target(APPLICATION_ID)
+                .path("membersV2")
+                .path("member-1")
+                .request()
+                .put(Entity.json(new MemberV2Input().user("member-1").role("ADMIN")));
+
+            assertEquals(HttpStatusCode.OK_200, response.getStatus());
+            final var member = response.readEntity(MemberV2.class);
+            assertNotNull(member);
+            assertEquals("member-1", member.getUser().getId());
+            assertEquals("ADMIN", member.getRole());
+        }
+
+        @Test
+        void should_return_400_when_role_does_not_exist() {
+            final var response = target(APPLICATION_ID)
+                .path("membersV2")
+                .path("member-1")
+                .request()
+                .put(Entity.json(new MemberV2Input().user("member-1").role("UNKNOWN")));
+
+            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        }
+
+        @Test
+        void should_return_403_when_missing_update_permission() {
+            doReturn(false).when(permissionService).hasPermission(any(), any(), any(), any());
+
+            final var response = target(APPLICATION_ID)
+                .path("membersV2")
+                .path("member-1")
+                .request()
+                .put(Entity.json(new MemberV2Input().user("member-1").role("ADMIN")));
+
+            assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+        }
+    }
+
     private static Member aMember(String id, String displayName, String email, String applicationId, String role) {
         return Member.builder()
             .id(id)
@@ -135,6 +191,16 @@ public class ApplicationMembersResourceV2Test extends AbstractResourceTest {
             .createdAt(new Date())
             .updatedAt(new Date())
             .roles(List.of(Member.Role.builder().scope(RoleScope.APPLICATION).name(role).build()))
+            .build();
+    }
+
+    private static Role aRole(String roleName, String organizationId) {
+        return Role.builder()
+            .id("role-" + roleName.toLowerCase())
+            .name(roleName)
+            .scope(Role.Scope.APPLICATION)
+            .referenceType(Role.ReferenceType.ORGANIZATION)
+            .referenceId(organizationId)
             .build();
     }
 }
