@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -95,6 +96,9 @@ public class TaskServiceTest {
 
     @Mock
     private ApiRepository apiRepository;
+
+    @Mock
+    private ApiProductsRepository apiProductsRepository;
 
     @Mock
     private EnvironmentService environmentService;
@@ -217,6 +221,7 @@ public class TaskServiceTest {
         environment.setId(GraviteeContext.getCurrentEnvironment());
 
         when(environmentService.findByOrganization(GraviteeContext.getCurrentOrganization())).thenReturn(List.of(environment));
+        when(apiProductsRepository.findByEnvironmentId(GraviteeContext.getCurrentEnvironment())).thenReturn(Collections.emptySet());
         when(
             apiRepository.searchIds(
                 List.of(new ApiCriteria.Builder().environments(List.of(environment.getId())).build()),

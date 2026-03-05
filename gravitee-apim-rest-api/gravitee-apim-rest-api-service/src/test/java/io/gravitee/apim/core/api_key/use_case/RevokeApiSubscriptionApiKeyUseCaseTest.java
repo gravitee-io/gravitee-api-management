@@ -283,7 +283,7 @@ class RevokeApiSubscriptionApiKeyUseCaseTest {
 
         // Then
         assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
-            new ApiKeyRevokedApiHookContext(API_ID, APPLICATION_ID, PLAN_1, apiKey.getKey())
+            new ApiKeyRevokedApiHookContext(SubscriptionReferenceType.API, API_ID, APPLICATION_ID, PLAN_1, apiKey.getKey())
         );
     }
 
