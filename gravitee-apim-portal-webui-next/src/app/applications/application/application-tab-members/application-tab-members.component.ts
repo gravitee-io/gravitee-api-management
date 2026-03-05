@@ -150,7 +150,7 @@ export class ApplicationTabMembersComponent {
       .pipe(
         take(1),
         switchMap((rolesResponse) => {
-          const roles: ApplicationRoleV2[] = rolesResponse.data;
+          const roles: ApplicationRoleV2[] = rolesResponse.data.filter(r => r.name !== 'PRIMARY_OWNER');
           const dialogData: EditMemberRoleDialogData = {
             memberName: row['display_name'] as string,
             currentRole: row['role'] as string,
