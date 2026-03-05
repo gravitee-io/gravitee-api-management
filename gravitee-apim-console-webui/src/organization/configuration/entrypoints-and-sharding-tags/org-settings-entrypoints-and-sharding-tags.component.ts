@@ -286,7 +286,13 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit {
       .afterClosed()
       .pipe(
         filter(result => !!result),
-        switchMap(updatedTag => this.tagService.update(updatedTag)),
+        switchMap((updatedTag: Tag) =>
+          this.tagService.update(updatedTag.key, {
+            name: updatedTag.name,
+            description: updatedTag.description,
+            restricted_groups: updatedTag.restricted_groups,
+          }),
+        ),
         tap(() => {
           this.snackBarService.success('Tag successfully updated!');
         }),

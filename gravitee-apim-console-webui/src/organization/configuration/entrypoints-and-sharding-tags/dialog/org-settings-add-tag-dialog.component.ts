@@ -42,7 +42,11 @@ export class OrgSettingAddTagDialogComponent {
   isUpdate = !!this.tag;
   tagForm = new FormGroup({
     name: new FormControl<string>(this.tag?.name, [Validators.required, Validators.minLength(1), Validators.maxLength(64)]),
-    key: new FormControl<string>(this.tag?.key, [Validators.required, Validators.minLength(1), Validators.maxLength(64)]),
+    key: new FormControl<string>({ value: this.tag?.key ?? '', disabled: this.isUpdate }, [
+      Validators.required,
+      Validators.minLength(1),
+      Validators.maxLength(64),
+    ]),
     description: new FormControl<string>(this.tag?.description),
     restrictedGroups: new FormControl<string[]>(this.tag?.restricted_groups ?? []),
   });
