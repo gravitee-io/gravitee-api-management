@@ -1,4 +1,6 @@
 @use '@angular/material' as mat;
+@forward './shared/scss/material-overrides';
+@forward './shared/scss/variables';
 
 @import '../../gravitee-apim-baros/src/tokens/primitive.css';
 @import '../../gravitee-apim-baros/src/tokens/semantic.css';
@@ -14,7 +16,6 @@ html {
     ));
 }
 
-@import './shared/scss/material-overrides';
 @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap');
 
 mat-sidenav-content {
