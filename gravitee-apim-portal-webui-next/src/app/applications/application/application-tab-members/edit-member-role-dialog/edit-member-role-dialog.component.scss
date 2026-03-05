@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use 'theme';
+@use '../../../../../scss/theme' as app-theme;
 
 .edit-member-role-dialog {
   &__content {
