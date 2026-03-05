@@ -17,6 +17,7 @@ package io.gravitee.apim.core.notification.model.hook;
 
 public enum HookContextEntry {
     API_ID,
+    API_PRODUCT_ID,
     APPLICATION_ID,
     PLAN_ID,
     SUBSCRIPTION_ID,

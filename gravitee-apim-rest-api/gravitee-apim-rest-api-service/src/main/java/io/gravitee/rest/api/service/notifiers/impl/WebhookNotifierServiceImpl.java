@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.notifiers.impl;
 
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.PARAM_API;
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.PARAM_API_PRODUCT;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.PARAM_APPLICATION;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.PARAM_OWNER;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.PARAM_PLAN;
@@ -35,6 +36,7 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
+import io.gravitee.rest.api.service.notification.ApiProductTemplateModel;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notifiers.WebNotifierService;
 import io.gravitee.rest.api.service.notifiers.WebhookNotifierService;
@@ -82,7 +84,17 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
         content.put("scope", hook.getScope().name());
 
         // Generalized method to populate JSON objects
-        addJsonObject(params, PARAM_API, content, "api", GenericApiModel.class, GenericApiEntity.class, ApiNotificationTemplateData.class);
+        addJsonObject(
+            params,
+            PARAM_API,
+            content,
+            "api",
+            GenericApiModel.class,
+            GenericApiEntity.class,
+            ApiNotificationTemplateData.class,
+            ApiProductTemplateModel.class
+        );
+        addJsonObject(params, PARAM_API_PRODUCT, content, "apiProduct", ApiProductTemplateModel.class);
 
         addJsonObject(
             params,
@@ -194,6 +206,11 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
             SubscriptionNotificationTemplateData notificationData = (SubscriptionNotificationTemplateData) object;
             jsonObject.put("id", notificationData.getId());
             jsonObject.put("status", notificationData.getStatus());
+        } else if (dataType == ApiProductTemplateModel.class) {
+            ApiProductTemplateModel apiProduct = (ApiProductTemplateModel) object;
+            jsonObject.put("id", apiProduct.getId());
+            jsonObject.put("name", apiProduct.getName());
+            jsonObject.put("version", apiProduct.getVersion());
         }
     }
 }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.notification.model.hook;
 
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import java.util.Map;
 import lombok.EqualsAndHashCode;
@@ -26,17 +27,27 @@ import lombok.ToString;
 @ToString(callSuper = true)
 public class SubscriptionClosedApplicationHookContext extends ApplicationHookContext {
 
-    String apiId;
-    String planId;
+    private final SubscriptionReferenceType referenceType;
+    private final String referenceId;
+    private final String planId;
 
-    public SubscriptionClosedApplicationHookContext(String applicationId, String apiId, String planId) {
+    public SubscriptionClosedApplicationHookContext(
+        String applicationId,
+        SubscriptionReferenceType referenceType,
+        String referenceId,
+        String planId
+    ) {
         super(ApplicationHook.SUBSCRIPTION_CLOSED, applicationId);
-        this.apiId = apiId;
+        this.referenceType = referenceType;
+        this.referenceId = referenceId;
         this.planId = planId;
     }
 
     @Override
     protected Map<HookContextEntry, String> getChildProperties() {
-        return Map.of(HookContextEntry.API_ID, apiId, HookContextEntry.PLAN_ID, planId);
+        var referenceKey = referenceType == SubscriptionReferenceType.API_PRODUCT
+            ? HookContextEntry.API_PRODUCT_ID
+            : HookContextEntry.API_ID;
+        return Map.of(referenceKey, referenceId, HookContextEntry.PLAN_ID, planId);
     }
 }

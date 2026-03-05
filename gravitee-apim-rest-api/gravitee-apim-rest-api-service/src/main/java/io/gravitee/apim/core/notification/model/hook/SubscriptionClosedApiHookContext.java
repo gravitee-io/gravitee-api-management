@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.notification.model.hook;
 
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import java.util.Map;
 import lombok.*;
@@ -27,8 +28,13 @@ public class SubscriptionClosedApiHookContext extends ApiHookContext {
     String applicationId;
     String planId;
 
-    public SubscriptionClosedApiHookContext(String apiId, String applicationId, String planId) {
-        super(ApiHook.SUBSCRIPTION_CLOSED, apiId);
+    public SubscriptionClosedApiHookContext(
+        SubscriptionReferenceType referenceType,
+        String referenceId,
+        String applicationId,
+        String planId
+    ) {
+        super(ApiHook.SUBSCRIPTION_CLOSED, referenceId, referenceType);
         this.applicationId = applicationId;
         this.planId = planId;
     }

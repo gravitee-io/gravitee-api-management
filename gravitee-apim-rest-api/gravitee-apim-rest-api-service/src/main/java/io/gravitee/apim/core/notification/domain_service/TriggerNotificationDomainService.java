@@ -19,10 +19,19 @@ import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
 import io.gravitee.apim.core.notification.model.hook.portal.PortalHookContext;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import java.util.List;
 
 public interface TriggerNotificationDomainService {
     void triggerApiNotification(String organizationId, String environmentId, final ApiHookContext context);
+
+    void triggerSubscriptionReferenceNotification(
+        String organizationId,
+        String environmentId,
+        SubscriptionReferenceType referenceType,
+        String referenceId,
+        ApiHookContext context
+    );
 
     void triggerApplicationNotification(String organizationId, String environmentId, final ApplicationHookContext context);
 
