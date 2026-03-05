@@ -10,6 +10,15 @@ export default {
         path: join(__dirname, '../dist/gravitee-gamma'),
         publicPath: 'auto',
     },
+    module: {
+        rules: [
+            {
+                test: /\.css$/,
+                use: ['postcss-loader'],
+                type: 'css',
+            },
+        ],
+    },
     resolve: {
         alias: {
             '@baros': join(__dirname, '../gravitee-apim-baros/src'),

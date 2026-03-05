@@ -221,6 +221,7 @@
         "ng-packagr": "^20.0.0",
         "nx": "21.6.10",
         "postcss": "8.4.38",
+        "postcss-loader": "^8.2.1",
         "prettier": "~3.6.2",
         "react-refresh": "~0.14.0",
         "storybook": "9.1.17",
