@@ -1,0 +1,293 @@
+version: '2.1'
+orbs:
+  keeper: gravitee-io/keeper@0.7.0
+  aquasec: gravitee-io/aquasec@1.0.5
+  slack: circleci/slack@4.12.5
+commands:
+  cmd-install-yarn:
+    steps:
+      - run:
+          command: corepack enable || sudo corepack enable
+          name: Enable Corepack
+      - run:
+          command: yarn set version 4.1.1
+          name: Set Yarn version
+  cmd-workspace-install:
+    steps:
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-workspace-{{ checksum "yarn.lock" }}
+      - run:
+          command: yarn install --immutable
+          name: Install
+      - save_cache:
+          key: gravitee-api-management-v14-workspace-{{ checksum "yarn.lock" }}
+          paths:
+            - .yarn/cache
+          when: always
+  cmd-notify-on-failure:
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+          var-name: SLACK_ACCESS_TOKEN
+      - slack/notify:
+          channel: C02JENTV2AX
+          branch_pattern: master,[0-9]+\\.[0-9]+\\.x
+          event: fail
+          template: basic_fail_1
+  cmd-restore-maven-job-cache:
+    steps:
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}
+            - gravitee-api-management-v14-<< parameters.jobName >>-master
+    parameters:
+      jobName:
+        type: string
+        default: ''
+        description: The job name
+    description: Restore Maven cache for a dedicated job
+  cmd-save-maven-job-cache:
+    steps:
+      - run:
+          command: rm -rf ~/.m2/repository/io/gravitee/apim
+          name: Exclude all APIM artefacts from cache.
+      - save_cache:
+          key: gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          paths:
+            - ~/.m2
+          when: always
+    parameters:
+      jobName:
+        type: string
+        default: ''
+        description: The job name
+    description: Save Maven cache for a dedicated job
+jobs:
+  job-danger-js:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: small
+    steps:
+      - checkout:
+          path: .
+      - cmd-install-yarn: {}
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: DANGER_GITHUB_API_TOKEN
+      - run:
+          command: cd .circleci/danger && yarn install && yarn run danger
+          name: Run Danger JS
+  job-nx-format-check:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: medium
+    steps:
+      - checkout:
+          path: .
+      - cmd-install-yarn: {}
+      - cmd-workspace-install: {}
+      - run:
+          command: yarn nx format:check --all
+          name: Check prettier formatting
+  job-nx-webui-lint-test:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: << parameters.resource_class >>
+    steps:
+      - checkout:
+          path: .
+      - cmd-install-yarn: {}
+      - cmd-workspace-install: {}
+      - attach_workspace:
+          at: .
+      - run:
+          command: yarn nx run << parameters.nx-project >>:lint-license
+          name: Check License
+      - run:
+          command: yarn nx lint << parameters.nx-project >>
+          name: Run Prettier and ESLint
+      - run:
+          command: yarn nx test << parameters.nx-project >> --coverage --maxWorkers=<< parameters.max-workers >>
+          name: Run unit tests
+      - cmd-notify-on-failure: {}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - << parameters.apim-ui-project >>/coverage/lcov.info
+      - store_artifacts:
+          path: << parameters.apim-ui-project >>/coverage/lcov.info
+      - store_test_results:
+          path: << parameters.apim-ui-project >>/coverage/junit.xml
+    parameters:
+      apim-ui-project:
+        type: string
+        default: ''
+        description: the directory name of the UI project
+      nx-project:
+        type: string
+        default: ''
+        description: the Nx project name
+      resource_class:
+        type: string
+        default: medium
+        description: Resource class to use for executor
+      max-workers:
+        type: string
+        default: 35%
+        description: Maximum number of workers for Jest tests
+  job-console-webui-build:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: large
+    steps:
+      - checkout:
+          path: .
+      - cmd-install-yarn: {}
+      - cmd-workspace-install: {}
+      - attach_workspace:
+          at: .
+      - run:
+          command: yarn nx build console --configuration=production
+          name: Build Console
+      - cmd-notify-on-failure: {}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-console-webui/dist/
+  job-storybook-console:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: large
+    steps:
+      - checkout:
+          path: .
+      - cmd-install-yarn: {}
+      - cmd-workspace-install: {}
+      - attach_workspace:
+          at: .
+      - run:
+          command: yarn nx run console:build-storybook
+          name: Build Storybook
+      - cmd-notify-on-failure: {}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-console-webui/storybook-static/
+  job-chromatic-console:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: small
+    steps:
+      - checkout:
+          path: .
+      - cmd-install-yarn: {}
+      - cmd-workspace-install: {}
+      - attach_workspace:
+          at: .
+      - keeper/env-export:
+          secret-url: keeper://Hp1bFl5s0doxnQgqkMdCdg/field/password
+          var-name: CHROMATIC_PROJECT_TOKEN
+      - run:
+          command: yarn nx run console:chromatic --exit-zero-on-changes --exit-once-uploaded --storybook-build-dir=storybook-static
+          name: Deploy to Chromatic
+          working_directory: gravitee-apim-console-webui
+  job-sonarcloud-analysis:
+    docker:
+      - image: sonarsource/sonar-scanner-cli:11.2
+    resource_class: large
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
+      - keeper/env-export:
+          secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
+          var-name: SONAR_TOKEN
+      - run:
+          command: sonar-scanner
+          name: Run Sonarcloud Analysis
+          working_directory: << parameters.working_directory >>
+      - cmd-notify-on-failure: {}
+      - save_cache:
+          key: gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
+          paths:
+            - /opt/sonar-scanner/.sonar/cache
+          when: always
+    parameters:
+      working_directory:
+        type: string
+        default: gravitee-apim-rest-api
+        description: Directory where the Sonarcloud analysis will be run
+      cache_type:
+        type: enum
+        default: backend
+        enum:
+          - backend
+          - frontend
+        description: Type of cache to use
+  job-validate-workflow-status:
+    docker:
+      - image: cimg/base:stable
+    resource_class: small
+    steps:
+      - run:
+          command: echo "Congratulations! If you can read this, everything is OK"
+          name: Check workflow jobs
+workflows:
+  pull_requests:
+    jobs:
+      - aquasec/fs_scan:
+          context: &a1
+            - cicd-orchestrator
+          pre-steps:
+            - keeper/env-export:
+                secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
+                var-name: AQUA_KEY
+            - keeper/env-export:
+                secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret
+                var-name: AQUA_SECRET
+            - keeper/env-export:
+                secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+                var-name: GITHUB_TOKEN
+      - job-danger-js:
+          name: Run Danger JS
+          context: *a1
+      - job-nx-format-check:
+          name: Check prettier formatting for nx projects
+          context: *a1
+      - job-nx-webui-lint-test:
+          name: Lint & test APIM Console
+          context: *a1
+          apim-ui-project: gravitee-apim-console-webui
+          nx-project: console
+          resource_class: xlarge
+          max-workers: '4'
+      - job-console-webui-build:
+          name: Build APIM Console
+          context: *a1
+      - job-storybook-console:
+          name: Build Console Storybook
+          context: *a1
+      - job-chromatic-console:
+          name: Deploy console in chromatic
+          requires:
+            - Build Console Storybook
+          context: *a1
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-console-webui
+          requires:
+            - Lint & test APIM Console
+          context: *a1
+          working_directory: gravitee-apim-console-webui
+          cache_type: frontend
+      - job-validate-workflow-status:
+          name: Validate workflow status
+          requires:
+            - Check prettier formatting for nx projects
+            - Lint & test APIM Console
+            - Build APIM Console

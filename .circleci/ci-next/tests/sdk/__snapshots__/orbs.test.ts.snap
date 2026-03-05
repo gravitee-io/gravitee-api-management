@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`orbs > serializes orb imports 1`] = `
+{
+  "keeper": "gravitee-io/keeper@0.7.0",
+}
+`;
+
+exports[`orbs > useOrb creates a step 1`] = `
+{
+  "keeper/env-export": {
+    "secret-url": "keeper://xxx",
+    "var-name": "TOKEN",
+  },
+}
+`;

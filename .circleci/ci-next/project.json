@@ -1,0 +1,36 @@
+{
+  "name": "ci-next",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": ".circleci/ci-next/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": ".circleci/ci-next",
+        "command": "yarn build"
+      }
+    },
+    "generate-types": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": ".circleci/ci-next",
+        "command": "yarn generate-types"
+      }
+    },
+    "generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": ".circleci/ci-next",
+        "command": "yarn generate"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": ".circleci/ci-next",
+        "command": "yarn test"
+      }
+    }
+  }
+}
