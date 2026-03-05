@@ -111,9 +111,16 @@ export class TasksComponent implements OnInit, OnDestroy {
 
     switch (task.type) {
       case 'SUBSCRIPTION_APPROVAL': {
-        const { api: apiId, id } = task.data as any;
-        const taskEnvironmentId = this.tasks.metadata[apiId]?.environmentId;
-        this.router.navigate([taskEnvironmentId || currentEnvironmentId, 'apis', apiId, 'subscriptions', id]);
+        const subscriptionData = task.data as { id: string; api?: string; referenceId?: string; referenceType?: string };
+        const { id, referenceType } = subscriptionData;
+        const refId = subscriptionData.referenceId ?? subscriptionData.api;
+        const taskEnvironmentId = refId ? this.tasks.metadata[refId]?.environmentId : undefined;
+        const envId = taskEnvironmentId || currentEnvironmentId;
+        if (referenceType === 'API_PRODUCT' && refId) {
+          this.router.navigate([envId, 'api-products', refId, 'consumers', 'subscriptions', id]);
+        } else if (refId) {
+          this.router.navigate([envId, 'apis', refId, 'subscriptions', id]);
+        }
         break;
       }
       case 'IN_REVIEW':

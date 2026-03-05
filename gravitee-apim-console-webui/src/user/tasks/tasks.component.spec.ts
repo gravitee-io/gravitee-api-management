@@ -234,4 +234,68 @@ describe('TasksComponent', () => {
       ]);
     });
   });
+
+  describe('when subscription task is for API Product', () => {
+    const apiProductId = 'api-product-123';
+    const subscriptionId = 'sub-456';
+    const apiProductTasksResponse = {
+      data: [
+        {
+          type: 'SUBSCRIPTION_APPROVAL',
+          data: {
+            id: subscriptionId,
+            referenceId: apiProductId,
+            referenceType: 'API_PRODUCT',
+            plan: 'plan-1',
+            application: 'app-1',
+            status: 'PENDING',
+            request: '',
+            configuration: {},
+            consumerStatus: 'STARTED',
+            subscribed_by: 'user-1',
+            created_at: 1679319899727,
+            updated_at: 1679319899727,
+          },
+          created_at: 1679319899727,
+        },
+      ],
+      metadata: {
+        [apiProductId]: {
+          name: 'My API Product',
+          environmentId: 'ProductEnvId',
+        },
+        'plan-1': {
+          name: 'Plan name',
+          api: apiProductId,
+        },
+        'app-1': {
+          name: 'App name',
+        },
+      },
+      page: { current: 1, size: 1, per_page: 1, total_pages: 1, total_elements: 1 },
+    };
+
+    beforeEach(async () => {
+      await init();
+      const apiProductTasks = new PagedResult<Task>();
+      apiProductTasks.populate(apiProductTasksResponse);
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/user/tasks`, method: 'GET' }).flush(apiProductTasks);
+      fixture.detectChanges();
+    });
+
+    it('should navigate to API Product consumers subscriptions page when validating', async () => {
+      const tasks = await harness.getTasks();
+      expect(tasks.length).toEqual(1);
+      const validateButton = await tasks[0].getHarness(MatButtonHarness);
+      await validateButton.click();
+      expect(routerNavigateSpy).toHaveBeenCalledWith([
+        'ProductEnvId',
+        'api-products',
+        apiProductId,
+        'consumers',
+        'subscriptions',
+        subscriptionId,
+      ]);
+    });
+  });
 });

@@ -48,15 +48,23 @@ public class NotificationConfig {
     }
 
     public static NotificationConfig defaultMailNotificationConfigFor(String apiId) {
+        return defaultMailNotificationConfigFor(HookScope.API.name(), apiId, "${(api.primaryOwner.email)!''}");
+    }
+
+    public static NotificationConfig defaultMailNotificationConfigForApiProduct(String apiProductId) {
+        return defaultMailNotificationConfigFor(HookScope.API_PRODUCT.name(), apiProductId, "${(apiProduct.primaryOwner.email)!''}");
+    }
+
+    private static NotificationConfig defaultMailNotificationConfigFor(String referenceType, String referenceId, String recipientConfig) {
         var now = TimeProvider.now();
         return NotificationConfig.builder()
             .type(Type.GENERIC)
             .id(UuidString.generateRandom())
             .name("Default Mail Notifications")
-            .referenceType(HookScope.API.name())
-            .referenceId(apiId)
+            .referenceType(referenceType)
+            .referenceId(referenceId)
             .notifier("default-email")
-            .config("${(api.primaryOwner.email)!''}")
+            .config(recipientConfig)
             .hooks(Arrays.stream(ApiHook.values()).map(Enum::name).sorted().toList())
             .createdAt(now)
             .updatedAt(now)

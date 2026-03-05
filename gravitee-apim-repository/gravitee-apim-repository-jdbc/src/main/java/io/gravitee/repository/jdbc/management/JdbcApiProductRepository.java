@@ -15,9 +15,14 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApiProductsRepository;
+import io.gravitee.repository.management.api.search.ApiProductCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiProduct;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -274,6 +279,91 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find api products by ids", ex);
         }
+    }
+
+    @Override
+    public Page<String> searchIds(List<ApiProductCriteria> apiProductCriteriaList, Pageable pageable, Sortable sortable)
+        throws TechnicalException {
+        log.debug("JdbcApiProductRepository.searchIds({})", apiProductCriteriaList);
+        if (apiProductCriteriaList == null || apiProductCriteriaList.isEmpty()) {
+            return JdbcAbstractPageableRepository.getResultAsPage(pageable, Collections.emptyList());
+        }
+        try {
+            List<String> clauses = new ArrayList<>();
+            List<Object> args = new ArrayList<>();
+            boolean needApiJoin = apiProductCriteriaList
+                .stream()
+                .anyMatch(criteria -> criteria.getApiIds() != null && !criteria.getApiIds().isEmpty());
+            for (ApiProductCriteria criteria : apiProductCriteriaList) {
+                String clause = buildSearchIdsClause(criteria, args);
+                if (clause != null) {
+                    clauses.add(clause);
+                }
+            }
+            if (clauses.isEmpty()) {
+                return JdbcAbstractPageableRepository.getResultAsPage(pageable, Collections.emptyList());
+            }
+            String fromClause = " FROM " + tableName + " ap ";
+            if (needApiJoin) {
+                fromClause += "JOIN " + API_PRODUCT_APIS + " apa ON ap.id = apa.api_product_id ";
+            }
+            String whereClause = "(" + String.join(") OR (", clauses) + ") ";
+
+            // Count total (database-side) for Page totalElements
+            String countSelect = needApiJoin ? "COUNT(DISTINCT ap.id)" : "COUNT(ap.id)";
+            String countSql = "SELECT " + countSelect + fromClause + "WHERE " + whereClause;
+            Integer totalCount = jdbcTemplate.queryForObject(countSql, Integer.class, args.toArray());
+            if (totalCount == null || totalCount == 0) {
+                return JdbcAbstractPageableRepository.getResultAsPage(pageable, Collections.emptyList());
+            }
+
+            // Data query with SQL-level pagination (LIMIT/OFFSET) to avoid loading all IDs into memory
+            String dataSql = "SELECT " + (needApiJoin ? "DISTINCT " : "") + "ap.id" + fromClause + "WHERE " + whereClause;
+            if (sortable != null && sortable.field() != null && !sortable.field().isEmpty()) {
+                String field = "name".equals(sortable.field()) ? "ap.name" : "ap.id";
+                dataSql +=
+                    "ORDER BY " + field + (sortable.order() == io.gravitee.repository.management.api.search.Order.DESC ? " DESC" : " ASC");
+            } else {
+                dataSql += "ORDER BY ap.name ASC";
+            }
+            dataSql += " " + AbstractJdbcRepositoryConfiguration.createPagingClause(pageable.pageSize(), pageable.from());
+
+            List<String> ids = jdbcTemplate.query(dataSql, (ResultSet rs, int rowNum) -> rs.getString("id"), args.toArray());
+            return new Page<>(ids, pageable.pageNumber(), ids.size(), totalCount);
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to search API Product IDs by criteria", ex);
+        }
+    }
+
+    private String buildSearchIdsClause(ApiProductCriteria criteria, List<Object> args) {
+        List<String> clauses = new ArrayList<>();
+        if (criteria.getIds() != null && !criteria.getIds().isEmpty()) {
+            List<String> idList = new ArrayList<>(criteria.getIds());
+            clauses.add("ap.id IN (" + getOrm().buildInClause(idList) + ")");
+            args.addAll(idList);
+        }
+        if (criteria.getName() != null && !criteria.getName().isEmpty()) {
+            clauses.add("ap.name = ?");
+            args.add(criteria.getName());
+        }
+        if (criteria.getVersion() != null && !criteria.getVersion().isEmpty()) {
+            clauses.add("ap.version = ?");
+            args.add(criteria.getVersion());
+        }
+        if (criteria.getEnvironmentId() != null && !criteria.getEnvironmentId().isEmpty()) {
+            clauses.add("ap.environment_id = ?");
+            args.add(criteria.getEnvironmentId());
+        }
+        if (criteria.getEnvironments() != null && !criteria.getEnvironments().isEmpty()) {
+            List<String> envList = new ArrayList<>(criteria.getEnvironments());
+            clauses.add("ap.environment_id IN (" + getOrm().buildInClause(envList) + ")");
+            args.addAll(envList);
+        }
+        if (criteria.getApiIds() != null && !criteria.getApiIds().isEmpty()) {
+            clauses.add("apa.api_id IN (" + getOrm().buildInClause(new ArrayList<>(criteria.getApiIds())) + ")");
+            args.addAll(criteria.getApiIds());
+        }
+        return clauses.isEmpty() ? null : String.join(" AND ", clauses);
     }
 
     private void storeApiIds(ApiProduct apiProduct, boolean deleteFirst) {

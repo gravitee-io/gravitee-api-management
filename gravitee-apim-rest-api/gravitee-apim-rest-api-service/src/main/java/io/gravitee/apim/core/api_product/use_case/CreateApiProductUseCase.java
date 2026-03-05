@@ -38,6 +38,8 @@ import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.notification.crud_service.NotificationConfigCrudService;
+import io.gravitee.apim.core.notification.model.config.NotificationConfig;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
@@ -61,6 +63,7 @@ public class CreateApiProductUseCase {
     private final EventLatestCrudService eventLatestCrudService;
     private final LicenseDomainService licenseDomainService;
     private final ApiProductIndexerDomainService apiProductIndexerDomainService;
+    private final NotificationConfigCrudService notificationConfigCrudService;
 
     public record Input(CreateApiProduct createApiProduct, AuditInfo auditInfo) {}
 
@@ -114,6 +117,7 @@ public class CreateApiProductUseCase {
 
         apiProductIndexerDomainService.index(oneShotIndexation(auditInfo), created, primaryOwner);
 
+        createDefaultMailNotification(created);
         publishDeployEvent(auditInfo, created);
         createAuditLog(created, auditInfo);
 
@@ -134,6 +138,10 @@ public class CreateApiProductUseCase {
         );
 
         eventLatestCrudService.createOrPatchLatestEvent(auditInfo.organizationId(), apiProduct.getId(), event);
+    }
+
+    private void createDefaultMailNotification(ApiProduct apiProduct) {
+        notificationConfigCrudService.create(NotificationConfig.defaultMailNotificationConfigForApiProduct(apiProduct.getId()));
     }
 
     private void createAuditLog(ApiProduct apiProduct, AuditInfo auditInfo) {

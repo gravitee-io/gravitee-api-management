@@ -74,18 +74,22 @@ public class RevokeApiKeyDomainService {
             .forEach(subscriptionId -> {
                 var subscription = subscriptionCrudService.get(subscriptionId);
                 createAuditLog(apiKey, revoked, subscription, auditInfo);
-                // Notifications are not applicable for API Product subscriptions
-                boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT.equals(subscription.getReferenceType());
-                if (!isApiProduct && subscription.getApiId() != null) {
-                    triggerNotificationDomainService.triggerApiNotification(
+                String referenceId = subscription.getReferenceId();
+                if (referenceId != null) {
+                    var referenceType = subscription.getReferenceType();
+                    var context = new ApiKeyRevokedApiHookContext(
+                        referenceType,
+                        referenceId,
+                        subscription.getApplicationId(),
+                        subscription.getPlanId(),
+                        apiKey.getKey()
+                    );
+                    triggerNotificationDomainService.triggerSubscriptionReferenceNotification(
                         auditInfo.organizationId(),
                         auditInfo.environmentId(),
-                        new ApiKeyRevokedApiHookContext(
-                            subscription.getApiId(),
-                            subscription.getApplicationId(),
-                            subscription.getPlanId(),
-                            apiKey.getKey()
-                        )
+                        referenceType,
+                        referenceId,
+                        context
                     );
                 }
             });

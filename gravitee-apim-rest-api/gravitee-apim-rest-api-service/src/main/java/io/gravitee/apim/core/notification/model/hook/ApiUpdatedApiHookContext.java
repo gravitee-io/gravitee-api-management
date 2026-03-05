@@ -26,8 +26,8 @@ import lombok.ToString;
 @ToString(callSuper = true)
 public class ApiUpdatedApiHookContext extends ApiHookContext {
 
-    public ApiUpdatedApiHookContext(String apiId) {
-        super(ApiHook.API_UPDATED, apiId);
+    public ApiUpdatedApiHookContext(String referenceId) {
+        super(ApiHook.API_UPDATED, referenceId);
     }
 
     @Override
