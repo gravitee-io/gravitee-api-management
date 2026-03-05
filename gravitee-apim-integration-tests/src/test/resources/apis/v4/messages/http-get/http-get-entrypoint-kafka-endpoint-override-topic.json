@@ -18,7 +18,7 @@
           "type": "http-get",
           "configuration": {
             "messagesLimitCount": 3,
-            "messagesLimitDurationMs": 10000,
+            "messagesLimitDurationMs": 1000,
             "headersInPayload": true,
             "metadataInPayload": true
           }

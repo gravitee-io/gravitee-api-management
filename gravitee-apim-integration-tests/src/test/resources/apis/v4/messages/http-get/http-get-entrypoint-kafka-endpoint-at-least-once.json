@@ -19,7 +19,7 @@
           "qos": "at-least-once",
           "configuration": {
             "messagesLimitCount": 2,
-            "messagesLimitDurationMs": 10000,
+            "messagesLimitDurationMs": 1000,
             "headersInPayload": true,
             "metadataInPayload": true
           }
