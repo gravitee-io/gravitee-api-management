@@ -75,10 +75,10 @@ public class SubscriptionTrustStoreLoaderManager {
                 toUpdate.forEach(s -> subscriptions.put(new CacheKey(s), subscription));
 
                 // update
-                var copy = new HashSet<>(currentState);
-                copy.addAll(toAdd);
-                copy.removeAll(toRemove);
-                return copy;
+                var state = new HashSet<>(currentState);
+                state.addAll(toAdd);
+                state.removeAll(toRemove);
+                return state;
             } catch (MalformedCertificateException e) {
                 log.error(e.getMessage(), e.getCause());
                 // keep the current state if anything goes wrong
@@ -88,9 +88,7 @@ public class SubscriptionTrustStoreLoaderManager {
         certificates.computeIfAbsent(subscription.getId(), id -> {
             try {
                 Set<SubscriptionCertificate> newState = SubscriptionTrustStoreLoader.readSubscriptionCertificate(subscription);
-                for (SubscriptionCertificate s : newState) {
-                    registerSubscriptionTrustStoreLoader(s, deployOnServers);
-                }
+                newState.forEach(s -> registerSubscriptionTrustStoreLoader(s, deployOnServers));
                 return newState;
             } catch (MalformedCertificateException e) {
                 log.error(e.getMessage(), e.getCause());

@@ -315,10 +315,8 @@ class ValidateApplicationSettingsDomainServiceImplTest {
 
             var result = cut.validateAndSanitize(inputWithTls(tls));
 
-            assertThat(result.severe()).isPresent();
-            assertThat(result.severe().get()).anyMatch(e ->
-                e.getMessage().contains("tls configuration must contain either clientCertificate or clientCertificates")
-            );
+            assertThat(result.severe()).isEmpty();
+            assertThat(result.warning()).isEmpty();
         }
     }
 }

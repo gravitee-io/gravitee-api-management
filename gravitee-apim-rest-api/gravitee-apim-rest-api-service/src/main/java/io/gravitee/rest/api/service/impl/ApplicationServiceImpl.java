@@ -48,6 +48,7 @@ import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.NotificationReferenceType;
+import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
@@ -129,6 +130,7 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.exception.SubscriptionEndsAfterClientCertificateException;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.xml.bind.DatatypeConverter;
 import java.io.IOException;
@@ -484,14 +486,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         if (settings.getTls() == null) {
             return List.of();
         }
-        var result = new ArrayList<CreateClientCertificate>();
         if (CollectionUtils.isNotEmpty(settings.getTls().getClientCertificates())) {
-            result.addAll(settings.getTls().getClientCertificates());
+            return List.copyOf(settings.getTls().getClientCertificates());
         }
         if (StringUtils.isNotBlank(settings.getTls().getClientCertificate())) {
-            result.add(new CreateClientCertificate(appName, null, null, settings.getTls().getClientCertificate()));
+            return List.of(new CreateClientCertificate(appName, null, null, settings.getTls().getClientCertificate()));
         }
-        return result;
+        return List.of();
     }
 
     private void creationPreFlightChecks(ExecutionContext executionContext, NewApplicationEntity newApplicationEntity) {
@@ -646,7 +647,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Update application metadata
             Map<String, String> metadata = new HashMap<>();
 
-            handleClientCertificates(applicationId, updateApplicationEntity);
+            // Create, update, delete client certificate regarding of the new application state
+            syncClientCertificates(executionContext, applicationId, updateApplicationEntity);
 
             // Update a simple application
             if (applicationToUpdate.getType() == ApplicationType.SIMPLE && updateApplicationEntity.getSettings().getApp() != null) {
@@ -699,12 +701,39 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
     }
 
-    private void handleClientCertificates(String applicationId, UpdateApplicationEntity updateApplicationEntity) {
+    private void syncClientCertificates(
+        ExecutionContext executionContext,
+        String applicationId,
+        UpdateApplicationEntity updateApplicationEntity
+    ) {
         // Handle TLS certificate changes via ClientCertificateCrudService
         List<CreateClientCertificate> incoming = getClientCertificates(
             updateApplicationEntity.getName(),
             updateApplicationEntity.getSettings()
         );
+
+        // Find MTLS subscriptions that end after the certificate that ends the farthest (if any)
+        var maxEndDate = incoming
+            .stream()
+            .map(CreateClientCertificate::endsAt)
+            .map(Optional::ofNullable)
+            .mapToLong(end -> end.map(Date::getTime).orElse(Long.MAX_VALUE))
+            .max();
+        if (maxEndDate.isPresent()) {
+            // Queries active MTLS subscriptions ending after the latest certificate
+            var subscriptionEndingTooLate = subscriptionService.search(
+                executionContext,
+                SubscriptionQuery.builder()
+                    .applications(Set.of(applicationId))
+                    .planSecurityTypes(Set.of(Plan.PlanSecurityType.MTLS.name()))
+                    .endingAtAfter(maxEndDate.getAsLong())
+                    .statuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PENDING, SubscriptionStatus.PAUSED))
+                    .build()
+            );
+            if (!subscriptionEndingTooLate.isEmpty()) {
+                throw new SubscriptionEndsAfterClientCertificateException();
+            }
+        }
 
         // Get all currently active certificates, sorted by creation date desc
         var existing = clientCertificateCrudService
@@ -738,7 +767,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
         }
 
-        // Delete certificates that are no longer in incoming list
+        // Delete certificates that are no longer in the incoming list
         for (ClientCertificate existingCert : existing) {
             if (!incomingCertificates.contains(existingCert.certificate())) {
                 clientCertificateCrudService.delete(existingCert.id());
@@ -1403,7 +1432,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     ClientCertificateStatus.ACTIVE_WITH_END
                 )
                 .stream()
-                .sorted(Comparator.comparing(ClientCertificate::createdAt))
+                .sorted(Comparator.comparing(ClientCertificate::createdAt).reversed())
                 .toList();
             if (!list.isEmpty()) {
                 settings.setTls(
