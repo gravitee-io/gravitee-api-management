@@ -1,0 +1,1 @@
+(self.webpackChunkapp_beta=self.webpackChunkapp_beta||[]).push([[789],{9789:(E,p,_)=>{_.r(p);var a=_(6425),o=_(5074),r=_(2247);(0,a.bootstrapApplication)(r.b,o.U).catch(t=>console.error(t))}}]);

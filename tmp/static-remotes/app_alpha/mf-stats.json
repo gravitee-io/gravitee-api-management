@@ -1,0 +1,146 @@
+{
+  "id": "app_alpha",
+  "name": "app_alpha",
+  "metaData": {
+    "name": "app_alpha",
+    "type": "app",
+    "buildInfo": {
+      "buildVersion": "local"
+    },
+    "remoteEntry": {
+      "name": "remoteEntry.js",
+      "path": "",
+      "type": "global"
+    },
+    "types": {
+      "path": "",
+      "name": "",
+      "zip": "",
+      "api": ""
+    },
+    "globalName": "app_alpha",
+    "pluginVersion": "0.18.4",
+    "prefetchInterface": false,
+    "publicPath": "auto"
+  },
+  "shared": [
+    {
+      "singleton": true,
+      "requiredVersion": "^19.2.4",
+      "shareScope": "default",
+      "strictVersion": true,
+      "name": "react-dom/client",
+      "version": "19.2.4",
+      "eager": false,
+      "id": "app_alpha:react-dom/client",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "node_modules_react-dom_client_js.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      },
+      "usedIn": []
+    },
+    {
+      "singleton": true,
+      "requiredVersion": "^19.2.4",
+      "shareScope": "default",
+      "strictVersion": true,
+      "eager": true,
+      "name": "react-dom",
+      "version": "19.2.4",
+      "id": "app_alpha:react-dom",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "remoteEntry.js",
+            "main.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      },
+      "usedIn": []
+    },
+    {
+      "singleton": true,
+      "requiredVersion": "^19.2.4",
+      "shareScope": "default",
+      "strictVersion": true,
+      "name": "react/jsx-dev-runtime",
+      "version": "19.2.4",
+      "eager": false,
+      "id": "app_alpha:react/jsx-dev-runtime",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "node_modules_react_jsx-dev-runtime_js.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      },
+      "usedIn": []
+    },
+    {
+      "singleton": true,
+      "requiredVersion": "^19.2.4",
+      "shareScope": "default",
+      "strictVersion": true,
+      "eager": true,
+      "name": "react",
+      "version": "19.2.4",
+      "id": "app_alpha:react",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "remoteEntry.js",
+            "main.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      },
+      "usedIn": []
+    }
+  ],
+  "remotes": [],
+  "exposes": [
+    {
+      "path": "./Module",
+      "id": "app_alpha:Module",
+      "name": "Module",
+      "requires": [],
+      "file": "src/remote-entry.ts",
+      "assets": {
+        "js": {
+          "sync": [
+            "__federation_expose_Module.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [
+            "__federation_expose_Module.css"
+          ],
+          "async": []
+        }
+      }
+    }
+  ]
+}

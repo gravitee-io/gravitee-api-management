@@ -1,0 +1,22 @@
+{
+    "name": "app_alpha",
+    "$schema": "../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "app_alpha/src",
+    "projectType": "application",
+    "tags": [],
+    "targets": {
+        "test": {
+            "executor": "@nx/jest:jest",
+            "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+            "options": {
+                "jestConfig": "app_alpha/jest.config.ts"
+            }
+        },
+        "serve": {
+            "options": {
+                "port": 4201
+            },
+            "dependsOn": ["gravitee-gamma:serve"]
+        }
+    }
+}
