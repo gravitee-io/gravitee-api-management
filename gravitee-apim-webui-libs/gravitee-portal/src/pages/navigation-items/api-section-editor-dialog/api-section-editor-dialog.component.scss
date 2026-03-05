@@ -1,0 +1,62 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use 'sass:map';
+
+$typography: map.get(gio.$mat-theme, typography);
+
+.title {
+  @include mat.m2-typography-level($typography, headline-6);
+}
+
+mat-dialog-content {
+  display: flex;
+  flex-flow: column;
+  gap: 8px;
+}
+
+.api-search-description-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 0 8px;
+}
+
+.selected-panel__title {
+  color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, darker80);
+  @include mat.m2-typography-level($typography, subtitle-2);
+}
+
+.selected-panel__empty {
+  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker80');
+  @include mat.m2-typography-level($typography, body-2);
+}
+
+.api-search-description {
+  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker80');
+  @include mat.m2-typography-level($typography, caption);
+}
+
+.disabled {
+  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker40');
+}
+
+.disabled-row {
+  opacity: 0.7;
+}
+
+.selected-panel {
+  &__badge {
+    min-width: 26px;
+    padding: 4px 8px;
+    margin-right: 8px;
+    border-radius: 16px;
+    background: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default');
+    color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
+    @include gio.caption-2();
+    text-align: center;
+
+    &--zero {
+      background: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default');
+    }
+  }
+}
