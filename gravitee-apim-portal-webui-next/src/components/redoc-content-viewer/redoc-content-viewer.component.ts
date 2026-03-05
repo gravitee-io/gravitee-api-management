@@ -17,7 +17,14 @@ import { Component, DestroyRef, effect, ElementRef, inject, input } from '@angul
 
 import { RedocService } from '../../services/redoc.service';
 
-const REDOC_OPTIONS = {
+/**
+ * Delay in milliseconds before initializing Redoc.
+ * Set to 0 to defer initialization to the next event loop tick,
+ * ensuring the DOM container is available.
+ */
+const RENDER_DELAY_MS = 0;
+
+const DEFAULT_REDOC_OPTIONS = {
   hideDownloadButton: false,
   theme: {
     breakpoints: {
@@ -37,23 +44,13 @@ export class RedocContentViewerComponent {
   content = input.required<string>();
 
   private readonly destroyRef = inject(DestroyRef);
-  private pendingTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly redocService = inject(RedocService);
+  private pendingTimeoutId: number | null = null;
 
-  constructor(
-    private element: ElementRef,
-    private redocService: RedocService,
-  ) {
+  constructor() {
     effect(onCleanup => {
-      const spec = this.content();
-      this.pendingTimeoutId = setTimeout(() => {
-        this.pendingTimeoutId = null;
-        const redocElement = this.element.nativeElement?.querySelector('#redoc') as HTMLElement | null;
-        if (redocElement && spec) {
-          redocElement.innerHTML = '';
-          this.redocService.init(spec, REDOC_OPTIONS, redocElement);
-        }
-      }, 0);
-
+      this.scheduleRedocInit(this.content());
       onCleanup(() => {
         if (this.pendingTimeoutId !== null) {
           clearTimeout(this.pendingTimeoutId);
@@ -68,5 +65,20 @@ export class RedocContentViewerComponent {
         redocElement.innerHTML = '';
       }
     });
+  }
+
+  /**
+   * Schedules Redoc initialization after the next tick so the #redoc container is in the DOM.
+   * The innerHTML is cleared before initialization to ensure a clean render state.
+   */
+  private scheduleRedocInit(spec: string): void {
+    this.pendingTimeoutId = window.setTimeout(() => {
+      this.pendingTimeoutId = null;
+      const redocElement = this.element.nativeElement?.querySelector('#redoc') as HTMLElement | null;
+      if (redocElement && spec) {
+        redocElement.innerHTML = '';
+        this.redocService.init(spec, DEFAULT_REDOC_OPTIONS, redocElement);
+      }
+    }, RENDER_DELAY_MS);
   }
 }

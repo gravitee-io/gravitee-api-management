@@ -15,6 +15,7 @@
  */
 @use '../../scss/theme' as theme;
 
+// Full width so Redoc viewer can use full width; GMD content is still constrained by gmd-viewer max-width below.
 :host {
   display: block;
   width: 100%;
