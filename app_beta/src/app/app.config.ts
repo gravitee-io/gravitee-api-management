@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { appRoutes } from './app.routes';
+import { provideHttpClient } from '@angular/common/http';
 
 export const appConfig: ApplicationConfig = {
     providers: [
@@ -11,5 +12,6 @@ export const appConfig: ApplicationConfig = {
         provideRouter(appRoutes),
         provideAnimationsAsync(),
         importProvidersFrom(GioIconsModule),
+        provideHttpClient(),
     ],
 };
