@@ -93,6 +93,16 @@ public class RoleQueryServiceInMemory implements RoleQueryService, InMemoryAlter
     }
 
     @Override
+    public Set<Role> findByScope(Role.Scope scope, String organizationId) {
+        return storage
+            .stream()
+            .filter(role -> role.getScope().equals(scope))
+            .filter(role -> role.getReferenceType().equals(Role.ReferenceType.ORGANIZATION))
+            .filter(role -> role.getReferenceId().equals(organizationId))
+            .collect(Collectors.toSet());
+    }
+
+    @Override
     public Set<Role> findByIds(Set<String> ids) {
         if (Objects.isNull(ids) || ids.isEmpty()) {
             return Set.of();

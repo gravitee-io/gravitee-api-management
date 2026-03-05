@@ -38,6 +38,8 @@ import io.gravitee.rest.api.service.configuration.application.ApplicationTypeSer
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,6 +53,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author GraviteeSource Team
  */
 public class ConfigurationResource extends AbstractResource {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Autowired
     private ConfigService configService;
@@ -248,6 +253,11 @@ public class ConfigurationResource extends AbstractResource {
                     .collect(Collectors.toList())
             )
         ).build();
+    }
+
+    @Path("applications/rolesV2")
+    public ApplicationRolesResourceV2 getApplicationRolesResourceV2() {
+        return resourceContext.getResource(ApplicationRolesResourceV2.class);
     }
 
     private ConfigurationApplicationTypesResponse convert(ApplicationTypesEntity enabledApplicationTypes) {

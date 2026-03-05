@@ -27,6 +27,7 @@ public interface RoleQueryService {
     Optional<Role> findIntegrationRole(String name, ReferenceContext referenceContext);
     Optional<Role> findApiProductRole(String name, ReferenceContext referenceContext);
     Optional<Role> findByScopeAndNameAndOrganizationId(Role.Scope scope, String name, String organizationId);
+    Set<Role> findByScope(Role.Scope scope, String organizationId);
     Set<Role> findByIds(Set<String> ids);
     Optional<Role> findByScopeAndName(Role.Scope scope, String name, String organizationId);
 

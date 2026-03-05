@@ -3,10 +3,9 @@
 ## Phase & Story Checklist
 
 ### Phase 1: View Members
-
-- 1.0 - BE: Define Application Members V2 Portal API Contract
-- 1.1 - BE: List Application Members (UseCase)
-- 1.2 - BE: List Application Roles (UseCase)
+- ✅ 1.0 - BE: Define Application Members V2 Portal API Contract
+- ✅ 1.1 - BE: List Application Members (UseCase)
+- ✅ 1.2 - BE: List Application Roles (UseCase)
 - ✅ 1.3 - FE: Members Tab & Routing
 - ✅ 1.4 - FE: Members Table
 - ✅ 1.5 - FE: Extend Paginated Table for Custom Action Cells
@@ -44,6 +43,9 @@
 
 ## Summary of Completed Work
 
+- **Story 1.0 (BE: Define Application Members V2 Portal API Contract)** — Added V2 contract paths and schemas in portal OpenAPI, including `/applications/{applicationId}/membersV2*` family and `/configuration/applications/rolesV2`.
+- **Story 1.1 (BE: List Application Members (UseCase))** — Added members V2 use case/resource flow and mapper in Onion style, wired under application sub-resource, and covered with use case + REST tests.
+- **Story 1.2 (BE: List Application Roles (UseCase))** — Added `GetApplicationRolesUseCase`, extended `RoleQueryService` with `findByScope`, implemented new `/configuration/applications/rolesV2` resource, and added use case + REST tests.
 - **Story 1.3 (FE: Members Tab & Routing)** — Application tab members shell component, route `members` under `:applicationId`, Members tab link in application nav (gated by `MEMBER` read permission), component spec. Aligned with portal-next design system (theme SCSS, m3 typography) and Angular rules (signal inputs, standalone).
 - **Story 1.4 (FE: Members Table)** — `ApplicationMembersService` (list endpoint), `MemberV2`/`MembersV2Response` entity types + fixtures, full table component with `rxResource`, search bar, header with "Transfer Ownership" + "Add Members" dropdown (User Search / Email Invitation with descriptions), `app-paginated-table`, empty states, permission-gated "Add Members" button. Service spec (3 tests) + component spec (14 tests).
 - **Story 1.5 (FE: Extend Paginated Table for Custom Action Cells)** — Added `actions` column type to `TableColumn` with `ActionButton[]`, `actionClick` output with `TableActionEvent`, edit/delete icon buttons per row. Members table wired with Actions column. Post-story refinements: `rowLink`/`showExpandColumn` inputs (members: no chevron, no row click), actions column right-aligned. Paginated-table spec (12 tests). 65+ tests pass.

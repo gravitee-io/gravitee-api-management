@@ -143,6 +143,19 @@ public class RoleQueryServiceImpl implements RoleQueryService {
     }
 
     @Override
+    public Set<Role> findByScope(Role.Scope scope, String organizationId) {
+        try {
+            return roleRepository
+                .findByScopeAndReferenceIdAndReferenceType(RoleScope.valueOf(scope.name()), organizationId, RoleReferenceType.ORGANIZATION)
+                .stream()
+                .map(RoleAdapter.INSTANCE::toEntity)
+                .collect(Collectors.toSet());
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find " + scope.name() + " roles", e);
+        }
+    }
+
+    @Override
     public Set<Role> findByIds(Set<String> ids) {
         if (Objects.isNull(ids) || ids.isEmpty()) {
             return Set.of();
