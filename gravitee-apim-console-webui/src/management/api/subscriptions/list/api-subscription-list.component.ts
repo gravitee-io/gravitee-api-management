@@ -22,7 +22,12 @@ import { MatDialog } from '@angular/material/dialog';
 import { AutocompleteOptions } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { SubscriptionStatus } from '../../../../entities/subscription/subscription';
+import {
+  DEFAULT_SUBSCRIPTION_FILTER_STATUSES,
+  SubscriptionsTableDS,
+  SUBSCRIPTION_STATUS_DISPLAY,
+  SubscriptionStatus,
+} from '../../../../entities/subscription/subscription';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { ApiSubscriptionV2Service } from '../../../../services-ngx/api-subscription-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
@@ -36,20 +41,6 @@ import {
   ApiPortalSubscriptionCreationDialogResult,
 } from '../components/dialogs/creation/api-portal-subscription-creation-dialog.component';
 import { ApplicationService } from '../../../../services-ngx/application.service';
-
-type SubscriptionsTableDS = {
-  id: string;
-  securityType: string;
-  isSharedApiKey: boolean;
-  plan: string;
-  application: string;
-  createdAt: Date;
-  processedAt: Date;
-  startingAt: Date;
-  endAt: Date;
-  status: string;
-  statusBadge: string;
-};
 
 @Component({
   selector: 'api-subscription-list',
@@ -65,14 +56,7 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
   public filtersForm: UntypedFormGroup;
 
   public plans: Plan[] = [];
-  public statuses: { id: SubscriptionStatus; name: string; badge: string }[] = [
-    { id: 'ACCEPTED', name: 'Accepted', badge: 'success' },
-    { id: 'CLOSED', name: 'Closed', badge: 'neutral' },
-    { id: 'PAUSED', name: 'Paused', badge: 'accent' },
-    { id: 'PENDING', name: 'Pending', badge: 'warning' },
-    { id: 'REJECTED', name: 'Rejected', badge: 'warning' },
-    { id: 'RESUMED', name: 'Resumed', badge: 'neutral' },
-  ];
+  public statuses = SUBSCRIPTION_STATUS_DISPLAY;
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
@@ -93,7 +77,7 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
     subscriptionsFilters: {
       planIds: null,
       applicationIds: null,
-      statuses: ['ACCEPTED', 'PAUSED', 'PENDING'],
+      statuses: DEFAULT_SUBSCRIPTION_FILTER_STATUSES,
       apiKey: undefined,
     },
   });
@@ -315,7 +299,7 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
       : null;
     const initialStatuses = this.activatedRoute.snapshot.queryParams?.status
       ? this.activatedRoute.snapshot.queryParams.status.split(',')
-      : ['ACCEPTED', 'PAUSED', 'PENDING'];
+      : DEFAULT_SUBSCRIPTION_FILTER_STATUSES;
     const initialApiKey = this.activatedRoute.snapshot.queryParams?.apiKey ? this.activatedRoute.snapshot.queryParams.apiKey : undefined;
 
     this.filtersForm = new UntypedFormGroup({
@@ -348,7 +332,7 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
       subscriptionsFilters: {
         planIds: null,
         applicationIds: null,
-        statuses: ['ACCEPTED', 'PAUSED', 'PENDING'],
+        statuses: DEFAULT_SUBSCRIPTION_FILTER_STATUSES,
         apiKey: undefined,
       },
     });
