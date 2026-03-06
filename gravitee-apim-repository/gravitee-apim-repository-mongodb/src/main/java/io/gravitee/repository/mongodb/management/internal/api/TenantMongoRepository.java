@@ -29,7 +29,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface TenantMongoRepository extends MongoRepository<TenantMongo, String> {
-    Optional<TenantMongo> findByIdAndReferenceIdAndReferenceType(String tenantId, String referenceId, TenantReferenceType referenceType);
+    Optional<TenantMongo> findByKeyAndReferenceIdAndReferenceType(String tenant, String referenceId, TenantReferenceType referenceType);
 
     List<TenantMongo> findByReferenceIdAndReferenceType(String referenceId, TenantReferenceType referenceType);
 

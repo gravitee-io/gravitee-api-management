@@ -29,7 +29,7 @@ import java.util.Set;
 public interface TenantRepository extends CrudRepository<Tenant, String> {
     Set<Tenant> findByReference(String referenceId, TenantReferenceType referenceType) throws TechnicalException;
 
-    Optional<Tenant> findByIdAndReference(String tenantId, String referenceId, TenantReferenceType referenceType) throws TechnicalException;
+    Optional<Tenant> findByKeyAndReference(String tenant, String referenceId, TenantReferenceType referenceType) throws TechnicalException;
 
     /**
      * Delete tenants by reference
