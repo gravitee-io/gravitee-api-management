@@ -51,6 +51,16 @@ export default {
                     input: '../node_modules/@gravitee/ui-particles-angular/assets',
                     output: 'assets/',
                 },
+                {
+                    glob: '**/*',
+                    input: '../node_modules/monaco-editor',
+                    output: 'assets/monaco-editor',
+                },
+                {
+                    glob: '**/*',
+                    input: '../gravitee-apim-webui-libs/gravitee-markdown/src/lib/assets/homepage',
+                    output: 'assets/homepage',
+                },
             ],
             styles: ['./src/styles.css'],
             outputHashing: process.env['NODE_ENV'] === 'production' ? 'all' : 'none',

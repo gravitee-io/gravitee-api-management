@@ -60,5 +60,5 @@ export function PortalHomepageRemote() {
         };
     }, []);
 
-    return <div ref={mountRef} className="flex-1 p-6" />;
+    return <div ref={mountRef} className="flex-1" />;
 }

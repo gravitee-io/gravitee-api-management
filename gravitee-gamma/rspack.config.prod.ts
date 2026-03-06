@@ -55,7 +55,20 @@ export default {
             main: './src/main.ts',
             index: './src/index.html',
             baseHref: '/',
-            assets: ['./src/favicon.ico', './src/assets'],
+            assets: [
+                './src/favicon.ico',
+                './src/assets',
+                {
+                    glob: '**/*',
+                    input: '../node_modules/monaco-editor',
+                    output: 'assets/monaco-editor',
+                },
+                {
+                    glob: '**/*',
+                    input: '../gravitee-apim-webui-libs/gravitee-markdown/src/lib/assets/homepage',
+                    output: 'assets/homepage',
+                },
+            ],
             styles: ['./src/styles.css'],
             outputHashing: process.env['NODE_ENV'] === 'production' ? 'all' : 'none',
             optimization: process.env['NODE_ENV'] === 'production',

@@ -78,6 +78,8 @@ export class MonacoEditorService {
         return;
       }
 
+      const loaderSrc = 'assets/monaco-editor/min/vs/loader.js';
+
       const onGotAmdLoader = () => {
         const baseUrl = this.config.baseUrl || (window.location.origin + window.location.pathname).replace(/\/$/, '');
         // Load Monaco
@@ -92,15 +94,30 @@ export class MonacoEditorService {
         });
       };
 
-      // Load AMD loader if necessary
-      if (!window.require) {
-        const loaderScript = document.createElement('script');
-        loaderScript.type = 'text/javascript';
-        loaderScript.src = 'assets/monaco-editor/min/vs/loader.js';
-        loaderScript.addEventListener('load', onGotAmdLoader);
-        document.body.appendChild(loaderScript);
-      } else {
+      // Load AMD loader if necessary (avoid adding a second script tag to prevent _amdLoaderGlobal redeclaration)
+      if (window.require) {
         onGotAmdLoader();
+      } else {
+        const existingLoader = document.querySelector(`script[src="${loaderSrc}"], script[src*="monaco-editor"][src*="loader.js"]`) as HTMLScriptElement | null;
+        if (existingLoader) {
+          if (existingLoader.getAttribute('data-monaco-loaded') === 'true' || (existingLoader.readyState && existingLoader.readyState !== 'loading')) {
+            onGotAmdLoader();
+          } else {
+            existingLoader.addEventListener('load', () => {
+              existingLoader.setAttribute('data-monaco-loaded', 'true');
+              onGotAmdLoader();
+            });
+          }
+        } else {
+          const loaderScript = document.createElement('script');
+          loaderScript.type = 'text/javascript';
+          loaderScript.src = loaderSrc;
+          loaderScript.addEventListener('load', () => {
+            loaderScript.setAttribute('data-monaco-loaded', 'true');
+            onGotAmdLoader();
+          });
+          document.body.appendChild(loaderScript);
+        }
       }
     });
   }
