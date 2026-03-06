@@ -26,10 +26,19 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { DashboardService } from '../../data-access/dashboard.service';
 import { DashboardViewerComponent } from '../ui/dashboard-viewer/dashboard-viewer.component';
+import { GioHeaderComponent } from '../../../../shared/components/gio-header/gio-header.component';
 
 @Component({
   selector: 'dashboard-detail',
-  imports: [DashboardViewerComponent, GioActionMenuComponent, GioActionMenuItemComponent, MatDivider, MatTooltip, GioPermissionModule],
+  imports: [
+    DashboardViewerComponent,
+    GioActionMenuComponent,
+    GioActionMenuItemComponent,
+    MatDivider,
+    MatTooltip,
+    GioPermissionModule,
+    GioHeaderComponent,
+  ],
   templateUrl: './dashboard-detail.component.html',
   styleUrls: ['./dashboard-detail.component.scss'],
 })

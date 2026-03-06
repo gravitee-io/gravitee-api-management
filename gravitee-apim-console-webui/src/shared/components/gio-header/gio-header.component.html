@@ -15,6 +15,16 @@
     limitations under the License.
 
 -->
-
-<gio-header title="Overview" subtitle="Get a quick overview of what's happening across your platform." />
-<dashboard-viewer [widgets]="widgets"></dashboard-viewer>
+<div class="gio-header">
+  <div class="gio-header__content">
+    <div>
+      <h1>{{ title() }}</h1>
+      @if (subtitle()) {
+        <div class="gio-header__subtitle mat-body-2">{{ subtitle() }}</div>
+      }
+    </div>
+    @if (showActions()) {
+      <ng-content select="[additionalActions]" />
+    }
+  </div>
+</div>

@@ -5,20 +5,9 @@
 $error-color: mat.m2-get-color-from-palette(gio.$mat-error-palette, default);
 
 :host {
-  @include gio-layout.gio-responsive-content-container;
   display: flex;
   flex-direction: column;
-}
-
-.title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-
-  h1 {
-    margin: 0;
-  }
+  @include gio-layout.gio-responsive-content-container;
 }
 
 ::ng-deep .delete-action {

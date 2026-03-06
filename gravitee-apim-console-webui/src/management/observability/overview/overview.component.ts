@@ -16,16 +16,14 @@
 import { Widget } from '@gravitee/gravitee-dashboard';
 
 import { Component, inject } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { DashboardService } from '../data-access/dashboard.service';
 import { DashboardViewerComponent } from '../dashboards/ui/dashboard-viewer/dashboard-viewer.component';
+import { GioHeaderComponent } from '../../../shared/components/gio-header/gio-header.component';
 
 @Component({
   selector: 'overview',
-  imports: [DashboardViewerComponent, RouterModule, MatIconModule, GioIconsModule],
+  imports: [DashboardViewerComponent, GioHeaderComponent],
   templateUrl: './overview.component.html',
   styleUrl: './overview.component.scss',
 })

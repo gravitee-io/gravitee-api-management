@@ -53,6 +53,7 @@ import { DashboardService } from '../../data-access/dashboard.service';
 import { PagedResult } from '../../../../entities/management-api-v2';
 import { UsersService } from '../../../../services-ngx/users.service';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { GioHeaderComponent } from '../../../../shared/components/gio-header/gio-header.component';
 
 @Component({
   selector: 'dashboards-list',
@@ -82,6 +83,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatTooltip,
     RouterLink,
     GioPermissionModule,
+    GioHeaderComponent,
   ],
   templateUrl: './dashboards-list.component.html',
   styleUrls: ['./dashboards-list.component.scss'],
