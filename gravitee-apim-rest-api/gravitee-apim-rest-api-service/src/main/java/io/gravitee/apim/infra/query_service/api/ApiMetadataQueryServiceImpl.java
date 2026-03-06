@@ -23,8 +23,6 @@ import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.model.MetadataReferenceType;
-import io.gravitee.rest.api.model.MetadataFormat;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.*;
 import java.util.function.Function;
@@ -79,6 +77,58 @@ public class ApiMetadataQueryServiceImpl implements ApiMetadataQueryService {
             return apiMetadata;
         } catch (TechnicalException e) {
             log.error("An error occurs while trying to find metadata for an API [apiId={}]", apiId, e);
+            throw new TechnicalManagementException(e);
+        }
+    }
+
+    @Override
+    public Map<String, Map<String, ApiMetadata>> findApisMetadata(final String environmentId, final Set<String> apiIds) {
+        if (apiIds == null || apiIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        try {
+            Map<String, ApiMetadata> environmentMetadata = metadataRepository
+                .findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, environmentId)
+                .stream()
+                .map(m ->
+                    ApiMetadata.builder()
+                        .key(m.getKey())
+                        .defaultValue(m.getValue())
+                        .name(m.getName())
+                        .format(Metadata.MetadataFormat.valueOf(m.getFormat().name()))
+                        .build()
+                )
+                .collect(toMap(ApiMetadata::getKey, Function.identity()));
+
+            Map<String, Map<String, ApiMetadata>> result = new HashMap<>();
+            apiIds.forEach(apiId -> result.put(apiId, new HashMap<>(environmentMetadata)));
+            metadataRepository
+                .findByReferenceType(MetadataReferenceType.API)
+                .stream()
+                .filter(m -> apiIds.contains(m.getReferenceId()))
+                .forEach(m -> {
+                    String apiId = m.getReferenceId();
+                    Map<String, ApiMetadata> apiMetadataMap = result.get(apiId);
+                    if (apiMetadataMap != null) {
+                        apiMetadataMap.compute(m.getKey(), (key, existing) ->
+                            Optional.ofNullable(existing)
+                                .map(value -> value.toBuilder().apiId(apiId).name(m.getName()).value(m.getValue()).build())
+                                .orElse(
+                                    ApiMetadata.builder()
+                                        .apiId(apiId)
+                                        .key(m.getKey())
+                                        .value(m.getValue())
+                                        .name(m.getName())
+                                        .format(Metadata.MetadataFormat.valueOf(m.getFormat().name()))
+                                        .build()
+                                )
+                        );
+                    }
+                });
+
+            return result;
+        } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }
     }
