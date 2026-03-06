@@ -133,6 +133,11 @@ public class ApiProductResource extends AbstractResource {
         return Response.ok(output.apiProduct()).build();
     }
 
+    @Path("/apis")
+    public ApiProductApisResource getApiProductApisResource() {
+        return resourceContext.getResource(ApiProductApisResource.class);
+    }
+
     @Path("/members")
     public ApiProductMembersResource getApiProductMembersResource() {
         return resourceContext.getResource(ApiProductMembersResource.class);
