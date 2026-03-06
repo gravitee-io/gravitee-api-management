@@ -33,8 +33,8 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class GroupInvitationsResourceTest extends AbstractResourceTest {
@@ -49,7 +49,7 @@ public class GroupInvitationsResourceTest extends AbstractResourceTest {
         return "configuration/groups/b72c4ad7-10aa-4331-ac4a-d710aad331ab/invitations/";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         group = new GroupEntity();
         group.setId("b72c4ad7-10aa-4331-ac4a-d710aad331ab");

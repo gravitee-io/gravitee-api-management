@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource.auth.jwt.jwks;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.nimbusds.jose.proc.SecurityContext;
 import io.gravitee.rest.api.management.rest.resource.auth.jwt.exceptions.InvalidKeyException;
@@ -28,7 +29,7 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -51,22 +52,24 @@ public class ECJWKSourceResolverTest {
         assertNotNull(sourceResolver.resolve());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void shouldNotResolveInvalidPublicKey() throws NoSuchAlgorithmException {
         KeyPair keyPair = generateKeyPair();
 
         sourceResolver = new ECJWKSourceResolver<>(() ->
             Base64.getEncoder().withoutPadding().encodeToString(keyPair.getPublic().getEncoded())
         );
-        sourceResolver.resolve();
-        fail("Source resolver must fail for wrong public keys");
+        assertThrows(IllegalArgumentException.class, () -> {
+            sourceResolver.resolve();
+        });
     }
 
-    @Test(expected = InvalidKeyException.class)
+    @Test
     public void shouldNotResolveNullPublicKey() {
         sourceResolver = new ECJWKSourceResolver<>(() -> null);
-        sourceResolver.resolve();
-        fail("Source resolver must fail for null public keys");
+        assertThrows(InvalidKeyException.class, () -> {
+            sourceResolver.resolve();
+        });
     }
 
     private KeyPair generateKeyPair() throws NoSuchAlgorithmException {

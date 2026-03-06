@@ -60,19 +60,21 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.security.Principal;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { ResourceContextConfiguration.class })
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
@@ -316,7 +318,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected SpecGenRequestUseCase specGenRequestUseCase;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         when(
             permissionService.hasPermission(

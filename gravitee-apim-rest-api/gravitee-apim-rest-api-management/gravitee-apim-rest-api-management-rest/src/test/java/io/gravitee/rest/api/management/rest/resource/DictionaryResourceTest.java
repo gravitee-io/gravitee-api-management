@@ -27,7 +27,7 @@ import io.gravitee.rest.api.model.configuration.dictionary.DictionaryType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.Date;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DictionaryResourceTest extends AbstractResourceTest {
 

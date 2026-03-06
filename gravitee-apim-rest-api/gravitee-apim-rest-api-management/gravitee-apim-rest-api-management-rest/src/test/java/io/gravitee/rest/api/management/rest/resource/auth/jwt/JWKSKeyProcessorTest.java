@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource.auth.jwt;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -36,8 +36,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -46,7 +45,6 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 
-@RunWith(MockitoJUnitRunner.class)
 public class JWKSKeyProcessorTest extends AbstractKeyProcessorTest {
 
     private JWKSKeyProcessor<SecurityContext> keyProcessor;
@@ -66,15 +64,16 @@ public class JWKSKeyProcessorTest extends AbstractKeyProcessorTest {
         assertNotNull(process);
     }
 
-    @Test(expected = InvalidTokenException.class)
+    @Test
     public void shouldNotProcessValidRSATokenWithoutRightKey() throws NoSuchAlgorithmException, JOSEException {
         KeyPair keyPair = getRsaKeyPair();
         String token = generateRSAToken(keyPair);
         keyProcessor = new JWKSKeyProcessor<>(claimsVerifier);
         keyProcessor.setJwkSourceResolver(sourceResolver);
         when(sourceResolver.resolve()).thenReturn(new ImmutableJWKSet<>(generateJWKSConfiguration(keyPair, JWSAlgorithm.RS256, EC_KID)));
-        keyProcessor.process(Algorithm.RS256, token);
-        fail("Should not process a token without its corresponding key");
+        assertThrows(InvalidTokenException.class, () -> {
+            keyProcessor.process(Algorithm.RS256, token);
+        });
     }
 
     @Test
@@ -88,15 +87,16 @@ public class JWKSKeyProcessorTest extends AbstractKeyProcessorTest {
         assertNotNull(process);
     }
 
-    @Test(expected = InvalidTokenException.class)
+    @Test
     public void shouldNotProcessValidECTokenWithoutRightKey() throws NoSuchAlgorithmException, JOSEException {
         KeyPair keyPair = getCEKeyPair();
         String token = generateECToken(keyPair);
         keyProcessor = new JWKSKeyProcessor<>(claimsVerifier);
         keyProcessor.setJwkSourceResolver(sourceResolver);
         when(sourceResolver.resolve()).thenReturn(new ImmutableJWKSet<>(generateJWKSConfiguration(keyPair, JWSAlgorithm.ES256, RSA_KID)));
-        keyProcessor.process(Algorithm.ES256, token);
-        fail("Should not process a token without its corresponding key");
+        assertThrows(InvalidTokenException.class, () -> {
+            keyProcessor.process(Algorithm.ES256, token);
+        });
     }
 
     private JWKSet generateJWKSConfiguration(KeyPair keyPair, JWSAlgorithm algorithm, String kid) {

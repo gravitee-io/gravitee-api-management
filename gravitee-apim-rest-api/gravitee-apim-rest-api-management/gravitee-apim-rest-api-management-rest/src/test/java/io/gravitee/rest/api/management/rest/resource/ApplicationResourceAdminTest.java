@@ -25,7 +25,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)

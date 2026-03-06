@@ -63,9 +63,9 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -94,7 +94,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         return "apis/" + API_NAME + "/subscriptions";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(subscriptionService);
         reset(userService);
@@ -131,7 +131,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
         reset(acceptSubscriptionUseCase);

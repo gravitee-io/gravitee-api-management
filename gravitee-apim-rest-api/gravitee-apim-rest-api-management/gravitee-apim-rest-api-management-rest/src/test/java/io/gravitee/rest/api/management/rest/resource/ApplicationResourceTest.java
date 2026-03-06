@@ -32,7 +32,7 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import org.assertj.core.api.SoftAssertions;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ApplicationResourceTest extends AbstractResourceTest {
 

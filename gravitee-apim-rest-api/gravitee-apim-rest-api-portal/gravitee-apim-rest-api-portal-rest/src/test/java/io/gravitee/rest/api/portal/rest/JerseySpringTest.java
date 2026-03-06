@@ -35,8 +35,8 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -72,13 +72,13 @@ public abstract class JerseySpringTest {
         return _jerseyTest.target("/environments/DEFAULT/" + contextPath() + path);
     }
 
-    @BeforeEach
-    public void setup() throws Exception {
+    @BeforeAll
+    public void jerseySetUp() throws Exception {
         _jerseyTest.setUp();
     }
 
-    @AfterEach
-    public void tearDown() throws Exception {
+    @AfterAll
+    public void jerseyTearDown() throws Exception {
         _jerseyTest.tearDown();
     }
 

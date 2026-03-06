@@ -27,8 +27,8 @@ import io.gravitee.rest.api.model.theme.portal.UpdateThemeEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ThemeNotFoundException;
 import jakarta.ws.rs.core.Response;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
@@ -42,7 +42,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
         return "configuration/themes/";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(themeService);
     }

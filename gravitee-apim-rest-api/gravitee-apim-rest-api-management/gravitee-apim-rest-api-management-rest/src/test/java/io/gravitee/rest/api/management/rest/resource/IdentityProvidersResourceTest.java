@@ -31,8 +31,8 @@ import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import javax.inject.Inject;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -52,7 +52,7 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
 
     private License license;
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(identityProviderService);
 

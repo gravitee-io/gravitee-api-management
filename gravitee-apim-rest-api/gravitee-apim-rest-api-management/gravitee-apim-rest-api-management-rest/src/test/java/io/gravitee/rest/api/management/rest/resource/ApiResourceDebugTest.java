@@ -51,9 +51,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -79,14 +79,14 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
         return "apis/";
     }
 
-    @Before
+    @BeforeEach
     public void init() throws Exception {
         GraviteeContext.setCurrentEnvironment("DEFAULT");
         license = mock(License.class);
         when(licenseManager.getPlatformLicense()).thenReturn(license);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         Stream.of(apiCrudServiceInMemory, instanceQueryServiceInMemory).forEach(InMemoryAlternative::reset);
     }

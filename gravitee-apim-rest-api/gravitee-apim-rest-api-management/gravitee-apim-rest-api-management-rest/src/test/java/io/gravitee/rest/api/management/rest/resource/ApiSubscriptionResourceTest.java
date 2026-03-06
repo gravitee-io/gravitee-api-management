@@ -53,8 +53,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -91,7 +91,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         return "apis/" + API_NAME + "/subscriptions/";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(apiKeyService);
         reset(subscriptionService);

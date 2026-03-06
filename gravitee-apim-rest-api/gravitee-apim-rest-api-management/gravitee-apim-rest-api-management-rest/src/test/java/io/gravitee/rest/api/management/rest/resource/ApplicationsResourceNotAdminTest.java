@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 import io.gravitee.common.http.HttpStatusCode;
 import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team

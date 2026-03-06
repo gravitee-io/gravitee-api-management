@@ -31,8 +31,8 @@ import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TicketNotFoundException;
 import jakarta.ws.rs.core.Response;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -51,7 +51,7 @@ public class PlatformTicketsResourceTest extends AbstractResourceTest {
         return "tickets/";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(ticketService);
 

@@ -31,9 +31,9 @@ import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.Map;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -51,14 +51,14 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
         return "apis/";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         Mockito.reset(membershipService);
         GraviteeContext.cleanContext();
         when(apiSearchServiceV4.exists(API)).thenReturn(true);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }

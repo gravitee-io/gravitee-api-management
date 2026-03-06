@@ -34,8 +34,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.Set;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResourceTest {
 
@@ -49,7 +49,7 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
         resourceConfig.register(NotAdminAuthenticationFilter.class);
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(applicationService, apiAuthorizationServiceV4, permissionService);
         when(

@@ -40,8 +40,8 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.mockito.Mockito;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,7 +84,7 @@ public abstract class JerseySpringTest {
         return _jerseyTest.target(baseURL + finalPath);
     }
 
-    @BeforeEach
+    @BeforeAll
     public void jerseySetUp() throws Exception {
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
@@ -92,7 +92,7 @@ public abstract class JerseySpringTest {
         _jerseyTest.setUp();
     }
 
-    @AfterEach
+    @AfterAll
     public void jerseyTearDown() throws Exception {
         _jerseyTest.tearDown();
     }

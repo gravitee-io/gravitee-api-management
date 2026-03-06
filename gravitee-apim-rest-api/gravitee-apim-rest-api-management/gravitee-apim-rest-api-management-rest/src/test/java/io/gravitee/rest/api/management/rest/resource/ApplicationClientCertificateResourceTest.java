@@ -34,8 +34,8 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.Date;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ApplicationClientCertificateResourceTest extends AbstractResourceTest {
 
@@ -47,7 +47,7 @@ public class ApplicationClientCertificateResourceTest extends AbstractResourceTe
         return "applications/" + APPLICATION_ID + "/certificates/" + CERT_ID;
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();

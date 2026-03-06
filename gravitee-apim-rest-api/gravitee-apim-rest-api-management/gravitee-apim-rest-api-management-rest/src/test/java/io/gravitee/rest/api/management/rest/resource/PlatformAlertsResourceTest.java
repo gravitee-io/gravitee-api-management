@@ -31,8 +31,8 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
@@ -44,7 +44,7 @@ public class PlatformAlertsResourceTest extends AbstractResourceTest {
         return "platform/alerts/";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(alertService, alertAnalyticsService);
     }
