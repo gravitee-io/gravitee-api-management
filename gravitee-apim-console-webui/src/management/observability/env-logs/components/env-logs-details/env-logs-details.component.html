@@ -19,12 +19,10 @@
 <div class="logs-details">
   @if (log(); as log) {
     <div class="logs-details__container">
-      <div class="logs-details__header">
-        <a class="back-button" mat-flat-button [routerLink]="['..']" aria-label="Back to logs"
-          ><mat-icon svgIcon="gio:arrow-left"></mat-icon>Back to logs</a
-        >
-        <h1>Log</h1>
-      </div>
+      <a class="back-button" mat-flat-button [routerLink]="['..']" aria-label="Back to logs"
+        ><mat-icon svgIcon="gio:arrow-left"></mat-icon>Back to logs</a
+      >
+      <gio-header title="Log" />
 
       <div class="logs-details__form">
         <div class="logs-details__content">

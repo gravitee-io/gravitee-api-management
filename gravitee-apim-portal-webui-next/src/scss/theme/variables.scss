@@ -28,6 +28,7 @@ $link-icon-color: var(--gio-app-outline-color, #909090);
 // -- Theme Color Palette calculated by a theme service --
 $background-color: var(--gio-app-background-color, #f7f8fd);
 $primary-main-color: var(--gio-app-primary-main-color);
+$primary-main-color-fallback: #32329f;
 $secondary-main-color: var(--gio-app-secondary-main-color);
 $tertiary-main-color: var(--gio-app-tertiary-main-color);
 $error-main-color: var(--gio-app-error-main-color);
@@ -37,6 +38,10 @@ $container-shape: 8px;
 
 // Dimensions
 $inner-content-width: 1440px;
+
+// -- Redoc (OpenAPI viewer) --
+$redoc-breakpoint-medium: 50rem;
+$redoc-breakpoint-large: 75rem;
 
 // -- Borders --
 $border-color: var(--gio-app-outline-color, #c7c7c7);

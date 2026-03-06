@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Router, ActivatedRoute } from '@angular/router';
 import { catchError, EMPTY, filter, map, of, switchMap } from 'rxjs';
@@ -43,7 +43,6 @@ const API_PRODUCT_PLAN_TYPES = ['API_KEY', 'JWT', 'MTLS'] as const;
   templateUrl: './api-product-plan-list.component.html',
   styleUrls: ['./api-product-plan-list.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [PlanListComponent],
 })
 export class ApiProductPlanListComponent {
@@ -213,7 +212,7 @@ export class ApiProductPlanListComponent {
         width: '500px',
         data: {
           title: 'Deprecate plan',
-          content: `A deprecated plan is no longer available on the Developer Portal and new subscriptions to the plan cannot be created. Existing subscriptions are maintained.<br /><br />Are you sure you want to deprecate the plan: ${plan.name}?`,
+          content: `A deprecated plan can no longer be used for new subscriptions. Existing subscriptions are maintained.<br /><br />Are you sure you want to deprecate the plan: ${plan.name}?`,
           confirmButton: 'Deprecate',
         },
         role: 'alertdialog',

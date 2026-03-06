@@ -124,6 +124,11 @@
           <dd data-testId="subscription-domain">
             {{ subscription.domain || '-' }}
           </dd>
+
+          <dt>Metadata</dt>
+          <dd class="subscription__metadata-cell" data-testId="subscription-metadata">
+            <subscription-metadata-viewer [metadata]="subscription.metadata" />
+          </dd>
         </dl>
       </mat-card-content>
       <mat-card-actions>

@@ -32,6 +32,7 @@ import { EnvironmentLogsService, EnvironmentApiLog, SearchLogsParam } from '../.
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTableWrapperPagination } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { Pagination } from '../../../entities/management-api-v2';
+import { GioHeaderComponent } from '../../../shared/components/gio-header/gio-header.component';
 
 /** Gravitee's built-in sentinel ID for unauthenticated / Keyless traffic. */
 const UNKNOWN_APPLICATION_ID = '1';
@@ -41,7 +42,7 @@ const UNKNOWN_APPLICATION_LABEL = 'Default application';
   selector: 'env-logs',
   templateUrl: './env-logs.component.html',
   styleUrl: './env-logs.component.scss',
-  imports: [EnvLogsTableComponent, EnvLogsFilterBarComponent, MatCardModule, GioBannerModule, DatePipe],
+  imports: [EnvLogsTableComponent, EnvLogsFilterBarComponent, MatCardModule, GioBannerModule, DatePipe, GioHeaderComponent],
   providers: [DatePipe],
   standalone: true,
 })

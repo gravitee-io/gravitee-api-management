@@ -32,6 +32,7 @@ import { TimeRangeParams } from '../../../../shared/utils/timeFrameRanges';
 import { AnalyticsStatsResponse } from '../../../../entities/management-api-v2/analytics/analyticsStats';
 import { EsFilter, toQuery } from '../../../../shared/utils/esQuery';
 import { MultiStatsWidgetData } from '../../../../shared/components/analytics-multi-stats/analytics-multi-stats.component';
+import { SUB_MILLISECOND_LABEL } from '../../../../shared/components/analytics-stats/analytics-stats.component';
 
 // Interface expected from component that transforms query params to UrlParamsData
 export interface ApiAnalyticsWidgetUrlParamsData {
@@ -168,16 +169,22 @@ export class ApiAnalyticsWidgetService {
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
   ): ApiAnalyticsWidgetConfig {
     const statsValue = widgetConfig.statsKey ? statsResponse[widgetConfig.statsKey] : undefined;
-    if (statsValue == null || statsValue === 0) {
+    if (statsValue == null) {
       return this.createEmptyConfig(widgetConfig);
     }
+
+    const isSubMillisecondMin = statsValue === 0 && widgetConfig.statsKey === 'min' && widgetConfig.statsUnit === 'ms';
 
     return {
       title: widgetConfig.title,
       tooltip: widgetConfig.tooltip,
       state: 'success',
       widgetType: 'stats' as const,
-      widgetData: { stats: statsValue, statsUnit: widgetConfig.statsUnit },
+      widgetData: {
+        stats: statsValue,
+        statsUnit: widgetConfig.statsUnit,
+        ...(isSubMillisecondMin && { formattedOverride: SUB_MILLISECOND_LABEL }),
+      },
     };
   }
 

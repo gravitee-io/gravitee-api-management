@@ -18,10 +18,10 @@
 @use '../../../../../scss/gio-layout' as gio-layout;
 
 :host {
-  @include gio-layout.gio-full-width-content-container;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  @include gio-layout.gio-full-width-content-container;
 
   .back-button {
     margin-bottom: 24px;
@@ -33,14 +33,6 @@
     display: flex;
     flex-direction: column;
     padding: 24px 32px 0 32px;
-  }
-
-  &__header {
-    margin-bottom: 16px;
-
-    h1 {
-      margin: 0;
-    }
   }
 
   &__form {

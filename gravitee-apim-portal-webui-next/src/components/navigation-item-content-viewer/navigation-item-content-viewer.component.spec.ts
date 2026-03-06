@@ -19,6 +19,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NavigationItemContentViewerComponent } from './navigation-item-content-viewer.component';
 import { NavigationItemContentViewerHarness } from './navigation-item-content-viewer.harness';
 import { PortalPageContent } from '../../entities/portal-navigation/portal-page-content';
+import { RedocService } from '../../services/redoc.service';
 
 interface initData {
   pageContent: PortalPageContent | null;
@@ -53,6 +54,39 @@ describe('NavigationItemContentViewerComponent', () => {
       expect(markdownViewer).not.toBeNull();
 
       expect(await markdownViewer?.getRenderedHtml()).toContain('<h1 id="hello-world">Hello World</h1>');
+    });
+  });
+
+  describe('if page content is OPENAPI', () => {
+    const pageContent: PortalPageContent = {
+      type: 'OPENAPI',
+      content: 'openapi: 3.0.0\ninfo:\n  title: Test\n  version: 1.0.0',
+    };
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [NavigationItemContentViewerComponent],
+        providers: [
+          {
+            provide: RedocService,
+            useValue: { init: (_content: string | undefined, _options: unknown, _el: unknown) => {} },
+          },
+        ],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(NavigationItemContentViewerComponent);
+      fixture.componentRef.setInput('pageContent', pageContent);
+
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, NavigationItemContentViewerHarness);
+      fixture.detectChanges();
+    });
+    it('should render redoc viewer', async () => {
+      const redocViewer = await harness.getRedocViewer();
+      expect(redocViewer).not.toBeNull();
+      expect(await harness.isShowingRedocContent()).toBe(true);
+    });
+    it('should not render markdown viewer', async () => {
+      const markdownViewer = await harness.getGMDViewer();
+      expect(markdownViewer).toBeNull();
     });
   });
 

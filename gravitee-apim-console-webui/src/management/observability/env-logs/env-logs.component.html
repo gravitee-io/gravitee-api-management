@@ -16,26 +16,24 @@
 
 -->
 
-<div class="env-runtime-logs-v4">
-  <h1>Logs</h1>
-  <gio-banner-info class="banner-warning">
-    <div class="banner-warning__content">
-      Currently, only HTTP Proxy is supported.
-      <span class="mat-body">Message APIs, SSEs, and webhook support are coming soon.</span>
-    </div>
-  </gio-banner-info>
+<gio-header title="Logs" subtitle="Inspect and analyze API runtime logs." />
+<gio-banner-info class="banner-warning">
+  <div class="banner-warning__content">
+    Currently, only HTTP Proxy is supported.
+    <span class="mat-body">Message APIs, SSEs, and webhook support are coming soon.</span>
+  </div>
+</gio-banner-info>
 
-  @if (error()) {
-    <gio-banner-error>{{ error() }}</gio-banner-error>
-  }
+@if (error()) {
+  <gio-banner-error>{{ error() }}</gio-banner-error>
+}
 
-  <mat-card class="logs-section">
-    <env-logs-filter-bar [loading]="loading()" (refresh)="onRefresh()" (filtersChanged)="onFiltersChanged($event)"></env-logs-filter-bar>
-    <env-logs-table
-      class="env-runtime-logs__table"
-      [logs]="logs()"
-      [pagination]="paginationWithTotal()"
-      (paginationUpdated)="onPaginationUpdated($event)"
-    ></env-logs-table>
-  </mat-card>
-</div>
+<mat-card class="logs-section">
+  <env-logs-filter-bar [loading]="loading()" (refresh)="onRefresh()"></env-logs-filter-bar>
+  <env-logs-table
+    class="env-runtime-logs__table"
+    [logs]="logs()"
+    [pagination]="paginationWithTotal()"
+    (paginationUpdated)="onPaginationUpdated($event)"
+  ></env-logs-table>
+</mat-card>

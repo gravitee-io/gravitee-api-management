@@ -21,6 +21,9 @@
     @case ('GRAVITEE_MARKDOWN') {
       <gmd-viewer [content]="pageContentVM.content" appInnerLink />
     }
+    @case ('OPENAPI') {
+      <app-redoc-content-viewer [content]="pageContentVM.content" />
+    }
   }
 } @else {
   <div class="empty-state" i18n="@@emptyContentLabel">No content to show</div>

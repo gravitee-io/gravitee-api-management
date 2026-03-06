@@ -27,7 +27,11 @@ import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { SubscriptionStatus } from '../../../../../entities/subscription/subscription';
+import {
+  DEFAULT_SUBSCRIPTION_FILTER_STATUSES,
+  SUBSCRIPTION_STATUS_DISPLAY,
+  SubscriptionStatus,
+} from '../../../../../entities/subscription/subscription';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 import { ApplicationSubscriptionCreationDialogComponent } from '../creation';
 import { NewSubscriptionEntity } from '../../../../../entities/application';
@@ -88,14 +92,7 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
     status: new FormControl(),
     apiKey: new FormControl(),
   });
-  public statuses: { id: SubscriptionStatus; name: string; badge: string }[] = [
-    { id: 'ACCEPTED', name: 'Accepted', badge: 'success' },
-    { id: 'CLOSED', name: 'Closed', badge: 'neutral' },
-    { id: 'PAUSED', name: 'Paused', badge: 'accent' },
-    { id: 'PENDING', name: 'Pending', badge: 'warning' },
-    { id: 'REJECTED', name: 'Rejected', badge: 'warning' },
-    { id: 'RESUMED', name: 'Resumed', badge: 'neutral' },
-  ];
+  public statuses = SUBSCRIPTION_STATUS_DISPLAY;
 
   // Create filters stream
   public filtersStream = new BehaviorSubject<SubscriptionsFilters>({
@@ -105,7 +102,7 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
     },
     subscriptionsFilters: {
       apis: null,
-      status: ['ACCEPTED', 'PAUSED', 'PENDING'],
+      status: DEFAULT_SUBSCRIPTION_FILTER_STATUSES,
       apiKey: undefined,
     },
   });
@@ -229,9 +226,9 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
 
   public closeSubscription(subscription: SubscriptionsTableDS) {
     const applicationId = this.activatedRoute.snapshot.params.applicationId;
+    const referenceLabel = subscription.referenceTypeLabel === 'API Product' ? 'API product' : 'API';
 
-    let content =
-      'Are you sure you want to close this subscription? <br> <br> The application will not be able to consume this API anymore.';
+    let content = `Are you sure you want to close this subscription? <br> <br> The application will not be able to consume this ${referenceLabel} anymore.`;
     if (subscription.securityType === PlanSecurityType.API_KEY && subscription.isSharedApiKey) {
       content += '<br/>All Api-keys associated to this subscription will be closed and could not be used.';
     }
@@ -266,7 +263,7 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
     const initialPageNumber = this.activatedRoute.snapshot.queryParams?.page ? Number(this.activatedRoute.snapshot.queryParams.page) : 1;
     const initialPageSize = this.activatedRoute.snapshot.queryParams?.size ? Number(this.activatedRoute.snapshot.queryParams.size) : 10;
     const initialApiIds = this.activatedRoute.snapshot.queryParams.apis?.split(',') ?? null;
-    const initialStatuses = this.activatedRoute.snapshot.queryParams.status?.split(',') ?? ['ACCEPTED', 'PAUSED', 'PENDING'];
+    const initialStatuses = this.activatedRoute.snapshot.queryParams.status?.split(',') ?? DEFAULT_SUBSCRIPTION_FILTER_STATUSES;
     const initialApiKey = this.activatedRoute.snapshot.queryParams.apiKey;
 
     this.filtersForm.patchValue({
@@ -296,7 +293,7 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
       },
       subscriptionsFilters: {
         apis: null,
-        status: ['ACCEPTED', 'PAUSED', 'PENDING'],
+        status: DEFAULT_SUBSCRIPTION_FILTER_STATUSES,
         apiKey: null,
       },
     });

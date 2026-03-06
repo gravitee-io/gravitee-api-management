@@ -246,15 +246,28 @@ export class ApiProductNavigationComponent {
       { displayName: 'Configuration', routerLink: 'configuration', icon: 'gio:settings' },
       { displayName: 'APIs', routerLink: 'apis', icon: 'gio:cloud-settings' },
     ];
-    if (this.permissionService.hasAnyMatching(['api_product-plan-r'])) {
-      items.push({
-        displayName: 'Consumers',
-        routerLink: 'consumers/plans',
-        icon: 'gio:cloud-consumers',
-        header: { title: 'Consumers', subtitle: 'Manage how your API Product is consumed' },
-        tabs: [{ displayName: 'Plans', routerLink: 'consumers/plans' }],
-      });
+
+    const hasPlanRead = this.permissionService.hasAnyMatching(['api_product-plan-r']);
+    const hasSubscriptionRead = this.permissionService.hasAnyMatching(['api_product-subscription-r']);
+    if (!hasPlanRead && !hasSubscriptionRead) {
+      return items;
     }
+
+    const tabs: ApiProductTabMenuItem[] = [];
+    if (hasPlanRead) {
+      tabs.push({ displayName: 'Plans', routerLink: 'consumers/plans' });
+    }
+    if (hasSubscriptionRead) {
+      tabs.push({ displayName: 'Subscriptions', routerLink: 'consumers/subscriptions' });
+    }
+
+    items.push({
+      displayName: 'Consumers',
+      routerLink: 'consumers',
+      icon: 'gio:users',
+      header: { title: 'Consumers', subtitle: 'Manage how your API Product is consumed' },
+      tabs,
+    });
 
     return items;
   }
@@ -263,11 +276,22 @@ export class ApiProductNavigationComponent {
     if (!item.routerLink) {
       return false;
     }
-    return this.router.isActive(this.router.createUrlTree([item.routerLink], { relativeTo: this.activatedRoute }), {
-      paths: 'subset',
-      queryParams: 'subset',
-      fragment: 'ignored',
-      matrixParams: 'ignored',
-    });
+    const routingOptions = {
+      paths: 'subset' as const,
+      queryParams: 'subset' as const,
+      fragment: 'ignored' as const,
+      matrixParams: 'ignored' as const,
+    };
+    const baseActive = this.router.isActive(
+      this.router.createUrlTree([item.routerLink], { relativeTo: this.activatedRoute }),
+      routingOptions,
+    );
+    if (item.tabs?.length) {
+      const anyTabActive = item.tabs.some(tab =>
+        this.router.isActive(this.router.createUrlTree([tab.routerLink], { relativeTo: this.activatedRoute }), routingOptions),
+      );
+      return baseActive || anyTabActive;
+    }
+    return baseActive;
   }
 }

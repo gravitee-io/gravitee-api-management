@@ -16,14 +16,5 @@
 
 -->
 
-<div class="gv-sub-content">
-  <div class="gv-forms gv-forms-fluid" layout="column">
-    <div class="overview-header">
-      <h1>Overview</h1>
-      <span class="overview-header__link"
-        ><a routerLink="../dashboard">Switch to Classic view<mat-icon svgIcon="gio:data-transfer-both"></mat-icon></a
-      ></span>
-    </div>
-  </div>
-</div>
+<gio-header title="Overview" subtitle="Get a quick overview of what's happening across your platform." />
 <dashboard-viewer [widgets]="widgets"></dashboard-viewer>

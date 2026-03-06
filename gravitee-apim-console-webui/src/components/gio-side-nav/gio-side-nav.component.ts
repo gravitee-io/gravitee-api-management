@@ -238,7 +238,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       category: 'Analytics',
       permissions: ['environment-platform-r'],
       routerBasePath: `/${this.currentEnv.hrids}/analytics`,
-      iconRight$: of('info'),
+      iconRight$: of('gio:info'),
       iconRightTooltip: 'This feature is deprecated, please use Observability > Dashboards instead.',
       items: [
         {

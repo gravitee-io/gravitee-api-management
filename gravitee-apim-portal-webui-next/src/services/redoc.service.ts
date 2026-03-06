@@ -13,24 +13,96 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { inject, Injectable } from '@angular/core';
 
+import { REDOC_PRIMARY_COLOR_FALLBACK } from './redoc-defaults';
 import { readYaml } from '../app/helpers/yaml-parser';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare let Redoc: any;
 
+interface RedocThemeColors {
+  primary?: {
+    main: string;
+  };
+  http?: {
+    get: string;
+    post: string;
+    put: string;
+    patch: string;
+    delete: string;
+    options: string;
+    head: string;
+    link: string;
+    basic: string;
+  };
+
+  [key: string]: unknown;
+}
+
+interface RedocTheme {
+  colors?: RedocThemeColors;
+
+  [key: string]: unknown;
+}
+
+interface RedocOptions {
+  theme?: RedocTheme;
+
+  [key: string]: unknown;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class RedocService {
-  constructor() {}
+  private readonly document = inject(DOCUMENT);
 
-  init(content: string | undefined, options: unknown, elementId: unknown): void {
+  init(content: string | undefined, options: RedocOptions, element: HTMLElement): void {
     if (content) {
       const swaggerSpec = this.parseContent(content);
-      Redoc.init(swaggerSpec, options, elementId);
+      const mergedOptions = this.mergeThemeWithPrimary(options);
+      Redoc.init(swaggerSpec, mergedOptions, element);
     }
+  }
+
+  private getPrimaryColor(): string {
+    const style = this.document.defaultView?.getComputedStyle(this.document.documentElement);
+    const primary =
+      style?.getPropertyValue('--gio-app-primary-main-color')?.trim() ||
+      style?.getPropertyValue('--gio-app-primary-main-color-fallback')?.trim() ||
+      '';
+    return primary || REDOC_PRIMARY_COLOR_FALLBACK;
+  }
+
+  private mergeThemeWithPrimary(options: RedocOptions): RedocOptions {
+    const primary = this.getPrimaryColor();
+    const baseTheme = options.theme ?? {};
+    const baseColors = baseTheme.colors ?? {};
+    return {
+      ...options,
+      theme: {
+        ...baseTheme,
+        colors: {
+          ...baseColors,
+          primary: {
+            main: primary,
+          },
+          http: {
+            get: primary,
+            post: primary,
+            put: primary,
+            patch: primary,
+            delete: primary,
+            options: primary,
+            head: primary,
+            link: primary,
+            basic: primary,
+          },
+        },
+      },
+    };
   }
 
   private parseContent(content: string): unknown {

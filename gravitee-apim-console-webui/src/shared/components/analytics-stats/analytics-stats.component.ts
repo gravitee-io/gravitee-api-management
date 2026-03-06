@@ -23,7 +23,9 @@ import { FormatNumberPipe } from '../../pipes/format-number.pipe';
 
 export type StatsUnitType = 'ms';
 
-export type StatsWidgetData = { stats: number; statsUnit: StatsUnitType };
+export const SUB_MILLISECOND_LABEL = '< 1 ms';
+
+export type StatsWidgetData = { stats: number; statsUnit: StatsUnitType; formattedOverride?: string };
 
 @Component({
   selector: 'analytics-stats',
@@ -39,13 +41,17 @@ export class AnalyticsStatsComponent {
   private readonly formatNumberPipe = inject(FormatNumberPipe);
 
   public statsFormatted = computed(() => {
-    const { stats, statsUnit } = this.input();
+    const data = this.input();
 
-    if (stats == null) {
+    if (data.formattedOverride) {
+      return data.formattedOverride;
+    }
+
+    if (data.stats == null) {
       return '-';
     }
 
-    return statsUnit === 'ms' ? this.formatDurationPipe.transform(stats) : this.formatNumberPipe.transform(stats);
+    return data.statsUnit === 'ms' ? this.formatDurationPipe.transform(data.stats) : this.formatNumberPipe.transform(data.stats);
   });
 
   public tooltipText = computed(() => {
@@ -61,7 +67,11 @@ export class AnalyticsStatsComponent {
   });
 
   public isTooltipShown = computed(() => {
-    const { stats } = this.input();
+    const { stats, formattedOverride } = this.input();
+
+    if (formattedOverride) {
+      return false;
+    }
 
     if (stats == null) {
       return false;
