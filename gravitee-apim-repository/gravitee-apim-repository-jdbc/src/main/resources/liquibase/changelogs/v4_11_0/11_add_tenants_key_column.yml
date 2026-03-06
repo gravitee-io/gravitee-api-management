@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.11.0_10_add_tenants_key_column
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}tenants
+            columns:
+              - column:
+                  name: key
+                  type: nvarchar(40)
