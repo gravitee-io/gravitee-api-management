@@ -6,15 +6,18 @@
   "prefix": "",
   "targets": {
     "build": {
-      "executor": "@angular-devkit/build-angular:browser",
+      "executor": "@nx/angular:webpack-browser",
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "gravitee-apim-console-webui/dist",
         "index": "gravitee-apim-console-webui/src/index.html",
         "main": "gravitee-apim-console-webui/src/index.ts",
-        "polyfills": "gravitee-apim-console-webui/src/polyfills.ts",
+        "polyfills": ["gravitee-apim-console-webui/src/polyfills.ts"],
         "tsConfig": "gravitee-apim-console-webui/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
+        "customWebpackConfig": {
+          "path": "gravitee-apim-console-webui/webpack.config.ts"
+        },
         "assets": [
           "gravitee-apim-console-webui/src/favicon.ico",
           "gravitee-apim-console-webui/src/assets",
@@ -134,7 +137,10 @@
               "with": "gravitee-apim-console-webui/src/environments/environment.prod.ts"
             }
           ],
-          "outputHashing": "all"
+          "outputHashing": "all",
+          "customWebpackConfig": {
+            "path": "gravitee-apim-console-webui/webpack.prod.config.ts"
+          }
         },
         "development": {
           "buildOptimizer": false,
@@ -148,10 +154,9 @@
       "defaultConfiguration": "production"
     },
     "serve": {
-      "executor": "@angular-devkit/build-angular:dev-server",
+      "executor": "@nx/angular:dev-server",
       "options": {
         "proxyConfig": "gravitee-apim-console-webui/proxy.conf.mjs",
-        "disableHostCheck": true,
         "port": 4000,
         "buildTarget": "console:build"
       },
