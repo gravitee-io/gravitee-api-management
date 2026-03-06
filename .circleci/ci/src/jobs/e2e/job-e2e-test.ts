@@ -30,7 +30,7 @@ export class E2ETestJob {
     new parameters.CustomParameter('execution_mode', 'string', ''),
     new parameters.CustomParameter('database', 'string', ''),
   ]);
-  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, isBridge: boolean = false): Job {
     dynamicConfig.importOrb(orbs.keeper);
 
     const installYarnCmd = InstallYarnCommand.get();
@@ -42,7 +42,10 @@ export class E2ETestJob {
     dynamicConfig.addReusableCommand(dockerLogoutCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
 
-    const dockerImageTag = computeImagesTag(environment.branch, environment.sha1);
+    /*
+     * When running e2e tests for bridge compatibility, the bridge server must use the 'latest' version of docker image instead of the 'sha1' version.
+     */
+    const dockerImageTag = computeImagesTag(environment.branch, isBridge ? undefined : environment.sha1);
 
     const steps: Command[] = [
       new commands.Checkout(),
