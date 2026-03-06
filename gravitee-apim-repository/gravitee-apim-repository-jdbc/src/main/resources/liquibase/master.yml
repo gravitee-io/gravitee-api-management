@@ -305,8 +305,9 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_11_0/05_add_api_id_to_portal_navigation_items.yml
     - include:
         - file: liquibase/changelogs/v4_11_0/06_create_custom_dashboards_table.yml
-
     - include:
         - file: liquibase/changelogs/v4_11_0/06_add_reference_fields_to_subscriptions_table.yml
     - include:
         - file: liquibase/changelogs/v4_11_0/08_add_subscription_forms_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_0/09_add_tags_key_column.yml

@@ -18,7 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { Tag } from '../entities/tag/tag';
+import { Tag, UpdateTagEntity } from '../entities/tag/tag';
 import { NewTag } from '../entities/tag/newTag';
 
 @Injectable({
@@ -42,8 +42,8 @@ export class TagService {
     return this.http.post<Tag>(`${this.constants.org.baseURL}/configuration/tags`, newTag);
   }
 
-  update(tag: Tag): Observable<Tag> {
-    return this.http.put<Tag>(`${this.constants.org.baseURL}/configuration/tags/${tag.id}`, tag);
+  update(tagKey: string, tag: UpdateTagEntity): Observable<Tag> {
+    return this.http.put<Tag>(`${this.constants.org.baseURL}/configuration/tags/${tagKey}`, tag);
   }
 
   delete(id: string): Observable<void> {
