@@ -21,6 +21,7 @@ import { isEmpty } from 'lodash';
 
 import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
 import { User } from '../../../entities/user/user';
+import { ThemeToggleComponent } from '../../theme-toggle/theme-toggle.component';
 import { UserAvatarComponent } from '../../user-avatar/user-avatar.component';
 import { NavBarButtonComponent } from '../nav-bar-button/nav-bar-button.component';
 
@@ -28,7 +29,7 @@ import { NavBarButtonComponent } from '../nav-bar-button/nav-bar-button.componen
   selector: 'app-desktop-nav-bar',
   templateUrl: './desktop-nav-bar.component.html',
   styleUrl: './desktop-nav-bar.component.scss',
-  imports: [NavBarButtonComponent, UserAvatarComponent, MatAnchor, MatButton, RouterLink, MatIcon],
+  imports: [NavBarButtonComponent, UserAvatarComponent, MatAnchor, MatButton, RouterLink, MatIcon, ThemeToggleComponent],
 })
 export class DesktopNavBarComponent {
   currentUser: InputSignal<User> = input({});

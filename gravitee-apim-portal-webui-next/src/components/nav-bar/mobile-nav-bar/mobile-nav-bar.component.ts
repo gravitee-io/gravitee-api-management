@@ -25,12 +25,13 @@ import { of } from 'rxjs/internal/observable/of';
 import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
 import { User } from '../../../entities/user/user';
 import { PortalService } from '../../../services/portal.service';
+import { ThemeToggleComponent } from '../../theme-toggle/theme-toggle.component';
 
 @Component({
   selector: 'app-mobile-nav-bar',
   templateUrl: './mobile-nav-bar.component.html',
   styleUrl: './mobile-nav-bar.component.scss',
-  imports: [RouterLink, RouterLinkActive, MatIcon, MatButton],
+  imports: [RouterLink, RouterLinkActive, MatIcon, MatButton, ThemeToggleComponent],
 })
 export class MobileNavBarComponent {
   currentUser: InputSignal<User> = input({});

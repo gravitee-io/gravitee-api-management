@@ -28,6 +28,7 @@ import { PortalPage } from '../../entities/portal/portal-page';
 import { PortalNavigationItem, PortalNavigationLink } from '../../entities/portal-navigation/portal-navigation-item';
 import { fakeUser } from '../../entities/user/user.fixtures';
 import { PortalNavigationItemsService } from '../../services/portal-navigation-items.service';
+import { ThemeService } from '../../services/theme.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
 import { DivHarness } from '../../testing/div.harness';
 
@@ -128,6 +129,19 @@ describe('NavBarComponent', () => {
       expect(link1Anchor).toBeTruthy();
       const link2Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: /link-name-2/i }));
       expect(link2Anchor).toBeTruthy();
+    });
+
+    it('should show theme toggle button', async () => {
+      const toggleButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: 'app-theme-toggle button' }));
+      expect(toggleButton).toBeTruthy();
+    });
+
+    it('should toggle dark mode when theme toggle is clicked', async () => {
+      const themeService = TestBed.inject(ThemeService);
+      const spy = jest.spyOn(themeService, 'toggleDarkMode');
+      const toggleButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: 'app-theme-toggle button' }));
+      await toggleButton.click();
+      expect(spy).toHaveBeenCalled();
     });
   });
 
@@ -244,6 +258,13 @@ describe('NavBarComponent', () => {
       fixture.detectChanges();
 
       expect(await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.mobile-menu__panel' }))).toBeNull();
+    });
+
+    it('should show theme toggle button', async () => {
+      expectHomePage();
+      fixture.detectChanges();
+      const toggleButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: 'app-theme-toggle button' }));
+      expect(toggleButton).toBeTruthy();
     });
 
     it('should handle error when fetching homepage', async () => {

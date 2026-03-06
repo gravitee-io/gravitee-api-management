@@ -39,10 +39,12 @@
 
 @if (isLoggedIn()) {
   <div class="actions">
+    <app-theme-toggle />
     <app-user-avatar [user]="currentUser()" />
   </div>
 } @else {
   <div class="actions">
+    <app-theme-toggle />
     <button mat-flat-button color="primary" i18n="@@logIn" [routerLink]="['log-in']">Sign in</button>
   </div>
 }

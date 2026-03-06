@@ -123,7 +123,7 @@ export class ThemeService {
     const isDark = mode === 'dark';
     this.darkMode.set(isDark);
 
-    const colors = isDark ? (this.darkDefinition?.color ?? this.lightDefinition?.color) : this.lightDefinition?.color;
+    const colors = isDark ? this.darkDefinition?.color : this.lightDefinition?.color;
 
     addPropertyToDocument('--gio-app-background-color', colors?.background?.page);
     addPropertyToDocument('--gio-app-card-background-color', colors?.background?.card);
@@ -147,7 +147,7 @@ export class ThemeService {
       existing.remove();
     }
 
-    const css = isDark ? (this.darkDefinition?.customCss || this.lightDefinition?.customCss) : this.lightDefinition?.customCss;
+    const css = isDark ? this.darkDefinition?.customCss : this.lightDefinition?.customCss;
     if (css) {
       const style = document.createElement('style');
       style.id = CUSTOM_CSS_STYLE_ID;

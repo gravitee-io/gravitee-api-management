@@ -6,7 +6,7 @@
 - ✅ **Story 2:** Console -- Dark theme customization UI
 - ✅ **Story 3:** Portal -- ThemeService dark mode support
 - ✅ **Story 4:** Portal -- Material dark theme SCSS integration
--  **Story 5:** Portal -- Toggle button in nav bar
+- ✅ **Story 5:** Portal -- Toggle button in nav bar
 
 ---
 
@@ -119,6 +119,18 @@ All dark form controls exist in the form at all times (not swapped). The toggle 
 ---
 
 ### Story 5: Portal -- Toggle Button
+
+**Status:** Done
+
+**What was done:**
+- Created `ThemeToggleComponent` — standalone component with `mat-icon-button` injecting `ThemeService`
+- Icon shows `dark_mode` (moon) in light mode, `light_mode` (sun) in dark mode
+- CSS rotation (180deg) + opacity transition on icon when mode changes via `.dark` class
+- Added to desktop nav bar in `.actions` div, before user avatar / sign-in button
+- Added to mobile nav bar in `.actions` div, before the hamburger menu button
+- Toggle is visible regardless of auth state (works for everyone)
+- Added 3 new tests: toggle presence in desktop, toggle click calls `toggleDarkMode()`, toggle presence in mobile
+- All 14 nav-bar tests pass
 
 **Feedback:**
 

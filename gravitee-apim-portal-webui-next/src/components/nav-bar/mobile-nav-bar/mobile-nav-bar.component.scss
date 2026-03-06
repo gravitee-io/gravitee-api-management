@@ -22,6 +22,12 @@
   justify-content: flex-end;
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .mobile-menu {
   &__button {
     min-width: 38px;
