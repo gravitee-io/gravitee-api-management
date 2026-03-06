@@ -1,13 +1,15 @@
 import * as React from 'react';
-import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { Box, Settings, Search } from 'lucide-react';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Box, Settings, Search, Globe } from 'lucide-react';
 import { TopNav } from '@baros/components/layout/TopNav';
 import { TopNavUser } from '@baros/components/layout/TopNavUser';
 import { GraviteeLogo } from '@baros/components/layout/GraviteeLogo';
 import { ThemeToggle } from '@baros/components/layout/ThemeToggle';
 import { AppDropdown } from '@baros/components/layout/AppDropdown';
 import type { AppOption } from '@baros/components/layout/AppDropdown';
-import { AngularWrapper } from './angular-wrapper';
+import { AppBetaLayout } from './app-beta/AppBetaLayout';
+import { DeveloperPortalLayout } from './developer-portal/DeveloperPortalLayout';
+import { PortalHomepageRemote } from './developer-portal/PortalHomepageRemote';
 
 const APP_ALPHA_ENTRY_URL = 'http://localhost:4201/remoteEntry.js';
 
@@ -39,6 +41,7 @@ const AppAlpha = React.lazy(async () => {
 const APPS: AppOption[] = [
     { key: 'app-alpha', name: 'App Alpha', icon: Box },
     { key: 'app-beta', name: 'App Beta', icon: Settings },
+    { key: 'developer-portal', name: 'Developer Portal', icon: Globe },
 ];
 
 function useActiveAppKey(): string {
@@ -46,6 +49,7 @@ function useActiveAppKey(): string {
 
     if (pathname.startsWith('/app-alpha')) return 'app-alpha';
     if (pathname.startsWith('/app-beta')) return 'app-beta';
+    if (pathname.startsWith('/developer-portal')) return 'developer-portal';
     return '';
 }
 
@@ -102,7 +106,11 @@ export function App() {
                     <Routes>
                         <Route path="/" element={<WelcomePage />} />
                         <Route path="/app-alpha/*" element={<AppAlpha />} />
-                        <Route path="/app-beta/*" element={<AngularWrapper />} />
+                        <Route path="/app-beta/*" element={<AppBetaLayout />} />
+                        <Route path="/developer-portal" element={<DeveloperPortalLayout />}>
+                            <Route path="homepage" element={<PortalHomepageRemote />} />
+                            <Route index element={<Navigate to="homepage" replace />} />
+                        </Route>
                     </Routes>
                 </React.Suspense>
             </div>
