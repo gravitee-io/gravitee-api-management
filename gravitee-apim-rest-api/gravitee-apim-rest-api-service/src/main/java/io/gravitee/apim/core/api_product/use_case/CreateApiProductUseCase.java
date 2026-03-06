@@ -21,7 +21,6 @@ import static java.util.Map.entry;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
@@ -119,13 +118,13 @@ public class CreateApiProductUseCase {
 
         apiProductIndexerDomainService.index(oneShotIndexation(auditInfo), created, primaryOwner);
 
-        List<Api> apisToReindex = apiIds
-            .stream()
-            .flatMap(apiId -> apiCrudService.findById(apiId).stream())
-            .toList();
-        var indexation = ApiIndexerDomainService.oneShotIndexation(auditInfo);
-        for (Api api : apisToReindex) {
-            apiIndexerDomainService.index(indexation, api);
+        // Re-index APIs if product was created with apiIds so Lucene api_product_ids includes this product.
+        // When created with empty apiIds (typical UI flow), this is a no-op.
+        if (!apiIds.isEmpty()) {
+            var indexation = ApiIndexerDomainService.oneShotIndexation(auditInfo);
+            for (String apiId : apiIds) {
+                apiCrudService.findById(apiId).ifPresent(api -> apiIndexerDomainService.index(indexation, api));
+            }
         }
 
         publishDeployEvent(auditInfo, created);

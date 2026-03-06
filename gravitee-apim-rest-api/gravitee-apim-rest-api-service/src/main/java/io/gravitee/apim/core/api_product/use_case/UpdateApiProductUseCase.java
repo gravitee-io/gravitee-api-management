@@ -111,6 +111,7 @@ public class UpdateApiProductUseCase {
         ApiProduct updated = apiProductCrudService.update(existingApiProduct);
 
         // Re-index APIs whose product membership changed so Lucene api_product_ids stays in sync.
+        // so if i add api-id "467318654398789dgf37" to api-product, we re-index that 1 API (and the product).
         // Removed APIs: api_product_ids must drop this product. Added APIs: api_product_ids must include it.
         Set<String> beforeIds = beforeUpdate.getApiIds() != null ? beforeUpdate.getApiIds() : Set.of();
         Set<String> afterIds = updated.getApiIds() != null ? updated.getApiIds() : Set.of();
@@ -119,8 +120,8 @@ public class UpdateApiProductUseCase {
         Set<String> added = new HashSet<>(afterIds);
         added.removeAll(beforeIds);
 
-        List<String> apiIdsToReindex = Stream.concat(removed.stream(), added.stream()).toList();
-        List<Api> apisToReindex = apiIdsToReindex
+        List<String> apiIdsToReindex = Stream.concat(removed.stream(), added.stream()).toList(); // get the list of API IDs to re-index. union of removed and added (only IDs that changed).
+        List<Api> apisToReindex = apiIdsToReindex // load the full Api entity for each of those IDs (so we can re-index them).
             .stream()
             .flatMap(apiId -> apiCrudService.findById(apiId).stream())
             .toList();

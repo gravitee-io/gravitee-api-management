@@ -125,6 +125,9 @@ public class ApiIndexerDomainService {
         );
         var categoryKeys = apiCategoryQueryService.findApiCategoryKeys(apiToIndex);
         // Inverse lookup: which products contain this API? Stored in Lucene as api_product_ids for efficient search.
+        //So: indexing uses an inverse lookup from API Product store (by apiId), not a column on the API.
+        // The API definition/table stays unchanged; only the index gains api_product_ids.
+        // so if i add api-id "467318654398789dgf37" to api-product, we re-index that 1 API (and the product).
         Set<String> apiProductIds = apiProductQueryService
             .findByApiId(apiToIndex.getId())
             .stream()
