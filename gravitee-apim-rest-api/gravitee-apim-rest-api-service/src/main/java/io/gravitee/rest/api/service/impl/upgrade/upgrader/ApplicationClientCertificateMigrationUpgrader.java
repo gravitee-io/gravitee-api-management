@@ -64,7 +64,7 @@ public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
             int pageNumber = 0;
             Page<Application> page;
             do {
-                Pageable pageable = new PageableBuilder().pageNumber(pageNumber + 1).pageSize(100).build();
+                Pageable pageable = new PageableBuilder().pageNumber(pageNumber).pageSize(100).build();
                 page = applicationRepository.search(criteria, pageable);
                 for (Application application : page
                     .getContent()
@@ -100,7 +100,7 @@ public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
 
             clientCertificateCrudService.create(
                 applicationId,
-                ClientCertificate.builder().name(applicationName).certificate(decodeCert(base64Certificate)).build()
+                new ClientCertificate(applicationName, decodeCert(base64Certificate), null, null)
             );
 
             log.debug("Created ClientCertificate for application {} ({})", applicationName, applicationId);

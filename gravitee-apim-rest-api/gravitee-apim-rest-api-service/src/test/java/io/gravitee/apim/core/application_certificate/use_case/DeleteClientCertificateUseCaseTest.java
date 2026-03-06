@@ -55,23 +55,23 @@ class DeleteClientCertificateUseCaseTest {
     void should_delete_client_certificate() {
         var certId = "cert-id";
         var appId = "app-id";
-        var certificate = ClientCertificate.builder()
-            .id(certId)
-            .crossId("cross-id")
-            .applicationId(appId)
-            .name("Test Certificate")
-            .startsAt(new Date())
-            .endsAt(new Date())
-            .createdAt(new Date())
-            .updatedAt(new Date())
-            .certificate("PEM_CONTENT")
-            .certificateExpiration(new Date())
-            .subject("CN=Test")
-            .issuer("CN=Issuer")
-            .fingerprint("fingerprint")
-            .environmentId("env-id")
-            .status(ClientCertificateStatus.ACTIVE)
-            .build();
+        var certificate = new ClientCertificate(
+            certId,
+            "cross-id",
+            appId,
+            "Test Certificate",
+            new Date(),
+            new Date(),
+            new Date(),
+            new Date(),
+            "PEM_CONTENT",
+            new Date(),
+            "CN=Test",
+            "CN=Issuer",
+            "fingerprint",
+            "env-id",
+            ClientCertificateStatus.ACTIVE
+        );
         clientCertificateCrudService.initWith(List.of(certificate));
 
         deleteClientCertificateUseCase.execute(new DeleteClientCertificateUseCase.Input(certId));

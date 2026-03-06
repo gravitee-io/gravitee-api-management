@@ -57,6 +57,7 @@ export interface ApplicationSettings {
   };
   tls?: {
     client_certificate?: string;
+    certificate_count?: number;
   };
 }
 

@@ -144,7 +144,7 @@ class ApplicationClientCertificateMigrationUpgraderTest {
         assertThat(result).isTrue();
         verify(clientCertificateCrudService).create(
             eq("app-1"),
-            argThat(createCert -> createCert.getName().equals("App 1") && createCert.getCertificate().equals(VALID_PEM_CERTIFICATE))
+            argThat(createCert -> createCert.name().equals("App 1") && createCert.certificate().equals(VALID_PEM_CERTIFICATE))
         );
         verify(applicationRepository).update(
             argThat(app -> app.getId().equals("app-1") && !app.getMetadata().containsKey(METADATA_CLIENT_CERTIFICATE))

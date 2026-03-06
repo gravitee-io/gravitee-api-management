@@ -86,7 +86,7 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
         try {
             log.debug("Create client certificate for application: {}", applicationId);
 
-            X509Certificate x509Certificate = parseCertificate(clientCertificateToCreate.getCertificate());
+            X509Certificate x509Certificate = parseCertificate(clientCertificateToCreate.certificate());
             String fingerprint = CertificateUtils.generateThumbprint(x509Certificate, "SHA-256");
             if (fingerprint == null) {
                 throw new ClientCertificateInvalidException();
@@ -109,7 +109,7 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
             clientCertificate.setFingerprint(fingerprint);
             clientCertificate.setEnvironmentId(environmentId);
             clientCertificate.setCreatedAt(new Date());
-            clientCertificate.setStatus(computeStatus(clientCertificateToCreate.getStartsAt(), clientCertificateToCreate.getEndsAt()));
+            clientCertificate.setStatus(computeStatus(clientCertificateToCreate.startsAt(), clientCertificateToCreate.endsAt()));
 
             return ClientCertificateAdapter.INSTANCE.toDomain(clientCertificateRepository.create(clientCertificate));
         } catch (TechnicalException e) {
@@ -123,8 +123,8 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
     private void validateDateBounds(ClientCertificate clientCertificate) {
         if (
             !Duration.between(
-                Optional.ofNullable(clientCertificate.getStartsAt()).map(Date::toInstant).orElse(Instant.ofEpochMilli(Long.MIN_VALUE)),
-                Optional.ofNullable(clientCertificate.getEndsAt()).map(Date::toInstant).orElse(Instant.ofEpochMilli(Long.MAX_VALUE))
+                Optional.ofNullable(clientCertificate.startsAt()).map(Date::toInstant).orElse(Instant.ofEpochMilli(Long.MIN_VALUE)),
+                Optional.ofNullable(clientCertificate.endsAt()).map(Date::toInstant).orElse(Instant.ofEpochMilli(Long.MAX_VALUE))
             ).isPositive()
         ) {
             throw new ClientCertificateDateBoundsInvalidException();
@@ -142,11 +142,11 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
 
             validateDateBounds(update);
 
-            existingCertificate.setName(update.getName());
-            existingCertificate.setStartsAt(update.getStartsAt());
-            existingCertificate.setEndsAt(update.getEndsAt());
+            existingCertificate.setName(update.name());
+            existingCertificate.setStartsAt(update.startsAt());
+            existingCertificate.setEndsAt(update.endsAt());
             existingCertificate.setUpdatedAt(new Date());
-            existingCertificate.setStatus(computeStatus(update.getStartsAt(), update.getEndsAt()));
+            existingCertificate.setStatus(computeStatus(update.startsAt(), update.endsAt()));
 
             return ClientCertificateAdapter.INSTANCE.toDomain(clientCertificateRepository.update(existingCertificate));
         } catch (TechnicalException e) {

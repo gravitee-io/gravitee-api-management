@@ -15,12 +15,15 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
@@ -30,9 +33,14 @@ import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
+import io.gravitee.rest.api.service.v4.exception.SubscriptionEndsAfterClientCertificateException;
 import io.gravitee.rest.api.service.v4.exception.SubscriptionEntrypointIdMissingException;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionMetadataSanitizer;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -50,10 +58,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class SubscriptionValidationServiceImplTest {
 
+    public static final String APP_ID = "appId";
     private SubscriptionValidationService cut;
 
     @Mock
     private EntrypointConnectorPluginService entrypointConnectorPluginService;
+
+    @Mock
+    private ClientCertificateCrudService clientCertificateCrudService;
 
     @Mock
     private SubscriptionMetadataSanitizer subscriptionMetadataSanitizer;
@@ -61,8 +73,12 @@ public class SubscriptionValidationServiceImplTest {
     private PlanEntity planEntity;
 
     @BeforeEach
-    public void setUp() {
-        cut = new SubscriptionValidationServiceImpl(entrypointConnectorPluginService, subscriptionMetadataSanitizer);
+    void setUp() {
+        cut = new SubscriptionValidationServiceImpl(
+            entrypointConnectorPluginService,
+            subscriptionMetadataSanitizer,
+            clientCertificateCrudService
+        );
         lenient()
             .when(subscriptionMetadataSanitizer.sanitizeAndValidate(any()))
             .thenAnswer(invocation -> invocation.getArgument(0));
@@ -73,10 +89,10 @@ public class SubscriptionValidationServiceImplTest {
     }
 
     @Nested
-    class SubscriptionType {
+    class PushType {
 
         @BeforeEach
-        public void beforeEach() {
+        void beforeEach() {
             planEntity.setMode(PlanMode.PUSH);
         }
 
@@ -87,9 +103,6 @@ public class SubscriptionValidationServiceImplTest {
             void should_throw_when_no_entrypointId_defined() {
                 NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
                 newSubscriptionEntity.setConfiguration(new SubscriptionConfigurationEntity());
-
-                PlanEntity planEntity = new PlanEntity();
-                planEntity.setMode(PlanMode.PUSH);
 
                 assertThrows(SubscriptionEntrypointIdMissingException.class, () ->
                     cut.validateAndSanitize(planEntity, newSubscriptionEntity)
@@ -128,7 +141,7 @@ public class SubscriptionValidationServiceImplTest {
                 updateSubscriptionEntity.setConfiguration(configuration);
 
                 assertThrows(SubscriptionEntrypointIdMissingException.class, () ->
-                    cut.validateAndSanitize(planEntity, updateSubscriptionEntity)
+                    cut.validateAndSanitize(planEntity, updateSubscriptionEntity, APP_ID)
                 );
             }
 
@@ -148,7 +161,7 @@ public class SubscriptionValidationServiceImplTest {
                     )
                 ).thenReturn(sanitizedCfg);
 
-                cut.validateAndSanitize(planEntity, updateSubscriptionEntity);
+                cut.validateAndSanitize(planEntity, updateSubscriptionEntity, APP_ID);
 
                 assertThat(updateSubscriptionEntity.getConfiguration().getEntrypointConfiguration()).isEqualTo(sanitizedCfg);
             }
@@ -192,10 +205,108 @@ public class SubscriptionValidationServiceImplTest {
     }
 
     @Nested
-    class OtherType {
+    class MTLSType {
 
         @BeforeEach
-        public void beforeEach() {
+        void beforeEach() {
+            planEntity.getSecurity().setType(PlanSecurityType.MTLS.name());
+        }
+
+        @Nested
+        class UpdateSubscription {
+
+            @Test
+            void should_throw_when_subscription_ends_before_certificate_expiration() {
+                Instant now = Instant.now();
+                UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+                updateSubscriptionEntity.setEndingAt(Date.from(now.plus(10, ChronoUnit.DAYS)));
+
+                var cert = new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                    "cert-name",
+                    null,
+                    Date.from(now),
+                    Date.from(now)
+                );
+                when(
+                    clientCertificateCrudService.findByApplicationIdAndStatuses(APP_ID, ClientCertificateStatus.ACTIVE_WITH_END)
+                ).thenReturn(Set.of(cert));
+
+                assertThatThrownBy(() -> cut.validateAndSanitize(planEntity, updateSubscriptionEntity, APP_ID)).isInstanceOf(
+                    SubscriptionEndsAfterClientCertificateException.class
+                );
+            }
+
+            @Test
+            void should_not_throw_when_subscription_ends_after_all_certificate_expirations() {
+                Instant now = Instant.now();
+                UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+                updateSubscriptionEntity.setEndingAt(Date.from(now.plus(30, ChronoUnit.DAYS)));
+
+                var cert = new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                    "cert-name",
+                    null,
+                    Date.from(now),
+                    Date.from(now.plus(60, ChronoUnit.DAYS))
+                );
+                when(
+                    clientCertificateCrudService.findByApplicationIdAndStatuses(APP_ID, ClientCertificateStatus.ACTIVE_WITH_END)
+                ).thenReturn(Set.of(cert));
+
+                assertThatCode(() -> cut.validateAndSanitize(planEntity, updateSubscriptionEntity, APP_ID)).doesNotThrowAnyException();
+            }
+
+            @Test
+            void should_not_throw_when_subscription_ends_before_one_certificate_expirations() {
+                Instant now = Instant.now();
+                UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+                updateSubscriptionEntity.setEndingAt(Date.from(now.plus(30, ChronoUnit.DAYS)));
+
+                var after = new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                    "cert-name",
+                    null,
+                    Date.from(now),
+                    Date.from(now.plus(60, ChronoUnit.DAYS))
+                );
+                var before = new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                    "cert-name",
+                    null,
+                    Date.from(now),
+                    Date.from(now.plus(20, ChronoUnit.DAYS))
+                );
+                when(
+                    clientCertificateCrudService.findByApplicationIdAndStatuses(APP_ID, ClientCertificateStatus.ACTIVE_WITH_END)
+                ).thenReturn(Set.of(before, after));
+
+                assertThatCode(() -> cut.validateAndSanitize(planEntity, updateSubscriptionEntity, APP_ID)).doesNotThrowAnyException();
+            }
+
+            @Test
+            void should_not_throw_when_no_ending_date_on_subscription() {
+                UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+                updateSubscriptionEntity.setEndingAt(null);
+
+                assertThatCode(() -> cut.validateAndSanitize(planEntity, updateSubscriptionEntity, APP_ID)).doesNotThrowAnyException();
+            }
+
+            @Test
+            void should_not_throw_when_no_active_certificates() {
+                UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+                updateSubscriptionEntity.setEndingAt(Date.from(Instant.now().plus(10, ChronoUnit.DAYS)));
+
+                when(
+                    clientCertificateCrudService.findByApplicationIdAndStatuses(APP_ID, ClientCertificateStatus.ACTIVE_WITH_END)
+                ).thenReturn(Set.of());
+
+                assertThatCode(() -> cut.validateAndSanitize(planEntity, updateSubscriptionEntity, APP_ID)).doesNotThrowAnyException();
+            }
+        }
+    }
+
+    @Nested
+    class JWTType {
+
+        @BeforeEach
+        void beforeEach() {
             planEntity.getSecurity().setType(PlanSecurityType.JWT.getLabel());
         }
 
@@ -203,7 +314,7 @@ public class SubscriptionValidationServiceImplTest {
         class NewSubscription {
 
             @Test
-            public void should_do_nothing() {
+            void should_do_nothing() {
                 NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
                 newSubscriptionEntity.setConfiguration(null);
                 planEntity.setSecurity(new PlanSecurity());
@@ -218,12 +329,12 @@ public class SubscriptionValidationServiceImplTest {
         class UpdateSubscription {
 
             @Test
-            public void should_do_nothing() {
+            void should_do_nothing() {
                 UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
                 updateSubscriptionEntity.setConfiguration(null);
                 planEntity.setSecurity(new PlanSecurity());
 
-                cut.validateAndSanitize(planEntity, updateSubscriptionEntity);
+                cut.validateAndSanitize(planEntity, updateSubscriptionEntity, APP_ID);
 
                 assertThat(updateSubscriptionEntity.getConfiguration()).isNull();
             }
@@ -233,7 +344,7 @@ public class SubscriptionValidationServiceImplTest {
         class UpdateSubscriptionConfiguration {
 
             @Test
-            public void should_do_nothing() {
+            void should_do_nothing() {
                 UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
                 updateSubscriptionConfigurationEntity.setConfiguration(null);
                 planEntity.setSecurity(new PlanSecurity());

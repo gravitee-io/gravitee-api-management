@@ -86,15 +86,15 @@ public class ProcessPendingCertificateTransitionsUseCase {
                 failedCount++;
                 log.error(
                     "Failed to process certificate transition for [{}] on application [{}]: {}",
-                    certificate.getId(),
-                    certificate.getApplicationId(),
+                    certificate.id(),
+                    certificate.applicationId(),
                     e.getMessage(),
                     e
                 );
             }
         }
 
-        var affectedApplicationIds = transitioned.stream().map(ClientCertificate::getApplicationId).collect(Collectors.toSet());
+        var affectedApplicationIds = transitioned.stream().map(ClientCertificate::applicationId).collect(Collectors.toSet());
 
         int failedMtlsUpdateCount = 0;
         for (var applicationId : affectedApplicationIds) {
@@ -135,13 +135,13 @@ public class ProcessPendingCertificateTransitionsUseCase {
     }
 
     private boolean shouldTransition(ClientCertificate certificate) {
-        var computedStatus = ClientCertificateStatus.computeStatus(certificate.getStartsAt(), certificate.getEndsAt());
-        return computedStatus != certificate.getStatus();
+        var computedStatus = ClientCertificateStatus.computeStatus(certificate.startsAt(), certificate.endsAt());
+        return computedStatus != certificate.status();
     }
 
     private void applyTransition(ClientCertificate certificate, AuditActor auditActor, List<ClientCertificate> transitioned) {
-        var oldCertificate = certificate.toBuilder().build();
-        var updated = clientCertificateCrudService.update(certificate.getId(), certificate);
+        var oldCertificate = new ClientCertificate(certificate);
+        var updated = clientCertificateCrudService.update(certificate.id(), certificate);
         // Audit log failure must not block executing the application update.
         // Revocation/activation takes precedence over auditability -- a missing
         // audit record is preferable to a certificate stuck in a stale state.
@@ -150,8 +150,8 @@ public class ProcessPendingCertificateTransitionsUseCase {
         } catch (Exception e) {
             log.error(
                 "Failed to create audit log for certificate [{}] on application [{}]: {}",
-                certificate.getId(),
-                certificate.getApplicationId(),
+                certificate.id(),
+                certificate.applicationId(),
                 e.getMessage(),
                 e
             );
@@ -160,19 +160,19 @@ public class ProcessPendingCertificateTransitionsUseCase {
     }
 
     private void createAuditLog(ClientCertificate oldCertificate, ClientCertificate newCertificate, AuditActor actor) {
-        var environment = environmentCrudService.get(oldCertificate.getEnvironmentId());
+        var environment = environmentCrudService.get(oldCertificate.environmentId());
 
         auditDomainService.createApplicationAuditLog(
             ApplicationAuditLogEntity.builder()
                 .organizationId(environment.getOrganizationId())
                 .environmentId(environment.getId())
-                .applicationId(oldCertificate.getApplicationId())
+                .applicationId(oldCertificate.applicationId())
                 .actor(actor)
-                .event(newCertificate.getStatus().toAuditEvent())
+                .event(newCertificate.status().toAuditEvent())
                 .oldValue(oldCertificate)
                 .newValue(newCertificate)
                 .createdAt(ZonedDateTime.now())
-                .properties(Collections.singletonMap(AuditProperties.CLIENT_CERTIFICATE, oldCertificate.getId()))
+                .properties(Collections.singletonMap(AuditProperties.CLIENT_CERTIFICATE, oldCertificate.id()))
                 .build()
         );
     }

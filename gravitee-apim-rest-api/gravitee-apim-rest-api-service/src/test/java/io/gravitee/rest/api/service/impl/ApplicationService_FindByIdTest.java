@@ -15,9 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.ApiKeyMode;
@@ -30,7 +34,11 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,7 +74,7 @@ public class ApplicationService_FindByIdTest {
     private Application application;
 
     @Mock
-    private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
+    private ClientCertificateCrudService clientCertificateCrudService;
 
     @Before
     public void setUp() {
@@ -86,9 +94,37 @@ public class ApplicationService_FindByIdTest {
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
 
-        final ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
+        when(clientCertificateCrudService.findByApplicationIdAndStatuses(any(), any(), any())).thenReturn(
+            Set.of(
+                clientCertificate("old", Date.from(Instant.now().minus(1, ChronoUnit.DAYS))),
+                clientCertificate("most_recent", Date.from(Instant.now().plus(1, ChronoUnit.DAYS))),
+                clientCertificate("now", Date.from(Instant.now()))
+            )
+        );
 
+        final ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
         assertNotNull(applicationEntity);
+        assertThat(applicationEntity.getSettings().getTls().getClientCertificate()).isEqualTo("most_recent");
+    }
+
+    private static ClientCertificate clientCertificate(String cert, Date createdAt) {
+        return new ClientCertificate(
+            "id",
+            "crossId",
+            APPLICATION_ID,
+            "test",
+            null,
+            null,
+            createdAt,
+            null,
+            cert,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
     }
 
     @Test(expected = ApplicationNotFoundException.class)

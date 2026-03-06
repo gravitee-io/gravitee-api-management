@@ -15,17 +15,24 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
+import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
+import io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
+import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
+import io.gravitee.rest.api.service.v4.exception.SubscriptionEndsAfterClientCertificateException;
 import io.gravitee.rest.api.service.v4.exception.SubscriptionEntrypointIdMissingException;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionMetadataSanitizer;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
+import java.util.Objects;
+import java.util.Set;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -42,6 +49,8 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
     private final EntrypointConnectorPluginService entrypointService;
     private final SubscriptionMetadataSanitizer subscriptionMetadataSanitizer;
 
+    private final ClientCertificateCrudService clientCertificateCrudService;
+
     @Override
     public void validateAndSanitize(final GenericPlanEntity genericPlanEntity, final NewSubscriptionEntity subscription) {
         subscription.setConfiguration(validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscription.getConfiguration()));
@@ -51,10 +60,39 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
     }
 
     @Override
-    public void validateAndSanitize(final GenericPlanEntity genericPlanEntity, final UpdateSubscriptionEntity subscription) {
+    public void validateAndSanitize(
+        final GenericPlanEntity genericPlanEntity,
+        final UpdateSubscriptionEntity subscription,
+        String applicationId
+    ) {
+        validateTls(genericPlanEntity, subscription, applicationId);
         subscription.setConfiguration(validateAndSanitizeSubscriptionConfiguration(genericPlanEntity, subscription.getConfiguration()));
         if (subscription.getMetadata() != null) {
             subscription.setMetadata(subscriptionMetadataSanitizer.sanitizeAndValidate(subscription.getMetadata()));
+        }
+    }
+
+    private void validateTls(final GenericPlanEntity genericPlanEntity, final UpdateSubscriptionEntity subscription, String applicationId) {
+        if (
+            subscription.getEndingAt() != null &&
+            Objects.equals(genericPlanEntity.getPlanSecurity().getType(), PlanSecurityType.MTLS.name())
+        ) {
+            Set<ClientCertificate> byApplicationIdAndStatuses = clientCertificateCrudService.findByApplicationIdAndStatuses(
+                applicationId,
+                ClientCertificateStatus.ACTIVE_WITH_END
+            );
+
+            if (byApplicationIdAndStatuses.isEmpty()) {
+                // match all returns true on empty collections
+                return;
+            }
+            boolean subscriptionEndsAfterCertificate = byApplicationIdAndStatuses
+                .stream()
+                // all ending certificates must be before the subscription ending date
+                .allMatch(clientCertificate -> clientCertificate.endsAt().toInstant().isBefore(subscription.getEndingAt().toInstant()));
+            if (subscriptionEndsAfterCertificate) {
+                throw new SubscriptionEndsAfterClientCertificateException();
+            }
         }
     }
 

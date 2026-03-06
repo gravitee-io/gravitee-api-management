@@ -48,6 +48,7 @@ import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.NotificationReferenceType;
+import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
@@ -73,6 +74,7 @@ import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.application.TlsSettings;
+import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.configuration.application.ApplicationGrantTypeEntity;
@@ -128,11 +130,12 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.exception.SubscriptionEndsAfterClientCertificateException;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.xml.bind.DatatypeConverter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -143,6 +146,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -445,7 +449,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
         }
 
-        String clientCertificate = getClientCertificate(newApplicationEntity.getSettings());
+        List<CreateClientCertificate> clientCertificates = getClientCertificates(
+            newApplicationEntity.getName(),
+            newApplicationEntity.getSettings()
+        );
 
         if (newApplicationEntity.getGroups() != null && !newApplicationEntity.getGroups().isEmpty()) {
             //throw a NotFoundException if the group doesn't exist
@@ -475,14 +482,20 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         application.setCreatedAt(new Date());
         application.setUpdatedAt(application.getCreatedAt());
 
-        return createApplicationForEnvironment(executionContext, userId, application, clientCertificate);
+        return createApplicationForEnvironment(executionContext, userId, application, clientCertificates);
     }
 
-    private static String getClientCertificate(ApplicationSettings settings) {
-        if (settings.getTls() != null && StringUtils.isNotBlank(settings.getTls().getClientCertificate())) {
-            return settings.getTls().getClientCertificate();
+    private static List<CreateClientCertificate> getClientCertificates(String appName, ApplicationSettings settings) {
+        if (settings.getTls() == null) {
+            return List.of();
         }
-        return null;
+        if (CollectionUtils.isNotEmpty(settings.getTls().getClientCertificates())) {
+            return List.copyOf(settings.getTls().getClientCertificates());
+        }
+        if (StringUtils.isNotBlank(settings.getTls().getClientCertificate())) {
+            return List.of(new CreateClientCertificate(appName, null, null, settings.getTls().getClientCertificate()));
+        }
+        return List.of();
     }
 
     private void creationPreFlightChecks(ExecutionContext executionContext, NewApplicationEntity newApplicationEntity) {
@@ -512,16 +525,21 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         final ExecutionContext executionContext,
         String userId,
         Application application,
-        String clientCertificate
+        List<CreateClientCertificate> clientCertificates
     ) {
         try {
             application.setEnvironmentId(executionContext.getEnvironmentId());
 
-            // Create client certificate if provided
-            if (clientCertificate != null) {
+            // Create client certificates if provided
+            for (var cert : clientCertificates) {
                 clientCertificateCrudService.create(
                     application.getId(),
-                    ClientCertificate.builder().name(application.getName()).certificate(clientCertificate).build()
+                    new ClientCertificate(
+                        cert.name() != null ? cert.name() : application.getName(),
+                        cert.certificate(),
+                        cert.startsAt(),
+                        cert.endsAt()
+                    )
                 );
             }
 
@@ -639,40 +657,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Update application metadata
             Map<String, String> metadata = new HashMap<>();
 
-            // Handle TLS certificate changes via ClientCertificateCrudService
-            String newCertificateToCreate = null;
-            if (
-                updateApplicationEntity.getSettings().getTls() != null &&
-                !StringUtils.isBlank(updateApplicationEntity.getSettings().getTls().getClientCertificate())
-            ) {
-                String newCertificate = updateApplicationEntity.getSettings().getTls().getClientCertificate().trim();
-
-                // Check if certificate has changed by comparing with the most recent active certificate
-                Optional<ClientCertificate> existingCertOpt = clientCertificateCrudService.findMostRecentActiveByApplicationId(
-                    applicationId
-                );
-
-                boolean certificateChanged = existingCertOpt
-                    .map(existingCert -> !newCertificate.equals(existingCert.getCertificate()))
-                    .orElse(true);
-
-                if (certificateChanged) {
-                    // Expire the current active certificate if exists
-                    existingCertOpt.ifPresent(existingCert ->
-                        // update no validation as end-date is after now since the cert is active
-                        clientCertificateCrudService.update(
-                            existingCert.getId(),
-                            ClientCertificate.builder()
-                                .name(existingCert.getName())
-                                .startsAt(existingCert.getStartsAt())
-                                .endsAt(new Date())
-                                .build()
-                        )
-                    );
-                    // Mark new certificate for creation after application update
-                    newCertificateToCreate = newCertificate;
-                }
-            }
+            // Create, update, delete client certificate regarding of the new application state
+            syncClientCertificates(executionContext, applicationId, updateApplicationEntity);
 
             // Update a simple application
             if (applicationToUpdate.getType() == ApplicationType.SIMPLE && updateApplicationEntity.getSettings().getApp() != null) {
@@ -693,13 +679,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     updateClientRegistration(executionContext, updateApplicationEntity, registrationPayload, metadata, applicationToUpdate);
                 }
             }
-
-            // Create new certificate if certificate was changed
-            final Optional<String> clientCertificate = createNewCertificateIfNecessary(
-                applicationId,
-                updateApplicationEntity,
-                newCertificateToCreate
-            );
 
             Application application = applicationConverter.toApplication(updateApplicationEntity);
             application.setId(applicationId);
@@ -722,7 +701,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 updatedApplication
             );
 
-            updateActiveSubscriptions(executionContext, applicationId, application, clientCertificate);
+            updateActiveSubscriptions(executionContext, applicationId, application);
             return convertApplication(executionContext, Collections.singleton(updatedApplication)).iterator().next();
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
@@ -730,6 +709,88 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 ex
             );
         }
+    }
+
+    private void syncClientCertificates(
+        ExecutionContext executionContext,
+        String applicationId,
+        UpdateApplicationEntity updateApplicationEntity
+    ) {
+        // Handle TLS certificate changes via ClientCertificateCrudService
+        List<CreateClientCertificate> incoming = getClientCertificates(
+            updateApplicationEntity.getName(),
+            updateApplicationEntity.getSettings()
+        );
+
+        // Find MTLS subscriptions that end after the certificate that ends the farthest (if any)
+        var maxEndDate = incoming
+            .stream()
+            .map(CreateClientCertificate::endsAt)
+            .map(Optional::ofNullable)
+            .mapToLong(end -> end.map(Date::getTime).orElse(Long.MAX_VALUE))
+            .max();
+        if (maxEndDate.isPresent()) {
+            // Queries active MTLS subscriptions ending after the latest certificate
+            var subscriptionEndingTooLate = subscriptionService.search(
+                executionContext,
+                SubscriptionQuery.builder()
+                    .applications(Set.of(applicationId))
+                    .planSecurityTypes(Set.of(Plan.PlanSecurityType.MTLS.name()))
+                    .endingAtAfter(maxEndDate.getAsLong())
+                    .statuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PENDING, SubscriptionStatus.PAUSED))
+                    .build()
+            );
+            if (!subscriptionEndingTooLate.isEmpty()) {
+                throw new SubscriptionEndsAfterClientCertificateException();
+            }
+        }
+
+        // Get all currently active certificates, sorted by creation date desc
+        var existing = clientCertificateCrudService
+            .findByApplicationIdAndStatuses(applicationId, ClientCertificateStatus.ACTIVE, ClientCertificateStatus.ACTIVE_WITH_END)
+            .stream()
+            .sorted(Comparator.comparing(ClientCertificate::createdAt))
+            .toList();
+
+        // Build a map of existing certificates by their certificate content for matching
+        Map<String, ClientCertificate> existingByCertificate = existing
+            .stream()
+            .collect(Collectors.toMap(ClientCertificate::certificate, c -> c, (a, b) -> a));
+
+        Set<String> incomingCertificates = incoming.stream().map(CreateClientCertificate::certificate).collect(toSet());
+
+        // Create new certificates (incoming certificates not in existing) or update existing ones
+        for (CreateClientCertificate incomingCert : incoming) {
+            ClientCertificate existingCert = existingByCertificate.get(incomingCert.certificate());
+            if (existingCert == null) {
+                // Create new certificate
+                clientCertificateCrudService.create(
+                    applicationId,
+                    new ClientCertificate(incomingCert.name(), incomingCert.certificate(), incomingCert.startsAt(), incomingCert.endsAt())
+                );
+            } else if (hasChanges(incomingCert, existingCert)) {
+                // Update existing certificate only if there are changes (name, startsAt, endsAt)
+                clientCertificateCrudService.update(
+                    existingCert.id(),
+                    new ClientCertificate(incomingCert.name(), incomingCert.startsAt(), incomingCert.endsAt())
+                );
+            }
+        }
+
+        // Delete certificates that are no longer in the incoming list
+        for (ClientCertificate existingCert : existing) {
+            if (!incomingCertificates.contains(existingCert.certificate())) {
+                clientCertificateCrudService.delete(existingCert.id());
+            }
+        }
+    }
+
+    private boolean hasChanges(CreateClientCertificate incoming, ClientCertificate existing) {
+        return (
+            !Objects.equals(incoming.name(), existing.name()) ||
+            !Objects.equals(incoming.startsAt(), existing.startsAt()) ||
+            !Objects.equals(incoming.endsAt(), existing.endsAt())
+        );
     }
 
     private void createAuditLog(
@@ -753,25 +814,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         );
     }
 
-    private void updateActiveSubscriptions(
-        ExecutionContext executionContext,
-        String applicationId,
-        Application application,
-        Optional<String> clientCertificate
-    ) {
-        // Set correct client_id for all active subscriptions
+    private void updateActiveSubscriptions(ExecutionContext executionContext, String applicationId, Application application) {
         SubscriptionQuery subQuery = new SubscriptionQuery();
         subQuery.setApplication(applicationId);
         subQuery.setStatuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING));
 
         String clientId = application.getMetadata().get(METADATA_CLIENT_ID);
 
-        final String subscriptionClientCertificate = clientCertificate
-            .map(cert -> Base64.getEncoder().encodeToString(cert.getBytes()))
-            .orElse(null);
-
         Consumer<Subscription> clientIdSubscriptionModifier = s -> s.setClientId(clientId);
-        Consumer<Subscription> clientCertificateSubscriptionModifier = s -> s.setClientCertificate(subscriptionClientCertificate);
         Consumer<Subscription> applicationNameSubscriptionModifier = s -> s.setApplicationName(application.getName());
 
         subscriptionService
@@ -780,11 +830,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 Consumer<Subscription> subscriptionModifier = null;
                 if (areNotEmptyAndDifferent(clientId, subscriptionEntity.getClientId())) {
                     subscriptionModifier = clientIdSubscriptionModifier;
-                }
-                if (areNotEmptyAndDifferent(subscriptionClientCertificate, subscriptionEntity.getClientCertificate())) {
-                    subscriptionModifier = subscriptionModifier == null
-                        ? clientCertificateSubscriptionModifier
-                        : subscriptionModifier.andThen(clientCertificateSubscriptionModifier);
                 }
                 if (areNotEmptyAndDifferent(application.getName(), subscriptionEntity.getApplicationName())) {
                     subscriptionModifier = subscriptionModifier == null
@@ -800,21 +845,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     subscriptionService.update(executionContext, updateSubscriptionEntity, subscriptionModifier);
                 }
             });
-    }
-
-    private Optional<String> createNewCertificateIfNecessary(
-        String applicationId,
-        UpdateApplicationEntity updateApplicationEntity,
-        String newCertificateToCreate
-    ) {
-        if (newCertificateToCreate != null) {
-            clientCertificateCrudService.create(
-                applicationId,
-                ClientCertificate.builder().name(updateApplicationEntity.getName()).certificate(newCertificateToCreate).build()
-            );
-            return Optional.of(newCertificateToCreate);
-        }
-        return Optional.empty();
     }
 
     private void checkClientIdUniqueness(
@@ -1345,8 +1375,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             .stream()
             .collect(
                 Collectors.groupingBy(
-                    ClientCertificate::getApplicationId,
-                    Collectors.collectingAndThen(Collectors.maxBy(Comparator.comparing(ClientCertificate::getCreatedAt)), opt ->
+                    ClientCertificate::applicationId,
+                    Collectors.collectingAndThen(Collectors.maxBy(Comparator.comparing(ClientCertificate::createdAt)), opt ->
                         opt.orElse(null)
                     )
                 )
@@ -1356,7 +1386,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         apps.forEach(app -> {
             ClientCertificate mostRecent = mostRecentCertificates.get(app.getId());
             if (mostRecent != null) {
-                app.getSettings().setTls(TlsSettings.builder().clientCertificate(mostRecent.getCertificate()).build());
+                app.getSettings().setTls(TlsSettings.builder().clientCertificate(mostRecent.certificate()).build());
             }
         });
 
@@ -1410,9 +1440,29 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         if (fetchCertificate) {
             // Fetch the most recent active certificate from ClientCertificateCrudService
-            clientCertificateCrudService
-                .findMostRecentActiveByApplicationId(application.getId())
-                .ifPresent(cert -> settings.setTls(TlsSettings.builder().clientCertificate(cert.getCertificate()).build()));
+            List<ClientCertificate> list = clientCertificateCrudService
+                .findByApplicationIdAndStatuses(
+                    application.getId(),
+                    ClientCertificateStatus.ACTIVE,
+                    ClientCertificateStatus.ACTIVE_WITH_END
+                )
+                .stream()
+                .sorted(Comparator.comparing(ClientCertificate::createdAt).reversed())
+                .toList();
+            if (!list.isEmpty()) {
+                settings.setTls(
+                    TlsSettings.builder()
+                        .clientCertificate(list.getFirst().certificate())
+                        .clientCertificates(
+                            list
+                                .stream()
+                                .map(c -> new CreateClientCertificate(c.name(), c.startsAt(), c.endsAt(), c.certificate()))
+                                .toList()
+                        )
+                        .certificateCount(list.size())
+                        .build()
+                );
+            }
         }
 
         return settings;
@@ -1570,9 +1620,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 criteriaBuilder.query(applicationQuery.getQuery());
             }
 
-            if (CollectionUtils.isNotEmpty(applicationQuery.getGroups())) {
-                criteriaBuilder.groups(applicationQuery.getGroups());
-            }
+            criteriaBuilder.groups(applicationQuery.getGroups());
 
             if (StringUtils.isNotBlank(applicationQuery.getName())) {
                 criteriaBuilder.name(applicationQuery.getName());
@@ -1584,9 +1632,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 criteriaBuilder.status(applicationStatus);
             }
 
-            if (CollectionUtils.isNotEmpty(applicationQuery.getIds())) {
-                criteriaBuilder.restrictedToIds(applicationQuery.getIds());
-            }
+            criteriaBuilder.restrictedToIds(applicationQuery.getIds());
 
             if (StringUtils.isNotBlank(applicationQuery.getUser())) {
                 Set<String> userApplicationsIds = findUserApplicationsIds(executionContext, applicationQuery.getUser(), applicationStatus);

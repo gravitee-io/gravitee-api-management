@@ -17,6 +17,7 @@ package io.gravitee.apim.core.application;
 
 import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApplicationCrudServiceInMemory;
@@ -31,6 +32,7 @@ import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDo
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDSpec;
 import io.gravitee.apim.core.application.model.crd.ApplicationMetadataCRD;
 import io.gravitee.apim.core.application.use_case.ImportApplicationCRDUseCase;
+import io.gravitee.apim.core.application_certificate.domain_service.ApplicationCertificatesUpdateDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
@@ -48,7 +50,6 @@ import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.impl.configuration.application.ApplicationTypeServiceImpl;
 import java.time.Clock;
 import java.time.Instant;
@@ -61,6 +62,8 @@ import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -69,7 +72,8 @@ import org.mockito.Mockito;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ImportApplicationCRDUseCaseTest {
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+class ImportApplicationCRDUseCaseTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
     private static final String ORGANIZATION_ID = "organization-id";
@@ -99,6 +103,9 @@ public class ImportApplicationCRDUseCaseTest {
     private final CRDMembersDomainServiceInMemory membersDomainService = new CRDMembersDomainServiceInMemory();
     private final ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
     private final ParameterService parameterService = mock(ParameterService.class);
+    private final ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService = mock(
+        ApplicationCertificatesUpdateDomainService.class
+    );
 
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     // Validation
@@ -114,13 +121,15 @@ public class ImportApplicationCRDUseCaseTest {
     void setUp() {
         importApplicationCRDDomainService.initWith(List.of(anApplicationCRD()));
         userDomainService.initWith(getUsers());
+        Mockito.reset(applicationCertificatesUpdateDomainService);
         useCase = new ImportApplicationCRDUseCase(
             applicationCrudService,
             importApplicationCRDDomainService,
             applicationMetadataCrudService,
             applicationMetadataQueryService,
             membersDomainService,
-            crdValidator
+            crdValidator,
+            applicationCertificatesUpdateDomainService
         );
         roleQueryService.initWith(
             List.of(
@@ -188,6 +197,15 @@ public class ImportApplicationCRDUseCaseTest {
         }
 
         @Test
+        void should_call_updateActiveMTLSSubscriptions_on_create() {
+            ApplicationCRDSpec crd = anApplicationCRD();
+            crd.setId(UuidString.generateRandom());
+            useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
+
+            verify(applicationCertificatesUpdateDomainService).updateActiveMTLSSubscriptions(APP_ID);
+        }
+
+        @Test
         void should_create_new_application_and_its_members() {
             var expectedApp = expectedApplication();
             var expectedMembers = applicationMembers()
@@ -246,6 +264,15 @@ public class ImportApplicationCRDUseCaseTest {
                 applicationMetadataEntity.setValue(newAppMetadataDescription);
                 soft.assertThat(applicationMetadataCrudService.storage()).contains(applicationMetadataEntity);
             });
+        }
+
+        @Test
+        void should_call_updateActiveMTLSSubscriptions_on_update() {
+            ApplicationCRDSpec crd = anApplicationCRD();
+            crd.setDescription("updated description");
+            useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
+
+            verify(applicationCertificatesUpdateDomainService).updateActiveMTLSSubscriptions(APP_ID);
         }
 
         @Test
