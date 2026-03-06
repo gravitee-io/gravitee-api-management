@@ -396,6 +396,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@angular-devkit/core@npm:20.3.19":
+  version: 20.3.19
+  resolution: "@angular-devkit/core@npm:20.3.19"
+  dependencies:
+    ajv: "npm:8.18.0"
+    ajv-formats: "npm:3.0.1"
+    jsonc-parser: "npm:3.3.1"
+    picomatch: "npm:4.0.3"
+    rxjs: "npm:7.8.2"
+    source-map: "npm:0.7.6"
+  peerDependencies:
+    chokidar: ^4.0.0
+  peerDependenciesMeta:
+    chokidar:
+      optional: true
+  checksum: 10c0/1a8689293dc32530e1b7461cd4dec12428c0cb140ac8c7122a60d9845fb99cdd2862ef840302314046276ed624a739992c0b3ee4b0618290166b7547def9f866
+  languageName: node
+  linkType: hard
+
 "@angular-devkit/schematics@npm:20.3.14":
   version: 20.3.14
   resolution: "@angular-devkit/schematics@npm:20.3.14"
@@ -406,6 +425,19 @@ __metadata:
     ora: "npm:8.2.0"
     rxjs: "npm:7.8.2"
   checksum: 10c0/f05bc442f69e4c6106a093d11263cf24373fa3b06ba00bfd4d92ed299886c662969ff3c516da4d35fe98b92c3846ea4e21aa1a8c49cbde54c83bef015e64a920
+  languageName: node
+  linkType: hard
+
+"@angular-devkit/schematics@npm:20.3.19":
+  version: 20.3.19
+  resolution: "@angular-devkit/schematics@npm:20.3.19"
+  dependencies:
+    "@angular-devkit/core": "npm:20.3.19"
+    jsonc-parser: "npm:3.3.1"
+    magic-string: "npm:0.30.17"
+    ora: "npm:8.2.0"
+    rxjs: "npm:7.8.2"
+  checksum: 10c0/28f898f8fa0f47efa4af373661f6b017f542a8725ef49d9c2c8c8422c5cd1f28ce52cf46b02f0cee5380e184e521aea6241bc6bed319d4dc38435056a3cb4a9e
   languageName: node
   linkType: hard
 
@@ -8424,6 +8456,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@schematics/angular@npm:20.3.19":
+  version: 20.3.19
+  resolution: "@schematics/angular@npm:20.3.19"
+  dependencies:
+    "@angular-devkit/core": "npm:20.3.19"
+    "@angular-devkit/schematics": "npm:20.3.19"
+    jsonc-parser: "npm:3.3.1"
+  checksum: 10c0/f0bdab4ba9d95f28dc5817b5d094f28c441f9af9a37efb30b36f9d07dcc0b0838c5730081437ab8b59b86f9d8d70d348b6cb86d0d9a3ed1c976db16782d93d57
+  languageName: node
+  linkType: hard
+
 "@sigstore/bundle@npm:^3.1.0":
   version: 3.1.0
   resolution: "@sigstore/bundle@npm:3.1.0"
@@ -11479,6 +11522,18 @@ __metadata:
     json-schema-traverse: "npm:^1.0.0"
     require-from-string: "npm:^2.0.2"
   checksum: 10c0/ec3ba10a573c6b60f94639ffc53526275917a2df6810e4ab5a6b959d87459f9ef3f00d5e7865b82677cb7d21590355b34da14d1d0b9c32d75f95a187e76fff35
+  languageName: node
+  linkType: hard
+
+"ajv@npm:8.18.0":
+  version: 8.18.0
+  resolution: "ajv@npm:8.18.0"
+  dependencies:
+    fast-deep-equal: "npm:^3.1.3"
+    fast-uri: "npm:^3.0.1"
+    json-schema-traverse: "npm:^1.0.0"
+    require-from-string: "npm:^2.0.2"
+  checksum: 10c0/e7517c426173513a07391be951879932bdf3348feaebd2199f5b901c20f99d60db8cd1591502d4d551dc82f594e82a05c4fe1c70139b15b8937f7afeaed9532f
   languageName: node
   linkType: hard
 
@@ -17347,7 +17402,7 @@ __metadata:
     "@nx/angular": "npm:21.6.10"
     "@nx/jest": "npm:22.4.5"
     "@scalar/openapi-parser": "npm:0.11.1"
-    "@schematics/angular": "npm:20.3.14"
+    "@schematics/angular": "npm:20.3.19"
     "@storybook/addon-docs": "npm:9.1.17"
     "@storybook/addon-links": "npm:9.1.17"
     "@storybook/angular": "npm:9.1.17"
