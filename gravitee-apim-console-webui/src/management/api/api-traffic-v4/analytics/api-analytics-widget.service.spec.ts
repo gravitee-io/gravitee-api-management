@@ -32,6 +32,7 @@ import {
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { AnalyticsStatsResponse } from '../../../../entities/management-api-v2/analytics/analyticsStats';
 import { fakeAnalyticsStatsResponse } from '../../../../entities/management-api-v2/analytics/analyticsStats.fixture';
+import { SUB_MILLISECOND_LABEL } from '../../../../shared/components/analytics-stats/analytics-stats.component';
 
 describe('ApiAnalyticsWidgetService', () => {
   let service: ApiAnalyticsWidgetService;
@@ -155,6 +156,36 @@ describe('ApiAnalyticsWidgetService', () => {
             expect(result.tooltip).toBe('');
             expect(result.widgetType).toBe('stats');
             expect(result.widgetData).toEqual({ stats: 100, statsUnit: 'ms' });
+
+            service.clearStatsCache();
+            done();
+          });
+          expectStatsRequest('gateway-response-time-ms', mockedStatsResponse);
+        });
+
+        it('should display sub-millisecond label when min response time is 0', (done) => {
+          const fakeWidgetConfig: ApiAnalyticsDashboardWidgetConfig = {
+            type: 'stats',
+            apiId: API_ID,
+            title: 'Min Response Time',
+            statsKey: 'min',
+            statsUnit: 'ms',
+            tooltip: '',
+            shouldSortBuckets: false,
+            statsField: 'gateway-response-time-ms',
+            analyticsType: 'STATS',
+          };
+
+          const mockedStatsResponse: AnalyticsStatsResponse = fakeAnalyticsStatsResponse({ min: 0 });
+
+          service.getApiAnalyticsWidgetConfig$(fakeWidgetConfig).subscribe((result) => {
+            if (result.state === 'loading') {
+              return;
+            }
+
+            expect(result.state).toBe('success');
+            expect(result.widgetType).toBe('stats');
+            expect(result.widgetData).toEqual({ stats: 0, statsUnit: 'ms', formattedOverride: SUB_MILLISECOND_LABEL });
 
             service.clearStatsCache();
             done();
