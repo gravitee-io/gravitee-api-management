@@ -37,14 +37,16 @@
   &__content {
     min-height: 80px;
   }
-}
 
-.plan-card.selected {
-  border: 1px solid #{theme.$tertiary-main-color};
-  background-color: #{theme.$banner-background-color};
-}
+  &__badges {
+    --mat-chip-elevated-container-color: #{theme.$chip-background};
+    --mat-chip-container-shape-radius: #{theme.$chip-shape};
+    --mat-chip-outline-width: 0;
 
-.plan-card.disabled {
-  cursor: not-allowed;
-  opacity: 0.2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 16px;
+  }
 }

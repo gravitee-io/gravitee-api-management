@@ -30,4 +30,14 @@ export class ObservabilityBreakpointService {
       shareReplay({ refCount: true, bufferSize: 1 }),
     );
   readonly isMobile = toSignal(this.isMobile$);
+
+  // Using Breakpoints.XSmall + Small + Medium for narrow viewports (max-width: 1279.98px)
+  // This covers phones, small tablets, and medium tablets — cards grid switches to 2-col below this threshold
+  readonly isNarrow$ = inject(BreakpointObserver)
+    .observe([Breakpoints.XSmall, Breakpoints.Small, Breakpoints.Medium])
+    .pipe(
+      map(state => state.matches),
+      shareReplay({ refCount: true, bufferSize: 1 }),
+    );
+  readonly isNarrow = toSignal(this.isNarrow$);
 }

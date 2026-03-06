@@ -62,11 +62,14 @@
 
 .plan-list__container {
   display: grid;
-  margin-top: 30px;
-  gap: 32px;
+  gap: 16px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 
-  @media (width <= 768px) {
+  &--narrow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  &--mobile {
     grid-template-columns: 1fr;
   }
 }
