@@ -213,6 +213,36 @@ describe('ApiProductV2Service', () => {
     });
   });
 
+  describe('getApis', () => {
+    it('should call the API with default page and perPage', done => {
+      const response = { data: [], pagination: { totalCount: 0, page: 1, perPage: 10 }, links: {} };
+
+      apiProductV2Service.getApis('product-123').subscribe(result => {
+        expect(result.data).toEqual([]);
+        expect(result.pagination?.totalCount).toBe(0);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${baseURL}/api-products/product-123/apis?page=1&perPage=10`,
+        method: 'GET',
+      });
+      req.flush(response);
+    });
+
+    it('should call the API with custom page, perPage and query', done => {
+      const response = { data: [], pagination: { totalCount: 0, page: 2, perPage: 20 }, links: {} };
+
+      apiProductV2Service.getApis('product-123', 2, 20, 'search-term').subscribe(() => done());
+
+      const req = httpTestingController.expectOne({
+        url: `${baseURL}/api-products/product-123/apis?page=2&perPage=20&query=search-term`,
+        method: 'GET',
+      });
+      req.flush(response);
+    });
+  });
+
   describe('update', () => {
     it('should call the API', done => {
       const apiProductId = 'product-123';
