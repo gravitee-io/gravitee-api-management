@@ -16,14 +16,13 @@
 package io.gravitee.repository.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
 import io.gravitee.repository.management.model.Tenant;
 import io.gravitee.repository.management.model.TenantReferenceType;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Assert;
 import org.junit.Test;
 
 public class TenantRepositoryTest extends AbstractManagementRepositoryTest {
@@ -37,14 +36,14 @@ public class TenantRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldFindByReference() throws Exception {
         final Set<Tenant> tenants = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION);
 
-        assertNotNull(tenants);
-        assertEquals(3, tenants.size());
+        assertThat(tenants).isNotNull().hasSize(3);
     }
 
     @Test
     public void shouldCreate() throws Exception {
         final Tenant tenant = new Tenant();
-        tenant.setId("new-tenant");
+        tenant.setId("76d85918-0909-4054-9859-180909605419");
+        tenant.setKey("new-tenant-key");
         tenant.setName("Tenant name");
         tenant.setDescription("Description for the new tenant");
         tenant.setReferenceId("DEFAULT");
@@ -54,21 +53,22 @@ public class TenantRepositoryTest extends AbstractManagementRepositoryTest {
         tenantRepository.create(tenant);
         int nbTenantsAfterCreation = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION).size();
 
-        Assert.assertEquals(nbTenantsBeforeCreation + 1, nbTenantsAfterCreation);
+        assertThat(nbTenantsAfterCreation).isEqualTo(nbTenantsBeforeCreation + 1);
 
-        Optional<Tenant> optional = tenantRepository.findById("new-tenant");
-        Assert.assertTrue("Tenant saved not found", optional.isPresent());
+        Optional<Tenant> optional = tenantRepository.findById("76d85918-0909-4054-9859-180909605419");
+        assertThat(optional).isPresent();
 
         final Tenant tenantSaved = optional.get();
-        Assert.assertEquals("Invalid saved tenant name.", tenant.getName(), tenantSaved.getName());
-        Assert.assertEquals("Invalid tenant description.", tenant.getDescription(), tenantSaved.getDescription());
+        assertThat(tenantSaved.getName()).isEqualTo(tenant.getName());
+        assertThat(tenantSaved.getDescription()).isEqualTo(tenant.getDescription());
+        assertThat(tenantSaved.getKey()).isEqualTo(tenant.getKey());
     }
 
     @Test
     public void shouldUpdate() throws Exception {
-        Optional<Tenant> optional = tenantRepository.findById("asia");
-        Assert.assertTrue("Tenant to update not found", optional.isPresent());
-        Assert.assertEquals("Invalid saved tenant name.", "Asia", optional.get().getName());
+        Optional<Tenant> optional = tenantRepository.findById("e8a91421-4d32-4720-a914-214d32e720f4");
+        assertThat(optional).isPresent();
+        assertThat(optional.get().getName()).isEqualTo("Asia");
 
         final Tenant tenant = optional.get();
         tenant.setName("New tenant");
@@ -80,23 +80,23 @@ public class TenantRepositoryTest extends AbstractManagementRepositoryTest {
         tenantRepository.update(tenant);
         int nbTenantsAfterUpdate = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION).size();
 
-        Assert.assertEquals(nbTenantsBeforeUpdate, nbTenantsAfterUpdate);
+        assertThat(nbTenantsAfterUpdate).isEqualTo(nbTenantsBeforeUpdate);
 
-        Optional<Tenant> optionalUpdated = tenantRepository.findById("asia");
-        Assert.assertTrue("Tenant to update not found", optionalUpdated.isPresent());
+        Optional<Tenant> optionalUpdated = tenantRepository.findById("e8a91421-4d32-4720-a914-214d32e720f4");
+        assertThat(optionalUpdated).isPresent();
 
         final Tenant tenantUpdated = optionalUpdated.get();
-        Assert.assertEquals("Invalid saved tenant name.", "New tenant", tenantUpdated.getName());
-        Assert.assertEquals("Invalid tenant description.", "New description", tenantUpdated.getDescription());
+        assertThat(tenantUpdated.getName()).isEqualTo("New tenant");
+        assertThat(tenantUpdated.getDescription()).isEqualTo("New description");
     }
 
     @Test
     public void shouldDelete() throws Exception {
         int nbTenantsBeforeDeletion = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION).size();
-        tenantRepository.delete("us");
+        tenantRepository.delete("89083315-9964-469b-8833-159964069b05");
         int nbTenantsAfterDeletion = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION).size();
 
-        Assert.assertEquals(nbTenantsBeforeDeletion - 1, nbTenantsAfterDeletion);
+        assertThat(nbTenantsAfterDeletion).isEqualTo(nbTenantsBeforeDeletion - 1);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -114,12 +114,13 @@ public class TenantRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldFindByIdAndReference() throws Exception {
-        final Optional<Tenant> tenant = tenantRepository.findByIdAndReference("other-us", "OTHER", TenantReferenceType.ORGANIZATION);
+    public void shouldFindByKeyAndReference() throws Exception {
+        final Optional<Tenant> tenant = tenantRepository.findByKeyAndReference("other-us", "OTHER", TenantReferenceType.ORGANIZATION);
 
-        assertTrue(tenant.isPresent());
-        assertEquals("US", tenant.get().getName());
-        assertEquals("Description for other US tenant", tenant.get().getDescription());
+        assertThat(tenant).isPresent();
+        assertThat(tenant.get().getName()).isEqualTo("US");
+        assertThat(tenant.get().getDescription()).isEqualTo("Description for other US tenant");
+        assertThat(tenant.get().getKey()).isEqualTo("other-us");
     }
 
     @Test
@@ -128,7 +129,7 @@ public class TenantRepositoryTest extends AbstractManagementRepositoryTest {
 
         List<String> deleted = tenantRepository.deleteByReferenceIdAndReferenceType("ToBeDeleted", TenantReferenceType.ORGANIZATION);
 
-        assertEquals(2, deleted.size());
+        assertThat(deleted).hasSize(2);
         assertThat(tenantRepository.findByReference("ToBeDeleted", TenantReferenceType.ORGANIZATION)).isEmpty();
     }
 }

@@ -30,7 +30,7 @@ public class Tenant {
     }
 
     private String id;
-
+    private String key;
     private String name;
 
     private String description;
@@ -45,6 +45,14 @@ public class Tenant {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getName() {
@@ -86,6 +94,7 @@ public class Tenant {
         Tenant view = (Tenant) o;
         return (
             Objects.equals(id, view.id) &&
+            Objects.equals(key, view.key) &&
             Objects.equals(name, view.name) &&
             Objects.equals(description, view.description) &&
             Objects.equals(referenceId, view.referenceId) &&
@@ -95,7 +104,7 @@ public class Tenant {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description, referenceId, referenceType);
+        return Objects.hash(id, key, name, description, referenceId, referenceType);
     }
 
     @Override
@@ -104,6 +113,9 @@ public class Tenant {
             "Tenant{" +
             "id='" +
             id +
+            '\'' +
+            ", key='" +
+            key +
             '\'' +
             ", name='" +
             name +

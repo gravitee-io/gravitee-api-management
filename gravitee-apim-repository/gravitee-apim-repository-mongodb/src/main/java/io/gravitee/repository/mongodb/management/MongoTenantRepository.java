@@ -55,14 +55,14 @@ public class MongoTenantRepository implements TenantRepository {
     }
 
     @Override
-    public Optional<Tenant> findByIdAndReference(String tenantId, String referenceId, TenantReferenceType referenceType) {
-        log.debug("Find tenant by ID [{}]", tenantId);
+    public Optional<Tenant> findByKeyAndReference(String tenantKey, String referenceId, TenantReferenceType referenceType) {
+        log.debug("Find tenant by key [{}]", tenantKey);
 
         final TenantMongo tenant = internalTenantRepo
-            .findByIdAndReferenceIdAndReferenceType(tenantId, referenceId, referenceType)
+            .findByKeyAndReferenceIdAndReferenceType(tenantKey, referenceId, referenceType)
             .orElse(null);
 
-        log.debug("Find tenant by ID [{}] - Done", tenantId);
+        log.debug("Find tenant by key [{}] - Done", tenant);
         return Optional.ofNullable(mapper.map(tenant));
     }
 
@@ -74,7 +74,7 @@ public class MongoTenantRepository implements TenantRepository {
             final List<String> tenants = internalTenantRepo
                 .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
                 .stream()
-                .map(TenantMongo::getId)
+                .map(TenantMongo::getKey)
                 .toList();
             log.debug("Delete tenants by refId: {}/{}", referenceId, referenceType);
             return tenants;
@@ -107,12 +107,13 @@ public class MongoTenantRepository implements TenantRepository {
         final TenantMongo tenantMongo = internalTenantRepo.findById(tenant.getId()).orElse(null);
 
         if (tenantMongo == null) {
-            throw new IllegalStateException(String.format("No tenant found with name [%s]", tenant.getId()));
+            throw new IllegalStateException(String.format("No tenant found with name [%s]", tenant.getKey()));
         }
 
         try {
             //Update
             tenantMongo.setName(tenant.getName());
+            tenantMongo.setKey(tenant.getKey());
             tenantMongo.setDescription(tenant.getDescription());
             tenantMongo.setReferenceId(tenant.getReferenceId());
             tenantMongo.setReferenceType(tenant.getReferenceType());
@@ -143,6 +144,7 @@ public class MongoTenantRepository implements TenantRepository {
             .map(tenantMongo -> {
                 final Tenant tenant = new Tenant();
                 tenant.setId(tenantMongo.getId());
+                tenant.setKey(tenantMongo.getKey());
                 tenant.setName(tenantMongo.getName());
                 tenant.setDescription(tenantMongo.getDescription());
                 tenant.setReferenceId(tenantMongo.getReferenceId());

@@ -1,45 +1,50 @@
 [
-   {
-      "id":"europe",
-      "name":"Europe",
-      "description": "Description for europe tenant",
-      "referenceId": "DEFAULT",
-      "referenceType": "ORGANIZATION"
-   },
-   {
-      "id":"asia",
-      "name":"Asia",
-      "description": "Description for asia tenant",
-      "referenceId": "DEFAULT",
-      "referenceType": "ORGANIZATION"
-   },
-   {
-      "id":"us",
-      "name":"US",
-      "description": "Description for US tenant",
-      "referenceId": "DEFAULT",
-      "referenceType": "ORGANIZATION"
-   },
-   {
-      "id":"other-us",
-      "name":"US",
-      "description": "Description for other US tenant",
-      "referenceId": "OTHER",
-      "referenceType": "ORGANIZATION"
-   },
-   {
-     "id":"deleted-by-ref-1",
-     "name":"deleted-by-ref-1",
-     "description": "Description",
-     "referenceId": "ToBeDeleted",
-     "referenceType": "ORGANIZATION"
-   },
-   {
-     "id":"deleted-by-ref-2",
-     "name":"deleted-by-ref-2",
-     "description": "Description",
-     "referenceId": "ToBeDeleted",
-     "referenceType": "ORGANIZATION"
-   }
-
+  {
+    "id": "76d85918-0909-4054-9859-180909605417",
+    "key": "europe",
+    "name": "Europe",
+    "description": "Description for europe tenant",
+    "referenceId": "DEFAULT",
+    "referenceType": "ORGANIZATION"
+  },
+  {
+    "id": "e8a91421-4d32-4720-a914-214d32e720f4",
+    "key": "asia",
+    "name": "Asia",
+    "description": "Description for asia tenant",
+    "referenceId": "DEFAULT",
+    "referenceType": "ORGANIZATION"
+  },
+  {
+    "id": "89083315-9964-469b-8833-159964069b05",
+    "key": "us",
+    "name": "US",
+    "description": "Description for US tenant",
+    "referenceId": "DEFAULT",
+    "referenceType": "ORGANIZATION"
+  },
+  {
+    "id": "d043f494-817c-4824-83f4-94817c7824ef",
+    "key": "other-us",
+    "name": "US",
+    "description": "Description for other US tenant",
+    "referenceId": "OTHER",
+    "referenceType": "ORGANIZATION"
+  },
+  {
+    "id": "31969e5d-7521-4f11-969e-5d75213f114c",
+    "key": "deleted-by-ref-1",
+    "name": "deleted-by-ref-1",
+    "description": "Description",
+    "referenceId": "ToBeDeleted",
+    "referenceType": "ORGANIZATION"
+  },
+  {
+    "id": "239b1a77-96a1-438b-9b1a-7796a1938b81",
+    "key": "deleted-by-ref-2",
+    "name": "deleted-by-ref-2",
+    "description": "Description",
+    "referenceId": "ToBeDeleted",
+    "referenceType": "ORGANIZATION"
+  }
 ]
