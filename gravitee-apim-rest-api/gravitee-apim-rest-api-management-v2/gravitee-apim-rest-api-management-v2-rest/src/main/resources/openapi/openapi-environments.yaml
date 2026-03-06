@@ -2002,6 +2002,11 @@ components:
           format: uuid
           description: The parent ID of the navigation item
           example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        rootId:
+          type: string
+          format: uuid
+          description: The root parent ID of the navigation item hierarchy
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
         order:
           type: integer
           description: The order of the navigation item (zero-based)
