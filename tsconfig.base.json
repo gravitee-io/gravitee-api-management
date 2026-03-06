@@ -17,8 +17,6 @@
         "baseUrl": ".",
         "paths": {
             "@baros/*": ["gravitee-apim-baros/src/*"],
-            "@gravitee/gravitee-portal": ["gravitee-apim-webui-libs/gravitee-portal/src/public-api.ts"],
-            "@gravitee/gravitee-markdown": ["gravitee-apim-webui-libs/gravitee-markdown/src/public-api.ts"],
             "app_alpha/Module": ["app_alpha/src/remote-entry.ts"],
             "app_beta/Routes": ["app_beta/src/app/remote-entry/entry.routes.ts"]
         }

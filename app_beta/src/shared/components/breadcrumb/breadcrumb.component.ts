@@ -1,12 +1,11 @@
 import { Component, EventEmitter, Output } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatIconButton } from '@angular/material/button';
 
 @Component({
     selector: 'app-breadcrumb',
     standalone: true,
-    imports: [RouterLink, MatIconModule, MatIconButton],
+    imports: [MatIconModule, MatIconButton],
     template: `
         <nav class="breadcrumb" aria-label="Breadcrumb">
             <button mat-icon-button (click)="toggleSidebar.emit()" aria-label="Toggle sidebar">
@@ -14,11 +13,11 @@ import { MatIconButton } from '@angular/material/button';
             </button>
             <span class="divider"></span>
             <ol>
-                <li><a routerLink="/">Home</a></li>
+                <li><a href="/app-beta">Home</a></li>
                 <li>
                     <mat-icon class="separator" svgIcon="gio:nav-arrow-right"></mat-icon>
                 </li>
-                <li aria-current="page">Portal</li>
+                <li aria-current="page">Dashboard</li>
             </ol>
         </nav>
     `,
