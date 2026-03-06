@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { PlatformLocation } from '@angular/common';
 import SwaggerUI, { SwaggerUIOptions, SwaggerUIPlugin } from 'swagger-ui';
 
@@ -30,8 +30,9 @@ type docExpansion = 'list' | 'full' | 'none';
   styleUrls: ['./gv-page-swaggerui.component.css'],
   standalone: false,
 })
-export class GvPageSwaggerUIComponent implements OnInit {
+export class GvPageSwaggerUIComponent implements OnInit, OnDestroy {
   currentUser: User;
+  private swaggerContainer: HTMLElement | null = null;
 
   constructor(
     private currentUserService: CurrentUserService,
@@ -46,8 +47,23 @@ export class GvPageSwaggerUIComponent implements OnInit {
     this.refresh(this.pageService.getCurrentPage());
   }
 
+  ngOnDestroy() {
+    if (this.swaggerContainer) {
+      this.swaggerContainer.innerHTML = '';
+      this.swaggerContainer = null;
+    }
+
+    // Clean up global side effects leakage from SwaggerUI / React
+    document.body.classList.remove('antigravity-scroll-lock');
+    const preactHost = document.getElementById('preact-border-shadow-host');
+    if (preactHost) {
+      preactHost.remove();
+    }
+  }
+
   private refresh(page: Page) {
     if (page) {
+      this.swaggerContainer = document.getElementById('swagger');
       const ui = SwaggerUI({
         dom_id: '#swagger',
         ...this.buildConfig(page),
