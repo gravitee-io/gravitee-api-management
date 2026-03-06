@@ -21,6 +21,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 
 import { GioShortNumberPipeModule } from '../../../../shared/utils/shortNumber.pipe.module';
+import { SUB_MILLISECOND_LABEL } from '../../../../shared/components/analytics-stats/analytics-stats.component';
 
 export type v4ApisRequestStats = {
   requestsPerSecond: number;
@@ -38,4 +39,5 @@ export type v4ApisRequestStats = {
 })
 export class DashboardApiRequestStats {
   @Input() public data?: v4ApisRequestStats;
+  protected readonly subMillisecondLabel = SUB_MILLISECOND_LABEL;
 }

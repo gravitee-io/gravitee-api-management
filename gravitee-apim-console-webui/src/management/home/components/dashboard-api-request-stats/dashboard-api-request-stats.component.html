@@ -66,6 +66,8 @@
             <span class="stats__body__row__value">
               @if (data.responseMinTime) {
                 {{ data.responseMinTime | number: '.1-2' }} ms
+              } @else if (data.responseMinTime === 0 && data.requestsTotal) {
+                {{ subMillisecondLabel }}
               } @else {
                 -
               }
