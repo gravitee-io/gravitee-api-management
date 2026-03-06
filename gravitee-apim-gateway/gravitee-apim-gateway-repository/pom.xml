@@ -43,30 +43,11 @@
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.common</groupId>
-            <artifactId>gravitee-common</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.plugin</groupId>
-            <artifactId>gravitee-plugin-core</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.plugin</groupId>
-            <artifactId>gravitee-plugin-repository</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>io.gravitee.platform</groupId>
             <artifactId>gravitee-platform-repository-api</artifactId>
         </dependency>
 
         <!-- Spring dependencies -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-core</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>

@@ -38,23 +38,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>io.gravitee.apim.gateway</groupId>
-            <artifactId>gravitee-apim-gateway-connector</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.apim.gateway</groupId>
-            <artifactId>gravitee-apim-gateway-tcp</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.el</groupId>
-            <artifactId>gravitee-expression-language</artifactId>
-        </dependency>
-
         <!-- Vertx.io HTTP client -->
         <dependency>
             <groupId>io.vertx</groupId>

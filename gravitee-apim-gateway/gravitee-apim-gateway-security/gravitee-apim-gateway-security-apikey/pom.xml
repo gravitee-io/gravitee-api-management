@@ -37,10 +37,5 @@
             <artifactId>gravitee-apim-gateway-security-core</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.gravitee.apim.repository</groupId>
-            <artifactId>gravitee-apim-repository-api</artifactId>
-        </dependency>
-
     </dependencies>
 </project>
