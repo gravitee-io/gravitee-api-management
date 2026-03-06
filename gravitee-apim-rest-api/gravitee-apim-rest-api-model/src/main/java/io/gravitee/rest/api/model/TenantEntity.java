@@ -29,6 +29,10 @@ public class TenantEntity {
 
     @NotNull
     @Size(min = 1, max = 40)
+    private String key;
+
+    @NotNull
+    @Size(min = 1, max = 40)
     private String name;
 
     private String description;
@@ -39,6 +43,14 @@ public class TenantEntity {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getName() {
@@ -62,16 +74,36 @@ public class TenantEntity {
         if (this == o) return true;
         if (!(o instanceof TenantEntity)) return false;
         TenantEntity that = (TenantEntity) o;
-        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(description, that.description);
+        return (
+            Objects.equals(id, that.id) &&
+            Objects.equals(key, that.key) &&
+            Objects.equals(name, that.name) &&
+            Objects.equals(description, that.description)
+        );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description);
+        return Objects.hash(id, key, name, description);
     }
 
     @Override
     public String toString() {
-        return "TenantEntity{" + "id='" + id + '\'' + ", name='" + name + '\'' + ", description='" + description + '\'' + '}';
+        return (
+            "TenantEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", key='" +
+            key +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            '}'
+        );
     }
 }

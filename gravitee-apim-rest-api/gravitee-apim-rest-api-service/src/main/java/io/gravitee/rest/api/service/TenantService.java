@@ -29,7 +29,7 @@ import java.util.List;
 public interface TenantService {
     List<TenantEntity> findByReference(String referenceId, TenantReferenceType referenceType);
 
-    TenantEntity findByIdAndReference(String tenantId, String referenceId, TenantReferenceType referenceType);
+    TenantEntity findByKeyAndReference(String tenant, String referenceId, TenantReferenceType referenceType);
 
     List<TenantEntity> create(
         ExecutionContext executionContext,
