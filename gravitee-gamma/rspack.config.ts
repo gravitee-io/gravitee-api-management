@@ -20,6 +20,9 @@ export default {
     },
     devServer: {
         port: 4200,
+        proxy: [
+            { context: ['/build.json', '/constants.json'], target: 'http://localhost:4000' },
+        ],
         historyApiFallback: {
             index: '/index.html',
             disableDotRule: true,
