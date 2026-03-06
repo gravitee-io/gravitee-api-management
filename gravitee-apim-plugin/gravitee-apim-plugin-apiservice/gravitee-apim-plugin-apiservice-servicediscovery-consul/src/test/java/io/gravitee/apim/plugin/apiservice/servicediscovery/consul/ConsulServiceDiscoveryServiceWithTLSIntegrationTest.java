@@ -49,7 +49,6 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.consul.ConsulClient;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -66,29 +65,29 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
-import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.BindMode;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.utility.DockerImageName;
 
 @ExtendWith(value = { MockitoExtension.class, VertxExtension.class })
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ConsulServiceDiscoveryServiceWithTLSIntegrationTest {
 
-    private static final String CONSUL_SERVICE = "consul-server";
     private static final int CONSUL_SERVICE_PORT = 8500;
     private static final int CONSUL_SERVICE_SECURED_PORT = 8501;
 
     private static final String HTTP_PROXY = "http-proxy";
     private static final String SERVICE_NAME = "my-service";
 
-    static DockerComposeContainer<?> consulEnvironment = new DockerComposeContainer<>(
-        new File("src/test/resources/docker/consul_with_tls.yml")
-    )
-        .withExposedService(CONSUL_SERVICE, CONSUL_SERVICE_PORT, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(30)))
-        .withExposedService(
-            CONSUL_SERVICE,
-            CONSUL_SERVICE_SECURED_PORT,
-            Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(30))
-        );
+    static GenericContainer<?> consulContainer = new GenericContainer<>(DockerImageName.parse("hashicorp/consul:1.15.1"))
+        .withFileSystemBind("src/test/resources/docker/config/server_tls.json", "/consul/config/server.json", BindMode.READ_ONLY)
+        .withFileSystemBind("src/test/resources/docker/config/ssl", "/consul/config/certs", BindMode.READ_ONLY)
+        .withCommand("agent")
+        .withCreateContainerCmdModifier(cmd -> cmd.withHostName("server1"))
+        .withExposedPorts(CONSUL_SERVICE_PORT, CONSUL_SERVICE_SECURED_PORT)
+        .waitingFor(Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(30)));
+
     private final Vertx vertx = Vertx.vertx();
     private final PluginConfigurationHelper pluginConfigurationHelper = new PluginConfigurationHelper(
         mock(Configuration.class),
@@ -108,13 +107,13 @@ class ConsulServiceDiscoveryServiceWithTLSIntegrationTest {
 
     @BeforeAll
     void beforeAll() {
-        consulEnvironment.start();
+        consulContainer.start();
         client = ConsulClient.create(vertx, new ConsulClientOptions().setHost(consulHost()).setPort(consulPort()));
     }
 
     @AfterAll
     void afterAll() {
-        consulEnvironment.stop();
+        consulContainer.stop();
     }
 
     @BeforeEach
@@ -354,18 +353,15 @@ class ConsulServiceDiscoveryServiceWithTLSIntegrationTest {
     }
 
     private static String consulHost() {
-        return consulEnvironment.getServiceHost(CONSUL_SERVICE, CONSUL_SERVICE_SECURED_PORT);
-        //        return "localhost";
+        return consulContainer.getHost();
     }
 
     private static int consulPort() {
-        return consulEnvironment.getServicePort(CONSUL_SERVICE, CONSUL_SERVICE_PORT);
-        //        return CONSUL_SERVICE_PORT;
+        return consulContainer.getMappedPort(CONSUL_SERVICE_PORT);
     }
 
     private static int consulSecuredPort() {
-        return consulEnvironment.getServicePort(CONSUL_SERVICE, CONSUL_SERVICE_SECURED_PORT);
-        //        return CONSUL_SERVICE_SECURED_PORT;
+        return consulContainer.getMappedPort(CONSUL_SERVICE_SECURED_PORT);
     }
 
     private void configureDiscoveryInGroup(JsonObject configuration) {
