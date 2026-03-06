@@ -22,14 +22,17 @@ import { Build, Constants, DefaultPortal } from './entities/Constants';
 import { getFeatureInfoData } from './shared/components/gio-license/gio-license-data';
 import { ConsoleCustomization } from './entities/management-api-v2/consoleCustomization';
 import { environment } from './environments/environment';
+import { APP_BASE_HREF } from '@angular/common';
 import { GammaPortalModule, GAMMA_MOUNT_ELEMENT } from './app/gamma-portal/gamma-portal.module';
 
-const requestConfig: RequestInit = {
-  headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
-};
+// #region agent log
+if (typeof fetch !== 'undefined') fetch('http://127.0.0.1:7243/ingest/deaec3c8-039f-42ae-bc14-e332b5e7094e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'269500'},body:JSON.stringify({sessionId:'269500',location:'mount-gamma.ts:topLevel',message:'module top-level executing',data:{},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+// #endregion
 
 export interface MountConfig {
   baseURL?: string;
+  /** Base pathname where the portal is mounted (e.g. /developer-portal/homepage). Keeps Angular hash router from replacing the host path. */
+  basePath?: string;
   envHrid?: string;
 }
 
@@ -42,8 +45,11 @@ export interface MountResult {
  * Fetches bootstrap data and Constants from the Management API, then bootstraps
  * the Angular gamma portal. Returns an unmount callback to destroy the app (e.g. on route change).
  */
-export function mount(mountElement: HTMLElement, _config?: MountConfig): Promise<MountResult> {
-  return fetchDataGamma()
+export function mount(mountElement: HTMLElement, config?: MountConfig): Promise<MountResult> {
+  // #region agent log
+  if (typeof fetch !== 'undefined') fetch('http://127.0.0.1:7243/ingest/deaec3c8-039f-42ae-bc14-e332b5e7094e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'269500'},body:JSON.stringify({sessionId:'269500',location:'mount-gamma.ts:mount',message:'mount() entered',data:{},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+  // #endregion
+  return fetchDataGamma(config)
     .then(({ constants }) => {
       loadDefaultTranslations();
 
@@ -63,10 +69,12 @@ export function mount(mountElement: HTMLElement, _config?: MountConfig): Promise
         enableProdMode();
       }
 
+      const baseHref = config?.basePath != null ? `${config.basePath.replace(/\/?$/, '')}!` : '!';
       const platformRef = platformBrowserDynamic([
         { provide: Constants, useValue: constants },
         { provide: 'LicenseConfiguration', useValue: licenseConfiguration },
         { provide: GAMMA_MOUNT_ELEMENT, useValue: mountElement },
+        { provide: APP_BASE_HREF, useValue: baseHref },
       ]);
 
       return platformRef.bootstrapModule(GammaPortalModule).then(ngModuleRef => ({
@@ -81,13 +89,24 @@ export function mount(mountElement: HTMLElement, _config?: MountConfig): Promise
     });
 }
 
-function fetchDataGamma(): Promise<{ constants: Constants; build: Build }> {
+function fetchDataGamma(mountConfig?: MountConfig): Promise<{ constants: Constants; build: Build }> {
+  // #region agent log
+  if (typeof fetch !== 'undefined') fetch('http://127.0.0.1:7243/ingest/deaec3c8-039f-42ae-bc14-e332b5e7094e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'269500'},body:JSON.stringify({sessionId:'269500',location:'mount-gamma.ts:fetchDataGamma',message:'fetchDataGamma entered',data:{},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+  // #endregion
+  const requestConfig: RequestInit = {
+    headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+  };
   return Promise.all([
     fetch('build.json', requestConfig).then(r => r.json()),
     fetch('constants.json', requestConfig).then(r => r.json()),
   ])
     .then(([buildResponse, constantsResponse]) => {
-      const baseURL = sanitizeBaseURLs(constantsResponse.baseURL);
+      const rawBaseURL = mountConfig?.baseURL
+        ? mountConfig.baseURL.startsWith('http')
+          ? mountConfig.baseURL
+          : `http://${mountConfig.baseURL}`
+        : constantsResponse.baseURL;
+      const baseURL = sanitizeBaseURLs(rawBaseURL);
       const enforcedOrganizationId = getEnforcedOrganizationId({
         baseURL,
         organizationId: constantsResponse.organizationId,

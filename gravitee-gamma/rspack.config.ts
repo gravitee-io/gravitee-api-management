@@ -21,7 +21,15 @@ export default {
     devServer: {
         port: 4200,
         proxy: [
-            { context: ['/build.json', '/constants.json'], target: 'http://localhost:4000' },
+            {
+                context: ['/build.json', '/constants.json', '/i18n'],
+                target: 'http://localhost:4000',
+            },
+            {
+                context: ['/management'],
+                target: 'http://localhost:8083',
+                changeOrigin: true,
+            },
         ],
         historyApiFallback: {
             index: '/index.html',
