@@ -21,6 +21,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { Tag } from '../../../../entities/tag/tag';
 import { GroupService } from '../../../../services-ngx/group.service';
+import { sanitizeKeyBase, sanitizeKeyFinal } from '../../../../shared/utils/key-sanitizer.util';
 
 export type OrgSettingAddTagDialogData = {
   tag?: Tag;
@@ -57,7 +58,7 @@ export class OrgSettingAddTagDialogComponent {
       .pipe(
         filter(key => key !== null),
         tap(key => {
-          const sanitized = this.sanitizeKeyBase(key);
+          const sanitized = sanitizeKeyBase(key);
           if (sanitized !== key) {
             this.tagForm.controls.key.setValue(sanitized, { emitEvent: false });
           }
@@ -77,37 +78,14 @@ export class OrgSettingAddTagDialogComponent {
     this.dialogRef.close(updatedTag);
   }
 
-  /**
-   * Finalizes `key` sanitization on blur.
-   *
-   * We intentionally keep trailing `-` while the user is typing (e.g. transient `eu-`),
-   * then apply the backend rule “no trailing hyphen” when the field loses focus.
-   */
   onKeyBlur(): void {
     const value = this.tagForm.controls.key.value;
-    if (value == null) return;
-
-    let sanitized = this.sanitizeKeyBase(value);
-    while (sanitized.endsWith('-')) {
-      sanitized = sanitized.slice(0, -1);
+    if (value == null) {
+      return;
     }
-
+    const sanitized = sanitizeKeyFinal(value);
     if (sanitized !== value) {
       this.tagForm.controls.key.setValue(sanitized, { emitEvent: false });
     }
-  }
-
-  /**
-   * Normalizes user input to produce a valid tag key that meets backend requirements
-   * (alphanumeric with hyphens only, no diacritics or special characters).
-   */
-  private sanitizeKeyBase(key: string): string {
-    return key
-      .normalize('NFD')
-      .replaceAll(/[\u0300-\u036f]+/g, '')
-      .toLowerCase()
-      .replaceAll(/[^a-z\d\s-]/g, '')
-      .trim()
-      .replaceAll(/[^a-z\d]+/g, '-');
   }
 }
