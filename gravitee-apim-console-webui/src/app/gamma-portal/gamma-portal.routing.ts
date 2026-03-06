@@ -23,6 +23,11 @@ import { HasUnsavedChangesGuard } from '../../shared/guards/has-unsaved-changes.
 
 export const gammaPortalRoutes: Routes = [
   {
+    path: '',
+    pathMatch: 'full',
+    redirectTo: 'default',
+  },
+  {
     path: ':envHrid',
     canActivate: [EnvironmentGuard.initEnvConfigAndLoadPermissions],
     canActivateChild: [HasLicenseGuard, PermissionGuard.checkRouteDataPermissions],

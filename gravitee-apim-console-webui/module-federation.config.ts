@@ -4,10 +4,14 @@ const EAGER_PACKAGES = [
   '@angular/core',
   '@angular/common',
   '@angular/common/http',
+  '@angular/compiler',
   '@angular/router',
   '@angular/platform-browser',
   '@angular/platform-browser-dynamic',
+  '@angular/cdk',
+  '@angular/animations',
   'rxjs',
+  'tslib',
 ];
 
 const config: ModuleFederationConfig = {

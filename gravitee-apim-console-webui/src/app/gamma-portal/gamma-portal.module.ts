@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APP_BASE_HREF } from '@angular/common';
 import { provideHttpClient, withInterceptorsFromDi, withXsrfConfiguration } from '@angular/common/http';
 import { ApplicationRef, DoBootstrap, inject, InjectionToken, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
@@ -41,7 +40,6 @@ export const GAMMA_MOUNT_ELEMENT = new InjectionToken<HTMLElement>('GAMMA_MOUNT_
     GammaRootComponent,
   ],
   providers: [
-    { provide: APP_BASE_HREF, useValue: '!' },
     httpInterceptorProviders,
     provideHttpClient(
       withInterceptorsFromDi(),
