@@ -15,6 +15,7 @@
  */
 import { Component, DestroyRef, effect, ElementRef, inject, input } from '@angular/core';
 
+import { REDOC_BREAKPOINT_LARGE, REDOC_BREAKPOINT_MEDIUM } from '../../services/redoc-defaults';
 import { RedocService } from '../../services/redoc.service';
 
 /**
@@ -23,16 +24,6 @@ import { RedocService } from '../../services/redoc.service';
  * ensuring the DOM container is available.
  */
 const RENDER_DELAY_MS = 0;
-
-const DEFAULT_REDOC_OPTIONS = {
-  hideDownloadButton: false,
-  theme: {
-    breakpoints: {
-      medium: '50rem',
-      large: '75rem',
-    },
-  },
-};
 
 @Component({
   selector: 'app-redoc-content-viewer',
@@ -72,13 +63,36 @@ export class RedocContentViewerComponent {
    * The innerHTML is cleared before initialization to ensure a clean render state.
    */
   private scheduleRedocInit(spec: string): void {
-    this.pendingTimeoutId = window.setTimeout(() => {
-      this.pendingTimeoutId = null;
-      const redocElement = this.element.nativeElement?.querySelector('#redoc') as HTMLElement | null;
-      if (redocElement && spec) {
-        redocElement.innerHTML = '';
-        this.redocService.init(spec, DEFAULT_REDOC_OPTIONS, redocElement);
-      }
-    }, RENDER_DELAY_MS);
+    this.pendingTimeoutId = window.setTimeout(() => this.initializeRedoc(spec), RENDER_DELAY_MS);
+  }
+
+  /**
+   * Initializes Redoc in the #redoc container: clears pending timeout, queries the container,
+   * clears its content, and calls RedocService.init with options (breakpoints from host CSS vars).
+   */
+  private initializeRedoc(spec: string): void {
+    this.pendingTimeoutId = null;
+    const redocElement = this.element.nativeElement?.querySelector('#redoc') as HTMLElement | null;
+    if (!redocElement || !spec) {
+      return;
+    }
+    redocElement.innerHTML = '';
+    this.redocService.init(spec, this.getRedocOptions(), redocElement);
+  }
+
+  /**
+   * Builds Redoc options with breakpoints read from host CSS custom properties
+   * (--redoc-breakpoint-medium, --redoc-breakpoint-large), with fallbacks.
+   */
+  private getRedocOptions(): Record<string, unknown> {
+    const style = this.element.nativeElement && window.getComputedStyle(this.element.nativeElement);
+    const medium = style?.getPropertyValue('--redoc-breakpoint-medium')?.trim() || REDOC_BREAKPOINT_MEDIUM;
+    const large = style?.getPropertyValue('--redoc-breakpoint-large')?.trim() || REDOC_BREAKPOINT_LARGE;
+    return {
+      hideDownloadButton: false,
+      theme: {
+        breakpoints: { medium, large },
+      },
+    };
   }
 }

@@ -18,6 +18,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { RedocContentViewerComponent } from './redoc-content-viewer.component';
 import { RedocContentViewerHarness } from './redoc-content-viewer.harness';
+import { REDOC_BREAKPOINT_LARGE, REDOC_BREAKPOINT_MEDIUM } from '../../services/redoc-defaults';
 import { RedocService } from '../../services/redoc.service';
 
 describe('RedocContentViewerComponent', () => {
@@ -52,7 +53,7 @@ describe('RedocContentViewerComponent', () => {
       openApiSpec,
       expect.objectContaining({
         hideDownloadButton: false,
-        theme: { breakpoints: { medium: '50rem', large: '75rem' } },
+        theme: { breakpoints: { medium: REDOC_BREAKPOINT_MEDIUM, large: REDOC_BREAKPOINT_LARGE } },
       }),
       expect.anything(),
     );

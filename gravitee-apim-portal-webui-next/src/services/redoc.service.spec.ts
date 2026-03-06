@@ -16,6 +16,7 @@
 import { DOCUMENT } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 
+import { REDOC_PRIMARY_COLOR_FALLBACK } from './redoc-defaults';
 import { RedocService } from './redoc.service';
 
 describe('RedocService', () => {
@@ -25,7 +26,11 @@ describe('RedocService', () => {
 
   const setupTestBed = (primaryColor?: string) => {
     const computedStyle = {
-      getPropertyValue: (prop: string) => (prop === '--gio-app-primary-main-color' ? (primaryColor ?? '') : ''),
+      getPropertyValue: (prop: string) => {
+        if (prop === '--gio-app-primary-main-color') return primaryColor ?? '';
+        if (prop === '--gio-app-primary-main-color-fallback') return REDOC_PRIMARY_COLOR_FALLBACK;
+        return '';
+      },
     };
     const mockDocument = {
       documentElement: document.documentElement,
@@ -74,11 +79,11 @@ describe('RedocService', () => {
           hideDownloadButton: true,
           theme: expect.objectContaining({
             colors: expect.objectContaining({
-              primary: { main: '#32329f' },
+              primary: { main: REDOC_PRIMARY_COLOR_FALLBACK },
               http: expect.objectContaining({
-                get: '#32329f',
-                post: '#32329f',
-                delete: '#32329f',
+                get: REDOC_PRIMARY_COLOR_FALLBACK,
+                post: REDOC_PRIMARY_COLOR_FALLBACK,
+                delete: REDOC_PRIMARY_COLOR_FALLBACK,
               }),
             }),
           }),
@@ -112,7 +117,7 @@ describe('RedocService', () => {
         expect.objectContaining({
           theme: expect.objectContaining({
             colors: expect.objectContaining({
-              primary: { main: '#32329f' },
+              primary: { main: REDOC_PRIMARY_COLOR_FALLBACK },
             }),
           }),
         }),
@@ -136,7 +141,7 @@ describe('RedocService', () => {
             breakpoints: { medium: '60rem', large: '80rem' },
             typography: { fontSize: '14px' },
             colors: expect.objectContaining({
-              primary: { main: '#32329f' },
+              primary: { main: REDOC_PRIMARY_COLOR_FALLBACK },
             }),
           }),
         }),

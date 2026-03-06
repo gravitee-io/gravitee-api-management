@@ -16,12 +16,11 @@
 import { DOCUMENT } from '@angular/common';
 import { inject, Injectable } from '@angular/core';
 
+import { REDOC_PRIMARY_COLOR_FALLBACK } from './redoc-defaults';
 import { readYaml } from '../app/helpers/yaml-parser';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare let Redoc: any;
-
-const DEFAULT_PRIMARY_COLOR = '#32329f';
 
 interface RedocThemeColors {
   primary?: {
@@ -59,7 +58,6 @@ interface RedocOptions {
 })
 export class RedocService {
   private readonly document = inject(DOCUMENT);
-  private cachedPrimaryColor: string | null = null;
 
   init(content: string | undefined, options: RedocOptions, element: HTMLElement): void {
     if (content) {
@@ -70,15 +68,12 @@ export class RedocService {
   }
 
   private getPrimaryColor(): string {
-    if (this.cachedPrimaryColor !== null) {
-      return this.cachedPrimaryColor;
-    }
-    const value = this.document.defaultView
-      ?.getComputedStyle(this.document.documentElement)
-      ?.getPropertyValue('--gio-app-primary-main-color')
-      ?.trim();
-    this.cachedPrimaryColor = value || DEFAULT_PRIMARY_COLOR;
-    return this.cachedPrimaryColor;
+    const style = this.document.defaultView?.getComputedStyle(this.document.documentElement);
+    const primary =
+      style?.getPropertyValue('--gio-app-primary-main-color')?.trim() ||
+      style?.getPropertyValue('--gio-app-primary-main-color-fallback')?.trim() ||
+      '';
+    return primary || REDOC_PRIMARY_COLOR_FALLBACK;
   }
 
   private mergeThemeWithPrimary(options: RedocOptions): RedocOptions {
