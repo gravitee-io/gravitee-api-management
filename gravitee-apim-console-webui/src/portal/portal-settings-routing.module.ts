@@ -16,33 +16,22 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import {
-  PortalNavigationItemsComponent,
-  PortalThemeComponent,
-  HomepageComponent,
-  SubscriptionFormComponent,
-  HasUnsavedChangesGuard,
-  PortalConstants,
-  GioPermissionService as SharedGioPermissionService,
-  PORTAL_TECH_PREVIEW_MESSAGE,
-  API_SEARCH_SERVICE,
-} from '@gravitee/gravitee-portal';
-
 import { PortalNavigationComponent } from './navigation/portal-navigation.component';
 import { PortalBannerComponent } from './banner/portal-banner.component';
+import { PortalThemeComponent } from './theme/portal-theme.component';
+import { PortalNavigationItemsComponent } from './navigation-items/portal-navigation-items.component';
 import { PortalCatalogComponent } from './catalog/portal-catalog.component';
 import { CategoryCatalogComponent } from './catalog/category/category.component';
 import { CategoryListComponent } from './catalog/category-list/category-list.component';
 import { PortalApiComponent } from './api/portal-api.component';
 import { PortalApiListComponent } from './api/api-list/portal-api-list.component';
+import { HomepageComponent } from './homepage/homepage.component';
+import { SubscriptionFormComponent } from './subscription-form/subscription-form.component';
 
 import { PermissionGuard } from '../shared/components/gio-permission/gio-permission.guard';
-import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
 import { EnvironmentGuard } from '../management/environment.guard';
-import { Constants } from '../entities/Constants';
-import { IntegrationsService } from '../services-ngx/integrations.service';
-import { ApiV2Service } from '../services-ngx/api-v2.service';
+import { HasUnsavedChangesGuard } from '../shared/guards/has-unsaved-changes.guard';
 
 const portalRoutes: Routes = [
   {
@@ -159,15 +148,5 @@ const portalRoutes: Routes = [
 @NgModule({
   imports: [RouterModule.forChild(portalRoutes)],
   exports: [RouterModule],
-  providers: [
-    { provide: PortalConstants, useExisting: Constants },
-    { provide: SharedGioPermissionService, useExisting: GioPermissionService },
-    {
-      provide: PORTAL_TECH_PREVIEW_MESSAGE,
-      useFactory: (integrationsService: IntegrationsService) => integrationsService.bannerMessages.techPreview,
-      deps: [IntegrationsService],
-    },
-    { provide: API_SEARCH_SERVICE, useExisting: ApiV2Service },
-  ],
 })
 export class PortalSettingsRoutingModule {}
