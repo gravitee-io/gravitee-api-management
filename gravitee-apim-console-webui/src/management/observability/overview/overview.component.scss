@@ -1,18 +1,7 @@
-.overview-header {
+@use '../../../scss/gio-layout' as gio-layout;
+
+:host {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 24px;
-
-  &__link a {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-
-    .mat-icon {
-      height: 16px;
-      width: 16px;
-      font-size: 16px;
-    }
-  }
+  flex-direction: column;
+  @include gio-layout.gio-responsive-content-container;
 }

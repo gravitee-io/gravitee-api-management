@@ -16,27 +16,28 @@
 
 -->
 @if (dashboard(); as dashboard) {
-  <div class="title">
-    <h1>{{ dashboard.name }}</h1>
-    <gio-action-menu [icon]="'more_vert'">
-      <gio-action-menu-item
-        *gioPermission="{ anyOf: ['environment-dashboard-u'] }"
-        icon="gio:edit-pencil"
-        label="Edit"
-        [disabled]="true"
-        [matTooltip]="'Coming soon!'"
-        [matTooltipPosition]="'before'"
-      ></gio-action-menu-item>
-      <mat-divider></mat-divider>
-      <gio-action-menu-item
-        *gioPermission="{ anyOf: ['environment-dashboard-d'] }"
-        class="delete-action"
-        icon="gio:trash"
-        label="Delete"
-        (click)="deleteDashboard(dashboard)"
-      ></gio-action-menu-item>
-    </gio-action-menu>
-  </div>
+  <gio-header [title]="dashboard.name" [showActions]="true">
+    <ng-container additionalActions>
+      <gio-action-menu [icon]="'more_vert'">
+        <gio-action-menu-item
+          *gioPermission="{ anyOf: ['environment-dashboard-u'] }"
+          icon="gio:edit-pencil"
+          label="Edit"
+          [disabled]="true"
+          [matTooltip]="'Coming soon!'"
+          [matTooltipPosition]="'before'"
+        ></gio-action-menu-item>
+        <mat-divider></mat-divider>
+        <gio-action-menu-item
+          *gioPermission="{ anyOf: ['environment-dashboard-d'] }"
+          class="delete-action"
+          icon="gio:trash"
+          label="Delete"
+          (click)="deleteDashboard(dashboard)"
+        ></gio-action-menu-item>
+      </gio-action-menu>
+    </ng-container>
+  </gio-header>
   <dashboard-viewer [widgets]="dashboard.widgets"></dashboard-viewer>
 } @else {
   <p>Loading dashboard...</p>

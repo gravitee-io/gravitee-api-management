@@ -15,17 +15,18 @@
     limitations under the License.
 
 -->
-<div class="title">
-  <h1>Analytics dashboards</h1>
-  <button *gioPermission="{ anyOf: ['environment-dashboard-c'] }" mat-raised-button color="primary" [matMenuTriggerFor]="createMenu">
-    Create dashboard
-    <mat-icon>keyboard_arrow_down</mat-icon>
-  </button>
-  <mat-menu #createMenu="matMenu">
-    <button mat-menu-item (click)="openTemplateDialog()">Create from template</button>
-    <button mat-menu-item [disabled]="true" [matTooltip]="'Coming soon!'" [matTooltipPosition]="'before'">Create from scratch</button>
-  </mat-menu>
-</div>
+<gio-header title="Dashboards" subtitle="Monitor and visualize your API analytics with custom dashboards." [showActions]="true">
+  <ng-container additionalActions>
+    <button *gioPermission="{ anyOf: ['environment-dashboard-c'] }" mat-raised-button color="primary" [matMenuTriggerFor]="createMenu">
+      Create dashboard
+      <mat-icon>keyboard_arrow_down</mat-icon>
+    </button>
+    <mat-menu #createMenu="matMenu">
+      <button mat-menu-item (click)="openTemplateDialog()">Create from template</button>
+      <button mat-menu-item [disabled]="true" [matTooltip]="'Coming soon!'" [matTooltipPosition]="'before'">Create from scratch</button>
+    </mat-menu>
+  </ng-container>
+</gio-header>
 
 <gio-table-wrapper [filters]="filters()" [length]="totalCount()" [disableSearchInput]="true" (filtersChange)="onFiltersChanged($event)">
   <table mat-table [dataSource]="dashboardItems()">

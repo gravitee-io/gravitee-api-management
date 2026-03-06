@@ -26,6 +26,7 @@ import { GioBannerModule, GioClipboardModule, GioMonacoEditorModule } from '@gra
 import { fakeEnvLogs } from '../../models/env-log.fixture';
 import { EnvLog } from '../../models/env-log.model';
 import { EnvLogsDetailsRowComponent } from '../env-logs-details-row/env-logs-details-row.component';
+import { GioHeaderComponent } from '../../../../../shared/components/gio-header/gio-header.component';
 
 @Component({
   selector: 'env-logs-details',
@@ -42,6 +43,7 @@ import { EnvLogsDetailsRowComponent } from '../env-logs-details-row/env-logs-det
     GioClipboardModule,
     GioMonacoEditorModule,
     EnvLogsDetailsRowComponent,
+    GioHeaderComponent,
   ],
   standalone: true,
 })
