@@ -1,0 +1,1160 @@
+version: '2.1'
+orbs:
+  keeper: gravitee-io/keeper@0.7.0
+  aquasec: gravitee-io/aquasec@1.0.5
+  helm: circleci/helm@3.0.0
+commands:
+  cmd-install-yarn:
+    steps:
+      - run:
+          command: corepack enable || sudo corepack enable
+          name: Enable Corepack
+      - run:
+          command: yarn set version 4.1.1
+          name: Set Yarn version
+  cmd-notify-on-failure:
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+          var-name: SLACK_ACCESS_TOKEN
+      - slack/notify:
+          channel: C02JENTV2AX
+          branch_pattern: master,[0-9]+\\.[0-9]+\\.x
+          event: fail
+          template: basic_fail_1
+  cmd-restore-maven-job-cache:
+    steps:
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}
+    parameters:
+      jobName:
+        type: string
+        default: ''
+        description: The job name
+    description: Restore Maven cache for a dedicated job
+  cmd-save-maven-job-cache:
+    steps:
+      - run:
+          command: rm -rf ~/.m2/repository/io/gravitee/apim
+          name: Exclude all APIM artefacts from cache.
+      - save_cache:
+          key: gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          paths:
+            - ~/.m2
+          when: always
+    parameters:
+      jobName:
+        type: string
+        default: ''
+        description: The job name
+    description: Save Maven cache for a dedicated job
+  cmd-workspace-install:
+    steps:
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-workspace-{{ checksum "yarn.lock" }}
+      - run:
+          command: yarn install --immutable
+          name: Install
+      - save_cache:
+          key: gravitee-api-management-v14-workspace-{{ checksum "yarn.lock" }}
+          paths:
+            - .yarn/cache
+          when: always
+  cmd-create-docker-context:
+    steps:
+      - run:
+          command: |-
+            docker context create tls-env
+            docker buildx create tls-env --use
+          name: Create Docker Buildx context
+  cmd-docker-login:
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
+          var-name: AZURE_REGISTRY_USERNAME
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
+          var-name: AZURE_REGISTRY_PASSWORD
+      - run:
+          command: echo "$AZURE_REGISTRY_PASSWORD" | docker login graviteeio.azurecr.io -u "$AZURE_REGISTRY_USERNAME" --password-stdin
+          name: Docker login (Azure)
+  cmd-docker-logout:
+    steps:
+      - run:
+          command: docker logout graviteeio.azurecr.io
+          name: Docker logout (Azure)
+  cmd-webui-install:
+    steps:
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-webui-<< parameters.apim-ui-project >>-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
+      - run:
+          command: yarn install --immutable
+          name: Install
+          working_directory: << parameters.apim-ui-project >>
+      - save_cache:
+          key: gravitee-api-management-v14-webui-<< parameters.apim-ui-project >>-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
+          paths:
+            - << parameters.apim-ui-project >>/.yarn/cache
+          when: always
+    parameters:
+      apim-ui-project:
+        type: string
+        default: ''
+        description: WebUI project directory
+jobs:
+  job-danger-js:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: small
+    steps:
+      - checkout:
+          path: .
+      - cmd-install-yarn: {}
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: DANGER_GITHUB_API_TOKEN
+      - run:
+          command: cd .circleci/danger && yarn install && yarn run danger
+          name: Run Danger JS
+  job-test-apim-charts:
+    docker:
+      - image: cimg/base:stable
+    resource_class: small
+    steps:
+      - checkout:
+          path: .
+      - helm/install_helm_client:
+          version: v3.12.3
+      - run:
+          command: helm plugin install https://github.com/helm-unittest/helm-unittest --version 0.5.1
+          name: Install helm unittest plugin
+      - run:
+          command: helm lint helm/apim3 && helm lint helm/apim4
+          name: Helm lint
+      - run:
+          command: helm unittest helm/apim3 && helm unittest helm/apim4
+          name: Helm unittest
+      - cmd-notify-on-failure: {}
+  job-setup:
+    docker:
+      - image: cimg/base:stable
+    resource_class: small
+    steps:
+      - checkout:
+          path: .
+      - keeper/env-export:
+          secret-url: keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml
+          var-name: MAVEN_SETTINGS
+      - run:
+          command: 'echo $MAVEN_SETTINGS > .gravitee.settings.xml '
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .gravitee.settings.xml
+  job-validate:
+    docker:
+      - image: cimg/openjdk:21.0.5
+    resource_class: small
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-validate
+      - run:
+          command: mvn -s .gravitee.settings.xml validate --no-transfer-progress -Dskip.validation=false -Dgravitee.archrules.skip=false -T 2C -Pall-modules
+          name: Validate
+      - cmd-notify-on-failure: {}
+      - cmd-save-maven-job-cache:
+          jobName: job-validate
+  job-build:
+    docker:
+      - image: cimg/openjdk:21.0.5
+    resource_class: large
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-build
+      - run:
+          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 2C -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc
+          name: Build project
+          environment:
+            BUILD_ID: '1234'
+            BUILD_NUMBER: '1234'
+            GIT_COMMIT: 784ff35ca
+      - cmd-notify-on-failure: {}
+      - save_cache:
+          key: gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          paths:
+            - ~/.m2/repository/io/gravitee/apim
+          when: on_success
+      - cmd-save-maven-job-cache:
+          jobName: job-build
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
+            - ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution
+            - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
+  job-test-definition:
+    docker:
+      - image: cimg/openjdk:21.0.5
+    resource_class: small
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-definition
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
+          name: Run definition tests
+      - run:
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          name: Save test results
+          when: always
+      - cmd-notify-on-failure: {}
+      - cmd-save-maven-job-cache:
+          jobName: job-test-definition
+      - store_test_results:
+          path: ~/test-results
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-definition/gravitee-apim-definition-coverage/target/site/jacoco-aggregate/
+  job-sonarcloud-analysis:
+    docker:
+      - image: sonarsource/sonar-scanner-cli:11.2
+    resource_class: large
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
+      - keeper/env-export:
+          secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
+          var-name: SONAR_TOKEN
+      - run:
+          command: sonar-scanner
+          name: Run Sonarcloud Analysis
+          working_directory: << parameters.working_directory >>
+      - cmd-notify-on-failure: {}
+      - save_cache:
+          key: gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
+          paths:
+            - /opt/sonar-scanner/.sonar/cache
+          when: always
+    parameters:
+      working_directory:
+        type: string
+        default: gravitee-apim-rest-api
+        description: Directory where the Sonarcloud analysis will be run
+      cache_type:
+        type: enum
+        default: backend
+        enum:
+          - backend
+          - frontend
+        description: Type of cache to use
+  job-test-gateway:
+    docker:
+      - image: cimg/openjdk:21.0.5
+    resource_class: large
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-gateway
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgateway-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
+          name: Run gateway tests
+      - run:
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          name: Save test results
+          when: always
+      - cmd-notify-on-failure: {}
+      - cmd-save-maven-job-cache:
+          jobName: job-test-gateway
+      - store_test_results:
+          path: ~/test-results
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/
+  job-test-rest-api:
+    docker:
+      - image: cimg/openjdk:21.0.5
+    resource_class: xlarge
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-rest-api
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -Dgravitee.archrules.skip=true
+          name: Run rest-api tests
+      - run:
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          name: Save test results
+          when: always
+      - cmd-notify-on-failure: {}
+      - cmd-save-maven-job-cache:
+          jobName: job-test-rest-api
+      - store_test_results:
+          path: ~/test-results
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-rest-api/gravitee-apim-rest-api-coverage/target/site/jacoco-aggregate/
+  job-test-integration:
+    docker:
+      - image: cimg/openjdk:21.0.5
+    resource_class: xlarge
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-integration
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dintegration-test-modules -Dskip.validation=true -Dgravitee.archrules.skip=true
+          name: Run integration tests
+      - run:
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          name: Save test results
+          when: always
+      - cmd-notify-on-failure: {}
+      - cmd-save-maven-job-cache:
+          jobName: job-test-integration
+      - store_test_results:
+          path: ~/test-results
+    parallelism: 3
+  job-test-plugin:
+    docker:
+      - image: cimg/openjdk:21.0.5
+    resource_class: large
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-plugin
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dplugin-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
+          name: Run plugin tests
+      - run:
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          name: Save test results
+          when: always
+      - cmd-notify-on-failure: {}
+      - cmd-save-maven-job-cache:
+          jobName: job-test-plugin
+      - store_test_results:
+          path: ~/test-results
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-plugin/gravitee-apim-plugin-coverage/target/site/jacoco-aggregate/
+  job-test-reporter:
+    docker:
+      - image: cimg/openjdk:21.0.5
+    resource_class: small
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-reporter
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dreporter-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
+          name: Run reporter tests
+      - run:
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          name: Save test results
+          when: always
+      - cmd-notify-on-failure: {}
+      - cmd-save-maven-job-cache:
+          jobName: job-test-reporter
+      - store_test_results:
+          path: ~/test-results
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-reporter/gravitee-apim-reporter-coverage/target/site/jacoco-aggregate/
+  job-test-repository:
+    docker:
+      - image: cimg/openjdk:21.0.5
+    resource_class: large
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-repository
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          command: mvn --fail-fast -s .gravitee.settings.xml verify --no-transfer-progress -Drepository-modules -Dskip.validation=true -Dgravitee.archrules.skip=true
+          name: Run repository tests
+      - run:
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          name: Save test results
+          when: always
+      - cmd-notify-on-failure: {}
+      - cmd-save-maven-job-cache:
+          jobName: job-test-repository
+      - store_test_results:
+          path: ~/test-results
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-repository/gravitee-apim-repository-coverage/target/site/jacoco-aggregate/
+  job-nx-format-check:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: medium
+    steps:
+      - checkout:
+          path: .
+      - cmd-install-yarn: {}
+      - cmd-workspace-install: {}
+      - run:
+          command: yarn nx format:check --all
+          name: Check prettier formatting
+  job-webui-libs-lint-test:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: medium
+    steps:
+      - checkout:
+          path: .
+      - cmd-install-yarn: {}
+      - cmd-workspace-install: {}
+      - attach_workspace:
+          at: .
+      - run:
+          command: yarn nx affected -t lint --exclude=console,portal-next
+          name: Lint APIM Libs (affected)
+      - run:
+          command: NODE_OPTIONS=--max-old-space-size=4096 yarn nx affected -t test --exclude=console,portal-next --coverage --maxWorkers=2
+          name: Test APIM Libs (affected)
+      - cmd-notify-on-failure: {}
+      - run:
+          command: |-
+            mkdir -p gravitee-apim-webui-libs/gravitee-markdown/coverage
+            mkdir -p gravitee-apim-webui-libs/gravitee-dashboard/coverage
+            touch gravitee-apim-webui-libs/gravitee-markdown/coverage/lcov.info
+            touch gravitee-apim-webui-libs/gravitee-dashboard/coverage/lcov.info
+          name: Ensure coverage files exist
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-webui-libs/gravitee-markdown/coverage/lcov.info
+      - store_artifacts:
+          path: gravitee-apim-webui-libs/gravitee-markdown/coverage/lcov.info
+      - store_test_results:
+          path: gravitee-apim-webui-libs/gravitee-markdown/coverage/junit.xml
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-webui-libs/gravitee-dashboard/coverage/lcov.info
+      - store_artifacts:
+          path: gravitee-apim-webui-libs/gravitee-dashboard/coverage/lcov.info
+      - store_test_results:
+          path: gravitee-apim-webui-libs/gravitee-dashboard/coverage/junit.xml
+  job-nx-webui-lint-test:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: << parameters.resource_class >>
+    steps:
+      - checkout:
+          path: .
+      - cmd-install-yarn: {}
+      - cmd-workspace-install: {}
+      - attach_workspace:
+          at: .
+      - run:
+          command: yarn nx run << parameters.nx-project >>:lint-license
+          name: Check License
+      - run:
+          command: yarn nx lint << parameters.nx-project >>
+          name: Run Prettier and ESLint
+      - run:
+          command: yarn nx test << parameters.nx-project >> --coverage --maxWorkers=<< parameters.max-workers >>
+          name: Run unit tests
+      - cmd-notify-on-failure: {}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - << parameters.apim-ui-project >>/coverage/lcov.info
+      - store_artifacts:
+          path: << parameters.apim-ui-project >>/coverage/lcov.info
+      - store_test_results:
+          path: << parameters.apim-ui-project >>/coverage/junit.xml
+    parameters:
+      apim-ui-project:
+        type: string
+        default: ''
+        description: the directory name of the UI project
+      nx-project:
+        type: string
+        default: ''
+        description: the Nx project name
+      resource_class:
+        type: string
+        default: medium
+        description: Resource class to use for executor
+      max-workers:
+        type: string
+        default: 35%
+        description: Maximum number of workers for Jest tests
+  job-console-webui-build:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: large
+    steps:
+      - checkout:
+          path: .
+      - cmd-install-yarn: {}
+      - cmd-workspace-install: {}
+      - attach_workspace:
+          at: .
+      - run:
+          command: yarn nx build console --configuration=production
+          name: Build Console
+      - cmd-notify-on-failure: {}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-console-webui/dist/
+  job-build-docker-webui-image:
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-create-docker-context: {}
+      - cmd-docker-login: {}
+      - run:
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-784ff35c \
+            << parameters.docker-context >>
+          name: Build docker image for << parameters.apim-project >>
+          working_directory: << parameters.apim-project >>
+      - cmd-docker-logout: {}
+    parameters:
+      apim-project:
+        type: string
+        default: ''
+        description: the name of the project to build
+      docker-context:
+        type: string
+        default: ''
+        description: the name of context folder for docker build
+      docker-image-name:
+        type: string
+        default: ''
+        description: the name of the image
+  job-storybook-console:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: large
+    steps:
+      - checkout:
+          path: .
+      - cmd-install-yarn: {}
+      - cmd-workspace-install: {}
+      - attach_workspace:
+          at: .
+      - run:
+          command: yarn nx run console:build-storybook
+          name: Build Storybook
+      - cmd-notify-on-failure: {}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-console-webui/storybook-static/
+  job-chromatic-console:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: small
+    steps:
+      - checkout:
+          path: .
+      - cmd-install-yarn: {}
+      - cmd-workspace-install: {}
+      - attach_workspace:
+          at: .
+      - keeper/env-export:
+          secret-url: keeper://Hp1bFl5s0doxnQgqkMdCdg/field/password
+          var-name: CHROMATIC_PROJECT_TOKEN
+      - run:
+          command: yarn nx run console:chromatic --exit-zero-on-changes --exit-once-uploaded --storybook-build-dir=storybook-static
+          name: Deploy to Chromatic
+          working_directory: gravitee-apim-console-webui
+  job-webui-lint-test:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: << parameters.resource_class >>
+    steps:
+      - checkout:
+          path: .
+      - cmd-install-yarn: {}
+      - cmd-webui-install:
+          apim-ui-project: << parameters.apim-ui-project >>
+      - attach_workspace:
+          at: .
+      - run:
+          command: yarn lint:license
+          name: Check License
+          working_directory: << parameters.apim-ui-project >>
+      - run:
+          command: yarn lint
+          name: Run Prettier and ESLint
+          working_directory: << parameters.apim-ui-project >>
+      - run:
+          command: yarn test:coverage
+          name: Run unit tests
+          working_directory: << parameters.apim-ui-project >>
+      - cmd-notify-on-failure: {}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - << parameters.apim-ui-project >>/coverage/lcov.info
+      - store_artifacts:
+          path: << parameters.apim-ui-project >>/coverage/lcov.info
+      - store_test_results:
+          path: << parameters.apim-ui-project >>/coverage/junit.xml
+    parameters:
+      apim-ui-project:
+        type: string
+        default: ''
+        description: the directory name of the UI project
+      resource_class:
+        type: string
+        default: medium
+        description: Resource class to use for executor
+  job-portal-webui-build:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: large
+    steps:
+      - checkout:
+          path: .
+      - cmd-install-yarn: {}
+      - cmd-workspace-install: {}
+      - attach_workspace:
+          at: .
+      - run:
+          command: yarn build
+          name: Build Portal
+          working_directory: gravitee-apim-portal-webui
+      - run:
+          command: yarn nx build portal-next --configuration=production
+          name: Build Portal Next
+      - cmd-notify-on-failure: {}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-portal-webui/dist/
+            - gravitee-apim-portal-webui-next/dist/
+  job-build-docker-backend-image:
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-create-docker-context: {}
+      - cmd-docker-login: {}
+      - run:
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-784ff35c \
+            << parameters.docker-context >>
+          name: Build docker image for << parameters.apim-project >>-alpine
+          working_directory: << parameters.apim-project >>
+      - run:
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.debian \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-784ff35c-debian \
+            << parameters.docker-context >>
+          name: Build docker image for << parameters.apim-project >>-debian
+          working_directory: << parameters.apim-project >>
+      - cmd-docker-logout: {}
+    parameters:
+      apim-project:
+        type: string
+        default: ''
+        description: the name of the project to build
+      docker-context:
+        type: string
+        default: ''
+        description: the name of context folder for docker build
+      docker-image-name:
+        type: string
+        default: ''
+        description: the name of the image
+  job-e2e-generate-sdk:
+    docker:
+      - image: cimg/openjdk:21.0.5
+    resource_class: small
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - cmd-install-yarn: {}
+      - run:
+          command: |-
+            sh ./scripts/update-management-sdk.sh
+            sh ./scripts/update-management-v2-sdk.sh
+            sh ./scripts/update-portal-sdk.sh
+          name: Generate e2e tests SDK
+          working_directory: gravitee-apim-e2e
+      - cmd-webui-install:
+          apim-ui-project: gravitee-apim-e2e
+      - cmd-notify-on-failure: {}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-e2e/lib/management-webclient-sdk
+            - gravitee-apim-e2e/lib/management-v2-webclient-sdk
+            - gravitee-apim-e2e/lib/portal-webclient-sdk
+  job-e2e-lint-build:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: small
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - cmd-install-yarn: {}
+      - cmd-webui-install:
+          apim-ui-project: gravitee-apim-e2e
+      - run:
+          command: yarn lint
+          name: Lint
+          working_directory: gravitee-apim-e2e
+      - run:
+          command: yarn build
+          name: Build
+          working_directory: gravitee-apim-e2e
+      - cmd-notify-on-failure: {}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-e2e/dist/
+  job-perf-lint-build:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: small
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - cmd-install-yarn: {}
+      - cmd-webui-install:
+          apim-ui-project: gravitee-apim-perf
+      - run:
+          command: yarn lint
+          name: Lint
+          working_directory: gravitee-apim-perf
+      - run:
+          command: yarn build
+          name: Build
+          working_directory: gravitee-apim-perf
+      - cmd-notify-on-failure: {}
+  job-e2e-test:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
+    resource_class: medium
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - cmd-docker-login: {}
+      - keeper/env-export:
+          secret-url: keeper://w8WBpALVCgYdxtV5pVrQsw/custom_field/base64
+          var-name: GRAVITEE_LICENSE
+      - cmd-install-yarn: {}
+      - run:
+          command: |-
+            cd gravitee-apim-e2e
+            if [ "<< parameters.execution_mode >>" = "v3" ]; then
+              echo "Disable v4 emulation engine on APIM Gateway and Rest API"
+              export V4_EMULATION_ENGINE_DEFAULT=no
+            fi
+            if [ -z "<< parameters.apim_client_tag >>" ]; then
+              APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=master-784ff35c APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=master-784ff35c yarn test:api:<< parameters.database >>
+            else
+              if [[ "<< parameters.apim_client_tag >>" == *"@"* ]]; then
+                echo "Using custom registry for client"
+                CLIENT_REGISTRY=$(echo "<< parameters.apim_client_tag >>" | cut -f1 -d@)
+                CLIENT_TAG=$(echo "<< parameters.apim_client_tag >>" | cut -f2 -d@)
+                APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=master-784ff35c APIM_CLIENT_REGISTRY=${CLIENT_REGISTRY} APIM_CLIENT_TAG=${CLIENT_TAG} yarn test:api:<< parameters.database >>
+              else
+                echo "Using ACR registry for client"
+                APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=master-784ff35c APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=<< parameters.apim_client_tag >> yarn test:api:<< parameters.database >>
+              fi
+            fi
+          name: Running API & E2E tests in << parameters.execution_mode >> mode with << parameters.database >> database
+      - cmd-docker-logout: {}
+      - cmd-notify-on-failure: {}
+      - store_test_results:
+          path: ./gravitee-apim-e2e/.tmp/e2e-test-report.xml
+      - store_artifacts:
+          path: ./gravitee-apim-e2e/.tmp/e2e-test-report.xml
+      - store_artifacts:
+          path: ./gravitee-apim-e2e/.logs
+    parameters:
+      apim_client_tag:
+        type: string
+        default: ''
+      execution_mode:
+        type: string
+        default: ''
+      database:
+        type: string
+        default: ''
+  job-e2e-cypress:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
+    resource_class: medium
+    steps:
+      - checkout:
+          path: .
+      - attach_workspace:
+          at: .
+      - cmd-docker-login: {}
+      - keeper/env-export:
+          secret-url: keeper://w8WBpALVCgYdxtV5pVrQsw/custom_field/base64
+          var-name: GRAVITEE_LICENSE
+      - keeper/env-export:
+          secret-url: keeper://FVzylPCgY-LJsgjkW4q1eQ/field/password
+          var-name: CYPRESS_RECORD_KEY
+      - cmd-install-yarn: {}
+      - run:
+          command: |-
+            cd gravitee-apim-e2e
+            APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=master-784ff35c yarn test:ui
+          name: Run Cypress UI tests
+      - cmd-docker-logout: {}
+      - cmd-notify-on-failure: {}
+      - store_test_results:
+          path: ./gravitee-apim-e2e/.tmp/cypress-results/
+      - store_artifacts:
+          path: ./gravitee-apim-e2e/.tmp/cypress-results/
+      - store_artifacts:
+          path: ./gravitee-apim-e2e/.logs
+workflows:
+  pull_requests:
+    jobs:
+      - aquasec/fs_scan:
+          context: &a1
+            - cicd-orchestrator
+          pre-steps:
+            - keeper/env-export:
+                secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
+                var-name: AQUA_KEY
+            - keeper/env-export:
+                secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret
+                var-name: AQUA_SECRET
+            - keeper/env-export:
+                secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+                var-name: GITHUB_TOKEN
+      - job-danger-js:
+          name: Run Danger JS
+          context: *a1
+      - job-test-apim-charts:
+          name: Helm Chart - Lint & Test
+          context: *a1
+      - job-setup:
+          name: Setup
+          context: *a1
+      - job-validate:
+          name: Validate backend
+          requires:
+            - Setup
+          context: *a1
+      - job-build:
+          name: Build backend
+          requires:
+            - Validate backend
+          context: *a1
+      - job-test-definition:
+          name: Test definition
+          requires:
+            - Build backend
+          context: *a1
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-definition
+          requires:
+            - Test definition
+          context: *a1
+          working_directory: gravitee-apim-definition
+          cache_type: backend
+      - job-test-gateway:
+          name: Test gateway
+          requires:
+            - Build backend
+          context: *a1
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-gateway
+          requires:
+            - Test gateway
+          context: *a1
+          working_directory: gravitee-apim-gateway
+          cache_type: backend
+      - job-test-rest-api:
+          name: Test rest-api
+          requires:
+            - Build backend
+          context: *a1
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-rest-api
+          requires:
+            - Test rest-api
+          context: *a1
+          working_directory: gravitee-apim-rest-api
+          cache_type: backend
+      - job-test-integration:
+          name: Integration tests
+          requires:
+            - Build backend
+          context: *a1
+      - job-test-plugin:
+          name: Test plugins
+          requires:
+            - Build backend
+          context: *a1
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-plugin
+          requires:
+            - Test plugins
+          context: *a1
+          working_directory: gravitee-apim-plugin
+          cache_type: backend
+      - job-test-reporter:
+          name: Test reporters
+          requires:
+            - Build backend
+          context: *a1
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-reporter
+          requires:
+            - Test reporters
+          context: *a1
+          working_directory: gravitee-apim-reporter
+          cache_type: backend
+      - job-test-repository:
+          name: Test repository
+          requires:
+            - Build backend
+          context: *a1
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-repository
+          requires:
+            - Test repository
+          context: *a1
+          working_directory: gravitee-apim-repository
+          cache_type: backend
+      - job-nx-format-check:
+          name: Check prettier formatting for nx projects
+          context: *a1
+      - job-webui-libs-lint-test:
+          name: Lint & test APIM Libs
+          context: *a1
+      - job-nx-webui-lint-test:
+          name: Lint & test APIM Console
+          context: *a1
+          apim-ui-project: gravitee-apim-console-webui
+          nx-project: console
+          resource_class: xlarge
+          max-workers: '4'
+      - job-console-webui-build:
+          name: Build APIM Console
+          context: *a1
+      - job-build-docker-webui-image:
+          name: Build APIM Console docker image
+          requires:
+            - Build APIM Console
+          context: *a1
+          apim-project: gravitee-apim-console-webui
+          docker-context: .
+          docker-image-name: apim-management-ui
+      - job-storybook-console:
+          name: Build Console Storybook
+          context: *a1
+      - job-chromatic-console:
+          name: Deploy console in chromatic
+          requires:
+            - Build Console Storybook
+          context: *a1
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-console-webui
+          requires:
+            - Lint & test APIM Console
+          context: *a1
+          working_directory: gravitee-apim-console-webui
+          cache_type: frontend
+      - job-nx-webui-lint-test:
+          name: Lint & test APIM Portal Next
+          context: *a1
+          apim-ui-project: gravitee-apim-portal-webui-next
+          nx-project: portal-next
+          max-workers: '2'
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-portal-webui-next
+          requires:
+            - Lint & test APIM Portal Next
+          context: *a1
+          working_directory: gravitee-apim-portal-webui-next
+          cache_type: frontend
+      - job-webui-lint-test:
+          name: Lint & test APIM Portal
+          context: *a1
+          apim-ui-project: gravitee-apim-portal-webui
+          resource_class: large
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-portal-webui
+          requires:
+            - Lint & test APIM Portal
+          context: *a1
+          working_directory: gravitee-apim-portal-webui
+          cache_type: frontend
+      - job-portal-webui-build:
+          name: Build APIM Portal
+          context: *a1
+      - job-build-docker-webui-image:
+          name: Build APIM Portal docker image
+          requires:
+            - Build APIM Portal
+          context: *a1
+          apim-project: gravitee-apim-portal-webui
+          docker-context: .
+          docker-image-name: apim-portal-ui
+      - job-build-docker-backend-image:
+          name: Build APIM Management API docker image
+          requires:
+            - Build backend
+          context: *a1
+          apim-project: gravitee-apim-rest-api
+          docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+          docker-image-name: apim-management-api
+      - job-build-docker-backend-image:
+          name: Build APIM Gateway docker image
+          requires:
+            - Build backend
+          context: *a1
+          apim-project: gravitee-apim-gateway
+          docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
+          docker-image-name: apim-gateway
+      - job-e2e-generate-sdk:
+          name: Generate e2e tests SDK
+          requires:
+            - Build backend
+          context: *a1
+      - job-e2e-lint-build:
+          name: Lint & Build APIM e2e
+          requires:
+            - Generate e2e tests SDK
+          context: *a1
+      - job-perf-lint-build:
+          name: Lint & Build APIM perf
+          requires:
+            - Generate e2e tests SDK
+          context: *a1
+      - job-e2e-test:
+          name: E2E - << matrix.execution_mode >> - << matrix.database >>
+          requires:
+            - Lint & Build APIM e2e
+            - Build APIM Management API docker image
+            - Build APIM Gateway docker image
+          context: *a1
+          matrix:
+            parameters:
+              execution_mode:
+                - v3
+                - v4-emulation-engine
+              database:
+                - mongo
+                - jdbc
+                - bridge
+      - job-e2e-cypress:
+          name: Run Cypress UI tests
+          requires:
+            - Lint & Build APIM e2e
+            - Build APIM Management API docker image
+            - Build APIM Gateway docker image
+            - Build APIM Console docker image
+            - Build APIM Portal docker image
+          context: *a1

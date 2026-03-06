@@ -1,0 +1,92 @@
+version: '2.1'
+orbs:
+  keeper: gravitee-io/keeper@0.7.0
+  aquasec: gravitee-io/aquasec@1.0.5
+  helm: circleci/helm@3.0.0
+commands:
+  cmd-install-yarn:
+    steps:
+      - run:
+          command: corepack enable || sudo corepack enable
+          name: Enable Corepack
+      - run:
+          command: yarn set version 4.1.1
+          name: Set Yarn version
+  cmd-notify-on-failure:
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+          var-name: SLACK_ACCESS_TOKEN
+      - slack/notify:
+          channel: C02JENTV2AX
+          branch_pattern: master,[0-9]+\\.[0-9]+\\.x
+          event: fail
+          template: basic_fail_1
+jobs:
+  job-danger-js:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: small
+    steps:
+      - checkout:
+          path: .
+      - cmd-install-yarn: {}
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: DANGER_GITHUB_API_TOKEN
+      - run:
+          command: cd .circleci/danger && yarn install && yarn run danger
+          name: Run Danger JS
+  job-test-apim-charts:
+    docker:
+      - image: cimg/base:stable
+    resource_class: small
+    steps:
+      - checkout:
+          path: .
+      - helm/install_helm_client:
+          version: v3.12.3
+      - run:
+          command: helm plugin install https://github.com/helm-unittest/helm-unittest --version 0.5.1
+          name: Install helm unittest plugin
+      - run:
+          command: helm lint helm/apim3 && helm lint helm/apim4
+          name: Helm lint
+      - run:
+          command: helm unittest helm/apim3 && helm unittest helm/apim4
+          name: Helm unittest
+      - cmd-notify-on-failure: {}
+  job-validate-workflow-status:
+    docker:
+      - image: cimg/base:stable
+    resource_class: small
+    steps:
+      - run:
+          command: echo "Congratulations! If you can read this, everything is OK"
+          name: Check workflow jobs
+workflows:
+  pull_requests:
+    jobs:
+      - aquasec/fs_scan:
+          context: &a1
+            - cicd-orchestrator
+          pre-steps:
+            - keeper/env-export:
+                secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
+                var-name: AQUA_KEY
+            - keeper/env-export:
+                secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret
+                var-name: AQUA_SECRET
+            - keeper/env-export:
+                secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+                var-name: GITHUB_TOKEN
+      - job-danger-js:
+          name: Run Danger JS
+          context: *a1
+      - job-test-apim-charts:
+          name: Helm Chart - Lint & Test
+          context: *a1
+      - job-validate-workflow-status:
+          name: Validate workflow status
+          requires:
+            - Helm Chart - Lint & Test
