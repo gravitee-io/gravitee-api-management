@@ -113,7 +113,10 @@ export class ThemeService {
     const newMode = !this.darkMode();
     this.darkMode.set(newMode);
     localStorage.setItem(DARK_MODE_STORAGE_KEY, String(newMode));
+
+    document.documentElement.classList.add('transitioning');
     this.applyTheme(newMode ? 'dark' : 'light');
+    setTimeout(() => document.documentElement.classList.remove('transitioning'), 350);
   }
 
   private applyTheme(mode: 'light' | 'dark'): void {
@@ -158,10 +161,9 @@ export class ThemeService {
     if (stored !== null) {
       return stored === 'true' ? 'dark' : 'light';
     }
-    // TODO: re-enable after Story 4 (Material dark SCSS) is wired
-    // if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
-    //   return 'dark';
-    // }
+    if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
     return 'light';
   }
 }

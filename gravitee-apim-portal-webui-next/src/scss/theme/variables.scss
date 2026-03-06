@@ -130,7 +130,7 @@ $chip-label-text-color: var(--gio-app-chip-label-text-color, #5f6368);
 $chip-container-shape-radius: var(--gio-app-chip-container-shape-radius, 16px);
 $select-panel-background-color: color-mix(in srgb, $banner-background-color 12%, $card-background-color);
 $calendar-background-color: color-mix(in srgb, $banner-background-color 50%, $card-background-color);
-$primary-highlight-color: color-mix(in srgb, $primary-main-color 8%, white 92%);
+$primary-highlight-color: color-mix(in srgb, $primary-main-color 8%, $card-background-color 92%);
 
 // -- Button Toggle --
 $button-toggle-active-background-color: var(--gio-app-button-toggle-active-container-color, $primary-highlight-color);

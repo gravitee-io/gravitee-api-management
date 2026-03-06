@@ -129,6 +129,10 @@ mat-card {
   @include mat.button-color(theme.$light-theme, $color-variant: secondary);
 }
 
+.dark-mode .secondary-button {
+  @include mat.button-color(theme.$dark-theme, $color-variant: secondary);
+}
+
 .nav-button {
   @include mat.button-overrides(
     (

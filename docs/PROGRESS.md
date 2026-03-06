@@ -5,7 +5,7 @@
 - ✅ **Story 1:** Backend -- Extend theme model for dark mode
 - ✅ **Story 2:** Console -- Dark theme customization UI
 - ✅ **Story 3:** Portal -- ThemeService dark mode support
--  **Story 4:** Portal -- Material dark theme SCSS integration
+- ✅ **Story 4:** Portal -- Material dark theme SCSS integration
 -  **Story 5:** Portal -- Toggle button in nav bar
 
 ---
@@ -98,6 +98,17 @@ All dark form controls exist in the form at all times (not swapped). The toggle 
 ---
 
 ### Story 4: Portal -- SCSS Integration
+
+**Status:** Done
+
+**What was done:**
+- Added `html.dark-mode { @include mat.all-component-colors(theme.$dark-theme); }` in `styles.scss` — activates Material dark tone mapping when `.dark-mode` class is present
+- Added `.dark-mode .secondary-button` override in `material-design-overrides.scss` using `theme.$dark-theme`
+- Added `html.transitioning *` transition rule in `styles.scss` for smooth background/color/border transitions (300ms)
+- Updated `ThemeService.toggleDarkMode()` to add/remove `.transitioning` class with 350ms timeout so transitions only apply during mode switches (not on page load or other animations)
+- Re-enabled `prefers-color-scheme: dark` detection in `resolveInitialMode()` now that the Material dark SCSS is wired
+- Reviewed `variables.scss` — fallback values are light-specific (#1d192b, #fff, #f7f8fd) but they're only used when CSS vars aren't set. Since `ThemeService.applyTheme()` always sets the vars, no changes needed.
+- Reviewed `m3-theme.scss` — `generate-m3-dark-theme()` already exists with `theme-type: dark` and uses the same CSS var palettes, so dark palette tones work automatically
 
 **Feedback:**
 

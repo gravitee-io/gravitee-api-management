@@ -46,6 +46,23 @@
 
 html {
   @include mat.all-component-themes(theme.$light-theme);
+
+  &.dark-mode {
+    @include mat.all-component-colors(theme.$dark-theme);
+
+    --gio-app-font-color: #e6e1e6;
+    --gio-app-font-contrast-color: #1c1b1e;
+    --gio-app-outline-color: #48464a;
+    --gio-app-banner-text-color: #e6e1e6;
+    --gio-app-nav-bar-mobile-menu-icon-color: #e6e1e6;
+    --gio-app-nav-bar-mobile-menu-elevation-shadow: 0 11px 15px 0 rgb(0 0 0 / 40%);
+
+    color: var(--gio-app-font-color);
+  }
+}
+
+html.transitioning * {
+  transition: background-color 0.3s ease, color 0.2s ease, border-color 0.3s ease !important;
 }
 
 body {
