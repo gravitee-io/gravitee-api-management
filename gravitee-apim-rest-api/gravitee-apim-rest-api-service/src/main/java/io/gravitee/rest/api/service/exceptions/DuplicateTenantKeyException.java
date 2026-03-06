@@ -24,12 +24,12 @@ import java.util.Map;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DuplicateTenantNameException extends AbstractManagementException {
+public class DuplicateTenantKeyException extends AbstractManagementException {
 
-    private final String tenantName;
+    private final String tenantKey;
 
-    public DuplicateTenantNameException(String tenantName) {
-        this.tenantName = tenantName;
+    public DuplicateTenantKeyException(String tenantKey) {
+        this.tenantKey = tenantKey;
     }
 
     @Override
@@ -39,7 +39,7 @@ public class DuplicateTenantNameException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "The tenant '" + tenantName + "' already exists.";
+        return "The tenant '" + tenantKey + "' already exists.";
     }
 
     @Override
@@ -49,6 +49,6 @@ public class DuplicateTenantNameException extends AbstractManagementException {
 
     @Override
     public Map<String, String> getParameters() {
-        return singletonMap("tenant", tenantName);
+        return singletonMap("tenant", tenantKey);
     }
 }
