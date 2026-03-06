@@ -30,6 +30,7 @@ public class PortalNavigationItemMongo {
     private PortalNavigationItem.Type type;
     private PortalNavigationItem.Area area;
     private String parentId;
+    private String rootId;
     private Integer order;
     private String configuration;
     private boolean published;
