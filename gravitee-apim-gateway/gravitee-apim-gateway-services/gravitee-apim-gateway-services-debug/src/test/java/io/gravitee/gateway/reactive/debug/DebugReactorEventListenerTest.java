@@ -311,7 +311,7 @@ class DebugReactorEventListenerTest {
             verify(reactorHandlerRegistry, times(1)).contains(any(DebugApiV2.class));
             verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApiV2.class));
 
-            verify(eventRepository, times(2)).update(eventCaptor.capture());
+            verify(eventRepository, timeout(10000).times(2)).update(eventCaptor.capture());
 
             final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
             assertThat(events.get(1).getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name());

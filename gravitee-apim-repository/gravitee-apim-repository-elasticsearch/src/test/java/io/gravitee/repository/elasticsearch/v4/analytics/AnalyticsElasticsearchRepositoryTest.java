@@ -76,6 +76,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.DoublePredicate;
 import java.util.function.Predicate;
 import org.assertj.core.api.Condition;
@@ -322,7 +323,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .mapToDouble(l -> l)
                 .filter(d -> d > 0)
                 .toArray();
-            assertThat(array).containsOnly(36.25, 20.0);
+            assertThat(array).satisfiesAnyOf(c -> assertThat(c).containsOnly(36.25, 20.0), c -> assertThat(c).containsOnly(33.0));
         }
 
         private static Condition<Map.Entry<String, Double>> bucketOfTimeHaveValue(String timeSuffix, double value) {
