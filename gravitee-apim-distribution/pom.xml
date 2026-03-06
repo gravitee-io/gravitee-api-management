@@ -165,19 +165,6 @@
             <scope>runtime</scope>
             <type>zip</type>
         </dependency>
-        <dependency>
-            <groupId>com.graviteesource.entrypoint</groupId>
-            <artifactId>gravitee-entrypoint-mcp-tool-server</artifactId>
-            <version>${gravitee-entrypoint-mcp.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
 
         <!-- Endpoints -->
         <dependency>
@@ -1438,6 +1425,20 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.entrypoint</groupId>
+                    <artifactId>gravitee-entrypoint-mcp-tool-server</artifactId>
+                    <version>${gravitee-entrypoint-mcp.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
 
                 <!-- Endpoints -->
                 <dependency>
