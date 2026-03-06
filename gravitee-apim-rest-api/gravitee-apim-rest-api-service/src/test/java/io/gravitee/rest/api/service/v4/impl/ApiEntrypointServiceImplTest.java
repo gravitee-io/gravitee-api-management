@@ -361,7 +361,7 @@ class ApiEntrypointServiceImplTest {
         apiEntity.setListeners(List.of(httpListener));
         when(accessPointQueryService.getGatewayAccessPoints(any())).thenReturn(
             List.of(
-                AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
+                AccessPoint.builder().host("tag-entrypoint").secured(true).overriding(true).build(),
                 AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
             )
         );
@@ -418,7 +418,7 @@ class ApiEntrypointServiceImplTest {
         apiEntity.setProxy(proxy);
         when(accessPointQueryService.getGatewayAccessPoints(any())).thenReturn(
             List.of(
-                AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
+                AccessPoint.builder().host("tag-entrypoint").secured(true).overriding(true).build(),
                 AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
             )
         );
@@ -723,6 +723,72 @@ class ApiEntrypointServiceImplTest {
             .as("Expected entrypoints to be generated from supported HttpListener")
             .isNotEmpty()
             .anySatisfy(e -> assertThat(e.getTarget()).contains("https://gateway.example.com/v1"));
+    }
+
+    @Test
+    void shouldMatchHttpEntrypointsWithSecureDomainFiltering() {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setTags(Set.of("tag1", "tag2"));
+        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("/api").build())).build();
+        apiEntity.setListeners(List.of(httpListener));
+
+        when(accessPointQueryService.getGatewayAccessPoints(any())).thenReturn(
+            List.of(AccessPoint.builder().host("api.gateway.io").secured(true).build())
+        );
+
+        // Test multiple scenarios: exact match, subdomain, case-insensitive, with port
+        EntrypointEntity exactMatchEntrypointEntity = new EntrypointEntity();
+        exactMatchEntrypointEntity.setTags(Arrays.array("tag1", "tag2"));
+        exactMatchEntrypointEntity.setValue("https://api.gateway.io");
+        exactMatchEntrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
+
+        EntrypointEntity subdomainMatchEntrypointEntity = new EntrypointEntity();
+        subdomainMatchEntrypointEntity.setTags(Arrays.array("tag1", "tag2"));
+        subdomainMatchEntrypointEntity.setValue("https://api.gateway.io:8443");
+        subdomainMatchEntrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
+
+        EntrypointEntity caseInsensitiveEntrypointEntity = new EntrypointEntity();
+        caseInsensitiveEntrypointEntity.setTags(Arrays.array("tag1", "tag2"));
+        caseInsensitiveEntrypointEntity.setValue("https://API.Gateway.IO");
+        caseInsensitiveEntrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
+
+        when(entrypointService.findAll(any())).thenReturn(
+            List.of(exactMatchEntrypointEntity, subdomainMatchEntrypointEntity, caseInsensitiveEntrypointEntity)
+        );
+
+        List<ApiEntrypointEntity> result = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(result).hasSize(3);
+        assertThat(result).allMatch(ep -> ep.getTarget().toLowerCase().contains("gateway.io"));
+    }
+
+    @Test
+    void shouldMatchKafkaWithBidirectionalSubdomainCheck() {
+        // Covers: Kafka bidirectional matching, extractHostname with Kafka format (host:port)
+        var apiEntity = new NativeApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setTags(Set.of("tag"));
+
+        var kafkaListener = new KafkaListener();
+        kafkaListener.setHost("host");
+        kafkaListener.setPort(9092);
+        apiEntity.setListeners(List.of(kafkaListener));
+
+        // Access point more specific than entrypoint domain
+        when(accessPointQueryService.getKafkaGatewayAccessPoints(any())).thenReturn(
+            List.of(AccessPoint.builder().host("broker.kafka.domain:9092").target(AccessPoint.Target.KAFKA_GATEWAY).build())
+        );
+
+        EntrypointEntity kafkaEntrypointEntity = new EntrypointEntity();
+        kafkaEntrypointEntity.setTags(Arrays.array("tag"));
+        kafkaEntrypointEntity.setValue("kafka.domain:9092");
+        kafkaEntrypointEntity.setTarget(EntrypointEntity.Target.KAFKA);
+        when(entrypointService.findAll(any())).thenReturn(List.of(kafkaEntrypointEntity));
+
+        List<ApiEntrypointEntity> result = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(result).hasSize(1);
     }
 
     @Nested
