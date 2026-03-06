@@ -98,9 +98,10 @@ export class MonacoEditorService {
       if (window.require) {
         onGotAmdLoader();
       } else {
-        const existingLoader = document.querySelector(`script[src="${loaderSrc}"], script[src*="monaco-editor"][src*="loader.js"]`) as HTMLScriptElement | null;
+        const existingLoader = document.querySelector(`script[src="${loaderSrc}"], script[src*="monaco-editor"][src*="loader.js"]`) as (HTMLScriptElement & { readyState?: string }) | null;
         if (existingLoader) {
-          if (existingLoader.getAttribute('data-monaco-loaded') === 'true' || (existingLoader.readyState && existingLoader.readyState !== 'loading')) {
+          const scriptReady = existingLoader.getAttribute('data-monaco-loaded') === 'true' || (existingLoader.readyState != null && existingLoader.readyState !== 'loading');
+          if (scriptReady) {
             onGotAmdLoader();
           } else {
             existingLoader.addEventListener('load', () => {

@@ -61,7 +61,7 @@ function AppBetaContent() {
     return (
         <div
             ref={mountPointRef}
-            className="angular-micro-frontend-container h-full w-full flex-1 p-6"
+            className="angular-micro-frontend-container h-full w-full flex-1"
         />
     );
 }
