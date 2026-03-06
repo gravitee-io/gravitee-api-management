@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../scss/theme' as theme;
 
-:host {
-  --redoc-breakpoint-medium: #{theme.$redoc-breakpoint-medium};
-  --redoc-breakpoint-large: #{theme.$redoc-breakpoint-large};
-  display: block;
-  width: 100%;
-  overflow: visible;
-}
-
-#redoc {
-  width: 100%;
-  overflow: visible;
-}
+/**
+ * Default values for Redoc (OpenAPI viewer) when CSS custom properties are not set.
+ * Keep these in sync with scss/theme/variables.scss:
+ *   - REDOC_PRIMARY_COLOR_FALLBACK ↔ $primary-main-color-fallback
+ *   - REDOC_BREAKPOINT_MEDIUM / REDOC_BREAKPOINT_LARGE ↔ $redoc-breakpoint-medium / $redoc-breakpoint-large
+ */
+export const REDOC_PRIMARY_COLOR_FALLBACK = '#32329f';
+export const REDOC_BREAKPOINT_MEDIUM = '50rem';
+export const REDOC_BREAKPOINT_LARGE = '75rem';
