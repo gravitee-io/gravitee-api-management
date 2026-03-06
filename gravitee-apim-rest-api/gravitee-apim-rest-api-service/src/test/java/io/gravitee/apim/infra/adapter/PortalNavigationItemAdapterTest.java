@@ -57,7 +57,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(folder.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
             assertThat(folder.getParentId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440001"));
             assertThat(folder.getOrder()).isEqualTo(0);
-            assertThat(folder.getRootId()).isEqualTo(PortalNavigationItemId.zero());
+            assertThat(folder.getRootId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440001"));
         }
 
         @Test
@@ -83,7 +83,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(page.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
             assertThat(page.getPortalPageContentId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440003"));
             assertThat(page.getOrder()).isEqualTo(0);
-            assertThat(page.getRootId()).isEqualTo(PortalNavigationItemId.zero());
+            assertThat(page.getRootId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440002"));
         }
 
         @Test
@@ -109,7 +109,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(link.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
             assertThat(link.getUrl()).isEqualTo("https://example.com");
             assertThat(link.getOrder()).isEqualTo(0);
-            assertThat(link.getRootId()).isEqualTo(PortalNavigationItemId.zero());
+            assertThat(link.getRootId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440004"));
         }
 
         @Test
@@ -135,7 +135,17 @@ class PortalNavigationItemAdapterTest {
             assertThat(api.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
             assertThat(api.getApiId()).isEqualTo("testApi");
             assertThat(api.getOrder()).isEqualTo(0);
-            assertThat(api.getRootId()).isEqualTo(PortalNavigationItemId.zero());
+            assertThat(api.getRootId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440004"));
+        }
+
+        @Test
+        void should_map_null_root_id_to_zero() {
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aFolder("550e8400-e29b-41d4-a716-446655440000", "My Folder", null);
+            repositoryItem.setRootId(null);
+
+            var entity = adapter.toEntity(repositoryItem);
+
+            assertThat(entity.getRootId()).isEqualTo(PortalNavigationItemId.zero());
         }
 
         @Test
@@ -241,6 +251,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(repositoryItem.getConfiguration()).isEqualTo("{}");
             assertThat(repositoryItem.isPublished()).isTrue();
             assertThat(repositoryItem.getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PUBLIC);
+            assertThat(repositoryItem.getRootId()).isNull();
         }
 
         @Test
@@ -265,6 +276,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(repositoryItem.getConfiguration()).isEqualTo("{\"portalPageContentId\":\"550e8400-e29b-41d4-a716-446655440013\"}");
             assertThat(repositoryItem.isPublished()).isTrue();
             assertThat(repositoryItem.getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PUBLIC);
+            assertThat(repositoryItem.getRootId()).isNull();
         }
 
         @Test
@@ -286,6 +298,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(repositoryItem.getConfiguration()).isEqualTo("{\"url\":\"http://example.com\"}");
             assertThat(repositoryItem.isPublished()).isTrue();
             assertThat(repositoryItem.getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PUBLIC);
+            assertThat(repositoryItem.getRootId()).isNull();
         }
 
         @Test
@@ -307,6 +320,17 @@ class PortalNavigationItemAdapterTest {
             assertThat(repositoryItem.getApiId()).isEqualTo("apiId");
             assertThat(repositoryItem.isPublished()).isTrue();
             assertThat(repositoryItem.getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PUBLIC);
+            assertThat(repositoryItem.getRootId()).isNull();
+        }
+
+        @Test
+        void should_map_root_id_to_repository_when_set_on_entity() {
+            var entity = PortalNavigationItemFixtures.aFolder("550e8400-e29b-41d4-a716-446655440020", "My Folder");
+            entity.markAsRoot();
+
+            var repositoryItem = adapter.toRepository(entity);
+
+            assertThat(repositoryItem.getRootId()).isEqualTo("550e8400-e29b-41d4-a716-446655440020");
         }
 
         @Test
