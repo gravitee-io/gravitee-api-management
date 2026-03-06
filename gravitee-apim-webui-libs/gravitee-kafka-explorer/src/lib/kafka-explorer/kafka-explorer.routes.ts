@@ -20,6 +20,7 @@ import { BrokerDetailPageComponent } from '../features/brokers/broker-detail-pag
 import { BrokersPageComponent } from '../features/brokers/brokers-page.component';
 import { ConsumerGroupDetailPageComponent } from '../features/consumer-groups/consumer-group-detail-page.component';
 import { ConsumerGroupsPageComponent } from '../features/consumer-groups/consumer-groups-page.component';
+import { MessagesPageComponent } from '../features/topics/messages-page.component';
 import { TopicDetailPageComponent } from '../features/topics/topic-detail-page.component';
 import { TopicsPageComponent } from '../features/topics/topics-page.component';
 
@@ -33,6 +34,7 @@ export const KAFKA_EXPLORER_ROUTES: Routes = [
       { path: 'brokers/:brokerId', component: BrokerDetailPageComponent },
       { path: 'topics', component: TopicsPageComponent },
       { path: 'topics/:topicName', component: TopicDetailPageComponent },
+      { path: 'topics/:topicName/messages', component: MessagesPageComponent },
       { path: 'consumer-groups', component: ConsumerGroupsPageComponent },
       { path: 'consumer-groups/:groupId', component: ConsumerGroupDetailPageComponent },
     ],

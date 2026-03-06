@@ -1,0 +1,101 @@
+/*
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.messages-browser {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__title {
+    margin: 0;
+  }
+
+  &__controls-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__control {
+    min-width: 140px;
+
+    &--small {
+      max-width: 80px;
+    }
+
+    input[type='datetime-local']::-webkit-calendar-picker-indicator {
+      display: block;
+      opacity: 1;
+      cursor: pointer;
+    }
+  }
+
+  &__fetch-btn {
+    align-self: center;
+  }
+
+  &__tail-spinner {
+    align-self: center;
+  }
+
+  &__table {
+    width: 100%;
+  }
+
+  &__row {
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--mat-sys-surface-variant, rgba(0, 0, 0, 0.04));
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    color: var(--mat-sys-on-surface-variant, #49454f);
+    padding: 24px;
+  }
+
+  &__detail-section {
+    margin-bottom: 16px;
+  }
+
+  &__pre {
+    background-color: var(--mat-sys-surface-variant, #f5f5f5);
+    padding: 12px;
+    border-radius: 4px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: monospace;
+    font-size: 13px;
+  }
+
+  &__headers-table {
+    width: 100%;
+  }
+
+  mat-card-content {
+    overflow-x: auto;
+  }
+}

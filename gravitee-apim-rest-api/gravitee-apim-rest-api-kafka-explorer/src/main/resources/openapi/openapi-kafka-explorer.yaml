@@ -211,6 +211,109 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/KafkaExplorerError"
 
+    /kafka-explorer/browse-messages:
+        post:
+            tags:
+                - Kafka Explorer
+            summary: Browse messages from a Kafka topic
+            description: |
+                Connects to a Kafka cluster and reads messages from a topic for debugging purposes.
+                Uses ephemeral consumer (no consumer group) with assign/seek.
+            operationId: browseMessages
+            parameters:
+                - name: limit
+                  in: query
+                  schema:
+                      type: integer
+                      default: 50
+                      maximum: 1000
+                  description: Maximum number of messages to return (1-1000)
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/BrowseMessagesRequest"
+            responses:
+                "200":
+                    description: Messages from the topic
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/BrowseMessagesResponse"
+                "400":
+                    description: Invalid parameters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+                "502":
+                    description: Connection failure
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/KafkaExplorerError"
+
+    /kafka-explorer/tail-messages:
+        get:
+            tags:
+                - Kafka Explorer
+            summary: Tail messages from a Kafka topic via SSE
+            description: |
+                Opens an SSE stream that tails new messages from a topic in real-time.
+                Events: 'message' (KafkaMessage JSON), 'done' (stream ended), 'error' (error occurred).
+            operationId: tailMessages
+            parameters:
+                - name: clusterId
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                  description: ID of the Cluster to connect to
+                - name: topicName
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                  description: Name of the topic to tail
+                - name: partition
+                  in: query
+                  schema:
+                      type: integer
+                      format: int32
+                  description: Optional partition number
+                - name: keyFilter
+                  in: query
+                  schema:
+                      type: string
+                  description: Optional case-insensitive key filter
+                - name: valueFilter
+                  in: query
+                  schema:
+                      type: string
+                  description: Optional case-insensitive value filter
+                - name: maxMessages
+                  in: query
+                  schema:
+                      type: integer
+                      default: 1000
+                      maximum: 5000
+                  description: Maximum number of messages (1-5000)
+                - name: durationSeconds
+                  in: query
+                  schema:
+                      type: integer
+                      default: 30
+                      maximum: 300
+                  description: Maximum duration in seconds (1-300)
+            responses:
+                "200":
+                    description: SSE stream of messages
+                    content:
+                        text/event-stream:
+                            schema:
+                                type: string
+
     /kafka-explorer/describe-consumer-group:
         post:
             tags:
@@ -641,6 +744,83 @@ components:
                 lag:
                     type: integer
                     format: int64
+
+        BrowseMessagesRequest:
+            type: object
+            required:
+                - clusterId
+                - topicName
+            properties:
+                clusterId:
+                    type: string
+                    description: ID of the Cluster to connect to
+                topicName:
+                    type: string
+                    description: Name of the topic to browse
+                partition:
+                    type: integer
+                    format: int32
+                    description: Optional partition number. If null, reads from all partitions
+                offsetMode:
+                    type: string
+                    enum:
+                        - NEWEST
+                        - OLDEST
+                        - TIMESTAMP
+                        - SPECIFIC
+                    default: NEWEST
+                    description: How to determine the starting offset
+                offsetValue:
+                    type: integer
+                    format: int64
+                    description: Timestamp in ms (when offsetMode=TIMESTAMP) or offset (when offsetMode=SPECIFIC)
+                keyFilter:
+                    type: string
+                    description: Optional case-insensitive contains match on message key
+                valueFilter:
+                    type: string
+                    description: Optional case-insensitive contains match on message value
+
+        BrowseMessagesResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/KafkaMessage"
+                totalFetched:
+                    type: integer
+                    format: int32
+                    description: Total number of messages fetched before filtering
+
+        KafkaMessage:
+            type: object
+            properties:
+                partition:
+                    type: integer
+                    format: int32
+                offset:
+                    type: integer
+                    format: int64
+                timestamp:
+                    type: integer
+                    format: int64
+                key:
+                    type: string
+                value:
+                    type: string
+                headers:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/KafkaHeader"
+
+        KafkaHeader:
+            type: object
+            properties:
+                key:
+                    type: string
+                value:
+                    type: string
 
         KafkaExplorerError:
             type: object

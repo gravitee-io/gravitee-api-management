@@ -28,17 +28,21 @@ import io.gravitee.plugin.configurations.ssl.pem.PEMTrustStore;
 import io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12KeyStore;
 import io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore;
 import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.KafkaClusterDomainService;
+import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.MessageConsumer;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerInfo;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerLogDirEntry;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.BrowseMessagesResult;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroup;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupDetail;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupMember;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupOffset;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupsPage;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaHeader;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaMessage;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaNode;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaTopic;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.MemberAssignment;
@@ -75,13 +79,20 @@ import org.apache.kafka.clients.admin.ListTopicsOptions;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.admin.TopicListing;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
 import org.apache.kafka.common.config.ConfigResource;
 import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.errors.AuthenticationException;
+import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -357,11 +368,19 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             Map<String, Map<TopicPartition, OffsetAndMetadata>> allOffsets;
             if (hasTopicFilter) {
                 // Resolve topic partitions once to restrict the offset fetch to this topic only
-                TopicDescription topicDesc = adminClient
-                    .describeTopics(List.of(topicFilter))
-                    .allTopicNames()
-                    .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                    .get(topicFilter);
+                TopicDescription topicDesc;
+                try {
+                    topicDesc = adminClient
+                        .describeTopics(List.of(topicFilter))
+                        .allTopicNames()
+                        .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                        .get(topicFilter);
+                } catch (ExecutionException e) {
+                    if (e.getCause() instanceof org.apache.kafka.common.errors.UnknownTopicOrPartitionException) {
+                        return new ConsumerGroupsPage(List.of(), 0, page, perPage);
+                    }
+                    throw e;
+                }
                 List<TopicPartition> topicPartitions = topicDesc
                     .partitions()
                     .stream()
@@ -455,6 +474,239 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
 
             return new ConsumerGroupDetail(groupId, state, coordinator, partitionAssignor, members, offsets);
         });
+    }
+
+    @Override
+    public BrowseMessagesResult browseMessages(
+        KafkaClusterConfiguration config,
+        String topicName,
+        Integer partition,
+        String offsetMode,
+        Long offsetValue,
+        String keyFilter,
+        String valueFilter,
+        int limit
+    ) {
+        List<TopicPartition> targetPartitions = resolvePartitions(config, topicName, partition);
+
+        // Then, use Consumer to fetch messages
+        return withConsumer(config, limit * targetPartitions.size(), consumer -> {
+            consumer.assign(targetPartitions);
+
+            String mode = offsetMode != null ? offsetMode : "NEWEST";
+            switch (mode) {
+                case "OLDEST":
+                    consumer.seekToBeginning(targetPartitions);
+                    break;
+                case "TIMESTAMP":
+                    if (offsetValue == null) {
+                        throw new KafkaExplorerException(
+                            "offsetValue is required when offsetMode is TIMESTAMP",
+                            TechnicalCode.INVALID_PARAMETERS
+                        );
+                    }
+                    Map<TopicPartition, Long> timestampMap = new HashMap<>();
+                    for (TopicPartition tp : targetPartitions) {
+                        timestampMap.put(tp, offsetValue);
+                    }
+                    Map<TopicPartition, OffsetAndTimestamp> timestampOffsets = consumer.offsetsForTimes(timestampMap);
+                    for (TopicPartition tp : targetPartitions) {
+                        OffsetAndTimestamp oat = timestampOffsets.get(tp);
+                        if (oat != null) {
+                            consumer.seek(tp, oat.offset());
+                        } else {
+                            consumer.seekToEnd(List.of(tp));
+                        }
+                    }
+                    break;
+                case "SPECIFIC":
+                    if (offsetValue == null) {
+                        throw new KafkaExplorerException(
+                            "offsetValue is required when offsetMode is SPECIFIC",
+                            TechnicalCode.INVALID_PARAMETERS
+                        );
+                    }
+                    for (TopicPartition tp : targetPartitions) {
+                        consumer.seek(tp, offsetValue);
+                    }
+                    break;
+                case "NEWEST":
+                default:
+                    Map<TopicPartition, Long> endOffsets = consumer.endOffsets(targetPartitions);
+                    for (TopicPartition tp : targetPartitions) {
+                        long endOffset = endOffsets.getOrDefault(tp, 0L);
+                        consumer.seek(tp, Math.max(0, endOffset - limit));
+                    }
+                    break;
+            }
+
+            // Poll messages
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(TIMEOUT_SECONDS));
+
+            List<KafkaMessage> allMessages = new ArrayList<>();
+            for (ConsumerRecord<String, String> record : records) {
+                allMessages.add(toKafkaMessage(record));
+            }
+
+            int totalFetched = allMessages.size();
+
+            // Apply key filter if provided
+            if (keyFilter != null && !keyFilter.isBlank()) {
+                String lowerFilter = keyFilter.toLowerCase();
+                allMessages = allMessages
+                    .stream()
+                    .filter(m -> m.key() != null && m.key().toLowerCase().contains(lowerFilter))
+                    .toList();
+            }
+
+            // Apply value filter if provided
+            if (valueFilter != null && !valueFilter.isBlank()) {
+                String lowerFilter = valueFilter.toLowerCase();
+                allMessages = allMessages
+                    .stream()
+                    .filter(m -> m.value() != null && m.value().toLowerCase().contains(lowerFilter))
+                    .toList();
+            }
+
+            // Limit results
+            if (allMessages.size() > limit) {
+                allMessages = allMessages.subList(0, limit);
+            }
+
+            return new BrowseMessagesResult(allMessages, totalFetched);
+        });
+    }
+
+    @Override
+    public void tailMessages(
+        KafkaClusterConfiguration config,
+        String topicName,
+        Integer partition,
+        String keyFilter,
+        String valueFilter,
+        int maxMessages,
+        int durationSeconds,
+        MessageConsumer consumer
+    ) {
+        List<TopicPartition> targetPartitions = resolvePartitions(config, topicName, partition);
+
+        withConsumer(config, 500, kafkaConsumer -> {
+            kafkaConsumer.assign(targetPartitions);
+            kafkaConsumer.seekToEnd(targetPartitions);
+
+            long deadline = System.currentTimeMillis() + (durationSeconds * 1000L);
+            int sent = 0;
+            String lowerKeyFilter = (keyFilter != null && !keyFilter.isBlank()) ? keyFilter.toLowerCase() : null;
+            String lowerValueFilter = (valueFilter != null && !valueFilter.isBlank()) ? valueFilter.toLowerCase() : null;
+
+            while (System.currentTimeMillis() < deadline && sent < maxMessages) {
+                ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(500));
+                for (ConsumerRecord<String, String> record : records) {
+                    KafkaMessage msg = toKafkaMessage(record);
+
+                    if (lowerKeyFilter != null && (msg.key() == null || !msg.key().toLowerCase().contains(lowerKeyFilter))) {
+                        continue;
+                    }
+                    if (lowerValueFilter != null && (msg.value() == null || !msg.value().toLowerCase().contains(lowerValueFilter))) {
+                        continue;
+                    }
+
+                    if (!consumer.accept(msg)) {
+                        return null;
+                    }
+                    sent++;
+                    if (sent >= maxMessages) break;
+                }
+            }
+            return null;
+        });
+    }
+
+    private List<TopicPartition> resolvePartitions(KafkaClusterConfiguration config, String topicName, Integer partition) {
+        return withAdminClient(config, adminClient -> {
+            TopicDescription description;
+            try {
+                description = adminClient
+                    .describeTopics(List.of(topicName))
+                    .allTopicNames()
+                    .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                    .get(topicName);
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof org.apache.kafka.common.errors.UnknownTopicOrPartitionException) {
+                    throw new KafkaExplorerException("Topic '" + topicName + "' not found", TechnicalCode.TOPIC_NOT_FOUND, e);
+                }
+                throw e;
+            }
+
+            if (description == null) {
+                throw new KafkaExplorerException("Topic '" + topicName + "' not found", TechnicalCode.TOPIC_NOT_FOUND);
+            }
+
+            if (partition != null) {
+                if (partition < 0 || partition >= description.partitions().size()) {
+                    throw new KafkaExplorerException(
+                        "Partition " + partition + " does not exist for topic '" + topicName + "'",
+                        TechnicalCode.INVALID_PARAMETERS
+                    );
+                }
+                return List.of(new TopicPartition(topicName, partition));
+            }
+
+            return description
+                .partitions()
+                .stream()
+                .map(p -> new TopicPartition(topicName, p.partition()))
+                .toList();
+        });
+    }
+
+    private KafkaMessage toKafkaMessage(ConsumerRecord<String, String> record) {
+        List<KafkaHeader> headers = new ArrayList<>();
+        for (Header header : record.headers()) {
+            String headerValue = header.value() != null ? new String(header.value()) : null;
+            headers.add(new KafkaHeader(header.key(), headerValue));
+        }
+        return new KafkaMessage(record.partition(), record.offset(), record.timestamp(), record.key(), record.value(), headers);
+    }
+
+    @FunctionalInterface
+    private interface ConsumerAction<T> {
+        T execute(KafkaConsumer<String, String> consumer) throws Exception;
+    }
+
+    private <T> T withConsumer(KafkaClusterConfiguration config, int maxPollRecords, ConsumerAction<T> action) {
+        List<Path> tempFiles = new ArrayList<>();
+        Properties properties = buildConsumerProperties(config, maxPollRecords, tempFiles);
+        try (KafkaConsumer<String, String> consumer = createConsumer(properties)) {
+            return action.execute(consumer);
+        } catch (ExecutionException e) {
+            throw handleExecutionException(e);
+        } catch (TimeoutException e) {
+            throw new KafkaExplorerException("Connection to Kafka cluster timed out", TechnicalCode.TIMEOUT, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new KafkaExplorerException("Connection to Kafka cluster was interrupted", TechnicalCode.INTERRUPTED, e);
+        } catch (KafkaExplorerException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new KafkaExplorerException("Failed to connect to Kafka cluster", TechnicalCode.CONNECTION_FAILED, e);
+        } finally {
+            deleteTempFiles(tempFiles);
+        }
+    }
+
+    protected KafkaConsumer<String, String> createConsumer(Properties properties) {
+        return new KafkaConsumer<>(properties);
+    }
+
+    private Properties buildConsumerProperties(KafkaClusterConfiguration config, int maxPollRecords, List<Path> tempFiles) {
+        Properties properties = buildProperties(config, tempFiles);
+        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        properties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, maxPollRecords);
+        return properties;
     }
 
     private record LagResult(long totalLag, int numTopics) {}

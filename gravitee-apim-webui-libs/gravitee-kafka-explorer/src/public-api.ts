@@ -32,6 +32,8 @@ export * from './lib/features/topics/topics/topics.component';
 export * from './lib/features/topics/topics-page.component';
 export * from './lib/features/topics/topic-detail/topic-detail.component';
 export * from './lib/features/topics/topic-detail-page.component';
+export * from './lib/features/topics/messages/messages-browser.component';
+export * from './lib/features/topics/messages-page.component';
 export * from './lib/features/consumer-groups/consumer-groups/consumer-groups.component';
 export * from './lib/features/consumer-groups/consumer-groups-page.component';
 export * from './lib/features/consumer-groups/consumer-group-detail/consumer-group-detail.component';

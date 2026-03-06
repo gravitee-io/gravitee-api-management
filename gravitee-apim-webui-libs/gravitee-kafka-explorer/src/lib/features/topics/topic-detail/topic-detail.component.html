@@ -25,10 +25,12 @@
       <gke-badge>Internal</gke-badge>
     }
     <span class="topic-detail__spacer"></span>
-    <button mat-stroked-button class="topic-detail__browse-btn" (click)="browseMessages.emit()">
-      <mat-icon>search</mat-icon>
-      Browse Messages
-    </button>
+    @if (topicDetail()) {
+      <button mat-stroked-button class="topic-detail__browse-btn" (click)="browseMessages.emit()">
+        <mat-icon>search</mat-icon>
+        Browse Messages
+      </button>
+    }
   </div>
 
   @if (loading()) {

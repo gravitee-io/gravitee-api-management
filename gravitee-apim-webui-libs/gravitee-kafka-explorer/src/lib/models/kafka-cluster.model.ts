@@ -146,3 +146,24 @@ export interface DescribeConsumerGroupResponse {
   members: ConsumerGroupMember[];
   offsets: ConsumerGroupOffset[];
 }
+
+export type OffsetMode = 'NEWEST' | 'OLDEST' | 'TIMESTAMP' | 'SPECIFIC';
+
+export interface KafkaHeader {
+  key: string;
+  value: string;
+}
+
+export interface KafkaMessage {
+  partition: number;
+  offset: number;
+  timestamp: number;
+  key: string;
+  value: string;
+  headers: KafkaHeader[];
+}
+
+export interface BrowseMessagesResponse {
+  data: KafkaMessage[];
+  totalFetched: number;
+}

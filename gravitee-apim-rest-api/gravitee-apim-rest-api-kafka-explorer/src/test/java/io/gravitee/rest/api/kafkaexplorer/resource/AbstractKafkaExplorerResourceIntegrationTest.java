@@ -18,12 +18,14 @@ package io.gravitee.rest.api.kafkaexplorer.resource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.ClusterCrudServiceInMemory;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.rest.api.kafkaexplorer.domain.use_case.BrowseMessagesUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeBrokerUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeConsumerGroupUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeKafkaClusterUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.DescribeTopicUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.ListConsumerGroupsUseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.use_case.ListTopicsUseCase;
+import io.gravitee.rest.api.kafkaexplorer.domain.use_case.TailMessagesUseCase;
 import io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service.KafkaClusterDomainServiceImpl;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.File;
@@ -82,6 +84,9 @@ abstract class AbstractKafkaExplorerResourceIntegrationTest {
                 "describeConsumerGroupUseCase",
                 new DescribeConsumerGroupUseCase(clusterCrudService, clusterService, objectMapper)
             );
+            injectField(resource, "browseMessagesUseCase", new BrowseMessagesUseCase(clusterCrudService, clusterService, objectMapper));
+            injectField(resource, "tailMessagesUseCase", new TailMessagesUseCase(clusterCrudService, clusterService, objectMapper));
+            injectField(resource, "objectMapper", objectMapper);
         } catch (Exception e) {
             throw new RuntimeException("Failed to set up integration test", e);
         }

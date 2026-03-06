@@ -16,6 +16,7 @@
 import {
   BrokerDetail,
   BrokerLogDirEntry,
+  BrowseMessagesResponse,
   DescribeBrokerResponse,
   ConsumerGroupMember,
   ConsumerGroupOffset,
@@ -23,6 +24,8 @@ import {
   DescribeClusterResponse,
   DescribeConsumerGroupResponse,
   DescribeTopicResponse,
+  KafkaHeader,
+  KafkaMessage,
   KafkaNode,
   KafkaTopic,
   ListConsumerGroupsResponse,
@@ -246,6 +249,38 @@ export function fakeDescribeConsumerGroupResponse(overrides: Partial<DescribeCon
       fakeConsumerGroupOffset({ topic: 'my-topic', partition: 0, committedOffset: 50, endOffset: 100, lag: 50 }),
       fakeConsumerGroupOffset({ topic: 'my-topic', partition: 1, committedOffset: 80, endOffset: 100, lag: 20 }),
     ],
+    ...overrides,
+  };
+}
+
+export function fakeKafkaHeader(overrides: Partial<KafkaHeader> = {}): KafkaHeader {
+  return {
+    key: 'content-type',
+    value: 'application/json',
+    ...overrides,
+  };
+}
+
+export function fakeKafkaMessage(overrides: Partial<KafkaMessage> = {}): KafkaMessage {
+  return {
+    partition: 0,
+    offset: 42,
+    timestamp: 1700000000000,
+    key: 'order-123',
+    value: '{"orderId":"123","status":"completed"}',
+    headers: [fakeKafkaHeader()],
+    ...overrides,
+  };
+}
+
+export function fakeBrowseMessagesResponse(overrides: Partial<BrowseMessagesResponse> = {}): BrowseMessagesResponse {
+  return {
+    data: [
+      fakeKafkaMessage({ partition: 0, offset: 42, key: 'order-123' }),
+      fakeKafkaMessage({ partition: 0, offset: 41, key: 'order-122', timestamp: 1699999999000 }),
+      fakeKafkaMessage({ partition: 1, offset: 10, key: 'order-121', timestamp: 1699999998000 }),
+    ],
+    totalFetched: 3,
     ...overrides,
   };
 }

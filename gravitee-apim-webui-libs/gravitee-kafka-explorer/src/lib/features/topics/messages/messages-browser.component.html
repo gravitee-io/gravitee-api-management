@@ -1,0 +1,208 @@
+<!--
+
+    Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="messages-browser">
+  <div class="messages-browser__header">
+    <button mat-icon-button (click)="back.emit()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h3 class="messages-browser__title">Messages - {{ topicName() }}</h3>
+  </div>
+
+  <mat-button-toggle-group [value]="mode()" (change)="mode.set($event.value)" class="messages-browser__mode-toggle">
+    <mat-button-toggle value="batch">Batch</mat-button-toggle>
+    <mat-button-toggle value="live">Live</mat-button-toggle>
+  </mat-button-toggle-group>
+
+  <mat-card class="messages-browser__controls">
+    <mat-card-content>
+      <div class="messages-browser__controls-row">
+        <mat-form-field class="messages-browser__control">
+          <mat-label>Partition</mat-label>
+          <mat-select [value]="selectedPartition()" (selectionChange)="selectedPartition.set($event.value)">
+            <mat-option [value]="undefined">All</mat-option>
+            @for (p of partitionOptions; track p) {
+              @if (p !== undefined) {
+                <mat-option [value]="p">{{ p }}</mat-option>
+              }
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (mode() === 'batch') {
+          <mat-form-field class="messages-browser__control">
+            <mat-label>Offset Mode</mat-label>
+            <mat-select [value]="offsetMode()" (selectionChange)="offsetMode.set($event.value)">
+              <mat-option value="NEWEST">Newest</mat-option>
+              <mat-option value="OLDEST">Oldest</mat-option>
+              <mat-option value="TIMESTAMP">Timestamp</mat-option>
+              <mat-option value="SPECIFIC">Specific Offset</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          @if (offsetMode() === 'TIMESTAMP') {
+            <mat-form-field class="messages-browser__control">
+              <mat-label>Timestamp</mat-label>
+              <input matInput type="datetime-local" step="1" [ngModel]="timestampInput()" (ngModelChange)="onTimestampChange($event)" />
+            </mat-form-field>
+          }
+
+          @if (offsetMode() === 'SPECIFIC') {
+            <mat-form-field class="messages-browser__control">
+              <mat-label>Offset</mat-label>
+              <input matInput type="number" [ngModel]="offsetValue()" (ngModelChange)="offsetValue.set($event)" />
+            </mat-form-field>
+          }
+        }
+
+        <mat-form-field class="messages-browser__control">
+          <mat-label>Key filter</mat-label>
+          <input matInput [ngModel]="keyFilter()" (ngModelChange)="keyFilter.set($event)" />
+        </mat-form-field>
+
+        <mat-form-field class="messages-browser__control">
+          <mat-label>Value filter</mat-label>
+          <input matInput [ngModel]="valueFilter()" (ngModelChange)="valueFilter.set($event)" />
+        </mat-form-field>
+
+        @if (mode() === 'batch') {
+          <mat-form-field class="messages-browser__control messages-browser__control--small">
+            <mat-label>Limit</mat-label>
+            <input matInput type="number" [ngModel]="limit()" (ngModelChange)="limit.set($event)" min="1" max="1000" />
+          </mat-form-field>
+
+          <button mat-raised-button color="primary" class="messages-browser__fetch-btn" (click)="onFetch()" [disabled]="loading()">
+            Fetch
+          </button>
+        }
+
+        @if (mode() === 'live') {
+          <mat-form-field class="messages-browser__control messages-browser__control--small">
+            <mat-label>Duration (s)</mat-label>
+            <input matInput type="number" [ngModel]="tailDuration()" (ngModelChange)="tailDuration.set($event)" min="1" max="300" />
+          </mat-form-field>
+
+          <mat-form-field class="messages-browser__control messages-browser__control--small">
+            <mat-label>Max messages</mat-label>
+            <input matInput type="number" [ngModel]="tailMaxMessages()" (ngModelChange)="tailMaxMessages.set($event)" min="1" max="5000" />
+          </mat-form-field>
+
+          @if (!tailActive()) {
+            <button mat-raised-button color="primary" class="messages-browser__fetch-btn" (click)="onStartTail()">Start</button>
+          } @else {
+            <button mat-raised-button color="warn" class="messages-browser__fetch-btn" (click)="onStopTail()">Stop</button>
+            <mat-spinner diameter="24" class="messages-browser__tail-spinner" />
+          }
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  @if (messages().length > 0) {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>{{ messages().length }} messages ({{ totalFetched() }} fetched)</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <table
+          mat-table
+          [dataSource]="sortedMessages()"
+          matSort
+          (matSortChange)="onSortChange($event)"
+          [matSortActive]="sortActive()"
+          [matSortDirection]="sortDirection()"
+          class="messages-browser__table"
+        >
+          <ng-container matColumnDef="partition">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Partition</th>
+            <td mat-cell *matCellDef="let m">{{ m.partition }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="offset">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Offset</th>
+            <td mat-cell *matCellDef="let m">{{ m.offset }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="timestamp">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Timestamp</th>
+            <td mat-cell *matCellDef="let m">{{ m.timestamp | date: 'yyyy-MM-dd HH:mm:ss.SSS' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="key">
+            <th mat-header-cell *matHeaderCellDef>Key</th>
+            <td mat-cell *matCellDef="let m">{{ truncate(m.key, 40) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="value">
+            <th mat-header-cell *matHeaderCellDef>Value</th>
+            <td mat-cell *matCellDef="let m">{{ truncate(m.value) }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns" class="messages-browser__row" (click)="onRowClick(row)"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (!loading() && messages().length === 0 && totalFetched() >= 0) {
+    <mat-card>
+      <mat-card-content>
+        <p class="messages-browser__empty">No messages found.</p>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (expandedMessage(); as msg) {
+    <mat-card class="messages-browser__detail">
+      <mat-card-header>
+        <mat-card-title>Message Detail - Partition {{ msg.partition }}, Offset {{ msg.offset }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="messages-browser__detail-section">
+          <strong>Key:</strong>
+          <pre class="messages-browser__pre">{{ msg.key }}</pre>
+        </div>
+        <div class="messages-browser__detail-section">
+          <strong>Value:</strong>
+          <pre class="messages-browser__pre">{{ isJson(msg.value) ? formatJson(msg.value) : msg.value }}</pre>
+        </div>
+        @if (msg.headers && msg.headers.length > 0) {
+          <div class="messages-browser__detail-section">
+            <strong>Headers:</strong>
+            <table mat-table [dataSource]="msg.headers" class="messages-browser__headers-table">
+              <ng-container matColumnDef="key">
+                <th mat-header-cell *matHeaderCellDef>Key</th>
+                <td mat-cell *matCellDef="let h">{{ h.key }}</td>
+              </ng-container>
+              <ng-container matColumnDef="value">
+                <th mat-header-cell *matHeaderCellDef>Value</th>
+                <td mat-cell *matCellDef="let h">{{ h.value }}</td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="['key', 'value']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['key', 'value']"></tr>
+            </table>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

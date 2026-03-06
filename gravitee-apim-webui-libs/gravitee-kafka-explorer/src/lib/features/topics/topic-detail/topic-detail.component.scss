@@ -29,6 +29,16 @@
     margin: 0;
   }
 
+  &__spacer {
+    flex: 1;
+  }
+
+  &__browse-btn {
+    mat-icon {
+      margin-right: 4px;
+    }
+  }
+
   mat-card-content {
     overflow-x: auto;
   }

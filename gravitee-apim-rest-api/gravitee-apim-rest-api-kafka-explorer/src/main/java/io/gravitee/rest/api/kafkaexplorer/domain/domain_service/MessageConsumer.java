@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.kafkaexplorer.domain.exception;
+package io.gravitee.rest.api.kafkaexplorer.domain.domain_service;
 
-public enum TechnicalCode {
-    INVALID_PARAMETERS,
-    CONNECTION_FAILED,
-    AUTHENTICATION_FAILED,
-    TIMEOUT,
-    INTERRUPTED,
-    TOPIC_NOT_FOUND,
+import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaMessage;
+
+/**
+ * Callback for streaming Kafka messages.
+ * Returns false if the client has disconnected and the tail should stop.
+ */
+@FunctionalInterface
+public interface MessageConsumer {
+    boolean accept(KafkaMessage message);
 }
