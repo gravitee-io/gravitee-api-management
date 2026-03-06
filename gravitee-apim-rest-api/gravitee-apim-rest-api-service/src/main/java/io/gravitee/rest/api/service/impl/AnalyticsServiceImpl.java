@@ -451,7 +451,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         Map<String, String> metadata = new HashMap<>();
 
         try {
-            TenantEntity tenantEntity = tenantService.findByIdAndReference(tenant, organizationId, TenantReferenceType.ORGANIZATION);
+            TenantEntity tenantEntity = tenantService.findByKeyAndReference(tenant, organizationId, TenantReferenceType.ORGANIZATION);
             metadata.put(METADATA_NAME, tenantEntity.getName());
         } catch (TenantNotFoundException tnfe) {
             metadata.put(METADATA_DELETED, Boolean.TRUE.toString());

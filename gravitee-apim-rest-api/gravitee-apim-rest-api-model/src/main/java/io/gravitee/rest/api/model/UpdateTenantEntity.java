@@ -25,7 +25,9 @@ import java.util.Objects;
  */
 public class UpdateTenantEntity {
 
-    private String id;
+    @NotNull
+    @Size(min = 1, max = 40)
+    private String key;
 
     @NotNull
     @Size(min = 1, max = 40)
@@ -33,12 +35,12 @@ public class UpdateTenantEntity {
 
     private String description;
 
-    public String getId() {
-        return id;
+    public String getKey() {
+        return key;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getName() {
@@ -62,16 +64,16 @@ public class UpdateTenantEntity {
         if (this == o) return true;
         if (!(o instanceof UpdateTenantEntity)) return false;
         UpdateTenantEntity that = (UpdateTenantEntity) o;
-        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(description, that.description);
+        return (Objects.equals(key, that.key) && Objects.equals(name, that.name) && Objects.equals(description, that.description));
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description);
+        return Objects.hash(key, name, description);
     }
 
     @Override
     public String toString() {
-        return "UpdateTenantEntity{" + "id='" + id + '\'' + ", name='" + name + '\'' + ", description='" + description + '\'' + '}';
+        return "UpdateTenantEntity{" + "key='" + key + '\'' + ", name='" + name + '\'' + ", description='" + description + '\'' + '}';
     }
 }

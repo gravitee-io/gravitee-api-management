@@ -38,6 +38,7 @@ public class TenantMongo {
     @EqualsAndHashCode.Include
     private String id;
 
+    private String key;
     private String name;
 
     private String description;

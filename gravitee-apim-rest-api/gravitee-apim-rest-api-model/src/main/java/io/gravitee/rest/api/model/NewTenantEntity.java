@@ -29,6 +29,10 @@ public class NewTenantEntity {
     @Size(min = 1, max = 40)
     private String name;
 
+    @NotNull
+    @Size(min = 1, max = 40)
+    private String key;
+
     private String description;
 
     public String getName() {
@@ -37,6 +41,14 @@ public class NewTenantEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getDescription() {
@@ -52,16 +64,16 @@ public class NewTenantEntity {
         if (this == o) return true;
         if (!(o instanceof NewTenantEntity)) return false;
         NewTenantEntity that = (NewTenantEntity) o;
-        return Objects.equals(name, that.name) && Objects.equals(description, that.description);
+        return Objects.equals(name, that.name) && Objects.equals(key, that.key) && Objects.equals(description, that.description);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description);
+        return Objects.hash(name, key, description);
     }
 
     @Override
     public String toString() {
-        return "NewTenantEntity{" + ", name='" + name + '\'' + ", description='" + description + '\'' + '}';
+        return "NewTenantEntity{" + "name='" + name + '\'' + ", key='" + key + '\'' + ", description='" + description + '\'' + '}';
     }
 }
