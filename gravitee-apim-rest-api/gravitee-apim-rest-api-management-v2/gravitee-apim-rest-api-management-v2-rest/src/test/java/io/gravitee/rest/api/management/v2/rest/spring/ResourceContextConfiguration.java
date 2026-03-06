@@ -73,6 +73,7 @@ import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.api_product.use_case.CreateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeployApiProductUseCase;
+import io.gravitee.apim.core.api_product.use_case.GetApiProductApisUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.SearchApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.UpdateApiProductUseCase;
@@ -923,6 +924,12 @@ public class ResourceContextConfiguration {
     @Primary
     public CreateApiProductUseCase createApiProductUseCase() {
         return mock(CreateApiProductUseCase.class);
+    }
+
+    @Bean
+    @Primary
+    public GetApiProductApisUseCase getApiProductApisUseCase() {
+        return mock(GetApiProductApisUseCase.class);
     }
 
     @Bean

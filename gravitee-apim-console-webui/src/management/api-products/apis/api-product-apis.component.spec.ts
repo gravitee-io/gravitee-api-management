@@ -135,14 +135,14 @@ describe('ApiProductApisComponent', () => {
   });
 
   it('should display empty state when no APIs in product', async () => {
-    await initComponent({ ...fakeApiProduct, apiIds: [] });
+    await initComponent([]);
 
     const emptyState = await loader.getHarness(DivHarness.with({ selector: '.api-product-apis-empty-state' }));
     expect(await emptyState.getText()).toContain('There are no APIs in this API Product (yet).');
   });
 
   it('should display table with API rows when product has APIs', async () => {
-    await initComponent(fakeApiProduct, [fakeApi1, fakeApi2]);
+    await initComponent([fakeApi1, fakeApi2]);
 
     const table = await loader.getHarness(MatTableHarness.with({ selector: 'table' }));
     const rows = await table.getRows();
@@ -164,13 +164,8 @@ describe('ApiProductApisComponent', () => {
     const emptyState = await loader.getHarness(DivHarness.with({ selector: '.api-product-apis-empty-state' }));
     expect(await emptyState.getText()).toContain('Loading...');
 
-    const productReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
-    productReq.flush(fakeApiProduct);
-
-    const api1Req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/api-1`);
-    api1Req.flush(fakeApi1);
-    const api2Req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/api-2`);
-    api2Req.flush(fakeApi2);
+    const apisReq = expectApisRequest();
+    apisReq.flush({ data: [fakeApi1, fakeApi2], pagination: { totalCount: 2 } });
 
     fixture.detectChanges();
     await fixture.whenStable();
@@ -184,7 +179,7 @@ describe('ApiProductApisComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
+    const req = expectApisRequest();
     req.flush({ message: 'Error' }, { status: 500, statusText: 'Server Error' });
     fixture.detectChanges();
     await fixture.whenStable();
@@ -192,8 +187,21 @@ describe('ApiProductApisComponent', () => {
     expect(fakeSnackBarService.error).toHaveBeenCalled();
   });
 
+  it('should show error and navigate to list when API Product not found (404)', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const req = expectApisRequest();
+    req.flush({ message: 'API Product not found' }, { status: 404, statusText: 'Not Found' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fakeSnackBarService.error).toHaveBeenCalledWith('API Product not found');
+    expect(_router.navigate).toHaveBeenCalledWith(['../..'], { relativeTo: expect.anything() });
+  });
+
   it('should have Add API button', async () => {
-    await initComponent({ ...fakeApiProduct, apiIds: ['api-1'] }, [fakeApi1]);
+    await initComponent([fakeApi1]);
 
     const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="add-api-button"]' }));
     expect(await addButton.getText()).toContain('Add API');
@@ -202,7 +210,7 @@ describe('ApiProductApisComponent', () => {
   it('should open Add API dialog when Add API clicked', async () => {
     const matDialog = TestBed.inject(MatDialog);
     const dialogOpenSpy = jest.spyOn(matDialog, 'open');
-    await initComponent({ ...fakeApiProduct, apiIds: ['api-1'] }, [fakeApi1]);
+    await initComponent([fakeApi1]);
 
     const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="add-api-button"]' }));
     await addButton.click();
@@ -224,16 +232,14 @@ describe('ApiProductApisComponent', () => {
   });
 
   it('should filter APIs by search term', async () => {
-    await initComponent(fakeApiProduct, [fakeApi1, fakeApi2]);
+    await initComponent([fakeApi1, fakeApi2]);
 
     const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
     await tableWrapper.setSearchValue('Orders');
     await fixture.whenStable();
 
-    const productReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
-    productReq.flush(fakeApiProduct);
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/api-1`).flush(fakeApi1);
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/api-2`).flush(fakeApi2);
+    const filterReq = expectApisRequest('Orders');
+    filterReq.flush({ data: [fakeApi2], pagination: { totalCount: 1 } });
 
     fixture.detectChanges();
     await fixture.whenStable();
@@ -245,17 +251,22 @@ describe('ApiProductApisComponent', () => {
     expect(rowCells[1]).toContain('Orders API');
   });
 
-  async function initComponent(apiProduct: ApiProduct, apis: Api[] = []) {
+  function expectApisRequest(query?: string) {
+    return httpTestingController.expectOne(req => {
+      if (req.url !== `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/apis`) return false;
+      if (req.params.get('page') !== '1' || req.params.get('perPage') !== '10') return false;
+      if (query !== undefined && req.params.get('query') !== query) return false;
+      if (query === undefined && req.params.has('query')) return false;
+      return true;
+    });
+  }
+
+  async function initComponent(apis: Api[] = []) {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const productReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
-    productReq.flush(apiProduct);
-
-    for (const api of apis) {
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`);
-      req.flush(api);
-    }
+    const apisReq = expectApisRequest();
+    apisReq.flush({ data: apis, pagination: { totalCount: apis.length } });
 
     fixture.detectChanges();
     await fixture.whenStable();
