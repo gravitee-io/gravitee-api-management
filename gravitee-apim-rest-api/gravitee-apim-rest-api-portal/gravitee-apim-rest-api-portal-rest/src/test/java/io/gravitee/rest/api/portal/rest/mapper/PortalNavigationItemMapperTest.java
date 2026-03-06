@@ -47,6 +47,7 @@ class PortalNavigationItemMapperTest {
         assertThat(item0.getActualInstance()).isInstanceOf(PortalNavigationFolder.class);
         var folder = (PortalNavigationFolder) item0.getActualInstance();
         assertThat(folder.getTitle()).isEqualTo("Folder 1");
+        assertThat(folder.getRootId()).isEqualTo(domain.getFirst().getRootId().json());
 
         var item1 = restItems.get(1);
         assertThat(item1.getActualInstance()).isInstanceOf(PortalNavigationLink.class);

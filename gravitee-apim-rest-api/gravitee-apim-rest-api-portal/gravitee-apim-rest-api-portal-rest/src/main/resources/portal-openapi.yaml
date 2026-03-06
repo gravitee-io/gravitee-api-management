@@ -6445,6 +6445,9 @@ components:
                 parentId:
                     type: string
                     description: The parent ID of the navigation item
+                rootId:
+                    type: string
+                    description: The root parent ID of the navigation item hierarchy
                 order:
                     type: integer
                     description: The order of the navigation item

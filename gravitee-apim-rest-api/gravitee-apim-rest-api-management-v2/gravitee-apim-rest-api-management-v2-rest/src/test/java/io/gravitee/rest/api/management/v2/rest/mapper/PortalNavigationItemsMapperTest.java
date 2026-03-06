@@ -66,6 +66,7 @@ class PortalNavigationItemsMapperTest {
             assertThat(result.getOrder()).isEqualTo(1);
             assertThat(result.getParentId()).isNull();
             assertThat(result.getPortalPageContentId()).isEqualTo(page.getPortalPageContentId().id());
+            assertThat(result.getRootId()).isEqualTo(page.getRootId().id());
         }
 
         @Test
@@ -84,6 +85,7 @@ class PortalNavigationItemsMapperTest {
             assertThat(result.getArea()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR);
             assertThat(result.getOrder()).isEqualTo(2);
             assertThat(result.getParentId()).isNull();
+            assertThat(result.getRootId()).isEqualTo(folder.getRootId().id());
         }
 
         @Test
@@ -102,6 +104,7 @@ class PortalNavigationItemsMapperTest {
             assertThat(result.getOrder()).isEqualTo(3);
             assertThat(result.getParentId()).isNull();
             assertThat(result.getUrl()).isEqualTo("https://example.com");
+            assertThat(result.getRootId()).isEqualTo(link.getRootId().id());
         }
 
         @Test
@@ -120,6 +123,7 @@ class PortalNavigationItemsMapperTest {
             assertThat(result.getOrder()).isEqualTo(3);
             assertThat(result.getParentId()).isNull();
             assertThat(result.getApiId()).isEqualTo("apiId");
+            assertThat(result.getRootId()).isEqualTo(api.getRootId().id());
         }
 
         @Test

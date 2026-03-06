@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -41,21 +42,25 @@ public interface PortalNavigationItemsMapper {
 
     @Mapping(target = "type", constant = "PAGE")
     @Mapping(target = "portalPageContentId", expression = "java(page.getPortalPageContentId().id())")
+    @Mapping(target = "rootId", source = "rootId", qualifiedByName = "portalNavigationItemIdToUuid")
     io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage map(
         io.gravitee.apim.core.portal_page.model.PortalNavigationPage page
     );
 
     @Mapping(target = "type", constant = "FOLDER")
+    @Mapping(target = "rootId", source = "rootId", qualifiedByName = "portalNavigationItemIdToUuid")
     io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder map(
         io.gravitee.apim.core.portal_page.model.PortalNavigationFolder folder
     );
 
     @Mapping(target = "type", constant = "LINK")
+    @Mapping(target = "rootId", source = "rootId", qualifiedByName = "portalNavigationItemIdToUuid")
     io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLink map(
         io.gravitee.apim.core.portal_page.model.PortalNavigationLink link
     );
 
     @Mapping(target = "type", constant = "API")
+    @Mapping(target = "rootId", source = "rootId", qualifiedByName = "portalNavigationItemIdToUuid")
     io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApi map(io.gravitee.apim.core.portal_page.model.PortalNavigationApi api);
 
     default List<PortalNavigationItem> map(List<io.gravitee.apim.core.portal_page.model.PortalNavigationItem> items) {
@@ -120,6 +125,11 @@ public interface PortalNavigationItemsMapper {
 
     default PortalNavigationItemId map(UUID id) {
         return id == null ? null : PortalNavigationItemId.of(id.toString());
+    }
+
+    @Named("portalNavigationItemIdToUuid")
+    default UUID mapToUuid(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId id) {
+        return id != null ? id.id() : null;
     }
 
     default String map(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId id) {
