@@ -102,11 +102,13 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .published(true)
             .configuration("{ \"url\": \"https://support.example.com\" }")
             .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("new-nav-item")
             .build();
 
         PortalNavigationItem created = portalNavigationItemRepository.create(item);
         assertThat(created).isNotNull();
         assertThat(created.getId()).isEqualTo(item.getId());
+        assertThat(created.getRootId()).isEqualTo("new-nav-item");
 
         portalNavigationItemRepository.delete(item.getId());
         var maybeFound = portalNavigationItemRepository.findById(item.getId());
@@ -127,11 +129,13 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .published(true)
             .configuration("{}")
             .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("new-nav-item")
             .build();
 
         PortalNavigationItem created = portalNavigationItemRepository.create(item);
         assertThat(created).isNotNull();
         assertThat(created.getId()).isEqualTo(item.getId());
+        assertThat(created.getRootId()).isEqualTo("new-nav-item");
 
         portalNavigationItemRepository.delete(item.getId());
         var maybeFound = portalNavigationItemRepository.findById(item.getId());
@@ -169,11 +173,13 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .published(true)
             .configuration("{ \"url\": \"https://original.com\" }")
             .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("update-nav-item")
             .build();
 
         PortalNavigationItem created = portalNavigationItemRepository.create(item);
         assertThat(created).isNotNull();
         assertThat(created.getTitle()).isEqualTo("Original Title");
+        assertThat(created.getRootId()).isEqualTo("update-nav-item");
 
         PortalNavigationItem updatedItem = PortalNavigationItem.builder()
             .id("update-nav-item")
@@ -186,6 +192,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .published(false)
             .configuration("{ \"url\": \"https://updated.com\" }")
             .visibility(PortalNavigationItem.Visibility.PRIVATE)
+            .rootId("update-nav-item")
             .build();
 
         PortalNavigationItem updated = portalNavigationItemRepository.update(updatedItem);
@@ -196,6 +203,7 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         assertThat(updated.getConfiguration()).isEqualTo("{ \"url\": \"https://updated.com\" }");
         assertThat(updated.isPublished()).isFalse();
         assertThat(updated.getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PRIVATE);
+        assertThat(updated.getRootId()).isEqualTo("update-nav-item");
 
         portalNavigationItemRepository.delete("update-nav-item");
     }

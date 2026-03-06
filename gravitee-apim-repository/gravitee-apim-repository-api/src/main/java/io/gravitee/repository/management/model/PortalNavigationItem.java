@@ -73,4 +73,6 @@ public class PortalNavigationItem {
     private Visibility visibility;
 
     private String apiId;
+
+    private String rootId;
 }

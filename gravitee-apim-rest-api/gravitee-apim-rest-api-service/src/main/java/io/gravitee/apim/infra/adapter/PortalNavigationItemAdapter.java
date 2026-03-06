@@ -54,19 +54,34 @@ public interface PortalNavigationItemAdapter {
         };
     }
 
+    @Mapping(target = "id", source = "id", qualifiedByName = "stringToPortalNavigationItemId")
+    @Mapping(target = "parentId", source = "parentId", qualifiedByName = "stringToPortalNavigationItemId")
     @Mapping(target = "url", expression = "java(parseUrl(portalNavigationItem.getConfiguration()))")
-    @Mapping(target = "rootId", expression = "java(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.ZERO)")
+    @Mapping(
+        target = "rootId",
+        expression = "java(org.springframework.util.StringUtils.hasText(portalNavigationItem.getRootId()) ? io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.of(portalNavigationItem.getRootId()) : io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.zero())"
+    )
     PortalNavigationLink portalNavigationLinkFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
-    @Mapping(target = "rootId", expression = "java(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.ZERO)")
+    @Mapping(target = "id", source = "id", qualifiedByName = "stringToPortalNavigationItemId")
+    @Mapping(target = "parentId", source = "parentId", qualifiedByName = "stringToPortalNavigationItemId")
+    @Mapping(
+        target = "rootId",
+        expression = "java(org.springframework.util.StringUtils.hasText(portalNavigationItem.getRootId()) ? io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.of(portalNavigationItem.getRootId()) : io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.zero())"
+    )
     PortalNavigationApi portalNavigationApiFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
+    @Mapping(target = "id", source = "id", qualifiedByName = "stringToPortalNavigationItemId")
+    @Mapping(target = "parentId", source = "parentId", qualifiedByName = "stringToPortalNavigationItemId")
     @Mapping(target = "portalPageContentId", expression = "java(parsePortalPageContentId(portalNavigationItem.getConfiguration()))")
-    @Mapping(target = "rootId", expression = "java(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.ZERO)")
+    @Mapping(
+        target = "rootId",
+        expression = "java(org.springframework.util.StringUtils.hasText(portalNavigationItem.getRootId()) ? io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.of(portalNavigationItem.getRootId()) : io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.zero())"
+    )
     PortalNavigationPage portalNavigationPageFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
@@ -80,20 +95,35 @@ public interface PortalNavigationItemAdapter {
         };
     }
 
+    @Mapping(target = "id", qualifiedByName = "portalNavigationItemIdToString")
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
+    @Mapping(target = "parentId", qualifiedByName = "portalNavigationItemIdToString")
+    @Mapping(target = "rootId", qualifiedByName = "rootIdToRepository")
+    @Mapping(target = "apiId", ignore = true)
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationPage portalNavigationItem);
 
+    @Mapping(target = "id", qualifiedByName = "portalNavigationItemIdToString")
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
+    @Mapping(target = "parentId", qualifiedByName = "portalNavigationItemIdToString")
+    @Mapping(target = "rootId", qualifiedByName = "rootIdToRepository")
+    @Mapping(target = "apiId", ignore = true)
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationFolder portalNavigationItem);
 
+    @Mapping(target = "id", qualifiedByName = "portalNavigationItemIdToString")
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
+    @Mapping(target = "parentId", qualifiedByName = "portalNavigationItemIdToString")
+    @Mapping(target = "rootId", qualifiedByName = "rootIdToRepository")
+    @Mapping(target = "apiId", ignore = true)
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationLink portalNavigationItem);
 
+    @Mapping(target = "id", qualifiedByName = "portalNavigationItemIdToString")
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
+    @Mapping(target = "parentId", qualifiedByName = "portalNavigationItemIdToString")
+    @Mapping(target = "rootId", qualifiedByName = "rootIdToRepository")
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationApi portalNavigationItem);
 
     default io.gravitee.repository.management.model.PortalNavigationItem.Type mapType(PortalNavigationItem portalNavigationItem) {
@@ -152,19 +182,35 @@ public interface PortalNavigationItemAdapter {
         }
     }
 
-    @Mapping(target = "rootId", expression = "java(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.ZERO)")
+    @Mapping(target = "id", source = "id", qualifiedByName = "stringToPortalNavigationItemId")
+    @Mapping(target = "parentId", source = "parentId", qualifiedByName = "stringToPortalNavigationItemId")
+    @Mapping(
+        target = "rootId",
+        expression = "java(org.springframework.util.StringUtils.hasText(portalNavigationItem.getRootId()) ? io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.of(portalNavigationItem.getRootId()) : io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.zero())"
+    )
     PortalNavigationFolder portalNavigationFolderFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
     @Mapping(source = "area", target = "portalArea")
+    @Mapping(target = "parentId", source = "parentId", qualifiedByName = "portalNavigationItemIdToString")
     io.gravitee.repository.management.api.search.PortalNavigationItemCriteria map(PortalNavigationItemQueryCriteria criteria);
 
+    @Named("portalNavigationItemIdToString")
     default String mapPortalNavigationItemId(PortalNavigationItemId id) {
         return id != null ? id.json() : null;
     }
 
+    @Named("stringToPortalNavigationItemId")
     default PortalNavigationItemId mapPortalNavigationItemId(String id) {
         return id != null ? PortalNavigationItemId.of(id) : null;
+    }
+
+    /**
+     * Maps domain rootId to repository rootId. ZERO or null becomes null so DB stays clean.
+     */
+    @Named("rootIdToRepository")
+    default String mapRootIdToRepository(PortalNavigationItemId rootId) {
+        return rootId == null || PortalNavigationItemId.ZERO.equals(rootId) ? null : rootId.json();
     }
 }
