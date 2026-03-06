@@ -22,6 +22,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
+import org.springframework.util.StringUtils;
 
 @Mapper
 public interface PortalNavigationItemAdapter {
@@ -55,18 +56,18 @@ public interface PortalNavigationItemAdapter {
     }
 
     @Mapping(target = "url", expression = "java(parseUrl(portalNavigationItem.getConfiguration()))")
-    @Mapping(target = "rootId", expression = "java(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.ZERO)")
+    @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
     PortalNavigationLink portalNavigationLinkFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
-    @Mapping(target = "rootId", expression = "java(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.ZERO)")
+    @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
     PortalNavigationApi portalNavigationApiFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
     @Mapping(target = "portalPageContentId", expression = "java(parsePortalPageContentId(portalNavigationItem.getConfiguration()))")
-    @Mapping(target = "rootId", expression = "java(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.ZERO)")
+    @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
     PortalNavigationPage portalNavigationPageFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
@@ -152,7 +153,12 @@ public interface PortalNavigationItemAdapter {
         }
     }
 
-    @Mapping(target = "rootId", expression = "java(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.ZERO)")
+    @Named("repositoryRootIdToDomain")
+    default PortalNavigationItemId repositoryRootIdToDomain(String rootId) {
+        return StringUtils.hasText(rootId) ? PortalNavigationItemId.of(rootId) : PortalNavigationItemId.zero();
+    }
+
+    @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
     PortalNavigationFolder portalNavigationFolderFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );

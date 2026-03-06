@@ -64,6 +64,8 @@ public class PortalNavigationItem {
 
     private String parentId;
 
+    private String rootId;
+
     private Integer order;
 
     private String configuration;
