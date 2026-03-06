@@ -77,3 +77,12 @@ gravitee-apim-e2e/ui-test/screenshots/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# project's maven repo
+/.m2/repository
+/.mvn/jvm.config
+/.mvn/maven.config
+
+# Claude configurations
+CLAUDE.md
+.claude
