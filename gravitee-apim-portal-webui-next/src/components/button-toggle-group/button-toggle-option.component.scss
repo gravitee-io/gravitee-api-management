@@ -1,0 +1,58 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../scss/theme';
+@use '@angular/material' as mat;
+
+:host {
+  display: contents;
+}
+
+.button-toggle-option {
+  @include mat.button-overrides(
+    (
+      filled-container-height: 40px,
+      filled-container-shape: 0,
+      filled-container-color: transparent,
+      filled-label-text-color: theme.$paragraph-color,
+    )
+  );
+  min-width: unset;
+
+  .material-icons {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+  }
+
+  &--active {
+    @include mat.button-overrides(
+      (
+        filled-container-color: theme.$button-toggle-active-background-color,
+        filled-label-text-color: theme.$button-toggle-active-text-color,
+      )
+    );
+
+    .material-icons {
+      color: theme.$button-toggle-active-text-color;
+      font-variation-settings:
+        'FILL' 1,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 20;
+    }
+  }
+}

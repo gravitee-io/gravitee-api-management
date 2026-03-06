@@ -13,28 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../../../scss/theme';
+@use '../../scss/theme';
 
-.welcome-banner {
+.button-toggle-group {
   display: flex;
-  flex-flow: column;
-  padding: 16px;
-  gap: 36px;
-
-  &__content {
-    display: flex;
-    flex-flow: column;
-    gap: 24px;
-  }
-
-  &__actions {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-
-    &__secondary-button {
-      color: theme.$banner-text-color;
-      text-decoration: none;
-    }
-  }
+  border: 1px solid theme.$border-color;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: theme.$card-background-color;
+  height: 40px;
 }
