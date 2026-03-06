@@ -20,6 +20,7 @@ import { distinctUntilChanged, filter, shareReplay, switchMap, tap } from 'rxjs/
 import { isEqual } from 'lodash';
 
 import { Constants } from '../entities/Constants';
+import { ApisResponse } from '../entities/management-api-v2/apisResponse';
 import {
   ApiProduct,
   ApiProductSearchQuery,
@@ -91,6 +92,25 @@ export class ApiProductV2Service {
       params = params.set('sortBy', validSortBy);
     }
     return this.http.post<ApiProductsResponse>(`${this.constants.env.v2BaseURL}/api-products/_search`, searchQuery, {
+      params,
+    });
+  }
+
+  /**
+   * Get paginated list of APIs in an API Product with optional search (Lucene-backed).
+   * Calls GET /environments/{envId}/api-products/{apiProductId}/apis
+   * @param apiProductId - The API Product ID
+   * @param page - Page number (1-based)
+   * @param perPage - Page size
+   * @param query - Optional search query (searches name, context path, version, etc.)
+   * @returns Observable of ApisResponse (data, pagination, links)
+   */
+  getApis(apiProductId: string, page = 1, perPage = 10, query = ''): Observable<ApisResponse> {
+    let params = new HttpParams().set('page', page.toString()).set('perPage', perPage.toString());
+    if (query?.trim()) {
+      params = params.set('query', query.trim());
+    }
+    return this.http.get<ApisResponse>(`${this.constants.env.v2BaseURL}/api-products/${apiProductId}/apis`, {
       params,
     });
   }
