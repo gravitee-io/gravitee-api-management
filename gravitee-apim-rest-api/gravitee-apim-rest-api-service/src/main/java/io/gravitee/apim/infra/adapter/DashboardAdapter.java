@@ -63,6 +63,10 @@ public interface DashboardAdapter {
 
     CustomDashboardWidget.MetricRequest toMetricRequestRepository(DashboardWidget.MetricRequest domain);
 
+    DashboardWidget.Filter toFilterModel(CustomDashboardWidget.Filter repository);
+
+    CustomDashboardWidget.Filter toFilterRepository(DashboardWidget.Filter domain);
+
     default Instant stringToInstant(String value) {
         return value == null ? null : Instant.parse(value);
     }

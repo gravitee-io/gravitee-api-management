@@ -67,10 +67,22 @@ public class CustomDashboardWidget {
     @NoArgsConstructor
     @AllArgsConstructor
     @Data
+    public static class Filter {
+
+        private String name;
+        private String operator;
+        private Object value;
+    }
+
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Data
     public static class MetricRequest {
 
         private String name;
         private List<String> measures;
+        private List<Filter> filters;
     }
 
     @Builder
@@ -85,5 +97,6 @@ public class CustomDashboardWidget {
         private Long interval;
         private List<String> by;
         private Integer limit;
+        private List<Filter> filters;
     }
 }
