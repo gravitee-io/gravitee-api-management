@@ -199,7 +199,8 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             .requestIds(searchLogsFilters.requestIds())
             .transactionIds(searchLogsFilters.transactionIds())
             .uri(searchLogsFilters.uri())
-            .responseTimeRanges(ConnectionLogAdapter.INSTANCE.convert(searchLogsFilters.responseTimeRanges()));
+            .responseTimeRanges(ConnectionLogAdapter.INSTANCE.convert(searchLogsFilters.responseTimeRanges()))
+            .errorKeys(searchLogsFilters.errorKeys());
     }
 
     private static ConnectionLogDetailQuery.Filter.FilterBuilder mapToConnectionLogDetailQueryFilterBuilder(
@@ -237,5 +238,29 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
             connectionLogDetailQuery
         );
+    }
+
+    @Override
+    public List<String> searchApiConnectionLogErrorKeys(ExecutionContext executionContext, String apiId, Long from, Long to) {
+        return searchConnectionLogErrorKeys(executionContext, apiId, from, to);
+    }
+
+    @Override
+    public List<String> searchEnvironmentConnectionLogErrorKeys(ExecutionContext executionContext, Long from, Long to) {
+        return searchConnectionLogErrorKeys(executionContext, null, from, to);
+    }
+
+    private List<String> searchConnectionLogErrorKeys(ExecutionContext executionContext, String apiId, Long from, Long to) {
+        try {
+            return metricsRepository.searchConnectionLogErrorKeys(
+                new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                apiId,
+                from,
+                to
+            );
+        } catch (AnalyticsException e) {
+            var context = apiId != null ? "api " + apiId : "environment " + executionContext.getEnvironmentId();
+            throw new TechnicalManagementException("Error while searching error keys for " + context, e);
+        }
     }
 }

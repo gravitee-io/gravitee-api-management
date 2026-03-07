@@ -17,12 +17,15 @@ package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static net.javacrumbs.jsonunit.core.Option.IGNORING_ARRAY_ORDER;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
+import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -640,5 +643,71 @@ class SearchMetricsQueryAdapterTest {
                 """
             )
         );
+    }
+
+    @Nested
+    class ErrorKeysFilter {
+
+        @Test
+        void should_add_error_keys_terms_filter_when_error_keys_provided() {
+            var query = MetricsQuery.builder()
+                .filter(
+                    MetricsQuery.Filter.builder()
+                        .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
+                        .errorKeys(Set.of("GATEWAY_CLIENT_CONNECTION_ERROR", "NO_ENDPOINT_FOUND"))
+                        .build()
+                )
+                .build();
+
+            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
+            var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
+
+            var hasErrorKeysFilter = mustClauses
+                .stream()
+                .map(o -> (JsonObject) o)
+                .anyMatch(
+                    clause -> clause.containsKey("terms") && clause.getJsonObject("terms").containsKey(RequestV2MetricsV4Fields.ERROR_KEY)
+                );
+
+            assertThat(hasErrorKeysFilter).isTrue();
+        }
+
+        @Test
+        void should_not_add_error_keys_filter_when_error_keys_null() {
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).errorKeys(null).build())
+                .build();
+
+            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
+            var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
+
+            var hasErrorKeysFilter = mustClauses
+                .stream()
+                .map(o -> (JsonObject) o)
+                .anyMatch(
+                    clause -> clause.containsKey("terms") && clause.getJsonObject("terms").containsKey(RequestV2MetricsV4Fields.ERROR_KEY)
+                );
+
+            assertThat(hasErrorKeysFilter).isFalse();
+        }
+
+        @Test
+        void should_not_add_error_keys_filter_when_error_keys_empty() {
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).errorKeys(Set.of()).build())
+                .build();
+
+            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
+            var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
+
+            var hasErrorKeysFilter = mustClauses
+                .stream()
+                .map(o -> (JsonObject) o)
+                .anyMatch(
+                    clause -> clause.containsKey("terms") && clause.getJsonObject("terms").containsKey(RequestV2MetricsV4Fields.ERROR_KEY)
+                );
+
+            assertThat(hasErrorKeysFilter).isFalse();
+        }
     }
 }

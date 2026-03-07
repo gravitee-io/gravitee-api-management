@@ -52,6 +52,8 @@ describe('ApiLogsV2Service', () => {
       { queryParams: { applicationIds: '1,2', planIds: '1,2' }, queryURL: '?page=1&perPage=10&applicationIds=1,2&planIds=1,2' },
       { queryParams: { methods: 'GET,POST' }, queryURL: '?page=1&perPage=10&methods=GET,POST' },
       { queryParams: { statuses: '200,202' }, queryURL: '?page=1&perPage=10&statuses=200,202' },
+      { queryParams: { errorKeys: 'API_KEY_MISSING' }, queryURL: '?page=1&perPage=10&errorKeys=API_KEY_MISSING' },
+      { queryParams: { errorKeys: 'KEY_1,KEY_2' }, queryURL: '?page=1&perPage=10&errorKeys=KEY_1,KEY_2' },
     ])('call the service with: $queryParams should call API with: $queryURL', ({ queryParams, queryURL }: any, done: jest.DoneCallback) => {
       const fakeResponse: ApiLogsResponse = {
         data: [fakeConnectionLog({ apiId: API_ID })],
@@ -88,6 +90,39 @@ describe('ApiLogsV2Service', () => {
       });
 
       req.flush(fakeResponse);
+    });
+  });
+  describe('searchErrorKeys', () => {
+    it('should call the API to fetch error keys without time range', done => {
+      const fakeErrorKeys = ['KEY_1', 'KEY_2'];
+
+      apiPlanV2Service.searchErrorKeys(API_ID).subscribe(response => {
+        expect(response).toEqual(fakeErrorKeys);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/error-keys`);
+
+      expect(req.request.method).toEqual('GET');
+      req.flush(fakeErrorKeys);
+    });
+
+    it('should call the API to fetch error keys with from and to params', done => {
+      const fakeErrorKeys = ['KEY_1', 'KEY_2'];
+      const from = 1000000;
+      const to = 2000000;
+
+      apiPlanV2Service.searchErrorKeys(API_ID, from, to).subscribe(response => {
+        expect(response).toEqual(fakeErrorKeys);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(
+        `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/error-keys?from=${from}&to=${to}`,
+      );
+
+      expect(req.request.method).toEqual('GET');
+      req.flush(fakeErrorKeys);
     });
   });
 });

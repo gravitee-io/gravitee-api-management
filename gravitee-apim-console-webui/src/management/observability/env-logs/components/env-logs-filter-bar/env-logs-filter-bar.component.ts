@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, effect, input, output, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -35,6 +35,7 @@ import {
   ENV_LOGS_DEFAULT_PERIOD,
   EnvLogsMoreFiltersForm,
 } from '../../models/env-logs-more-filters.model';
+import { SearchLogFilter, SearchLogsParam } from '../../../../../services-ngx/environment-logs.service';
 
 export const ENV_LOGS_PERIODS = [
   ENV_LOGS_DEFAULT_PERIOD,
@@ -110,6 +111,7 @@ const MORE_FILTER_STRING_KEYS: { key: MoreFilterStringKey; label: string }[] = [
 export class EnvLogsFilterBarComponent {
   loading = input(false);
   refresh = output<void>();
+  filtersChanged = output<SearchLogsParam>();
 
   showMoreFilters = signal(false);
   moreFiltersValues = signal<EnvLogsMoreFiltersForm>(DEFAULT_MORE_FILTERS);
@@ -129,6 +131,55 @@ export class EnvLogsFilterBarComponent {
   });
 
   private currentFilters = toSignal(this.form.valueChanges.pipe(distinctUntilChanged(isEqual)), { initialValue: this.form.value });
+
+  private static readonly PERIOD_OFFSETS_MS: Record<string, number> = {
+    '-5m': 5 * 60_000,
+    '-30m': 30 * 60_000,
+    '-1h': 60 * 60_000,
+    '-3h': 3 * 60 * 60_000,
+    '-6h': 6 * 60 * 60_000,
+    '-12h': 12 * 60 * 60_000,
+    '-1d': 24 * 60 * 60_000,
+    '-3d': 3 * 24 * 60 * 60_000,
+    '-7d': 7 * 24 * 60 * 60_000,
+  };
+
+  private resolveTimeRange(period: string, more: EnvLogsMoreFiltersForm): Pick<SearchLogsParam, 'timeRange'>['timeRange'] {
+    if (more.from && more.to) {
+      return { from: more.from.toISOString(), to: more.to.toISOString() };
+    }
+    if (period === '0') return undefined;
+    const now = Date.now();
+    const offset = EnvLogsFilterBarComponent.PERIOD_OFFSETS_MS[period] ?? 24 * 60 * 60_000;
+    return { from: new Date(now - offset).toISOString(), to: new Date(now).toISOString() };
+  }
+
+  constructor() {
+    effect(() => {
+      this.filtersChanged.emit(this.filtersParam());
+    });
+  }
+
+  filtersParam = computed<SearchLogsParam>(() => {
+    const quick = this.currentFilters();
+    const more = this.moreFiltersValues();
+    const filters: SearchLogFilter[] = [];
+
+    if (quick.apis?.length) filters.push({ name: 'API', operator: 'IN', value: quick.apis });
+    if (quick.applications?.length) filters.push({ name: 'APPLICATION', operator: 'IN', value: quick.applications });
+    if (more.entrypoints?.length) filters.push({ name: 'ENTRYPOINT', operator: 'IN', value: more.entrypoints });
+    if (more.methods?.length) filters.push({ name: 'HTTP_METHOD', operator: 'IN', value: more.methods });
+    if (more.plans?.length) filters.push({ name: 'PLAN', operator: 'IN', value: more.plans });
+    if (more.statuses?.size > 0) filters.push({ name: 'HTTP_STATUS', operator: 'IN', value: Array.from(more.statuses) });
+    if (more.mcpMethod) filters.push({ name: 'MCP_METHOD', operator: 'EQ', value: more.mcpMethod });
+    if (more.transactionId) filters.push({ name: 'TRANSACTION_ID', operator: 'EQ', value: more.transactionId });
+    if (more.requestId) filters.push({ name: 'REQUEST_ID', operator: 'EQ', value: more.requestId });
+    if (more.uri) filters.push({ name: 'URI', operator: 'EQ', value: more.uri });
+    if (more.errorKeys?.length) filters.push({ name: 'ERROR_KEY', operator: 'IN', value: more.errorKeys });
+    if (more.responseTime != null) filters.push({ name: 'RESPONSE_TIME', operator: 'GTE', value: more.responseTime });
+
+    return { filters, timeRange: this.resolveTimeRange(quick.period.value, more) };
+  });
 
   filterChips = computed<FilterChip[]>(() => {
     const filters = this.currentFilters();

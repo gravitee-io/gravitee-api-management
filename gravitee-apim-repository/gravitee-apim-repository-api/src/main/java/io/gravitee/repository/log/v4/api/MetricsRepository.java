@@ -34,4 +34,6 @@ public interface MetricsRepository {
 
     LogResponse<Metrics> searchMetrics(QueryContext queryContext, MetricsQuery query, List<DefinitionVersion> definitionVersions)
         throws AnalyticsException;
+
+    List<String> searchConnectionLogErrorKeys(QueryContext queryContext, String apiId, Long from, Long to) throws AnalyticsException;
 }

@@ -28,6 +28,7 @@ export class ApiRuntimeLogsMoreFiltersComponent {
   @Output() applyMoreFiltersEvent: EventEmitter<MoreFiltersForm> = new EventEmitter();
   @Input() showMoreFilters = false;
   @Input() formValues: MoreFiltersForm;
+  @Input() errorKeys: string[];
   currentValues: MoreFiltersForm;
   isInvalid: boolean;
 

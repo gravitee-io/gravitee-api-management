@@ -50,6 +50,7 @@ public class MetricsQuery {
         private Set<String> transactionIds;
         private String uri;
         private List<ResponseTimeRange> responseTimeRanges;
+        private Set<String> errorKeys;
 
         @Data
         @Builder

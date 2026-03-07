@@ -15,8 +15,8 @@
  */
 
 import { Component, DestroyRef, inject, OnInit, Signal } from '@angular/core';
-import { map, shareReplay, skip, switchMap, tap } from 'rxjs/operators';
-import { forkJoin, of, ReplaySubject } from 'rxjs';
+import { distinctUntilChanged, map, shareReplay, skip, switchMap, tap } from 'rxjs/operators';
+import { forkJoin, of, ReplaySubject, Subject } from 'rxjs';
 import moment from 'moment';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -67,12 +67,39 @@ export class ApiRuntimeLogsComponent implements OnInit {
       });
     }),
   );
+  private readonly errorKeysSubject$ = new ReplaySubject<string[]>(1);
+  errorKeys$ = this.errorKeysSubject$.asObservable();
+  private readonly refetchErrorKeys$ = new Subject<{ from?: number; to?: number }>();
   apiType: Signal<ApiType> = toSignal(this.api$.pipe(map((api: ApiV4) => api.type)));
   initialValues: LogFiltersInitialValues;
   loading = true;
 
   ngOnInit(): void {
     this.initData();
+    this.refetchErrorKeys$
+      .pipe(
+        switchMap(({ from, to }) =>
+          this.apiLogsService.searchErrorKeys(this.activatedRoute.snapshot.params.apiId, from, to).pipe(map(keys => keys.filter(Boolean))),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(keys => this.errorKeysSubject$.next(keys));
+
+    const { from: initialFrom, to: initialTo } = this.quickFilterStore.toLogFilterQueryParam(this.quickFilterStore.getFilters(), 1, 10);
+    this.refetchErrorKeys$.next({ from: initialFrom ?? undefined, to: initialTo ?? undefined });
+
+    this.quickFilterStore
+      .filters$()
+      .pipe(
+        skip(1),
+        distinctUntilChanged((a, b) => a.from === b.from && a.to === b.to && a.period?.value === b.period?.value),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(filters => {
+        const { from, to } = this.quickFilterStore.toLogFilterQueryParam(filters, 1, 10);
+        this.refetchErrorKeys$.next({ from: from ?? undefined, to: to ?? undefined });
+      });
+
     this.quickFilterStore
       .filters$()
       .pipe(
@@ -154,6 +181,7 @@ export class ApiRuntimeLogsComponent implements OnInit {
             mcpMethods: this.activatedRoute.snapshot.queryParams?.mcpMethods?.split(',') ?? undefined,
             statuses: statuses?.size > 0 ? statuses : undefined,
             entrypoints: this.activatedRoute.snapshot.queryParams?.entrypointIds?.split(',') ?? undefined,
+            errorKeys: this.activatedRoute.snapshot.queryParams?.errorKeys?.split(',') ?? undefined,
           };
         }),
       )

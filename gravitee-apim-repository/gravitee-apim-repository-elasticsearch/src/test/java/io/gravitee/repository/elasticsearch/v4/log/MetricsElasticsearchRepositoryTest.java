@@ -868,4 +868,32 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
             assertThat(result.data()).isEmpty();
         }
     }
+
+    @Nested
+    class SearchConnectionLogErrorKeys {
+
+        @Test
+        void should_return_empty_list_when_no_logs_for_api() {
+            var result = metricsV4Repository.searchConnectionLogErrorKeys(queryContext, "non-existing-api-id", null, null);
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_distinct_error_keys_for_api() {
+            var result = metricsV4Repository.searchConnectionLogErrorKeys(queryContext, "f1608475-dd77-4603-a084-75dd775603e9", null, null);
+
+            assertThat(result)
+                .hasSize(2)
+                .containsExactlyInAnyOrder("GATEWAY_CLIENT_CONNECTION_ERROR", "NO_ENDPOINT_FOUND")
+                .doesNotHaveDuplicates();
+        }
+
+        @Test
+        void should_not_return_error_keys_from_other_apis() {
+            var result = metricsV4Repository.searchConnectionLogErrorKeys(queryContext, "4a6895d5-a1bc-4041-a895-d5a1bce041ae", null, null);
+
+            assertThat(result).isEmpty();
+        }
+    }
 }

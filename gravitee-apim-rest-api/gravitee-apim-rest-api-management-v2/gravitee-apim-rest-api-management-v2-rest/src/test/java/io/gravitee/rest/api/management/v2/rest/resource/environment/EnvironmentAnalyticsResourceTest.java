@@ -24,6 +24,7 @@ import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationQueryServiceInMemory;
+import inmemory.ConnectionLogsCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
@@ -44,6 +45,7 @@ import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import io.gravitee.rest.api.model.v4.analytics.TopFailedApis;
 import io.gravitee.rest.api.model.v4.analytics.TopHitsApis;
+import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
@@ -75,6 +77,9 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Inject
     FakeAnalyticsQueryService analyticsQueryService;
+
+    @Inject
+    ConnectionLogsCrudServiceInMemory connectionLogsCrudService;
 
     WebTarget target;
 
@@ -478,6 +483,67 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsTopFailedApisResponse.class)
                 .isEqualTo(new EnvironmentAnalyticsTopFailedApisResponse().data(List.of()));
+        }
+    }
+
+    @Nested
+    class ErrorKeys {
+
+        @BeforeEach
+        void setup() {
+            target = rootTarget().path("error-keys");
+        }
+
+        @Test
+        void should_return_200_with_error_keys() {
+            // Given
+            connectionLogsCrudService.initWith(
+                List.of(
+                    BaseConnectionLog.builder()
+                        .errorKey("GATEWAY_CLIENT_CONNECTION_ERROR")
+                        .timestamp(Instant.ofEpochMilli(FROM + 1000).toString())
+                        .build(),
+                    BaseConnectionLog.builder()
+                        .errorKey("NO_ENDPOINT_FOUND")
+                        .timestamp(Instant.ofEpochMilli(FROM + 2000).toString())
+                        .build()
+                )
+            );
+
+            // When
+            Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
+
+            // Then
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(List.class)
+                .isEqualTo(List.of("GATEWAY_CLIENT_CONNECTION_ERROR", "NO_ENDPOINT_FOUND"));
+        }
+
+        @Test
+        void should_return_200_with_empty_list_when_no_error_keys_found() {
+            // Given
+            connectionLogsCrudService.initWith(List.of());
+
+            // When
+            Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
+
+            // Then
+            assertThat(response).hasStatus(OK_200).asEntity(List.class).isEqualTo(List.of());
+        }
+
+        @Test
+        void should_return_400_if_time_range_parameters_are_not_present() {
+            Response response = target.queryParam("from", FROM).request().get();
+
+            assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
+        }
+
+        @Test
+        void should_return_400_if_time_range_parameter_is_less_than_zero() {
+            Response response = target.queryParam("from", -12L).queryParam("to", TO).request().get();
+
+            assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
         }
     }
 }

@@ -69,5 +69,12 @@
   <div class="more-filters__body__block">
     <span class="more-filters__body__title">Activity</span>
     <applications-filter formControlName="applications" (applicationCache)="applicationsCache = $event"></applications-filter>
+
+    <mat-form-field>
+      <mat-label>Error Types</mat-label>
+      <mat-select formControlName="errorKeys" [multiple]="true">
+        <mat-option *ngFor="let errorKey of errorKeys" [value]="errorKey">{{ errorKey }}</mat-option>
+      </mat-select>
+    </mat-form-field>
   </div>
 </form>

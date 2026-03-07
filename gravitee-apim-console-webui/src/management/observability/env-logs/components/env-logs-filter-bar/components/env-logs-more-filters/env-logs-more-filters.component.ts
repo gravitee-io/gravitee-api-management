@@ -18,7 +18,8 @@ import { Component, DestroyRef, effect, inject, input, output } from '@angular/c
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Moment } from 'moment';
-import { map } from 'rxjs/operators';
+import { merge, of } from 'rxjs';
+import { catchError, debounceTime, map, startWith, switchMap, tap } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -32,6 +33,8 @@ import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { DEFAULT_MORE_FILTERS, EnvLogsMoreFiltersForm } from '../../../../models/env-logs-more-filters.model';
 import { DATE_TIME_FORMATS } from '../../../../../../../shared/utils/timeFrameRanges';
 import { HTTP_METHODS } from '../../../../../../../entities/management-api-v2';
+import { AnalyticsService } from '../../../../../../../services-ngx/analytics.service';
+import { SnackBarService } from '../../../../../../../services-ngx/snack-bar.service';
 
 // TODO: Replace with data from API when backend integration is implemented
 export const MOCK_ENTRYPOINTS = [
@@ -62,6 +65,7 @@ type MoreFiltersFormGroup = {
   requestId: FormControl<string | null>;
   uri: FormControl<string | null>;
   responseTime: FormControl<number | null>;
+  errorKeys: FormControl<string[] | null>;
 };
 
 @Component({
@@ -87,6 +91,8 @@ type MoreFiltersFormGroup = {
 export class EnvLogsMoreFiltersComponent {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly analyticsService = inject(AnalyticsService);
+  private readonly snackBarService = inject(SnackBarService);
 
   showMoreFilters = input(false);
   formValues = input<EnvLogsMoreFiltersForm>(DEFAULT_MORE_FILTERS);
@@ -111,10 +117,12 @@ export class EnvLogsMoreFiltersComponent {
     requestId: this.fb.control<string | null>(null),
     uri: this.fb.control<string | null>(null),
     responseTime: this.fb.control<number | null>(null),
+    errorKeys: this.fb.control<string[] | null>(null),
   });
   isInvalid = toSignal(this.form.statusChanges.pipe(map(() => this.form.invalid)), { initialValue: false });
   minDate: Moment | null = null;
   statuses: Set<number> = new Set();
+  errorKeysOptions: string[] = [];
 
   get minDateDisplay(): Date | null {
     return this.minDate ? this.minDate.toDate() : null;
@@ -150,6 +158,7 @@ export class EnvLogsMoreFiltersComponent {
       requestId: null,
       uri: null,
       responseTime: null,
+      errorKeys: null,
     });
     this.statuses = new Set();
     this.form.controls.statuses.setValue(new Set());
@@ -176,6 +185,7 @@ export class EnvLogsMoreFiltersComponent {
       requestId: raw.requestId?.trim() || null,
       uri: raw.uri?.trim() || null,
       responseTime: raw.responseTime ?? null,
+      errorKeys: raw.errorKeys ?? null,
     });
     this.close();
   }
@@ -195,6 +205,7 @@ export class EnvLogsMoreFiltersComponent {
         requestId: formValues?.requestId ?? null,
         uri: formValues?.uri ?? null,
         responseTime: formValues?.responseTime ?? null,
+        errorKeys: formValues?.errorKeys ?? null,
       },
       { emitEvent: false },
     );
@@ -209,8 +220,35 @@ export class EnvLogsMoreFiltersComponent {
       this.updateFormFromInput(this.formValues());
     });
 
-    this.form.controls.from.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(from => {
-      this.minDate = from ?? null;
-    });
+    merge(this.form.controls.from.valueChanges, this.form.controls.to.valueChanges)
+      .pipe(
+        tap(() => {
+          this.minDate = this.form.controls.from.value ?? null;
+        }),
+        debounceTime(200),
+        startWith(null),
+        switchMap(() => {
+          const from = this.form.controls.from.value?.valueOf();
+          const to = this.form.controls.to.value?.valueOf();
+          const request$ =
+            from && to
+              ? this.analyticsService.getEnvironmentErrorKeys(from, to)
+              : this.analyticsService.getEnvironmentErrorKeys(
+                  this.formValues().from?.valueOf() ?? Date.now() - 24 * 60 * 60 * 1000,
+                  this.formValues().to?.valueOf() ?? Date.now(),
+                );
+
+          return request$.pipe(
+            catchError(() => {
+              this.snackBarService.error('Failed to load error keys. Please try again.');
+              return of([]);
+            }),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(errorKeys => {
+        this.errorKeysOptions = errorKeys;
+      });
   }
 }

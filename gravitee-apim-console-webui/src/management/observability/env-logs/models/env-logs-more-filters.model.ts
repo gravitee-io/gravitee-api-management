@@ -30,6 +30,7 @@ export interface EnvLogsMoreFiltersForm {
   requestId?: string | null;
   uri?: string | null;
   responseTime?: number | null;
+  errorKeys?: string[] | null;
 }
 
 export const createDefaultMoreFilters = (): EnvLogsMoreFiltersForm => ({
@@ -44,6 +45,7 @@ export const createDefaultMoreFilters = (): EnvLogsMoreFiltersForm => ({
   requestId: null,
   uri: null,
   responseTime: null,
+  errorKeys: null,
 });
 
 export const DEFAULT_MORE_FILTERS: EnvLogsMoreFiltersForm = createDefaultMoreFilters();

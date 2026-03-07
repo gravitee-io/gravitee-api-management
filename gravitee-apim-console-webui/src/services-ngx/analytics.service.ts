@@ -141,4 +141,9 @@ export class AnalyticsService {
     const url = `${this.constants.env.v2BaseURL}/analytics/top-apps-by-request-count?from=${from}&to=${to}`;
     return this.http.get<TopApplicationsByRequestsCountRes>(url);
   }
+
+  getEnvironmentErrorKeys(from: number, to: number): Observable<string[]> {
+    const url = `${this.constants.env.v2BaseURL}/analytics/error-keys?from=${from}&to=${to}`;
+    return this.http.get<string[]>(url);
+  }
 }

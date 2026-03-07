@@ -23,6 +23,7 @@ import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentResponseTimeOve
 import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentTopAppsByRequestCountUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentTopFailedApisUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchEnvironmentTopHitsApisCountUseCase;
+import io.gravitee.apim.core.log.use_case.SearchEnvironmentConnectionLogErrorKeysUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.EnvironmentAnalyticsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsOverPeriodResponse;
@@ -48,12 +49,16 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 public class EnvironmentAnalyticsResource {
 
     @Context
     private ResourceContext resourceContext;
+
+    @Inject
+    SearchEnvironmentConnectionLogErrorKeysUseCase searchEnvironmentConnectionLogErrorKeysUseCase;
 
     @Inject
     SearchEnvironmentResponseStatusRangesUseCase searchEnvironmentResponseStatusRangesUseCase;
@@ -88,6 +93,14 @@ public class EnvironmentAnalyticsResource {
             .responseStatusRanges()
             .map(EnvironmentAnalyticsMapper.INSTANCE::map)
             .orElse(new EnvironmentAnalyticsResponseStatusRangesResponse().ranges(Map.of()));
+    }
+
+    @Path("/error-keys")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<String> getEnvironmentLogErrorKeys(@BeanParam @Valid TimeRangeParam timeRangeParam) {
+        var input = new SearchEnvironmentConnectionLogErrorKeysUseCase.Input(timeRangeParam.getFrom(), timeRangeParam.getTo());
+        return searchEnvironmentConnectionLogErrorKeysUseCase.execute(GraviteeContext.getExecutionContext(), input).errorKeys();
     }
 
     @Path("/top-hits")

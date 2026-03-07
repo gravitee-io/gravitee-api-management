@@ -47,6 +47,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
   @Input() initialValues: LogFiltersInitialValues;
   @Input() plans: Plan[];
   @Input() entrypoints: { id: string; name: string }[];
+  @Input() errorKeys: string[];
   @Input() apiType: ApiType;
   @Output() refresh = new EventEmitter<void>();
   @Output() resetFilters = new EventEmitter<void>();
@@ -135,6 +136,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
       to: this.initialValues.to,
       statuses: this.initialValues.statuses,
       applications: this.initialValues.applications,
+      errorKeys: this.initialValues.errorKeys,
     };
     this.quickFiltersForm = new UntypedFormGroup({
       period: new UntypedFormControl({ value: DEFAULT_PERIOD, disabled: true }),
@@ -227,8 +229,15 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
     };
   }
 
-  private mapMoreFiltersFormValues({ period, from, to, statuses, applications }: MoreFiltersForm) {
-    return { period, from: from?.valueOf(), to: to?.valueOf(), applications, statuses };
+  private mapMoreFiltersFormValues({ period, from, to, statuses, applications, errorKeys }: MoreFiltersForm) {
+    return {
+      period,
+      from: from?.valueOf(),
+      to: to?.valueOf(),
+      applications,
+      statuses,
+      errorKeys: errorKeys?.length > 0 ? errorKeys : undefined,
+    };
   }
 
   private plansFromValues(ids: string[]): MultiFilter {
