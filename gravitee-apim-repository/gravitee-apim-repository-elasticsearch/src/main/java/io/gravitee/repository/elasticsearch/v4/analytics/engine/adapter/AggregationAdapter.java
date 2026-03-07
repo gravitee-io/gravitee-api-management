@@ -53,6 +53,8 @@ public class AggregationAdapter {
 
     static final String AGG_NAME_SEPARATOR = "#";
 
+    static final String FILTER_AGG_SUFFIX = "__FILTER__";
+
     static final String TIME_SERIES_AGG_NAME = "TIME_SERIES";
 
     private AggregationAdapter() {}
@@ -322,12 +324,24 @@ public class AggregationAdapter {
         for (var name : aggNames) {
             if (bucket.hasNonNull(name)) {
                 aggregations.put(name, toAggregation(bucket.get(name)));
+            } else {
+                var filterAggName = getMetricPrefix(name) + AGG_NAME_SEPARATOR + FILTER_AGG_SUFFIX;
+                if (bucket.hasNonNull(filterAggName)) {
+                    var filterAggNode = bucket.get(filterAggName);
+                    if (filterAggNode.hasNonNull(name)) {
+                        aggregations.put(name, toAggregation(filterAggNode.get(name)));
+                    }
+                }
             }
             if (bucket.hasNonNull("_" + name)) {
                 aggregations.put("_" + name, toAggregation(bucket.get("_" + name)));
             }
         }
         return aggregations;
+    }
+
+    private static String getMetricPrefix(String aggName) {
+        return aggName.split(AGG_NAME_SEPARATOR)[0];
     }
 
     private static Aggregation toAggregation(JsonNode aggNode) {
