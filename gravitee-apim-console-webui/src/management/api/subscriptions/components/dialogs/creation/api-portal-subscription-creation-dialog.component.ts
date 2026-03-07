@@ -37,6 +37,8 @@ export type ApiPortalSubscriptionCreationDialogData = {
   availableSubscriptionEntrypoints?: Entrypoint[];
   plans: Plan[];
   isFederatedApi?: boolean;
+  /** API Product ID when creating subscription for an API Product **/
+  apiProductId?: string;
 };
 
 export type ApiPortalSubscriptionCreationDialogResult = {
@@ -59,6 +61,7 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
   public showGeneralConditionsMsg: boolean;
   public canUseCustomApiKey: boolean;
   public canUseSharedApiKeys: boolean;
+  public apiProductId: string | undefined;
 
   public form: UntypedFormGroup = new UntypedFormGroup({
     selectedPlan: new UntypedFormControl(undefined, [Validators.required]),
@@ -82,6 +85,7 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
     this.availableSubscriptionEntrypoints = dialogData.availableSubscriptionEntrypoints.map(entrypoint => ({ type: entrypoint.type }));
     this.canUseCustomApiKey = !dialogData.isFederatedApi && this.constants.env?.settings?.plan?.security?.customApiKey?.enabled;
     this.canUseSharedApiKeys = !dialogData.isFederatedApi && this.constants.env?.settings?.plan?.security?.sharedApiKey?.enabled;
+    this.apiProductId = dialogData.apiProductId;
   }
 
   ngOnInit(): void {

@@ -28,6 +28,8 @@ import { filter, map, startWith, take, takeUntil, tap } from 'rxjs/operators';
 import { Observable, of, Subject } from 'rxjs';
 import { FocusMonitor } from '@angular/cdk/a11y';
 
+import { VerifySubscriptionResponse } from '../../../../../entities/management-api-v2';
+import { ApiProductSubscriptionV2Service } from '../../../../../services-ngx/api-product-subscription-v2.service';
 import { ApiSubscriptionV2Service } from '../../../../../services-ngx/api-subscription-v2.service';
 
 @Component({
@@ -50,7 +52,10 @@ import { ApiSubscriptionV2Service } from '../../../../../services-ngx/api-subscr
 })
 export class ApiKeyValidationComponent implements OnInit, ControlValueAccessor, Validator {
   @Input()
-  apiId: string;
+  apiId: string | undefined;
+
+  @Input()
+  apiProductId: string | undefined;
 
   @Input()
   applicationId: string;
@@ -63,6 +68,7 @@ export class ApiKeyValidationComponent implements OnInit, ControlValueAccessor, 
 
   constructor(
     private readonly apiSubscriptionService: ApiSubscriptionV2Service,
+    private readonly apiProductSubscriptionService: ApiProductSubscriptionV2Service,
     private readonly fm: FocusMonitor,
     private readonly elRef: ElementRef,
   ) {}
@@ -121,9 +127,14 @@ export class ApiKeyValidationComponent implements OnInit, ControlValueAccessor, 
         return of(control.errors);
       }
 
-      return this.apiSubscriptionService
-        .verify(this.apiId, { applicationId: this.applicationId, apiKey: control.value })
-        .pipe(map(isUnique => (!isUnique.ok ? { unique: true } : null)));
+      const verifyPayload = { applicationId: this.applicationId, apiKey: control.value };
+
+      const verify$ =
+        this.apiId != null
+          ? this.apiSubscriptionService.verify(this.apiId, verifyPayload)
+          : this.apiProductSubscriptionService.verify(this.apiProductId, verifyPayload);
+
+      return verify$.pipe(map((isUnique: VerifySubscriptionResponse) => (isUnique.ok ? null : { unique: true })));
     };
   }
 }

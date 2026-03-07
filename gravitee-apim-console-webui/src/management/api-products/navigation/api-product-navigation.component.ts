@@ -264,7 +264,7 @@ export class ApiProductNavigationComponent {
     items.push({
       displayName: 'Consumers',
       routerLink: 'consumers',
-      icon: 'gio:users',
+      icon: 'gio:cloud-consumers',
       header: { title: 'Consumers', subtitle: 'Manage how your API Product is consumed' },
       tabs,
     });

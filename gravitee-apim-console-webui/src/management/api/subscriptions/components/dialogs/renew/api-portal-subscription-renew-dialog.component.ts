@@ -20,7 +20,8 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 export interface ApiPortalSubscriptionRenewDialogData {
   canUseCustomApiKey: boolean;
   applicationId: string;
-  apiId: string;
+  apiId?: string;
+  apiProductId?: string;
 }
 
 export interface ApiPortalSubscriptionRenewDialogResult {

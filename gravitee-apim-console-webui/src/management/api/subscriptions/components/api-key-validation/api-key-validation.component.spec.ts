@@ -30,15 +30,22 @@ import { ApiSubscriptionsModule } from '../../api-subscriptions.module';
 import { VerifySubscription } from '../../../../../entities/management-api-v2';
 
 const API_ID = 'my-api-id';
+const API_PRODUCT_ID = 'my-api-product-id';
 const APP_ID = 'my-app-id';
 
 @Component({
   selector: 'test-component',
-  template: `<api-key-validation [formControl]="apiKey" [apiId]="apiId" [applicationId]="applicationId"></api-key-validation>`,
+  template: `<api-key-validation
+    [formControl]="apiKey"
+    [apiId]="apiId"
+    [apiProductId]="apiProductId"
+    [applicationId]="applicationId"
+  ></api-key-validation>`,
   standalone: false,
 })
 class TestComponent {
-  apiId: string = API_ID;
+  apiId: string | undefined = API_ID;
+  apiProductId: string | undefined = undefined;
   applicationId: string = APP_ID;
   apiKey: FormControl = new FormControl('');
 }
@@ -150,5 +157,50 @@ describe('ApiKeyValidationComponent', () => {
 
     expect(await harness.isValid()).toEqual(true);
     expect(fixture.componentInstance.apiKey.touched).toEqual(true);
+  });
+
+  it('should call API Product verify endpoint when apiProductId is set', async () => {
+    fixture.componentInstance.apiId = undefined;
+    fixture.componentInstance.apiProductId = API_PRODUCT_ID;
+    fixture.detectChanges();
+
+    const harness = await loader.getHarness(ApiKeyValidationHarness);
+    await harness.setInputValue('custom_key_12345');
+
+    const httpMatches = httpTestingController.match({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/subscriptions/_verify`,
+      method: 'POST',
+    });
+    expect(httpMatches.length).toBeGreaterThanOrEqual(1);
+    const verifySubscription: VerifySubscription = {
+      applicationId: APP_ID,
+      apiKey: 'custom_key_12345',
+    };
+    // Flush only non-cancelled requests (cancelled = prior requests replaced by new validation)
+    const lastReq = httpMatches[httpMatches.length - 1];
+    expect(lastReq.request.body).toEqual(verifySubscription);
+    httpMatches.filter(req => !req.cancelled).forEach(req => req.flush({ ok: true }));
+
+    expect(await harness.isValid()).toEqual(true);
+  });
+
+  it('should be invalid when API Product verify returns duplicate key', async () => {
+    fixture.componentInstance.apiId = undefined;
+    fixture.componentInstance.apiProductId = API_PRODUCT_ID;
+    fixture.detectChanges();
+
+    const harness = await loader.getHarness(ApiKeyValidationHarness);
+    await harness.setInputValue('duplicate_key_12345');
+
+    const httpMatches = httpTestingController.match({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}/subscriptions/_verify`,
+      method: 'POST',
+    });
+    expect(httpMatches.length).toBeGreaterThanOrEqual(1);
+    const lastReq = httpMatches[httpMatches.length - 1];
+    expect(lastReq.request.body).toEqual({ applicationId: APP_ID, apiKey: 'duplicate_key_12345' });
+    lastReq.flush({ ok: false });
+
+    expect(await harness.isValid()).toEqual(false);
   });
 });
