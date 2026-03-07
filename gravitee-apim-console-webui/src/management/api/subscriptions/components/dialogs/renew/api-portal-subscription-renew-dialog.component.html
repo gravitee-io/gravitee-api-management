@@ -21,7 +21,12 @@
     <div class="mat-body-2">Your previous API Key will be no longer valid in 2 hours!</div>
     <div *ngIf="data.canUseCustomApiKey" class="renew__content__custom-api-key">
       <div class="mat-body-2">You can provide a custom API Key here</div>
-      <api-key-validation formControlName="apiKey" [applicationId]="data.applicationId" [apiId]="data.apiId"></api-key-validation>
+      <api-key-validation
+        formControlName="apiKey"
+        [applicationId]="data.applicationId"
+        [apiId]="data.apiId"
+        [apiProductId]="data.apiProductId"
+      ></api-key-validation>
     </div>
   </mat-dialog-content>
   <mat-dialog-actions class="actions">

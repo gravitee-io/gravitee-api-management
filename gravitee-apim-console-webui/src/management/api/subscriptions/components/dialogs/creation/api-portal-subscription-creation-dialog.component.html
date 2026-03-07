@@ -97,7 +97,8 @@
         <api-key-validation
           formControlName="customApiKey"
           [applicationId]="form.get('selectedApplication').value.id"
-          [apiId]="form.get('selectedPlan').value.apiId"
+          [apiId]="form.get('selectedPlan').value?.apiId"
+          [apiProductId]="form.get('selectedPlan').value?.apiProductId ?? apiProductId"
         ></api-key-validation>
       </ng-container>
 

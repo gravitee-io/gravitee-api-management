@@ -285,6 +285,7 @@ export class ApiProductSubscriptionListComponent {
         id: 'createSubscriptionDialog',
         data: {
           isFederatedApi: false,
+          apiProductId: this.apiProductId,
           availableSubscriptionEntrypoints: [],
           plans: this.plans().filter(plan => plan.status === 'PUBLISHED'),
         },

@@ -18,7 +18,8 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 export interface ApiPortalSubscriptionAcceptDialogData {
-  apiId: string;
+  apiId?: string;
+  apiProductId?: string;
   applicationId: string;
   canUseCustomApiKey: boolean;
   sharedApiKeyMode: boolean;
