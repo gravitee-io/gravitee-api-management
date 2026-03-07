@@ -451,6 +451,49 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /environments/{envId}/api-products/{apiProductId}/apis:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+    get:
+      tags:
+        - API Product
+      summary: List APIs of the API Product
+      description: |-
+        List APIs that belong to the API Product with server-side pagination and optional full-text search.
+        User must have API_PRODUCT_DEFINITION[READ] permission.
+      operationId: getApiProductApis
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/perPageParam"
+        - name: query
+          in: query
+          required: false
+          description: Optional search query (full-text on name, context path, version, etc.).
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          required: false
+          description: Sort by field; prefix with '-' for descending (e.g. name, -name).
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: "./openapi-apis.yaml#/components/responses/ApisResponse"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /environments/{envId}/api-products/{apiProductId}/members/permissions:
     parameters:
       - $ref: "#/components/parameters/envIdParam"
