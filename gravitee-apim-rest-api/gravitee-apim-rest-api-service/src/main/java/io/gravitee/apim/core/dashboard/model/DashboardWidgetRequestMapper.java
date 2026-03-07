@@ -19,6 +19,8 @@ import io.gravitee.apim.core.analytics_engine.exception.InvalidQueryException;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
+import io.gravitee.apim.core.analytics_engine.model.Filter;
+import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
@@ -54,14 +56,16 @@ public final class DashboardWidgetRequestMapper {
     public static MeasuresRequest toMeasuresRequest(DashboardWidget.Request request) {
         var timeRange = toTimeRange(request.getTimeRange());
         var metrics = toMetricMeasuresRequests(request.getMetrics());
-        return new MeasuresRequest(timeRange, List.of(), metrics);
+        var filters = toFilters(request.getFilters());
+        return new MeasuresRequest(timeRange, filters, metrics);
     }
 
     public static FacetsRequest toFacetsRequest(DashboardWidget.Request request) {
         var timeRange = toTimeRange(request.getTimeRange());
         var metrics = toFacetMetricMeasuresRequests(request.getMetrics());
         var facets = toFacetNames(request.getBy());
-        return new FacetsRequest(timeRange, List.of(), metrics, facets, request.getLimit(), List.of());
+        var filters = toFilters(request.getFilters());
+        return new FacetsRequest(timeRange, filters, metrics, facets, request.getLimit(), List.of());
     }
 
     public static TimeSeriesRequest toTimeSeriesRequest(DashboardWidget.Request request) {
@@ -72,7 +76,8 @@ public final class DashboardWidgetRequestMapper {
         var timeRange = toTimeRange(request.getTimeRange());
         var metrics = toFacetMetricMeasuresRequests(request.getMetrics());
         var facets = request.getBy() != null ? toFacetNames(request.getBy()) : List.<FacetSpec.Name>of();
-        return new TimeSeriesRequest(timeRange, interval, List.of(), metrics, facets, request.getLimit(), List.of());
+        var filters = toFilters(request.getFilters());
+        return new TimeSeriesRequest(timeRange, interval, filters, metrics, facets, request.getLimit(), List.of());
     }
 
     private static TimeRange toTimeRange(DashboardWidget.TimeRange timeRange) {
@@ -95,7 +100,8 @@ public final class DashboardWidgetRequestMapper {
         }
         var name = parseMetricName(m.getName());
         var measures = parseMeasures(m.getMeasures(), name.name());
-        return new MetricMeasuresRequest(name, measures);
+        var filters = toFilters(m.getFilters());
+        return new MetricMeasuresRequest(name, measures, filters);
     }
 
     private static List<FacetMetricMeasuresRequest> toFacetMetricMeasuresRequests(List<DashboardWidget.MetricRequest> metrics) {
@@ -111,7 +117,35 @@ public final class DashboardWidgetRequestMapper {
         }
         var name = parseMetricName(m.getName());
         var measures = parseMeasures(m.getMeasures(), name.name());
-        return new FacetMetricMeasuresRequest(name, measures, null);
+        var filters = toFilters(m.getFilters());
+        return new FacetMetricMeasuresRequest(name, measures, filters, null);
+    }
+
+    private static List<Filter> toFilters(List<DashboardWidget.Filter> filters) {
+        if (CollectionUtils.isEmpty(filters)) {
+            return List.of();
+        }
+        return filters.stream().map(DashboardWidgetRequestMapper::toFilter).toList();
+    }
+
+    private static Filter toFilter(DashboardWidget.Filter filter) {
+        return new Filter(parseFilterName(filter.getName()), parseFilterOperator(filter.getOperator()), filter.getValue());
+    }
+
+    private static FilterSpec.Name parseFilterName(String value) {
+        try {
+            return FilterSpec.Name.valueOf(value);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidQueryException("Unknown filter name: " + value);
+        }
+    }
+
+    private static FilterSpec.Operator parseFilterOperator(String value) {
+        try {
+            return FilterSpec.Operator.valueOf(value);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidQueryException("Unknown filter operator: " + value);
+        }
     }
 
     private static List<FacetSpec.Name> toFacetNames(List<String> by) {
