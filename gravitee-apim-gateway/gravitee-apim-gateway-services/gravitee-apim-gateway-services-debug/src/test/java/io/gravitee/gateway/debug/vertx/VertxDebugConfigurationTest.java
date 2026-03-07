@@ -172,7 +172,7 @@ class VertxDebugConfigurationTest {
         assertThat(debugClientConfiguration.isCompressionSupported()).isEqualTo(debugServerOptions.isCompressionSupported());
         assertThat(debugClientConfiguration.isAlpn()).isEqualTo(debugServerOptions.isAlpn());
         assertThat(debugClientConfiguration.getConnectTimeout()).isEqualTo(5000);
-        assertThat(debugClientConfiguration.getRequestTimeout()).isEqualTo(10000);
+        assertThat(debugClientConfiguration.getRequestTimeout()).isEqualTo(30000);
     }
 
     @Test
