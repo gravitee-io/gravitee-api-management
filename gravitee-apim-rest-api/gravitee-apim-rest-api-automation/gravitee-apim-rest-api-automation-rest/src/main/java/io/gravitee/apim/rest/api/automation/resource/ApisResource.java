@@ -15,9 +15,6 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
-
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
@@ -47,6 +44,9 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -78,7 +78,7 @@ public class ApisResource extends AbstractResource {
     public Response createOrUpdate(
         @Valid @NotNull LegacyAPIV4Spec spec,
         @QueryParam("dryRun") boolean dryRun,
-        @QueryParam("legacy") boolean legacy
+        @QueryParam("legacyID") boolean legacyID
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -102,9 +102,13 @@ public class ApisResource extends AbstractResource {
             ApiMapper.INSTANCE.apiV4SpecToApiCRDSpec(spec)
         );
 
-        // Just for backward compatibility with old code
-        if (legacy) {
+        if (legacyID) {
+            // As Automation API does not have any ID field,
+            // GKO upgraded resources send the HRID as ID
             apiCRDSpec.setId(spec.getHrid());
+            // HRID is removed as it does not make sense here, besides
+            // it avoids confusion in the database
+            apiCRDSpec.setHrid(null);
         }
 
         if (dryRun) {

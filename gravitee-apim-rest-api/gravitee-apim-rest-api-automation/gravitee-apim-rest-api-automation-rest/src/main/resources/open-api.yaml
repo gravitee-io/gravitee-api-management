@@ -389,7 +389,7 @@ components:
   schemas:
     Hrid:
       type: string
-      pattern: '^[a-zA-Z][a-zA-Z0-9_-]{2,}$'
+      pattern: '^[a-zA-Z0-9][a-zA-Z0-9_-]+[a-zA-Z0-9]$'
       description: A unique human readable id identifying this resource
       examples:
         - my_demo_api
@@ -951,6 +951,10 @@ components:
       description: API Plan
       type: object
       properties:
+        id:
+          type: string
+          description: Legacy API Plan GUID for backward compatibility with GKO
+          deprecated: true
         hrid:
           $ref: "#/components/schemas/Hrid"
         name:
@@ -1613,6 +1617,10 @@ components:
       description: Documentation page.
       type: object
       properties:
+        id:
+          type: string
+          description: Legacy API Page GUID for backward compatibility with GKO
+          deprecated: true
         hrid:
           $ref: "#/components/schemas/Hrid"
         crossId:
@@ -1747,6 +1755,7 @@ components:
         - OAUTH2
         - JWT
         - MTLS
+        - API_KEY
     PlanStatus:
       type: string
       description: Plan status, only `PUBLISHED` makes the plan available at runtime.
