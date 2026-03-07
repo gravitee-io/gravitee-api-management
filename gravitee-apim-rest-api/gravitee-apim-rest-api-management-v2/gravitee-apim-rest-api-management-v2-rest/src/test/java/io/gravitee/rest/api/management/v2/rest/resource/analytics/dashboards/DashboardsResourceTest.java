@@ -25,12 +25,17 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import assertions.MAPIAssertions;
 import fixtures.DashboardFixtures;
 import inmemory.DashboardCrudServiceInMemory;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ArrayFilter;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CustomInterval;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.DashboardsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasureName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricRequest;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.NumberFilter;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Operator;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.StringFilter;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetType;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -150,6 +155,60 @@ class DashboardsResourceTest extends AbstractResourceTest {
             assertThat(stored.getWidgets().get(2).getType()).isEqualTo("line");
             assertThat(stored.getWidgets().get(2).getRequest().getBy()).containsExactly("API");
             assertThat(stored.getWidgets().get(2).getRequest().getLimit()).isEqualTo(5);
+        }
+
+        @Test
+        void should_create_dashboard_with_filters() {
+            var response = rootTarget().request().post(json(DashboardFixtures.aCreateDashboardWithFilters()));
+
+            assertThat(response.getStatus()).isEqualTo(CREATED_201);
+
+            var created = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Dashboard.class);
+            assertThat(created.getWidgets()).hasSize(1);
+
+            var widget = created.getWidgets().getFirst();
+            var requestFilters = widget.getRequest().getFilters();
+            assertThat(requestFilters).hasSize(2);
+
+            var stringFilter = (StringFilter) requestFilters.get(0).getActualInstance();
+            assertAll(
+                () -> assertThat(stringFilter.getName()).isEqualTo(FilterName.API),
+                () -> assertThat(stringFilter.getOperator()).isEqualTo(Operator.EQ),
+                () -> assertThat(stringFilter.getValue()).isEqualTo("my-api")
+            );
+
+            var arrayFilter = (ArrayFilter) requestFilters.get(1).getActualInstance();
+            assertAll(
+                () -> assertThat(arrayFilter.getName()).isEqualTo(FilterName.HTTP_STATUS_CODE_GROUP),
+                () -> assertThat(arrayFilter.getOperator()).isEqualTo(Operator.IN),
+                () -> assertThat(arrayFilter.getValue()).containsExactly("2xx", "4xx")
+            );
+
+            var metricFilters = widget.getRequest().getMetrics().getFirst().getFilters();
+            assertThat(metricFilters).hasSize(1);
+
+            var numberFilter = (NumberFilter) metricFilters.getFirst().getActualInstance();
+            assertAll(
+                () -> assertThat(numberFilter.getName()).isEqualTo(FilterName.HTTP_STATUS),
+                () -> assertThat(numberFilter.getOperator()).isEqualTo(Operator.GTE),
+                () -> assertThat(numberFilter.getValue()).isEqualTo(200)
+            );
+
+            var stored = dashboardCrudServiceInMemory.storage().getFirst();
+            var storedRequest = stored.getWidgets().getFirst().getRequest();
+
+            assertThat(storedRequest.getFilters()).hasSize(2);
+            assertThat(storedRequest.getFilters().get(0).getName()).isEqualTo("API");
+            assertThat(storedRequest.getFilters().get(0).getOperator()).isEqualTo("EQ");
+            assertThat(storedRequest.getFilters().get(0).getValue()).isEqualTo("my-api");
+            assertThat(storedRequest.getFilters().get(1).getName()).isEqualTo("HTTP_STATUS_CODE_GROUP");
+            assertThat(storedRequest.getFilters().get(1).getOperator()).isEqualTo("IN");
+            assertThat(storedRequest.getFilters().get(1).getValue()).isEqualTo(List.of("2xx", "4xx"));
+
+            assertThat(storedRequest.getMetrics().getFirst().getFilters()).hasSize(1);
+            assertThat(storedRequest.getMetrics().getFirst().getFilters().getFirst().getName()).isEqualTo("HTTP_STATUS");
+            assertThat(storedRequest.getMetrics().getFirst().getFilters().getFirst().getOperator()).isEqualTo("GTE");
+            assertThat(storedRequest.getMetrics().getFirst().getFilters().getFirst().getValue()).isEqualTo(200);
         }
 
         @Test

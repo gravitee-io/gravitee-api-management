@@ -17,11 +17,17 @@ package fixtures;
 
 import io.gravitee.apim.core.dashboard.model.Dashboard;
 import io.gravitee.apim.core.dashboard.model.DashboardWidget;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ArrayFilter;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CreateUpdateDashboard;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Filter;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasureName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricRequest;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.NumberFilter;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Operator;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.StringFilter;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Widget;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetLayout;
@@ -245,5 +251,105 @@ public class DashboardFixtures {
             );
         }
         return list;
+    }
+
+    public static CreateUpdateDashboard aCreateDashboardWithFilters() {
+        var createDashboard = new CreateUpdateDashboard();
+        createDashboard.setName("Dashboard With Filters");
+        createDashboard.setWidgets(
+            List.of(
+                new Widget()
+                    .id("1")
+                    .title("Filtered Requests")
+                    .type(WidgetType.STATS)
+                    .layout(new WidgetLayout().cols(2).rows(1).x(0).y(0))
+                    .request(
+                        new WidgetRequest()
+                            .type(WidgetRequest.TypeEnum.MEASURES)
+                            .timeRange(defaultTimeRange())
+                            .metrics(
+                                List.of(
+                                    new MetricRequest()
+                                        .name(MetricName.HTTP_REQUESTS)
+                                        .measures(List.of(MeasureName.COUNT))
+                                        .filters(
+                                            List.of(
+                                                new Filter(
+                                                    new NumberFilter().name(FilterName.HTTP_STATUS).operator(Operator.GTE).value(200)
+                                                )
+                                            )
+                                        )
+                                )
+                            )
+                            .filters(
+                                List.of(
+                                    new Filter(new StringFilter().name(FilterName.API).operator(Operator.EQ).value("my-api")),
+                                    new Filter(
+                                        new ArrayFilter()
+                                            .name(FilterName.HTTP_STATUS_CODE_GROUP)
+                                            .operator(Operator.IN)
+                                            .value(List.of("2xx", "4xx"))
+                                    )
+                                )
+                            )
+                    )
+            )
+        );
+        return createDashboard;
+    }
+
+    public static Dashboard aDashboardWithFilters(String id, String organizationId, String createdBy) {
+        return Dashboard.builder()
+            .id(id)
+            .organizationId(organizationId)
+            .name("Dashboard With Filters")
+            .createdBy(createdBy)
+            .createdAt(ZonedDateTime.now())
+            .lastModified(ZonedDateTime.now())
+            .widgets(
+                List.of(
+                    DashboardWidget.builder()
+                        .id("1")
+                        .title("Filtered Requests")
+                        .type("stats")
+                        .layout(DashboardWidget.Layout.builder().cols(2).rows(1).x(0).y(0).build())
+                        .request(
+                            DashboardWidget.Request.builder()
+                                .type("measures")
+                                .timeRange(
+                                    DashboardWidget.TimeRange.builder()
+                                        .from(Instant.parse("2025-10-07T06:50:30Z"))
+                                        .to(Instant.parse("2025-12-07T11:35:30Z"))
+                                        .build()
+                                )
+                                .metrics(
+                                    List.of(
+                                        DashboardWidget.MetricRequest.builder()
+                                            .name("HTTP_REQUESTS")
+                                            .measures(List.of("COUNT"))
+                                            .filters(
+                                                List.of(
+                                                    DashboardWidget.Filter.builder().name("HTTP_STATUS").operator("GTE").value(200).build()
+                                                )
+                                            )
+                                            .build()
+                                    )
+                                )
+                                .filters(
+                                    List.of(
+                                        DashboardWidget.Filter.builder().name("API").operator("EQ").value("my-api").build(),
+                                        DashboardWidget.Filter.builder()
+                                            .name("HTTP_STATUS_CODE_GROUP")
+                                            .operator("IN")
+                                            .value(List.of("2xx", "4xx"))
+                                            .build()
+                                    )
+                                )
+                                .build()
+                        )
+                        .build()
+                )
+            )
+            .build();
     }
 }
