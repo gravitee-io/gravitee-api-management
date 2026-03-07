@@ -104,6 +104,7 @@ import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainServi
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.PublishPlanDomainService;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
+import io.gravitee.apim.core.notification.crud_service.NotificationConfigCrudService;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
@@ -435,6 +436,11 @@ public class ResourceContextConfiguration {
     @Bean
     public CreateApiDomainService createApiDomainService() {
         return mock(CreateApiDomainService.class);
+    }
+
+    @Bean
+    public NotificationConfigCrudService notificationConfigCrudService() {
+        return mock(NotificationConfigCrudService.class);
     }
 
     @Bean

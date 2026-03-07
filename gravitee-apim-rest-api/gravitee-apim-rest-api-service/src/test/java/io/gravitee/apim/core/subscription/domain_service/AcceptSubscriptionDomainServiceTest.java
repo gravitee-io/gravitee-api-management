@@ -38,6 +38,7 @@ import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiHook
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApplicationHookContext;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
@@ -343,12 +344,26 @@ class AcceptSubscriptionDomainServiceTest {
 
         // Then
         assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
-            new SubscriptionAcceptedApiHookContext("api-id", "application-id", "plan-published", "subscription-id", USER_ID)
+            new SubscriptionAcceptedApiHookContext(
+                SubscriptionReferenceType.API,
+                "api-id",
+                "application-id",
+                "plan-published",
+                "subscription-id",
+                USER_ID
+            )
         );
 
         assertThat(triggerNotificationDomainService.getApplicationNotifications()).containsExactly(
             new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
-                new SubscriptionAcceptedApplicationHookContext("application-id", "api-id", "plan-published", "subscription-id", USER_ID)
+                new SubscriptionAcceptedApplicationHookContext(
+                    "application-id",
+                    SubscriptionReferenceType.API,
+                    "api-id",
+                    "plan-published",
+                    "subscription-id",
+                    USER_ID
+                )
             )
         );
     }
@@ -373,7 +388,14 @@ class AcceptSubscriptionDomainServiceTest {
         assertThat(triggerNotificationDomainService.getApplicationNotifications()).contains(
             new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
                 new Recipient("EMAIL", "subscriber@mail.fake"),
-                new SubscriptionAcceptedApplicationHookContext("application-id", "api-id", "plan-published", "subscription-id", USER_ID)
+                new SubscriptionAcceptedApplicationHookContext(
+                    "application-id",
+                    SubscriptionReferenceType.API,
+                    "api-id",
+                    "plan-published",
+                    "subscription-id",
+                    USER_ID
+                )
             )
         );
     }
@@ -415,7 +437,8 @@ class AcceptSubscriptionDomainServiceTest {
                     new Recipient("EMAIL", "subscriber@mail.fake"),
                     new SubscriptionAcceptedApplicationHookContext(
                         "application-id",
-                        subscription.getApiId(),
+                        SubscriptionReferenceType.API,
+                        subscription.getReferenceId(),
                         "plan-published",
                         "subscription-id",
                         USER_ID

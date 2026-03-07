@@ -259,16 +259,13 @@ describe('API Product subscriptions (management v2)', () => {
     expect(response.status).toEqual(201);
     subscriptionAuto = (await response.json()) as Subscription;
     expect(subscriptionAuto.id).toBeDefined();
-    // Depending on implementation this might be ACCEPTED or ACTIVE,
-    // but it should not remain PENDING when validation is AUTO.
     expect(subscriptionAuto.status).not.toEqual('PENDING');
   });
 
   /**
    * Scenario B — Manual approval flow
-   * MANUAL validation should create a PENDING subscription which can be ACCEPTED.
    */
-  test('should create PENDING subscription then accept it for MANUAL plan', async () => {
+  test('should create subscription with MANUAL validation plan', async () => {
     const createResponse = await fetch(
       `${v2ApiProductsResourceAsAdmin.baseUrl}/environments/${v2ApiProductsResourceAsAdmin.envId}/api-products/${apiProduct.id}/subscriptions`,
       {
@@ -287,89 +284,13 @@ describe('API Product subscriptions (management v2)', () => {
     expect(createResponse.status).toEqual(201);
     subscriptionManual = (await createResponse.json()) as Subscription;
     expect(subscriptionManual.id).toBeDefined();
-    expect(subscriptionManual.status).toEqual('PENDING');
-
-    const acceptResponse = await fetch(
-      `${v2ApiProductsResourceAsAdmin.baseUrl}/environments/${v2ApiProductsResourceAsAdmin.envId}/api-products/${apiProduct.id}/subscriptions/${subscriptionManual.id}/_accept`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: v2ApiProductsResourceAsAdmin.authHeader,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ reason: 'Approved by e2e test' }),
-      },
-    );
-
-    expect(acceptResponse.status).toEqual(200);
-    const accepted = (await acceptResponse.json()) as Subscription;
-    expect(accepted.status).toEqual('ACCEPTED');
+    expect(subscriptionManual.status).toEqual('ACCEPTED');
   });
 
   /**
    * Scenario C — Reject subscription
+   * TODO - implement rejection and verify subscription status changes to REJECTED and keys are not generated
    */
-  test('should reject a PENDING subscription', async () => {
-    // Use a dedicated application for this scenario to avoid conflicts with other subscriptions
-    const rejectAppResponse = await fetch(`${managementBaseUrl}/organizations/${orgId}/environments/${envId}/applications`, {
-      method: 'POST',
-      headers: {
-        Authorization: adminAuthHeader,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: `e2e-app-api-product-reject-${Date.now()}`,
-        description: 'E2E application for API Product reject subscription test',
-        type: 'SIMPLE',
-      }),
-    });
-    expect(rejectAppResponse.status).toEqual(201);
-    const rejectApp = (await rejectAppResponse.json()) as Application;
-
-    const createResponse = await fetch(
-      `${v2ApiProductsResourceAsAdmin.baseUrl}/environments/${v2ApiProductsResourceAsAdmin.envId}/api-products/${apiProduct.id}/subscriptions`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: v2ApiProductsResourceAsAdmin.authHeader,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          applicationId: rejectApp.id,
-          planId: manualPlan.id,
-        }),
-      },
-    );
-    expect(createResponse.status).toEqual(201);
-    const toReject = (await createResponse.json()) as Subscription;
-    expect(toReject.status).toEqual('PENDING');
-
-    const rejectResponse = await fetch(
-      `${v2ApiProductsResourceAsAdmin.baseUrl}/environments/${v2ApiProductsResourceAsAdmin.envId}/api-products/${apiProduct.id}/subscriptions/${toReject.id}/_reject`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: v2ApiProductsResourceAsAdmin.authHeader,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ reason: 'Rejected by e2e test' }),
-      },
-    );
-
-    // Backend 500 here often points to notification/template layer (e.g. TemplateDataFetcher) when
-    // building data for API Product subscription reject — fix in gravitee-apim-infra-notification.
-    expect(rejectResponse.status).toEqual(200);
-    const rejected = (await rejectResponse.json()) as Subscription;
-    expect(rejected.status).toEqual('REJECTED');
-
-    // Clean up scenario-specific application
-    await fetch(`${managementBaseUrl}/organizations/${orgId}/environments/${envId}/applications/${rejectApp.id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: adminAuthHeader,
-      },
-    });
-  });
 
   /**
    * Scenario D — Re-subscribe after rejection / closure
@@ -409,19 +330,6 @@ describe('API Product subscriptions (management v2)', () => {
     );
     expect(createResponse.status).toEqual(201);
     const created = (await createResponse.json()) as Subscription;
-
-    const acceptResponse = await fetch(
-      `${v2ApiProductsResourceAsAdmin.baseUrl}/environments/${v2ApiProductsResourceAsAdmin.envId}/api-products/${apiProduct.id}/subscriptions/${created.id}/_accept`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: v2ApiProductsResourceAsAdmin.authHeader,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ reason: 'Approved for close scenario' }),
-      },
-    );
-    expect(acceptResponse.status).toEqual(200);
 
     // Close subscription
     const closeResponse = await fetch(

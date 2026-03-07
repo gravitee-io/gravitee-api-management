@@ -87,26 +87,26 @@ public class EmailNotificationBuilder {
         API_SUBSCRIPTION_NEW(
             ApiHook.SUBSCRIPTION_NEW,
             "subscriptionReceived.html",
-            "New subscription for ${api.name} with plan ${plan.name}"
+            "New subscription for ${(api.name)!(apiProduct.name)!''} with plan ${plan.name}"
         ),
         API_SUBSCRIPTION_ACCEPTED(ApiHook.SUBSCRIPTION_ACCEPTED, "subscriptionApproved.html", "Subscription approved"),
         API_SUBSCRIPTION_CLOSED(ApiHook.SUBSCRIPTION_CLOSED, "subscriptionClosed.html", "Subscription closed"),
         API_SUBSCRIPTION_PAUSED(
             ApiHook.SUBSCRIPTION_PAUSED,
             "subscriptionPaused.html",
-            "Subscription for ${api.name} with plan ${plan.name} has been paused"
+            "Subscription for ${(api.name)!(apiProduct.name)!''} with plan ${plan.name} has been paused"
         ),
         API_SUBSCRIPTION_RESUMED(
             ApiHook.SUBSCRIPTION_RESUMED,
             "subscriptionResumed.html",
-            "Subscription for ${api.name} with plan ${plan.name} has been resumed"
+            "Subscription for ${(api.name)!(apiProduct.name)!''} with plan ${plan.name} has been resumed"
         ),
         API_SUBSCRIPTION_REJECTED(ApiHook.SUBSCRIPTION_REJECTED, "subscriptionRejected.html", "Subscription rejected"),
         API_SUBSCRIPTION_FAILED(ApiHook.SUBSCRIPTION_FAILED, "subscriptionFailed.html", "Subscription failed"),
         API_SUBSCRIPTION_TRANSFERRED(
             ApiHook.SUBSCRIPTION_TRANSFERRED,
             "subscriptionTransferred.html",
-            "Subscription for ${api.name} with plan ${plan.name} has been transferred"
+            "Subscription for ${(api.name)!(apiProduct.name)!''} with plan ${plan.name} has been transferred"
         ),
         API_NEW_SUPPORT_TICKET(ApiHook.NEW_SUPPORT_TICKET, "supportTicketNotification.html", "New Support Ticket"),
         API_API_STARTED(ApiHook.API_STARTED, "apiStarted.html", "API Started"),
@@ -123,42 +123,42 @@ public class EmailNotificationBuilder {
         APPLICATION_SUBSCRIPTION_NEW(
             ApplicationHook.SUBSCRIPTION_NEW,
             "subscriptionCreated.html",
-            "New subscription to ${api.name} with plan ${plan.name}"
+            "New subscription to ${(api.name)!(apiProduct.name)!''} with plan ${plan.name}"
         ),
         APPLICATION_SUBSCRIPTION_ACCEPTED(
             ApplicationHook.SUBSCRIPTION_ACCEPTED,
             "subscriptionApproved.html",
-            "Your subscription to ${api.name} with plan ${plan.name} has been approved"
+            "Your subscription to ${(api.name)!(apiProduct.name)!''} with plan ${plan.name} has been approved"
         ),
         APPLICATION_SUBSCRIPTION_CLOSED(
             ApplicationHook.SUBSCRIPTION_CLOSED,
             "subscriptionClosed.html",
-            "Your subscription to ${api.name} with plan ${plan.name} has been closed"
+            "Your subscription to ${(api.name)!(apiProduct.name)!''} with plan ${plan.name} has been closed"
         ),
         APPLICATION_SUBSCRIPTION_PAUSED(
             ApplicationHook.SUBSCRIPTION_PAUSED,
             "subscriptionPaused.html",
-            "Your subscription to ${api.name} with plan ${plan.name} has been paused"
+            "Your subscription to ${(api.name)!(apiProduct.name)!''} with plan ${plan.name} has been paused"
         ),
         APPLICATION_SUBSCRIPTION_RESUMED(
             ApplicationHook.SUBSCRIPTION_RESUMED,
             "subscriptionResumed.html",
-            "Your subscription to ${api.name} with plan ${plan.name} has been resumed"
+            "Your subscription to ${(api.name)!(apiProduct.name)!''} with plan ${plan.name} has been resumed"
         ),
         APPLICATION_SUBSCRIPTION_REJECTED(
             ApplicationHook.SUBSCRIPTION_REJECTED,
             "subscriptionRejected.html",
-            "Your subscription to ${api.name} with plan ${plan.name} has been rejected"
+            "Your subscription to ${(api.name)!(apiProduct.name)!''} with plan ${plan.name} has been rejected"
         ),
         APPLICATION_SUBSCRIPTION_FAILED(
             ApplicationHook.SUBSCRIPTION_FAILED,
             "subscriptionFailed.html",
-            "Your subscription to ${api.name} with plan ${plan.name} has failed"
+            "Your subscription to ${(api.name)!(apiProduct.name)!''} with plan ${plan.name} has failed"
         ),
         APPLICATION_SUBSCRIPTION_TRANSFERRED(
             ApplicationHook.SUBSCRIPTION_TRANSFERRED,
             "subscriptionTransferred.html",
-            "Your subscription to ${api.name} with plan ${plan.name} has been transferred"
+            "Your subscription to ${(api.name)!(apiProduct.name)!''} with plan ${plan.name} has been transferred"
         ),
         APPLICATION_NEW_SUPPORT_TICKET(
             ApplicationHook.NEW_SUPPORT_TICKET,

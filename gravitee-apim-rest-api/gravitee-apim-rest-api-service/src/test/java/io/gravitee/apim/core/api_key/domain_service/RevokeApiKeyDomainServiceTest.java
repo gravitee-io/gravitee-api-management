@@ -34,6 +34,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiKeyAuditEvent;
 import io.gravitee.apim.core.notification.model.hook.ApiKeyRevokedApiHookContext;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Instant;
@@ -65,6 +66,7 @@ class RevokeApiKeyDomainServiceTest {
     private static final String PLAN_ID_2 = "plan2";
     private static final String APPLICATION_ID_1 = "app1";
     private static final String APPLICATION_ID_2 = "app2";
+    private static final String API_PRODUCT_ID = "api-product-1";
 
     ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
@@ -338,8 +340,37 @@ class RevokeApiKeyDomainServiceTest {
 
             // Then
             assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
-                new ApiKeyRevokedApiHookContext(API_ID_1, APPLICATION_ID_1, PLAN_ID_1, apiKey.getKey()),
-                new ApiKeyRevokedApiHookContext(API_ID_2, APPLICATION_ID_2, PLAN_ID_2, apiKey.getKey())
+                new ApiKeyRevokedApiHookContext(SubscriptionReferenceType.API, API_ID_1, APPLICATION_ID_1, PLAN_ID_1, apiKey.getKey()),
+                new ApiKeyRevokedApiHookContext(SubscriptionReferenceType.API, API_ID_2, APPLICATION_ID_2, PLAN_ID_2, apiKey.getKey())
+            );
+        }
+
+        @Test
+        void should_trigger_api_notification_with_api_product_reference_type_for_api_product_subscription() {
+            // Given - subscription for API Product
+            var subscription = SubscriptionFixtures.aSubscription()
+                .toBuilder()
+                .id(SUBSCRIPTION_ID_1)
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .applicationId(APPLICATION_ID_1)
+                .planId(PLAN_ID_1)
+                .build();
+            givenSubscriptions(List.of(subscription));
+            var apiKey = givenApiKey(ApiKeyFixtures.anApiKey().toBuilder().subscriptions(List.of(SUBSCRIPTION_ID_1)).build());
+
+            // When
+            service.revoke(apiKey, AUDIT_INFO);
+
+            // Then - context uses API_PRODUCT and API_PRODUCT_ID
+            assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
+                new ApiKeyRevokedApiHookContext(
+                    SubscriptionReferenceType.API_PRODUCT,
+                    API_PRODUCT_ID,
+                    APPLICATION_ID_1,
+                    PLAN_ID_1,
+                    apiKey.getKey()
+                )
             );
         }
     }
@@ -366,6 +397,7 @@ class RevokeApiKeyDomainServiceTest {
                 .toBuilder()
                 .id(SUBSCRIPTION_ID_1)
                 .apiId(API_ID_1)
+                .referenceId(API_ID_1)
                 .applicationId(APPLICATION_ID_1)
                 .planId(PLAN_ID_1)
                 .build(),
@@ -373,6 +405,7 @@ class RevokeApiKeyDomainServiceTest {
                 .toBuilder()
                 .id(SUBSCRIPTION_ID_2)
                 .apiId(API_ID_2)
+                .referenceId(API_ID_2)
                 .applicationId(APPLICATION_ID_2)
                 .planId(PLAN_ID_2)
                 .build()

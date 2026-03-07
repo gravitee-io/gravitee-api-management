@@ -132,7 +132,14 @@ class CloseSubscriptionDomainServiceTest {
         verify(auditDomainService).createApiProductAuditLog(any());
         verify(auditDomainService).createApplicationAuditLog(any());
         verify(triggerNotificationDomainService, never()).triggerApiNotification(anyString(), anyString(), any());
-        verify(triggerNotificationDomainService, never()).triggerApplicationNotification(anyString(), anyString(), any());
+        verify(triggerNotificationDomainService).triggerSubscriptionReferenceNotification(
+            anyString(),
+            anyString(),
+            eq(SubscriptionReferenceType.API_PRODUCT),
+            eq(API_PRODUCT_ID),
+            any()
+        );
+        verify(triggerNotificationDomainService).triggerApplicationNotification(anyString(), anyString(), any());
     }
 
     @Test

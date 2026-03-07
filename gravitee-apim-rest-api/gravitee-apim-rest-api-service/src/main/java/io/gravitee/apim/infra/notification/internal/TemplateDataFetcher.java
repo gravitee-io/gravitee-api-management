@@ -23,9 +23,10 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.ApiMetadataDecodeContext;
 import io.gravitee.apim.core.documentation.model.PrimaryOwnerApiTemplateData;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
-import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.membership.exception.ApiProductPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.notification.model.ApiNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.ApplicationNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.IntegrationNotificationTemplateData;
@@ -36,12 +37,17 @@ import io.gravitee.apim.core.notification.model.hook.HookContext;
 import io.gravitee.apim.core.notification.model.hook.HookContextEntry;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.model.ApiProduct;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.notification.ApiProductTemplateModel;
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -55,32 +61,38 @@ import org.springframework.stereotype.Service;
 public class TemplateDataFetcher {
 
     private final ApiRepository apiRepository;
+    private final ApiProductsRepository apiProductsRepository;
     private final ApplicationRepository applicationRepository;
     private final PlanRepository planRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final IntegrationRepository integrationRepository;
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
+    private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService;
     private final ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService;
     private final ApiMetadataDecoderDomainService apiMetadataDecoderDomainService;
     private final UserCrudService userCrudService;
 
     public TemplateDataFetcher(
         @Lazy ApiRepository apiRepository,
+        @Lazy ApiProductsRepository apiProductsRepository,
         @Lazy ApplicationRepository applicationRepository,
         @Lazy PlanRepository planRepository,
         @Lazy SubscriptionRepository subscriptionRepository,
         @Lazy IntegrationRepository integrationRepository,
         ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
+        ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService,
         ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService,
         ApiMetadataDecoderDomainService apiMetadataDecoderDomainService,
         UserCrudService userCrudService
     ) {
         this.apiRepository = apiRepository;
+        this.apiProductsRepository = apiProductsRepository;
         this.applicationRepository = applicationRepository;
         this.planRepository = planRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.integrationRepository = integrationRepository;
         this.apiPrimaryOwnerDomainService = apiPrimaryOwnerDomainService;
+        this.apiProductPrimaryOwnerDomainService = apiProductPrimaryOwnerDomainService;
         this.applicationPrimaryOwnerDomainService = applicationPrimaryOwnerDomainService;
         this.apiMetadataDecoderDomainService = apiMetadataDecoderDomainService;
         this.userCrudService = userCrudService;
@@ -91,23 +103,75 @@ public class TemplateDataFetcher {
             .getProperties()
             .entrySet()
             .stream()
-            .map(entry ->
-                Map.entry(
-                    keyFor(entry.getKey()),
-                    switch (entry.getKey()) {
-                        case API_ID -> buildApiNotificationTemplateData(organizationId, entry.getValue());
-                        case APPLICATION_ID -> buildApplicationNotificationTemplateData(organizationId, entry.getValue());
-                        case PLAN_ID -> buildPlanNotificationTemplateData(entry.getValue());
-                        case SUBSCRIPTION_ID -> buildSubscriptionNotificationTemplateData(entry.getValue());
-                        case INTEGRATION_ID -> buildIntegrationNotificationTemplateData(entry.getValue());
-                        case API_KEY -> Optional.of(entry.getValue());
-                        case OWNER -> buildOwnerNotificationTemplateData(hookContext.getHook().name(), entry.getValue());
-                    }
-                )
-            )
-            .filter(entry -> entry.getValue().isPresent())
-            .map(entry -> Map.entry(entry.getKey(), entry.getValue().get()))
+            .map(entry -> toDataEntry(organizationId, hookContext.getHook().name(), entry))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private Optional<Map.Entry<String, Object>> toDataEntry(
+        String organizationId,
+        String hookName,
+        Map.Entry<HookContextEntry, String> entry
+    ) {
+        return switch (entry.getKey()) {
+            case API_ID -> buildApiNotificationTemplateData(organizationId, entry.getValue()).map(templateData ->
+                new AbstractMap.SimpleEntry<>("api", (Object) templateData)
+            );
+            case API_PRODUCT_ID -> buildApiProductNotificationTemplateData(organizationId, entry.getValue()).map(templateData ->
+                new AbstractMap.SimpleEntry<>("apiProduct", (Object) templateData)
+            );
+            case APPLICATION_ID -> buildApplicationNotificationTemplateData(organizationId, entry.getValue()).map(templateData ->
+                new AbstractMap.SimpleEntry<>("application", (Object) templateData)
+            );
+            case PLAN_ID -> buildPlanNotificationTemplateData(entry.getValue()).map(templateData ->
+                new AbstractMap.SimpleEntry<>("plan", (Object) templateData)
+            );
+            case SUBSCRIPTION_ID -> buildSubscriptionNotificationTemplateData(entry.getValue()).map(templateData ->
+                new AbstractMap.SimpleEntry<>("subscription", (Object) templateData)
+            );
+            case INTEGRATION_ID -> buildIntegrationNotificationTemplateData(entry.getValue()).map(templateData ->
+                new AbstractMap.SimpleEntry<>("integration", (Object) templateData)
+            );
+            case API_KEY -> Optional.of(new AbstractMap.SimpleEntry<>("apiKey", (Object) entry.getValue()));
+            case OWNER -> buildOwnerNotificationTemplateData(hookName, entry.getValue()).map(templateData ->
+                new AbstractMap.SimpleEntry<>("owner", (Object) templateData)
+            );
+        };
+    }
+
+    private Optional<ApiProductTemplateModel> buildApiProductNotificationTemplateData(String organizationId, String apiProductId) {
+        try {
+            return apiProductsRepository
+                .findById(apiProductId)
+                .map(apiProduct -> {
+                    ApiProductTemplateModel model = toApiProductTemplateModel(apiProduct);
+                    try {
+                        var primaryOwner = apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwner(organizationId, apiProductId);
+                        model.setPrimaryOwner(
+                            new PrimaryOwnerEntity(
+                                primaryOwner.id(),
+                                primaryOwner.email(),
+                                primaryOwner.displayName(),
+                                primaryOwner.type() != null ? primaryOwner.type().name() : null
+                            )
+                        );
+                    } catch (ApiProductPrimaryOwnerNotFoundException e) {
+                        log.debug("No primary owner found for API Product {}", apiProductId);
+                    }
+                    return model;
+                });
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(e);
+        }
+    }
+
+    private ApiProductTemplateModel toApiProductTemplateModel(ApiProduct apiProduct) {
+        return ApiProductTemplateModel.builder()
+            .id(apiProduct.getId())
+            .name(apiProduct.getName())
+            .version(apiProduct.getVersion() != null ? apiProduct.getVersion() : "")
+            .build();
     }
 
     private Optional<PrimaryOwnerNotificationTemplateData> buildOwnerNotificationTemplateData(String hook, String userId) {
@@ -126,18 +190,6 @@ public class TemplateDataFetcher {
             }
         }
         return Optional.empty();
-    }
-
-    private String keyFor(HookContextEntry entry) {
-        return switch (entry) {
-            case API_ID -> "api";
-            case APPLICATION_ID -> "application";
-            case PLAN_ID -> "plan";
-            case SUBSCRIPTION_ID -> "subscription";
-            case INTEGRATION_ID -> "integration";
-            case API_KEY -> "apiKey";
-            case OWNER -> "owner";
-        };
     }
 
     private Optional<ApiNotificationTemplateData> buildApiNotificationTemplateData(String organizationId, String apiId) {

@@ -147,4 +147,9 @@ public class ApiProductResource extends AbstractResource {
     public ApiProductSubscriptionsResource getApiProductSubscriptionsResource() {
         return resourceContext.getResource(ApiProductSubscriptionsResource.class);
     }
+
+    @Path("/notificationsettings")
+    public ApiProductNotificationSettingsResource getApiProductNotificationSettingsResource() {
+        return resourceContext.getResource(ApiProductNotificationSettingsResource.class);
+    }
 }

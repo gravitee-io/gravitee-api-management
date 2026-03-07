@@ -20,6 +20,7 @@ import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
 import io.gravitee.apim.core.notification.model.hook.portal.PortalHookContext;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,6 +40,17 @@ public class TriggerNotificationDomainServiceInMemory implements TriggerNotifica
     @Override
     public void triggerApiNotification(String organizationId, String environmentId, ApiHookContext hookContext) {
         apiNotifications.add(hookContext);
+    }
+
+    @Override
+    public void triggerSubscriptionReferenceNotification(
+        String organizationId,
+        String environmentId,
+        SubscriptionReferenceType referenceType,
+        String referenceId,
+        ApiHookContext context
+    ) {
+        apiNotifications.add(context);
     }
 
     @Override

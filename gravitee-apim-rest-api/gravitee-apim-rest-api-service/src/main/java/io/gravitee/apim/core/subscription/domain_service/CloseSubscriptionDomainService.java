@@ -122,11 +122,7 @@ public class CloseSubscriptionDomainService {
 
         var closedSubscriptionEntity = subscriptionCrudService.update(subscriptionEntity.close());
 
-        if (!isApiProduct) {
-            triggerNotifications(closedSubscriptionEntity, auditInfo);
-        } else {
-            // Notifications are not applicable for API Product subscriptions (TODO: implement notifications for API Product subscriptions)
-        }
+        triggerNotifications(closedSubscriptionEntity, auditInfo);
 
         createAudit(subscriptionEntity, closedSubscriptionEntity, auditInfo, SubscriptionAuditEvent.SUBSCRIPTION_CLOSED);
 
@@ -149,21 +145,28 @@ public class CloseSubscriptionDomainService {
     }
 
     private void triggerNotifications(SubscriptionEntity closedSubscriptionEntity, AuditInfo auditInfo) {
-        triggerNotificationDomainService.triggerApiNotification(
+        String referenceId = closedSubscriptionEntity.getReferenceId();
+        var referenceType = closedSubscriptionEntity.getReferenceType();
+        var apiContext = new SubscriptionClosedApiHookContext(
+            referenceType,
+            referenceId,
+            closedSubscriptionEntity.getApplicationId(),
+            closedSubscriptionEntity.getPlanId()
+        );
+        triggerNotificationDomainService.triggerSubscriptionReferenceNotification(
             auditInfo.organizationId(),
             auditInfo.environmentId(),
-            new SubscriptionClosedApiHookContext(
-                closedSubscriptionEntity.getReferenceId(),
-                closedSubscriptionEntity.getApplicationId(),
-                closedSubscriptionEntity.getPlanId()
-            )
+            referenceType,
+            referenceId,
+            apiContext
         );
         triggerNotificationDomainService.triggerApplicationNotification(
             auditInfo.organizationId(),
             auditInfo.environmentId(),
             new SubscriptionClosedApplicationHookContext(
                 closedSubscriptionEntity.getApplicationId(),
-                closedSubscriptionEntity.getReferenceId(),
+                referenceType,
+                referenceId,
                 closedSubscriptionEntity.getPlanId()
             )
         );

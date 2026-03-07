@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.notification.model.hook;
+package io.gravitee.rest.api.service.notification;
 
-import io.gravitee.rest.api.service.notification.ApiHook;
-import java.util.Map;
-import lombok.EqualsAndHashCode;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.ToString;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@EqualsAndHashCode(callSuper = true)
 @Getter
-@ToString(callSuper = true)
-public class ApiDeprecatedApiHookContext extends ApiHookContext {
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ApiProductTemplateModel {
 
-    public ApiDeprecatedApiHookContext(String referenceId) {
-        super(ApiHook.API_DEPRECATED, referenceId);
-    }
-
-    @Override
-    protected Map<HookContextEntry, String> getChildProperties() {
-        return Map.of();
-    }
+    private String id;
+    private String name;
+    private String version;
+    private PrimaryOwnerEntity primaryOwner;
 }

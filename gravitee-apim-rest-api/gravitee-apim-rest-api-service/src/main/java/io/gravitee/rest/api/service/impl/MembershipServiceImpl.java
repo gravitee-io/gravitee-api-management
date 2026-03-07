@@ -1484,7 +1484,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Override
     public String getPrimaryOwnerUserId(String organizationId, MembershipReferenceType referenceType, String referenceId) {
-        MembershipEntity primaryOwner = getPrimaryOwner(organizationId, MembershipReferenceType.API, referenceId);
+        MembershipEntity primaryOwner = getPrimaryOwner(organizationId, referenceType, referenceId);
         String primaryOwnerId = primaryOwner.getMemberId();
         if (primaryOwner.getMemberType() == MembershipMemberType.GROUP) {
             primaryOwnerId = groupService

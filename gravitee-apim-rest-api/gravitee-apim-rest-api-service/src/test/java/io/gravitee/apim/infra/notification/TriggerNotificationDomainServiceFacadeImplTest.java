@@ -37,6 +37,7 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.metadata.model.Metadata;
@@ -52,11 +53,13 @@ import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
 import io.gravitee.apim.core.notification.model.hook.HookContextEntry;
 import io.gravitee.apim.core.notification.model.hook.portal.PortalHookContext;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.notification.internal.TemplateDataFetcher;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.IntegrationRepository;
@@ -64,10 +67,12 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiKeyMode;
+import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.Integration;
+import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.service.NotifierService;
@@ -104,6 +109,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
     public static final String USER_ID = "user-id";
     public static final String USER_ID_2 = "user-id-2";
     public static final String API_ID = "api-id";
+    public static final String API_PRODUCT_ID = "api-product-id";
     public static final String APPLICATION_ID = "application-id";
     public static final String INTEGRATION_ID = "integration-id";
 
@@ -112,6 +118,9 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
 
     @Mock
     ApiRepository apiRepository;
+
+    @Mock
+    ApiProductsRepository apiProductsRepository;
 
     @Mock
     ApplicationRepository applicationRepository;
@@ -140,22 +149,33 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
     void setUp() {
         var membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
 
+        var apiPrimaryOwnerDomainService = new ApiPrimaryOwnerDomainService(
+            new AuditDomainService(new AuditCrudServiceInMemory(), userCrudService, new JacksonJsonDiffProcessor()),
+            new GroupQueryServiceInMemory(),
+            membershipCrudService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService
+        );
+        var apiProductPrimaryOwnerDomainService = new ApiProductPrimaryOwnerDomainService(
+            new AuditDomainService(new AuditCrudServiceInMemory(), userCrudService, new JacksonJsonDiffProcessor()),
+            new GroupQueryServiceInMemory(),
+            membershipCrudService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService
+        );
         service = new TriggerNotificationDomainServiceFacadeImpl(
             notifierService,
             new TemplateDataFetcher(
                 apiRepository,
+                apiProductsRepository,
                 applicationRepository,
                 planRepository,
                 subscriptionRepository,
                 integrationRepository,
-                new ApiPrimaryOwnerDomainService(
-                    new AuditDomainService(new AuditCrudServiceInMemory(), userCrudService, new JacksonJsonDiffProcessor()),
-                    new GroupQueryServiceInMemory(),
-                    membershipCrudService,
-                    membershipQueryService,
-                    roleQueryService,
-                    userCrudService
-                ),
+                apiPrimaryOwnerDomainService,
+                apiProductPrimaryOwnerDomainService,
                 new ApplicationPrimaryOwnerDomainService(
                     new GroupQueryServiceInMemory(),
                     membershipQueryService,
@@ -511,21 +531,88 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             );
         }
 
+        @Test
+        public void should_call_notifier_with_3_args_when_context_has_no_reference_type_api() {
+            // Given - context without referenceType (e.g. API_UPDATED, API_DEPRECATED)
+            final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(API_ID);
+            givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
+
+            // When
+            service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
+
+            // Then - 4-arg overload (execContext, hook, referenceId, params) i.e. notifier defaults to API
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApiHook.SUBSCRIPTION_CLOSED),
+                eq(API_ID),
+                paramsCaptor.capture()
+            );
+        }
+
+        @Test
+        public void should_call_notifier_with_5_args_and_api_product_type_when_context_has_reference_type_api_product() {
+            // Given - context with referenceType API_PRODUCT (e.g. APIKEY_REVOKED for API Product subscription)
+            givenExistingApiProduct(
+                ApiProduct.builder().id(API_PRODUCT_ID).name("product-name").version("1.0").environmentId(ENVIRONMENT_ID).build()
+            );
+            final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(
+                API_PRODUCT_ID,
+                SubscriptionReferenceType.API_PRODUCT
+            );
+
+            // When
+            service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
+
+            // Then - 5-arg overload with NotificationReferenceType.API_PRODUCT
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApiHook.SUBSCRIPTION_CLOSED),
+                eq(NotificationReferenceType.API_PRODUCT),
+                eq(API_PRODUCT_ID),
+                paramsCaptor.capture()
+            );
+            assertThat(paramsCaptor.getValue()).containsKey("apiProduct");
+        }
+
+        @Test
+        public void should_call_notifier_with_5_args_and_api_type_when_context_has_reference_type_api() {
+            // Given - context with explicit referenceType API
+            givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
+            final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(API_ID, SubscriptionReferenceType.API);
+
+            // When
+            service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
+
+            // Then - 5-arg overload with NotificationReferenceType.API
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApiHook.SUBSCRIPTION_CLOSED),
+                eq(NotificationReferenceType.API),
+                eq(API_ID),
+                paramsCaptor.capture()
+            );
+        }
+
         static class SimpleApiHookContextForTest extends ApiHookContext {
 
             private final Map<HookContextEntry, String> properties;
 
-            public SimpleApiHookContextForTest(String apiId) {
-                this(apiId, new HashMap<>());
+            public SimpleApiHookContextForTest(String referenceId) {
+                this(referenceId, new HashMap<>());
             }
 
-            public SimpleApiHookContextForTest(String apiId, Map<HookContextEntry, String> properties) {
-                super(ApiHook.SUBSCRIPTION_CLOSED, apiId);
+            public SimpleApiHookContextForTest(String referenceId, Map<HookContextEntry, String> properties) {
+                super(ApiHook.SUBSCRIPTION_CLOSED, referenceId);
                 this.properties = properties;
             }
 
-            public SimpleApiHookContextForTest(String apiId, Map<HookContextEntry, String> properties, ApiHook hook) {
-                super(hook, apiId);
+            public SimpleApiHookContextForTest(String referenceId, SubscriptionReferenceType referenceType) {
+                super(ApiHook.SUBSCRIPTION_CLOSED, referenceId, referenceType);
+                this.properties = new HashMap<>();
+            }
+
+            public SimpleApiHookContextForTest(String referenceId, Map<HookContextEntry, String> properties, ApiHook hook) {
+                super(hook, referenceId);
                 this.properties = properties;
             }
 
@@ -533,6 +620,56 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             protected Map<HookContextEntry, String> getChildProperties() {
                 return properties;
             }
+        }
+    }
+
+    @Nested
+    class TriggerSubscriptionReferenceNotification {
+
+        @Test
+        public void should_call_notifier_with_api_reference_type_for_api_subscription() {
+            givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
+            var context = new TriggerApiNotification.SimpleApiHookContextForTest(API_ID);
+
+            service.triggerSubscriptionReferenceNotification(
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                SubscriptionReferenceType.API,
+                API_ID,
+                context
+            );
+
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApiHook.SUBSCRIPTION_CLOSED),
+                eq(NotificationReferenceType.API),
+                eq(API_ID),
+                any()
+            );
+        }
+
+        @Test
+        public void should_call_notifier_with_api_product_reference_type_for_api_product_subscription() {
+            givenExistingApiProduct(
+                ApiProduct.builder().id(API_PRODUCT_ID).name("product-name").version("1.0").environmentId(ENVIRONMENT_ID).build()
+            );
+            var context = new TriggerApiNotification.SimpleApiHookContextForTest(API_PRODUCT_ID, SubscriptionReferenceType.API_PRODUCT);
+
+            service.triggerSubscriptionReferenceNotification(
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                SubscriptionReferenceType.API_PRODUCT,
+                API_PRODUCT_ID,
+                context
+            );
+
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApiHook.SUBSCRIPTION_CLOSED),
+                eq(NotificationReferenceType.API_PRODUCT),
+                eq(API_PRODUCT_ID),
+                any()
+            );
         }
     }
 
@@ -1009,6 +1146,12 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
     private void givenExistingSubscription(Subscription subscription) {
         lenient().when(subscriptionRepository.findById(any())).thenReturn(Optional.empty());
         lenient().when(subscriptionRepository.findById(eq(subscription.getId()))).thenReturn(Optional.of(subscription));
+    }
+
+    @SneakyThrows
+    private void givenExistingApiProduct(ApiProduct apiProduct) {
+        lenient().when(apiProductsRepository.findById(any())).thenReturn(Optional.empty());
+        lenient().when(apiProductsRepository.findById(eq(apiProduct.getId()))).thenReturn(Optional.of(apiProduct));
     }
 
     @SneakyThrows

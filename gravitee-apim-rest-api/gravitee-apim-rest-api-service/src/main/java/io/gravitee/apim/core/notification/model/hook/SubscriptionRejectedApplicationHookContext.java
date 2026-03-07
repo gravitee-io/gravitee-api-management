@@ -15,25 +15,29 @@
  */
 package io.gravitee.apim.core.notification.model.hook;
 
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import java.util.Map;
 
 public class SubscriptionRejectedApplicationHookContext extends ApplicationHookContext {
 
-    private final String apiId;
+    private final SubscriptionReferenceType referenceType;
+    private final String referenceId;
     private final String planId;
     private final String subscriptionId;
     private final String applicationPrimaryOwner;
 
     public SubscriptionRejectedApplicationHookContext(
         String applicationId,
-        String apiId,
+        SubscriptionReferenceType referenceType,
+        String referenceId,
         String planId,
         String subscriptionId,
         String applicationPrimaryOwner
     ) {
         super(ApplicationHook.SUBSCRIPTION_REJECTED, applicationId);
-        this.apiId = apiId;
+        this.referenceType = referenceType;
+        this.referenceId = referenceId;
         this.planId = planId;
         this.subscriptionId = subscriptionId;
         this.applicationPrimaryOwner = applicationPrimaryOwner;
@@ -41,9 +45,12 @@ public class SubscriptionRejectedApplicationHookContext extends ApplicationHookC
 
     @Override
     protected Map<HookContextEntry, String> getChildProperties() {
+        var referenceKey = referenceType == SubscriptionReferenceType.API_PRODUCT
+            ? HookContextEntry.API_PRODUCT_ID
+            : HookContextEntry.API_ID;
         return Map.of(
-            HookContextEntry.API_ID,
-            apiId,
+            referenceKey,
+            referenceId,
             HookContextEntry.PLAN_ID,
             planId,
             HookContextEntry.SUBSCRIPTION_ID,
