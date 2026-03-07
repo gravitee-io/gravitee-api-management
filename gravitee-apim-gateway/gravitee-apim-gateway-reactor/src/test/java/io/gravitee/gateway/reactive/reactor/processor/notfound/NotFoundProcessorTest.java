@@ -46,12 +46,14 @@ import org.springframework.core.env.StandardEnvironment;
 class NotFoundProcessorTest extends AbstractProcessorTest {
 
     private NotFoundProcessor notFoundProcessor;
+    private StandardEnvironment standardEnvironment;
 
     @BeforeEach
     public void beforeEach() {
+        standardEnvironment = new StandardEnvironment();
         when(mockResponse.headers()).thenReturn(HttpHeaders.create());
         when(mockResponse.end(ctx)).thenReturn(Completable.complete());
-        notFoundProcessor = new NotFoundProcessor(new StandardEnvironment());
+        notFoundProcessor = new NotFoundProcessor(standardEnvironment);
     }
 
     @Test
@@ -64,7 +66,44 @@ class NotFoundProcessorTest extends AbstractProcessorTest {
 
         Metrics metrics = ctx.metrics();
         assertThat(metrics.getApiId()).isEqualTo(UNKNOWN_SERVICE);
+        assertThat(metrics.getApiName()).isEqualTo(UNKNOWN_SERVICE);
         assertThat(metrics.getApplicationId()).isEqualTo(UNKNOWN_SERVICE);
+        verify(mockResponse).status(HttpStatusCode.NOT_FOUND_404);
+    }
+
+    @Test
+    void should_end_response_with_404_and_set_logs() {
+        standardEnvironment.getSystemProperties().put("handlers.notfound.log.enabled", "true");
+        notFoundProcessor.execute(ctx).test().assertResult();
+        verify(mockResponse).status(HttpStatusCode.NOT_FOUND_404);
+        verify(mockResponse, times(2)).headers();
+        verify(mockResponse).body(any(Buffer.class));
+        verify(mockResponse).end(ctx);
+
+        Metrics metrics = ctx.metrics();
+        assertThat(metrics.getApiId()).isEqualTo(UNKNOWN_SERVICE);
+        assertThat(metrics.getApiName()).isEqualTo(UNKNOWN_SERVICE);
+        assertThat(metrics.getApplicationId()).isEqualTo(UNKNOWN_SERVICE);
+        assertThat(metrics.getLog()).isNotNull();
+        assertThat(metrics.getLog().getApiName()).isEqualTo(UNKNOWN_SERVICE);
+        assertThat(metrics.getLog().getApiId()).isEqualTo(UNKNOWN_SERVICE);
+        verify(mockResponse).status(HttpStatusCode.NOT_FOUND_404);
+    }
+
+    @Test
+    void should_end_response_with_404_and_not_set_logs() {
+        standardEnvironment.getSystemProperties().put("handlers.notfound.log.enabled", "false");
+        notFoundProcessor.execute(ctx).test().assertResult();
+        verify(mockResponse).status(HttpStatusCode.NOT_FOUND_404);
+        verify(mockResponse, times(2)).headers();
+        verify(mockResponse).body(any(Buffer.class));
+        verify(mockResponse).end(ctx);
+
+        Metrics metrics = ctx.metrics();
+        assertThat(metrics.getApiId()).isEqualTo(UNKNOWN_SERVICE);
+        assertThat(metrics.getApiName()).isEqualTo(UNKNOWN_SERVICE);
+        assertThat(metrics.getApplicationId()).isEqualTo(UNKNOWN_SERVICE);
+        assertThat(metrics.getLog()).isNull();
         verify(mockResponse).status(HttpStatusCode.NOT_FOUND_404);
     }
 }
