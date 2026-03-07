@@ -95,6 +95,7 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
         var widget = CustomDashboardWidget.builder()
             .id("new-widget-1")
             .title("New Widget")
+            .description("Total number of API requests")
             .type("stats")
             .layout(CustomDashboardWidget.Layout.builder().cols(6).rows(4).x(0).y(0).build())
             .request(
@@ -143,6 +144,7 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
             var savedWidget = result.getWidgets().get(0);
             assertThat(savedWidget.getId()).isEqualTo("new-widget-1");
             assertThat(savedWidget.getTitle()).isEqualTo("New Widget");
+            assertThat(savedWidget.getDescription()).isEqualTo("Total number of API requests");
             assertThat(savedWidget.getType()).isEqualTo("stats");
             assertThat(savedWidget.getLayout().getCols()).isEqualTo(6);
             assertThat(savedWidget.getLayout().getRows()).isEqualTo(4);
@@ -237,6 +239,7 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
         var newWidget = CustomDashboardWidget.builder()
             .id("added-widget")
             .title("Added Widget")
+            .description("Requests by API")
             .type("doughnut")
             .layout(CustomDashboardWidget.Layout.builder().cols(12).rows(8).x(0).y(0).build())
             .request(
@@ -263,6 +266,7 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
             assertThat(result.getWidgets()).hasSize(1);
             assertThat(result.getWidgets().get(0).getId()).isEqualTo("added-widget");
             assertThat(result.getWidgets().get(0).getTitle()).isEqualTo("Added Widget");
+            assertThat(result.getWidgets().get(0).getDescription()).isEqualTo("Requests by API");
             assertThat(result.getWidgets().get(0).getType()).isEqualTo("doughnut");
         });
     }

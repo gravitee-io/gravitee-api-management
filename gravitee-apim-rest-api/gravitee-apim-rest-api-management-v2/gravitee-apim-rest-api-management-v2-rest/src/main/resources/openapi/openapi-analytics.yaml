@@ -1719,6 +1719,7 @@ components:
                     example: "Requests"
                 description:
                     type: string
+                    maxLength: 512
                     description: Optional description of the widget
                     example: "Total number of API requests"
                 type:
