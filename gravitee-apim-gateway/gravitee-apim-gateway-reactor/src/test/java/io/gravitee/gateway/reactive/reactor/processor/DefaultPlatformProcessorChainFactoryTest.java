@@ -94,7 +94,8 @@ class DefaultPlatformProcessorChainFactoryTest {
                 node,
                 "8080",
                 gatewayConfiguration,
-                connectionDrainManager
+                connectionDrainManager,
+                null
             );
             List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
 
@@ -117,7 +118,8 @@ class DefaultPlatformProcessorChainFactoryTest {
                 node,
                 "8080",
                 gatewayConfiguration,
-                connectionDrainManager
+                connectionDrainManager,
+                null
             );
             List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
 
@@ -143,7 +145,8 @@ class DefaultPlatformProcessorChainFactoryTest {
                 node,
                 "8080",
                 gatewayConfiguration,
-                connectionDrainManager
+                connectionDrainManager,
+                null
             );
             when(eventProducer.isEmpty()).thenReturn(true);
 
@@ -165,7 +168,8 @@ class DefaultPlatformProcessorChainFactoryTest {
                 node,
                 "8080",
                 gatewayConfiguration,
-                connectionDrainManager
+                connectionDrainManager,
+                null
             );
             when(eventProducer.isEmpty()).thenReturn(false);
 

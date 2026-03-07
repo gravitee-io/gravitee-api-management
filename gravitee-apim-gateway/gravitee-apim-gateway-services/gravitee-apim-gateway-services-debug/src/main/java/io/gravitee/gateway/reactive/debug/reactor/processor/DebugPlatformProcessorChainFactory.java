@@ -25,6 +25,7 @@ import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.gravitee.repository.management.api.EventRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 
 /**
@@ -48,7 +49,8 @@ public class DebugPlatformProcessorChainFactory extends DefaultPlatformProcessor
         final GatewayConfiguration gatewayConfiguration,
         final EventRepository eventRepository,
         final ObjectMapper objectMapper,
-        final ConnectionDrainManager connectionDrainManager
+        final ConnectionDrainManager connectionDrainManager,
+        final MeterRegistry meterRegistry
     ) {
         super(
             transactionHandlerFactory,
@@ -59,7 +61,8 @@ public class DebugPlatformProcessorChainFactory extends DefaultPlatformProcessor
             node,
             port,
             gatewayConfiguration,
-            connectionDrainManager
+            connectionDrainManager,
+            meterRegistry
         );
         this.eventRepository = eventRepository;
         this.objectMapper = objectMapper;
