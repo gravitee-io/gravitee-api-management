@@ -33,6 +33,7 @@ public class CustomDashboardWidget {
 
     private String id;
     private String title;
+    private String description;
     private String type;
     private Layout layout;
     private Request request;
