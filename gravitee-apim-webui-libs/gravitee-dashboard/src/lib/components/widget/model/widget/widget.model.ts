@@ -23,7 +23,9 @@ import { FacetsResponse } from '../response/facets-response';
 import { MeasuresResponse } from '../response/measures-response';
 import { TimeSeriesResponse } from '../response/time-series-response';
 
-export type WidgetType = PieType | 'stats' | 'top' | 'bar' | 'line';
+export type TimeSeriesType = 'time-series-line' | 'time-series-bar';
+export type CategoryType = 'vertical-bar' | 'horizontal-bar';
+export type WidgetType = PieType | TimeSeriesType | CategoryType | 'stats';
 export type RequestType = keyof RequestResponseMap;
 
 export type Request = MeasuresRequest | FacetsRequest | TimeSeriesRequest;

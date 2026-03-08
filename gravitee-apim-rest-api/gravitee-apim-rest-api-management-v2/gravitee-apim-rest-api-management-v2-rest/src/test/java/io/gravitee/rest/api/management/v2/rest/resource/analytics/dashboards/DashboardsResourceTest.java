@@ -129,7 +129,7 @@ class DashboardsResourceTest extends AbstractResourceTest {
             var lineWidget = created.getWidgets().getLast();
 
             assertAll(
-                () -> assertThat(lineWidget.getType()).isEqualTo(WidgetType.LINE),
+                () -> assertThat(lineWidget.getType()).isEqualTo(WidgetType.TIME_SERIES_LINE),
                 () -> assertThat(lineWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.FACETS),
                 () -> assertThat(lineWidget.getRequest().getBy()).containsExactly(FacetName.API),
                 () -> assertThat(lineWidget.getRequest().getLimit()).isEqualTo(5)
@@ -152,7 +152,7 @@ class DashboardsResourceTest extends AbstractResourceTest {
                 .satisfies(m -> assertThat(m.getName()).isEqualTo("HTTP_REQUESTS"));
             assertThat(stored.getWidgets().get(1).getType()).isEqualTo("doughnut");
             assertThat(stored.getWidgets().get(1).getRequest().getBy()).containsExactly("HTTP_STATUS_CODE_GROUP");
-            assertThat(stored.getWidgets().get(2).getType()).isEqualTo("line");
+            assertThat(stored.getWidgets().get(2).getType()).isEqualTo("time-series-line");
             assertThat(stored.getWidgets().get(2).getRequest().getBy()).containsExactly("API");
             assertThat(stored.getWidgets().get(2).getRequest().getLimit()).isEqualTo(5);
         }

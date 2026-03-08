@@ -23,22 +23,22 @@ export const HTTP_PROXY_TEMPLATE: DashboardTemplate = {
     'This dashboard provides a centralized view of global API performance, error distribution, and latency across your infrastructure. It enables teams to quickly identify service bottlenecks and ensure consistent reliability for all API consumers.',
   previewImage: 'assets/images/templates/proxy-preview.png',
   initialConfig: {
-    name: 'New Proxy Dashboard - ' + Date.now().toString(),
     labels: { Focus: 'HTTP / TCP', Theme: 'proxy' },
     widgets: [
       {
-        id: crypto.randomUUID(),
+        id: 'proxy-requests',
         title: 'Requests',
         description: 'Requests count',
         type: 'stats',
         layout: { cols: 1, rows: 1, y: 0, x: 0 },
         request: {
           type: 'measures',
-          metrics: [{ name: 'HTTP_REQUESTS', measures: ['COUNT'], filters: [{ name: 'API_TYPE', operator: 'EQ', value: 'HTTP_PROXY' }] }],
+          metrics: [{ name: 'HTTP_REQUESTS', measures: ['COUNT'] }],
+          filters: [{ name: 'API_TYPE', operator: 'EQ', value: 'HTTP_PROXY' }],
         },
       },
       {
-        id: crypto.randomUUID(),
+        id: 'proxy-error-rate',
         title: 'Error Rate',
         description: 'Percentage of responses in error',
         type: 'stats',
@@ -49,7 +49,7 @@ export const HTTP_PROXY_TEMPLATE: DashboardTemplate = {
         },
       },
       {
-        id: crypto.randomUUID(),
+        id: 'proxy-average-latency',
         title: 'Average Latency in ms',
         description: 'Average latency of the Gateway',
         type: 'stats',
@@ -60,7 +60,7 @@ export const HTTP_PROXY_TEMPLATE: DashboardTemplate = {
         },
       },
       {
-        id: crypto.randomUUID(),
+        id: 'proxy-average-response-time',
         title: 'Average Response Time in ms',
         description: 'Average response time of the Gateway',
         type: 'stats',
@@ -71,7 +71,7 @@ export const HTTP_PROXY_TEMPLATE: DashboardTemplate = {
         },
       },
       {
-        id: crypto.randomUUID(),
+        id: 'proxy-http-statuses',
         title: 'HTTP Statuses',
         description: 'Number of HTTP requests per HTTP Status',
         type: 'doughnut',
@@ -83,10 +83,10 @@ export const HTTP_PROXY_TEMPLATE: DashboardTemplate = {
         },
       },
       {
-        id: crypto.randomUUID(),
+        id: 'proxy-response-time',
         title: 'Response Time',
         description: 'Average response time of the Endpoint and Gateway in ms',
-        type: 'line',
+        type: 'time-series-line',
         layout: { cols: 3, rows: 2, y: 1, x: 1 },
         request: {
           type: 'time-series',
@@ -98,10 +98,10 @@ export const HTTP_PROXY_TEMPLATE: DashboardTemplate = {
         },
       },
       {
-        id: crypto.randomUUID(),
+        id: 'proxy-response-statuses',
         title: 'Response Statuses',
         description: 'Number of response statuses over time',
-        type: 'bar',
+        type: 'time-series-bar',
         layout: { cols: 3, rows: 2, y: 3, x: 0 },
         request: {
           type: 'time-series',
@@ -110,7 +110,7 @@ export const HTTP_PROXY_TEMPLATE: DashboardTemplate = {
         },
       },
       {
-        id: crypto.randomUUID(),
+        id: 'proxy-top-5-applications',
         title: 'Top 5 Applications',
         description: 'Top 5 applications by number of HTTP requests',
         type: 'pie',

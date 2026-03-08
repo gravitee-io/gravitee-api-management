@@ -1586,9 +1586,10 @@ components:
                 - doughnut
                 - pie
                 - polarArea
-                - top
-                - bar
-                - line
+                - time-series-line
+                - time-series-bar
+                - vertical-bar
+                - horizontal-bar
             description: |
                 The type of widget visualization.
 
@@ -1596,9 +1597,10 @@ components:
                 - **doughnut**: A doughnut chart widget for displaying proportional data.
                 - **pie**: A pie chart widget for displaying proportional data.
                 - **polarArea**: A polar area chart widget for displaying proportional data with varying radii.
-                - **top**: A top-N ranking widget for displaying the highest values.
-                - **bar**: A bar chart widget for displaying comparative data across categories.
-                - **line**: A line chart widget for displaying data over time or across categories.
+                - **time-series-line**: A line chart widget for displaying data over time.
+                - **time-series-bar**: A stacked bar chart widget for displaying data over time.
+                - **vertical-bar**: A vertical bar chart widget for displaying comparative data across categories.
+                - **horizontal-bar**: A horizontal bar chart widget for displaying comparative data across categories.
             example: "stats"
 
         WidgetLayout:

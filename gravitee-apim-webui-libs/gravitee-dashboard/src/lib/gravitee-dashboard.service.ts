@@ -143,7 +143,7 @@ export class GraviteeDashboardService {
         id: '6',
         title: 'Response Time',
         description: 'Average response time of the Endpoint and Gateway',
-        type: 'line',
+        type: 'time-series-line',
         layout: {
           cols: 3,
           rows: 2,
@@ -169,7 +169,7 @@ export class GraviteeDashboardService {
         id: '7',
         title: 'Response Statuses',
         description: 'Number of response statuses over time',
-        type: 'bar',
+        type: 'time-series-bar',
         layout: {
           cols: 3,
           rows: 2,

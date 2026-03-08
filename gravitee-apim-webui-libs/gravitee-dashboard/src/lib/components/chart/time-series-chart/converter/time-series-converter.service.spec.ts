@@ -15,11 +15,11 @@
  */
 import { TestBed } from '@angular/core/testing';
 
-import { LineConverterService } from './line-converter.service';
+import { TimeSeriesConverterService } from './time-series-converter.service';
 import { TimeSeriesBucket, TimeSeriesResponse } from '../../../widget/model/response/time-series-response';
 
-describe('LineConverterService', () => {
-  let service: LineConverterService;
+describe('TimeSeriesConverterService', () => {
+  let service: TimeSeriesConverterService;
   const makeBaseBucket = (key: string, overrides: Partial<TimeSeriesBucket> = {}): TimeSeriesBucket => ({
     key,
     name: key,
@@ -57,9 +57,9 @@ describe('LineConverterService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [LineConverterService],
+      providers: [TimeSeriesConverterService],
     });
-    service = TestBed.inject(LineConverterService);
+    service = TestBed.inject(TimeSeriesConverterService);
   });
 
   it('should be created', () => {
@@ -215,6 +215,52 @@ describe('LineConverterService', () => {
       expect(result.datasets.length).toBe(2);
       expect(result.datasets[0].label).toBe('100-199');
       expect(result.datasets[1].label).toBe('200-299');
+    });
+
+    it('should detect nested buckets even when initial time buckets are empty', () => {
+      const data: TimeSeriesResponse = makeResponse([
+        {
+          name: 'HTTP_REQUESTS',
+          buckets: [
+            makeBaseBucket('2025-10-07T06:00:00Z', { buckets: [] }),
+            makeBaseBucket('2025-10-08T06:00:00Z', { buckets: [] }),
+            makeNestedBucket('2025-10-09T06:00:00Z', {
+              'tools/call': 7,
+              initialize: 1,
+              'notifications/initialized': 1,
+            }),
+          ],
+        },
+      ]);
+
+      const result = service.convert(data);
+
+      expect(result.labels?.length).toBe(3);
+      expect(result.datasets.length).toBe(3);
+      expect(result.datasets[0].label).toBe('tools/call');
+      expect(result.datasets[0].data).toEqual([0, 0, 7]);
+      expect(result.datasets[1].label).toBe('initialize');
+      expect(result.datasets[1].data).toEqual([0, 0, 1]);
+      expect(result.datasets[2].label).toBe('notifications/initialized');
+      expect(result.datasets[2].data).toEqual([0, 0, 1]);
+    });
+
+    it('should prioritize data.buckets over metric buckets for labels', () => {
+      const metricBuckets = [makeMeasureBucket('metric-key-1', 100)];
+      metricBuckets[0].timestamp = undefined;
+
+      const globalBuckets = [makeBaseBucket('global-key-1'), makeBaseBucket('global-key-2')];
+      globalBuckets.forEach(b => (b.timestamp = undefined));
+
+      const data: TimeSeriesResponse = {
+        metrics: [{ name: 'HTTP_REQUESTS', buckets: metricBuckets }],
+        buckets: globalBuckets,
+      };
+
+      const result = service.convert(data);
+
+      expect(result.labels).toEqual(['global-key-1', 'global-key-2']);
+      expect(result.datasets[0].data).toEqual([100]);
     });
   });
 });

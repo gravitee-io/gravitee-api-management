@@ -15,12 +15,13 @@
  */
 import { HTTP_PROXY_TEMPLATE } from './http-proxy.template';
 import { LLM_TEMPLATE } from './llm.template';
+import { MCP_TEMPLATE } from './mcp.template';
 
 /**
  * List of all available dashboard templates.
  * Used by the template selection modal.
  */
-export const ALL_DASHBOARD_TEMPLATES = [HTTP_PROXY_TEMPLATE, LLM_TEMPLATE];
+export const ALL_DASHBOARD_TEMPLATES = [HTTP_PROXY_TEMPLATE, LLM_TEMPLATE, MCP_TEMPLATE];
 
 export * from './http-proxy.template';
 export * from './dashboard-template.model';

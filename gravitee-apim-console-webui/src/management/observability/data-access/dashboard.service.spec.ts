@@ -17,7 +17,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 
 import { DashboardService } from './dashboard.service';
-import { DashboardTemplate } from './templates/dashboard-template.model';
+import { DashboardTemplate } from './templates';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 
@@ -151,7 +151,6 @@ describe('DashboardService', () => {
         description: 'Long desc',
         previewImage: 'assets/preview.png',
         initialConfig: {
-          name: 'Dashboard from Template',
           labels: { Focus: 'HTTP' },
           widgets: [
             {
@@ -170,10 +169,46 @@ describe('DashboardService', () => {
       expect(result.name).toContain('Template Name - ');
       expect(result.labels).toEqual({ Focus: 'HTTP' });
       expect(result.widgets).toHaveLength(1);
-      // Should NOT contain template-specific fields
       expect(result).not.toHaveProperty('previewImage');
       expect(result).not.toHaveProperty('shortDescription');
       expect(result).not.toHaveProperty('description');
+    });
+
+    it('should generate unique widget IDs different from template IDs', () => {
+      const template: DashboardTemplate = {
+        id: 'tpl-uuid',
+        name: 'UUID Test',
+        shortDescription: 'Short desc',
+        description: 'Long desc',
+        previewImage: 'assets/preview.png',
+        initialConfig: {
+          labels: {},
+          widgets: [
+            {
+              id: 'static-id-1',
+              title: 'Widget A',
+              type: 'stats',
+              layout: { cols: 1, rows: 1, x: 0, y: 0 },
+              request: { type: 'measures', metrics: [] },
+            },
+            {
+              id: 'static-id-2',
+              title: 'Widget B',
+              type: 'stats',
+              layout: { cols: 1, rows: 1, x: 1, y: 0 },
+              request: { type: 'measures', metrics: [] },
+            },
+          ],
+        },
+      };
+
+      const result1 = service.toCreateDashboard(template);
+      const result2 = service.toCreateDashboard(template);
+
+      expect(result1.widgets[0].id).not.toBe('static-id-1');
+      expect(result1.widgets[1].id).not.toBe('static-id-2');
+      expect(result1.widgets[0].id).not.toBe(result1.widgets[1].id);
+      expect(result1.widgets[0].id).not.toBe(result2.widgets[0].id);
     });
 
     it('should inject default timeRange on widget requests', () => {
@@ -217,7 +252,7 @@ describe('DashboardService', () => {
             {
               id: 'w1',
               title: 'Widget',
-              type: 'line',
+              type: 'time-series-line',
               layout: { cols: 1, rows: 1, x: 0, y: 0 },
               request: { type: 'time-series', metrics: [], by: [] },
             },
