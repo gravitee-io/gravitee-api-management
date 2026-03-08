@@ -137,7 +137,7 @@ class DashboardResourceTest extends AbstractResourceTest {
             assertAll(
                 () -> assertThat(lineWidget.getId()).isEqualTo("3"),
                 () -> assertThat(lineWidget.getTitle()).isEqualTo("Top APIs"),
-                () -> assertThat(lineWidget.getType()).isEqualTo(WidgetType.LINE),
+                () -> assertThat(lineWidget.getType()).isEqualTo(WidgetType.TIME_SERIES_LINE),
                 () -> assertThat(lineWidget.getLayout().getCols()).isEqualTo(3),
                 () -> assertThat(lineWidget.getLayout().getRows()).isEqualTo(2),
                 () -> assertThat(lineWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.FACETS),

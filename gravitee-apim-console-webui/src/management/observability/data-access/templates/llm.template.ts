@@ -23,22 +23,22 @@ export const LLM_TEMPLATE: DashboardTemplate = {
     'This dashboard provides a centralized view of your LLM usage, token consumption, and costs. Track total and average tokens, monitor cost over time, analyze usage per model, and observe response status repartition to optimize your AI integrations.',
   previewImage: 'assets/images/templates/llm-preview.png',
   initialConfig: {
-    name: 'LLM - ' + Date.now().toString(),
     labels: { Focus: 'LLM / Tokens', Theme: 'AI' },
     widgets: [
       {
-        id: crypto.randomUUID(),
+        id: 'llm-requests',
         title: 'LLM requests',
         description: 'Number of requests targeting LLM providers.',
         type: 'stats',
         layout: { cols: 1, rows: 1, y: 3, x: 4 },
         request: {
           type: 'measures',
-          metrics: [{ name: 'HTTP_REQUESTS', measures: ['COUNT'], filters: [{ name: 'API_TYPE', operator: 'EQ', value: 'LLM' }] }],
+          metrics: [{ name: 'HTTP_REQUESTS', measures: ['COUNT'] }],
+          filters: [{ name: 'API_TYPE', operator: 'EQ', value: 'LLM' }],
         },
       },
       {
-        id: crypto.randomUUID(),
+        id: 'llm-total-tokens',
         title: 'Total tokens',
         description: 'Total number of tokens processed (prompt and completion).',
         type: 'stats',
@@ -49,7 +49,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         },
       },
       {
-        id: crypto.randomUUID(),
+        id: 'llm-total-cost',
         title: 'Total cost',
         description: 'Total cost incurred by LLM usage.',
         type: 'stats',
@@ -60,7 +60,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         },
       },
       {
-        id: crypto.randomUUID(),
+        id: 'llm-average-cost-per-request',
         title: 'Average cost per request',
         description: 'Average cost incurred per LLM request.',
         type: 'stats',
@@ -71,7 +71,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         },
       },
       {
-        id: crypto.randomUUID(),
+        id: 'llm-average-tokens-per-request',
         title: 'Average tokens per request',
         description: 'Average number of tokens consumed per LLM request.',
         type: 'stats',
@@ -82,7 +82,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         },
       },
       {
-        id: crypto.randomUUID(),
+        id: 'llm-total-requests',
         title: 'Total requests',
         description: 'Total number of HTTP requests processed by the gateway.',
         type: 'stats',
@@ -93,10 +93,10 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         },
       },
       {
-        id: crypto.randomUUID(),
+        id: 'llm-token-count-over-time',
         title: 'Token count over time',
         description: 'Evolution of token consumption (prompt, completion, and total).',
-        type: 'line',
+        type: 'time-series-line',
         layout: { cols: 3, rows: 2, y: 0, x: 1 },
         request: {
           type: 'time-series',
@@ -109,10 +109,10 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         },
       },
       {
-        id: crypto.randomUUID(),
+        id: 'llm-token-cost-over-time',
         title: 'Token cost over time',
         description: 'Evolution of LLM costs over time, broken down by prompt and completion.',
-        type: 'line',
+        type: 'time-series-line',
         layout: { cols: 2, rows: 2, y: 2, x: 0 },
         request: {
           type: 'time-series',
@@ -126,7 +126,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         },
       },
       {
-        id: crypto.randomUUID(),
+        id: 'llm-total-tokens-per-model',
         title: 'Total tokens per model',
         description: 'Distribution of total tokens consumed across different LLM models.',
         type: 'doughnut',
@@ -139,7 +139,7 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         },
       },
       {
-        id: crypto.randomUUID(),
+        id: 'llm-response-status-repartition',
         title: 'Response status repartition',
         description: 'Distribution of HTTP response status codes for LLM requests.',
         type: 'doughnut',
@@ -147,7 +147,8 @@ export const LLM_TEMPLATE: DashboardTemplate = {
         request: {
           type: 'facets',
           by: ['HTTP_STATUS_CODE_GROUP'],
-          metrics: [{ name: 'HTTP_REQUESTS', measures: ['COUNT'], filters: [{ name: 'API_TYPE', operator: 'EQ', value: 'LLM' }] }],
+          metrics: [{ name: 'HTTP_REQUESTS', measures: ['COUNT'] }],
+          filters: [{ name: 'API_TYPE', operator: 'EQ', value: 'LLM' }],
         },
       },
     ],

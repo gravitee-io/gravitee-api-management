@@ -22,7 +22,7 @@ import { switchMap, tap, catchError, filter } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
-import { HTTP_PROXY_TEMPLATE, DashboardTemplate } from './templates';
+import { DashboardTemplate, HTTP_PROXY_TEMPLATE } from './templates';
 
 import { Constants } from '../../../entities/Constants';
 import { PagedResult } from '../../../entities/management-api-v2';
@@ -109,15 +109,16 @@ export class DashboardService {
     const defaultInterval = Math.floor((5 * 60 * 1000) / 30); // 5 min / 30 buckets = 10000ms
 
     const widgets = (template.initialConfig.widgets ?? []).map(widget => {
-      if (!widget.request) return widget;
+      const id = crypto.randomUUID();
+      if (!widget.request) return { ...widget, id };
 
       const request = { ...widget.request, timeRange: widget.request.timeRange ?? defaultTimeRange };
 
       if (request.type === 'time-series') {
-        return { ...widget, request: { ...request, interval: (request as any).interval ?? defaultInterval } };
+        return { ...widget, id, request: { ...request, interval: (request as any).interval ?? defaultInterval } };
       }
 
-      return { ...widget, request };
+      return { ...widget, id, request };
     });
 
     return {

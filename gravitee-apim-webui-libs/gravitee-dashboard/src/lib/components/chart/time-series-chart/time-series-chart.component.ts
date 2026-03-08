@@ -13,36 +13,103 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, inject, input, InputSignal } from '@angular/core';
-import { Chart, ChartConfiguration } from 'chart.js';
+import { Component, computed, inject, input } from '@angular/core';
+import { Chart, ChartConfiguration, ChartDataset } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import 'chartjs-adapter-date-fns';
 
-import { BarConverterService } from './converter/bar-converter.service';
+import { TimeSeriesConverterService } from './converter/time-series-converter.service';
 import { TimeSeriesResponse } from '../../widget/model/response/time-series-response';
+import { TimeSeriesType } from '../../widget/model/widget/widget.model';
 import { assignChartColors } from '../shared/chart-colors';
 
-export type BarType = 'bar';
+type ChartJsTimeSeriesType = 'line' | 'bar';
+
+function toChartJsType(type: TimeSeriesType): ChartJsTimeSeriesType {
+  return type === 'time-series-line' ? 'line' : 'bar';
+}
 
 @Component({
-  selector: 'gd-bar-chart',
+  selector: 'gd-time-series-chart',
   imports: [BaseChartDirective],
-  templateUrl: './bar-chart.component.html',
-  styleUrl: './bar-chart.component.scss',
+  templateUrl: './time-series-chart.component.html',
+  styleUrl: './time-series-chart.component.scss',
 })
-export class BarChartComponent {
-  type = input<BarType>('bar');
-  option: InputSignal<ChartConfiguration<BarType>['options']> = input(this.getDefaultOptions());
+export class TimeSeriesChartComponent {
+  type = input.required<TimeSeriesType>();
   data = input.required<TimeSeriesResponse>();
+
+  readonly chartJsType = computed(() => toChartJsType(this.type()));
+
+  private readonly converter = inject(TimeSeriesConverterService);
 
   public readonly dataFormatted = computed(() => {
     const chartData = this.converter.convert(this.data());
     assignChartColors(chartData.datasets);
+
+    if (this.chartJsType() === 'line') {
+      chartData.datasets.forEach(dataset => {
+        const lineDataset = dataset as ChartDataset<'line', number[]>;
+        lineDataset.tension = 0.4;
+        lineDataset.fill = 'start';
+        lineDataset.borderWidth = 1;
+      });
+    }
+
     return chartData;
   });
-  private readonly converter = inject(BarConverterService);
 
-  private getDefaultOptions(): ChartConfiguration<BarType>['options'] {
+  public readonly chartOptions = computed((): ChartConfiguration<ChartJsTimeSeriesType>['options'] => {
+    return this.chartJsType() === 'line' ? this.getLineOptions() : this.getBarOptions();
+  });
+
+  private getLineOptions(): ChartConfiguration<'line'>['options'] {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: {
+            usePointStyle: true,
+            pointStyle: 'rectRounded',
+          },
+        },
+        tooltip: {
+          mode: 'nearest',
+          intersect: false,
+        },
+      },
+      elements: {
+        point: {
+          radius: 0,
+          hitRadius: 15,
+          hoverRadius: 8,
+        },
+      },
+      scales: {
+        x: {
+          type: 'time',
+          display: true,
+          time: {
+            unit: 'day',
+            tooltipFormat: 'PPpp',
+            displayFormats: {
+              day: 'd LLL',
+            },
+          },
+        },
+        y: {
+          display: true,
+          beginAtZero: true,
+          stacked: true,
+        },
+      },
+    };
+  }
+
+  private getBarOptions(): ChartConfiguration<'bar'>['options'] {
     return {
       responsive: true,
       maintainAspectRatio: false,

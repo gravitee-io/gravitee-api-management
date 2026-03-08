@@ -18,9 +18,9 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CompactType, DisplayGrid, GridsterComponent, GridsterConfig, GridsterItemComponent, GridType } from 'angular-gridster2';
 
-import { BarChartComponent } from '../chart/bar-chart/bar-chart.component';
-import { LineChartComponent } from '../chart/line-chart/line-chart.component';
+import { CategoryChartComponent } from '../chart/category-chart/category-chart.component';
 import { PieChartComponent } from '../chart/pie-chart/pie-chart.component';
+import { TimeSeriesChartComponent } from '../chart/time-series-chart/time-series-chart.component';
 import { EmptyStateComponent } from '../empty-state/empty-state.component';
 import { StatsComponent } from '../text/stats/stats.component';
 import { isFacetsWidget, isMeasuresWidget, isTimeSeriesWidget, Widget } from '../widget/model/widget/widget.model';
@@ -34,8 +34,8 @@ import { WidgetBodyComponent, WidgetComponent, WidgetTitleComponent } from '../w
     WidgetComponent,
     WidgetTitleComponent,
     WidgetBodyComponent,
-    BarChartComponent,
-    LineChartComponent,
+    TimeSeriesChartComponent,
+    CategoryChartComponent,
     PieChartComponent,
     StatsComponent,
     MatTooltipModule,

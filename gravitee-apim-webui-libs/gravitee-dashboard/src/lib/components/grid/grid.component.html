@@ -48,14 +48,24 @@
                     <gd-stats [data]="item.response" />
                   }
                 }
-                @case ('line') {
+                @case ('time-series-line') {
                   @if (isTimeSeriesWidget(item)) {
-                    <gd-line-chart [data]="item.response" />
+                    <gd-time-series-chart type="time-series-line" [data]="item.response" />
                   }
                 }
-                @case ('bar') {
+                @case ('time-series-bar') {
                   @if (isTimeSeriesWidget(item)) {
-                    <gd-bar-chart [data]="item.response" />
+                    <gd-time-series-chart type="time-series-bar" [data]="item.response" />
+                  }
+                }
+                @case ('vertical-bar') {
+                  @if (isFacetsWidget(item)) {
+                    <gd-category-chart type="vertical-bar" [data]="item.response" />
+                  }
+                }
+                @case ('horizontal-bar') {
+                  @if (isFacetsWidget(item)) {
+                    <gd-category-chart type="horizontal-bar" [data]="item.response" />
                   }
                 }
                 @default {

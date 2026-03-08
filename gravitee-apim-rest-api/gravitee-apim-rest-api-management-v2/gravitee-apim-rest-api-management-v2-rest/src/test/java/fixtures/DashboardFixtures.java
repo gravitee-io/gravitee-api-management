@@ -85,7 +85,7 @@ public class DashboardFixtures {
                 new Widget()
                     .id("3")
                     .title("Top APIs")
-                    .type(WidgetType.LINE)
+                    .type(WidgetType.TIME_SERIES_LINE)
                     .layout(new WidgetLayout().cols(3).rows(2).x(1).y(1))
                     .request(validFacetsRequest(FacetName.API, 5))
             )
@@ -202,7 +202,7 @@ public class DashboardFixtures {
                     DashboardWidget.builder()
                         .id("3")
                         .title("Top APIs")
-                        .type("line")
+                        .type("time-series-line")
                         .layout(DashboardWidget.Layout.builder().cols(3).rows(2).x(1).y(1).build())
                         .request(
                             DashboardWidget.Request.builder()
