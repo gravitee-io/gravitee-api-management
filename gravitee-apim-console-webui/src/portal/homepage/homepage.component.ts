@@ -21,6 +21,8 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, filter, startWith, switchMap, tap } from 'rxjs/operators';
 import { EMPTY, Observable, of } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
@@ -41,7 +43,15 @@ export interface PortalHomepage {
 
 @Component({
   selector: 'homepage',
-  imports: [PortalHeaderComponent, ReactiveFormsModule, GraviteeMarkdownEditorModule, MatButtonModule, MatTooltipModule],
+  imports: [
+    PortalHeaderComponent,
+    ReactiveFormsModule,
+    GraviteeMarkdownEditorModule,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatIconModule,
+    MatTooltipModule,
+  ],
   templateUrl: './homepage.component.html',
   styleUrl: './homepage.component.scss',
 })
@@ -76,6 +86,7 @@ export class HomepageComponent implements HasUnsavedChanges {
 
   readonly portalHomepage: WritableSignal<PortalHomepage | null> = signal(null);
   readonly portalHomepagePublished = computed(() => this.portalHomepage()?.navigationItem?.published ?? false);
+  readonly previewDarkMode: WritableSignal<boolean> = signal(false);
   private readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-documentation-u']));
   private readonly contentValue = toSignal(this.contentControl.valueChanges.pipe(startWith(this.contentControl.value)));
 
@@ -92,6 +103,10 @@ export class HomepageComponent implements HasUnsavedChanges {
     const currentValue = normalizeContent(this.contentControl.value);
     const initialValue = normalizeContent(this.portalHomepage()?.content?.content);
     return currentValue !== initialValue;
+  }
+
+  onPreviewModeChange(mode: 'light' | 'dark'): void {
+    this.previewDarkMode.set(mode === 'dark');
   }
 
   constructor() {

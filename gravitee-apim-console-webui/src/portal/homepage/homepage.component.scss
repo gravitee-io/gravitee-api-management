@@ -22,11 +22,124 @@
   }
 }
 
-gmd-editor {
-  @include gmd.editor-overrides(
-    (
-      container-outline-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20'),
-    )
-  );
-  height: calc(100% - 193px); // Height of header
+.homepage-editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  &__preview-toggle {
+    margin-bottom: 8px;
+    align-self: flex-start;
+  }
+
+  gmd-editor {
+    @include gmd.editor-overrides(
+      (
+        container-outline-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20'),
+      )
+    );
+    height: calc(100% - 241px); // Height of header + toggle
+  }
+}
+
+// Dark mode preview: portal-equivalent GMD overrides (STORIES.md defaults).
+// ::ng-deep pierces Angular encapsulation to reach gmd-editor internals.
+// Variables must be set on gmd-viewer (shadow host) so they inherit into its shadow root.
+.homepage-editor.dark-preview {
+  $dark-primary: #8babf8;
+  $dark-on-primary: #1c1b1e;
+  $dark-outline: #48464a;
+  $dark-text: #e6e1e6;
+  $dark-error: #f2b8b5;
+  $dark-card-bg: #2b2930;
+  $dark-page-bg: #1c1b1f;
+
+  ::ng-deep gmd-editor .container > div.container__inner-border {
+    background-color: $dark-page-bg;
+  }
+
+  ::ng-deep gmd-editor gmd-viewer {
+    @include gmd.theme-overrides(
+      (
+        container-shape: 8px,
+        primary-color: $dark-primary,
+        on-primary-color: $dark-on-primary,
+        outline-color: $dark-outline,
+      )
+    );
+
+    @include gmd.button-overrides(
+      (
+        text-container-shape: 8px,
+        text-label-text-color: $dark-text,
+        outlined-container-shape: 8px,
+        outlined-outline-color: $dark-outline,
+        outlined-outline-width: 1px,
+        outlined-label-text-color: $dark-text,
+        filled-container-color: $dark-primary,
+        filled-container-shape: 8px,
+        filled-label-text-color: $dark-on-primary,
+      )
+    );
+
+    @include gmd.card-overrides(
+      (
+      container-shape: 8px,
+      container-color: $dark-card-bg,
+      outline-width: 1px,
+      outline-color: $dark-outline,
+      elevation-shadow: 0 2px 6px 0 rgb(0 0 0 / 40%),
+      text-color: $dark-text,
+      )
+    );
+
+    @include gmd.input-overrides(
+      (
+      outlined-label-text-color: $dark-text,
+      outlined-input-text-color: $dark-text,
+      outlined-outline-color: $dark-outline,
+      outlined-container-shape: 8px,
+      outlined-focus-outline-color: $dark-primary,
+      error-text-color: $dark-error,
+      )
+    );
+
+    @include gmd.textarea-overrides(
+      (
+      outlined-label-text-color: $dark-text,
+      outlined-input-text-color: $dark-text,
+      outlined-outline-color: $dark-outline,
+      outlined-container-shape: 8px,
+      outlined-focus-outline-color: $dark-primary,
+      outlined-disabled-container-color: color-mix(in srgb, $dark-card-bg 50%, transparent),
+      error-text-color: $dark-error,
+      )
+    );
+
+    @include gmd.select-overrides(
+      (
+      outlined-label-text-color: $dark-text,
+      outlined-input-text-color: $dark-text,
+      outlined-outline-color: $dark-outline,
+      outlined-container-shape: 8px,
+      outlined-focus-outline-color: $dark-primary,
+      outlined-disabled-container-color: color-mix(in srgb, $dark-card-bg 50%, transparent),
+      error-text-color: $dark-error,
+      )
+    );
+
+    @include gmd.checkbox-overrides(
+      (
+      outlined-label-text-color: $dark-text,
+      error-text-color: $dark-error,
+      )
+    );
+
+    @include gmd.radio-overrides(
+      (
+        outlined-label-text-color: $dark-text,
+        error-text-color: $dark-error,
+      )
+    );
+  }
 }

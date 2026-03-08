@@ -43,4 +43,22 @@
     </button>
   </div>
 </portal-header>
-<gmd-editor [formControl]="contentControl" />
+<div class="homepage-editor" [class.dark-preview]="previewDarkMode()">
+  <mat-button-toggle-group
+    class="homepage-editor__preview-toggle"
+    [value]="previewDarkMode() ? 'dark' : 'light'"
+    (change)="onPreviewModeChange($event.value)"
+    aria-label="Preview mode"
+    data-testid="preview-mode-toggle"
+  >
+    <mat-button-toggle value="light">
+      <mat-icon>light_mode</mat-icon>
+      Light
+    </mat-button-toggle>
+    <mat-button-toggle value="dark">
+      <mat-icon>dark_mode</mat-icon>
+      Dark
+    </mat-button-toggle>
+  </mat-button-toggle-group>
+  <gmd-editor [formControl]="contentControl" />
+</div>
