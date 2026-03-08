@@ -72,8 +72,10 @@ describe('HomepageComponent', () => {
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=HOMEPAGE`,
     });
     if (!portalPage) {
-      // return an empty items list to simulate no homepage navigation
       navReq.flush({ items: [] });
+      httpTestingController
+        .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/ui/themes/_current?type=PORTAL_NEXT` })
+        .flush({ definition: { dark: { color: {} } } });
       return;
     }
 
@@ -93,6 +95,11 @@ describe('HomepageComponent', () => {
     httpTestingController
       .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${portalPage.id}` })
       .flush(portalPage);
+
+    // Theme fetch for dark preview
+    httpTestingController
+      .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/ui/themes/_current?type=PORTAL_NEXT` })
+      .flush({ definition: { dark: { color: {} } } });
   };
 
   afterEach(() => {

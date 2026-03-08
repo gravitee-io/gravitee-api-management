@@ -43,7 +43,11 @@
     </button>
   </div>
 </portal-header>
-<div class="homepage-editor" [class.dark-preview]="previewDarkMode()">
+<div
+  class="homepage-editor"
+  [class.dark-preview]="previewDarkMode()"
+  [ngStyle]="darkPreviewVariables()"
+>
   <mat-button-toggle-group
     class="homepage-editor__preview-toggle"
     [value]="previewDarkMode() ? 'dark' : 'light'"

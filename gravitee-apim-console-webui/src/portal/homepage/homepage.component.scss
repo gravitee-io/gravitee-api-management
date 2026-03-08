@@ -42,104 +42,96 @@
   }
 }
 
-// Dark mode preview: portal-equivalent GMD overrides (STORIES.md defaults).
-// ::ng-deep pierces Angular encapsulation to reach gmd-editor internals.
-// Variables must be set on gmd-viewer (shadow host) so they inherit into its shadow root.
+// Dark mode preview: --preview-dark-* from theme (ngStyle); fallbacks when theme omits values
 .homepage-editor.dark-preview {
-  $dark-primary: #8babf8;
-  $dark-on-primary: #1c1b1e;
-  $dark-outline: #48464a;
-  $dark-text: #e6e1e6;
-  $dark-error: #f2b8b5;
-  $dark-card-bg: #2b2930;
-  $dark-page-bg: #1c1b1f;
-
-  ::ng-deep gmd-editor .container > div.container__inner-border {
-    background-color: $dark-page-bg;
+  gmd-editor {
+    @include gmd.editor-overrides(
+      (
+        preview-background: var(--preview-dark-page-background),
+      )
+    );
   }
 
-  ::ng-deep gmd-editor gmd-viewer {
-    @include gmd.theme-overrides(
-      (
-        container-shape: 8px,
-        primary-color: $dark-primary,
-        on-primary-color: $dark-on-primary,
-        outline-color: $dark-outline,
-      )
-    );
-
-    @include gmd.button-overrides(
-      (
-        text-container-shape: 8px,
-        text-label-text-color: $dark-text,
-        outlined-container-shape: 8px,
-        outlined-outline-color: $dark-outline,
-        outlined-outline-width: 1px,
-        outlined-label-text-color: $dark-text,
-        filled-container-color: $dark-primary,
-        filled-container-shape: 8px,
-        filled-label-text-color: $dark-on-primary,
-      )
-    );
-
-    @include gmd.card-overrides(
-      (
+  @include gmd.theme-overrides(
+    (
       container-shape: 8px,
-      container-color: $dark-card-bg,
+      primary-color: var(--preview-dark-primary),
+      on-primary-color: var(--preview-dark-on-primary),
+      outline-color: var(--preview-dark-outline),
+    )
+  );
+
+  @include gmd.button-overrides(
+    (
+      text-container-shape: 8px,
+      text-label-text-color: var(--preview-dark-text),
+      outlined-container-shape: 8px,
+      outlined-outline-color: var(--preview-dark-outline),
+      outlined-outline-width: 1px,
+      outlined-label-text-color: var(--preview-dark-text),
+      filled-container-color: var(--preview-dark-primary),
+      filled-container-shape: 8px,
+      filled-label-text-color: var(--preview-dark-on-primary),
+    )
+  );
+
+  @include gmd.card-overrides(
+    (
+      container-shape: 8px,
+      container-color: var(--preview-dark-card-background),
       outline-width: 1px,
-      outline-color: $dark-outline,
+      outline-color: var(--preview-dark-outline),
       elevation-shadow: 0 2px 6px 0 rgb(0 0 0 / 40%),
-      text-color: $dark-text,
-      )
-    );
+      text-color: var(--preview-dark-text),
+    )
+  );
 
-    @include gmd.input-overrides(
-      (
-      outlined-label-text-color: $dark-text,
-      outlined-input-text-color: $dark-text,
-      outlined-outline-color: $dark-outline,
+  @include gmd.input-overrides(
+    (
+      outlined-label-text-color: var(--preview-dark-text),
+      outlined-input-text-color: var(--preview-dark-text),
+      outlined-outline-color: var(--preview-dark-outline),
       outlined-container-shape: 8px,
-      outlined-focus-outline-color: $dark-primary,
-      error-text-color: $dark-error,
-      )
-    );
+      outlined-focus-outline-color: var(--preview-dark-primary),
+      error-text-color: var(--preview-dark-error),
+    )
+  );
 
-    @include gmd.textarea-overrides(
-      (
-      outlined-label-text-color: $dark-text,
-      outlined-input-text-color: $dark-text,
-      outlined-outline-color: $dark-outline,
+  @include gmd.textarea-overrides(
+    (
+      outlined-label-text-color: var(--preview-dark-text),
+      outlined-input-text-color: var(--preview-dark-text),
+      outlined-outline-color: var(--preview-dark-outline),
       outlined-container-shape: 8px,
-      outlined-focus-outline-color: $dark-primary,
-      outlined-disabled-container-color: color-mix(in srgb, $dark-card-bg 50%, transparent),
-      error-text-color: $dark-error,
-      )
-    );
+      outlined-focus-outline-color: var(--preview-dark-primary),
+      outlined-disabled-container-color: color-mix(in srgb, var(--preview-dark-card-background) 50%, transparent),
+      error-text-color: var(--preview-dark-error),
+    )
+  );
 
-    @include gmd.select-overrides(
-      (
-      outlined-label-text-color: $dark-text,
-      outlined-input-text-color: $dark-text,
-      outlined-outline-color: $dark-outline,
+  @include gmd.select-overrides(
+    (
+      outlined-label-text-color: var(--preview-dark-text),
+      outlined-input-text-color: var(--preview-dark-text),
+      outlined-outline-color: var(--preview-dark-outline),
       outlined-container-shape: 8px,
-      outlined-focus-outline-color: $dark-primary,
-      outlined-disabled-container-color: color-mix(in srgb, $dark-card-bg 50%, transparent),
-      error-text-color: $dark-error,
-      )
-    );
+      outlined-focus-outline-color: var(--preview-dark-primary),
+      outlined-disabled-container-color: color-mix(in srgb, var(--preview-dark-card-background) 50%, transparent),
+      error-text-color: var(--preview-dark-error),
+    )
+  );
 
-    @include gmd.checkbox-overrides(
-      (
-      outlined-label-text-color: $dark-text,
-      error-text-color: $dark-error,
-      )
-    );
+  @include gmd.checkbox-overrides(
+    (
+      outlined-label-text-color: var(--preview-dark-text),
+      error-text-color: var(--preview-dark-error),
+    )
+  );
 
-    @include gmd.radio-overrides(
-      (
-        outlined-label-text-color: $dark-text,
-        error-text-color: $dark-error,
-      )
-    );
-  }
+  @include gmd.radio-overrides(
+    (
+      outlined-label-text-color: var(--preview-dark-text),
+      error-text-color: var(--preview-dark-error),
+    )
+  );
 }

@@ -34,6 +34,10 @@ $token-mapping: overrides.tokens();
     contain: layout style;
   }
 
+  > div.container__inner-border {
+    background-color: token-utils.slot(preview-background, $token-mapping);
+  }
+
   .hr {
     width: 1px;
     border: none;

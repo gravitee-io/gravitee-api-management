@@ -15,11 +15,12 @@
  */
 import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
+import { CommonModule } from '@angular/common';
 import { Component, computed, DestroyRef, effect, HostListener, inject, signal, WritableSignal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, filter, startWith, switchMap, tap } from 'rxjs/operators';
-import { EMPTY, Observable, of } from 'rxjs';
+import { EMPTY, merge, Observable, of, Subject } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
@@ -32,8 +33,11 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
 import { PortalNavigationItemService } from '../../services-ngx/portal-navigation-item.service';
 import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
-import { PortalNavigationPage, PortalPageContent } from '../../entities/management-api-v2';
+import { UiPortalThemeService } from '../../services-ngx/ui-theme.service';
+import { PortalNavigationPage, PortalPageContent, ThemePortalNext } from '../../entities/management-api-v2';
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
+import { kebabCase } from 'lodash';
+
 import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
 
 export interface PortalHomepage {
@@ -44,6 +48,7 @@ export interface PortalHomepage {
 @Component({
   selector: 'homepage',
   imports: [
+    CommonModule,
     PortalHeaderComponent,
     ReactiveFormsModule,
     GraviteeMarkdownEditorModule,
@@ -80,15 +85,32 @@ export class HomepageComponent implements HasUnsavedChanges {
   private readonly snackbarService = inject(SnackBarService);
   private readonly portalNavigationItemService = inject(PortalNavigationItemService);
   private readonly portalPageContentService = inject(PortalPageContentService);
+  private readonly uiPortalThemeService = inject(UiPortalThemeService);
   private readonly gioPermissionService = inject(GioPermissionService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly matDialog = inject(MatDialog);
 
   readonly portalHomepage: WritableSignal<PortalHomepage | null> = signal(null);
+  readonly portalTheme = toSignal(
+    this.uiPortalThemeService.getCurrentTheme('PORTAL_NEXT').pipe(catchError(() => of(null))),
+    { initialValue: null as ThemePortalNext | null },
+  );
   readonly portalHomepagePublished = computed(() => this.portalHomepage()?.navigationItem?.published ?? false);
   readonly previewDarkMode: WritableSignal<boolean> = signal(false);
   private readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-documentation-u']));
   private readonly contentValue = toSignal(this.contentControl.valueChanges.pipe(startWith(this.contentControl.value)));
+
+  readonly darkPreviewVariables = computed((): Record<string, string> => {
+    if (!this.previewDarkMode()) return {};
+    const theme = this.portalTheme() as ThemePortalNext | null;
+    const dark = theme?.definition?.dark?.color as unknown as Record<string, string> | undefined;
+    if (!dark) return {};
+    return Object.fromEntries(
+      Object.entries(dark)
+        .filter(([, v]) => v != null)
+        .map(([k, v]) => [`--preview-dark-${kebabCase(k)}`, v]),
+    );
+  });
 
   @HostListener('window:beforeunload', ['$event'])
   beforeUnloadHandler(event: BeforeUnloadEvent) {
