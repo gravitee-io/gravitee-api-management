@@ -131,17 +131,22 @@ describe('NavBarComponent', () => {
       expect(link2Anchor).toBeTruthy();
     });
 
-    it('should show theme toggle button', async () => {
-      const toggleButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: 'app-theme-toggle button' }));
-      expect(toggleButton).toBeTruthy();
+    it('should show theme selector', async () => {
+      const themeButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid="theme-select"]' }));
+      expect(themeButton).toBeTruthy();
     });
 
-    it('should toggle dark mode when theme toggle is clicked', async () => {
+    it('should change theme when menu option is selected', async () => {
       const themeService = TestBed.inject(ThemeService);
-      const spy = jest.spyOn(themeService, 'toggleDarkMode');
-      const toggleButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: 'app-theme-toggle button' }));
-      await toggleButton.click();
-      expect(spy).toHaveBeenCalled();
+      const spy = jest.spyOn(themeService, 'setThemeMode');
+      const themeButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid="theme-select"]' }));
+      await themeButton.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const darkMenuItem = document.querySelector('[data-testid="theme-option-dark"]');
+      expect(darkMenuItem).toBeTruthy();
+      (darkMenuItem as HTMLElement).click();
+      expect(spy).toHaveBeenCalledWith('dark');
     });
   });
 
@@ -260,11 +265,11 @@ describe('NavBarComponent', () => {
       expect(await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.mobile-menu__panel' }))).toBeNull();
     });
 
-    it('should show theme toggle button', async () => {
+    it('should show theme selector', async () => {
       expectHomePage();
       fixture.detectChanges();
-      const toggleButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: 'app-theme-toggle button' }));
-      expect(toggleButton).toBeTruthy();
+      const themeButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid="theme-select"]' }));
+      expect(themeButton).toBeTruthy();
     });
 
     it('should handle error when fetching homepage', async () => {

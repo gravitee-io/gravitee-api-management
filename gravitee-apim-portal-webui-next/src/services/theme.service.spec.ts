@@ -142,8 +142,8 @@ describe('ThemeService', () => {
       httpTestingController.expectOne(`${TESTING_BASE_URL}/theme?type=PORTAL_NEXT`).flush(themeResponse);
     });
 
-    it('should not update theme when system preference changes if user has explicit choice in localStorage', done => {
-      localStorage.setItem('gio-portal-dark-mode', 'false');
+    it('should not update theme when system preference changes if user has explicit choice (light)', done => {
+      localStorage.setItem('gio-portal-theme-mode', 'light');
 
       service.loadTheme().subscribe({
         next: _ => {
@@ -154,6 +154,27 @@ describe('ThemeService', () => {
 
           expect(service.darkMode()).toBe(false);
           expect(document.documentElement.classList.contains('dark-mode')).toBe(false);
+          done();
+        },
+        error: _ => fail(),
+      });
+
+      httpTestingController.expectOne(`${TESTING_BASE_URL}/theme?type=PORTAL_NEXT`).flush(themeResponse);
+    });
+
+    it('should not update theme when system preference changes if user has explicit choice (dark)', done => {
+      localStorage.setItem('gio-portal-theme-mode', 'dark');
+      mediaQueryMatches = false;
+
+      service.loadTheme().subscribe({
+        next: _ => {
+          expect(service.darkMode()).toBe(true);
+
+          mediaQueryMatches = false;
+          changeListener?.();
+
+          expect(service.darkMode()).toBe(true);
+          expect(document.documentElement.classList.contains('dark-mode')).toBe(true);
           done();
         },
         error: _ => fail(),
@@ -188,10 +209,11 @@ describe('ThemeService', () => {
   });
 
   it('should restore dark mode from localStorage', done => {
-    localStorage.setItem('gio-portal-dark-mode', 'true');
+    localStorage.setItem('gio-portal-theme-mode', 'dark');
 
     service.loadTheme().subscribe({
       next: _ => {
+        expect(service.themeMode()).toBe('dark');
         expect(service.darkMode()).toBe(true);
         expect(document.documentElement.style.getPropertyValue('--gio-app-background-color')).toEqual(
           themeResponse.definition.dark?.color?.background?.page,
@@ -208,22 +230,24 @@ describe('ThemeService', () => {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/theme?type=PORTAL_NEXT`).flush(themeResponse);
   });
 
-  it('should toggle dark mode and persist preference', done => {
+  it('should set theme mode and persist preference', done => {
     service.loadTheme().subscribe({
       next: _ => {
         expect(service.darkMode()).toBe(false);
 
-        service.toggleDarkMode();
+        service.setThemeMode('dark');
+        expect(service.themeMode()).toBe('dark');
         expect(service.darkMode()).toBe(true);
-        expect(localStorage.getItem('gio-portal-dark-mode')).toEqual('true');
+        expect(localStorage.getItem('gio-portal-theme-mode')).toEqual('dark');
         expect(document.documentElement.classList.contains('dark-mode')).toBe(true);
         expect(document.documentElement.style.getPropertyValue('--gio-app-background-color')).toEqual(
           themeResponse.definition.dark?.color?.background?.page,
         );
 
-        service.toggleDarkMode();
+        service.setThemeMode('light');
+        expect(service.themeMode()).toBe('light');
         expect(service.darkMode()).toBe(false);
-        expect(localStorage.getItem('gio-portal-dark-mode')).toEqual('false');
+        expect(localStorage.getItem('gio-portal-theme-mode')).toEqual('light');
         expect(document.documentElement.classList.contains('dark-mode')).toBe(false);
         expect(document.documentElement.style.getPropertyValue('--gio-app-background-color')).toEqual(
           themeResponse.definition.color?.background?.page,
@@ -237,16 +261,30 @@ describe('ThemeService', () => {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/theme?type=PORTAL_NEXT`).flush(themeResponse);
   });
 
-  it('should swap custom CSS when toggling mode', done => {
+  it('should swap custom CSS when changing mode', done => {
     service.loadTheme().subscribe({
       next: _ => {
         let style = document.getElementById('gio-theme-custom-css') as HTMLStyleElement;
         expect(style?.innerText).toEqual(themeResponse.definition.customCss);
 
-        service.toggleDarkMode();
+        service.setThemeMode('dark');
         style = document.getElementById('gio-theme-custom-css') as HTMLStyleElement;
         expect(style?.innerText).toEqual(themeResponse.definition.dark?.customCss);
 
+        done();
+      },
+      error: _ => fail(),
+    });
+
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/theme?type=PORTAL_NEXT`).flush(themeResponse);
+  });
+
+  it('should restore system mode from localStorage', done => {
+    localStorage.setItem('gio-portal-theme-mode', 'system');
+
+    service.loadTheme().subscribe({
+      next: _ => {
+        expect(service.themeMode()).toBe('system');
         done();
       },
       error: _ => fail(),

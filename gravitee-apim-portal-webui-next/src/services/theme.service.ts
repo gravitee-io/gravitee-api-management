@@ -50,8 +50,10 @@ export interface Theme {
   };
 }
 
-const DARK_MODE_STORAGE_KEY = 'gio-portal-dark-mode';
+const THEME_MODE_STORAGE_KEY = 'gio-portal-theme-mode';
 const CUSTOM_CSS_STYLE_ID = 'gio-theme-custom-css';
+
+export type ThemeMode = 'light' | 'dark' | 'system';
 
 export const addHslToDocument = (propertyName: string, hex: string = '') => {
   if (!hex) {
@@ -76,6 +78,7 @@ export const addPropertyToDocument = (propertyName: string, value?: string) => {
 export class ThemeService {
   logo = signal('assets/images/logo.png');
   favicon = signal('assets/images/favicon.png');
+  themeMode = signal<ThemeMode>('system');
   darkMode = signal(false);
 
   private lightDefinition?: Theme['definition'];
@@ -94,8 +97,9 @@ export class ThemeService {
 
         addPropertyToDocument('--gio-app-font-family', definition.font.fontFamily);
 
-        const initialMode = this.resolveInitialMode();
-        this.applyTheme(initialMode);
+        const { mode, effective } = this.resolveInitialMode();
+        this.themeMode.set(mode);
+        this.applyTheme(effective);
         this.subscribeToSystemPreference();
       }),
       tap(({ _links }) => {
@@ -110,14 +114,21 @@ export class ThemeService {
     );
   }
 
-  toggleDarkMode(): void {
-    const newMode = !this.darkMode();
-    this.darkMode.set(newMode);
-    localStorage.setItem(DARK_MODE_STORAGE_KEY, String(newMode));
+  setThemeMode(mode: ThemeMode): void {
+    this.themeMode.set(mode);
+    localStorage.setItem(THEME_MODE_STORAGE_KEY, mode);
 
+    const effective = this.getEffectiveMode(mode);
     document.documentElement.classList.add('transitioning');
-    this.applyTheme(newMode ? 'dark' : 'light');
+    this.applyTheme(effective);
     setTimeout(() => document.documentElement.classList.remove('transitioning'), 350);
+  }
+
+  private getEffectiveMode(mode: ThemeMode): 'light' | 'dark' {
+    if (mode === 'system') {
+      return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return mode;
   }
 
   private applyTheme(mode: 'light' | 'dark'): void {
@@ -157,15 +168,11 @@ export class ThemeService {
     }
   }
 
-  private resolveInitialMode(): 'light' | 'dark' {
-    const stored = localStorage.getItem(DARK_MODE_STORAGE_KEY);
-    if (stored !== null) {
-      return stored === 'true' ? 'dark' : 'light';
-    }
-    if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-    return 'light';
+  private resolveInitialMode(): { mode: ThemeMode; effective: 'light' | 'dark' } {
+    const stored = localStorage.getItem(THEME_MODE_STORAGE_KEY);
+    const mode: ThemeMode = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+    const effective = this.getEffectiveMode(mode);
+    return { mode, effective };
   }
 
   private subscribeToSystemPreference(): void {
@@ -173,9 +180,9 @@ export class ThemeService {
     if (!mediaQuery) return;
 
     mediaQuery.addEventListener('change', () => {
-      if (localStorage.getItem(DARK_MODE_STORAGE_KEY) !== null) return;
-      const mode = mediaQuery.matches ? 'dark' : 'light';
-      this.applyTheme(mode);
+      if (this.themeMode() !== 'system') return;
+      const effective = mediaQuery.matches ? 'dark' : 'light';
+      this.applyTheme(effective);
     });
   }
 }

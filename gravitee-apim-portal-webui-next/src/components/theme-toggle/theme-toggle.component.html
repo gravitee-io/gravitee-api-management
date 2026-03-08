@@ -15,8 +15,22 @@
     limitations under the License.
 
 -->
-<button mat-icon-button (click)="themeService.toggleDarkMode()" [attr.aria-label]="themeService.darkMode() ? 'Switch to light mode' : 'Switch to dark mode'">
-  <mat-icon class="theme-icon" [class.dark]="themeService.darkMode()">
-    {{ themeService.darkMode() ? 'light_mode' : 'dark_mode' }}
-  </mat-icon>
+<button
+  mat-button
+  color="primary"
+  class="theme-toggle"
+  [matMenuTriggerFor]="themeMenu"
+  i18n-aria-label="@@themeSelectorAriaLabel"
+  aria-label="Theme"
+  data-testid="theme-select"
+>
+  <mat-icon>{{ currentIcon() }}</mat-icon>
 </button>
+<mat-menu #themeMenu="matMenu">
+  @for (m of modes; track m.value) {
+    <button mat-menu-item (click)="themeService.setThemeMode(m.value)" [attr.data-testid]="'theme-option-' + m.value">
+      <mat-icon [attr.aria-hidden]="true">{{ m.icon }}</mat-icon>
+      <span>{{ m.label }}</span>
+    </button>
+  }
+</mat-menu>

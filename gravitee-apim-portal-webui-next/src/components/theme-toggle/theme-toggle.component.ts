@@ -13,18 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject } from '@angular/core';
-import { MatIconButton } from '@angular/material/button';
+import { Component, computed, inject } from '@angular/core';
+import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
+import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 
-import { ThemeService } from '../../services/theme.service';
+import { ThemeMode, ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-theme-toggle',
   templateUrl: './theme-toggle.component.html',
   styleUrl: './theme-toggle.component.scss',
-  imports: [MatIconButton, MatIcon],
+  imports: [MatButton, MatIcon, MatMenuTrigger, MatMenu, MatMenuItem],
 })
 export class ThemeToggleComponent {
   protected readonly themeService = inject(ThemeService);
+  protected readonly modes: { value: ThemeMode; label: string; icon: string }[] = [
+    { value: 'light', label: $localize`:@@themeToggleLight:Light`, icon: 'light_mode' },
+    { value: 'dark', label: $localize`:@@themeToggleDark:Dark`, icon: 'dark_mode' },
+    { value: 'system', label: $localize`:@@themeToggleSystem:System`, icon: 'contrast' },
+  ];
+  protected readonly currentIcon = computed(() => {
+    const mode = this.themeService.themeMode();
+    return this.modes.find(m => m.value === mode)?.icon ?? 'brightness_auto';
+  });
 }

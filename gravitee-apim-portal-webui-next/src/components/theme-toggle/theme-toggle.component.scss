@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../scss/theme' as app-theme;
+@use '../../scss/theme' as theme;
+@use '@angular/material' as mat;
 
 :host {
   display: flex;
   align-items: center;
 }
 
-.theme-icon {
-  transition:
-    transform 0.35s ease,
-    opacity 0.25s ease;
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  aspect-ratio: 1 / 1;
 
-  &.dark {
-    transform: rotate(180deg);
+  mat-icon {
+    margin: 0;
   }
 }
