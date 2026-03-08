@@ -68,6 +68,101 @@ describe('ThemeService', () => {
     document.getElementById('gio-theme-custom-css')?.remove();
   });
 
+  describe('system preference changes', () => {
+    let changeListener: (() => void) | null;
+    let mediaQueryMatches: boolean;
+    let originalMatchMedia: typeof window.matchMedia;
+
+    beforeEach(() => {
+      mediaQueryMatches = false;
+      changeListener = null;
+      originalMatchMedia = window.matchMedia;
+      Object.defineProperty(window, 'matchMedia', {
+        value: jest.fn((query: string) => ({
+          get matches() {
+            return mediaQueryMatches;
+          },
+          addEventListener: (_: string, listener: () => void) => {
+            changeListener = listener;
+          },
+          removeEventListener: jest.fn(),
+        })),
+        writable: true,
+      });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(window, 'matchMedia', {
+        value: originalMatchMedia,
+        writable: true,
+      });
+    });
+
+    it('should update theme when system preference changes to dark (no explicit user choice)', done => {
+      service.loadTheme().subscribe({
+        next: _ => {
+          expect(service.darkMode()).toBe(false);
+
+          mediaQueryMatches = true;
+          changeListener?.();
+
+          expect(service.darkMode()).toBe(true);
+          expect(document.documentElement.classList.contains('dark-mode')).toBe(true);
+          expect(document.documentElement.style.getPropertyValue('--gio-app-background-color')).toEqual(
+            themeResponse.definition.dark?.color?.background?.page,
+          );
+          done();
+        },
+        error: _ => fail(),
+      });
+
+      httpTestingController.expectOne(`${TESTING_BASE_URL}/theme?type=PORTAL_NEXT`).flush(themeResponse);
+    });
+
+    it('should update theme when system preference changes to light (no explicit user choice)', done => {
+      mediaQueryMatches = true;
+
+      service.loadTheme().subscribe({
+        next: _ => {
+          expect(service.darkMode()).toBe(true);
+
+          mediaQueryMatches = false;
+          changeListener?.();
+
+          expect(service.darkMode()).toBe(false);
+          expect(document.documentElement.classList.contains('dark-mode')).toBe(false);
+          expect(document.documentElement.style.getPropertyValue('--gio-app-background-color')).toEqual(
+            themeResponse.definition.color?.background?.page,
+          );
+          done();
+        },
+        error: _ => fail(),
+      });
+
+      httpTestingController.expectOne(`${TESTING_BASE_URL}/theme?type=PORTAL_NEXT`).flush(themeResponse);
+    });
+
+    it('should not update theme when system preference changes if user has explicit choice in localStorage', done => {
+      localStorage.setItem('gio-portal-dark-mode', 'false');
+
+      service.loadTheme().subscribe({
+        next: _ => {
+          expect(service.darkMode()).toBe(false);
+
+          mediaQueryMatches = true;
+          changeListener?.();
+
+          expect(service.darkMode()).toBe(false);
+          expect(document.documentElement.classList.contains('dark-mode')).toBe(false);
+          done();
+        },
+        error: _ => fail(),
+      });
+
+      httpTestingController.expectOne(`${TESTING_BASE_URL}/theme?type=PORTAL_NEXT`).flush(themeResponse);
+    });
+  });
+
   it('should load light theme by default', done => {
     service.loadTheme().subscribe({
       next: _ => {

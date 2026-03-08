@@ -96,6 +96,7 @@ export class ThemeService {
 
         const initialMode = this.resolveInitialMode();
         this.applyTheme(initialMode);
+        this.subscribeToSystemPreference();
       }),
       tap(({ _links }) => {
         if (_links?.logo) {
@@ -165,5 +166,16 @@ export class ThemeService {
       return 'dark';
     }
     return 'light';
+  }
+
+  private subscribeToSystemPreference(): void {
+    const mediaQuery = window.matchMedia?.('(prefers-color-scheme: dark)');
+    if (!mediaQuery) return;
+
+    mediaQuery.addEventListener('change', () => {
+      if (localStorage.getItem(DARK_MODE_STORAGE_KEY) !== null) return;
+      const mode = mediaQuery.matches ? 'dark' : 'light';
+      this.applyTheme(mode);
+    });
   }
 }
