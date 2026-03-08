@@ -78,12 +78,30 @@ this.backendService.get().pipe(
 - **Dialogs:** Strictly type the Open call.
   - Pattern: `this.matDialog.open<ComponentType, InputType, OutputType>(...)`
 
-## 6. Styling (CSS & Material)
+## 6. Utilities & Dependencies
+- **Prefer existing utilities:** Before implementing a common transform or utility (string casing, object shape, etc.), check if it already exists in the project. Use **lodash** for typical operations like `kebabCase`, `camelCase`, `snakeCase`, `isEmpty`, `isEqual`, `merge`, etc.
+
+### Example: string casing
+```typescript
+// ❌ BAD — custom implementation when lodash has it
+private static camelToKebab(str: string): string {
+  return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+}
+...
+map(([k, v]) => [`--preview-dark-${this.camelToKebab(k)}`, v])
+
+// ✅ GOOD — use lodash
+import { kebabCase } from 'lodash';
+...
+map(([k, v]) => [`--preview-dark-${kebabCase(k)}`, v])
+```
+
+## 7. Styling (CSS & Material)
 - **Layout:** Use Flexbox for layout. Avoid hard-set margins/padding.
 - **Encapsulation:** **NEVER** use `:ng-deep`.
 - **Material:** Use CSS Tokens to modify components. Do not override global classes.
 
-## 7. Testing
+## 8. Testing
 - **Philosophy:** Test business rules, not "confirm" buttons.
 - **Harnesses:** Use **Component Harnesses** (e.g., `MatTableHarness`) for all interactions.
 - **No implementation details:** Never query via `ng-reflect-*`.

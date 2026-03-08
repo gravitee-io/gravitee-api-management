@@ -1,6 +1,6 @@
 ---
-description: Portal-next main app design system: SCSS theme, layout, accessibility, typography, GMD theming, testing, naming (gmd-* vs gd-*).
-globs: ["**/*.component.ts", "**/*.scss", "**/scss/**", "**/app/**"]
+description: Portal-next main app design system: SCSS theme, layout, accessibility, typography, localization, GMD theming, testing, naming (gmd-* vs gd-*).
+globs: ["**/*.component.ts", "**/*.component.html", "**/*.scss", "**/scss/**", "**/app/**"]
 ---
 
 # Portal-next Design System (Main App)
@@ -36,6 +36,28 @@ Design system rules for the **main app** only. Use together with the library-spe
 ## Typography
 
 - Use typography classes from the **m3-adapter**: `.m3-*` (e.g. `.m3-headline-small`, `.m3-body-medium`). Do not invent custom typography classes that duplicate m3-adapter; use the adapter as the single source for type styles.
+
+## Localization
+
+- **All user-facing text** in portal components must be localized.
+- **HTML:** Use the `i18n` attribute for text content; `i18n-aria-label` for `aria-label`:
+
+```html
+<mat-card-title i18n="@@logInTitle">Login</mat-card-title>
+<button i18n-aria-label="@@themeSelectorAriaLabel" aria-label="Theme">...</button>
+```
+
+- **TypeScript:** Use `$localize` tagged template with `@@messageId`. Add placeholder metadata for interpolated strings:
+
+```ts
+// Simple string
+{ path: 'subscriptions', title: $localize`:@@subscriptionsTitle:Subscriptions` }
+
+// Interpolated
+getGoToPageLabel(page: number): string {
+  return $localize`:@@paginationGoToPage:Go to page ${page}:page:`;
+}
+```
 
 ## GMD theming from main app
 
