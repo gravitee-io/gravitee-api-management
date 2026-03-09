@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.infra.domain_service.analytics_engine.definition;
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsDefinition;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsDefinitionSpec;
 import io.gravitee.apim.core.analytics_engine.model.ApiSpec;
@@ -23,9 +22,9 @@ import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
+import io.gravitee.apim.infra.domain_service.observability.YAMLDefinitionLoader;
 import java.util.List;
 import java.util.Optional;
-import javax.swing.text.html.Option;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -33,23 +32,10 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
 
     private static final String ANALYTICS_DEFINITION_FILE = "analytics/definition/analytics-definition.yaml";
 
-    private static final YAMLMapper YAML = new YAMLMapper();
-
     private final AnalyticsDefinitionSpec spec;
 
     public AnalyticsDefinitionYAMLQueryService() {
-        spec = readYAMLDefinition().spec();
-    }
-
-    private static io.gravitee.apim.core.analytics_engine.model.AnalyticsDefinition readYAMLDefinition() {
-        try {
-            return YAML.readValue(
-                AnalyticsDefinitionYAMLQueryService.class.getClassLoader().getResourceAsStream(ANALYTICS_DEFINITION_FILE),
-                AnalyticsDefinition.class
-            );
-        } catch (Exception e) {
-            throw new IllegalStateException("Unable to read analytics definition file", e);
-        }
+        spec = YAMLDefinitionLoader.load(ANALYTICS_DEFINITION_FILE, AnalyticsDefinition.class).spec();
     }
 
     @Override
