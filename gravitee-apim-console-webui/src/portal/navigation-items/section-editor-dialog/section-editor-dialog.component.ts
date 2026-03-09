@@ -33,6 +33,7 @@ import {
   PortalVisibility,
 } from '../../../entities/management-api-v2';
 import { urlValidator } from '../../../shared/validators/url.validator';
+import { getPublicVisibilityDisabledTooltip, isPublicVisibilityDisabled } from '../visibility-toggle.util';
 
 export type SectionEditorDialogMode = 'create' | 'edit';
 
@@ -125,14 +126,10 @@ export class SectionEditorDialogComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<SectionEditorDialogComponent, SectionEditorDialogResult>);
   private readonly data: SectionEditorDialogData = inject(MAT_DIALOG_DATA);
   readonly publicDisabled: Signal<boolean> = computed(() => {
-    return this.data.parentItem ? this.data.parentItem.visibility !== 'PUBLIC' : false;
+    return isPublicVisibilityDisabled(this.data.parentItem);
   });
   readonly publicDisabledTooltip: Signal<string> = computed(() => {
-    if (!this.publicDisabled()) {
-      return '';
-    }
-
-    return `This navigation item is in ${this.data.parentItem?.type?.toLocaleLowerCase()} requiring authentication`;
+    return getPublicVisibilityDisabledTooltip(this.data.parentItem);
   });
   public buttonTitle: string;
 

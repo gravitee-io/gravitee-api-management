@@ -96,6 +96,13 @@
         }
       </div>
     </mat-expansion-panel>
+
+    <div class="selected-panel__title selected-panel__title--authentication">Authentication</div>
+    <span [matTooltip]="publicDisabledTooltip()" [matTooltipDisabled]="!publicDisabled()">
+      <mat-slide-toggle formControlName="isPrivate" aria-label="Require authentication to view selected APIs"
+        >Authentication is required to view selected APIs.</mat-slide-toggle
+      >
+    </span>
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">

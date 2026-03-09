@@ -30,7 +30,14 @@ import {
 import { ApiSectionEditorDialogHarness } from './api-section-editor-dialog.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { fakeApiFederated, fakeApiFederatedAgent, fakeApiV1, fakeApiV2, fakeApiV4 } from '../../../entities/management-api-v2';
+import {
+  fakeApiFederated,
+  fakeApiFederatedAgent,
+  fakeApiV1,
+  fakeApiV2,
+  fakeApiV4,
+  fakePortalNavigationFolder,
+} from '../../../entities/management-api-v2';
 
 @Component({
   selector: 'test-host-component',
@@ -38,10 +45,11 @@ import { fakeApiFederated, fakeApiFederatedAgent, fakeApiV1, fakeApiV2, fakeApiV
 })
 class TestHostComponent {
   dialogValue: ApiSectionEditorDialogResult;
+  dialogData: ApiSectionEditorDialogData = { mode: 'create' };
   private matDialog = inject(MatDialog);
 
   public clicked(dialogData?: Partial<ApiSectionEditorDialogData>): void {
-    const data: ApiSectionEditorDialogData = { mode: 'create', ...dialogData };
+    const data: ApiSectionEditorDialogData = { mode: 'create', ...this.dialogData, ...dialogData };
     this.matDialog
       .open<ApiSectionEditorDialogComponent, ApiSectionEditorDialogData>(ApiSectionEditorDialogComponent, {
         width: '500px',
@@ -187,5 +195,68 @@ describe('ApiSectionEditorDialogComponent', () => {
 
     const alreadyAddedLabels = await dialog.getAlreadyAddedLabels();
     expect(alreadyAddedLabels.length).toBe(0);
+  }));
+
+  it('should allow selecting PRIVATE visibility when parent is public', fakeAsync(() => {
+    component.dialogData = { mode: 'create', parentItem: fakePortalNavigationFolder({ visibility: 'PUBLIC' }) };
+    component.clicked();
+    fixture.detectChanges();
+
+    tick(350);
+    expectApiSearchResponse();
+
+    let dialog: ApiSectionEditorDialogHarness;
+    rootLoader.getHarness(ApiSectionEditorDialogHarness).then(h => (dialog = h));
+    tick();
+
+    dialog.isAuthenticationToggleDisabled().then(disabled => expect(disabled).toEqual(false));
+    dialog.isAuthenticationToggleChecked().then(checked => expect(checked).toEqual(false));
+    tick();
+
+    dialog.toggleAuthentication();
+    tick();
+    dialog.isAuthenticationToggleChecked().then(checked => expect(checked).toEqual(true));
+    tick();
+
+    let checkboxes: MatCheckboxHarness[] = [];
+    rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' })).then(c => (checkboxes = c));
+    tick();
+
+    checkboxes[0].check();
+    tick();
+
+    dialog.clickSubmitButton();
+    tick();
+
+    expect(component.dialogValue?.visibility).toEqual('PRIVATE');
+  }));
+
+  it('should force PRIVATE visibility when parent is private', fakeAsync(() => {
+    component.dialogData = { mode: 'create', parentItem: fakePortalNavigationFolder({ visibility: 'PRIVATE' }) };
+    component.clicked();
+    fixture.detectChanges();
+
+    tick(350);
+    expectApiSearchResponse();
+
+    let dialog: ApiSectionEditorDialogHarness;
+    rootLoader.getHarness(ApiSectionEditorDialogHarness).then(h => (dialog = h));
+    tick();
+
+    dialog.isAuthenticationToggleDisabled().then(disabled => expect(disabled).toEqual(true));
+    dialog.isAuthenticationToggleChecked().then(checked => expect(checked).toEqual(true));
+    tick();
+
+    let checkboxes: MatCheckboxHarness[] = [];
+    rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' })).then(c => (checkboxes = c));
+    tick();
+
+    checkboxes[0].check();
+    tick();
+
+    dialog.clickSubmitButton();
+    tick();
+
+    expect(component.dialogValue?.visibility).toEqual('PRIVATE');
   }));
 });

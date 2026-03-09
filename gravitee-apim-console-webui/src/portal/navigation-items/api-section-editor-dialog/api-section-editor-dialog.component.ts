@@ -16,27 +16,31 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, HostListener, inject, OnInit, computed, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTableModule } from '@angular/material/table';
 import { isEqual } from 'lodash';
 import { Observable, Subject, of, BehaviorSubject } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { Api, ApiV2, ApiV4, PortalVisibility, ApisResponse } from '../../../entities/management-api-v2';
+import { Api, ApiV2, ApiV4, PortalNavigationItem, PortalVisibility, ApisResponse } from '../../../entities/management-api-v2';
 import { getApiAccess } from '../../../shared/utils';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { getPublicVisibilityDisabledTooltip, isPublicVisibilityDisabled } from '../visibility-toggle.util';
 
 export interface ApiSectionEditorDialogData {
   mode: 'create';
+  parentItem?: PortalNavigationItem;
   existingApiIds?: string[];
 }
 
@@ -61,10 +65,12 @@ type SelectedApi = {
 
 interface ApiSectionFormControls {
   apiIds: FormControl<string[]>;
+  isPrivate: FormControl<boolean>;
 }
 
 interface ApiSectionFormValues {
   apiIds: string[];
+  isPrivate: boolean;
 }
 
 type ApiSectionForm = FormGroup<ApiSectionFormControls>;
@@ -77,6 +83,8 @@ type ApiSectionForm = FormGroup<ApiSectionFormControls>;
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSlideToggleModule,
+    MatTooltipModule,
     MatIconModule,
     MatCheckboxModule,
     MatTableModule,
@@ -118,6 +126,11 @@ export class ApiSectionEditorDialogComponent implements OnInit {
 
   selectedPanelExpanded = signal(true);
 
+  readonly publicDisabled = computed(() => isPublicVisibilityDisabled(this.dialogData.parentItem));
+  readonly publicDisabledTooltip = computed(() => {
+    return getPublicVisibilityDisabledTooltip(this.dialogData.parentItem);
+  });
+
   private readonly dialogRef = inject(MatDialogRef<ApiSectionEditorDialogComponent, ApiSectionEditorDialogResult>);
 
   @HostListener('window:beforeunload', ['$event'])
@@ -133,6 +146,9 @@ export class ApiSectionEditorDialogComponent implements OnInit {
     this.form = new FormGroup<ApiSectionFormControls>({
       apiIds: new FormControl<string[]>([], {
         validators: [Validators.required],
+        nonNullable: true,
+      }),
+      isPrivate: new FormControl<boolean>(false, {
         nonNullable: true,
       }),
     });
@@ -184,7 +200,20 @@ export class ApiSectionEditorDialogComponent implements OnInit {
       ),
     );
 
+    this.syncVisibilityControlState();
     this.initialFormValues = this.form.getRawValue();
+  }
+
+  private syncVisibilityControlState(): void {
+    const isPrivateControl = this.form.controls.isPrivate;
+
+    if (this.publicDisabled()) {
+      isPrivateControl.setValue(true, { emitEvent: false });
+      isPrivateControl.disable({ emitEvent: false });
+      return;
+    }
+
+    isPrivateControl.enable({ emitEvent: false });
   }
 
   onFiltersChanged(filters: GioTableWrapperFilters): void {
@@ -241,7 +270,7 @@ export class ApiSectionEditorDialogComponent implements OnInit {
       const apiIds = formValues.apiIds ?? [];
 
       this.dialogRef.close({
-        visibility: 'PUBLIC',
+        visibility: formValues.isPrivate ? 'PRIVATE' : 'PUBLIC',
         apiIds,
         apiId: apiIds[0],
       });

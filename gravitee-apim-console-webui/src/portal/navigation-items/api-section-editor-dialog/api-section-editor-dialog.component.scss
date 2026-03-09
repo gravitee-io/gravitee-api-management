@@ -24,6 +24,10 @@ mat-dialog-content {
 .selected-panel__title {
   @include mat.m2-typography-level($typography, subtitle-2);
   color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, darker80);
+
+  &--authentication {
+    margin-top: 10px;
+  }
 }
 
 .selected-panel__empty {

@@ -15,6 +15,7 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { DivHarness, SpanHarness } from '@gravitee/ui-particles-angular/testing';
 
 export class ApiSectionEditorDialogHarness extends ComponentHarness {
@@ -23,6 +24,7 @@ export class ApiSectionEditorDialogHarness extends ComponentHarness {
   private locateCancelButton = this.locatorFor(MatButtonHarness.with({ text: 'Cancel' }));
   private locateSubmitButton = this.locatorFor(MatButtonHarness.with({ text: /Add|Save/ }));
   private locateFormTitle = this.locatorFor(DivHarness.with({ selector: '[mat-dialog-title]' }));
+  private locateAuthenticationToggle = this.locatorFor(MatSlideToggleHarness);
   private locateAlreadyAddedLabels = this.locatorForAll(SpanHarness.with({ selector: '[data-testid^="api-picker-already-added-"]' }));
 
   async clickCancelButton(): Promise<void> {
@@ -43,6 +45,25 @@ export class ApiSectionEditorDialogHarness extends ComponentHarness {
   async getDialogTitle(): Promise<string> {
     const titleElement = await this.locateFormTitle();
     return titleElement.getText();
+  }
+
+  async getAuthenticationToggle(): Promise<MatSlideToggleHarness> {
+    return this.locateAuthenticationToggle();
+  }
+
+  async isAuthenticationToggleDisabled(): Promise<boolean> {
+    const toggle = await this.locateAuthenticationToggle();
+    return toggle.isDisabled();
+  }
+
+  async isAuthenticationToggleChecked(): Promise<boolean> {
+    const toggle = await this.locateAuthenticationToggle();
+    return toggle.isChecked();
+  }
+
+  async toggleAuthentication(): Promise<void> {
+    const toggle = await this.locateAuthenticationToggle();
+    return toggle.toggle();
   }
 
   async getAlreadyAddedLabel(apiId: string): Promise<SpanHarness | null> {

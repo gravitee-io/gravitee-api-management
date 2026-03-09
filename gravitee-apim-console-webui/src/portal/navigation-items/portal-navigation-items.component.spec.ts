@@ -1779,11 +1779,12 @@ describe('PortalNavigationItemsComponent', () => {
 
   describe('creating API navigation items in bulk', () => {
     const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'API Folder' });
+    const privateFolder = fakePortalNavigationFolder({ id: 'folder-private-1', title: 'Private API Folder', visibility: 'PRIVATE' });
 
     beforeEach(async () => {
       await expectGetNavigationItems(
         fakePortalNavigationItemsResponse({
-          items: [folder],
+          items: [folder, privateFolder],
         }),
       );
     });
@@ -1827,6 +1828,87 @@ describe('PortalNavigationItemsComponent', () => {
       );
 
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, ...createdApis] }));
+    });
+
+    it('should create API navigation items with PRIVATE visibility when toggle is selected for public parent', async () => {
+      const apiIds = ['api-1'];
+      const createdApis = [
+        fakePortalNavigationApi({ id: 'nav-api-1', apiId: 'api-1', title: '', parentId: folder.id, visibility: 'PRIVATE' }),
+      ];
+
+      await harness.selectNavigationItemByTitle(folder.title);
+
+      const component = fixture.componentInstance;
+      const folderNode = { id: folder.id, label: folder.title, type: folder.type, data: folder } as any;
+      component.onNodeMenuAction({ action: 'create', itemType: 'API', node: folderNode });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      await expectApiSearchResponse(apiIds);
+
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' }));
+      await checkboxes[0].check();
+
+      const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
+      expect(await dialog.isAuthenticationToggleDisabled()).toBe(false);
+      await dialog.toggleAuthentication();
+      expect(await dialog.isAuthenticationToggleChecked()).toBe(true);
+      await dialog.clickSubmitButton();
+
+      expectCreateNavigationItemsInBulk(
+        apiIds.map(apiId => ({
+          title: '',
+          type: 'API',
+          area: 'TOP_NAVBAR',
+          parentId: folder.id,
+          visibility: 'PRIVATE',
+          apiId,
+        })),
+        fakePortalNavigationItemsResponse({ items: createdApis }),
+      );
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, ...createdApis] }));
+    });
+
+    it('should force PRIVATE visibility when parent folder is private', async () => {
+      const apiIds = ['api-1', 'api-2'];
+      const createdApis = [
+        fakePortalNavigationApi({ id: 'nav-api-private-1', apiId: 'api-1', title: '', parentId: privateFolder.id, visibility: 'PRIVATE' }),
+        fakePortalNavigationApi({ id: 'nav-api-private-2', apiId: 'api-2', title: '', parentId: privateFolder.id, visibility: 'PRIVATE' }),
+      ];
+
+      await harness.selectNavigationItemByTitle(privateFolder.title);
+
+      const component = fixture.componentInstance;
+      const folderNode = { id: privateFolder.id, label: privateFolder.title, type: privateFolder.type, data: privateFolder } as any;
+      component.onNodeMenuAction({ action: 'create', itemType: 'API', node: folderNode });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      await expectApiSearchResponse(apiIds);
+
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' }));
+      await checkboxes[0].check();
+      await checkboxes[1].check();
+
+      const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
+      expect(await dialog.isAuthenticationToggleDisabled()).toBe(true);
+      expect(await dialog.isAuthenticationToggleChecked()).toBe(true);
+      await dialog.clickSubmitButton();
+
+      expectCreateNavigationItemsInBulk(
+        apiIds.map(apiId => ({
+          title: '',
+          type: 'API',
+          area: 'TOP_NAVBAR',
+          parentId: privateFolder.id,
+          visibility: 'PRIVATE',
+          apiId,
+        })),
+        fakePortalNavigationItemsResponse({ items: createdApis }),
+      );
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [privateFolder, ...createdApis] }));
     });
 
     it('should not call bulk endpoint when no folder is selected', async () => {
