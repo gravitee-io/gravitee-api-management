@@ -69,7 +69,7 @@ class TestComponent {
 
 describe('ApiEndpointComponent', () => {
   const API_ID = 'apiId';
-  const TENANT: Tenant = { id: 'tenant-id', name: 'tenant-name', description: '' };
+  const TENANT: Tenant = { id: 'tenant-id', key: 'tenant-key', name: 'tenant-name', description: '' };
 
   let fixture: ComponentFixture<TestComponent>;
   let httpTestingController: HttpTestingController;
@@ -162,7 +162,7 @@ describe('ApiEndpointComponent', () => {
                   inheritConfiguration: true,
                   sharedConfigurationOverride: {},
                   name: 'endpoint-name',
-                  tenants: [TENANT.id],
+                  tenants: [TENANT.key],
                   type: 'kafka',
                   weight: 10,
                 },
@@ -259,7 +259,7 @@ describe('ApiEndpointComponent', () => {
                 {
                   ...apiV4.endpointGroups[0].endpoints[0],
                   name: 'endpoint-name updated',
-                  tenants: [TENANT.id],
+                  tenants: [TENANT.key],
                   sharedConfigurationOverride: {
                     test: undefined,
                   },
