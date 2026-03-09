@@ -20,25 +20,41 @@
 <form autocomplete="off" [formGroup]="tenantForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
     <div class="form">
-      <mat-form-field *ngIf="isUpdate">
-        <mat-label>Id</mat-label>
-        <input matInput formControlName="id" data-testid="tenant-id" />
-      </mat-form-field>
       <mat-form-field>
         <mat-label>Name</mat-label>
         <input matInput formControlName="name" required data-testid="tenant-name" />
         <mat-hint align="end">{{ tenantForm.get('name').value?.length ?? 0 }}/40</mat-hint>
-        <mat-error *ngIf="tenantForm.get('name').hasError('maxlength')">Name has to be less than 40 characters long.</mat-error>
-        <mat-error *ngIf="tenantForm.get('name').hasError('minlength')">Name has to be more than 2 characters long.</mat-error>
-        <mat-error *ngIf="tenantForm.get('name').hasError('required')">Name is required.</mat-error>
+        @if (tenantForm.controls.name.hasError('maxlength')) {
+          <mat-error>Name has to be less than 40 characters long.</mat-error>
+        }
+        @if (tenantForm.controls.name.hasError('minlength')) {
+          <mat-error>Name has to be more than 2 characters long.</mat-error>
+        }
+        @if (tenantForm.controls.name.hasError('required')) {
+          <mat-error>Name is required.</mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Key</mat-label>
+        <input matInput formControlName="key" required data-testid="tenant-key" (blur)="onKeyBlur()" />
+        <mat-hint align="end">{{ tenantForm.get('key').value?.length ?? 0 }}/64</mat-hint>
+        @if (tenantForm.controls.key.hasError('maxlength')) {
+          <mat-error>Key has to be less than 64 characters long.</mat-error>
+        }
+        @if (tenantForm.controls.key.hasError('minlength')) {
+          <mat-error>Key has to be at least 1 character long.</mat-error>
+        }
+        @if (tenantForm.controls.key.hasError('required')) {
+          <mat-error>Key is required.</mat-error>
+        }
       </mat-form-field>
       <mat-form-field>
         <mat-label>Description</mat-label>
         <input matInput formControlName="description" data-testid="tenant-description" />
         <mat-hint align="end">{{ tenantForm.get('description').value?.length ?? 0 }}/160</mat-hint>
-        <mat-error *ngIf="tenantForm.get('description').hasError('maxlength')"
-          >Description has to be less than 160 characters long.</mat-error
-        >
+        @if (tenantForm.controls.description.hasError('maxlength')) {
+          <mat-error>Description has to be less than 160 characters long.</mat-error>
+        }
       </mat-form-field>
     </div>
   </mat-dialog-content>

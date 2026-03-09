@@ -13,11 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Tenant } from './tenant';
+import { Tenant, UpdateTenantEntity } from './tenant';
 
 export function fakeTenant(attributes?: Partial<Tenant>): Tenant {
   const base: Tenant = {
     id: 'tenant#1',
+    key: 'tenant-1',
+    name: 'Tenant 1',
+    description: 'Tenant 1 description',
+  };
+
+  return {
+    ...base,
+    ...attributes,
+  };
+}
+
+export function fakeUpdateTenantEntity(attributes?: Partial<UpdateTenantEntity>): UpdateTenantEntity {
+  const base: UpdateTenantEntity = {
+    key: 'tenant-1',
     name: 'Tenant 1',
     description: 'Tenant 1 description',
   };

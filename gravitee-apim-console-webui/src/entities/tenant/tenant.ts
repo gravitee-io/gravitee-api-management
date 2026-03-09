@@ -15,6 +15,13 @@
  */
 export interface Tenant {
   id: string;
+  key: string;
   name: string;
+  description: string;
+}
+
+export interface UpdateTenantEntity {
+  name: string;
+  key: string;
   description: string;
 }

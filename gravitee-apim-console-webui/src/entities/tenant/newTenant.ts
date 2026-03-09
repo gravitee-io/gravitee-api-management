@@ -15,5 +15,6 @@
  */
 export interface NewTenant {
   name: string;
+  key: string;
   description: string;
 }

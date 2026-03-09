@@ -18,6 +18,7 @@ import { NewTenant } from './newTenant';
 export function fakeNewTenant(attributes?: Partial<NewTenant>): NewTenant {
   const base: NewTenant = {
     name: 'NewTenant 1',
+    key: 'new-tenant-1',
     description: 'NewTenant 1 description',
   };
 

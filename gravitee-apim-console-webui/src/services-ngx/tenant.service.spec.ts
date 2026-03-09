@@ -19,7 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { TenantService } from './tenant.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
-import { fakeTenant } from '../entities/tenant/tenant.fixture';
+import { fakeTenant, fakeUpdateTenantEntity } from '../entities/tenant/tenant.fixture';
 import { fakeNewTenant } from '../entities/tenant/newTenant.fixture';
 
 describe('TenantService', () => {
@@ -66,7 +66,7 @@ describe('TenantService', () => {
 
   describe('update', () => {
     it('should call the API', done => {
-      const tenants = [fakeTenant()];
+      const tenants = [fakeUpdateTenantEntity()];
 
       tenantService.update(tenants).subscribe(response => {
         expect(response).toStrictEqual(tenants);

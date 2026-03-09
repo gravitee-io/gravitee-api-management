@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { Component, DestroyRef, Inject, inject } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { filter, tap } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { Tenant } from '../../../entities/tenant/tenant';
+import { sanitizeKeyBase, sanitizeKeyFinal } from '../../../shared/utils/key-sanitizer.util';
 
 export type OrgSettingAddTenantDialogData = {
   tenant?: Tenant;
@@ -30,9 +33,11 @@ export type OrgSettingAddTenantDialogData = {
   standalone: false,
 })
 export class OrgSettingAddTenantComponent {
+  private readonly destroyRef = inject(DestroyRef);
+
   tenant?: Tenant;
   isUpdate = false;
-  tenantForm: UntypedFormGroup;
+  tenantForm: FormGroup;
 
   constructor(
     public dialogRef: MatDialogRef<OrgSettingAddTenantComponent>,
@@ -41,18 +46,43 @@ export class OrgSettingAddTenantComponent {
     this.tenant = confirmDialogData.tenant;
     this.isUpdate = !!this.tenant;
 
-    this.tenantForm = new UntypedFormGroup({
-      name: new UntypedFormControl(this.tenant?.name, [Validators.required, Validators.minLength(1), Validators.maxLength(40)]),
-      description: new UntypedFormControl(this.tenant?.description, [Validators.maxLength(160)]),
+    this.tenantForm = new FormGroup({
+      name: new FormControl<string>(this.tenant?.name, [Validators.required, Validators.minLength(1), Validators.maxLength(40)]),
+      key: new FormControl<string>({ value: this.tenant?.key ?? '', disabled: this.isUpdate }, [
+        Validators.required,
+        Validators.minLength(1),
+        Validators.maxLength(64),
+      ]),
+      description: new FormControl<string>(this.tenant?.description, [Validators.maxLength(160)]),
     });
 
-    if (this.isUpdate) {
-      this.tenantForm.addControl('id', new UntypedFormControl({ value: this.tenant.id, disabled: true }, [Validators.required]));
-    }
+    this.tenantForm.controls.key.valueChanges
+      .pipe(
+        filter(value => value !== null),
+        tap(value => {
+          const sanitized = sanitizeKeyBase(value);
+          if (sanitized !== value) {
+            this.tenantForm.controls.key.setValue(sanitized, { emitEvent: false });
+          }
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   onSubmit() {
     const updatedTenant = this.tenantForm.getRawValue();
     this.dialogRef.close(updatedTenant);
+  }
+
+  onKeyBlur(): void {
+    const value = this.tenantForm.controls.key.value;
+    if (value == null) {
+      return;
+    }
+    const sanitized = sanitizeKeyFinal(value);
+    if (sanitized !== value) {
+      this.tenantForm.controls.key.setValue(sanitized, { emitEvent: false });
+    }
   }
 }
