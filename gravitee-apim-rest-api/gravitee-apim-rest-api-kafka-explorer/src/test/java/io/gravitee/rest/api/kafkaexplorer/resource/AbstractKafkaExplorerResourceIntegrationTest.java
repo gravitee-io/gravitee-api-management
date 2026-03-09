@@ -35,7 +35,7 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
-import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -48,12 +48,12 @@ abstract class AbstractKafkaExplorerResourceIntegrationTest {
     protected static final String CLUSTER_ID = "test-cluster";
     protected static final String ENVIRONMENT_ID = "test-env";
 
-    protected static final DockerComposeContainer<?> kafka;
+    protected static final ComposeContainer kafka;
     protected static KafkaExplorerResource resource;
     protected static ClusterCrudServiceInMemory clusterCrudService;
 
     static {
-        kafka = new DockerComposeContainer<>(new File("src/test/resources/docker/docker-compose.yml"))
+        kafka = new ComposeContainer(new File("src/test/resources/docker/docker-compose.yml"))
             .withExposedService(BROKER_SERVICE, PLAINTEXT_PORT, Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(60)))
             .withExposedService(BROKER_SERVICE, SSL_PORT)
             .withExposedService(BROKER_SERVICE, SASL_PLAINTEXT_PORT);
