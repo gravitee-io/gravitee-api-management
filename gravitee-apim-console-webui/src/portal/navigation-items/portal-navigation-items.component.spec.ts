@@ -488,6 +488,63 @@ describe('PortalNavigationItemsComponent', () => {
 
       expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdItem.id } }));
     });
+
+    it('calls backend create with PRIVATE visibility when parent folder is private', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationPage({
+            id: 'nav-item-1',
+            title: 'Nav Item 1',
+            portalPageContentId: 'nav-item-1-content',
+          }),
+          fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1', visibility: 'PRIVATE' }),
+        ],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+      await expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      const component = fixture.componentInstance;
+      const folderData = fakeResponse.items[1] as PortalNavigationItem;
+      const folderNode = { id: folderData.id, label: folderData.title, type: folderData.type, data: folderData } as any;
+
+      component.onNodeMenuAction({ action: 'create', itemType: 'PAGE', node: folderNode });
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      expect(dialog).toBeTruthy();
+
+      const authToggle = await dialog.getAuthenticationToggle();
+      expect(await authToggle.isChecked()).toBe(true);
+      expect(await authToggle.isDisabled()).toBe(true);
+
+      const title = 'New Private Child Page';
+      await dialog.setTitleInputValue(title);
+      await dialog.clickSubmitButton();
+
+      const createdItem = fakePortalNavigationPage({
+        id: 'child-page-1',
+        title,
+        area: 'TOP_NAVBAR',
+        type: 'PAGE',
+        parentId: folderData.id,
+        visibility: 'PRIVATE',
+        portalPageContentId: 'content-id',
+      });
+
+      expectCreateNavigationItem(
+        fakeNewPagePortalNavigationItem({
+          title,
+          area: 'TOP_NAVBAR',
+          type: 'PAGE',
+          parentId: folderData.id,
+          visibility: 'PRIVATE',
+          contentType: 'GRAVITEE_MARKDOWN',
+        }),
+        createdItem,
+      );
+      await expectGetNavigationItems(fakeResponse);
+    });
   });
 
   describe('creating a folder under a folder from tree node "More actions" menu', () => {
@@ -540,6 +597,61 @@ describe('PortalNavigationItemsComponent', () => {
       );
       await expectGetNavigationItems(fakeResponse);
     });
+
+    it('calls backend create with PRIVATE visibility when parent folder is private', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationPage({
+            id: 'nav-item-1',
+            title: 'Nav Item 1',
+            portalPageContentId: 'nav-item-1-content',
+          }),
+          fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1', visibility: 'PRIVATE' }),
+        ],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+      await expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      const component = fixture.componentInstance;
+      const folderData = fakeResponse.items[1] as PortalNavigationItem;
+      const folderNode = { id: folderData.id, label: folderData.title, type: folderData.type, data: folderData } as any;
+
+      component.onNodeMenuAction({ action: 'create', itemType: 'FOLDER', node: folderNode });
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      expect(dialog).toBeTruthy();
+
+      const authToggle = await dialog.getAuthenticationToggle();
+      expect(await authToggle.isChecked()).toBe(true);
+      expect(await authToggle.isDisabled()).toBe(true);
+
+      const title = 'New Private Child Folder';
+      await dialog.setTitleInputValue(title);
+      await dialog.clickSubmitButton();
+
+      const createdItem = fakePortalNavigationFolder({
+        id: 'child-folder-1',
+        title,
+        area: 'TOP_NAVBAR',
+        type: 'FOLDER',
+        parentId: folderData.id,
+        visibility: 'PRIVATE',
+      });
+
+      expectCreateNavigationItem(
+        fakeNewFolderPortalNavigationItem({
+          title,
+          area: 'TOP_NAVBAR',
+          type: 'FOLDER',
+          parentId: folderData.id,
+          visibility: 'PRIVATE',
+        }),
+        createdItem,
+      );
+      await expectGetNavigationItems(fakeResponse);
+    });
   });
 
   describe('creating a link under a folder from tree node "More actions" menu', () => {
@@ -585,6 +697,65 @@ describe('PortalNavigationItemsComponent', () => {
 
       expectCreateNavigationItem(
         fakeNewLinkPortalNavigationItem({ title, url, area: 'TOP_NAVBAR', type: 'LINK', parentId: folderData.id }),
+        createdItem,
+      );
+      await expectGetNavigationItems(fakeResponse);
+    });
+
+    it('calls backend create with PRIVATE visibility when parent folder is private', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationPage({
+            id: 'nav-item-1',
+            title: 'Nav Item 1',
+            portalPageContentId: 'nav-item-1-content',
+          }),
+          fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1', visibility: 'PRIVATE' }),
+        ],
+      });
+
+      await expectGetNavigationItems(fakeResponse);
+      await expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      const component = fixture.componentInstance;
+      const folderData = fakeResponse.items[1] as PortalNavigationItem;
+      const folderNode = { id: folderData.id, label: folderData.title, type: folderData.type, data: folderData } as any;
+
+      component.onNodeMenuAction({ action: 'create', itemType: 'LINK', node: folderNode });
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      expect(dialog).toBeTruthy();
+
+      const authToggle = await dialog.getAuthenticationToggle();
+      expect(await authToggle.isChecked()).toBe(true);
+      expect(await authToggle.isDisabled()).toBe(true);
+
+      const title = 'New Private Child Link';
+      const url = 'https://example.com/private';
+      await dialog.setTitleInputValue(title);
+      await dialog.setUrlInputValue(url);
+      await dialog.clickSubmitButton();
+
+      const createdItem = fakePortalNavigationLink({
+        id: 'child-link-1',
+        title,
+        url,
+        area: 'TOP_NAVBAR',
+        type: 'LINK',
+        parentId: folderData.id,
+        visibility: 'PRIVATE',
+      });
+
+      expectCreateNavigationItem(
+        fakeNewLinkPortalNavigationItem({
+          title,
+          url,
+          area: 'TOP_NAVBAR',
+          type: 'LINK',
+          parentId: folderData.id,
+          visibility: 'PRIVATE',
+        }),
         createdItem,
       );
       await expectGetNavigationItems(fakeResponse);

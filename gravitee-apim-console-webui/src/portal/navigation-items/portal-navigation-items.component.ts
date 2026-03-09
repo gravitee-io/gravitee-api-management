@@ -240,20 +240,20 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         case 'unpublish':
           this.handlePublishToggle(event.node.data);
           break;
-        default:
+        default: {
           if (event.itemType === 'API' && event.action !== 'edit') {
             this.createApiSection(event.node.data);
             return;
           }
 
-          this.manageSection(
-            event.itemType,
-            event.action,
-            'TOP_NAVBAR',
-            this.mapSelectedNavItemToNode(event.node.data.parentId, this.menuLinks())?.data || null,
-            event.node.data,
-          );
+          const parentItemForDialog =
+            event.action === 'create'
+              ? event.node.data
+              : this.mapSelectedNavItemToNode(event.node.data.parentId, this.menuLinks())?.data || null;
+
+          this.manageSection(event.itemType, event.action, 'TOP_NAVBAR', parentItemForDialog, event.node.data);
           break;
+        }
       }
     });
   }
