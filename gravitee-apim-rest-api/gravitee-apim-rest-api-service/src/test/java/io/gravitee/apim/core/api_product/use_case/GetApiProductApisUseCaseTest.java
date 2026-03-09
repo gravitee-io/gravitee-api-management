@@ -142,12 +142,10 @@ class GetApiProductApisUseCaseTest {
             assertThat(page.getContent()).extracting(Api::getId).containsExactlyInAnyOrder("api-1", "api-2");
             assertThat(page.getTotalElements()).isEqualTo(2);
         }
-
     }
 
     @Nested
     class AdminUser {
-
 
         @Test
         void should_respect_pagination_when_admin() {
@@ -207,5 +205,4 @@ class GetApiProductApisUseCaseTest {
             assertThat(output.apisPage().getContent()).hasSize(1);
         }
     }
-
 }
