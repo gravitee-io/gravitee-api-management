@@ -20,7 +20,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { MatDivider } from '@angular/material/divider';
-import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -30,7 +30,6 @@ import { map, Observable, startWith, Subject, take, takeUntil, tap } from 'rxjs'
 import { of } from 'rxjs/internal/observable/of';
 
 import { CopyCodeComponent } from '../../../../../components/copy-code/copy-code.component';
-import { PictureComponent } from '../../../../../components/picture/picture.component';
 import { Application, ApplicationGrantType, ApplicationType } from '../../../../../entities/application/application';
 import { ApplicationService } from '../../../../../services/application.service';
 
@@ -73,9 +72,7 @@ interface ApplicationGrantTypeVM {
     MatFormFieldModule,
     MatIcon,
     MatInput,
-    MatLabel,
     MatSelectModule,
-    PictureComponent,
     ReactiveFormsModule,
     AsyncPipe,
   ],

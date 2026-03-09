@@ -16,7 +16,6 @@
 
 -->
 <div class="content">
-  <app-breadcrumb-navigation />
   <mat-card appearance="outlined">
     <mat-card-content>
       <h2 i18n="@@applicationsCreateTitle">Create new application</h2>
@@ -63,6 +62,7 @@
                     <p class="m3-label-large" i18n="@@createApplicationName">Application name *</p>
                     <mat-form-field appearance="outline">
                       <input matInput formControlName="name" aria-label="Application name" />
+                      <mat-error i18n="@@createApplicationNameRequired">Application name is required</mat-error>
                     </mat-form-field>
                   </div>
 
@@ -139,6 +139,7 @@
                             (matChipInputTokenEnd)="addRedirectUri($event)"
                           />
                         </mat-chip-grid>
+                        <mat-error i18n="@@createApplicationRedirectUrisRequired">At least one redirect URI is required</mat-error>
                       </mat-form-field>
                     </div>
                   }

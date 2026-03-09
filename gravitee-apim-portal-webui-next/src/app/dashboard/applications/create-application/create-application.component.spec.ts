@@ -26,16 +26,16 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { Router } from '@angular/router';
 
 import { CreateApplicationComponent } from './create-application.component';
-import { FormKeyValuePairsHarness } from '../../../components/form-key-value-pairs/form-key-value-pairs.harness';
+import { FormKeyValuePairsHarness } from '../../../../components/form-key-value-pairs/form-key-value-pairs.harness';
 import {
   fakeApplication,
   fakeSimpleApplicationType,
   fakeNativeApplicationType,
   fakeBackendToBackendApplicationType,
   fakeBrowserApplicationType,
-} from '../../../entities/application/application.fixture';
-import { ObservabilityBreakpointService } from '../../../services/observability-breakpoint.service';
-import { AppTestingModule, TESTING_BASE_URL } from '../../../testing/app-testing.module';
+} from '../../../../entities/application/application.fixture';
+import { ObservabilityBreakpointService } from '../../../../services/observability-breakpoint.service';
+import { AppTestingModule, TESTING_BASE_URL } from '../../../../testing/app-testing.module';
 
 describe('CreateApplicationComponent', () => {
   let fixture: ComponentFixture<CreateApplicationComponent>;
