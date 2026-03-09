@@ -175,7 +175,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                   backup: false,
                   type: 'HTTP',
                   inherit: true,
-                  tenants: [tenants[0].id],
+                  tenants: [tenants[0].key],
                   healthCheck: {
                     inherit: true,
                   },
