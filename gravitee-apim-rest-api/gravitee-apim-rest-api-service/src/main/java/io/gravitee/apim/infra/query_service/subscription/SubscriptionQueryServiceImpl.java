@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -84,12 +85,16 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
 
     @Override
     public List<SubscriptionEntity> findActiveByApplicationIdAndApiId(String applicationId, String apiId) {
+        return findActiveByApplicationIdsAndApiIds(Set.of(applicationId), Set.of(apiId));
+    }
+
+    @Override
+    public List<SubscriptionEntity> findActiveByApplicationIdsAndApiIds(Set<String> applicationIds, Set<String> apiIds) {
         var criteria = SubscriptionCriteria.builder()
             .statuses(List.of(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PENDING.name(), SubscriptionStatus.PAUSED.name()))
-            .apis(List.of(apiId))
-            .applications(List.of(applicationId))
+            .apis(List.copyOf(apiIds))
+            .applications(List.copyOf(applicationIds))
             .build();
-
         try {
             return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
         } catch (TechnicalException e) {

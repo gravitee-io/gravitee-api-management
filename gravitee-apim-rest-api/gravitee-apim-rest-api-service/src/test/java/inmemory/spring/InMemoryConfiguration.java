@@ -17,6 +17,7 @@ package inmemory.spring;
 
 import inmemory.*;
 import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
+import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
 import io.gravitee.apim.core.integration.service_provider.A2aAgentFetcher;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
@@ -525,6 +526,11 @@ public class InMemoryConfiguration {
     @Bean
     public PortalNavigationItemsQueryService portalNavigationItemsQueryService() {
         return new PortalNavigationItemsQueryServiceInMemory();
+    }
+
+    @Bean
+    public ApiPortalSearchQueryService apiPortalSearchQueryService() {
+        return new ApiPortalSearchQueryServiceInMemory();
     }
 
     @Bean
