@@ -29,12 +29,15 @@
         <ng-container matColumnDef="select">
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let row">
-            <mat-checkbox
-              [disabled]="row.isDisabled"
-              [checked]="isChecked(row.id)"
-              (change)="toggleApiSelection(row.id, $event.checked, row.name)"
-              [attr.data-testid]="'api-picker-checkbox-' + row.id"
-            ></mat-checkbox>
+            @if (!row.isDisabled) {
+              <mat-checkbox
+                [checked]="isChecked(row.id)"
+                (change)="toggleApiSelection(row.id, $event.checked, row.name)"
+                [attr.data-testid]="'api-picker-checkbox-' + row.id"
+              ></mat-checkbox>
+            } @else {
+              <span class="already-added-label" [attr.data-testid]="'api-picker-already-added-' + row.id">Already added</span>
+            }
           </td>
         </ng-container>
 

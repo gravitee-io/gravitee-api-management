@@ -40,8 +40,8 @@ class TestHostComponent {
   dialogValue: ApiSectionEditorDialogResult;
   private matDialog = inject(MatDialog);
 
-  public clicked(): void {
-    const data: ApiSectionEditorDialogData = { mode: 'create' };
+  public clicked(dialogData?: Partial<ApiSectionEditorDialogData>): void {
+    const data: ApiSectionEditorDialogData = { mode: 'create', ...dialogData };
     this.matDialog
       .open<ApiSectionEditorDialogComponent, ApiSectionEditorDialogData>(ApiSectionEditorDialogComponent, {
         width: '500px',
@@ -145,5 +145,47 @@ describe('ApiSectionEditorDialogComponent', () => {
     expect(Array.isArray(component.dialogValue?.apiIds)).toEqual(true);
     expect(component.dialogValue?.apiIds?.length).toBeGreaterThan(1);
     expect(component.dialogValue?.apiId).toEqual(component.dialogValue?.apiIds?.[0]);
+  }));
+
+  it('should hide checkbox, show "Already added" label and grey out row for already-added API', fakeAsync(async () => {
+    component.clicked({ existingApiIds: ['api-v2'] });
+    fixture.detectChanges();
+
+    tick(350);
+    expectApiSearchResponse();
+    tick();
+
+    const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
+    const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' }));
+    expect(checkboxes.length).toBe(4);
+    const checkboxIds = await Promise.all(
+      checkboxes.map(async checkbox => {
+        const element = await checkbox.host();
+        const dataTestId = await element.getAttribute('data-testid');
+        return dataTestId?.replace('api-picker-checkbox-', '') ?? '';
+      }),
+    );
+    expect(checkboxIds).not.toContain('api-v2');
+    expect(checkboxIds).toContain('api-v4');
+
+    const alreadyAddedLabel = await dialog.getAlreadyAddedLabel('api-v2');
+    expect(alreadyAddedLabel).toBeTruthy();
+    expect(await alreadyAddedLabel.getText()).toBe('Already added');
+  }));
+
+  it('should show checkboxes for all APIs and no "Already added" label when existingApiIds is empty', fakeAsync(async () => {
+    component.clicked({ existingApiIds: [] });
+    fixture.detectChanges();
+
+    tick(350);
+    expectApiSearchResponse();
+    tick();
+
+    const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
+    const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' }));
+    expect(checkboxes.length).toBe(5);
+
+    const alreadyAddedLabels = await dialog.getAlreadyAddedLabels();
+    expect(alreadyAddedLabels.length).toBe(0);
   }));
 });

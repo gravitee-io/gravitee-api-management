@@ -261,7 +261,10 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     this.matDialog
       .open<ApiSectionEditorDialogComponent, ApiSectionEditorDialogData>(ApiSectionEditorDialogComponent, {
         width: GIO_DIALOG_WIDTH.LARGE,
-        data: { mode: 'create' },
+        data: {
+          mode: 'create',
+          existingApiIds: this.extractApiIdsFromNavigationItems(),
+        },
       })
       .afterClosed()
       .pipe(
@@ -692,6 +695,12 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         return EMPTY;
       }),
     );
+  }
+
+  private extractApiIdsFromNavigationItems(): string[] {
+    return this.menuLinks()
+      .filter(i => i.type === 'API')
+      .map(i => i.apiId);
   }
 }
 

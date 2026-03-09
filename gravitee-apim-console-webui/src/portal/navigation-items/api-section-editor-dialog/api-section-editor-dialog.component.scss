@@ -22,21 +22,26 @@ mat-dialog-content {
 }
 
 .selected-panel__title {
-  color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, darker80);
   @include mat.m2-typography-level($typography, subtitle-2);
+  color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, darker80);
 }
 
 .selected-panel__empty {
-  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker80');
   @include mat.m2-typography-level($typography, body-2);
+  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker80');
 }
 
 .api-search-description {
-  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker80');
   @include mat.m2-typography-level($typography, caption);
+  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker80');
 }
 
 .disabled {
+  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker40');
+}
+
+.already-added-label {
+  @include mat.m2-typography-level($typography, caption);
   color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker40');
 }
 
