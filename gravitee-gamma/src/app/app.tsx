@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { Box, Settings, Search, Globe } from 'lucide-react';
+import { Box, Settings, Search, Globe, type LucideIcon } from 'lucide-react';
 import { TopNav } from '@baros/components/layout/TopNav';
 import { TopNavUser } from '@baros/components/layout/TopNavUser';
 import { GraviteeLogo } from '@baros/components/layout/GraviteeLogo';
@@ -10,6 +10,54 @@ import type { AppOption } from '@baros/components/layout/AppDropdown';
 import { AppBetaLayout } from './app-beta/AppBetaLayout';
 import { DeveloperPortalLayout } from './developer-portal/DeveloperPortalLayout';
 import { PortalHomepageRemote } from './developer-portal/PortalHomepageRemote';
+
+const INSTALLATION_APPLICATIONS_URL = '/management/v2/installation/applications';
+
+/** Response shape from GET /management/v2/installation/applications */
+interface ConsoleApplicationResponse {
+    key: string;
+    title: string;
+    icon: string;
+}
+
+const ICON_MAP: Record<string, LucideIcon> = {
+    Box,
+    Settings,
+    Globe,
+};
+
+function mapToAppOption(item: ConsoleApplicationResponse): AppOption {
+    return {
+        key: item.key,
+        name: item.title,
+        icon: ICON_MAP[item.icon] ?? Box,
+    };
+}
+
+function useConsoleApplications(): { apps: AppOption[]; loading: boolean; error: Error | null } {
+    const [apps, setApps] = React.useState<AppOption[]>([]);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<Error | null>(null);
+
+    React.useEffect(() => {
+        fetch(INSTALLATION_APPLICATIONS_URL, { credentials: 'include' })
+            .then((res) => {
+                if (!res.ok) throw new Error(`Failed to load applications: ${res.status}`);
+                return res.json() as Promise<ConsoleApplicationResponse[]>;
+            })
+            .then((data) => setApps(Array.isArray(data) ? data.map(mapToAppOption) : []))
+            .catch((err) => setError(err instanceof Error ? err : new Error(String(err))))
+            .finally(() => setLoading(false));
+    }, []);
+
+    return { apps, loading, error };
+}
+
+const FALLBACK_APPS: AppOption[] = [
+    { key: 'app-alpha', name: 'App Alpha', icon: Box },
+    { key: 'app-beta', name: 'App Beta', icon: Settings },
+    { key: 'developer-portal', name: 'Developer Portal', icon: Globe },
+];
 
 const APP_ALPHA_ENTRY_URL = 'http://localhost:4201/remoteEntry.js';
 
@@ -38,12 +86,6 @@ const AppAlpha = React.lazy(async () => {
     return factory();
 });
 
-const APPS: AppOption[] = [
-    { key: 'app-alpha', name: 'App Alpha', icon: Box },
-    { key: 'app-beta', name: 'App Beta', icon: Settings },
-    { key: 'developer-portal', name: 'Developer Portal', icon: Globe },
-];
-
 function useActiveAppKey(): string {
     const { pathname } = useLocation();
 
@@ -67,10 +109,13 @@ function WelcomePage() {
 export function App() {
     const navigate = useNavigate();
     const activeAppKey = useActiveAppKey();
+    const { apps, loading, error } = useConsoleApplications();
 
     const handleAppChange = (key: string) => {
         navigate(`/${key}`);
     };
+
+    const displayApps = error || (!loading && apps.length === 0) ? FALLBACK_APPS : apps;
 
     return (
         <div className="flex h-svh w-full flex-col">
@@ -79,7 +124,7 @@ export function App() {
                     <div className="flex items-center gap-2">
                         <GraviteeLogo />
                         <AppDropdown
-                            apps={APPS}
+                            apps={displayApps}
                             activeAppKey={activeAppKey}
                             onAppChange={handleAppChange}
                         />
