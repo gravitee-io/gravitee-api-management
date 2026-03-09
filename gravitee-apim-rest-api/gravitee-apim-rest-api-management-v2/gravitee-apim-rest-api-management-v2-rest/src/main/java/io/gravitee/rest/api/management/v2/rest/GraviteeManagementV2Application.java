@@ -42,6 +42,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.application.Applications
 import io.gravitee.rest.api.management.v2.rest.resource.asyncjob.AsyncJobsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.EnvironmentsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.GraviteeLicenseResource;
+import io.gravitee.rest.api.management.v2.rest.resource.installation.InstallationResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.OrganizationResource;
 import io.gravitee.rest.api.management.v2.rest.resource.integration.IntegrationsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.logs.LogsSearchResource;
@@ -75,6 +76,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         //Main resource
         register(ManagementUIResource.class);
         register(GraviteeLicenseResource.class); // Deprecated
+        register(InstallationResource.class);
         register(OrganizationResource.class);
         register(EnvironmentsResource.class);
         register(ApisResource.class);
