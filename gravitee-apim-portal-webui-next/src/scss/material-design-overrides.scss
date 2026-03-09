@@ -19,15 +19,11 @@
 @use './m3-adapter';
 
 mat-chip {
-  --mdc-chip-elevated-container-color: #{theme.$chip-background};
-}
-
-.label-chip {
   @include mat.chips-overrides(
     (
-      elevated-container-color: #{theme.$label-chip-container-color},
-      label-text-color: #{theme.$label-chip-label-text-color},
-      container-shape-radius: #{theme.$label-chip-container-shape-radius},
+      elevated-container-color: #{theme.$chip-container-color},
+      label-text-color: #{theme.$chip-label-text-color},
+      container-shape-radius: #{theme.$chip-container-shape-radius},
     )
   );
 

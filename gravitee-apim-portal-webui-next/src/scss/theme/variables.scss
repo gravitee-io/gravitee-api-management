@@ -122,14 +122,11 @@ $table-body-background-color: var(--gio-app-table-body-container-color, $card-ba
 $table-header-headline-color: var(--gio-app-table-header-headline-color, $default-text-color);
 
 // -- Other Components --
-<<<<<<< HEAD
+
 $chip-background: var(--gio-app-chip-container-color, #e1e5ed);
-=======
-$chip-background: var(--gio-app-chip-container-color, $card-background-color);
-$label-chip-container-color: var(--gio-app-label-chip-container-color, #e1e5ed);
-$label-chip-label-text-color: var(--gio-app-label-chip-label-text-color, #5f6368);
-$label-chip-container-shape-radius: var(--gio-app-label-chip-container-shape-radius, 16px);
->>>>>>> a2ed1479dc (feat(dev-portal): address PR review comments on catalog redesign)
+$chip-container-color: var(--gio-app-chip-container-color, #e1e5ed);
+$chip-label-text-color: var(--gio-app-chip-label-text-color, #5f6368);
+$chip-container-shape-radius: var(--gio-app-chip-container-shape-radius, 16px);
 $select-panel-background-color: color-mix(in srgb, $banner-background-color 12%, $card-background-color);
 $calendar-background-color: color-mix(in srgb, $banner-background-color 50%, $card-background-color);
 $primary-highlight-color: color-mix(in srgb, $primary-main-color 8%, white 92%);
@@ -144,4 +141,4 @@ $badge-label-text-color: var(--gio-app-badge-label-text-color, $primary-main-col
 
 // -- Search bar shortcut --
 $search-bar-shortcut-text-color: var(--gio-app-search-bar-shortcut-label-text-color, $paragraph-color);
-$search-bar-shortcut-background-color: var(--gio-app-search-bar-shortcut-container-color, $label-chip-container-color);
+$search-bar-shortcut-background-color: var(--gio-app-search-bar-shortcut-container-color, $chip-container-color);
