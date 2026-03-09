@@ -57,7 +57,7 @@ public class AbstractQueryAdapterTest {
     }
 
     protected List<MetricMeasuresQuery> buildSortedMetric() {
-        var measures = Set.of(Measure.COUNT, Measure.RPS);
+        var measures = Set.of(Measure.COUNT, Measure.AVG);
         return List.of(
             new MetricMeasuresQuery(
                 Metric.HTTP_REQUESTS,

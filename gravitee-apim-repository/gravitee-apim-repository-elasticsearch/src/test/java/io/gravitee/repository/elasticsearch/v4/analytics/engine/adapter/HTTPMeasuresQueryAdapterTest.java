@@ -180,10 +180,10 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
     }
 
     @Test
-    void should_build_query_with_rps_measure() throws JsonProcessingException {
+    void should_build_query_with_rps_metric() throws JsonProcessingException {
         var timeRange = buildTimeRange();
         var filters = buildFilters();
-        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.RPS)));
+        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_RPS, Set.of(Measure.VALUE)));
 
         var query = new MeasuresQuery(timeRange, filters, metrics);
 
@@ -194,20 +194,19 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        // RPS uses a date_histogram with bucket_script
-        var rpsDateHistogram = aggs.at("/_HTTP_REQUESTS#RPS/date_histogram");
+        var rpsDateHistogram = aggs.at("/_HTTP_RPS#VALUE/date_histogram");
         assertThat(rpsDateHistogram).isNotNull();
 
-        var rpsBucketScript = aggs.at("/_HTTP_REQUESTS#RPS/aggs/HTTP_REQUESTS#RPS/bucket_script");
+        var rpsBucketScript = aggs.at("/_HTTP_RPS#VALUE/aggs/HTTP_RPS#VALUE/bucket_script");
         assertThat(rpsBucketScript).isNotNull();
         assertThat(rpsBucketScript.has("script")).isTrue();
     }
 
     @Test
-    void should_build_query_with_error_rate_measure() throws JsonProcessingException {
+    void should_build_query_with_error_rate_metric() throws JsonProcessingException {
         var timeRange = buildTimeRange();
         var filters = buildFilters();
-        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_ERRORS, Set.of(Measure.PERCENTAGE)));
+        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_ERROR_RATE, Set.of(Measure.VALUE)));
 
         var query = new MeasuresQuery(timeRange, filters, metrics);
 
@@ -218,11 +217,10 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
 
-        // Error rate uses a date_histogram with bucket_script
-        var errorRateDateHistogram = aggs.at("/_HTTP_ERRORS#PERCENTAGE/date_histogram");
+        var errorRateDateHistogram = aggs.at("/_HTTP_ERROR_RATE#VALUE/date_histogram");
         assertThat(errorRateDateHistogram).isNotNull();
 
-        var errorRateBucketScript = aggs.at("/_HTTP_ERRORS#PERCENTAGE/aggs/HTTP_ERRORS#PERCENTAGE/bucket_script");
+        var errorRateBucketScript = aggs.at("/_HTTP_ERROR_RATE#VALUE/aggs/HTTP_ERROR_RATE#VALUE/bucket_script");
         assertThat(errorRateBucketScript).isNotNull();
         assertThat(errorRateBucketScript.has("script")).isTrue();
     }

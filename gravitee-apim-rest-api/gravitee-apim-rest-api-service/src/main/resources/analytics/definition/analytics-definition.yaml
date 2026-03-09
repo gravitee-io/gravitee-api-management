@@ -6,8 +6,6 @@ spec:
           label: LLM
         - name: MESSAGE
           label: Message
-        - name: KAFKA
-          label: Kafka
         - name: MCP
           label: MCP
 
@@ -19,10 +17,9 @@ spec:
               - LLM
               - MESSAGE
               - MCP
-          type: COUNTER
+          unit: NUMBER
           measures:
               - COUNT
-              - RPS
           facets:
               - API
               - APPLICATION
@@ -81,16 +78,15 @@ spec:
               - MCP_PROXY_PROMPT
 
         - name: HTTP_ERRORS
-          label: Error Rate
+          label: HTTP Errors
           apis:
               - HTTP_PROXY
               - LLM
               - MESSAGE
               - MCP
-          type: GAUGE
           unit: NUMBER
           measures:
-              - PERCENTAGE
+              - COUNT
           facets:
               - API
               - APPLICATION
@@ -155,7 +151,6 @@ spec:
               - LLM
               - MESSAGE
               - MCP
-          type: GAUGE
           unit: BYTES
           measures:
               - AVG
@@ -227,6 +222,7 @@ spec:
               - LLM
               - MESSAGE
               - MCP
+          unit: BYTES
           measures:
               - AVG
               - MIN
@@ -234,8 +230,6 @@ spec:
               - P90
               - P95
               - P99
-          type: GAUGE
-          unit: BYTES
           facets:
               - API
               - APPLICATION
@@ -299,7 +293,6 @@ spec:
               - LLM
               - MESSAGE
               - MCP
-          type: GAUGE
           unit: MILLISECONDS
           measures:
               - AVG
@@ -371,7 +364,6 @@ spec:
               - LLM
               - MESSAGE
               - MCP
-          type: GAUGE
           unit: MILLISECONDS
           measures:
               - AVG
@@ -434,7 +426,6 @@ spec:
 
         - name: HTTP_GATEWAY_LATENCY
           label: Latency
-          type: GAUGE
           unit: MILLISECONDS
           apis:
               - HTTP_PROXY
@@ -508,7 +499,7 @@ spec:
           label: Sent token count
           apis:
               - LLM
-          type: COUNTER
+          unit: NUMBER
           measures:
               - COUNT
               - AVG
@@ -562,7 +553,7 @@ spec:
           label: Received token count
           apis:
               - LLM
-          type: COUNTER
+          unit: NUMBER
           measures:
               - COUNT
               - AVG
@@ -617,7 +608,6 @@ spec:
           label: Sent token cost
           apis:
               - LLM
-          type: GAUGE
           unit: NUMBER
           measures:
               - COUNT
@@ -672,7 +662,6 @@ spec:
           label: Received token cost
           apis:
               - LLM
-          type: GAUGE
           unit: NUMBER
           measures:
               - COUNT
@@ -727,7 +716,7 @@ spec:
           label: Total token count
           apis:
               - LLM
-          type: COUNTER
+          unit: NUMBER
           measures:
               - COUNT
               - AVG
@@ -782,7 +771,6 @@ spec:
           label: Total token cost
           apis:
               - LLM
-          type: GAUGE
           unit: NUMBER
           measures:
               - COUNT
@@ -838,7 +826,6 @@ spec:
           label: Message Payload Size
           apis:
               - MESSAGE
-          type: GAUGE
           unit: BYTES
           measures:
               - AVG
@@ -854,19 +841,6 @@ spec:
               - GATEWAY
               - TENANT
               - ZONE
-              - HTTP_METHOD
-              - HTTP_STATUS_CODE_GROUP
-              - HTTP_STATUS
-              - HTTP_PATH
-              - HTTP_PATH_MAPPING
-              - HTTP_USER_AGENT_OS_NAME
-              - HTTP_USER_AGENT_DEVICE
-              - HOST
-              - GEO_IP_COUNTRY
-              - GEO_IP_REGION
-              - GEO_IP_CITY
-              - GEO_IP_CONTINENT
-              - CONSUMER_IP
               - MESSAGE_CONNECTOR_TYPE
               - MESSAGE_CONNECTOR_ID
               - MESSAGE_OPERATION_TYPE
@@ -877,18 +851,6 @@ spec:
               - GATEWAY
               - TENANT
               - ZONE
-              - HTTP_STATUS_CODE_GROUP
-              - HTTP_STATUS
-              - HTTP_PATH
-              - HTTP_PATH_MAPPING
-              - HTTP_USER_AGENT_OS_NAME
-              - HTTP_USER_AGENT_DEVICE
-              - HOST
-              - GEO_IP_COUNTRY
-              - GEO_IP_REGION
-              - GEO_IP_CITY
-              - GEO_IP_CONTINENT
-              - CONSUMER_IP
               - MESSAGE_CONNECTOR_TYPE
               - MESSAGE_CONNECTOR_ID
               - MESSAGE_OPERATION_TYPE
@@ -897,10 +859,9 @@ spec:
           label: Message count
           apis:
               - MESSAGE
-          type: COUNTER
+          unit: NUMBER
           measures:
               - COUNT
-              - RPS
           facets:
               - API
               - APPLICATION
@@ -908,20 +869,8 @@ spec:
               - GATEWAY
               - TENANT
               - ZONE
-              - HTTP_METHOD
-              - HTTP_STATUS_CODE_GROUP
-              - HTTP_STATUS
-              - HTTP_PATH
-              - HTTP_PATH_MAPPING
-              - HTTP_USER_AGENT_OS_NAME
-              - HTTP_USER_AGENT_DEVICE
-              - HOST
-              - GEO_IP_COUNTRY
-              - GEO_IP_REGION
-              - GEO_IP_CITY
-              - GEO_IP_CONTINENT
-              - CONSUMER_IP
               - MESSAGE_CONNECTOR_TYPE
+              - MESSAGE_CONNECTOR_ID
               - MESSAGE_OPERATION_TYPE
           filters:
               - API
@@ -930,30 +879,17 @@ spec:
               - GATEWAY
               - TENANT
               - ZONE
-              - HTTP_STATUS_CODE_GROUP
-              - HTTP_STATUS
-              - HTTP_PATH
-              - HTTP_PATH_MAPPING
-              - HTTP_USER_AGENT_OS_NAME
-              - HTTP_USER_AGENT_DEVICE
-              - HTTP_ENDPOINT_RESPONSE_TIME
-              - HOST
-              - GEO_IP_COUNTRY
-              - GEO_IP_REGION
-              - GEO_IP_CITY
-              - GEO_IP_CONTINENT
-              - CONSUMER_IP
               - MESSAGE_CONNECTOR_TYPE
+              - MESSAGE_CONNECTOR_ID
               - MESSAGE_OPERATION_TYPE
 
         - name: MESSAGE_ERRORS
           label: Message Error Count
           apis:
               - MESSAGE
-          type: COUNTER
+          unit: NUMBER
           measures:
               - COUNT
-              - RPS
           facets:
               - API
               - APPLICATION
@@ -961,20 +897,8 @@ spec:
               - GATEWAY
               - TENANT
               - ZONE
-              - HTTP_METHOD
-              - HTTP_STATUS_CODE_GROUP
-              - HTTP_STATUS
-              - HTTP_PATH
-              - HTTP_PATH_MAPPING
-              - HTTP_USER_AGENT_OS_NAME
-              - HTTP_USER_AGENT_DEVICE
-              - HOST
-              - GEO_IP_COUNTRY
-              - GEO_IP_REGION
-              - GEO_IP_CITY
-              - GEO_IP_CONTINENT
-              - CONSUMER_IP
               - MESSAGE_CONNECTOR_TYPE
+              - MESSAGE_CONNECTOR_ID
               - MESSAGE_OPERATION_TYPE
           filters:
               - API
@@ -983,23 +907,11 @@ spec:
               - GATEWAY
               - TENANT
               - ZONE
-              - HTTP_STATUS_CODE_GROUP
-              - HTTP_STATUS
-              - HTTP_PATH
-              - HTTP_PATH_MAPPING
-              - HTTP_USER_AGENT_OS_NAME
-              - HTTP_USER_AGENT_DEVICE
-              - HOST
-              - GEO_IP_COUNTRY
-              - GEO_IP_REGION
-              - GEO_IP_CITY
-              - GEO_IP_CONTINENT
-              - CONSUMER_IP
               - MESSAGE_CONNECTOR_TYPE
+              - MESSAGE_CONNECTOR_ID
               - MESSAGE_OPERATION_TYPE
 
         - name: MESSAGE_GATEWAY_LATENCY
-          type: GAUGE
           unit: MILLISECONDS
           label: Message processing time
           apis:
@@ -1018,6 +930,37 @@ spec:
               - GATEWAY
               - TENANT
               - ZONE
+              - MESSAGE_CONNECTOR_TYPE
+              - MESSAGE_CONNECTOR_ID
+              - MESSAGE_OPERATION_TYPE
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - GATEWAY
+              - TENANT
+              - ZONE
+              - MESSAGE_CONNECTOR_TYPE
+              - MESSAGE_CONNECTOR_ID
+              - MESSAGE_OPERATION_TYPE
+
+        - name: HTTP_ERROR_RATE
+          label: Error Rate
+          apis:
+              - HTTP_PROXY
+              - LLM
+              - MESSAGE
+              - MCP
+          unit: PERCENTAGE
+          measures:
+              - VALUE
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - GATEWAY
+              - TENANT
+              - ZONE
               - HTTP_METHOD
               - HTTP_STATUS_CODE_GROUP
               - HTTP_STATUS
@@ -1031,15 +974,61 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
-              - MESSAGE_CONNECTOR_TYPE
-              - MESSAGE_OPERATION_TYPE
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_RESOURCE
+              - MCP_PROXY_PROMPT
           filters:
+              - API
+              - API_TYPE
+              - APPLICATION
+              - PLAN
+              - GATEWAY
+              - TENANT
+              - ZONE
+              - HTTP_METHOD
+              - HTTP_STATUS_CODE_GROUP
+              - HTTP_STATUS
+              - HTTP_PATH
+              - HTTP_PATH_MAPPING
+              - HTTP_USER_AGENT_OS_NAME
+              - HTTP_USER_AGENT_DEVICE
+              - HTTP_ENDPOINT_RESPONSE_TIME
+              - HTTP_GATEWAY_LATENCY
+              - HTTP_GATEWAY_RESPONSE_TIME
+              - HOST
+              - GEO_IP_COUNTRY
+              - GEO_IP_REGION
+              - GEO_IP_CITY
+              - GEO_IP_CONTINENT
+              - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_RESOURCE
+              - MCP_PROXY_PROMPT
+
+        - name: HTTP_RPS
+          label: HTTP Requests Per Second
+          apis:
+              - HTTP_PROXY
+              - LLM
+              - MESSAGE
+              - MCP
+          unit: RPS
+          measures:
+              - VALUE
+          facets:
               - API
               - APPLICATION
               - PLAN
               - GATEWAY
               - TENANT
               - ZONE
+              - HTTP_METHOD
               - HTTP_STATUS_CODE_GROUP
               - HTTP_STATUS
               - HTTP_PATH
@@ -1052,389 +1041,70 @@ spec:
               - GEO_IP_CITY
               - GEO_IP_CONTINENT
               - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_RESOURCE
+              - MCP_PROXY_PROMPT
+          filters:
+              - API
+              - API_TYPE
+              - APPLICATION
+              - PLAN
+              - GATEWAY
+              - TENANT
+              - ZONE
+              - HTTP_METHOD
+              - HTTP_STATUS_CODE_GROUP
+              - HTTP_STATUS
+              - HTTP_PATH
+              - HTTP_PATH_MAPPING
+              - HTTP_USER_AGENT_OS_NAME
+              - HTTP_USER_AGENT_DEVICE
+              - HTTP_ENDPOINT_RESPONSE_TIME
+              - HTTP_GATEWAY_LATENCY
+              - HTTP_GATEWAY_RESPONSE_TIME
+              - HOST
+              - GEO_IP_COUNTRY
+              - GEO_IP_REGION
+              - GEO_IP_CITY
+              - GEO_IP_CONTINENT
+              - CONSUMER_IP
+              - LLM_PROXY_MODEL
+              - LLM_PROXY_PROVIDER
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_RESOURCE
+              - MCP_PROXY_PROMPT
+
+        - name: MESSAGE_RPS
+          label: Messages Per Second
+          apis:
+              - MESSAGE
+          unit: RPS
+          measures:
+              - VALUE
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - GATEWAY
+              - TENANT
+              - ZONE
               - MESSAGE_CONNECTOR_TYPE
+              - MESSAGE_CONNECTOR_ID
               - MESSAGE_OPERATION_TYPE
-
-        - name: KAFKA_DOWNSTREAM_PUBLISH_MESSAGES
-          label: Downstream Publish Messages
-          apis:
-              - KAFKA
-          type: COUNTER
-          measures:
-              - COUNT
-              - RPS
-          facets:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-              - KAFKA_TOPIC
           filters:
               - API
               - APPLICATION
               - PLAN
               - GATEWAY
-              - KAFKA_TOPIC
-
-        - name: KAFKA_DOWNSTREAM_SUBSCRIBE_MESSAGES
-          label: Downstream Subscribe Messages
-          apis:
-              - KAFKA
-          type: COUNTER
-          measures:
-              - COUNT
-              - RPS
-          facets:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-              - KAFKA_TOPIC
-          filters:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-              - KAFKA_TOPIC
-        - name: KAFKA_DOWNSTREAM_PUBLISH_MESSAGES_BYTES
-          label: Downstream Publish Message Bytes
-          apis:
-              - KAFKA
-          measures:
-              - AVG
-              - MIN
-              - MAX
-              - P90
-              - P95
-              - P99
-          facets:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-              - KAFKA_TOPIC
-          filters:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-              - KAFKA_TOPIC
-
-        - name: KAFKA_DOWNSTREAM_SUBSCRIBE_MESSAGE_BYTES
-          label: Downstream Subscribe Message Bytes
-          apis:
-              - KAFKA
-          measures:
-              - AVG
-              - MIN
-              - MAX
-              - P90
-              - P95
-              - P99
-          type: GAUGE
-          unit: BYTES
-          facets:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-              - KAFKA_TOPIC
-          filters:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-              - KAFKA_TOPIC
-
-        - name: KAFKA_UPSTREAM_PUBLISH_MESSAGES
-          label: Upstream Publish Messages
-          apis:
-              - KAFKA
-          type: COUNTER
-          measures:
-              - COUNT
-              - RPS
-          facets:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-              - KAFKA_TOPIC
-          filters:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-              - KAFKA_TOPIC
-
-        - name: KAFKA_UPSTREAM_SUBSCRIBE_MESSAGES
-          label: Upstream Subscribe Messages
-          apis:
-              - KAFKA
-          measures:
-              - COUNT
-              - RPS
-          type: COUNTER
-          facets:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-              - KAFKA_TOPIC
-          filters:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-              - KAFKA_TOPIC
-
-        - name: KAFKA_UPSTREAM_PUBLISH_MESSAGE_BYTES
-          label: Upstream Publish Message Bytes
-          apis:
-              - KAFKA
-          measures:
-              - AVG
-              - MIN
-              - MAX
-              - P90
-              - P95
-              - P99
-          facets:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-              - KAFKA_TOPIC
-          filters:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-              - KAFKA_TOPIC
-
-        - name: KAFKA_UPSTREAM_SUBSCRIBE_MESSAGE_BYTES
-          label: Upstream Subscribe Message Bytes
-          apis:
-              - KAFKA
-          type: GAUGE
-          unit: BYTES
-          measures:
-              - AVG
-              - MIN
-              - MAX
-              - P90
-              - P95
-              - P99
-          facets:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-              - KAFKA_TOPIC
-          filters:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-              - KAFKA_TOPIC
-
-        - name: KAFKA_DOWNSTREAM_AUTHENTICATION_SUCCESSES
-          label: Downstream Authentication Successes
-          apis:
-              - KAFKA
-          type: GAUGE
-          unit: NUMBER
-          measures:
-              - COUNT
-          facets:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-          filters:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-
-        - name: KAFKA_DOWNSTREAM_AUTHENTICATED_CONNECTIONS
-          label: Downstream Authenticated Connections
-          apis:
-              - KAFKA
-          type: GAUGE
-          unit: NUMBER
-          measures:
-              - MAX
-              - AVG
-              - MIN
-              - P90
-              - P95
-              - P99
-          facets:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-          filters:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-
-        - name: KAFKA_UPSTREAM_AUTHENTICATION_SUCCESSES
-          label: Upstream Authentication Successes
-          apis:
-              - KAFKA
-          type: GAUGE
-          unit: NUMBER
-          measures:
-              - COUNT
-          facets:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-          filters:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-
-        - name: KAFKA_UPSTREAM_AUTHENTICATED_CONNECTIONS
-          label: Upstream Authenticated Connections
-          apis:
-              - KAFKA
-          type: GAUGE
-          unit: NUMBER
-          measures:
-              - MAX
-              - MIN
-              - AVG
-              - P90
-              - P95
-              - P99
-          facets:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-          filters:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-
-        - name: KAFKA_UPSTREAM_AUTHENTICATION_ERRORS
-          label: Upstream Authentication Errors
-          apis:
-              - KAFKA
-          type: GAUGE
-          unit: NUMBER
-          measures:
-              - COUNT
-          facets:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-          filters:
-              - API
-              - APPLICATION
-              - PLAN
-              - GATEWAY
-
-        - name: KAFKA_DOWNSTREAM_AUTHENTICATION_ERRORS
-          label: Downstream Authentication Errors
-          apis:
-              - KAFKA
-          type: GAUGE
-          unit: NUMBER
-          measures:
-              - COUNT
-          facets:
-              - API
-              - GATEWAY
-          filters:
-              - API
-              - GATEWAY
-
-        - name: KAFKA_DOWNSTREAM_ACTIVE_CONNECTIONS
-          label: Downstream Active Connections
-          apis:
-              - KAFKA
-          type: GAUGE
-          unit: NUMBER
-          measures:
-              - MIN
-              - MAX
-              - AVG
-              - P90
-              - P95
-              - P99
-          facets:
-              - API
-              - GATEWAY
-          filters:
-              - API
-              - GATEWAY
-
-        - name: KAFKA_UPSTREAM_ACTIVE_CONNECTIONS
-          label: Upstream Active Connections
-          apis:
-              - KAFKA
-          type: GAUGE
-          unit: NUMBER
-          measures:
-              - MIN
-              - MAX
-              - AVG
-              - P90
-              - P95
-              - P99
-          facets:
-              - API
-              - GATEWAY
-          filters:
-              - API
-              - GATEWAY
-
-        - name: SUBSCRIPTIONS
-          label: Subscriptions Count
-          apis:
-              - HTTP_PROXY
-              - MESSAGE
-              - KAFKA
-              - LLM
-              - MCP
-          type: COUNTER
-          measures:
-              - COUNT
-          facets:
-              - API
-              - APPLICATION
-          filters:
-              - API
-              - APPLICATION
-
-        - name: APIS
-          label: APIs
-          apis:
-              - HTTP_PROXY
-              - MESSAGE
-              - KAFKA
-              - LLM
-              - MCP
-          type: COUNTER
-          measures:
-              - COUNT
-          facets:
-              - API_STATE
-              - API_LIFECYCLE_STATE
-              - API_VISIBILITY
-          filters:
-              - API_STATE
-              - API_LIFECYCLE_STATE
-              - API_VISIBILITY
+              - TENANT
+              - ZONE
+              - MESSAGE_CONNECTOR_TYPE
+              - MESSAGE_CONNECTOR_ID
+              - MESSAGE_OPERATION_TYPE
 
     filters:
         - name: API
@@ -1603,44 +1273,6 @@ spec:
           enumValues:
               - Publish
               - Subscribe
-          operators:
-              - EQ
-              - IN
-
-        - name: KAFKA_TOPIC
-          label: Topic
-          type: KEYWORD
-          operators:
-              - EQ
-              - IN
-
-        - name: API_STATE
-          label: API State
-          type: ENUM
-          enumValues:
-              - STARTED
-              - STOPPED
-          operators:
-              - EQ
-              - IN
-
-        - name: API_LIFECYCLE_STATE
-          label: API Lifecycle State
-          type: ENUM
-          enumValues:
-              - PUBLISHED
-              - UNPUBLISHED
-              - DEPRECATED
-          operators:
-              - EQ
-              - IN
-
-        - name: API_VISIBILITY
-          label: API Visibility
-          type: ENUM
-          enumValues:
-              - PUBLIC
-              - PRIVATE
           operators:
               - EQ
               - IN
@@ -1849,22 +1481,6 @@ spec:
 
         - name: MESSAGE_OPERATION_TYPE
           label: Operation
-          type: KEYWORD
-
-        - name: KAFKA_TOPIC
-          label: Topic
-          type: KEYWORD
-
-        - name: API_STATE
-          label: API State
-          type: KEYWORD
-
-        - name: API_LIFECYCLE_STATE
-          label: API Lifecycle State
-          type: KEYWORD
-
-        - name: API_VISIBILITY
-          label: API Visibility
           type: KEYWORD
 
         - name: LLM_PROXY_MODEL

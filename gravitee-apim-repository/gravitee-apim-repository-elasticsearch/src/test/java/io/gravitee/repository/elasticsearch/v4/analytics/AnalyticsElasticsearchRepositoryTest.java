@@ -1266,8 +1266,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 var timeRange = buildTimeRange();
                 var metrics = List.of(
                     new MetricMeasuresQuery(Metric.HTTP_GATEWAY_RESPONSE_TIME, Set.of(Measure.AVG)),
-                    new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.RPS)),
-                    new MetricMeasuresQuery(Metric.HTTP_ERRORS, Set.of(Measure.PERCENTAGE))
+                    new MetricMeasuresQuery(Metric.HTTP_RPS, Set.of(Measure.VALUE)),
+                    new MetricMeasuresQuery(Metric.HTTP_ERROR_RATE, Set.of(Measure.VALUE))
                 );
 
                 var filter = new Filter(

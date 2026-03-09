@@ -28,6 +28,5 @@ public enum Measure {
     P90,
     P95,
     P99,
-    PERCENTAGE,
-    RPS,
+    VALUE,
 }

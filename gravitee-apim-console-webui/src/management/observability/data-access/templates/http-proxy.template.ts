@@ -45,7 +45,7 @@ export const HTTP_PROXY_TEMPLATE: DashboardTemplate = {
         layout: { cols: 1, rows: 1, y: 0, x: 1 },
         request: {
           type: 'measures',
-          metrics: [{ name: 'HTTP_ERRORS', measures: ['PERCENTAGE'] }],
+          metrics: [{ name: 'HTTP_ERROR_RATE', measures: ['VALUE'] }],
         },
       },
       {

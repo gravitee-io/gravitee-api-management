@@ -271,7 +271,7 @@ class DashboardWidgetRequestMapperTest {
                 .type("time-series")
                 .timeRange(validTimeRange())
                 .interval(3600000L)
-                .metrics(List.of(metricRequest("HTTP_REQUESTS", "RPS")))
+                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
                 .by(List.of("API"))
                 .limit(5)
                 .build();
@@ -317,7 +317,7 @@ class DashboardWidgetRequestMapperTest {
                 .type("time-series")
                 .timeRange(validTimeRange())
                 .interval(3600000L)
-                .metrics(List.of(metricRequest("HTTP_REQUESTS", "RPS")))
+                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
                 .filters(List.of(DashboardWidget.Filter.builder().name("API").operator("EQ").value("my-api-id").build()))
                 .build();
 

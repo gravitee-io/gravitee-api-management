@@ -66,8 +66,6 @@ paths:
                                               label: "HTTP Proxy"
                                             - name: "MESSAGE"
                                               label: "Message"
-                                            - name: "KAFKA"
-                                              label: "Kafka"
                                             - name: "LLM"
                                               label: "LLM"
                                             - name: "MCP"
@@ -106,14 +104,12 @@ paths:
                                             - name: "HTTP_REQUESTS"
                                               label: "HTTP Requests"
                                               apis: ["HTTP_PROXY", "LLM"]
-                                              type: "COUNTER"
-                                              measures: ["COUNT", "RPS"]
+                                              measures: ["COUNT"]
                                               facets: ["API", "APPLICATION", "GATEWAY"]
                                               filters: ["API", "APPLICATION", "HTTP_STATUS"]
                                             - name: "HTTP_GATEWAY_RESPONSE_TIME"
                                               label: "Gateway response time"
                                               apis: ["HTTP_PROXY", "LLM"]
-                                              type: "GAUGE"
                                               unit: "MILLISECONDS"
                                               measures: ["AVG", "MIN", "MAX", "P50", "P90", "P95", "P99"]
                                               facets: ["API", "APPLICATION", "GATEWAY"]
@@ -278,7 +274,7 @@ paths:
                                         to: "2025-01-31T23:59:59Z"
                                     metrics:
                                         - name: "HTTP_REQUESTS"
-                                          measures: ["COUNT", "RPS"]
+                                          measures: ["COUNT"]
                             multiple-metrics:
                                 summary: Multiple metrics request
                                 value:
@@ -307,8 +303,6 @@ paths:
                                               measures:
                                                   - name: "COUNT"
                                                     value: 2984
-                                                  - name: "RPS"
-                                                    value: 45.7
                                 multiple-metrics:
                                     summary: Multiple metrics response
                                     value:
@@ -886,7 +880,7 @@ paths:
                                               limit: 5
                                               metrics:
                                                   - name: "HTTP_REQUESTS"
-                                                    measures: ["RPS"]
+                                                    measures: ["COUNT"]
             responses:
                 "201":
                     description: |
@@ -1119,7 +1113,6 @@ components:
             enum:
                 - HTTP_PROXY
                 - MESSAGE
-                - KAFKA
                 - LLM
                 - MCP
             description: Available API names for analytics queries
@@ -1130,6 +1123,8 @@ components:
             enum:
                 - HTTP_REQUESTS
                 - HTTP_ERRORS
+                - HTTP_ERROR_RATE
+                - HTTP_RPS
                 - HTTP_REQUEST_CONTENT_LENGTH
                 - HTTP_RESPONSE_CONTENT_LENGTH
                 - HTTP_ENDPOINT_RESPONSE_TIME
@@ -1145,24 +1140,7 @@ components:
                 - MESSAGES
                 - MESSAGE_ERRORS
                 - MESSAGE_GATEWAY_LATENCY
-                - KAFKA_DOWNSTREAM_PUBLISH_MESSAGES
-                - KAFKA_DOWNSTREAM_SUBSCRIBE_MESSAGES
-                - KAFKA_DOWNSTREAM_PUBLISH_MESSAGES_BYTES
-                - KAFKA_DOWNSTREAM_SUBSCRIBE_MESSAGE_BYTES
-                - KAFKA_UPSTREAM_PUBLISH_MESSAGES
-                - KAFKA_UPSTREAM_SUBSCRIBE_MESSAGES
-                - KAFKA_UPSTREAM_PUBLISH_MESSAGE_BYTES
-                - KAFKA_UPSTREAM_SUBSCRIBE_MESSAGE_BYTES
-                - KAFKA_DOWNSTREAM_AUTHENTICATION_SUCCESSES
-                - KAFKA_DOWNSTREAM_AUTHENTICATED_CONNECTIONS
-                - KAFKA_UPSTREAM_AUTHENTICATION_SUCCESSES
-                - KAFKA_UPSTREAM_AUTHENTICATED_CONNECTIONS
-                - KAFKA_UPSTREAM_AUTHENTICATION_ERRORS
-                - KAFKA_DOWNSTREAM_AUTHENTICATION_ERRORS
-                - KAFKA_DOWNSTREAM_ACTIVE_CONNECTIONS
-                - KAFKA_UPSTREAM_ACTIVE_CONNECTIONS
-                - SUBSCRIPTIONS
-                - APIS
+                - MESSAGE_RPS
             description: Available metric names for analytics queries
 
         FacetName:
@@ -1190,10 +1168,6 @@ components:
                 - MESSAGE_CONNECTOR_TYPE
                 - MESSAGE_CONNECTOR_ID
                 - MESSAGE_OPERATION_TYPE
-                - KAFKA_TOPIC
-                - API_STATE
-                - API_LIFECYCLE_STATE
-                - API_VISIBILITY
                 - LLM_PROXY_MODEL
                 - LLM_PROXY_PROVIDER
                 - MCP_PROXY_METHOD
@@ -1227,10 +1201,6 @@ components:
                 - MESSAGE_CONNECTOR_TYPE
                 - MESSAGE_CONNECTOR_ID
                 - MESSAGE_OPERATION_TYPE
-                - KAFKA_TOPIC
-                - API_STATE
-                - API_LIFECYCLE_STATE
-                - API_VISIBILITY
                 - MESSAGE_SIZE
                 - MESSAGE_COUNT
                 - MESSAGE_ERROR_COUNT
@@ -1269,8 +1239,7 @@ components:
                 - P95
                 - P99
                 - COUNT
-                - RPS
-                - PERCENTAGE
+                - VALUE
             description: Measure name identifier. Represents the type of measure/aggregation applied to a metric.
             example: "COUNT"
 
@@ -1291,29 +1260,16 @@ components:
                 name: "COUNT"
                 value: 2984
 
-        MetricType:
-            type: string
-            enum:
-                - COUNTER
-                - GAUGE
-            description: |
-                Metric type identifier.
-
-                - **COUNTER**: A counter metric increases monotonically, representing cumulative values over time. Counters are typically used for counting events or occurrences.
-
-                - **GAUGE**: A gauge metric can increase and decrease over time, representing values that can go up or down. Gauges are typically used for measuring current state or instantaneous values.
-            example: "COUNTER"
-
         UnitName:
             type: string
             enum:
                 - BYTES
                 - MILLISECONDS
                 - NUMBER
+                - PERCENTAGE
+                - RPS
             description: |
-                Unit of measurement for gauge metrics. Specifies the unit in which the metric values are expressed.
-
-                This field is optional and only applicable for GAUGE metrics. COUNTER metrics do not have units.
+                Unit of measurement for metrics. Specifies the unit in which the metric values are expressed.
             example: "BYTES"
 
         ApiSpec:
@@ -1421,7 +1377,6 @@ components:
                 - name
                 - label
                 - apis
-                - type
                 - measures
                 - facets
                 - filters
@@ -1439,8 +1394,6 @@ components:
                         $ref: "#/components/schemas/ApiName"
                     description: List of API types this metric applies to
                     example: ["HTTP_PROXY", "LLM"]
-                type:
-                    $ref: "#/components/schemas/MetricType"
                 unit:
                     $ref: "#/components/schemas/UnitName"
                 measures:
@@ -1448,7 +1401,7 @@ components:
                     items:
                         $ref: "#/components/schemas/MeasureName"
                     description: List of supported measures for this metric
-                    example: ["COUNT", "RPS"]
+                    example: ["COUNT"]
                 facets:
                     type: array
                     items:
@@ -1465,8 +1418,7 @@ components:
                 name: "HTTP_REQUESTS"
                 label: "HTTP Requests"
                 apis: ["HTTP_PROXY", "LLM"]
-                type: "COUNTER"
-                measures: ["COUNT", "RPS"]
+                measures: ["COUNT"]
                 facets: ["API", "APPLICATION", "GATEWAY"]
                 filters: ["API", "APPLICATION", "HTTP_STATUS"]
 
@@ -1484,8 +1436,6 @@ components:
                       label: "HTTP Proxy"
                     - name: "MESSAGE"
                       label: "Message"
-                    - name: "KAFKA"
-                      label: "Kafka"
                     - name: "LLM"
                       label: "LLM"
                     - name: "MCP"
@@ -1551,14 +1501,12 @@ components:
                     - name: "HTTP_REQUESTS"
                       label: "HTTP Requests"
                       apis: ["HTTP_PROXY", "LLM"]
-                      type: "COUNTER"
-                      measures: ["COUNT", "RPS"]
+                      measures: ["COUNT"]
                       facets: ["API", "APPLICATION", "GATEWAY"]
                       filters: ["API", "APPLICATION", "HTTP_STATUS"]
                     - name: "HTTP_GATEWAY_RESPONSE_TIME"
                       label: "Gateway response time"
                       apis: ["HTTP_PROXY", "LLM"]
-                      type: "GAUGE"
                       unit: "MILLISECONDS"
                       measures: ["AVG", "MIN", "MAX", "P50", "P90", "P95", "P99"]
                       facets: ["API", "APPLICATION", "GATEWAY"]
@@ -2261,12 +2209,12 @@ components:
             description: |
                 Array of measure results. Each measure contains a name and value.
                 The measures array is always represented as the leaf node of the buckets tree for other types of analytics requests.
-                Example: [{"name": "COUNT", "value": 2984}, {"name": "RPS", "value": 45.7}]
+                Example: [{"name": "COUNT", "value": 2984}, {"name": "AVG", "value": 89.5}]
             example:
                 - name: "COUNT"
                   value: 2984
-                - name: "RPS"
-                  value: 45.7
+                - name: "AVG"
+                  value: 89.5
 
         Sorts:
             type: array
@@ -2462,19 +2410,19 @@ components:
                                   name: "app-1"
                                   type: LEAF
                                   measures:
-                                      - name: "RPS"
-                                        value: 45.7
+                                      - name: "COUNT"
+                                        value: 45
                                 - key: "4c65d87a-008a-4a4c-b11a-a38b7a662fcc"
                                   name: "app-2"
                                   type: LEAF
                                   measures:
-                                      - name: "RPS"
-                                        value: 34.9
+                                      - name: "COUNT"
+                                        value: 34
                                 - key: "71091fd9-a6a9-4c7f-afdb-d837ea28058c"
                                   name: "app-3"
                                   type: LEAF
                                   measures:
-                                      - name: "RPS"
+                                      - name: "COUNT"
                                         value: 989
 
         TimeSeriesResponse:
