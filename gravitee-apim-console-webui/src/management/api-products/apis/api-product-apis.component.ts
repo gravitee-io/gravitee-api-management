@@ -19,6 +19,7 @@ import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-i
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
@@ -44,6 +45,7 @@ import { Api } from '../../../entities/management-api-v2';
 import { getApiContextPath } from '../../../shared/utils/api-access.util';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { toOrder } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
@@ -67,13 +69,23 @@ export const DEFAULT_PAGINATION = {
 const DEFAULT_FILTERS: ApiProductApisTableWrapperFilters = {
   pagination: { index: DEFAULT_PAGINATION.page, size: DEFAULT_PAGINATION.perPage },
   searchTerm: '',
+  sort: { active: 'name', direction: 'asc' },
 };
 
 @Component({
   selector: 'api-product-apis',
   templateUrl: './api-product-apis.component.html',
   styleUrls: ['./api-product-apis.component.scss'],
-  imports: [MatButtonModule, MatIconModule, MatTableModule, MatTooltipModule, GioAvatarModule, GioIconsModule, GioTableWrapperModule],
+  imports: [
+    MatButtonModule,
+    MatIconModule,
+    MatSortModule,
+    MatTableModule,
+    MatTooltipModule,
+    GioAvatarModule,
+    GioIconsModule,
+    GioTableWrapperModule,
+  ],
   standalone: true,
 })
 export class ApiProductApisComponent implements OnInit {
@@ -166,7 +178,8 @@ export class ApiProductApisComponent implements OnInit {
     const page = filters.pagination?.index ?? DEFAULT_PAGINATION.page;
     const perPage = filters.pagination?.size ?? DEFAULT_PAGINATION.perPage;
     const query = filters.searchTerm?.trim() ?? '';
-    return this.apiProductV2Service.getApis(apiProductId, page, perPage, query).pipe(
+    const sortBy = filters.sort?.direction ? toOrder(filters.sort) : 'name';
+    return this.apiProductV2Service.getApis(apiProductId, page, perPage, query, sortBy).pipe(
       catchError((err: unknown) => {
         // 404 can occur when the product was deleted elsewhere, user opened a bookmark with a removed id, or the id in the URL is invalid.
         if (err instanceof HttpErrorResponse && err.status === 404) {

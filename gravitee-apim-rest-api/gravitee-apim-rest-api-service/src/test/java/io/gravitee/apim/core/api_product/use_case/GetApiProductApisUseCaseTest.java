@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api_product.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import inmemory.ApiAuthorizationDomainServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
@@ -29,6 +30,7 @@ import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -48,12 +50,13 @@ class GetApiProductApisUseCaseTest {
     private final ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
     private final ApiAuthorizationDomainServiceInMemory apiAuthorizationDomainService = new ApiAuthorizationDomainServiceInMemory();
+    private final ApiSearchService apiSearchService = mock(ApiSearchService.class);
 
     private GetApiProductApisUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new GetApiProductApisUseCase(apiProductQueryService, apiQueryService, apiAuthorizationDomainService);
+        useCase = new GetApiProductApisUseCase(apiProductQueryService, apiQueryService, apiAuthorizationDomainService, apiSearchService);
     }
 
     @AfterEach
