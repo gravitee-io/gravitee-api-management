@@ -41,9 +41,10 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
-import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
@@ -73,6 +74,7 @@ import io.gravitee.apim.core.api_product.use_case.CreateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeployApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
+import io.gravitee.apim.core.api_product.use_case.SearchApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.UpdateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductNameUseCase;
 import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
@@ -84,6 +86,7 @@ import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
@@ -107,14 +110,17 @@ import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
+import io.gravitee.apim.core.json.JsonSchemaChecker;
 import io.gravitee.apim.core.license.crud_service.LicenseCrudService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
+import io.gravitee.apim.core.logs_engine.domain_service.LogNamesPostProcessor;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
+import io.gravitee.apim.core.open_api.OpenApiValidator;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
@@ -132,6 +138,7 @@ import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.GraviteePortalPageContentValidatorService;
+import io.gravitee.apim.core.portal_page.domain_service.OpenApiPortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
@@ -166,6 +173,7 @@ import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionSearchQueryService;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
@@ -182,12 +190,14 @@ import io.gravitee.apim.infra.domain_service.analytics_engine.definition.Analyti
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.logs_engine.LogNamesPostProcessorImpl;
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.query_service.analytics_engine.HTTPDataPlaneAnalyticsQueryService;
 import io.gravitee.apim.infra.query_service.analytics_engine.MessageDataPlaneQueryService;
 import io.gravitee.apim.infra.query_service.gateway.InstanceQueryServiceLegacyWrapper;
+import io.gravitee.apim.infra.query_service.subscription.SubscriptionSearchQueryServiceImpl;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.common.util.DataEncryptor;
@@ -195,6 +205,7 @@ import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -379,6 +390,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public SubscriptionSearchQueryService subscriptionSearchQueryService(SubscriptionService subscriptionService) {
+        return new SubscriptionSearchQueryServiceImpl(subscriptionService);
+    }
+
+    @Bean
     public ApplicationService applicationService() {
         return mock(ApplicationService.class);
     }
@@ -391,6 +407,15 @@ public class ResourceContextConfiguration {
     @Bean
     public UserService userService() {
         return mock(UserService.class);
+    }
+
+    @Bean
+    public SubscriptionExpandHelper subscriptionExpandHelper(
+        PlanSearchService planSearchService,
+        ApplicationService applicationService,
+        UserService userService
+    ) {
+        return new SubscriptionExpandHelper(planSearchService, applicationService, userService);
     }
 
     @Bean
@@ -825,6 +850,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public ClusterConfigurationSchemaService clusterConfigurationSchemaService() {
+        return mock(ClusterConfigurationSchemaService.class);
+    }
+
+    @Bean
     public CreateClusterUseCase createClusterUseCase() {
         return mock(CreateClusterUseCase.class);
     }
@@ -899,6 +929,12 @@ public class ResourceContextConfiguration {
     @Primary
     public GetApiProductsUseCase getApiProductsUseCase() {
         return mock(GetApiProductsUseCase.class);
+    }
+
+    @Bean
+    @Primary
+    public SearchApiProductsUseCase searchApiProductsUseCase() {
+        return mock(SearchApiProductsUseCase.class);
     }
 
     @Bean
@@ -1049,7 +1085,11 @@ public class ResourceContextConfiguration {
     ) {
         GraviteeMarkdownValidator gmdValidator = new GraviteeMarkdownValidator();
         GraviteePortalPageContentValidatorService gmdContentValidator = new GraviteePortalPageContentValidatorService(gmdValidator);
-        PortalPageContentValidatorService validatorService = new PortalPageContentValidatorService(List.of(gmdContentValidator));
+        OpenApiValidator openApiValidator = new OpenApiValidator();
+        OpenApiPortalPageContentValidatorService openApiContentValidator = new OpenApiPortalPageContentValidatorService(openApiValidator);
+        PortalPageContentValidatorService validatorService = new PortalPageContentValidatorService(
+            List.of(gmdContentValidator, openApiContentValidator)
+        );
 
         return new UpdatePortalPageContentUseCase(portalPageContentQueryService, portalPageContentCrudService, validatorService);
     }
@@ -1117,8 +1157,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public FilterPreProcessor filterPreProcessor() {
-        return mock(FilterPreProcessor.class);
+    public QueryFilterTransformer queryFilterTransformer() {
+        return mock(QueryFilterTransformer.class);
     }
 
     @Bean
@@ -1137,7 +1177,22 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public AnalyticsQueryContextLoader analyticsQueryContextLoader() {
+        return mock(AnalyticsQueryContextLoader.class);
+    }
+
+    @Bean
+    public LogNamesPostProcessor logNamesPostProcessor() {
+        return new LogNamesPostProcessorImpl();
+    }
+
+    @Bean
     ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService() {
         return mock(ApplicationCertificatesUpdateDomainService.class);
+    }
+
+    @Bean
+    public JsonSchemaChecker jsonSchemaChecker() {
+        return mock(JsonSchemaChecker.class);
     }
 }

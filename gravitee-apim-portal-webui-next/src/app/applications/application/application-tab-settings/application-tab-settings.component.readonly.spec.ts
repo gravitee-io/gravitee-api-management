@@ -21,7 +21,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { ApplicationTabSettingsReadHarness } from './application-tab-settings-read/application-tab-settings-read.harness';
 import { ApplicationTabSettingsComponent } from './application-tab-settings.component';
-import { DeleteConfirmDialogComponent } from './delete-confirm-dialog/delete-confirm-dialog.component';
+import { ConfirmDialogComponent } from '../../../../components/confirm-dialog/confirm-dialog.component';
 import { Application, ApplicationType } from '../../../../entities/application/application';
 import {
   fakeApplication,
@@ -45,13 +45,7 @@ describe('ApplicationTabSettingsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        ApplicationTabSettingsComponent,
-        DeleteConfirmDialogComponent,
-        HttpClientTestingModule,
-        NoopAnimationsModule,
-        AppTestingModule,
-      ],
+      imports: [ApplicationTabSettingsComponent, ConfirmDialogComponent, HttpClientTestingModule, NoopAnimationsModule, AppTestingModule],
       providers: [
         {
           provide: ConfigService,

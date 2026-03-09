@@ -21,4 +21,12 @@ import java.util.List;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record MetricMeasuresRequest(MetricSpec.Name name, List<MetricSpec.Measure> measures) {}
+public record MetricMeasuresRequest(MetricSpec.Name name, List<MetricSpec.Measure> measures, List<Filter> filters) {
+    public MetricMeasuresRequest(MetricSpec.Name name, List<MetricSpec.Measure> measures) {
+        this(name, measures, List.of());
+    }
+
+    public MetricMeasuresRequest withFilters(List<Filter> filters) {
+        return new MetricMeasuresRequest(name, measures, filters);
+    }
+}

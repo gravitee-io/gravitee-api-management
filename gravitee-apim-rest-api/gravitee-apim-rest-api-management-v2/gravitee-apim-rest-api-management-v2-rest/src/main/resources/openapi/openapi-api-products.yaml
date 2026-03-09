@@ -30,6 +30,8 @@ servers:
 tags:
   - name: API Product
     description: API Product lifecycle - create, read, update, delete, verify, deploy
+  - name: API Product Members
+    description: Manage API Product members and their permissions
   - name: API Product Subscriptions
     description: Subscribe applications to API Product plans and manage subscriptions
   - name: API Product Plans
@@ -222,6 +224,105 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /environments/{envId}/api-products/_search:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+    post:
+      tags:
+        - API Product
+      summary: Search API Products by name or ID
+      description: |-
+        Search API Products in the environment by name (substring match) and/or by a list of IDs.
+        Optionally filter by text `query` (name, description and owner name) and/or `ids`. If none are provided, all API Products in the environment are returned (paginated).
+        Results are paginated.
+      operationId: searchApiProducts
+      parameters:
+        - name: page
+          in: query
+          description: Page number (starting from 1)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: perPage
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: sortBy
+          in: query
+          description: Sort by name, version, apis (API count), or owner. Prefix with "-" for descending. Default is name ascending.
+          required: false
+          schema:
+            type: string
+            enum:
+              - name
+              - "-name"
+              - version
+              - "-version"
+              - apis
+              - "-apis"
+              - owner
+              - "-owner"
+            default: name
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiProductSearchQuery"
+      responses:
+        '200':
+          description: Paginated list of API Products matching the search
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ApiProduct'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                        example: 1
+                      perPage:
+                        type: integer
+                        example: 10
+                      pageCount:
+                        type: integer
+                        example: 1
+                      totalCount:
+                        type: integer
+                        example: 1
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                      next:
+                        type: string
+                        nullable: true
+                      prev:
+                        type: string
+                        nullable: true
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /environments/{envId}/api-products/{apiProductId}:
     parameters:
       - $ref: "#/components/parameters/envIdParam"
@@ -349,6 +450,69 @@ paths:
                 $ref: '#/components/schemas/Error'
         '500':
           $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/members/permissions:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+    get:
+      tags:
+        - API Product Members
+      summary: Get API Product member permissions
+      description: |-
+        Get the permissions of the current user for the API Product.
+        Returns a map of permission names to allowed actions (CRUD) for the authenticated user.
+        Admins receive all permissions; other users receive their membership-based permissions.
+      operationId: getApiProductMemberPermissions
+      responses:
+        '200':
+          description: Map of permission names to allowed actions (e.g. CREATE, READ, UPDATE, DELETE)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+                  description: Allowed action IDs as a string (e.g. "CRUD" for Create, Read, Update, Delete)
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /environments/{envId}/api-products/{apiProductId}/deployments/_verify:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiProductIdParam"
+    get:
+      tags:
+        - API Product
+      summary: Check if a deployment is possible
+      description: |-
+        Verifies whether the API Product can be deployed to gateway instances, based on the current license.
+
+        User must have the API_PRODUCT_DEFINITION[READ] permission.
+      operationId: verifyApiProductDeployment
+      responses:
+        "200":
+          description: Verification successfully performed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyApiProductDeploymentResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        default:
+          $ref: '#/components/responses/Error'
 
   /environments/{envId}/api-products/{apiProductId}/deployments:
     parameters:
@@ -667,9 +831,58 @@ paths:
       tags:
         - API Product Subscriptions
       summary: List subscriptions for the API Product
-      description: List all subscriptions for the specified API Product. User must have API_PRODUCT_SUBSCRIPTION[READ] permission.
+      description: |
+        List subscriptions for the specified API Product, with optional filters and expand options.
+        Same query parameters and expands as the API subscriptions endpoint.
+
+        User must have API_PRODUCT_SUBSCRIPTION[READ] permission.
       operationId: getApiProductSubscriptions
       parameters:
+        - name: applicationIds
+          in: query
+          description: List of application ids to filter on.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+        - name: planIds
+          in: query
+          description: List of plan ids to filter on.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+        - name: statuses
+          in: query
+          description: List of status filters.
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/SubscriptionStatus"
+          explode: false
+        - name: apiKey
+          in: query
+          description: API Key associated to the subscription to filter on.
+          schema:
+            type: string
+        - name: expands
+          in: query
+          description: Expansion of data to return in subscriptions (plan, application, subscribedBy).
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - application
+                - plan
+                - subscribedBy
+          explode: false
         - name: page
           in: query
           description: Page number (starting from 1)
@@ -832,6 +1045,20 @@ paths:
       summary: Get an API Product subscription by ID
       description: User must have API_PRODUCT_SUBSCRIPTION[READ] permission.
       operationId: getApiProductSubscription
+      parameters:
+        - name: expands
+          in: query
+          description: Expansion of data to return in the subscription (plan, application, subscribedBy).
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - application
+                - plan
+                - subscribedBy
+          explode: false
       responses:
         '200':
           description: The API Product subscription
@@ -1448,6 +1675,23 @@ components:
           description: An optional reason giving details about the result. Present when ok is false.
           example: "API Product name already exists"
 
+    ApiProductSearchQuery:
+      type: object
+      title: "ApiProductSearchQuery"
+      description: Search criteria for API Products. Optionally provide query (text search on name, description and owner name) and/or ids. If none are provided, all API Products in the environment are returned (paginated).
+      properties:
+        query:
+          type: string
+          description: Filter by name (case-insensitive substring match).
+          example: "My Product"
+        ids:
+          type: array
+          description: Filter by exact API Product IDs.
+          items:
+            type: string
+          example:
+            - "api-product-1"
+            - "api-product-2"
     CreateApiProduct:
       type: object
       title: "CreateApiProduct"
@@ -1559,6 +1803,25 @@ components:
           example: "2025-01-01T10:15:30Z"
         primaryOwner:
           $ref: '#/components/schemas/PrimaryOwner'
+        deploymentState:
+          $ref: '#/components/schemas/ApiProductDeploymentState'
+
+    ApiProductDeploymentState:
+      type: string
+      description: Indicates whether the API Product is in sync with the latest deployment.
+      enum:
+        - DEPLOYED
+        - NEED_REDEPLOY
+
+    VerifyApiProductDeploymentResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          description: Indicates whether the deployment can be done or not.
+        reason:
+          type: string
+          description: An optional reason giving details about the result.
 
     PrimaryOwner:
       type: object
@@ -1907,6 +2170,9 @@ components:
           type: integer
           description: Simple order that could be used by a front end to display plans in a certain order. To highlight a plan on the portal for instance.
           example: 0
+        selectionRule:
+          type: string
+          description: An optional EL expression that will be evaluated at request time to select this plan.
         security:
           type: object
           properties:
@@ -1934,6 +2200,18 @@ components:
         next:
           type: string
           description: In a paginated response, link to the next page. Maybe null if current is the last page
+
+    SubscriptionStatus:
+      type: string
+      description: The status of the subscription manageable by the api publisher.
+      example: ACCEPTED
+      enum:
+        - PENDING
+        - REJECTED
+        - ACCEPTED
+        - CLOSED
+        - PAUSED
+        - RESUMED
 
     Subscription:
       type: object

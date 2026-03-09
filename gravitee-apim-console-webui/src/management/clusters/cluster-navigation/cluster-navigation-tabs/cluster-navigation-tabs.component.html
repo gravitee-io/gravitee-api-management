@@ -25,18 +25,24 @@
 </div>
 <nav mat-tab-nav-bar class="cluster-navigation-tabs" [tabPanel]="tabPanel">
   <ng-container *ngFor="let menuItem of tabMenuItems">
-    <a
-      *ngIf="menuItem.routerLink !== 'DISABLED'"
-      mat-tab-link
-      routerLinkActive
-      #rla="routerLinkActive"
-      [routerLink]="menuItem.routerLink"
-      [active]="rla.isActive"
-      >{{ menuItem.displayName }}</a
-    >
-    <a *ngIf="menuItem.routerLink === 'DISABLED'" mat-tab-link matTooltip="Coming soon for V4 APIs" matTooltipPosition="below"
-      >{{ menuItem.displayName }} <mat-icon class="cluster-navigation-tabs__link__icon" svgIcon="gio:info"></mat-icon
-    ></a>
+    @if (menuItem.routerLink !== 'DISABLED') {
+      <a
+        mat-tab-link
+        routerLinkActive
+        #rla="routerLinkActive"
+        [routerLink]="menuItem.routerLink"
+        [active]="rla.isActive"
+        [gioLicense]="menuItem.license"
+        >{{ menuItem.displayName }}
+        <mat-icon
+          *ngIf="menuItem.iconRight$ | async as iconRight"
+          class="cluster-navigation-tabs__link__icon"
+          [svgIcon]="iconRight"
+        ></mat-icon>
+      </a>
+    } @else {
+      <a mat-tab-link>{{ menuItem.displayName }} <mat-icon class="cluster-navigation-tabs__link__icon" svgIcon="gio:info"></mat-icon></a>
+    }
   </ng-container>
 </nav>
 <mat-tab-nav-panel #tabPanel>

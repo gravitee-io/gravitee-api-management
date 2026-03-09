@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.cluster.model;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.utils.TimeProvider;
 import java.time.Instant;
 import java.util.Set;
@@ -38,6 +39,10 @@ public class Cluster {
     private String description;
     private Object configuration;
     private Set<String> groups;
+
+    public KafkaClusterConfiguration getKafkaClusterConfiguration(ObjectMapper objectMapper) {
+        return objectMapper.convertValue(this.configuration, KafkaClusterConfiguration.class);
+    }
 
     public void update(UpdateCluster updateCluster) {
         this.updatedAt = TimeProvider.instantNow();

@@ -15,19 +15,24 @@
  */
 package io.gravitee.rest.api.management.v2.rest.spring;
 
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
-import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
+import io.gravitee.apim.infra.domain_service.analytics_engine.ManagementContextLoader;
+import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ApiTypeFilterTransformer;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.BucketNamesPostProcessorImpl;
-import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ManagementFilterPreProcessor;
 import io.gravitee.apim.infra.domain_service.user.UserContextLoaderImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.kafkaexplorer.spring.KafkaExplorerSpringConfiguration;
+import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -49,17 +54,37 @@ public class RestManagementConfiguration {
     }
 
     @Bean
-    public BucketNamesPostProcessor bucketNamesPostProcessor(ApplicationService applicationSearchService) {
-        return new BucketNamesPostProcessorImpl(applicationSearchService);
+    public BucketNamesPostProcessor bucketNamesPostProcessor(
+        @Lazy ApiRepository apiRepository,
+        ApplicationService applicationSearchService
+    ) {
+        return new BucketNamesPostProcessorImpl(apiRepository, applicationSearchService);
     }
 
     @Bean
-    public FilterPreProcessor managementFilterPreProcessor() {
-        return new ManagementFilterPreProcessor();
+    public QueryFilterTransformer apiTypeFilterTransformer() {
+        return new ApiTypeFilterTransformer();
     }
 
     @Bean
     public UserContextLoader userContextLoader(ApiAuthorizationService apiAuthorizationService, @Lazy ApiRepository apiRepository) {
         return new UserContextLoaderImpl(apiAuthorizationService, apiRepository);
+    }
+
+    @Bean
+    public SubscriptionExpandHelper subscriptionExpandHelper(
+        PlanSearchService planSearchService,
+        ApplicationService applicationService,
+        UserService userService
+    ) {
+        return new SubscriptionExpandHelper(planSearchService, applicationService, userService);
+    }
+
+    @Bean
+    public AnalyticsQueryContextLoader analyticsQueryContextLoader(
+        ApiAuthorizationService apiAuthorizationService,
+        @Lazy ApiRepository apiRepository
+    ) {
+        return new ManagementContextLoader(apiAuthorizationService, apiRepository);
     }
 }

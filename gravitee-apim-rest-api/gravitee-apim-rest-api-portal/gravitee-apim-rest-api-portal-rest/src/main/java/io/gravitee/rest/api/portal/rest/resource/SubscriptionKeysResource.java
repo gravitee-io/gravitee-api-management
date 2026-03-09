@@ -15,10 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.apim.core.api_key.use_case.RevokeApplicationApiKeyUseCase;
 import io.gravitee.apim.core.api_key.use_case.RevokeSubscriptionApiKeyUseCase;
-import io.gravitee.apim.core.audit.model.AuditActor;
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -98,29 +95,12 @@ public class SubscriptionKeysResource extends AbstractResource {
             ) ||
             hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.UPDATE)
         ) {
-            final var user = getAuthenticatedUserDetails();
             final String referenceId = subscriptionEntity.getReferenceId() != null
                 ? subscriptionEntity.getReferenceId()
                 : subscriptionEntity.getApi();
             final String referenceType = subscriptionEntity.getReferenceType() != null ? subscriptionEntity.getReferenceType() : "API";
             revokeSubscriptionApiKeyUsecase.execute(
-                new RevokeSubscriptionApiKeyUseCase.Input(
-                    subscriptionId,
-                    apiKey,
-                    referenceId,
-                    referenceType,
-                    AuditInfo.builder()
-                        .organizationId(executionContext.getOrganizationId())
-                        .environmentId(executionContext.getEnvironmentId())
-                        .actor(
-                            AuditActor.builder()
-                                .userId(user.getUsername())
-                                .userSource(user.getSource())
-                                .userSourceId(user.getSourceId())
-                                .build()
-                        )
-                        .build()
-                )
+                new RevokeSubscriptionApiKeyUseCase.Input(subscriptionId, apiKey, referenceId, referenceType, getAuditInfo())
             );
 
             return Response.noContent().build();

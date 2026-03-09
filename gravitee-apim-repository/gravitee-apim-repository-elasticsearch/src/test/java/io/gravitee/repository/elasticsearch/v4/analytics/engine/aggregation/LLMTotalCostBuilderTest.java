@@ -29,11 +29,11 @@ class LLMTotalCostBuilderTest {
 
     @Test
     void should_build_sum_aggregation() {
-        var result = builder.buildSum("LLM_PROMPT_TOKEN_COST#COUNT");
+        var result = builder.buildSum("LLM_PROMPT_TOKEN_TOTAL_COST#COUNT");
 
-        assertThat(result).containsKey("LLM_PROMPT_TOKEN_COST#COUNT");
+        assertThat(result).containsKey("LLM_PROMPT_TOKEN_TOTAL_COST#COUNT");
 
-        var agg = result.get("LLM_PROMPT_TOKEN_COST#COUNT");
+        var agg = result.get("LLM_PROMPT_TOKEN_TOTAL_COST#COUNT");
         assertThat(agg.containsKey("sum")).isTrue();
 
         var sumAgg = agg.getJsonObject("sum");
@@ -47,11 +47,11 @@ class LLMTotalCostBuilderTest {
 
     @Test
     void should_build_avg_aggregation() {
-        var result = builder.buildAvg("LLM_PROMPT_TOKEN_COST#AVG");
+        var result = builder.buildAvg("LLM_PROMPT_TOKEN_TOTAL_COST#AVG");
 
-        assertThat(result).containsKey("LLM_PROMPT_TOKEN_COST#AVG");
+        assertThat(result).containsKey("LLM_PROMPT_TOKEN_TOTAL_COST#AVG");
 
-        var agg = result.get("LLM_PROMPT_TOKEN_COST#AVG");
+        var agg = result.get("LLM_PROMPT_TOKEN_TOTAL_COST#AVG");
         assertThat(agg.containsKey("avg")).isTrue();
 
         var avgAgg = agg.getJsonObject("avg");

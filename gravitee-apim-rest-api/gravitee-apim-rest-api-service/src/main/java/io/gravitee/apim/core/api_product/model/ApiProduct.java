@@ -31,6 +31,11 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 public class ApiProduct {
 
+    public enum DeploymentState {
+        DEPLOYED,
+        NEED_REDEPLOY,
+    }
+
     private String id;
     private String environmentId;
     private String name;
@@ -40,6 +45,7 @@ public class ApiProduct {
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
     private PrimaryOwnerEntity primaryOwner;
+    private DeploymentState deploymentState;
 
     public void update(UpdateApiProduct updateApiProduct) {
         this.updatedAt = ZonedDateTime.now(TimeProvider.clock());

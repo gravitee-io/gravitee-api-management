@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
@@ -26,6 +27,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -143,15 +145,21 @@ public class CreateDefaultPortalNavigationItemsUseCase {
     }
 
     private CreatePortalNavigationItem buildCommonItem(String title, PortalNavigationItemId parentId, PortalArea area) {
-        return CreatePortalNavigationItem.builder().title(title).area(area).parentId(parentId).published(true).build();
+        return CreatePortalNavigationItem.builder()
+            .title(title)
+            .area(area)
+            .parentId(parentId)
+            .published(true)
+            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+            .build();
     }
 
-    private PortalPageContent createPortalPageContent(String organizationId, String environmentId, String contentPath) {
+    private PortalPageContent<?> createPortalPageContent(String organizationId, String environmentId, String contentPath) {
         final var content = new GraviteeMarkdownPageContent(
             PortalPageContentId.random(),
             organizationId,
             environmentId,
-            loadContent(contentPath)
+            new GraviteeMarkdown(loadContent(contentPath))
         );
         return pageContentCrudService.create(content);
     }

@@ -361,6 +361,16 @@ class ApiMigration {
                     response.put("assertion", StringUtils.appendCurlyBraces(assertionsNode.get(0).asText()));
                 }
             }
+            JsonNode httpProxyNode = root.path("proxy");
+            if (httpProxyNode.isObject()) {
+                ObjectNode proxyObject = (ObjectNode) httpProxyNode;
+                boolean enabled = proxyObject.path("enabled").asBoolean(false);
+                boolean useSystemProxy = proxyObject.path("useSystemProxy").asBoolean(false);
+                if (enabled && useSystemProxy) {
+                    proxyObject.remove("port");
+                    proxyObject.remove("type");
+                }
+            }
             return MigrationResult.value(jsonMapper.writeValueAsString(root));
         } catch (JsonProcessingException e) {
             log.error("Unable to map configuration for endpoint", e);

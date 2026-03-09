@@ -16,10 +16,13 @@
 package io.gravitee.apim.core.api_product.crud_service;
 
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import java.util.Collection;
+import java.util.List;
 
 public interface ApiProductCrudService {
     ApiProduct create(ApiProduct apiProduct);
     void delete(String id);
     ApiProduct update(ApiProduct updateApiProduct);
     ApiProduct get(String id);
+    List<ApiProduct> findByIds(Collection<String> ids);
 }

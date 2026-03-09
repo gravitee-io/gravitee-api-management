@@ -42,6 +42,7 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApplicationSubscriptionService } from '../../../../../services-ngx/application-subscription.service';
 import { SubscriptionApiKeysComponent } from '../components/subscription-api-keys/subscription-api-keys.component';
 import { SubscriptionEditPushConfigComponent } from '../../../../../components/subscription-edit-push-config/subscription-edit-push-config.component';
+import { SubscriptionMetadataViewerComponent } from '../../../../../shared/components/subscription-metadata-viewer/subscription-metadata-viewer.component';
 
 type PageVM = {
   application: Application;
@@ -65,6 +66,7 @@ type PageVM = {
     SubscriptionApiKeysComponent,
     MatTooltip,
     SubscriptionEditPushConfigComponent,
+    SubscriptionMetadataViewerComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -89,17 +91,14 @@ export class ApplicationSubscriptionComponent {
   private application$ = this.applicationService.getLastApplicationFetch(this.activatedRoute.snapshot.params.applicationId);
 
   public pageVM$: Observable<PageVM> = combineLatest([this.application$, this.subscription$]).pipe(
-    map(([application, subscription]) => ({
-      application,
-      subscription,
-    })),
+    map(([application, subscription]) => ({ application, subscription })),
   );
 
   public closeSubscription(application: Application, subscription: Subscription) {
     const applicationId = this.activatedRoute.snapshot.params.applicationId;
+    const referenceLabel = subscription.referenceType === 'API_PRODUCT' ? 'API product' : 'API';
 
-    let content =
-      'Are you sure you want to close this subscription? <br> <br> The application will not be able to consume this API anymore.';
+    let content = `Are you sure you want to close this subscription? <br> <br> The application will not be able to consume this ${referenceLabel} anymore.`;
     if (subscription.plan.security === PlanSecurityType.API_KEY && application.api_key_mode !== ApiKeyMode.SHARED) {
       content += '<br/>All Api-keys associated to this subscription will be closed and could not be used.';
     }

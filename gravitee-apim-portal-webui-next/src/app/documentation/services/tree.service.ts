@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,17 @@ export class TreeService {
 
   getBreadcrumbsByDefault(): Breadcrumb[] {
     return this.parentItemBreadcrumb ? [this.parentItemBreadcrumb] : [];
+  }
+
+  getAncestorApiId(nodeId: string): string | null {
+    let node = this.treeNodesById.get(nodeId);
+    while (node) {
+      if (node.type === 'API' && node.data?.type === 'API') {
+        return node.data.apiId;
+      }
+      node = node.__parentId ? this.treeNodesById.get(node.__parentId) : undefined;
+    }
+    return null;
   }
 
   findFirstPageId(): string | null {

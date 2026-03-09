@@ -20,8 +20,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.core.analytics_engine.exception.InvalidQueryException;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
+import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -32,7 +34,10 @@ import org.junit.jupiter.api.Test;
 class DashboardWidgetRequestMapperTest {
 
     private static DashboardWidget.TimeRange validTimeRange() {
-        return DashboardWidget.TimeRange.builder().from("2025-10-07T06:50:30Z").to("2025-12-07T11:35:30Z").build();
+        return DashboardWidget.TimeRange.builder()
+            .from(Instant.parse("2025-10-07T06:50:30Z"))
+            .to(Instant.parse("2025-12-07T11:35:30Z"))
+            .build();
     }
 
     private static DashboardWidget.MetricRequest metricRequest(String name, String... measures) {
@@ -143,6 +148,58 @@ class DashboardWidgetRequestMapperTest {
                 .isInstanceOf(InvalidQueryException.class)
                 .hasMessageContaining("Unknown measure name");
         }
+
+        @Test
+        void should_map_request_level_filters() {
+            var request = DashboardWidget.Request.builder()
+                .type("measures")
+                .timeRange(validTimeRange())
+                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
+                .filters(List.of(DashboardWidget.Filter.builder().name("API").operator("EQ").value("my-api-id").build()))
+                .build();
+
+            var result = DashboardWidgetRequestMapper.toMeasuresRequest(request);
+
+            assertThat(result.filters()).hasSize(1);
+            assertThat(result.filters().get(0).name()).isEqualTo(FilterSpec.Name.API);
+            assertThat(result.filters().get(0).operator()).isEqualTo(FilterSpec.Operator.EQ);
+            assertThat(result.filters().get(0).value()).isEqualTo("my-api-id");
+        }
+
+        @Test
+        void should_map_metric_level_filters() {
+            var metricReq = DashboardWidget.MetricRequest.builder()
+                .name("HTTP_REQUESTS")
+                .measures(List.of("COUNT"))
+                .filters(List.of(DashboardWidget.Filter.builder().name("API_TYPE").operator("EQ").value("LLM").build()))
+                .build();
+            var request = DashboardWidget.Request.builder()
+                .type("measures")
+                .timeRange(validTimeRange())
+                .metrics(List.of(metricReq))
+                .build();
+
+            var result = DashboardWidgetRequestMapper.toMeasuresRequest(request);
+
+            assertThat(result.metrics().get(0).filters()).hasSize(1);
+            assertThat(result.metrics().get(0).filters().get(0).name()).isEqualTo(FilterSpec.Name.API_TYPE);
+            assertThat(result.metrics().get(0).filters().get(0).operator()).isEqualTo(FilterSpec.Operator.EQ);
+            assertThat(result.metrics().get(0).filters().get(0).value()).isEqualTo("LLM");
+        }
+
+        @Test
+        void should_default_to_empty_filters_when_null() {
+            var request = DashboardWidget.Request.builder()
+                .type("measures")
+                .timeRange(validTimeRange())
+                .metrics(List.of(metricRequest("HTTP_REQUESTS", "COUNT")))
+                .build();
+
+            var result = DashboardWidgetRequestMapper.toMeasuresRequest(request);
+
+            assertThat(result.filters()).isEmpty();
+            assertThat(result.metrics().get(0).filters()).isEmpty();
+        }
     }
 
     @Nested
@@ -178,6 +235,29 @@ class DashboardWidgetRequestMapperTest {
             assertThatThrownBy(() -> DashboardWidgetRequestMapper.toFacetsRequest(request))
                 .isInstanceOf(InvalidQueryException.class)
                 .hasMessageContaining("Unknown facet name");
+        }
+
+        @Test
+        void should_map_filters_in_facets_request() {
+            var metricReq = DashboardWidget.MetricRequest.builder()
+                .name("HTTP_REQUESTS")
+                .measures(List.of("COUNT"))
+                .filters(List.of(DashboardWidget.Filter.builder().name("API_TYPE").operator("EQ").value("LLM").build()))
+                .build();
+            var request = DashboardWidget.Request.builder()
+                .type("facets")
+                .timeRange(validTimeRange())
+                .metrics(List.of(metricReq))
+                .by(List.of("HTTP_STATUS_CODE_GROUP"))
+                .filters(List.of(DashboardWidget.Filter.builder().name("ZONE").operator("EQ").value("EU").build()))
+                .build();
+
+            var result = DashboardWidgetRequestMapper.toFacetsRequest(request);
+
+            assertThat(result.filters()).hasSize(1);
+            assertThat(result.filters().get(0).name()).isEqualTo(FilterSpec.Name.ZONE);
+            assertThat(result.metrics().get(0).filters()).hasSize(1);
+            assertThat(result.metrics().get(0).filters().get(0).name()).isEqualTo(FilterSpec.Name.API_TYPE);
         }
     }
 
@@ -228,6 +308,22 @@ class DashboardWidgetRequestMapperTest {
             assertThatThrownBy(() -> DashboardWidgetRequestMapper.toTimeSeriesRequest(request))
                 .isInstanceOf(InvalidQueryException.class)
                 .hasMessageContaining("Negative or zero intervals");
+        }
+
+        @Test
+        void should_map_filters_in_time_series_request() {
+            var request = DashboardWidget.Request.builder()
+                .type("time-series")
+                .timeRange(validTimeRange())
+                .interval(3600000L)
+                .metrics(List.of(metricRequest("HTTP_REQUESTS", "RPS")))
+                .filters(List.of(DashboardWidget.Filter.builder().name("API").operator("EQ").value("my-api-id").build()))
+                .build();
+
+            var result = DashboardWidgetRequestMapper.toTimeSeriesRequest(request);
+
+            assertThat(result.filters()).hasSize(1);
+            assertThat(result.filters().get(0).name()).isEqualTo(FilterSpec.Name.API);
         }
     }
 }

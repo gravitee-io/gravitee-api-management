@@ -17,23 +17,29 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.dashboard.model.Dashboard;
 import io.gravitee.apim.core.dashboard.model.DashboardWidget;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CreateDashboard;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ArrayFilter;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CreateUpdateDashboard;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CustomInterval;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Filter;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasureName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricRequest;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.NumberFilter;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Operator;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.StringFilter;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeRange;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.UpdateDashboard;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Widget;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetLayout;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.WidgetType;
-import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import org.springframework.validation.ObjectError;
 
 @Mapper(uses = { DateMapper.class })
 public interface DashboardMapper {
@@ -44,14 +50,7 @@ public interface DashboardMapper {
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModified", ignore = true)
-    Dashboard map(CreateDashboard createDashboard);
-
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "organizationId", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "lastModified", ignore = true)
-    Dashboard map(UpdateDashboard updateDashboard);
+    Dashboard map(CreateUpdateDashboard dashboard);
 
     io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Dashboard map(Dashboard dashboard);
 
@@ -82,12 +81,13 @@ public interface DashboardMapper {
             return null;
         }
         return DashboardWidget.Request.builder()
-            .type(request.getType() != null ? request.getType().getValue() : null)
+            .type(request.getType().getValue())
             .timeRange(mapToDomainTimeRange(request.getTimeRange()))
-            .metrics(request.getMetrics() != null ? request.getMetrics().stream().map(this::mapToDomainMetricRequest).toList() : null)
+            .metrics(request.getMetrics().stream().map(this::mapToDomainMetricRequest).toList())
             .interval(request.getInterval() != null ? request.getInterval().toMillis() : null)
             .by(request.getBy() != null ? request.getBy().stream().map(FacetName::getValue).toList() : null)
             .limit(request.getLimit())
+            .filters(request.getFilters() != null ? request.getFilters().stream().map(this::mapToDomainFilter).toList() : null)
             .build();
     }
 
@@ -96,8 +96,9 @@ public interface DashboardMapper {
             return null;
         }
         return DashboardWidget.MetricRequest.builder()
-            .name(metricRequest.getName() != null ? metricRequest.getName().getValue() : null)
+            .name(metricRequest.getName().getValue())
             .measures(metricRequest.getMeasures() != null ? metricRequest.getMeasures().stream().map(MeasureName::getValue).toList() : null)
+            .filters(metricRequest.getFilters() != null ? metricRequest.getFilters().stream().map(this::mapToDomainFilter).toList() : null)
             .build();
     }
 
@@ -120,6 +121,9 @@ public interface DashboardMapper {
             widgetRequest.setBy(request.getBy().stream().map(FacetName::fromValue).toList());
         }
         widgetRequest.setLimit(request.getLimit());
+        if (request.getFilters() != null) {
+            widgetRequest.setFilters(request.getFilters().stream().map(this::mapToRestFilter).toList());
+        }
         return widgetRequest;
     }
 
@@ -134,25 +138,70 @@ public interface DashboardMapper {
         if (metricRequest.getMeasures() != null) {
             result.setMeasures(metricRequest.getMeasures().stream().map(MeasureName::fromValue).toList());
         }
+        if (metricRequest.getFilters() != null) {
+            result.setFilters(metricRequest.getFilters().stream().map(this::mapToRestFilter).toList());
+        }
         return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    default Filter mapToRestFilter(DashboardWidget.Filter filter) {
+        if (filter == null) {
+            return null;
+        }
+        var restFilter = new Filter();
+        var filterName = FilterName.fromValue(filter.getName());
+        var operator = Operator.fromValue(filter.getOperator());
+
+        restFilter.setActualInstance(getFilterInstance(operator, filterName, filter.getValue()));
+
+        return restFilter;
+    }
+
+    private Object getFilterInstance(Operator operator, FilterName filterName, Object value) {
+        return switch (operator) {
+            case EQ -> new StringFilter().name(filterName).operator(operator).value((String) value);
+            case LTE, GTE -> new NumberFilter().name(filterName).operator(operator).value(((Number) value).intValue());
+            case IN -> new ArrayFilter().name(filterName).operator(operator).value((List<String>) value);
+        };
+    }
+
+    default DashboardWidget.Filter mapToDomainFilter(Filter filter) {
+        if (filter == null) {
+            return null;
+        }
+        var instance = filter.getActualInstance();
+        return switch (instance) {
+            case NumberFilter n -> DashboardWidget.Filter.builder()
+                .name(n.getName().getValue())
+                .operator(n.getOperator().getValue())
+                .value(n.getValue())
+                .build();
+            case StringFilter s -> DashboardWidget.Filter.builder()
+                .name(s.getName().getValue())
+                .operator(s.getOperator().getValue())
+                .value(s.getValue())
+                .build();
+            case ArrayFilter a -> DashboardWidget.Filter.builder()
+                .name(a.getName().getValue())
+                .operator(a.getOperator().getValue())
+                .value(a.getValue())
+                .build();
+            default -> throw new IllegalArgumentException("Unknown filter type: " + instance.getClass());
+        };
     }
 
     default DashboardWidget.TimeRange mapToDomainTimeRange(TimeRange timeRange) {
         if (timeRange == null) {
             return null;
         }
-        return DashboardWidget.TimeRange.builder()
-            .from(timeRange.getFrom() != null ? timeRange.getFrom().toString() : null)
-            .to(timeRange.getTo() != null ? timeRange.getTo().toString() : null)
-            .build();
+        return DashboardWidget.TimeRange.builder().from(timeRange.getFrom().toInstant()).to(timeRange.getTo().toInstant()).build();
     }
 
     default TimeRange mapToRestTimeRange(DashboardWidget.TimeRange timeRange) {
         if (timeRange == null) {
             return null;
         }
-        return new TimeRange()
-            .from(timeRange.getFrom() != null ? OffsetDateTime.parse(timeRange.getFrom()) : null)
-            .to(timeRange.getTo() != null ? OffsetDateTime.parse(timeRange.getTo()) : null);
+        return new TimeRange().from(timeRange.getFrom().atOffset(ZoneOffset.UTC)).to(timeRange.getTo().atOffset(ZoneOffset.UTC));
     }
 }

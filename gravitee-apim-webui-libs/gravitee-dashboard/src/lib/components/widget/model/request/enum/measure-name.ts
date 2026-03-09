@@ -18,7 +18,6 @@ export type MeasureName = 'AVG' | 'MIN' | 'MAX' | 'P50' | 'P90' | 'P95' | 'P99' 
 type UnitValue = 'ms' | '%' | 'req/s' | '';
 
 export const MeasureUnit: Record<MeasureName, UnitValue> = {
-  AVG: 'ms',
   MIN: 'ms',
   MAX: 'ms',
   P50: 'ms',
@@ -29,4 +28,5 @@ export const MeasureUnit: Record<MeasureName, UnitValue> = {
   PERCENTAGE: '%',
   RPS: 'req/s',
   COUNT: '',
+  AVG: '',
 };

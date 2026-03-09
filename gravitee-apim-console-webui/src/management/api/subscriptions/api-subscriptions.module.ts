@@ -37,6 +37,7 @@ import {
   GioFormTagsInputModule,
   GioIconsModule,
   GioLoaderModule,
+  GioMonacoEditorModule,
 } from '@gravitee/ui-particles-angular';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
@@ -58,6 +59,7 @@ import { ApiPortalSubscriptionExpireApiKeyDialogComponent } from './components/d
 import { SubscriptionEditPushConfigComponent } from '../../../components/subscription-edit-push-config/subscription-edit-push-config.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { SubscriptionMetadataViewerComponent } from '../../../shared/components/subscription-metadata-viewer/subscription-metadata-viewer.component';
 
 @NgModule({
   declarations: [
@@ -102,6 +104,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioAvatarModule,
     GioClipboardModule,
     GioFormJsonSchemaModule,
+    GioMonacoEditorModule,
     GioFormTagsInputModule,
     GioIconsModule,
     GioLoaderModule,
@@ -109,6 +112,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioTableWrapperModule,
     GioBannerModule,
     SubscriptionEditPushConfigComponent,
+    SubscriptionMetadataViewerComponent,
   ],
   providers: [DatePipe],
 })

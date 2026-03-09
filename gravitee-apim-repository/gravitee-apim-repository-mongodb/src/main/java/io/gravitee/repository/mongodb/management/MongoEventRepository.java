@@ -88,15 +88,14 @@ public class MongoEventRepository implements EventRepository {
             eventMongo.setType(event.getType().toString());
             eventMongo.setPayload(event.getPayload());
             eventMongo.setParentId(event.getParentId());
-            eventMongo.setCreatedAt(event.getUpdatedAt());
+            eventMongo.setCreatedAt(event.getCreatedAt());
             eventMongo.setUpdatedAt(event.getUpdatedAt());
             eventMongo.setEnvironments(event.getEnvironments());
             eventMongo.setOrganizations(event.getOrganizations());
             EventMongo eventMongoUpdated = internalEventRepo.save(eventMongo);
             return mapper.map(eventMongoUpdated);
         } catch (Exception e) {
-            log.error("An error occurred when updating event", e);
-            throw new TechnicalException("An error occurred when updating event");
+            throw new TechnicalException("An error occurred when updating event", e);
         }
     }
 

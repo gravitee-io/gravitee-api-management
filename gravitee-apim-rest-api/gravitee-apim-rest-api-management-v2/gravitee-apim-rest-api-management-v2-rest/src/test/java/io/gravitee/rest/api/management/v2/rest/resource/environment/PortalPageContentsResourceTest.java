@@ -23,11 +23,8 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalPageContentFixtures;
-import inmemory.PortalPageContentCrudServiceInMemory;
-import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
-import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentUseCase;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -45,7 +42,6 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author GraviteeSource Team
@@ -125,7 +121,7 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
                 assertThat(result.getId()).isEqualTo(CONTENT_ID);
                 assertThat(result.getContent()).isEqualTo(PortalPageContentFixtures.CONTENT);
                 assertThat(result.getType()).isEqualTo(
-                    io.gravitee.rest.api.management.v2.rest.model.PortalPageContent.TypeEnum.GRAVITEE_MARKDOWN
+                    io.gravitee.rest.api.management.v2.rest.model.PortalPageContentType.GRAVITEE_MARKDOWN
                 );
             });
     }

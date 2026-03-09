@@ -105,10 +105,10 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   @ContentChild(MatSort)
   sort?: MatSort;
 
-  private stateChanges = new Subject<void>();
-  private unsubscribe$ = new Subject<boolean>();
+  private readonly stateChanges = new Subject<void>();
+  private readonly unsubscribe$ = new Subject<boolean>();
 
-  constructor(private changeDetectorRef: ChangeDetectorRef) {}
+  constructor(private readonly changeDetectorRef: ChangeDetectorRef) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     // Update values on changes

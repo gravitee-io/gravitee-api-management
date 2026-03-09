@@ -69,6 +69,7 @@ public class CreateSubscriptionUseCase {
             input.customApiKey,
             input.configuration,
             input.metadata,
+            input.apiKeyMode,
             input.generalConditionsAccepted,
             input.generalConditionsContentRevision
         );
@@ -111,6 +112,7 @@ public class CreateSubscriptionUseCase {
         String customApiKey,
         io.gravitee.apim.core.subscription.model.SubscriptionConfiguration configuration,
         java.util.Map<String, String> metadata,
+        io.gravitee.rest.api.model.ApiKeyMode apiKeyMode,
         Boolean generalConditionsAccepted,
         io.gravitee.rest.api.model.PageEntity.PageRevisionId generalConditionsContentRevision,
         AuditInfo auditInfo

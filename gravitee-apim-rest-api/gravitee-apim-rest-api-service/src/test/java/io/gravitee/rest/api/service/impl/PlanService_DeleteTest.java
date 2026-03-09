@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -76,6 +77,7 @@ public class PlanService_DeleteTest {
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(
             Collections.singleton(subscription)
         );
+        when(subscription.getStatus()).thenReturn(SubscriptionStatus.ACCEPTED);
 
         planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
@@ -86,6 +88,7 @@ public class PlanService_DeleteTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
         when(plan.getReferenceId()).thenReturn(API_ID);
+        when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
@@ -107,6 +110,7 @@ public class PlanService_DeleteTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
         when(plan.getReferenceId()).thenReturn(API_ID);
+        when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
@@ -133,6 +137,24 @@ public class PlanService_DeleteTest {
     public void shouldDelete() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
+        when(plan.getReferenceId()).thenReturn(API_ID);
+        when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
+        when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
+
+        planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
+
+        verify(planRepository, times(1)).delete(PLAN_ID);
+        verify(flowService, times(1)).save(FlowReferenceType.PLAN, PLAN_ID, null);
+    }
+
+    @Test
+    public void shouldDeletePlanWithClosedSubscription() throws TechnicalException {
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(
+            Collections.singleton(subscription)
+        );
+        when(subscription.getStatus()).thenReturn(SubscriptionStatus.CLOSED);
         when(plan.getReferenceId()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 

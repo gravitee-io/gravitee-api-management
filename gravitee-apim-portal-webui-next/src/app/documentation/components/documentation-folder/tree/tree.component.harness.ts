@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,26 @@ export class TreeComponentHarness extends ComponentHarness {
     expanded: boolean;
   } | null> {
     const buttons = await this.locatorForAll(TreeRowHarness.with({ selector: '.tree__row.folder' }))();
+
+    for (const button of buttons) {
+      const text = await button.getText();
+
+      if (text?.trim() === title.trim()) {
+        return {
+          label: text,
+          expanded: await button.isExpanded(),
+        };
+      }
+    }
+
+    throw new Error(`No item found with title: ${title}`);
+  }
+
+  async getApiByTitle(title: string): Promise<{
+    label: string;
+    expanded: boolean;
+  } | null> {
+    const buttons = await this.locatorForAll(TreeRowHarness.with({ selector: '.tree__row.api' }))();
 
     for (const button of buttons) {
       const text = await button.getText();

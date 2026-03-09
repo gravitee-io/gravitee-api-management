@@ -28,10 +28,12 @@ import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
+import inmemory.SubscriptionSearchQueryServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
-import io.gravitee.apim.core.analytics_engine.domain_service.FilterPreProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiMetricSpecUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetApiSpecUseCase;
@@ -60,6 +62,7 @@ import io.gravitee.apim.core.application_certificate.domain_service.ApplicationC
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
@@ -79,7 +82,9 @@ import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.json.JsonSchemaChecker;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
+import io.gravitee.apim.core.logs_engine.domain_service.LogNamesPostProcessor;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.PublishPlanDomainService;
@@ -120,6 +125,7 @@ import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGrou
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionSearchQueryService;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase;
@@ -134,6 +140,7 @@ import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceIm
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.logs_engine.LogNamesPostProcessorImpl;
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
@@ -400,6 +407,11 @@ public class ResourceContextConfiguration {
     @Bean
     public SubscriptionService subscriptionService() {
         return mock(SubscriptionService.class);
+    }
+
+    @Bean
+    public SubscriptionSearchQueryService subscriptionSearchQueryService() {
+        return new SubscriptionSearchQueryServiceInMemory();
     }
 
     @Bean
@@ -1078,13 +1090,18 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public FilterPreProcessor permissionsPreprocessor() {
-        return mock(FilterPreProcessor.class);
+    public QueryFilterTransformer queryFilterTransformer() {
+        return mock(QueryFilterTransformer.class);
     }
 
     @Bean
     public BucketNamesPostProcessor namesPostprocessor() {
         return mock(BucketNamesPostProcessor.class);
+    }
+
+    @Bean
+    public LogNamesPostProcessor logNamesPostProcessor() {
+        return new LogNamesPostProcessorImpl();
     }
 
     @Bean
@@ -1113,7 +1130,22 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public AnalyticsQueryContextLoader analyticsQueryContextLoader() {
+        return mock(AnalyticsQueryContextLoader.class);
+    }
+
+    @Bean
     ApplicationCertificatesUpdateDomainService applicationCertificatesUpdateDomainService() {
         return mock(ApplicationCertificatesUpdateDomainService.class);
+    }
+
+    @Bean
+    public JsonSchemaChecker jsonSchemaChecker() {
+        return mock(JsonSchemaChecker.class);
+    }
+
+    @Bean
+    public ClusterConfigurationSchemaService clusterConfigurationSchemaService() {
+        return mock(ClusterConfigurationSchemaService.class);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 import { PortalNavigationItem } from '../entities/portal-navigation/portal-navigation-item';
 import {
+  fakePortalNavigationApi,
   fakePortalNavigationFolder,
   fakePortalNavigationLink,
   fakePortalNavigationPage,
@@ -22,7 +23,7 @@ import {
 
 export const makeItem = (
   id: string,
-  type: 'PAGE' | 'FOLDER' | 'LINK',
+  type: PortalNavigationItem['type'],
   title: string,
   order?: number,
   parentId?: string | null,
@@ -32,6 +33,8 @@ export const makeItem = (
       return fakePortalNavigationFolder({ id, title, order, parentId });
     case 'LINK':
       return fakePortalNavigationLink({ id, title, order, parentId });
+    case 'API':
+      return fakePortalNavigationApi({ id, title, order, parentId, apiId: `api-${id}` });
     case 'PAGE':
     default:
       return fakePortalNavigationPage({ id, title, order, parentId });

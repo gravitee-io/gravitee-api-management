@@ -537,7 +537,7 @@ jobs:
           command: yarn nx affected -t lint --exclude=console,portal-next
       - run:
           name: Test APIM Libs (affected)
-          command: yarn nx affected -t test --exclude=console,portal-next --coverage --maxWorkers=2
+          command: NODE_OPTIONS=--max-old-space-size=4096 yarn nx affected -t test --exclude=console,portal-next --coverage --maxWorkers=2
       - cmd-notify-on-failure
       - run:
           name: Ensure coverage files exist

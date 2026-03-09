@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, input, signal } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, debounceTime, map, merge, Observable, switchMap, tap, withLatestFrom } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
@@ -28,6 +29,7 @@ import { NavigationItemContentViewerComponent } from '../../../../components/nav
 import { SidenavLayoutComponent } from '../../../../components/sidenav-layout/sidenav-layout.component';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { PortalPageContent } from '../../../../entities/portal-navigation/portal-page-content';
+import { CurrentUserService } from '../../../../services/current-user.service';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
 import { TreeNode, TreeService } from '../../services/tree.service';
 
@@ -43,7 +45,14 @@ enum NavParamsChange {
 
 @Component({
   selector: 'app-documentation-folder',
-  imports: [SidenavLayoutComponent, TreeComponent, GraviteeMarkdownViewerModule, NavigationItemContentViewerComponent, AsyncPipe],
+  imports: [
+    SidenavLayoutComponent,
+    TreeComponent,
+    GraviteeMarkdownViewerModule,
+    NavigationItemContentViewerComponent,
+    AsyncPipe,
+    MatButtonModule,
+  ],
   standalone: true,
   templateUrl: './documentation-folder.component.html',
   styleUrl: './documentation-folder.component.scss',
@@ -56,6 +65,8 @@ export class DocumentationFolderComponent {
   folderData = toSignal<FolderData | undefined>(this.loadFolderData());
   tree = signal<TreeNode[]>([]);
   breadcrumbs = signal<Breadcrumb[]>([]);
+  subscribeApiId = signal<string | null>(null);
+  readonly currentUser = inject(CurrentUserService).isUserAuthenticated;
 
   constructor(
     private readonly router: Router,
@@ -66,6 +77,16 @@ export class DocumentationFolderComponent {
 
   onSelect(selectedPageId: string) {
     this.navigateToPage(selectedPageId);
+  }
+
+  onSubscribe() {
+    const apiId = this.subscribeApiId();
+    if (apiId) {
+      this.router.navigate(['api', apiId, 'subscribe'], {
+        relativeTo: this.activatedRoute,
+        queryParamsHandling: 'preserve',
+      });
+    }
   }
 
   private loadFolderData(): Observable<FolderData | undefined> {
@@ -98,6 +119,7 @@ export class DocumentationFolderComponent {
     if (!pageId) {
       return of({ children, selectedPageContent: null }).pipe(
         tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByDefault())),
+        tap(() => this.subscribeApiId.set(null)),
         tap(() => this.navigateToFirstPage()),
       );
     }
@@ -108,6 +130,7 @@ export class DocumentationFolderComponent {
 
     return this.itemsService.getNavigationItemContent(pageId).pipe(
       tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByNodeId(pageId))),
+      tap(() => this.subscribeApiId.set(this.treeService.getAncestorApiId(pageId))),
       map(selectedPageContent => ({ children, selectedPageContent })),
     );
   }

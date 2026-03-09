@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,11 @@
  */
 import { DatePipe } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
-import { MatFormField } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
-import { MatOption, MatSelect } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 
-import { PaginationComponent } from '../pagination/pagination.component';
+import { DEFAULT_PAGE_SIZE_OPTIONS, PaginationComponent } from '../pagination/pagination.component';
 
 export interface TableColumn {
   id: string;
@@ -32,7 +30,7 @@ export interface TableColumn {
 @Component({
   selector: 'app-paginated-table',
   standalone: true,
-  imports: [DatePipe, MatTableModule, MatIcon, MatFormField, MatSelect, MatOption, RouterLink, PaginationComponent],
+  imports: [DatePipe, MatTableModule, MatIcon, RouterLink, PaginationComponent],
   templateUrl: './paginated-table.component.html',
   styleUrl: './paginated-table.component.scss',
 })
@@ -42,7 +40,7 @@ export class PaginatedTableComponent<T> {
   totalElements = input.required<number>();
   currentPage = input.required<number>();
   pageSize = input.required<number>();
-  pageSizeOptions = input<number[]>([5, 10, 20, 50, 100]);
+  pageSizeOptions = input<number[]>(DEFAULT_PAGE_SIZE_OPTIONS);
 
   pageChange = output<number>();
   pageSizeChange = output<number>();
@@ -51,9 +49,5 @@ export class PaginatedTableComponent<T> {
 
   onPageChange(page: number): void {
     this.pageChange.emit(page);
-  }
-
-  onPageSizeChange(size: number): void {
-    this.pageSizeChange.emit(size);
   }
 }

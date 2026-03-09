@@ -18,6 +18,10 @@ import { AfterViewInit, Component, ElementRef, Input } from '@angular/core';
 import { Page } from '../../../entities/page/page';
 import { RedocService } from '../../../services/redoc.service';
 
+/**
+ * @deprecated
+ * @use RedocContentViewerComponent instead
+ */
 @Component({
   selector: 'app-page-redoc',
   imports: [],

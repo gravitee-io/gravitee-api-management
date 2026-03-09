@@ -19,8 +19,10 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { ActivatedRoute } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { of } from 'rxjs';
 
 import { ApplicationSubscriptionComponent } from './application-subscription.component';
 import { ApplicationSubscriptionHarness } from './application-subscription.harness';
@@ -116,6 +118,7 @@ describe('ApplicationSubscriptionComponent', () => {
       ['Paused at', '-'],
       ['Ending at', '-'],
       ['Closed at', '-'],
+      ['Metadata', '-'],
     ]);
 
     const subscriptionApiKeysHarness = await componentHarness.getSubscriptionApiKeysHarness();
@@ -128,6 +131,31 @@ describe('ApplicationSubscriptionComponent', () => {
         actions: 'hasRevokeButton',
       },
     ]);
+  });
+
+  describe('metadata display', () => {
+    it('should show dash when subscription has no metadata', async () => {
+      expect(await componentHarness.getMetadata()).toEqual('-');
+      expect(await componentHarness.metadataEditorIsVisible()).toEqual(false);
+    });
+
+    it('should show monaco editor when subscription has metadata', async () => {
+      const subscriptionWithMetadata = fakeSubscription({
+        id: subscriptionId,
+        plan: { id: 'planId', name: 'Free Spaceshuttle', security: 'API_KEY' },
+        metadata: { env: 'prod', version: '1' },
+      });
+
+      fixture = TestBed.createComponent(ApplicationSubscriptionComponent);
+      httpTestingController = TestBed.inject(HttpTestingController);
+      componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApplicationSubscriptionHarness);
+      fixture.autoDetectChanges();
+      expectApplicationSubscriptionGet(applicationId, subscriptionWithMetadata);
+      fixture.detectChanges();
+      expectApplicationApiKeysGetRequest();
+
+      expect(await componentHarness.metadataEditorIsVisible()).toEqual(true);
+    });
   });
 
   it('should update consumer subscription configuration', async () => {
@@ -201,6 +229,57 @@ describe('ApplicationSubscriptionComponent', () => {
       url: `${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`,
       method: 'DELETE',
     });
+  });
+
+  it('should show API product in close confirmation when subscription is API Product', async () => {
+    const matDialog = fixture.debugElement.injector.get(MatDialog);
+    const openSpy = jest.spyOn(matDialog, 'open').mockReturnValue({ afterClosed: () => of(undefined) } as any);
+
+    const apiProductSubscription = fakeSubscription({
+      id: subscriptionId,
+      referenceType: 'API_PRODUCT',
+      apiProduct: {
+        id: 'product-id',
+        name: 'My API Product',
+        version: '1.0',
+        owner: { id: 'owner-id', displayName: 'Product Owner' },
+      },
+      plan: { id: 'planId', name: 'Free Plan', security: 'API_KEY' },
+    });
+    fixture.componentInstance.closeSubscription(fakeApplication({ id: applicationId }), apiProductSubscription);
+
+    expect(openSpy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          content: expect.stringContaining('API product'),
+        }),
+      }),
+    );
+    openSpy.mockRestore();
+  });
+
+  it('should show API in close confirmation when subscription is API', async () => {
+    const matDialog = fixture.debugElement.injector.get(MatDialog);
+    const openSpy = jest.spyOn(matDialog, 'open').mockReturnValue({ afterClosed: () => of(undefined) } as any);
+
+    const apiSubscription = fakeSubscription({
+      id: subscriptionId,
+      api: { id: 'api-1', name: 'Test API', version: '1.0', definitionVersion: 'V2', owner: { id: 'o1', displayName: 'Owner' } },
+      plan: { id: 'planId', name: 'Free Plan', security: 'API_KEY' },
+    });
+    fixture.componentInstance.closeSubscription(fakeApplication({ id: applicationId }), apiSubscription);
+
+    expect(openSpy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          content: expect.stringContaining('consume this API anymore'),
+        }),
+      }),
+    );
+    expect((openSpy.mock.calls[0][1] as { data: { content: string } }).data.content).not.toContain('API product');
+    openSpy.mockRestore();
   });
 
   const expectApplicationGetRequest = (application: Application): void => {

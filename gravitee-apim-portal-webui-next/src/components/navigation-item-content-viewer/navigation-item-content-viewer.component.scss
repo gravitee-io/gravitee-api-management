@@ -15,14 +15,28 @@
  */
 @use '../../scss/theme' as theme;
 
+// Full width so Redoc viewer can use full width
 :host {
   display: block;
-  width: fit-content;
+  width: 100%;
 }
 
 gmd-viewer {
   display: block;
   max-width: theme.$inner-content-width;
+}
+
+// TODO: Remove this when we have a better way to center the content
+// Only center gmd-viewer when inside the full-width page (no side nav)
+:host-context(app-navigation-page-full-width) {
+  gmd-viewer {
+    margin: 0 auto;
+  }
+}
+
+app-redoc-content-viewer {
+  display: block;
+  width: 100%;
 }
 
 .empty-state {

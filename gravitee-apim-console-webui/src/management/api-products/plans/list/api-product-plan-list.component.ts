@@ -1,0 +1,277 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { Router, ActivatedRoute } from '@angular/router';
+import { catchError, EMPTY, filter, map, of, switchMap } from 'rxjs';
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { orderBy } from 'lodash';
+import {
+  GIO_DIALOG_WIDTH,
+  GioConfirmAndValidateDialogComponent,
+  GioConfirmAndValidateDialogData,
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+} from '@gravitee/ui-particles-angular';
+import { MatDialog } from '@angular/material/dialog';
+
+import { ApiProductPlanV2Service } from '../../../../services-ngx/api-product-plan-v2.service';
+import { ApiProductV2Service } from '../../../../services-ngx/api-product-v2.service';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { ConstantsService, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
+import { Plan, PLAN_STATUS, PlanStatus } from '../../../../entities/management-api-v2';
+import { PlanActionEvent, PlanListComponent, PlanDS } from '../../../api/component/plan/plan-list/plan-list.component';
+
+const API_PRODUCT_PLAN_TYPES = ['API_KEY', 'JWT', 'MTLS'] as const;
+
+@Component({
+  selector: 'api-product-plan-list',
+  templateUrl: './api-product-plan-list.component.html',
+  styleUrls: ['./api-product-plan-list.component.scss'],
+  standalone: true,
+  imports: [PlanListComponent],
+})
+export class ApiProductPlanListComponent {
+  private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly plansService = inject(ApiProductPlanV2Service);
+  private readonly apiProductV2Service = inject(ApiProductV2Service);
+  private readonly constantsService = inject(ConstantsService);
+  private readonly permissionService = inject(GioPermissionService);
+  private readonly matDialog = inject(MatDialog);
+  private readonly snackBarService = inject(SnackBarService);
+
+  private readonly filterOverride = signal<PlanStatus | null>(null);
+
+  private readonly apiProductId = toSignal(this.activatedRoute.paramMap.pipe(map(p => p.get('apiProductId') ?? '')), { initialValue: '' });
+  private readonly initialStatusFromRoute = toSignal(
+    this.activatedRoute.queryParamMap.pipe(map(q => (q.get('status') ?? 'PUBLISHED') as PlanStatus)),
+    { initialValue: 'PUBLISHED' as PlanStatus },
+  );
+  protected readonly selectedStatus = computed(() => this.filterOverride() ?? this.initialStatusFromRoute());
+  protected readonly isReadOnly = computed(() => !this.permissionService.hasAnyMatching(['api_product-plan-u']));
+
+  private readonly plansResource = rxResource({
+    params: () => ({ id: this.apiProductId() }),
+    stream: ({ params }) => {
+      if (!params.id) return of([] as PlanDS[]);
+      return this.plansService.list(params.id, undefined, [...PLAN_STATUS], undefined, ['-flow'], 1, 9999).pipe(
+        map(response =>
+          response.data.map(plan => ({
+            ...plan,
+            securityTypeLabel: this.getSecurityTypeLabel(plan.security?.type),
+          })),
+        ),
+        catchError((err: { error?: { message?: string } }) => {
+          this.snackBarService.error(err?.error?.message ?? 'An error occurred while loading plans.');
+          return of([] as PlanDS[]);
+        }),
+      );
+    },
+  });
+
+  protected readonly isLoadingData = computed(() => this.plansResource.isLoading());
+
+  protected readonly plansTableDS = computed(() => {
+    const plans = this.plansResource.value() ?? [];
+    const targetStatus = this.selectedStatus();
+    const filtered = plans.filter(plan => plan.status === targetStatus);
+    return orderBy(filtered, 'order', 'asc');
+  });
+
+  protected readonly apiPlanStatus = computed(() => {
+    const plans = this.plansResource.value() ?? [];
+    const counts = plans.reduce(
+      (acc, plan) => {
+        const status = plan.status.toUpperCase();
+        acc[status] = (acc[status] ?? 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+    return PLAN_STATUS.map(status => ({
+      name: status,
+      number: counts[status.toUpperCase()] ?? 0,
+    }));
+  });
+
+  protected readonly planMenuItems: PlanMenuItemVM[] = this.constantsService
+    .getEnabledPlanMenuItems()
+    .filter(p => (API_PRODUCT_PLAN_TYPES as readonly string[]).includes(p.planFormType));
+
+  protected triggerReload(): void {
+    this.plansResource.reload();
+  }
+
+  private refreshPlansAfterStateChange(): void {
+    this.apiProductV2Service.notifyPlanStateChanged();
+    this.triggerReload();
+  }
+
+  protected onStatusFilterChanged(status: PlanStatus): void {
+    this.filterOverride.set(status);
+  }
+
+  protected onActionSelected(event: PlanActionEvent): void {
+    switch (event.action) {
+      case 'PUBLISH':
+        this.onPublishPlan(event.plan);
+        break;
+      case 'DEPRECATE':
+        this.onDeprecatePlan(event.plan);
+        break;
+      case 'CLOSE':
+        this.onClosePlan(event.plan);
+        break;
+    }
+  }
+
+  protected onPlanTypeSelected(planFormType: string): void {
+    this.router.navigate(['./new'], {
+      relativeTo: this.activatedRoute,
+      queryParams: { selectedPlanMenuItem: planFormType },
+    });
+  }
+
+  protected onPlanSelected(plan: PlanDS): void {
+    this.router.navigate(['./', plan.id], { relativeTo: this.activatedRoute });
+  }
+
+  protected onPlanReordered(event: CdkDragDrop<string[]>): void {
+    const current = this.plansTableDS();
+    const currentData = [...current];
+    const elm = currentData[event.previousIndex];
+    currentData.splice(event.previousIndex, 1);
+    currentData.splice(event.currentIndex, 0, elm);
+
+    const movedPlan = { ...currentData[event.currentIndex] };
+    movedPlan.order = event.currentIndex + 1;
+    delete movedPlan.securityTypeLabel;
+
+    const apiProductId = this.apiProductId();
+    this.plansService
+      .update(apiProductId, movedPlan.id, movedPlan)
+      .pipe(
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.refreshPlansAfterStateChange());
+  }
+
+  protected onPublishPlan(plan: Plan): void {
+    const apiProductId = this.apiProductId();
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: GIO_DIALOG_WIDTH.SMALL,
+        data: {
+          title: 'Publish plan',
+          content: `Are you sure you want to publish the plan ${plan.name}?`,
+          confirmButton: 'Publish',
+        },
+        role: 'alertdialog',
+        id: 'publishPlanDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter(confirm => confirm === true),
+        switchMap(() => this.plansService.publish(apiProductId, plan.id)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(published => {
+        this.snackBarService.success(`The plan ${published.name} has been published with success.`);
+        this.refreshPlansAfterStateChange();
+      });
+  }
+
+  protected onDeprecatePlan(plan: Plan): void {
+    const apiProductId = this.apiProductId();
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Deprecate plan',
+          content: `A deprecated plan can no longer be used for new subscriptions. Existing subscriptions are maintained.<br /><br />Are you sure you want to deprecate the plan: ${plan.name}?`,
+          confirmButton: 'Deprecate',
+        },
+        role: 'alertdialog',
+        id: 'deprecatePlanDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter(confirm => confirm === true),
+        switchMap(() => this.plansService.deprecate(apiProductId, plan.id)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(deprecated => {
+        this.snackBarService.success(`The plan ${deprecated.name} has been deprecated with success.`);
+        this.refreshPlansAfterStateChange();
+      });
+  }
+
+  protected onClosePlan(plan: Plan): void {
+    const apiProductId = this.apiProductId();
+    this.matDialog
+      .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData>(GioConfirmAndValidateDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Close plan',
+          warning: 'This operation is irreversible.',
+          validationMessage: `Please, type in the name of the plan <code>${plan.name}</code> to confirm.`,
+          validationValue: plan.name,
+          content: `No subscription is associated to this plan. You can delete it safely.`,
+          confirmButton: 'Yes, close this plan.',
+        },
+        role: 'alertdialog',
+        id: 'closePlanDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter(confirm => confirm === true),
+        switchMap(() => this.plansService.close(apiProductId, plan.id)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(closed => {
+        this.snackBarService.success(`The plan ${closed.name} has been closed with success.`);
+        this.refreshPlansAfterStateChange();
+      });
+  }
+
+  private getSecurityTypeLabel(type?: string): string {
+    const labels: Record<string, string> = {
+      MTLS: 'mTLS',
+      API_KEY: 'API Key',
+      JWT: 'JWT',
+    };
+    return labels[type] ?? type ?? '';
+  }
+}

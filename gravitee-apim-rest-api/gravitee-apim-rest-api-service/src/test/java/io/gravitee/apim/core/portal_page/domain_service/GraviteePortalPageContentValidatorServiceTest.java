@@ -23,6 +23,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
@@ -66,7 +67,7 @@ class GraviteePortalPageContentValidatorServiceTest {
         validator.validate(updateContent);
 
         // Then
-        verify(gmdValidator).validateNotEmpty(argThat(container -> container.getGmdContent().equals("test content")));
+        verify(gmdValidator).validateNotEmpty(argThat(gmd -> gmd.value().equals("test content")));
     }
 
     @Test

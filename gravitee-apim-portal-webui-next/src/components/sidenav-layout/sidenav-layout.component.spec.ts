@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import { Breadcrumb } from '../breadcrumbs/breadcrumbs.component';
   template: `
     <app-sidenav-layout [breadcrumbs]="breadcrumbs">
       <div sidenavContent>Sidenav Content</div>
+      <div breadcrumbActions>Breadcrumb Actions</div>
       <div mainContent>Main Content</div>
     </app-sidenav-layout>
   `,
@@ -68,5 +69,10 @@ describe('SidenavLayoutComponent', () => {
   it('should display breadcrumbs', async () => {
     const breadcrumbs = await harness.getBreadcrumbs();
     expect(await breadcrumbs?.getText()).toContain('Parent/Child/Grandchild');
+  });
+
+  it('should display breadcrumb actions', async () => {
+    const breadcrumbActions = await harness.getBreadcrumbActions();
+    expect(await breadcrumbActions?.getText()).toBe('Breadcrumb Actions');
   });
 });

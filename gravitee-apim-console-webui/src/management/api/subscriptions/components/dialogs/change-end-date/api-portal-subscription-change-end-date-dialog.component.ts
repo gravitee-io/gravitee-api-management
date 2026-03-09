@@ -23,6 +23,8 @@ export interface ApiPortalSubscriptionChangeEndDateDialogData {
   applicationName: string;
   securityType: PlanSecurityType;
   currentEndDate: Date;
+  /** When true, wording uses "API product" instead of "API". Used when opened from API Product context. */
+  isApiProduct?: boolean;
 }
 export interface ApiPortalSubscriptionChangeEndDateDialogResult {
   endDate: Date;

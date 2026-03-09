@@ -37,6 +37,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApiModel;
@@ -904,6 +905,81 @@ public class ApiKeyServiceTest {
             apiKeyToCreate,
             apiId,
             io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
+            applicationId
+        );
+
+        assertFalse(canCreate);
+    }
+
+    @Test
+    public void shouldRenew_without_triggering_notifier_for_api_product_subscription() throws TechnicalException {
+        ApiKey apiKey = new ApiKey();
+        apiKey.setId(API_KEY);
+        apiKey.setKey("123-456-789");
+        apiKey.setCreatedAt(new Date());
+        apiKey.setApplication(APPLICATION_ID);
+        apiKey.setSubscriptions(List.of(SUBSCRIPTION_ID));
+
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId(SUBSCRIPTION_ID);
+        subscription.setEndingAt(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
+        subscription.setPlan(PLAN_ID);
+        subscription.setApplication(APPLICATION_ID);
+        subscription.setApi("api-123");
+        subscription.setStatus(SubscriptionStatus.PAUSED);
+        subscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT.name());
+        subscription.setReferenceId("product-1");
+
+        ApplicationEntity application = new ApplicationEntity();
+        application.setId(APPLICATION_ID);
+        application.setApiKeyMode(ApiKeyMode.UNSPECIFIED);
+
+        PlanEntity plan = new PlanEntity();
+        plan.setSecurity(PlanSecurityType.API_KEY);
+
+        when(apiKeyGenerator.generate()).thenReturn(API_KEY);
+        when(subscriptionService.findById(subscription.getId())).thenReturn(subscription);
+        when(subscriptionService.findByIdIn(List.of(SUBSCRIPTION_ID))).thenReturn(Set.of(subscription));
+        when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
+        when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(plan);
+
+        apiKeyService.renew(GraviteeContext.getExecutionContext(), subscription);
+
+        verify(apiKeyRepository, times(1)).create(any());
+        verify(notifierService, never()).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.APIKEY_RENEWED), any(), any());
+    }
+
+    @Test
+    public void canCreate_should_return_false_when_key_exists_for_same_api_product() throws Exception {
+        String apiKeyToCreate = "apikey-i-want-to-create";
+        String apiProductId = "product-1";
+        String applicationId = "my-application-id";
+
+        ApplicationEntity application = new ApplicationEntity();
+        application.setId(applicationId);
+
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId("subscription-1");
+        subscriptionEntity.setApplication(applicationId);
+        subscriptionEntity.setReferenceId(apiProductId);
+        subscriptionEntity.setReferenceType(SubscriptionReferenceType.API_PRODUCT.name());
+
+        ApiKey existingApiKey = new ApiKey();
+        existingApiKey.setSubscriptions(List.of("subscription-1"));
+        existingApiKey.setApplication(applicationId);
+        existingApiKey.setKey(apiKeyToCreate);
+
+        when(apiKeyRepository.findByKeyAndEnvironmentId(apiKeyToCreate, ENVIRONMENT_ID)).thenReturn(List.of(existingApiKey));
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(applicationId))).thenReturn(application);
+        when(subscriptionService.findByIdIn(List.of("subscription-1"))).thenReturn(Set.of(subscriptionEntity));
+
+        boolean canCreate = apiKeyService.canCreate(
+            GraviteeContext.getExecutionContext(),
+            apiKeyToCreate,
+            apiProductId,
+            SubscriptionReferenceType.API_PRODUCT.name(),
             applicationId
         );
 

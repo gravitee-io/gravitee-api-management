@@ -17,4 +17,5 @@ package io.gravitee.apim.core.portal_page.model;
 
 public enum PortalPageContentType {
     GRAVITEE_MARKDOWN,
+    OPENAPI,
 }

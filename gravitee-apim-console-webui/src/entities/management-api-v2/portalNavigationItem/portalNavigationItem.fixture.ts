@@ -27,6 +27,7 @@ import {
   UpdatePagePortalNavigationItem,
   UpdateLinkPortalNavigationItem,
   UpdateFolderPortalNavigationItem,
+  UpdateApiPortalNavigationItem,
 } from './portalNavigationItem';
 import { PortalNavigationItemsResponse } from './portalNavigationItemsResponse';
 
@@ -146,6 +147,7 @@ export function fakeNewPagePortalNavigationItem(overrides?: Partial<NewPagePorta
     type: 'PAGE',
     area: 'HOMEPAGE',
     visibility: 'PUBLIC',
+    contentType: 'GRAVITEE_MARKDOWN',
   };
 
   if (isFunction(overrides)) {
@@ -259,6 +261,25 @@ export function fakeUpdateFolderPortalNavigationItem(
     type: 'FOLDER',
     title: 'Updated Folder',
     visibility: 'PUBLIC',
+  };
+
+  if (isFunction(overrides)) {
+    return overrides(base);
+  }
+
+  return {
+    ...base,
+    ...overrides,
+  };
+}
+
+export function fakeUpdateApiPortalNavigationItem(overrides?: Partial<UpdateApiPortalNavigationItem>): UpdateApiPortalNavigationItem {
+  const base: UpdateApiPortalNavigationItem = {
+    published: false,
+    type: 'API',
+    title: '',
+    visibility: 'PUBLIC',
+    apiId: 'api-1',
   };
 
   if (isFunction(overrides)) {

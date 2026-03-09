@@ -17,4 +17,25 @@
  * Public API Surface of gravitee-kafka-explorer
  */
 
-export * from './lib/kafka-explorer.component';
+export * from './lib/components/badge/badge.component';
+export * from './lib/models/kafka-cluster.model';
+export * from './lib/kafka-explorer/kafka-explorer.component';
+export * from './lib/kafka-explorer/kafka-explorer.routes';
+export * from './lib/services/kafka-explorer.service';
+export * from './lib/services/kafka-explorer-store.service';
+export * from './lib/services/kafka-explorer-config.token';
+export * from './lib/features/brokers/brokers/brokers.component';
+export * from './lib/features/brokers/brokers-page.component';
+export * from './lib/features/brokers/broker-detail/broker-detail.component';
+export * from './lib/features/brokers/broker-detail-page.component';
+export * from './lib/features/topics/topics/topics.component';
+export * from './lib/features/topics/topics-page.component';
+export * from './lib/features/topics/topic-detail/topic-detail.component';
+export * from './lib/features/topics/topic-detail-page.component';
+export * from './lib/features/topics/messages/messages-browser.component';
+export * from './lib/features/topics/messages-page.component';
+export * from './lib/features/consumer-groups/consumer-groups/consumer-groups.component';
+export * from './lib/features/consumer-groups/consumer-groups-page.component';
+export * from './lib/features/consumer-groups/consumer-group-detail/consumer-group-detail.component';
+export * from './lib/features/consumer-groups/consumer-group-detail-page.component';
+export * from './lib/pipes/file-size.pipe';

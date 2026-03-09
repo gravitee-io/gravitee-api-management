@@ -15,9 +15,40 @@
  */
 package io.gravitee.rest.api.kafkaexplorer.domain.domain_service;
 
+import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerInfo;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.BrowseMessagesResult;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupDetail;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupsPage;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
-import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaConnectionConfig;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicDetail;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicsPage;
 
 public interface KafkaClusterDomainService {
-    KafkaClusterInfo describeCluster(KafkaConnectionConfig config);
+    KafkaClusterInfo describeCluster(KafkaClusterConfiguration config);
+    TopicsPage listTopics(KafkaClusterConfiguration config, String nameFilter, int page, int perPage);
+    TopicDetail describeTopic(KafkaClusterConfiguration config, String topicName);
+    BrokerInfo describeBroker(KafkaClusterConfiguration config, int brokerId);
+    ConsumerGroupsPage listConsumerGroups(KafkaClusterConfiguration config, String nameFilter, String topicFilter, int page, int perPage);
+    ConsumerGroupDetail describeConsumerGroup(KafkaClusterConfiguration config, String groupId);
+    BrowseMessagesResult browseMessages(
+        KafkaClusterConfiguration config,
+        String topicName,
+        Integer partition,
+        String offsetMode,
+        Long offsetValue,
+        String keyFilter,
+        String valueFilter,
+        int limit
+    );
+    void tailMessages(
+        KafkaClusterConfiguration config,
+        String topicName,
+        Integer partition,
+        String keyFilter,
+        String valueFilter,
+        int maxMessages,
+        int durationSeconds,
+        MessageConsumer consumer
+    );
 }

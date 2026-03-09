@@ -257,6 +257,7 @@ describe('API - V4 - Connection Logs', () => {
     };
 
     const expectConnectionLogsForApplications = async (expectedLogsCount: number, applications: { id: string; name: string }[]) => {
+      const appIds = new Set(applications.map((app) => app.id));
       let apiLogsResponse = await fetchRestApiSuccess<ApiLogsResponse>({
         restApiHttpCall: () =>
           v2ApiLogsResourceAsApiPublisher.getApiLogsRaw({
@@ -267,7 +268,11 @@ describe('API - V4 - Connection Logs', () => {
         maxRetries: 10,
         expectedResponseValidator: async (response) => {
           const body = response.value;
-          return body.data.length === expectedLogsCount;
+          return (
+            body.data.length === expectedLogsCount &&
+            body.data.every((log) => appIds.has(log.application?.id)) &&
+            body.data.every((log) => log.requestEnded === true)
+          );
         },
       });
 
@@ -278,7 +283,8 @@ describe('API - V4 - Connection Logs', () => {
         expect(connectionLog.plan.security.type).toEqual('API_KEY');
         expect(applications.map((app) => app.id)).toContain(connectionLog.application.id);
         expect(applications.map((app) => app.name)).toContain(connectionLog.application.name);
-        expect(connectionLog.status).toEqual(connectionLog.requestEnded ? 200 : 0);
+        expect(connectionLog.requestEnded).toEqual(true);
+        expect(connectionLog.status).toEqual(200);
         expect(connectionLog.method).toEqual('GET');
       }
     };
@@ -287,6 +293,7 @@ describe('API - V4 - Connection Logs', () => {
       expectedLogsCount: number,
       plans: { id: string; name: string }[],
     ): Promise<ApiLogsResponse> => {
+      const planIds = new Set(plans.map((plan) => plan.id));
       let apiLogsResponse = await fetchRestApiSuccess<ApiLogsResponse>({
         restApiHttpCall: () =>
           v2ApiLogsResourceAsApiPublisher.getApiLogsRaw({
@@ -297,7 +304,11 @@ describe('API - V4 - Connection Logs', () => {
         maxRetries: 10,
         expectedResponseValidator: async (response) => {
           const body = response.value;
-          return body.data.length === expectedLogsCount;
+          return (
+            body.data.length === expectedLogsCount &&
+            body.data.every((log) => planIds.has(log.plan?.id)) &&
+            body.data.every((log) => log.requestEnded === true)
+          );
         },
       });
 
@@ -307,7 +318,8 @@ describe('API - V4 - Connection Logs', () => {
         expect(connectionLog.plan.security.type).toEqual('API_KEY');
         expect(plans.map((plan) => plan.id)).toContain(connectionLog.plan.id);
         expect(plans.map((plan) => plan.name)).toContain(connectionLog.plan.name);
-        expect(connectionLog.status).toEqual(connectionLog.requestEnded ? 200 : 0);
+        expect(connectionLog.requestEnded).toEqual(true);
+        expect(connectionLog.status).toEqual(200);
         expect(connectionLog.method).toEqual('GET');
       }
 

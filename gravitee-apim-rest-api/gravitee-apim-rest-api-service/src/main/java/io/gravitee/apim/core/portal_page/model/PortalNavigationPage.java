@@ -30,7 +30,7 @@ public final class PortalNavigationPage extends PortalNavigationItem {
     @Nonnull
     private PortalPageContentId portalPageContentId;
 
-    public PortalNavigationPage(
+    PortalNavigationPage(
         @Nonnull PortalNavigationItemId id,
         @Nonnull String organizationId,
         @Nonnull String environmentId,

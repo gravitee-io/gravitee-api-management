@@ -181,6 +181,8 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
             }
         } else if (values instanceof String value) {
             return Stream.of(new TermQuery(new Term(remapFields.getOrDefault(field, field), QueryParserBase.escape(value))));
+        } else if (values instanceof Boolean bool) {
+            return Stream.of(new TermQuery(new Term(remapFields.getOrDefault(field, field), Boolean.toString(bool))));
         }
         return Stream.empty();
     }

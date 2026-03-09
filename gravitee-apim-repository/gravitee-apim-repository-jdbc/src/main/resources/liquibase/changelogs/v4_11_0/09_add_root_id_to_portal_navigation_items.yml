@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.11.0_09_add_root_id_to_portal_navigation_items
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}portal_navigation_items
+            columns:
+              - column:
+                  name: root_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true

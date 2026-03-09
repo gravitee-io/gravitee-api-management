@@ -414,6 +414,10 @@ alerts:
     enabled: false
     username: admin
     password: adminadmin
+  api:
+    ws:
+      defaultFilters:
+        enabled: true
 
 management:
   type: mongodb
@@ -473,8 +477,8 @@ cloud:
 
 cluster:
   plugins:
-    - https://download.gravitee.io/pre-releases/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-8.0.0-alpha.4.zip
-    - https://download.gravitee.io/pre-releases/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-8.0.0-alpha.4.zip
+    - https://download.gravitee.io/pre-releases/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-8.0.0-alpha.13.zip
+    - https://download.gravitee.io/pre-releases/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-8.0.0-alpha.13.zip
 
 api:
   enabled: true
@@ -1560,6 +1564,8 @@ gateway:
 #    properties:
 #      encryption:
 #        secret: ...
+#    security:
+#      verbose401: false  # set to true to return detailed error messages in 401 responses
 ## API Level secret-provider configuration
 #    secrets:
 #      providers:

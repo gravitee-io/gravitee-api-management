@@ -553,6 +553,8 @@ data:
             username: {{ .Values.alerts.security.username }}
             password: {{ .Values.alerts.security.password }}
           {{- end }}
+          defaultFilters:
+            enabled: {{ .Values.alerts.api.ws.defaultFilters.enabled }}
     {{- else }}
     alerts:
       alert-engine-connector-ws:

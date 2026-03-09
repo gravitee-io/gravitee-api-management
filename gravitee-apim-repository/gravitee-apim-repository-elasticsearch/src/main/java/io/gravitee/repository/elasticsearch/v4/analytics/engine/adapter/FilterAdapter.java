@@ -119,10 +119,30 @@ public class FilterAdapter {
     }
 
     public JsonObject httpFilter() {
-        return JsonObject.of(
+        JsonObject termsFilter = JsonObject.of(
             "terms",
             JsonObject.of(ENTRYPOINT_FIELD, JsonArray.of(HTTP_PROXY_ENTRYPOINT_ID, LLM_PROXY_ENTRYPOINT_ID, MCP_PROXY_ENTRYPOINT_ID))
         );
+
+        // This is needed for now to get APIs that don't pass the security chain.
+        JsonObject fieldMissingFilter = JsonObject.of(
+            "bool",
+            JsonObject.of("must_not", JsonObject.of("exists", JsonObject.of("field", ENTRYPOINT_FIELD)))
+        );
+
+        return JsonObject.of("bool", JsonObject.of("should", JsonArray.of(termsFilter, fieldMissingFilter), "minimum_should_match", 1));
+    }
+
+    /*
+     * Add a bool step to the aggregation pipeline so that filters defined
+     * at the metric level are applied to the aggregation results.
+     */
+    public JsonObject adaptMetricFilters(List<Filter> filters) {
+        var must = new JsonArray();
+        for (var f : filters) {
+            must.add(filter(f));
+        }
+        return JsonObject.of("bool", JsonObject.of("must", must));
     }
 
     public JsonObject messageFilter() {

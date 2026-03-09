@@ -112,7 +112,7 @@ import lombok.Getter;
  * @author GraviteeSource Team
  */
 @CustomLog
-public class DefaultApiReactor extends AbstractApiReactor implements EventListener<ApiProductEventType, ApiProductChangedEvent> {
+public class DefaultApiReactor extends AbstractApiReactor {
 
     private static final Set<LogEntry<? extends HttpExecutionContextInternal>> DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES = Set.of(
         LogEntryFactory.cached("serverId", DefaultExecutionContext.class, context -> context.getInternalAttribute(ATTR_INTERNAL_SERVER_ID)),
@@ -163,6 +163,7 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
     private final ApiProductRegistry apiProductRegistry;
     private final ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory;
     private PolicyManager apiProductPlanPolicyManager;
+    private EventListener<ApiProductEventType, ApiProductChangedEvent> apiProductEventListener;
 
     /**
      * Backward-compatible constructor for Message Reactor and other plugins that extend DefaultApiReactor.
@@ -646,9 +647,10 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
 
         Completable.concat(services.stream().map(ApiService::start).collect(Collectors.toList())).blockingAwait();
 
-        // Subscribe to API Product events for security chain refresh
+        // Subscribe to API Product events for security chain refresh.
         if (apiProductRegistry != null) {
-            eventManager.subscribeForEvents(this, ApiProductEventType.class);
+            apiProductEventListener = event -> onApiProductEvent(event);
+            eventManager.subscribeForEvents(apiProductEventListener, ApiProductEventType.class);
             log.debug("API reactor [{}] subscribed to API Product events", api.getId());
         }
 
@@ -669,7 +671,7 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
      */
     public void restartApiProductPlanPolicyManager() {
         if (lifecycleState != Lifecycle.State.STARTED) {
-            log.debug("Cannot refresh security chain for API [{}] - reactor is not started (state: {})", api.getId(), lifecycleState);
+            log.debug("API [{}] skipping security chain refresh — reactor not started (state: {})", api.getId(), lifecycleState);
             return;
         }
         try {
@@ -684,7 +686,7 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
                 }
             }
             refreshSecurityChain();
-            log.debug("Security chain refreshed for API [{}] due to API Product change", api.getId());
+            log.debug("API [{}] security chain refreshed after API Product change", api.getId());
         } catch (Exception e) {
             log.warn("Failed to refresh security chain for API [{}] on API Product change", api.getId(), e);
             // Don't throw - keep using old chain to avoid breaking running API
@@ -692,27 +694,16 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
     }
 
     /**
-     * Handle API Product events (DEPLOY/UPDATE/UNDEPLOY).
      * Refreshes security chain if this API is affected by the product change.
      */
-    @Override
-    public void onEvent(Event<ApiProductEventType, ApiProductChangedEvent> event) {
+    private void onApiProductEvent(Event<ApiProductEventType, ApiProductChangedEvent> event) {
         ApiProductChangedEvent payload = event.content();
         if (payload != null && payload.getApiIds() != null && payload.getApiIds().contains(api.getId())) {
-            log.debug(
-                "API [{}] affected by API Product [{}] {} event, refreshing security chain",
-                api.getId(),
-                payload.getProductId(),
-                event.type()
-            );
+            log.debug("API [{}] received ApiProductChangedEvent ({}) for product [{}]", api.getId(), event.type(), payload.getProductId());
             restartApiProductPlanPolicyManager();
         }
     }
 
-    /**
-     * Refresh the security chain.
-     * Rebuilds the chain with latest api product plan definitions from the registry.
-     */
     private void refreshSecurityChain() {
         HttpSecurityChain chain;
         if (apiProductRegistry != null && apiProductPlanPolicyManager != null) {
@@ -753,9 +744,10 @@ public class DefaultApiReactor extends AbstractApiReactor implements EventListen
         this.lifecycleState = Lifecycle.State.STOPPING;
 
         try {
-            // Unsubscribe from API Product events
-            if (apiProductRegistry != null) {
-                eventManager.unsubscribeForEvents(this, ApiProductEventType.class);
+            // Unsubscribe the lambda listener created at start time.
+            if (apiProductRegistry != null && apiProductEventListener != null) {
+                eventManager.unsubscribeForEvents(apiProductEventListener, ApiProductEventType.class);
+                apiProductEventListener = null;
                 log.debug("API reactor [{}] unsubscribed from API Product events", api.getId());
             }
 

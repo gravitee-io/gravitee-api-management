@@ -13,10 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export type DebugStatus = 'TO_DEBUG' | 'DEBUGGING' | 'SUCCESS' | 'ERROR';
+
+export const debugStatus = (status: string): DebugStatus => {
+  if (status === 'TO_DEBUG' || status === 'DEBUGGING' || status === 'SUCCESS' || status === 'ERROR') {
+    return status;
+  }
+  throw new Error(`Invalid debug status: ${status}`);
+};
+
 export interface DebugEvent {
   id: string;
   payload: DebugEventPayload;
-  status: 'SUCCESS' | 'FAILED';
+  status: DebugStatus;
 }
 
 interface DebugEventPayload {

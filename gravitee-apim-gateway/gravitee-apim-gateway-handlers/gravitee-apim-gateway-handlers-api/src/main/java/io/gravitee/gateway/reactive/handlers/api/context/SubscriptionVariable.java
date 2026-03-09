@@ -47,4 +47,8 @@ public class SubscriptionVariable {
     public String getClientId() {
         return this.subscription.getClientId();
     }
+
+    public String getApiProductId() {
+        return this.subscription.getApiProductId();
+    }
 }

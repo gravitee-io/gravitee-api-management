@@ -15,31 +15,18 @@
     limitations under the License.
 
 -->
-<form class="cluster-configuration__content" *ngIf="configForm" [formGroup]="configForm" autocomplete="off" gioFormFocusInvalid>
-  <mat-card class="configuration-card">
-    <mat-card-header>
-      <mat-card-title>Bootstrap Servers</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <mat-form-field class="configuration-card__field" appearance="outline">
-        <mat-label>Bootstrap servers (bootstrap.servers)</mat-label>
-        <textarea formControlName="bootstrapServers" matInput type="text" required></textarea>
-        <mat-hint
-          >The Kafka bootstrap server address (e.g., kafka.example.com:9092,kafka2.example.com:9092). Supports EL and Secrets</mat-hint
-        >
-        <mat-error *ngIf="configForm.get('bootstrapServers').hasError('required')">Bootstrap servers are required.</mat-error>
-      </mat-form-field>
-    </mat-card-content>
-  </mat-card>
+@if (isLoadingData) {
+  <div class="loader">
+    <mat-icon svgIcon="gio:loader"></mat-icon>
+  </div>
+} @else if (configForm) {
+  <form class="cluster-configuration__content" [formGroup]="configForm" autocomplete="off" gioFormFocusInvalid (ngSubmit)="onSubmit()">
+    <mat-card class="configuration-card">
+      <mat-card-content>
+        <gio-form-json-schema [jsonSchema]="securityJsonSchema" formControlName="config"></gio-form-json-schema>
+      </mat-card-content>
+    </mat-card>
 
-  <mat-card class="configuration-card">
-    <mat-card-header>
-      <mat-card-title>Security</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <gio-form-json-schema [jsonSchema]="securityJsonSchema" formControlName="security"></gio-form-json-schema>
-    </mat-card-content>
-  </mat-card>
-
-  <gio-save-bar [form]="configForm" [formInitialValues]="initialConfigFormValue" (submitted)="onSubmit()"></gio-save-bar>
-</form>
+    <gio-save-bar [form]="configForm" (resetClicked)="onReset()"></gio-save-bar>
+  </form>
+}

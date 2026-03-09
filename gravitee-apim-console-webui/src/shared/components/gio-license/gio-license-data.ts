@@ -29,10 +29,13 @@ export enum ApimFeature {
   APIM_SCHEMA_REGISTRY_PROVIDER = 'apim-en-schema-registry-provider',
   APIM_EN_MESSAGE_REACTOR = 'apim-en-message-reactor',
   APIM_LLM_PROXY_REACTOR = 'apim-llm-proxy-reactor',
+  APIM_A2A_PROXY_REACTOR = 'apim-a2a-proxy-reactor',
+  APIM_NATIVE_KAFKA_EXPLORER = 'apim-native-kafka-explorer',
   APIM_CLUSTER = 'apim-cluster',
   APIM_API_PRODUCTS = 'apim-api-products',
   ALERT_ENGINE = 'alert-engine',
   FEDERATION = 'federation',
+  APIM_MCP_TOOL_SERVER = 'apim-mcp-tool-server',
 }
 
 export enum UTMTags {
@@ -59,6 +62,9 @@ export enum UTMTags {
   API_CREATION_NATIVE_KAFKA_ENDPOINT_CONFIG = 'api_creation_native_kafka_endpoint_config',
   API_CREATION_MESSAGE_SUMMARY = 'api_creation_message_summary',
   API_CREATION_LLM_SUMMARY = 'api_creation_llm_summary',
+  API_CREATION_A2A_ENTRYPOINT = 'api_creation_a2a_entrypoint',
+  API_CREATION_A2A_ENTRYPOINT_CONFIG = 'api_creation_a2a_entrypoint_config',
+  API_CREATION_A2A_ENDPOINT_CONFIG = 'api_creation_a2a_endpoint_config',
 }
 
 export function stringFeature(ctaConfig: CTAConfiguration, value: string): ApimFeature {
@@ -167,6 +173,13 @@ export const getFeatureInfoData = (ctaConfig: CTAConfiguration): Record<ApimFeat
       trialButtonLabel,
       hideDays,
     },
+    [ApimFeature.APIM_NATIVE_KAFKA_EXPLORER]: {
+      title,
+      image: 'assets/gio-ee-unlock-dialog/kafka-explorer.svg',
+      description: `Kafka Explorer is part of ${ee}. It allows you to browse and inspect your Kafka cluster resources such as brokers, topics, and consumer groups.`,
+      trialButtonLabel,
+      hideDays,
+    },
     [ApimFeature.APIM_CLUSTER]: {
       title,
       image: 'assets/gio-ee-unlock-dialog/clusters.svg',
@@ -178,6 +191,20 @@ export const getFeatureInfoData = (ctaConfig: CTAConfiguration): Record<ApimFeat
       title,
       image: 'assets/gio-ee-unlock-dialog/api-products.svg',
       description: `API Products is part of ${ee}. An API Product provides unified access to multiple APIs through one subscription.`,
+      trialButtonLabel,
+      hideDays,
+    },
+    [ApimFeature.APIM_A2A_PROXY_REACTOR]: {
+      title,
+      image: 'assets/gio-ee-unlock-dialog/policies-a2a.svg',
+      description: `Request the Agent Mesh pack to unlock the A2A proxy APIs.`,
+      trialButtonLabel,
+      hideDays,
+    },
+    [ApimFeature.APIM_MCP_TOOL_SERVER]: {
+      title,
+      image: 'assets/gio-ee-unlock-dialog/policies.svg',
+      description: `Request the MCP Proxy pack to unlock the message proxy APIs.`,
       trialButtonLabel,
       hideDays,
     },

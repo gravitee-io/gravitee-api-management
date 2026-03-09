@@ -113,7 +113,9 @@ public class ApiProductManagerImpl implements ApiProductManager {
         apiProductRegistry.register(apiProduct);
 
         Completable emit = Completable.fromRunnable(() -> {
-            emitApiProductChangedEvent(ApiProductEventType.DEPLOY, apiProduct);
+            if (apiProduct.getApiIds() != null && !apiProduct.getApiIds().isEmpty()) {
+                emitApiProductChangedEvent(ApiProductEventType.DEPLOY, apiProduct);
+            }
             log.info("API Product [{}] has been deployed", apiProduct.getId());
         });
         return (doBeforeEmit != null ? doBeforeEmit : Completable.complete()).andThen(emit);
@@ -126,7 +128,9 @@ public class ApiProductManagerImpl implements ApiProductManager {
         apiProductRegistry.register(apiProduct);
 
         Completable emit = Completable.fromRunnable(() -> {
-            emitApiProductChangedEvent(ApiProductEventType.UPDATE, apiProduct);
+            if (apiProduct.getApiIds() != null && !apiProduct.getApiIds().isEmpty()) {
+                emitApiProductChangedEvent(ApiProductEventType.UPDATE, apiProduct);
+            }
             log.info("API Product [{}] has been updated", apiProduct.getId());
         });
         return (doBeforeEmit != null ? doBeforeEmit : Completable.complete()).andThen(emit);

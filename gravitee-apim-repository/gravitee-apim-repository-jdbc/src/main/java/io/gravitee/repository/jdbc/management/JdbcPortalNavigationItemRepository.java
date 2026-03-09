@@ -51,6 +51,7 @@ public class JdbcPortalNavigationItemRepository
             .addColumn("type", Types.NVARCHAR, PortalNavigationItem.Type.class)
             .addColumn("area", Types.NVARCHAR, PortalNavigationItem.Area.class)
             .addColumn("parent_id", Types.NVARCHAR, String.class)
+            .addColumn("root_id", Types.NVARCHAR, String.class)
             .addColumn("order", Types.INTEGER, Integer.class)
             .addColumn("configuration", Types.NVARCHAR, String.class)
             .addColumn("published", Types.BOOLEAN, boolean.class)

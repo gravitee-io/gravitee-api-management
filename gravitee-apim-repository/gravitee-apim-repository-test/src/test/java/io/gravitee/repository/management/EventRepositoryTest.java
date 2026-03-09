@@ -18,11 +18,6 @@ package io.gravitee.repository.management;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import io.gravitee.common.data.domain.Page;
@@ -38,7 +33,6 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -150,7 +144,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void searchByMissingType() {
         Page<Event> eventPage = eventRepository.search(
-            EventCriteria.builder().type(EventType.DEBUG_API).build(),
+            EventCriteria.builder().type(EventType.DEPLOY_SHARED_POLICY_GROUP).build(),
             new PageableBuilder().pageNumber(0).pageSize(10).build()
         );
 
@@ -253,6 +247,35 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void search_by_multiple_properties() {
+        Page<Event> eventPage = eventRepository.search(
+            EventCriteria.builder()
+                .from(1451606400000L)
+                .to(1470157767000L)
+                .property(Event.EventProperties.GATEWAY_ID.getValue(), "gateway-1")
+                .property(Event.EventProperties.API_DEBUG_STATUS.getValue(), "TO_DEBUG")
+                .types(Set.of(EventType.DEBUG_API))
+                .environments(Set.of("env1"))
+                .build(),
+            new PageableBuilder().pageNumber(0).pageSize(10).build()
+        );
+
+        assertThat(eventPage.getTotalElements()).isOne();
+        assertThat(eventPage.getContent()).contains(
+            Event.builder()
+                .id("event21")
+                .organizations(Set.of("org1"))
+                .environments(Set.of("env1"))
+                .type(EventType.DEBUG_API)
+                .payload("{}")
+                .properties(Map.ofEntries(Map.entry("api_debug_status", "TO_DEBUG"), Map.entry("gateway_id", "gateway-1")))
+                .createdAt(new Date(1459468800000L))
+                .updatedAt(new Date(1459468800000L))
+                .build()
+        );
+    }
+
+    @Test
     public void searchByEnvironmentDefault() {
         List<Event> events = eventRepository.search(EventCriteria.builder().environments(singletonList("DEFAULT")).build());
 
@@ -330,7 +353,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         List<Event> events = eventRepository.search(EventCriteria.builder().build());
 
         // All events.
-        assertThat(events).hasSize(20);
+        assertThat(events).hasSize(22);
     }
 
     @Test
@@ -506,6 +529,72 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         );
         assertThat(Timestamp.valueOf(updatedEvent.getProperties().get("last_heartbeat_at"))).isAfter(
             Timestamp.valueOf(createdEvent.getProperties().get("last_heartbeat_at"))
+        );
+    }
+
+    @Test
+    public void updateShouldUpdateEvent() throws TechnicalException {
+        LocalDateTime localDate = LocalDateTime.now().minusMinutes(1);
+        var createdDate = Date.from(localDate.atZone(ZoneId.systemDefault()).toInstant());
+        Event event = Event.builder()
+            .id(UUID.toString(UUID.random()))
+            .createdAt(createdDate)
+            .updatedAt(createdDate)
+            .environments(singleton("DEFAULT"))
+            .organizations(singleton("DEFAULT"))
+            .type(EventType.DEBUG_API)
+            .payload("{}")
+            .properties(
+                Map.ofEntries(
+                    Map.entry("to_update", "property_to_update"),
+                    Map.entry("to_update_with_null", "property_to_update_with_null"),
+                    Map.entry("not_updated", "will_not_change")
+                )
+            )
+            .build();
+
+        // Should create the event
+        Event createdEvent = eventRepository.create(event);
+
+        assertThat(createdEvent).isEqualTo(
+            Event.builder()
+                .id(event.getId())
+                .organizations(Set.of("DEFAULT"))
+                .environments(Set.of("DEFAULT"))
+                .type(EventType.DEBUG_API)
+                .payload("{}")
+                .properties(
+                    Map.ofEntries(
+                        Map.entry("to_update", "property_to_update"),
+                        Map.entry("to_update_with_null", "property_to_update_with_null"),
+                        Map.entry("not_updated", "will_not_change")
+                    )
+                )
+                .createdAt(createdDate)
+                .updatedAt(createdDate)
+                .build()
+        );
+
+        Date updateDate = new Date();
+        var updatedProperties = new HashMap<String, String>();
+        updatedProperties.put("to_update", "updated_property");
+        updatedProperties.put("to_update_with_null", null);
+
+        // Should update the event with the new type and properties.
+        var toUpdate = event.toBuilder().updatedAt(updateDate).properties(updatedProperties).build();
+        Event updatedEvent = eventRepository.update(toUpdate);
+
+        assertThat(updatedEvent).isEqualTo(
+            Event.builder()
+                .id(event.getId())
+                .organizations(Set.of("DEFAULT"))
+                .environments(Set.of("DEFAULT"))
+                .type(EventType.DEBUG_API)
+                .payload("{}")
+                .properties(updatedProperties)
+                .createdAt(createdDate)
+                .updatedAt(updateDate)
+                .build()
         );
     }
 

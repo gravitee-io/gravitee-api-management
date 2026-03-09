@@ -79,8 +79,7 @@ public class DebugCompletionProcessor implements Processor {
                     final Event event = eventOptional.get();
                     return computeDebugApiEventPayload(debugContext, debugApi)
                         .doOnSuccess(definitionDebugApi -> {
-                            event.setPayload(objectMapper.writeValueAsString(definitionDebugApi));
-                            updateEvent(event, ApiDebugStatus.SUCCESS);
+                            updateEvent(event.updatePayload(objectMapper.writeValueAsString(definitionDebugApi)), ApiDebugStatus.SUCCESS);
                         })
                         .ignoreElement()
                         .onErrorResumeNext(throwable -> {
@@ -170,8 +169,7 @@ public class DebugCompletionProcessor implements Processor {
     }
 
     private void updateEvent(@NonNull Event debugEvent, ApiDebugStatus apiDebugStatus) throws TechnicalException {
-        debugEvent.getProperties().put(Event.EventProperties.API_DEBUG_STATUS.getValue(), apiDebugStatus.name());
-        eventRepository.update(debugEvent);
+        eventRepository.update(debugEvent.updateProperties(Event.EventProperties.API_DEBUG_STATUS.getValue(), apiDebugStatus.name()));
     }
 
     private io.gravitee.definition.model.debug.DebugApiProxy convert(ReactableDebugApi<?> content) {

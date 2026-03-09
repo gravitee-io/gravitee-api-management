@@ -1,0 +1,301 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "definitions": {
+    "saslExtension": {
+      "type": "object",
+      "properties": {
+        "extensionKey": {
+          "type": "string",
+          "title": "Extension key",
+          "description": "without 'extension_' prefix",
+          "pattern": "[A-Za-z]+"
+        },
+        "extensionValue": {
+          "type": "string",
+          "title": "Extension value",
+          "description": "Must be valid ASCII characters (supports EL and Secrets).",
+          "gioConfig": {
+            "el": true
+          }
+        }
+      },
+      "gioConfig": {
+        "uiBorder": "none"
+      }
+    },
+    "securityProtocol": {
+      "type": "string",
+      "title": "Security protocol",
+      "default": "PLAINTEXT",
+      "enum": ["PLAINTEXT", "SASL_PLAINTEXT", "SASL_SSL", "SSL"]
+    },
+    "securitySasl": {
+      "type": "object",
+      "title": "SASL Configuration",
+      "properties": {
+        "mechanism": {
+          "type": "object",
+          "title": "SASL Mechanism (sasl.mechanism)",
+          "description": "SASL mechanism used to connect the Kafka gateway to the broker.",
+          "properties": {
+            "type": {
+              "title": "Select SASL mechanism",
+              "enum": ["NONE", "AWS_MSK_IAM", "GSSAPI", "OAUTHBEARER", "OAUTHBEARER_TOKEN", "PLAIN", "SCRAM-SHA-256", "SCRAM-SHA-512"],
+              "default": "NONE"
+            }
+          },
+          "required": ["type"],
+          "dependencies": {
+            "type": {
+              "oneOf": [
+                {
+                  "properties": {
+                    "type": {
+                      "enum": ["NONE"]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "enum": ["GSSAPI"]
+                    },
+                    "saslJaasConfig": {
+                      "type": "string",
+                      "title": "SASL JAAS Config  (sasl.jaas.config)",
+                      "description": "(supports EL and Secrets)",
+                      "gioConfig": {
+                        "el": true,
+                        "banner": {
+                          "title": "SASL JAAS Config",
+                          "text": "JAAS login context parameters for SASL connections in the format used by JAAS configuration files. JAAS configuration file format is described here. The format for the value is: loginModuleClass controlFlag (optionName=optionValue)*;"
+                        }
+                      }
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": ["saslJaasConfig"]
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "enum": ["OAUTHBEARER"]
+                    },
+                    "tokenUrl": {
+                      "type": "string",
+                      "title": "OAuth token url",
+                      "description": "The OAuth token url to call to issue a new token (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true,
+                        "banner": {
+                          "title": "OAUTHBEARER Method",
+                          "text": "Defines how the token to send to the broker is retrieved."
+                        }
+                      }
+                    },
+                    "clientId": {
+                      "type": "string",
+                      "title": "Client id",
+                      "description": "The client id to use to call the OAuth server to issue a new token (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    },
+                    "clientSecret": {
+                      "type": "string",
+                      "title": "Client secret",
+                      "description": "The client id to use to call the OAuth server to issue a new token (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    },
+                    "scopes": {
+                      "type": "string",
+                      "title": "Scopes",
+                      "description": "The scopes to request when issuing the token, comma-separated (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    },
+                    "saslExtensions": {
+                      "type": "array",
+                      "title": "OAUTHBEARER SASL extensions",
+                      "items": {
+                        "$ref": "#/definitions/saslExtension"
+                      },
+                      "gioConfig": {
+                        "uiBorder": "none"
+                      }
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": ["tokenUrl", "clientId", "clientSecret"]
+                },
+                {
+                  "description": "Provide your own OAuthBearer token.",
+                  "properties": {
+                    "type": {
+                      "enum": ["OAUTHBEARER_TOKEN"]
+                    },
+                    "token": {
+                      "type": "string",
+                      "title": "Token value",
+                      "description": "The token to use (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": ["token"]
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "enum": ["PLAIN"]
+                    },
+                    "username": {
+                      "type": "string",
+                      "title": "Username",
+                      "description": "The username to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    },
+                    "password": {
+                      "type": "string",
+                      "title": "Password",
+                      "description": "The password to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": ["username", "password"]
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "enum": ["SCRAM-SHA-256"]
+                    },
+                    "username": {
+                      "type": "string",
+                      "title": "Username",
+                      "description": "The username to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    },
+                    "password": {
+                      "type": "string",
+                      "title": "Password",
+                      "description": "The password to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": ["username", "password"]
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "enum": ["SCRAM-SHA-512"]
+                    },
+                    "username": {
+                      "type": "string",
+                      "title": "Username",
+                      "description": "The username to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    },
+                    "password": {
+                      "type": "string",
+                      "title": "Password",
+                      "description": "The password to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": ["username", "password"]
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "enum": ["AWS_MSK_IAM"]
+                    },
+                    "saslJaasConfig": {
+                      "type": "string",
+                      "title": "SASL JAAS Config  (sasl.jaas.config)",
+                      "description": "(supports EL and Secrets)",
+                      "gioConfig": {
+                        "el": true,
+                        "banner": {
+                          "title": "SASL JAAS Config",
+                          "text": "JAAS login context parameters for SASL connections in the format used by JAAS configuration files. JAAS configuration file format is described here. The format for the value is: loginModuleClass controlFlag (optionName=optionValue)*;"
+                        }
+                      }
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": ["saslJaasConfig"]
+                }
+              ]
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["mechanism"],
+      "gioConfig": {
+        "displayIf": {
+          "$eq": {
+            "value.security.protocol": ["SASL_PLAINTEXT", "SASL_SSL"]
+          }
+        }
+      }
+    }
+  },
+  "properties": {
+    "bootstrapServers": {
+      "type": "string",
+      "title": "Bootstrap servers",
+      "description": "The Kafka bootstrap server address (e.g., kafka.example.com:9092)"
+    },
+    "security": {
+      "type": "object",
+      "title": "Security",
+      "properties": {
+        "protocol": {
+          "$ref": "#/definitions/securityProtocol"
+        },
+        "sasl": {
+          "$ref": "#/definitions/securitySasl"
+        },
+        "ssl": {
+          "$ref": "#/gioExternalDefinitions/sslOptions",
+          "gioConfig": {
+            "displayIf": {
+              "$eq": {
+                "value.security.protocol": ["SASL_SSL", "SSL"]
+              }
+            }
+          }
+        }
+      },
+      "required": ["protocol"]
+    }
+  },
+  "gioConfig": {
+    "uiBorder": "none"
+  },
+  "required": ["bootstrapServers", "security"],
+  "additionalProperties": false
+}

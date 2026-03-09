@@ -18,3 +18,9 @@ mat-dialog-content {
   @include mat.m2-typography-level($typography, subtitle-2);
   color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, darker80);
 }
+
+.section-editor-dialog__page-types {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}

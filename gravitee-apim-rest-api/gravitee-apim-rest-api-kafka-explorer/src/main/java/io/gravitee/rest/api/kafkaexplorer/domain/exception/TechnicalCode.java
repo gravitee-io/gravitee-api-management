@@ -21,4 +21,5 @@ public enum TechnicalCode {
     AUTHENTICATION_FAILED,
     TIMEOUT,
     INTERRUPTED,
+    TOPIC_NOT_FOUND,
 }

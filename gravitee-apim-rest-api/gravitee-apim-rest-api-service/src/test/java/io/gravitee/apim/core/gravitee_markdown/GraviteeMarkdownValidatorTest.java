@@ -41,22 +41,16 @@ class GraviteeMarkdownValidatorTest {
             }
         )
         void should_accept_valid_content(String validContent) {
-            // Given
-            GraviteeMarkdownContainer container = () -> validContent;
-
             // When / Then
-            assertThatCode(() -> validator.validateNotEmpty(container)).doesNotThrowAnyException();
+            assertThatCode(() -> validator.validateNotEmpty(new GraviteeMarkdown(validContent))).doesNotThrowAnyException();
         }
 
         @ParameterizedTest
         @NullAndEmptySource
         @ValueSource(strings = { "   ", "  \n  \t  " })
         void should_throw_exception_when_content_is_invalid(String invalidContent) {
-            // Given
-            GraviteeMarkdownContainer container = () -> invalidContent;
-
             // When / Then
-            assertThatThrownBy(() -> validator.validateNotEmpty(container))
+            assertThatThrownBy(() -> validator.validateNotEmpty(new GraviteeMarkdown(invalidContent)))
                 .isInstanceOf(GraviteeMarkdownContentEmptyException.class)
                 .hasMessage("Content must not be null or empty");
         }

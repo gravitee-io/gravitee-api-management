@@ -28,9 +28,7 @@ import static org.mockito.Mockito.when;
 import fixtures.PortalNavigationItemsFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
-import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
@@ -126,7 +124,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         // Given
         final var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
 
-        final var output = PortalNavigationItem.from(PortalNavigationItemsMapper.INSTANCE.map(page), ENVIRONMENT, ORGANIZATION);
+        final var output = PortalNavigationItemsFixtures.aPortalNavigationPage(ORGANIZATION, ENVIRONMENT);
         when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
 
         // When
@@ -154,7 +152,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         // Given
         final var folder = PortalNavigationItemsFixtures.aCreatePortalNavigationFolder();
 
-        final var output = PortalNavigationItem.from(PortalNavigationItemsMapper.INSTANCE.map(folder), ENVIRONMENT, ORGANIZATION);
+        final var output = PortalNavigationItemsFixtures.aPortalNavigationFolder(ORGANIZATION, ENVIRONMENT);
         when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
 
         // When
@@ -181,7 +179,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         // Given
         final var link = PortalNavigationItemsFixtures.aCreatePortalNavigationLink();
 
-        final var output = PortalNavigationItem.from(PortalNavigationItemsMapper.INSTANCE.map(link), ENVIRONMENT, ORGANIZATION);
+        final var output = PortalNavigationItemsFixtures.aPortalNavigationLink(ORGANIZATION, ENVIRONMENT);
         when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
 
         // When
@@ -209,7 +207,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         // Given
         final var api = PortalNavigationItemsFixtures.aCreatePortalNavigationApi();
 
-        final var output = PortalNavigationItem.from(PortalNavigationItemsMapper.INSTANCE.map(api), ENVIRONMENT, ORGANIZATION);
+        final var output = PortalNavigationItemsFixtures.aPortalNavigationApi(ORGANIZATION, ENVIRONMENT);
         when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
 
         // When
@@ -237,7 +235,6 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         // Given
         final var api = PortalNavigationItemsFixtures.aCreatePortalNavigationApi();
 
-        final var output = PortalNavigationItem.from(PortalNavigationItemsMapper.INSTANCE.map(api), ENVIRONMENT, ORGANIZATION);
         when(createPortalNavigationItemUseCase.execute(any())).thenThrow(new ApiNotFoundException("apiId"));
 
         // When
@@ -252,7 +249,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         // Given
         final var page = PortalNavigationItemsFixtures.aPrivateCreatePortalNavigationPage();
 
-        final var output = PortalNavigationItem.from(PortalNavigationItemsMapper.INSTANCE.map(page), ENVIRONMENT, ORGANIZATION);
+        final var output = PortalNavigationItemsFixtures.aPrivatePortalNavigationPage(ORGANIZATION, ENVIRONMENT);
         when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
 
         // When

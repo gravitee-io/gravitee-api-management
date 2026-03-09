@@ -40,7 +40,7 @@
     "wc/**",
     "yarn.lock"
   ],
-  "license": "../../LICENSE_TEMPLATE.txt",
+  "license": "LICENSE_TEMPLATE.txt",
   "licenseFormats": {
     "js|ts|scss|less|php|as|c|java|cpp|go|cto|acl": {
       "prepend": "/*",
@@ -71,6 +71,5 @@
     "eachLine": {
       "prepend": " * "
     }
-  },
-  "regexIdentifier": "@@@"
+  }
 }

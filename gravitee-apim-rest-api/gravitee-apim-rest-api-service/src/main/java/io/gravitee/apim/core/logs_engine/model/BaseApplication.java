@@ -23,4 +23,8 @@ public record BaseApplication(
     String type,
     PrimaryOwner primaryOwner,
     ApiKeyMode apiKeyMode
-) {}
+) {
+    public BaseApplication withName(String name) {
+        return new BaseApplication(id, name, description, domain, type, primaryOwner, apiKeyMode);
+    }
+}

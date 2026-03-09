@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,4 +30,14 @@ export class ObservabilityBreakpointService {
       shareReplay({ refCount: true, bufferSize: 1 }),
     );
   readonly isMobile = toSignal(this.isMobile$);
+
+  // Using Breakpoints.XSmall + Small + Medium for narrow viewports (max-width: 1279.98px)
+  // This covers phones, small tablets, and medium tablets — cards grid switches to 2-col below this threshold
+  readonly isNarrow$ = inject(BreakpointObserver)
+    .observe([Breakpoints.XSmall, Breakpoints.Small, Breakpoints.Medium])
+    .pipe(
+      map(state => state.matches),
+      shareReplay({ refCount: true, bufferSize: 1 }),
+    );
+  readonly isNarrow = toSignal(this.isNarrow$);
 }

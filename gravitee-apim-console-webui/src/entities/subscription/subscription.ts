@@ -19,6 +19,31 @@ import { DefinitionVersion } from '../management-api-v2';
 
 export type SubscriptionStatus = 'PENDING' | 'REJECTED' | 'ACCEPTED' | 'CLOSED' | 'PAUSED' | 'RESUMED';
 
+export const SUBSCRIPTION_STATUS_DISPLAY: { id: SubscriptionStatus; name: string; badge: string }[] = [
+  { id: 'ACCEPTED', name: 'Accepted', badge: 'success' },
+  { id: 'CLOSED', name: 'Closed', badge: 'neutral' },
+  { id: 'PAUSED', name: 'Paused', badge: 'accent' },
+  { id: 'PENDING', name: 'Pending', badge: 'warning' },
+  { id: 'REJECTED', name: 'Rejected', badge: 'warning' },
+  { id: 'RESUMED', name: 'Resumed', badge: 'neutral' },
+];
+
+export const DEFAULT_SUBSCRIPTION_FILTER_STATUSES: SubscriptionStatus[] = ['ACCEPTED', 'PAUSED', 'PENDING'];
+
+export type SubscriptionsTableDS = {
+  id: string;
+  securityType: string;
+  isSharedApiKey: boolean;
+  plan: string;
+  application: string;
+  createdAt: Date;
+  processedAt: Date;
+  startingAt: Date;
+  endAt: Date;
+  status: string;
+  statusBadge: string;
+};
+
 export type SubscriptionOrigin = 'KUBERNETES' | 'MANAGEMENT';
 
 export interface SubscriptionPage {
@@ -67,6 +92,7 @@ export interface Subscription {
   security?: string;
   origin: SubscriptionOrigin;
   configuration?: SubscriptionConsumerConfiguration;
+  metadata?: { [key: string]: string };
   referenceType?: string;
   referenceId?: string;
 }

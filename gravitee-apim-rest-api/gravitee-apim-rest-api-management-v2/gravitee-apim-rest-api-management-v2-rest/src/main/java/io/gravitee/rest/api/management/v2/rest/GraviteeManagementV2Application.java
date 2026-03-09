@@ -20,6 +20,7 @@ import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ConstraintValidat
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.JsonMappingExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ManagementExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.NotFoundExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ParamExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.PreconditionFailedExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ThrowableMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.UnrecognizedPropertyExceptionMapper;
@@ -51,6 +52,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.plugin.PoliciesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.ResourcesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.ManagementUIResource;
 import io.gravitee.rest.api.rest.filter.GraviteeContextResponseFilter;
+import io.gravitee.rest.api.rest.filter.GraviteeLicenseFilter;
 import io.gravitee.rest.api.rest.filter.MaintenanceFilter;
 import io.gravitee.rest.api.rest.filter.PermissionsFilter;
 import io.gravitee.rest.api.rest.filter.SecurityContextFilter;
@@ -104,6 +106,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(PreconditionFailedExceptionMapper.class);
         register(ValidationExceptionMapper.class);
         register(JsonMappingExceptionMapper.class);
+        register(ParamExceptionMapper.class);
 
         register(ValidationDomainExceptionMapper.class);
         register(TechnicalDomainExceptionMapper.class);
@@ -115,6 +118,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
 
         register(SecurityContextFilter.class);
         register(PermissionsFilter.class);
+        register(GraviteeLicenseFilter.class);
         register(GraviteeContextResponseFilter.class);
         register(UriBuilderRequestFilter.class);
         register(ByteArrayOutputStreamWriter.class);

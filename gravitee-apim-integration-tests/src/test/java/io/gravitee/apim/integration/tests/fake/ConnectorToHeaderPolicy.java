@@ -15,10 +15,10 @@
  */
 package io.gravitee.apim.integration.tests.fake;
 
-import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.HttpEntrypointConnector;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
-import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
+import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.reactivex.rxjava3.core.Completable;
 
 /**
@@ -26,7 +26,7 @@ import io.reactivex.rxjava3.core.Completable;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ConnectorToHeaderPolicy implements Policy {
+public class ConnectorToHeaderPolicy implements HttpPolicy {
 
     public static String ID = "connector-to-header";
 
@@ -36,14 +36,14 @@ public class ConnectorToHeaderPolicy implements Policy {
     }
 
     @Override
-    public Completable onResponse(HttpExecutionContext ctx) {
+    public Completable onResponse(HttpPlainExecutionContext ctx) {
         return Completable.fromRunnable(() -> {
             ctx
                 .response()
                 .headers()
                 .add(
                     "X-Entrypoint-Used",
-                    ((EntrypointConnector) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).id()
+                    ((HttpEntrypointConnector) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).id()
                 );
             ctx
                 .response()

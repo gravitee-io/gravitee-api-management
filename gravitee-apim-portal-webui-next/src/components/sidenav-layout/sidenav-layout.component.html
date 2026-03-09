@@ -1,6 +1,6 @@
 <!--
 
-    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -30,6 +30,9 @@
   <div class="sidenav-layout__container__breadcrumbs">
     <app-sidenav-toggle-button-component [collapsed]="sidenavCollapsed()" (toggleState)="onToggleSidenav()" />
     <app-breadcrumbs-component [breadcrumbs]="breadcrumbs()" />
+    <div class="sidenav-layout__container__breadcrumbs__actions">
+      <ng-content select="[breadcrumbActions]" />
+    </div>
   </div>
   <div class="sidenav-layout__container__content">
     <ng-content select="[mainContent]" />

@@ -24,9 +24,13 @@ import java.util.Set;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record MetricMeasuresQuery(Metric metric, Set<Measure> measures, List<Sort> sorts) {
+public record MetricMeasuresQuery(Metric metric, Set<Measure> measures, List<Filter> filters, List<Sort> sorts) {
     public MetricMeasuresQuery(Metric metric, Set<Measure> measures) {
-        this(metric, measures, List.of());
+        this(metric, measures, List.of(), List.of());
+    }
+
+    public MetricMeasuresQuery(Metric metric, Set<Measure> measures, List<Sort> sorts) {
+        this(metric, measures, List.of(), sorts);
     }
 
     public record Sort(Measure measure, Sort.Order order) {

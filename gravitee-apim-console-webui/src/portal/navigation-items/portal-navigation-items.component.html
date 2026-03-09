@@ -77,22 +77,20 @@
           </div>
 
           <div class="panel-header__title__badges">
-            @if (isSelectedNotApiItem()) {
-              <span [class]="selectedNavigationItemIsPublished() ? 'gio-badge-success' : 'gio-badge-warning'">
-                {{ selectedNavigationItemIsPublished() ? 'Published' : 'Unpublished' }}
-              </span>
-            }
+            <span [class]="selectedNavigationItemIsPublished() ? 'gio-badge-success' : 'gio-badge-warning'">
+              {{ selectedNavigationItemIsPublished() ? 'Published' : 'Unpublished' }}
+            </span>
             <span class="gio-badge-primary">{{ selectedNavigationItem().data.visibility | titlecase }}</span>
           </div>
         </div>
       }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
-        @if (isSelectedNotApiItem()) {
-          <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onEdit()">Edit</button>
-          <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onPublishToggle()">
+        <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onEdit()">Edit</button>
+        <span [matTooltip]="publishDisabledTooltip()" [matTooltipDisabled]="!publishDisabled()">
+          <button [disabled]="publishActionDisabled()" mat-stroked-button (click)="onPublishToggle()">
             {{ selectedNavigationItemIsPublished() ? 'Unpublish' : 'Publish' }}
           </button>
-        }
+        </span>
         <button mat-flat-button color="primary" [disabled]="contentControl.pristine" (click)="onSave()">Save</button>
       </div>
     </header>
@@ -111,7 +109,14 @@
           } @else if (contentLoadError()) {
             <ng-container *ngTemplateOutlet="pageNotFound"></ng-container>
           } @else {
-            <gmd-editor [formControl]="contentControl" />
+            @switch (currentPageContentType()) {
+              @case ('OPENAPI') {
+                <openapi-editor [formControl]="contentControl" />
+              }
+              @default {
+                <gmd-editor [formControl]="contentControl" />
+              }
+            }
           }
         }
         @default {
@@ -140,7 +145,7 @@
   <div class="empty-editor">
     <mat-card appearance="outlined" class="empty-state">
       <mat-card-content>
-        <empty-state iconName="gio:code" title="Editor" message="Use GMD code to customize and edit your page content." />
+        <empty-state iconName="gio:code" title="Editor" message="Select a page from the navigation panel to edit its content." />
       </mat-card-content>
     </mat-card>
 

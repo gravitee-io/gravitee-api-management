@@ -18,6 +18,7 @@ package io.gravitee.repository.management.api.search;
 import static java.util.Arrays.asList;
 
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
@@ -46,6 +47,7 @@ public class ApiCriteria {
     private String crossId;
     private List<DefinitionVersion> definitionVersion;
     private String integrationId;
+    private List<ApiType> apiTypes;
 
     ApiCriteria(ApiCriteria.Builder builder) {
         this.ids = builder.ids;
@@ -62,6 +64,7 @@ public class ApiCriteria {
         this.crossId = builder.crossId;
         this.definitionVersion = builder.definitionVersion;
         this.integrationId = builder.integrationId;
+        this.apiTypes = builder.apiTypes;
     }
 
     public Collection<String> getIds() {
@@ -132,6 +135,10 @@ public class ApiCriteria {
         this.integrationId = integrationId;
     }
 
+    public List<ApiType> getApiTypes() {
+        return apiTypes;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -151,7 +158,8 @@ public class ApiCriteria {
             Objects.equals(environments, that.environments) &&
             Objects.equals(crossId, that.crossId) &&
             Objects.equals(definitionVersion, that.definitionVersion) &&
-            Objects.equals(integrationId, that.integrationId)
+            Objects.equals(integrationId, that.integrationId) &&
+            Objects.equals(apiTypes, that.apiTypes)
         );
     }
 
@@ -171,7 +179,8 @@ public class ApiCriteria {
             environments,
             crossId,
             definitionVersion,
-            integrationId
+            integrationId,
+            apiTypes
         );
     }
 
@@ -191,6 +200,7 @@ public class ApiCriteria {
         private String crossId;
         private List<DefinitionVersion> definitionVersion;
         private String integrationId;
+        private List<ApiType> apiTypes;
 
         public ApiCriteria.Builder ids(final String... id) {
             this.ids = Set.of(id);
@@ -269,6 +279,11 @@ public class ApiCriteria {
 
         public ApiCriteria.Builder integrationId(final String integrationId) {
             this.integrationId = integrationId;
+            return this;
+        }
+
+        public ApiCriteria.Builder apiTypes(final List<ApiType> apiTypes) {
+            this.apiTypes = apiTypes;
             return this;
         }
 

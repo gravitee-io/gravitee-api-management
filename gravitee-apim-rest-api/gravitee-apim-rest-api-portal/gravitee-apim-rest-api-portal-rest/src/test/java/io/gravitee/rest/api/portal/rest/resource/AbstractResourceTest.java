@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.mockito.Mockito.reset;
 
+import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
 import io.gravitee.rest.api.portal.rest.JerseySpringTest;
 import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
@@ -110,6 +111,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { ResourceContextConfiguration.class })
 public abstract class AbstractResourceTest extends JerseySpringTest {
+
+    @Autowired
+    protected CreateSubscriptionUseCase createSubscriptionUseCase;
 
     @Autowired
     protected CustomUserFieldService customUserFieldService;
@@ -334,6 +338,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     }
 
     protected void resetAllMocks() {
+        reset(createSubscriptionUseCase);
         reset(apiService);
         reset(apiSearchService);
         reset(apiAuthorizationService);

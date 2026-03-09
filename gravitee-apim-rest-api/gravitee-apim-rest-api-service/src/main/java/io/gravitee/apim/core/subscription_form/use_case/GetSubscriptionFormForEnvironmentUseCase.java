@@ -37,10 +37,14 @@ public class GetSubscriptionFormForEnvironmentUseCase {
             .findDefaultForEnvironmentId(input.environmentId())
             .orElseThrow(() -> new SubscriptionFormNotFoundException(input.environmentId()));
 
+        if (input.onlyEnabled() && !subscriptionForm.isEnabled()) {
+            throw new SubscriptionFormNotFoundException(input.environmentId());
+        }
+
         return new Output(subscriptionForm);
     }
 
-    public record Input(String environmentId) {}
+    public record Input(String environmentId, boolean onlyEnabled) {}
 
     public record Output(SubscriptionForm subscriptionForm) {}
 }

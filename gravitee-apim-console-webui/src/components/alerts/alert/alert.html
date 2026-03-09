@@ -23,6 +23,9 @@
         <h1 ng-if="!$ctrl.updateMode">[{{ $ctrl.titlePrefix }}] Create a new alert</h1>
         <a ng-click="$ctrl.backToAlerts()">Back to alerts</a>
       </div>
+      <div class="gv-forms-header" ng-if="$ctrl.updateMode && $ctrl.alert.updated_at">
+        <span class="gv-subtitle"> Last updated at {{ $ctrl.alert.updated_at | date:'medium' }} </span>
+      </div>
 
       <div class="gv-page-draft-banner" ng-if="$ctrl.status.available_plugins === 0">
         <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
@@ -271,7 +274,8 @@
           <md-button
             ng-if="$ctrl.hasPermissionForCurrentScope('alert-u') && $ctrl.updateMode"
             class="md-raised md-primary"
-            type="submit"
+            type="button"
+            ng-click="$ctrl.onUpdate($ctrl.alert)"
             ng-disabled="$ctrl.status.available_plugins === 0 || $ctrl.formAlert.$invalid || $ctrl.formAlert.$pristine"
           >
             Update

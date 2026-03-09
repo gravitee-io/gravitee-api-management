@@ -217,6 +217,10 @@ components:
           type: string
           description: Id of the API.
           example: 6c530064-0b2c-4004-9300-640b2ce0047b
+        apiName:
+          type: string
+          description: Name of the API.
+          example: My API
         timestamp:
           type: string
           format: date-time

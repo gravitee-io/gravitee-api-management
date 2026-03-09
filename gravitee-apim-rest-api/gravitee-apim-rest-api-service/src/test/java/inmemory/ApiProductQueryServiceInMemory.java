@@ -42,6 +42,20 @@ public class ApiProductQueryServiceInMemory extends AbstractQueryServiceInMemory
     }
 
     @Override
+    public Set<ApiProduct> findByEnvironmentIdAndIdIn(String environmentId, Set<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Set.of();
+        }
+        Set<ApiProduct> result = new HashSet<>();
+        for (ApiProduct apiProduct : storage) {
+            if (Objects.equals(environmentId, apiProduct.getEnvironmentId()) && ids.contains(apiProduct.getId())) {
+                result.add(apiProduct);
+            }
+        }
+        return result;
+    }
+
+    @Override
     public Optional<ApiProduct> findById(String apiProductId) {
         return storage
             .stream()

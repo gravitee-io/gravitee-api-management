@@ -16,56 +16,55 @@
 package io.gravitee.apim.core.subscription.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.ApiFieldFilter;
-import io.gravitee.apim.core.api.model.ApiSearchCriteria;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.Set;
 
 @UseCase
 public class CloseExpiredSubscriptionsUseCase {
 
     private final SubscriptionQueryService subscriptionQueryService;
-    private final ApiQueryService apiQueryService;
     private final EnvironmentCrudService environmentCrudService;
+    private final ApiCrudService apiCrudService;
+    private final ApiProductCrudService apiProductCrudService;
     private final CloseSubscriptionDomainService closeSubscriptionDomainService;
 
     public CloseExpiredSubscriptionsUseCase(
         SubscriptionQueryService subscriptionQueryService,
-        ApiQueryService apiQueryService,
         EnvironmentCrudService environmentCrudService,
+        ApiCrudService apiCrudService,
+        ApiProductCrudService apiProductCrudService,
         CloseSubscriptionDomainService closeSubscriptionDomainService
     ) {
         this.subscriptionQueryService = subscriptionQueryService;
-        this.apiQueryService = apiQueryService;
         this.environmentCrudService = environmentCrudService;
+        this.apiCrudService = apiCrudService;
+        this.apiProductCrudService = apiProductCrudService;
         this.closeSubscriptionDomainService = closeSubscriptionDomainService;
     }
 
     public Output execute(Input input) {
-        var toClose = subscriptionQueryService.findExpiredSubscriptions();
+        var expiredSubscriptions = subscriptionQueryService.findExpiredSubscriptions();
+        var environmentIdByApiOrProductId = buildEnvironmentIdMap(expiredSubscriptions);
 
-        var apiIds = toClose.stream().map(SubscriptionEntity::getApiId).toList();
-        var apis = apiQueryService
-            .search(
-                ApiSearchCriteria.builder().ids(apiIds).build(),
-                null,
-                ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
-            )
-            .collect(Collectors.toMap(Api::getId, api -> api));
-
-        var closed = toClose
+        var closedSubscriptions = expiredSubscriptions
             .stream()
             .map(subscription -> {
-                var environment = environmentCrudService.get(apis.get(subscription.getApiId()).getEnvironmentId());
-
+                var environmentId = resolveEnvironmentId(subscription, environmentIdByApiOrProductId);
+                var environment = environmentCrudService.get(environmentId);
                 var auditInfo = AuditInfo.builder()
                     .organizationId(environment.getOrganizationId())
                     .environmentId(environment.getId())
@@ -76,7 +75,55 @@ public class CloseExpiredSubscriptionsUseCase {
             })
             .toList();
 
-        return new Output(closed);
+        return new Output(closedSubscriptions);
+    }
+
+    private Map<String, String> buildEnvironmentIdMap(List<SubscriptionEntity> subscriptions) {
+        Set<String> apiIds = new HashSet<>();
+        Set<String> apiProductIds = new HashSet<>();
+
+        for (var subscription : subscriptions) {
+            var referenceId = getEffectiveReferenceId(subscription);
+            if (referenceId == null) {
+                continue;
+            }
+            if (subscription.getReferenceType() == SubscriptionReferenceType.API_PRODUCT) {
+                apiProductIds.add(referenceId);
+            } else {
+                apiIds.add(referenceId);
+            }
+        }
+
+        var environmentIdByApiOrProductId = new HashMap<String, String>();
+        if (!apiIds.isEmpty()) {
+            apiCrudService
+                .findByIds(List.copyOf(apiIds))
+                .forEach(api -> environmentIdByApiOrProductId.put(api.getId(), api.getEnvironmentId()));
+        }
+        if (!apiProductIds.isEmpty()) {
+            apiProductCrudService
+                .findByIds(apiProductIds)
+                .forEach(apiProduct -> environmentIdByApiOrProductId.put(apiProduct.getId(), apiProduct.getEnvironmentId()));
+        }
+        return environmentIdByApiOrProductId;
+    }
+
+    private String getEffectiveReferenceId(SubscriptionEntity subscription) {
+        return subscription.getReferenceType() != null && subscription.getReferenceId() != null
+            ? subscription.getReferenceId()
+            : subscription.getApiId();
+    }
+
+    private String resolveEnvironmentId(SubscriptionEntity subscription, Map<String, String> environmentIdByApiOrProductId) {
+        // Always derive environment from API/Product
+        var apiOrProductId = getEffectiveReferenceId(subscription);
+        var environmentId = apiOrProductId != null ? environmentIdByApiOrProductId.get(apiOrProductId) : null;
+        if (environmentId == null) {
+            throw new IllegalStateException(
+                "Subscription %s has no resolvable referenceId/apiId to determine environment".formatted(subscription.getId())
+            );
+        }
+        return environmentId;
     }
 
     public record Input(AuditActor auditActor) {}

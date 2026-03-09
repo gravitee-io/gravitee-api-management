@@ -23,7 +23,7 @@ import fixtures.core.model.SubscriptionFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
-import inmemory.ApiQueryServiceInMemory;
+import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
@@ -40,6 +40,7 @@ import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
@@ -70,7 +71,7 @@ class CloseExpiredSubscriptionsUseCaseTest {
     private static final AuditActor AUDIT_ACTOR = AuditActor.builder().userId(USER_ID).build();
 
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
-    private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
+    private final ApiProductCrudServiceInMemory apiProductCrudService = new ApiProductCrudServiceInMemory();
     private final EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
     private final SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
     private final SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory(subscriptionCrudService);
@@ -118,8 +119,9 @@ class CloseExpiredSubscriptionsUseCaseTest {
 
         usecase = new CloseExpiredSubscriptionsUseCase(
             subscriptionQueryService,
-            apiQueryService,
             environmentCrudService,
+            apiCrudService,
+            apiProductCrudService,
             new CloseSubscriptionDomainService(
                 subscriptionCrudService,
                 applicationCrudService,
@@ -143,19 +145,27 @@ class CloseExpiredSubscriptionsUseCaseTest {
         );
         givenExistingPlans(
             List.of(
-                PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan1").apiId("api1").build(),
-                PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan2").apiId("api2").build()
+                PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan1").apiId("api1").referenceId("api1").build(),
+                PlanFixtures.HttpV4.anApiKey().toBuilder().id("plan2").apiId("api2").referenceId("api2").build(),
+                PlanFixtures.HttpV4.anApiKey()
+                    .toBuilder()
+                    .id("plan-product1")
+                    .referenceId("product1")
+                    .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .build()
             )
         );
         givenExistingApplication(
             List.of(BaseApplicationEntity.builder().id("app1").build(), BaseApplicationEntity.builder().id("app2").build())
         );
+        givenExistingApiProducts(List.of(ApiProduct.builder().id("product1").environmentId("env1").build()));
     }
 
     @AfterEach
     void tearDown() {
         Stream.of(
-            apiQueryService,
+            apiCrudService,
+            apiProductCrudService,
             environmentCrudService,
             subscriptionCrudService,
             auditCrudServiceInMemory,
@@ -264,6 +274,60 @@ class CloseExpiredSubscriptionsUseCaseTest {
     }
 
     @Test
+    void should_close_expired_api_product_subscription() {
+        var now = Instant.now();
+        givenExistingSubscriptions(
+            List.of(
+                SubscriptionFixtures.aSubscription()
+                    .toBuilder()
+                    .id("s1")
+                    .referenceId("product1")
+                    .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                    .planId("plan-product1")
+                    .applicationId("app1")
+                    .status(SubscriptionEntity.Status.ACCEPTED)
+                    .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
+                    .build()
+            )
+        );
+
+        var result = usecase.execute(new CloseExpiredSubscriptionsUseCase.Input(AUDIT_ACTOR));
+
+        assertThat(result.closedSubscriptions())
+            .hasSize(1)
+            .extracting(SubscriptionEntity::getStatus)
+            .containsExactly(SubscriptionEntity.Status.CLOSED);
+    }
+
+    @Test
+    void should_close_legacy_subscription_with_apiId_only() {
+        // Legacy subscriptions may have apiId set but referenceId/referenceType null
+        var now = Instant.now();
+        givenExistingSubscriptions(
+            List.of(
+                SubscriptionFixtures.aSubscription()
+                    .toBuilder()
+                    .id("s-legacy")
+                    .apiId("api1")
+                    .referenceId(null)
+                    .referenceType(null)
+                    .planId("plan1")
+                    .applicationId("app1")
+                    .status(SubscriptionEntity.Status.ACCEPTED)
+                    .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
+                    .build()
+            )
+        );
+
+        var result = usecase.execute(new CloseExpiredSubscriptionsUseCase.Input(AUDIT_ACTOR));
+
+        assertThat(result.closedSubscriptions())
+            .hasSize(1)
+            .extracting(SubscriptionEntity::getStatus)
+            .containsExactly(SubscriptionEntity.Status.CLOSED);
+    }
+
+    @Test
     void should_do_nothing_when_no_subscription_to_close() {
         // Given
         var now = Instant.now();
@@ -316,6 +380,10 @@ class CloseExpiredSubscriptionsUseCaseTest {
 
     private void givenExistingApplication(List<BaseApplicationEntity> applications) {
         applicationCrudService.initWith(applications);
+    }
+
+    private void givenExistingApiProducts(List<ApiProduct> apiProducts) {
+        apiProductCrudService.initWith(apiProducts);
     }
 
     private void givenExistingSubscriptions(List<SubscriptionEntity> subscriptions) {

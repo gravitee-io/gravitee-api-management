@@ -30,7 +30,7 @@ public final class PortalNavigationLink extends PortalNavigationItem {
     @Nonnull
     private String url;
 
-    public PortalNavigationLink(
+    PortalNavigationLink(
         @Nonnull PortalNavigationItemId id,
         @Nonnull String organizationId,
         @Nonnull String environmentId,

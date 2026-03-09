@@ -22,6 +22,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fixtures.repository.model.PortalNavigationItemsRepositoryFixtures;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -32,7 +33,6 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
-import io.gravitee.repository.management.model.PortalNavigationItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -72,32 +72,27 @@ class PortalNavigationItemsCrudServiceImplTest {
         @Test
         void should_create_a_folder() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
-            final var item = new PortalNavigationFolder(
-                itemId,
-                "organizationId",
-                "environmentId",
-                "title",
-                PortalArea.TOP_NAVBAR,
-                0,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            final var item = PortalNavigationFolder.builder()
+                .id(itemId)
+                .organizationId("organizationId")
+                .environmentId("environmentId")
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
 
             service.create(item);
 
-            final var expectedItem = io.gravitee.repository.management.model.PortalNavigationItem.builder()
-                .id(itemId.toString())
-                .title("title")
-                .organizationId("organizationId")
-                .environmentId("environmentId")
-                .type(PortalNavigationItem.Type.FOLDER)
-                .area(io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR)
-                .order(0)
-                .parentId(null)
-                .configuration("{}")
-                .published(true)
-                .visibility(io.gravitee.repository.management.model.PortalNavigationItem.Visibility.PUBLIC)
-                .build();
+            final var expectedItem = PortalNavigationItemsRepositoryFixtures.expectedFolderFromCreate(
+                itemId.toString(),
+                "title",
+                "organizationId",
+                "environmentId",
+                0,
+                PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO
+            );
 
             verify(repository).create(captor.capture());
             assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expectedItem);
@@ -107,33 +102,29 @@ class PortalNavigationItemsCrudServiceImplTest {
         void should_create_a_page() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
             final var contentId = PortalPageContentId.random();
-            final var item = new PortalNavigationPage(
-                itemId,
-                "organizationId",
-                "environmentId",
-                "title",
-                PortalArea.TOP_NAVBAR,
-                0,
-                contentId,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            final var item = PortalNavigationPage.builder()
+                .id(itemId)
+                .organizationId("organizationId")
+                .environmentId("environmentId")
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(contentId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
 
             service.create(item);
 
-            final var expectedItem = io.gravitee.repository.management.model.PortalNavigationItem.builder()
-                .id(itemId.toString())
-                .title("title")
-                .organizationId("organizationId")
-                .environmentId("environmentId")
-                .type(PortalNavigationItem.Type.PAGE)
-                .area(io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR)
-                .order(0)
-                .parentId(null)
-                .configuration("{\"portalPageContentId\":\"" + contentId.toString() + "\"}")
-                .published(true)
-                .visibility(io.gravitee.repository.management.model.PortalNavigationItem.Visibility.PUBLIC)
-                .build();
+            final var expectedItem = PortalNavigationItemsRepositoryFixtures.expectedPageFromCreate(
+                itemId.toString(),
+                "title",
+                "organizationId",
+                "environmentId",
+                0,
+                PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO,
+                contentId.toString()
+            );
 
             verify(repository).create(captor.capture());
             assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expectedItem);
@@ -143,33 +134,60 @@ class PortalNavigationItemsCrudServiceImplTest {
         void should_create_a_link() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
             final var url = "http://example.com";
-            final var item = new PortalNavigationLink(
-                itemId,
-                "organizationId",
-                "environmentId",
-                "title",
-                PortalArea.TOP_NAVBAR,
-                0,
-                url,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            final var item = PortalNavigationLink.builder()
+                .id(itemId)
+                .organizationId("organizationId")
+                .environmentId("environmentId")
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .url(url)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
 
             service.create(item);
 
-            final var expectedItem = io.gravitee.repository.management.model.PortalNavigationItem.builder()
-                .id(itemId.toString())
-                .title("title")
+            final var expectedItem = PortalNavigationItemsRepositoryFixtures.expectedLinkFromCreate(
+                itemId.toString(),
+                "title",
+                "organizationId",
+                "environmentId",
+                0,
+                PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO,
+                url
+            );
+
+            verify(repository).create(captor.capture());
+            assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expectedItem);
+        }
+
+        @Test
+        void should_create_a_folder_with_non_null_rootId() throws TechnicalException {
+            final var itemId = PortalNavigationItemId.random();
+            final var rootId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000099");
+            final var item = PortalNavigationFolder.builder()
+                .id(itemId)
                 .organizationId("organizationId")
                 .environmentId("environmentId")
-                .type(PortalNavigationItem.Type.LINK)
-                .area(io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR)
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
                 .order(0)
-                .parentId(null)
-                .configuration("{\"url\":\"" + url + "\"}")
+                .rootId(rootId)
                 .published(true)
-                .visibility(io.gravitee.repository.management.model.PortalNavigationItem.Visibility.PUBLIC)
+                .visibility(PortalVisibility.PUBLIC)
                 .build();
+
+            service.create(item);
+
+            final var expectedItem = PortalNavigationItemsRepositoryFixtures.expectedFolderFromCreate(
+                itemId.toString(),
+                "title",
+                "organizationId",
+                "environmentId",
+                0,
+                "00000000-0000-0000-0000-000000000099"
+            );
 
             verify(repository).create(captor.capture());
             assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expectedItem);
@@ -180,17 +198,17 @@ class PortalNavigationItemsCrudServiceImplTest {
             // Given
             final var itemId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001");
             final var contentId = PortalPageContentId.random();
-            final var item = new PortalNavigationPage(
-                itemId,
-                "organizationId",
-                "environmentId",
-                "title",
-                PortalArea.TOP_NAVBAR,
-                0,
-                contentId,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            final var item = PortalNavigationPage.builder()
+                .id(itemId)
+                .organizationId("organizationId")
+                .environmentId("environmentId")
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(contentId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
             when(repository.create(any())).thenThrow(new TechnicalException("Database error"));
 
             // When & Then
@@ -214,32 +232,27 @@ class PortalNavigationItemsCrudServiceImplTest {
         @Test
         void should_update_a_folder() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
-            final var item = new PortalNavigationFolder(
-                itemId,
-                "organizationId",
-                "environmentId",
-                "title",
-                PortalArea.TOP_NAVBAR,
-                0,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            final var item = PortalNavigationFolder.builder()
+                .id(itemId)
+                .organizationId("organizationId")
+                .environmentId("environmentId")
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
 
             service.update(item);
 
-            final var expectedItem = io.gravitee.repository.management.model.PortalNavigationItem.builder()
-                .id(itemId.toString())
-                .title("title")
-                .organizationId("organizationId")
-                .environmentId("environmentId")
-                .type(PortalNavigationItem.Type.FOLDER)
-                .area(io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR)
-                .order(0)
-                .parentId(null)
-                .configuration("{}")
-                .published(true)
-                .visibility(io.gravitee.repository.management.model.PortalNavigationItem.Visibility.PUBLIC)
-                .build();
+            final var expectedItem = PortalNavigationItemsRepositoryFixtures.expectedFolderFromCreate(
+                itemId.toString(),
+                "title",
+                "organizationId",
+                "environmentId",
+                0,
+                PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO
+            );
 
             verify(repository).update(captor.capture());
             assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expectedItem);
@@ -249,33 +262,29 @@ class PortalNavigationItemsCrudServiceImplTest {
         void should_update_a_page() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
             final var contentId = PortalPageContentId.random();
-            final var item = new PortalNavigationPage(
-                itemId,
-                "organizationId",
-                "environmentId",
-                "title",
-                PortalArea.TOP_NAVBAR,
-                0,
-                contentId,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            final var item = PortalNavigationPage.builder()
+                .id(itemId)
+                .organizationId("organizationId")
+                .environmentId("environmentId")
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(contentId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
 
             service.update(item);
 
-            final var expectedItem = io.gravitee.repository.management.model.PortalNavigationItem.builder()
-                .id(itemId.toString())
-                .title("title")
-                .organizationId("organizationId")
-                .environmentId("environmentId")
-                .type(PortalNavigationItem.Type.PAGE)
-                .area(io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR)
-                .order(0)
-                .parentId(null)
-                .configuration("{\"portalPageContentId\":\"" + contentId.toString() + "\"}")
-                .published(true)
-                .visibility(io.gravitee.repository.management.model.PortalNavigationItem.Visibility.PUBLIC)
-                .build();
+            final var expectedItem = PortalNavigationItemsRepositoryFixtures.expectedPageFromCreate(
+                itemId.toString(),
+                "title",
+                "organizationId",
+                "environmentId",
+                0,
+                PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO,
+                contentId.toString()
+            );
 
             verify(repository).update(captor.capture());
             assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expectedItem);
@@ -285,33 +294,29 @@ class PortalNavigationItemsCrudServiceImplTest {
         void should_update_a_link() throws TechnicalException {
             final var itemId = PortalNavigationItemId.random();
             final var url = "http://example.com";
-            final var item = new PortalNavigationLink(
-                itemId,
-                "organizationId",
-                "environmentId",
-                "title",
-                PortalArea.TOP_NAVBAR,
-                0,
-                url,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            final var item = PortalNavigationLink.builder()
+                .id(itemId)
+                .organizationId("organizationId")
+                .environmentId("environmentId")
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .url(url)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
 
             service.update(item);
 
-            final var expectedItem = io.gravitee.repository.management.model.PortalNavigationItem.builder()
-                .id(itemId.toString())
-                .title("title")
-                .organizationId("organizationId")
-                .environmentId("environmentId")
-                .type(PortalNavigationItem.Type.LINK)
-                .area(io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR)
-                .order(0)
-                .parentId(null)
-                .configuration("{\"url\":\"" + url + "\"}")
-                .published(true)
-                .visibility(io.gravitee.repository.management.model.PortalNavigationItem.Visibility.PUBLIC)
-                .build();
+            final var expectedItem = PortalNavigationItemsRepositoryFixtures.expectedLinkFromCreate(
+                itemId.toString(),
+                "title",
+                "organizationId",
+                "environmentId",
+                0,
+                PortalNavigationItemsRepositoryFixtures.ROOT_ID_ZERO,
+                url
+            );
 
             verify(repository).update(captor.capture());
             assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expectedItem);
@@ -322,17 +327,17 @@ class PortalNavigationItemsCrudServiceImplTest {
             // Given
             final var itemId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001");
             final var contentId = PortalPageContentId.random();
-            final var item = new PortalNavigationPage(
-                itemId,
-                "organizationId",
-                "environmentId",
-                "title",
-                PortalArea.TOP_NAVBAR,
-                0,
-                contentId,
-                true,
-                PortalVisibility.PUBLIC
-            );
+            final var item = PortalNavigationPage.builder()
+                .id(itemId)
+                .organizationId("organizationId")
+                .environmentId("environmentId")
+                .title("title")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(contentId)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
             when(repository.update(any())).thenThrow(new TechnicalException("Database error"));
 
             // When & Then

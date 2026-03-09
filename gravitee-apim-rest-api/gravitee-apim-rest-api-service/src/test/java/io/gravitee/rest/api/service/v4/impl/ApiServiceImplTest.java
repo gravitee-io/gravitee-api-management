@@ -721,8 +721,7 @@ public class ApiServiceImplTest {
         verify(apiMetadataService).fetchMetadataForApi(eq(executionContext), any(ApiEntity.class));
         verify(searchEngineService).index(eq(executionContext), any(GenericApiEntity.class), eq(false));
 
-        // V4 PROXY APIs imported should have allowedInApiProducts=true set on the input entity
-        assertTrue(Boolean.TRUE.equals(apiEntity.getAllowedInApiProducts()));
+        assertNull(apiEntity.getAllowedInApiProducts());
     }
 
     @Test
@@ -747,6 +746,30 @@ public class ApiServiceImplTest {
 
         // For non‑PROXY V4 APIs, allowedInApiProducts should be cleared (null)
         assertNull(apiEntity.getAllowedInApiProducts());
+    }
+
+    @Test
+    public void should_respect_explicit_allowedInApiProducts_true_on_import() throws TechnicalException {
+        ApiEntity apiEntity = fakeApiEntityV4();
+        apiEntity.setAllowedInApiProducts(true);
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        doReturn(Optional.empty()).when(apiRepository).findById(anyString());
+        doReturn(apiEntity.getPrimaryOwner())
+            .when(primaryOwnerService)
+            .getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
+        doReturn(emptySet()).when(groupService).findByEvent(GraviteeContext.getCurrentEnvironment(), GroupEvent.API_CREATE);
+        doReturn(new ApiEntity()).when(apiMetadataService).fetchMetadataForApi(any(), any());
+        doReturn(false).when(parameterService).findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT);
+
+        Api createdApi = new Api();
+        createdApi.setId(API_ID);
+        createdApi.setCreatedAt(new Date());
+        doReturn(createdApi).when(apiRepository).create(any());
+
+        apiService.createWithImport(executionContext, apiEntity, USER_NAME);
+
+        // When explicitly set to true on import, it must be respected (not overwritten with default false)
+        assertTrue(Boolean.TRUE.equals(apiEntity.getAllowedInApiProducts()));
     }
 
     private void testRepositoryApi(Api api) {

@@ -1,6 +1,6 @@
 <!--
 
-    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -62,7 +62,12 @@
         </td>
       </tr>
     </table>
-    <app-pagination [currentPage]="currentPage()" [totalResults]="totalResults()" (selectPage)="goToPage($event)" />
+    <app-pagination
+      [currentPage]="currentPage()"
+      [totalResults]="totalResults()"
+      [showPageSizeSelection]="false"
+      (selectPage)="goToPage($event)"
+    />
   }
 } @else {
   <app-loader />

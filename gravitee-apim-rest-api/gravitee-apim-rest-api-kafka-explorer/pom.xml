@@ -59,6 +59,14 @@
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-sse</artifactId>
+        </dependency>
 
         <!-- Jackson -->
         <dependency>
@@ -113,6 +121,11 @@
         <dependency>
             <groupId>io.gravitee.apim.rest.api</groupId>
             <artifactId>gravitee-apim-rest-api-service</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api</groupId>
+            <artifactId>gravitee-apim-rest-api-rest</artifactId>
             <version>${project.version}</version>
         </dependency>
 

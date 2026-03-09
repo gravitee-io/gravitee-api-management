@@ -209,8 +209,10 @@ class ArchitectureTest {
                         "java..",
                         "lombok..",
                         "org.slf4j..",
+                        "com.fasterxml.jackson..",
+                        // Api Definition can't be in core because it is required for the Gateway
                         "io.gravitee.apim.core..",
-                        "com.fasterxml.jackson.."
+                        "io.gravitee.plugin.configurations.."
                     )
                 )
                 .because("Domain should be free from framework dependencies")

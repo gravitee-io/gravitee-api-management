@@ -18,7 +18,7 @@ import { CommonModule } from '@angular/common';
 import { MatTabNavPanel, MatTabsModule } from '@angular/material/tabs';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioIconsModule, GioLicenseModule } from '@gravitee/ui-particles-angular';
 
 import { MenuItem, MenuItemHeader } from '../cluster-navigation.component';
 
@@ -26,7 +26,7 @@ import { MenuItem, MenuItemHeader } from '../cluster-navigation.component';
   selector: 'cluster-navigation-tabs',
   templateUrl: './cluster-navigation-tabs.component.html',
   styleUrls: ['./cluster-navigation-tabs.component.scss'],
-  imports: [CommonModule, MatTabsModule, RouterLink, MatTabNavPanel, RouterLinkActive, MatTooltipModule, GioIconsModule],
+  imports: [CommonModule, MatTabsModule, RouterLink, MatTabNavPanel, RouterLinkActive, MatTooltipModule, GioIconsModule, GioLicenseModule],
 })
 export class ClusterNavigationTabsComponent {
   @Input()

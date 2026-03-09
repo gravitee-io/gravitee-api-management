@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import io.gravitee.common.utils.TimeProvider;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
@@ -104,5 +105,17 @@ public class Event implements Serializable {
         GATEWAY_ID("gateway_id");
 
         private final String value;
+    }
+
+    public Event updatePayload(String payload) {
+        this.payload = payload;
+        this.updatedAt = Date.from(TimeProvider.instantNow());
+        return this;
+    }
+
+    public Event updateProperties(String key, String value) {
+        properties.put(key, value);
+        this.updatedAt = Date.from(TimeProvider.instantNow());
+        return this;
     }
 }

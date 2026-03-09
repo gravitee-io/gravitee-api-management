@@ -23,6 +23,7 @@ import java.util.Set;
 public interface ApiProductQueryService {
     Optional<ApiProduct> findByEnvironmentIdAndName(String environmentId, String name);
     Set<ApiProduct> findByEnvironmentId(String environmentId);
+    Set<ApiProduct> findByEnvironmentIdAndIdIn(String environmentId, Set<String> ids);
     Optional<ApiProduct> findById(String apiProductId);
     Set<ApiProduct> findByApiId(String apiId);
 

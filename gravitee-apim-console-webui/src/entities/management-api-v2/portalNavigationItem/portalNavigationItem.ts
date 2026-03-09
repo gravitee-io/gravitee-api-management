@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { PortalPageContentType } from '../portalPageContent/portalPageContent';
+
 export type PortalArea = 'HOMEPAGE' | 'TOP_NAVBAR';
 export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API';
 export type PortalVisibility = 'PUBLIC' | 'PRIVATE';
@@ -57,6 +59,7 @@ interface BaseNewPortalNavigationItem<T extends PortalNavigationItemType> {
 
 export interface NewPagePortalNavigationItem extends BaseNewPortalNavigationItem<'PAGE'> {
   portalPageContentId?: string;
+  contentType?: PortalPageContentType;
 }
 
 export interface NewFolderPortalNavigationItem extends BaseNewPortalNavigationItem<'FOLDER'> {}

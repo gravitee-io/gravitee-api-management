@@ -50,7 +50,7 @@ public class PlanUpdates {
     public Plan applyTo(Plan oldPlan) {
         Plan result = oldPlan
             .toBuilder()
-            .name(name)
+            .name(name != null ? name : oldPlan.getName())
             .crossId(crossId != null ? crossId : oldPlan.getCrossId())
             .description(description)
             .updatedAt(ZonedDateTime.now())

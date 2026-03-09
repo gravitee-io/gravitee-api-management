@@ -20,7 +20,6 @@ import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
 import io.gravitee.rest.api.kafkaexplorer.domain.UseCase;
 import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.KafkaClusterDomainService;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
-import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaConnectionConfig;
 
 @UseCase
 public class DescribeKafkaClusterUseCase {
@@ -41,7 +40,7 @@ public class DescribeKafkaClusterUseCase {
 
     public Output execute(Input input) {
         var cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId(), input.environmentId());
-        var config = objectMapper.convertValue(cluster.getConfiguration(), KafkaConnectionConfig.class);
+        var config = cluster.getKafkaClusterConfiguration(objectMapper);
         var clusterInfo = kafkaClusterDomainService.describeCluster(config);
         return new Output(clusterInfo);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 import { Component, computed, input, output, Signal } from '@angular/core';
-import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatButton } from '@angular/material/button';
+import { MatFormField } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
+import { MatOption, MatSelect } from '@angular/material/select';
+
+export const DEFAULT_PAGE_SIZE_OPTIONS: number[] = [5, 10, 20, 50, 100];
 
 interface PaginationVM {
   hasPreviousPage: boolean;
@@ -27,7 +31,7 @@ interface PaginationVM {
 @Component({
   selector: 'app-pagination',
   standalone: true,
-  imports: [MatButton, MatIcon, MatIconButton],
+  imports: [MatButton, MatIcon, MatFormField, MatSelect, MatOption],
   templateUrl: './pagination.component.html',
   styleUrl: './pagination.component.scss',
 })
@@ -35,8 +39,11 @@ export class PaginationComponent {
   totalResults = input.required<number>();
   currentPage = input.required<number>();
   pageSize = input<number>(10);
+  pageSizeOptions = input<number[]>(DEFAULT_PAGE_SIZE_OPTIONS);
+  showPageSizeSelection = input<boolean>(true);
 
   selectPage = output<number>();
+  selectPageSize = output<number>();
 
   pagination: Signal<PaginationVM> = computed(() => {
     const totalPages = Math.ceil(this.totalResults() / this.pageSize());
@@ -65,5 +72,9 @@ export class PaginationComponent {
     if (this.currentPage() < this.pagination().totalPages) {
       this.selectPage.emit(this.currentPage() + 1);
     }
+  }
+
+  onPageSizeChange(size: number) {
+    this.selectPageSize.emit(size);
   }
 }

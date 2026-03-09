@@ -37,6 +37,7 @@ import { teardownApisAndApplications, teardownV4ApisAndApplications } from '@gra
 import { from, map, retry, Subscription, switchMap } from 'rxjs';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
+import { faker } from '@faker-js/faker';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -67,6 +68,7 @@ describeIfClientGatewayCompatible('Debug my API (incl. query params, Headers and
         exportApiV4: MAPIV2ApisFaker.apiImportV4({
           plans: [MAPIV2PlansFaker.planV4({ security: { type: PlanSecurityType.KEY_LESS }, validation: 'AUTO' })],
           api: MAPIV2ApisFaker.apiV4Proxy({
+            name: `debug-v4-${faker.lorem.words(10)}`,
             endpointGroups: [
               {
                 name: 'Default HTTP proxy group',
@@ -327,6 +329,7 @@ describeIfClientGatewayCompatible('Debug my API (incl. query params, Headers and
         envId,
         orgId,
         body: ApisFaker.apiImport({
+          name: `debug-v2-${faker.lorem.words(10)}`,
           execution_mode: 'v3',
           plans: [
             PlansFaker.plan({

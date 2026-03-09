@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,11 @@ import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
 
 import { InnerLinkDirective } from '../../directives/inner-link.directive';
 import { PortalPageContent } from '../../entities/portal-navigation/portal-page-content';
+import { RedocContentViewerComponent } from '../redoc-content-viewer/redoc-content-viewer.component';
 
 @Component({
   selector: 'app-navigation-item-content-viewer',
-  imports: [GraviteeMarkdownViewerModule, InnerLinkDirective],
+  imports: [GraviteeMarkdownViewerModule, InnerLinkDirective, RedocContentViewerComponent],
   templateUrl: './navigation-item-content-viewer.component.html',
   styleUrl: './navigation-item-content-viewer.component.scss',
 })

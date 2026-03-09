@@ -70,9 +70,11 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
             }
         }
         doBeforeEmit = doBeforeEmit.andThen(Completable.fromRunnable(() -> registerApiProductPlans(deployable)));
-        doBeforeEmit = doBeforeEmit.andThen(
-            subscriptionRefresher.refresh(deployable.subscribablePlans(), Set.of(reactableApiProduct.getEnvironmentId()))
-        );
+        if (newApiIds != null && !newApiIds.isEmpty()) {
+            doBeforeEmit = doBeforeEmit.andThen(
+                subscriptionRefresher.refresh(deployable.subscribablePlans(), Set.of(reactableApiProduct.getEnvironmentId()))
+            );
+        }
 
         return apiProductManager
             .register(reactableApiProduct, doBeforeEmit)

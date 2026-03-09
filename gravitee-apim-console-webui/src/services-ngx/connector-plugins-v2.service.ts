@@ -70,10 +70,7 @@ export class ConnectorPluginsV2Service {
     return this.listEntrypointPlugins().pipe(
       map(entrypointPlugins =>
         entrypointPlugins.filter(entrypoint => {
-          if (entrypoint.id === 'agent-to-agent') {
-            return true;
-          }
-          return ['LLM_PROXY', 'MCP_PROXY'].includes(entrypoint.supportedApiType);
+          return ['LLM_PROXY', 'MCP_PROXY', 'A2A_PROXY'].includes(entrypoint.supportedApiType);
         }),
       ),
     );

@@ -48,7 +48,14 @@
         </ng-container>
 
         <ng-template #menuItemsGroup>
-          <gio-menu-items [title]="item.displayName" [icon]="item.icon" [routerBasePath]="item.routerBasePath">
+          <gio-menu-items
+            [title]="item.displayName"
+            [icon]="item.icon"
+            [routerBasePath]="item.routerBasePath"
+            [gioLicense]="item?.licenseOptions"
+            iconRight="{{ item.iconRight$ | async }}"
+            iconRightTooltip="{{ item.iconRightTooltip }}"
+          >
             <ng-container *ngFor="let child of item.items">
               <a [routerLink]="child.routerLink" [tabindex]="1">
                 <gio-menu-item routerLinkActive>{{ child.displayName }}</gio-menu-item>

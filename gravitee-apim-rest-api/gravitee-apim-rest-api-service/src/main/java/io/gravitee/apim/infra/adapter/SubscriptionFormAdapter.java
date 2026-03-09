@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import org.mapstruct.Mapper;
@@ -32,9 +33,11 @@ public interface SubscriptionFormAdapter {
     SubscriptionFormAdapter INSTANCE = Mappers.getMapper(SubscriptionFormAdapter.class);
 
     @Mapping(target = "id", source = "id", qualifiedByName = "idToSubscriptionFormId")
+    @Mapping(target = "gmdContent", source = "gmdContent", qualifiedByName = "stringToGraviteeMarkdown")
     SubscriptionForm toEntity(io.gravitee.repository.management.model.SubscriptionForm subscriptionForm);
 
     @Mapping(target = "id", source = "id", qualifiedByName = "subscriptionFormIdToId")
+    @Mapping(target = "gmdContent", source = "gmdContent", qualifiedByName = "graviteeMarkdownToString")
     io.gravitee.repository.management.model.SubscriptionForm toRepository(SubscriptionForm subscriptionForm);
 
     @Named("idToSubscriptionFormId")
@@ -45,5 +48,15 @@ public interface SubscriptionFormAdapter {
     @Named("subscriptionFormIdToId")
     default String subscriptionFormIdToId(SubscriptionFormId id) {
         return id != null ? id.toString() : null;
+    }
+
+    @Named("stringToGraviteeMarkdown")
+    default GraviteeMarkdown stringToGraviteeMarkdown(String value) {
+        return value != null ? GraviteeMarkdown.of(value) : null;
+    }
+
+    @Named("graviteeMarkdownToString")
+    default String graviteeMarkdownToString(GraviteeMarkdown gmd) {
+        return gmd != null ? gmd.value() : null;
     }
 }

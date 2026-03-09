@@ -37,6 +37,10 @@ public class PortalNavigationItemsRepositoryFixtures {
     }
 
     public static PortalNavigationItem aFolder(String id, String title, String parentId) {
+        return aFolder(id, title, parentId, parentId == null ? id : parentId);
+    }
+
+    public static PortalNavigationItem aFolder(String id, String title, String parentId, String rootId) {
         return PortalNavigationItem.builder()
             .id(id)
             .organizationId(ORG_ID)
@@ -46,6 +50,7 @@ public class PortalNavigationItemsRepositoryFixtures {
             .area(Area.TOP_NAVBAR)
             .order(0)
             .parentId(parentId)
+            .rootId(rootId)
             .configuration("{}")
             .published(true)
             .visibility(Visibility.PUBLIC)
@@ -53,6 +58,10 @@ public class PortalNavigationItemsRepositoryFixtures {
     }
 
     public static PortalNavigationItem aPage(String id, String title, String portalPageContentId, String parentId) {
+        return aPage(id, title, portalPageContentId, parentId, parentId == null ? id : parentId);
+    }
+
+    public static PortalNavigationItem aPage(String id, String title, String portalPageContentId, String parentId, String rootId) {
         var configuration = String.format("{\"portalPageContentId\":\"%s\"}", portalPageContentId);
         return PortalNavigationItem.builder()
             .id(id)
@@ -63,6 +72,7 @@ public class PortalNavigationItemsRepositoryFixtures {
             .area(Area.TOP_NAVBAR)
             .order(0)
             .parentId(parentId)
+            .rootId(rootId)
             .configuration(configuration)
             .published(true)
             .visibility(Visibility.PUBLIC)
@@ -70,6 +80,10 @@ public class PortalNavigationItemsRepositoryFixtures {
     }
 
     public static PortalNavigationItem aLink(String id, String title, String url, String parentId) {
+        return aLink(id, title, url, parentId, parentId == null ? id : parentId);
+    }
+
+    public static PortalNavigationItem aLink(String id, String title, String url, String parentId, String rootId) {
         var configuration = String.format("{\"url\":\"%s\"}", url == null ? "http://example.com" : url);
         return PortalNavigationItem.builder()
             .id(id)
@@ -80,6 +94,7 @@ public class PortalNavigationItemsRepositoryFixtures {
             .area(Area.TOP_NAVBAR)
             .order(0)
             .parentId(parentId)
+            .rootId(rootId)
             .configuration(configuration)
             .published(true)
             .visibility(Visibility.PUBLIC)
@@ -87,6 +102,10 @@ public class PortalNavigationItemsRepositoryFixtures {
     }
 
     public static PortalNavigationItem anApi(String id, String title, String apiId, String parentId) {
+        return anApi(id, title, apiId, parentId, parentId == null ? id : parentId);
+    }
+
+    public static PortalNavigationItem anApi(String id, String title, String apiId, String parentId, String rootId) {
         var configuration = "{}";
         return PortalNavigationItem.builder()
             .id(id)
@@ -97,10 +116,97 @@ public class PortalNavigationItemsRepositoryFixtures {
             .area(Area.TOP_NAVBAR)
             .order(0)
             .parentId(parentId)
+            .rootId(rootId)
             .configuration(configuration)
             .published(true)
             .visibility(Visibility.PUBLIC)
             .apiId(apiId)
+            .build();
+    }
+
+    /** RootId value when domain model uses PortalNavigationItemId.zero(). */
+    public static final String ROOT_ID_ZERO = "00000000-0000-0000-0000-000000000000";
+
+    /**
+     * Expected repository item for a folder as produced by the adapter when mapping from domain to repository (create/update).
+     */
+    public static PortalNavigationItem expectedFolderFromCreate(
+        String id,
+        String title,
+        String organizationId,
+        String environmentId,
+        int order,
+        String rootId
+    ) {
+        return PortalNavigationItem.builder()
+            .id(id)
+            .title(title)
+            .organizationId(organizationId)
+            .environmentId(environmentId)
+            .type(Type.FOLDER)
+            .area(Area.TOP_NAVBAR)
+            .order(order)
+            .parentId(null)
+            .rootId(rootId)
+            .configuration("{}")
+            .published(true)
+            .visibility(Visibility.PUBLIC)
+            .build();
+    }
+
+    /**
+     * Expected repository item for a page as produced by the adapter when mapping from domain to repository (create/update).
+     */
+    public static PortalNavigationItem expectedPageFromCreate(
+        String id,
+        String title,
+        String organizationId,
+        String environmentId,
+        int order,
+        String rootId,
+        String portalPageContentId
+    ) {
+        return PortalNavigationItem.builder()
+            .id(id)
+            .title(title)
+            .organizationId(organizationId)
+            .environmentId(environmentId)
+            .type(Type.PAGE)
+            .area(Area.TOP_NAVBAR)
+            .order(order)
+            .parentId(null)
+            .rootId(rootId)
+            .configuration("{\"portalPageContentId\":\"" + portalPageContentId + "\"}")
+            .published(true)
+            .visibility(Visibility.PUBLIC)
+            .build();
+    }
+
+    /**
+     * Expected repository item for a link as produced by the adapter when mapping from domain to repository (create/update).
+     */
+    public static PortalNavigationItem expectedLinkFromCreate(
+        String id,
+        String title,
+        String organizationId,
+        String environmentId,
+        int order,
+        String rootId,
+        String url
+    ) {
+        return PortalNavigationItem.builder()
+            .id(id)
+            .title(title)
+            .organizationId(organizationId)
+            .environmentId(environmentId)
+            .type(Type.LINK)
+            .area(Area.TOP_NAVBAR)
+            .order(order)
+            .parentId(null)
+            .rootId(rootId)
+            .configuration("{\"url\":\"" + url + "\"}")
+            .published(true)
+            .visibility(Visibility.PUBLIC)
             .build();
     }
 

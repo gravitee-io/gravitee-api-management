@@ -37,7 +37,7 @@ public class PortalPageContentQueryServiceImpl implements PortalPageContentQuery
     }
 
     @Override
-    public Optional<PortalPageContent> findById(PortalPageContentId id) {
+    public Optional<PortalPageContent<?>> findById(PortalPageContentId id) {
         try {
             return portalPageContentRepository.findById(id.json()).map(portalPageContentAdapter::toEntity);
         } catch (TechnicalException e) {

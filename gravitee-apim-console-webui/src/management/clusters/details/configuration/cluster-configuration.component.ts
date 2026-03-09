@@ -16,16 +16,15 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { forkJoin } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { GioFormFocusInvalidModule, GioFormJsonSchemaModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioFormFocusInvalidModule, GioFormJsonSchemaModule, GioSaveBarModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-
-import securityJsonSchema from './security-schema-form.json';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ClusterService } from '../../../../services-ngx/cluster.service';
@@ -47,18 +46,17 @@ import { GioPermissionService } from '../../../../shared/components/gio-permissi
     GioFormFocusInvalidModule,
     MatSnackBarModule,
     GioFormJsonSchemaModule,
+    GioIconsModule,
   ],
 })
 export class ClusterConfigurationComponent implements OnInit {
   public initialCluster: Cluster;
   public configForm: FormGroup<{
-    bootstrapServers: FormControl<string>;
-    security: FormControl<unknown>;
+    config: FormControl<unknown>;
   }>;
   public isLoadingData = true;
   public isReadOnly = false;
-  public initialConfigFormValue: unknown;
-  public securityJsonSchema = securityJsonSchema as unknown;
+  public securityJsonSchema: unknown;
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly activatedRoute = inject(ActivatedRoute);
@@ -69,21 +67,16 @@ export class ClusterConfigurationComponent implements OnInit {
   public ngOnInit() {
     this.isLoadingData = true;
     this.isReadOnly = !this.permissionService.hasAnyMatching(['cluster-configuration-u']);
-    this.clusterService
-      .get(this.activatedRoute.snapshot.params.clusterId)
+    forkJoin([this.clusterService.get(this.activatedRoute.snapshot.params.clusterId), this.clusterService.getConfigurationSchema()])
       .pipe(
-        tap(cluster => {
+        tap(([cluster, schema]) => {
           this.initialCluster = cluster;
+          this.securityJsonSchema = schema;
           this.isLoadingData = false;
 
           this.configForm = new FormGroup({
-            bootstrapServers: new FormControl({ value: cluster.configuration.bootstrapServers, disabled: this.isReadOnly }, [
-              Validators.required,
-            ]),
-            security: new FormControl({ value: cluster.configuration.security, disabled: this.isReadOnly }),
+            config: new FormControl({ value: cluster.configuration, disabled: this.isReadOnly }),
           });
-
-          this.initialConfigFormValue = this.configForm.getRawValue();
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -94,11 +87,7 @@ export class ClusterConfigurationComponent implements OnInit {
     const configToUpdate: UpdateCluster = {
       name: this.initialCluster.name,
       description: this.initialCluster.description,
-      configuration: {
-        ...this.initialCluster.configuration,
-        bootstrapServers: this.configForm.get('bootstrapServers').value,
-        security: this.configForm.get('security').value,
-      },
+      configuration: this.configForm.get('config').value,
     };
 
     this.clusterService
@@ -108,5 +97,9 @@ export class ClusterConfigurationComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.ngOnInit());
+  }
+
+  protected onReset() {
+    this.ngOnInit();
   }
 }

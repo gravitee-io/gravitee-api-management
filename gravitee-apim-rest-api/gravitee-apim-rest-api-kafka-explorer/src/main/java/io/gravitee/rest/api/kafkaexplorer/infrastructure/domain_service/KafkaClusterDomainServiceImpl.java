@@ -15,42 +15,900 @@
  */
 package io.gravitee.rest.api.kafkaexplorer.infrastructure.domain_service;
 
+import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
+import io.gravitee.apim.core.cluster.model.SaslMechanism;
+import io.gravitee.apim.core.cluster.model.SecurityProtocol;
+import io.gravitee.plugin.configurations.ssl.KeyStore;
+import io.gravitee.plugin.configurations.ssl.SslOptions;
+import io.gravitee.plugin.configurations.ssl.TrustStore;
+import io.gravitee.plugin.configurations.ssl.jks.JKSKeyStore;
+import io.gravitee.plugin.configurations.ssl.jks.JKSTrustStore;
+import io.gravitee.plugin.configurations.ssl.pem.PEMKeyStore;
+import io.gravitee.plugin.configurations.ssl.pem.PEMTrustStore;
+import io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12KeyStore;
+import io.gravitee.plugin.configurations.ssl.pkcs12.PKCS12TrustStore;
 import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.KafkaClusterDomainService;
+import io.gravitee.rest.api.kafkaexplorer.domain.domain_service.MessageConsumer;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.KafkaExplorerException;
 import io.gravitee.rest.api.kafkaexplorer.domain.exception.TechnicalCode;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerDetail;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerInfo;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.BrokerLogDirEntry;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.BrowseMessagesResult;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroup;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupDetail;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupMember;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupOffset;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.ConsumerGroupsPage;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaClusterInfo;
-import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaConnectionConfig;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaHeader;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaMessage;
 import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaNode;
-import io.gravitee.rest.api.kafkaexplorer.domain.model.SaslMechanism;
-import io.gravitee.rest.api.kafkaexplorer.domain.model.SecurityProtocol;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.KafkaTopic;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.MemberAssignment;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicConfigEntry;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicDetail;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicPartitionDetail;
+import io.gravitee.rest.api.kafkaexplorer.domain.model.TopicsPage;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.ConsumerGroupDescription;
+import org.apache.kafka.clients.admin.ConsumerGroupListing;
 import org.apache.kafka.clients.admin.DescribeClusterResult;
+import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsSpec;
+import org.apache.kafka.clients.admin.ListTopicsOptions;
+import org.apache.kafka.clients.admin.OffsetSpec;
+import org.apache.kafka.clients.admin.TopicDescription;
+import org.apache.kafka.clients.admin.TopicListing;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
 import org.apache.kafka.common.Node;
+import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.TopicPartitionInfo;
+import org.apache.kafka.common.config.ConfigResource;
+import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.errors.AuthenticationException;
+import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.stereotype.Service;
 
 @Service
 public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService {
 
     private static final long TIMEOUT_SECONDS = 5;
+    private static final long GET_TIMEOUT_SECONDS = TIMEOUT_SECONDS + 2;
 
     @Override
-    public KafkaClusterInfo describeCluster(KafkaConnectionConfig config) {
-        Properties properties = buildProperties(config);
-        try (AdminClient adminClient = createAdminClient(properties)) {
+    public KafkaClusterInfo describeCluster(KafkaClusterConfiguration config) {
+        return withAdminClient(config, adminClient -> {
             DescribeClusterResult result = adminClient.describeCluster();
 
-            String clusterId = result.clusterId().get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            Node controller = result.controller().get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            var nodes = result.nodes().get(TIMEOUT_SECONDS, TimeUnit.SECONDS).stream().map(this::toKafkaNode).toList();
+            String clusterId = result.clusterId().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            Node controller = result.controller().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            var nodes = result.nodes().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-            return new KafkaClusterInfo(clusterId, toKafkaNode(controller), nodes);
+            var topicStats = fetchTopicStats(adminClient);
+
+            List<Integer> brokerIds = nodes.stream().map(Node::id).toList();
+            var logDirSizes = fetchLogDirSizes(adminClient, brokerIds);
+
+            List<BrokerDetail> brokerDetails = nodes
+                .stream()
+                .map(node -> toBrokerDetail(node, topicStats, logDirSizes))
+                .toList();
+
+            return new KafkaClusterInfo(
+                clusterId,
+                toKafkaNode(controller),
+                brokerDetails,
+                topicStats.totalTopics(),
+                topicStats.totalPartitions()
+            );
+        });
+    }
+
+    @Override
+    public TopicsPage listTopics(KafkaClusterConfiguration config, String nameFilter, int page, int perPage) {
+        return withAdminClient(config, adminClient -> {
+            // Step 1: List all topics (cheap call)
+            Collection<TopicListing> listings = adminClient
+                .listTopics(new ListTopicsOptions().listInternal(true))
+                .listings()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            Map<String, Boolean> internalFlags = new HashMap<>();
+            for (TopicListing listing : listings) {
+                internalFlags.put(listing.name(), listing.isInternal());
+            }
+
+            if (internalFlags.isEmpty()) {
+                return new TopicsPage(List.of(), 0, page, perPage);
+            }
+
+            // Step 2: Filter by nameFilter (case-insensitive contains)
+            List<String> filteredNames = internalFlags
+                .keySet()
+                .stream()
+                .filter(name -> nameFilter == null || nameFilter.isBlank() || name.toLowerCase().contains(nameFilter.toLowerCase()))
+                .sorted()
+                .toList();
+
+            int totalCount = filteredNames.size();
+
+            // Step 3: Paginate
+            int fromIndex = Math.min(page * perPage, totalCount);
+            int toIndex = Math.min(fromIndex + perPage, totalCount);
+            List<String> pageNames = filteredNames.subList(fromIndex, toIndex);
+
+            if (pageNames.isEmpty()) {
+                return new TopicsPage(List.of(), totalCount, page, perPage);
+            }
+
+            // Step 4: Describe topics for the current page only (expensive calls)
+            Map<String, TopicDescription> descriptions = adminClient
+                .describeTopics(pageNames)
+                .allTopicNames()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            // Step 5: Fetch topic sizes via describeLogDirs
+            Map<String, Long> topicSizes = fetchTopicSizes(adminClient, Set.copyOf(pageNames));
+
+            // Step 6: Fetch message counts via listOffsets
+            Map<String, Long> messageCounts = fetchMessageCounts(adminClient, descriptions);
+
+            // Step 7: Map to KafkaTopic records
+            List<KafkaTopic> topics = pageNames
+                .stream()
+                .map(name -> {
+                    TopicDescription topic = descriptions.get(name);
+                    int partitionCount = topic.partitions().size();
+                    int replicationFactor = topic.partitions().isEmpty() ? 0 : topic.partitions().get(0).replicas().size();
+                    int underReplicatedCount = (int) topic
+                        .partitions()
+                        .stream()
+                        .filter(p -> p.isr().size() < p.replicas().size())
+                        .count();
+                    boolean internal = internalFlags.getOrDefault(name, false);
+                    return new KafkaTopic(
+                        name,
+                        partitionCount,
+                        replicationFactor,
+                        underReplicatedCount,
+                        internal,
+                        topicSizes.get(name),
+                        messageCounts.get(name)
+                    );
+                })
+                .toList();
+
+            return new TopicsPage(topics, totalCount, page, perPage);
+        });
+    }
+
+    @Override
+    public TopicDetail describeTopic(KafkaClusterConfiguration config, String topicName) {
+        return withAdminClient(config, adminClient -> {
+            // Describe topic to get partition info
+            TopicDescription description = adminClient
+                .describeTopics(List.of(topicName))
+                .allTopicNames()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .get(topicName);
+
+            boolean internal = description.isInternal();
+
+            List<TopicPartitionDetail> partitions = description
+                .partitions()
+                .stream()
+                .map(p ->
+                    new TopicPartitionDetail(
+                        p.partition(),
+                        p.leader() != null ? toKafkaNode(p.leader()) : null,
+                        p.replicas().stream().map(this::toKafkaNode).toList(),
+                        p.isr().stream().map(this::toKafkaNode).toList(),
+                        getOfflineNodes(p).stream().map(this::toKafkaNode).toList()
+                    )
+                )
+                .toList();
+
+            // Describe topic configs
+            ConfigResource configResource = new ConfigResource(ConfigResource.Type.TOPIC, topicName);
+            var configResult = adminClient
+                .describeConfigs(Collections.singleton(configResource))
+                .all()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            List<TopicConfigEntry> configs = configResult
+                .get(configResource)
+                .entries()
+                .stream()
+                .map(entry ->
+                    new TopicConfigEntry(entry.name(), entry.value(), entry.source().name(), entry.isReadOnly(), entry.isSensitive())
+                )
+                .toList();
+
+            return new TopicDetail(topicName, internal, partitions, configs);
+        });
+    }
+
+    @Override
+    public BrokerInfo describeBroker(KafkaClusterConfiguration config, int brokerId) {
+        return withAdminClient(config, adminClient -> {
+            // Step 1: describeCluster to find the node and detect controller
+            DescribeClusterResult clusterResult = adminClient.describeCluster();
+            Node controller = clusterResult.controller().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            var nodes = clusterResult.nodes().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            Node targetNode = nodes
+                .stream()
+                .filter(n -> n.id() == brokerId)
+                .findFirst()
+                .orElseThrow(() -> new KafkaExplorerException("Broker " + brokerId + " not found", TechnicalCode.INVALID_PARAMETERS));
+
+            boolean isController = controller != null && controller.id() == brokerId;
+
+            // Step 2: fetchTopicStats for leaderPartitions and replicaPartitions
+            var topicStats = fetchTopicStats(adminClient);
+            int leaderPartitions = topicStats.leaderCounts().getOrDefault(brokerId, 0);
+            int replicaPartitions = topicStats.replicaCounts().getOrDefault(brokerId, 0);
+
+            // Step 3: describeLogDirs to build BrokerLogDirEntry list (one per directory) and total logDirSize
+            List<BrokerLogDirEntry> logDirEntries = new ArrayList<>();
+            Long logDirSize = null;
+            try {
+                var logDirsResult = adminClient
+                    .describeLogDirs(List.of(brokerId))
+                    .allDescriptions()
+                    .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+                long totalSize = 0;
+                var brokerLogDirs = logDirsResult.get(brokerId);
+                if (brokerLogDirs != null) {
+                    for (var dirEntry : brokerLogDirs.entrySet()) {
+                        String path = dirEntry.getKey();
+                        var logDir = dirEntry.getValue();
+                        String error = logDir.error() != null ? logDir.error().getMessage() : null;
+                        long dirSize = 0;
+                        Set<String> topicNames = new HashSet<>();
+                        int partitionCount = 0;
+                        for (var replicaEntry : logDir.replicaInfos().entrySet()) {
+                            long replicaSize = replicaEntry.getValue().size();
+                            if (replicaSize >= 0) {
+                                dirSize += replicaSize;
+                                topicNames.add(replicaEntry.getKey().topic());
+                                partitionCount++;
+                            }
+                        }
+                        logDirEntries.add(new BrokerLogDirEntry(path, error, topicNames.size(), partitionCount, dirSize));
+                        totalSize += dirSize;
+                    }
+                    logDirSize = totalSize;
+                }
+            } catch (Exception e) {
+                // Log dir info is best-effort
+            }
+
+            // Step 4: describeConfigs for BROKER resource
+            ConfigResource configResource = new ConfigResource(ConfigResource.Type.BROKER, String.valueOf(brokerId));
+            var configResult = adminClient
+                .describeConfigs(Collections.singleton(configResource))
+                .all()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            List<TopicConfigEntry> configs = configResult
+                .get(configResource)
+                .entries()
+                .stream()
+                .map(entry ->
+                    new TopicConfigEntry(entry.name(), entry.value(), entry.source().name(), entry.isReadOnly(), entry.isSensitive())
+                )
+                .toList();
+
+            return new BrokerInfo(
+                targetNode.id(),
+                targetNode.host(),
+                targetNode.port(),
+                targetNode.rack(),
+                isController,
+                leaderPartitions,
+                replicaPartitions,
+                logDirSize,
+                logDirEntries,
+                configs
+            );
+        });
+    }
+
+    @Override
+    public ConsumerGroupsPage listConsumerGroups(
+        KafkaClusterConfiguration config,
+        String nameFilter,
+        String topicFilter,
+        int page,
+        int perPage
+    ) {
+        return withAdminClient(config, adminClient -> {
+            boolean hasTopicFilter = topicFilter != null && !topicFilter.isBlank();
+
+            // Step 1: List all consumer groups
+            Collection<ConsumerGroupListing> listings = adminClient.listConsumerGroups().all().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            // Step 2: Filter by name
+            List<String> filteredGroupIds = listings
+                .stream()
+                .map(ConsumerGroupListing::groupId)
+                .filter(id -> nameFilter == null || nameFilter.isBlank() || id.toLowerCase().contains(nameFilter.toLowerCase()))
+                .sorted()
+                .toList();
+
+            // Step 3: Filter by topic — fetch only the target topic's partition offsets, then filter in-memory
+            Map<String, Map<TopicPartition, OffsetAndMetadata>> allOffsets;
+            if (hasTopicFilter) {
+                // Resolve topic partitions once to restrict the offset fetch to this topic only
+                TopicDescription topicDesc;
+                try {
+                    topicDesc = adminClient
+                        .describeTopics(List.of(topicFilter))
+                        .allTopicNames()
+                        .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                        .get(topicFilter);
+                } catch (ExecutionException e) {
+                    if (e.getCause() instanceof org.apache.kafka.common.errors.UnknownTopicOrPartitionException) {
+                        return new ConsumerGroupsPage(List.of(), 0, page, perPage);
+                    }
+                    throw e;
+                }
+                List<TopicPartition> topicPartitions = topicDesc
+                    .partitions()
+                    .stream()
+                    .map(p -> new TopicPartition(topicFilter, p.partition()))
+                    .toList();
+
+                allOffsets = fetchAllGroupOffsets(adminClient, filteredGroupIds, topicPartitions);
+                filteredGroupIds = filteredGroupIds
+                    .stream()
+                    .filter(groupId -> !allOffsets.getOrDefault(groupId, Map.of()).isEmpty())
+                    .toList();
+            } else {
+                allOffsets = null;
+            }
+
+            int totalCount = filteredGroupIds.size();
+
+            // Step 4: Paginate
+            int fromIndex = Math.min(page * perPage, totalCount);
+            int toIndex = Math.min(fromIndex + perPage, totalCount);
+            List<String> pageGroupIds = filteredGroupIds.subList(fromIndex, toIndex);
+
+            if (pageGroupIds.isEmpty()) {
+                return new ConsumerGroupsPage(List.of(), totalCount, page, perPage);
+            }
+
+            // Step 5: Batch-fetch offsets for page groups (reuse pre-fetched data when topicFilter was set)
+            final Map<String, Map<TopicPartition, OffsetAndMetadata>> pageOffsets = hasTopicFilter
+                ? allOffsets
+                : fetchAllGroupOffsets(adminClient, pageGroupIds, null);
+
+            // Step 6: Describe consumer groups for the current page
+            Map<String, ConsumerGroupDescription> descriptions = adminClient
+                .describeConsumerGroups(pageGroupIds)
+                .all()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            // Step 7: Compute lag from pre-fetched offsets
+            List<ConsumerGroup> groups = pageGroupIds
+                .stream()
+                .map(groupId -> {
+                    ConsumerGroupDescription desc = descriptions.get(groupId);
+                    String state = desc.state() != null ? desc.state().name() : "UNKNOWN";
+                    int membersCount = desc.members().size();
+                    var groupOffsets = pageOffsets.getOrDefault(groupId, Map.of());
+                    LagResult lagResult = computeLagResultFromOffsets(adminClient, groupOffsets, hasTopicFilter ? topicFilter : null);
+                    KafkaNode coordinator = toKafkaNode(desc.coordinator());
+                    return new ConsumerGroup(groupId, state, membersCount, lagResult.totalLag(), lagResult.numTopics(), coordinator);
+                })
+                .toList();
+
+            return new ConsumerGroupsPage(groups, totalCount, page, perPage);
+        });
+    }
+
+    @Override
+    public ConsumerGroupDetail describeConsumerGroup(KafkaClusterConfiguration config, String groupId) {
+        return withAdminClient(config, adminClient -> {
+            // Step 1: Describe the consumer group
+            ConsumerGroupDescription description = adminClient
+                .describeConsumerGroups(List.of(groupId))
+                .all()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .get(groupId);
+
+            String state = description.state() != null ? description.state().name() : "UNKNOWN";
+            KafkaNode coordinator = toKafkaNode(description.coordinator());
+            String partitionAssignor = description.partitionAssignor();
+
+            // Step 2: Map members with assignments grouped by topic
+            List<ConsumerGroupMember> members = description
+                .members()
+                .stream()
+                .map(member -> {
+                    Map<String, List<Integer>> assignmentsByTopic = new HashMap<>();
+                    for (TopicPartition tp : member.assignment().topicPartitions()) {
+                        assignmentsByTopic.computeIfAbsent(tp.topic(), k -> new ArrayList<>()).add(tp.partition());
+                    }
+                    List<MemberAssignment> assignments = assignmentsByTopic
+                        .entrySet()
+                        .stream()
+                        .sorted(Map.Entry.comparingByKey())
+                        .map(e -> new MemberAssignment(e.getKey(), e.getValue().stream().sorted().toList()))
+                        .toList();
+                    return new ConsumerGroupMember(member.consumerId(), member.clientId(), member.host(), assignments);
+                })
+                .toList();
+
+            // Step 3: Compute offsets with lag
+            List<ConsumerGroupOffset> offsets = computeOffsets(adminClient, groupId);
+
+            return new ConsumerGroupDetail(groupId, state, coordinator, partitionAssignor, members, offsets);
+        });
+    }
+
+    @Override
+    public BrowseMessagesResult browseMessages(
+        KafkaClusterConfiguration config,
+        String topicName,
+        Integer partition,
+        String offsetMode,
+        Long offsetValue,
+        String keyFilter,
+        String valueFilter,
+        int limit
+    ) {
+        List<TopicPartition> targetPartitions = resolvePartitions(config, topicName, partition);
+
+        // Then, use Consumer to fetch messages
+        return withConsumer(config, limit * targetPartitions.size(), consumer -> {
+            consumer.assign(targetPartitions);
+
+            String mode = offsetMode != null ? offsetMode : "NEWEST";
+            switch (mode) {
+                case "OLDEST":
+                    consumer.seekToBeginning(targetPartitions);
+                    break;
+                case "TIMESTAMP":
+                    if (offsetValue == null) {
+                        throw new KafkaExplorerException(
+                            "offsetValue is required when offsetMode is TIMESTAMP",
+                            TechnicalCode.INVALID_PARAMETERS
+                        );
+                    }
+                    Map<TopicPartition, Long> timestampMap = new HashMap<>();
+                    for (TopicPartition tp : targetPartitions) {
+                        timestampMap.put(tp, offsetValue);
+                    }
+                    Map<TopicPartition, OffsetAndTimestamp> timestampOffsets = consumer.offsetsForTimes(timestampMap);
+                    for (TopicPartition tp : targetPartitions) {
+                        OffsetAndTimestamp oat = timestampOffsets.get(tp);
+                        if (oat != null) {
+                            consumer.seek(tp, oat.offset());
+                        } else {
+                            consumer.seekToEnd(List.of(tp));
+                        }
+                    }
+                    break;
+                case "SPECIFIC":
+                    if (offsetValue == null) {
+                        throw new KafkaExplorerException(
+                            "offsetValue is required when offsetMode is SPECIFIC",
+                            TechnicalCode.INVALID_PARAMETERS
+                        );
+                    }
+                    for (TopicPartition tp : targetPartitions) {
+                        consumer.seek(tp, offsetValue);
+                    }
+                    break;
+                case "NEWEST":
+                default:
+                    Map<TopicPartition, Long> endOffsets = consumer.endOffsets(targetPartitions);
+                    for (TopicPartition tp : targetPartitions) {
+                        long endOffset = endOffsets.getOrDefault(tp, 0L);
+                        consumer.seek(tp, Math.max(0, endOffset - limit));
+                    }
+                    break;
+            }
+
+            // Poll messages
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(TIMEOUT_SECONDS));
+
+            List<KafkaMessage> allMessages = new ArrayList<>();
+            for (ConsumerRecord<String, String> record : records) {
+                allMessages.add(toKafkaMessage(record));
+            }
+
+            int totalFetched = allMessages.size();
+
+            // Apply key filter if provided
+            if (keyFilter != null && !keyFilter.isBlank()) {
+                String lowerFilter = keyFilter.toLowerCase();
+                allMessages = allMessages
+                    .stream()
+                    .filter(m -> m.key() != null && m.key().toLowerCase().contains(lowerFilter))
+                    .toList();
+            }
+
+            // Apply value filter if provided
+            if (valueFilter != null && !valueFilter.isBlank()) {
+                String lowerFilter = valueFilter.toLowerCase();
+                allMessages = allMessages
+                    .stream()
+                    .filter(m -> m.value() != null && m.value().toLowerCase().contains(lowerFilter))
+                    .toList();
+            }
+
+            // Limit results
+            if (allMessages.size() > limit) {
+                allMessages = allMessages.subList(0, limit);
+            }
+
+            return new BrowseMessagesResult(allMessages, totalFetched);
+        });
+    }
+
+    @Override
+    public void tailMessages(
+        KafkaClusterConfiguration config,
+        String topicName,
+        Integer partition,
+        String keyFilter,
+        String valueFilter,
+        int maxMessages,
+        int durationSeconds,
+        MessageConsumer consumer
+    ) {
+        List<TopicPartition> targetPartitions = resolvePartitions(config, topicName, partition);
+
+        withConsumer(config, 500, kafkaConsumer -> {
+            kafkaConsumer.assign(targetPartitions);
+            kafkaConsumer.seekToEnd(targetPartitions);
+
+            long deadline = System.currentTimeMillis() + (durationSeconds * 1000L);
+            int sent = 0;
+            String lowerKeyFilter = (keyFilter != null && !keyFilter.isBlank()) ? keyFilter.toLowerCase() : null;
+            String lowerValueFilter = (valueFilter != null && !valueFilter.isBlank()) ? valueFilter.toLowerCase() : null;
+
+            while (System.currentTimeMillis() < deadline && sent < maxMessages) {
+                ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(500));
+                for (ConsumerRecord<String, String> record : records) {
+                    KafkaMessage msg = toKafkaMessage(record);
+
+                    if (lowerKeyFilter != null && (msg.key() == null || !msg.key().toLowerCase().contains(lowerKeyFilter))) {
+                        continue;
+                    }
+                    if (lowerValueFilter != null && (msg.value() == null || !msg.value().toLowerCase().contains(lowerValueFilter))) {
+                        continue;
+                    }
+
+                    if (!consumer.accept(msg)) {
+                        return null;
+                    }
+                    sent++;
+                    if (sent >= maxMessages) break;
+                }
+            }
+            return null;
+        });
+    }
+
+    private List<TopicPartition> resolvePartitions(KafkaClusterConfiguration config, String topicName, Integer partition) {
+        return withAdminClient(config, adminClient -> {
+            TopicDescription description;
+            try {
+                description = adminClient
+                    .describeTopics(List.of(topicName))
+                    .allTopicNames()
+                    .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                    .get(topicName);
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof org.apache.kafka.common.errors.UnknownTopicOrPartitionException) {
+                    throw new KafkaExplorerException("Topic '" + topicName + "' not found", TechnicalCode.TOPIC_NOT_FOUND, e);
+                }
+                throw e;
+            }
+
+            if (description == null) {
+                throw new KafkaExplorerException("Topic '" + topicName + "' not found", TechnicalCode.TOPIC_NOT_FOUND);
+            }
+
+            if (partition != null) {
+                if (partition < 0 || partition >= description.partitions().size()) {
+                    throw new KafkaExplorerException(
+                        "Partition " + partition + " does not exist for topic '" + topicName + "'",
+                        TechnicalCode.INVALID_PARAMETERS
+                    );
+                }
+                return List.of(new TopicPartition(topicName, partition));
+            }
+
+            return description
+                .partitions()
+                .stream()
+                .map(p -> new TopicPartition(topicName, p.partition()))
+                .toList();
+        });
+    }
+
+    private KafkaMessage toKafkaMessage(ConsumerRecord<String, String> record) {
+        List<KafkaHeader> headers = new ArrayList<>();
+        for (Header header : record.headers()) {
+            String headerValue = header.value() != null ? new String(header.value()) : null;
+            headers.add(new KafkaHeader(header.key(), headerValue));
+        }
+        return new KafkaMessage(record.partition(), record.offset(), record.timestamp(), record.key(), record.value(), headers);
+    }
+
+    @FunctionalInterface
+    private interface ConsumerAction<T> {
+        T execute(KafkaConsumer<String, String> consumer) throws Exception;
+    }
+
+    private <T> T withConsumer(KafkaClusterConfiguration config, int maxPollRecords, ConsumerAction<T> action) {
+        List<Path> tempFiles = new ArrayList<>();
+        Properties properties = buildConsumerProperties(config, maxPollRecords, tempFiles);
+        try (KafkaConsumer<String, String> consumer = createConsumer(properties)) {
+            return action.execute(consumer);
+        } catch (ExecutionException e) {
+            throw handleExecutionException(e);
+        } catch (TimeoutException e) {
+            throw new KafkaExplorerException("Connection to Kafka cluster timed out", TechnicalCode.TIMEOUT, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new KafkaExplorerException("Connection to Kafka cluster was interrupted", TechnicalCode.INTERRUPTED, e);
+        } catch (KafkaExplorerException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new KafkaExplorerException("Failed to connect to Kafka cluster", TechnicalCode.CONNECTION_FAILED, e);
+        } finally {
+            deleteTempFiles(tempFiles);
+        }
+    }
+
+    protected KafkaConsumer<String, String> createConsumer(Properties properties) {
+        return new KafkaConsumer<>(properties);
+    }
+
+    private Properties buildConsumerProperties(KafkaClusterConfiguration config, int maxPollRecords, List<Path> tempFiles) {
+        Properties properties = buildProperties(config, tempFiles);
+        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        properties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, maxPollRecords);
+        return properties;
+    }
+
+    private record LagResult(long totalLag, int numTopics) {}
+
+    /**
+     * Batch-fetches committed offsets for multiple consumer groups in a single Kafka call.
+     * When topicPartitions is non-null, only offsets for those partitions are requested,
+     * reducing network payload and broker-side work.
+     */
+    private Map<String, Map<TopicPartition, OffsetAndMetadata>> fetchAllGroupOffsets(
+        AdminClient adminClient,
+        List<String> groupIds,
+        List<TopicPartition> topicPartitions
+    ) {
+        try {
+            Map<String, ListConsumerGroupOffsetsSpec> specs = new HashMap<>();
+            for (String groupId : groupIds) {
+                var spec = new ListConsumerGroupOffsetsSpec();
+                if (topicPartitions != null) {
+                    spec.topicPartitions(topicPartitions);
+                }
+                specs.put(groupId, spec);
+            }
+
+            Map<String, Map<TopicPartition, OffsetAndMetadata>> result = new HashMap<>();
+            var batchResult = adminClient.listConsumerGroupOffsets(specs);
+            for (String groupId : groupIds) {
+                try {
+                    Map<TopicPartition, OffsetAndMetadata> offsets = batchResult
+                        .partitionsToOffsetAndMetadata(groupId)
+                        .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    result.put(groupId, offsets);
+                } catch (Exception e) {
+                    result.put(groupId, Map.of());
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            return Map.of();
+        }
+    }
+
+    /**
+     * Computes lag from pre-fetched offsets (no additional listConsumerGroupOffsets call).
+     * If topicFilter is non-null, only partitions for that topic are considered.
+     */
+    private LagResult computeLagResultFromOffsets(
+        AdminClient adminClient,
+        Map<TopicPartition, OffsetAndMetadata> committedOffsets,
+        String topicFilter
+    ) {
+        try {
+            Map<TopicPartition, OffsetAndMetadata> filtered = committedOffsets;
+            if (topicFilter != null && !topicFilter.isBlank()) {
+                filtered = committedOffsets
+                    .entrySet()
+                    .stream()
+                    .filter(e -> e.getKey().topic().equals(topicFilter))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            }
+
+            if (filtered.isEmpty()) {
+                return new LagResult(0, 0);
+            }
+
+            int numTopics = (int) filtered.keySet().stream().map(TopicPartition::topic).distinct().count();
+
+            Map<TopicPartition, OffsetSpec> endOffsetRequests = new HashMap<>();
+            for (TopicPartition tp : filtered.keySet()) {
+                endOffsetRequests.put(tp, OffsetSpec.latest());
+            }
+
+            var endOffsets = adminClient.listOffsets(endOffsetRequests).all().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            long totalLag = 0;
+            for (var entry : filtered.entrySet()) {
+                TopicPartition tp = entry.getKey();
+                long committed = entry.getValue().offset();
+                var endOffsetResult = endOffsets.get(tp);
+                if (endOffsetResult != null) {
+                    totalLag += Math.max(0, endOffsetResult.offset() - committed);
+                }
+            }
+            return new LagResult(totalLag, numTopics);
+        } catch (Exception e) {
+            return new LagResult(0, 0);
+        }
+    }
+
+    private List<ConsumerGroupOffset> computeOffsets(AdminClient adminClient, String groupId) {
+        try {
+            Map<TopicPartition, OffsetAndMetadata> committedOffsets = adminClient
+                .listConsumerGroupOffsets(groupId)
+                .partitionsToOffsetAndMetadata()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            if (committedOffsets.isEmpty()) {
+                return List.of();
+            }
+
+            Map<TopicPartition, OffsetSpec> endOffsetRequests = new HashMap<>();
+            for (TopicPartition tp : committedOffsets.keySet()) {
+                endOffsetRequests.put(tp, OffsetSpec.latest());
+            }
+
+            var endOffsets = adminClient.listOffsets(endOffsetRequests).all().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            return committedOffsets
+                .entrySet()
+                .stream()
+                .sorted(
+                    Comparator.comparing((Map.Entry<TopicPartition, OffsetAndMetadata> e) -> e.getKey().topic()).thenComparingInt(e ->
+                        e.getKey().partition()
+                    )
+                )
+                .map(entry -> {
+                    TopicPartition tp = entry.getKey();
+                    long committed = entry.getValue().offset();
+                    var endOffsetResult = endOffsets.get(tp);
+                    long endOffset = endOffsetResult != null ? endOffsetResult.offset() : 0;
+                    long lag = Math.max(0, endOffset - committed);
+                    return new ConsumerGroupOffset(tp.topic(), tp.partition(), committed, endOffset, lag);
+                })
+                .toList();
+        } catch (Exception e) {
+            return List.of();
+        }
+    }
+
+    private List<Node> getOfflineNodes(TopicPartitionInfo partitionInfo) {
+        Set<Integer> isrIds = partitionInfo.isr().stream().map(Node::id).collect(Collectors.toSet());
+        return partitionInfo
+            .replicas()
+            .stream()
+            .filter(r -> !isrIds.contains(r.id()))
+            .toList();
+    }
+
+    private Map<String, Long> fetchTopicSizes(AdminClient adminClient, Set<String> topicNames) {
+        try {
+            List<Integer> brokerIds = adminClient
+                .describeCluster()
+                .nodes()
+                .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .stream()
+                .map(Node::id)
+                .toList();
+
+            var logDirsResult = adminClient.describeLogDirs(brokerIds).allDescriptions().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            Map<String, Long> sizes = new HashMap<>();
+            for (var brokerEntry : logDirsResult.values()) {
+                for (var logDir : brokerEntry.values()) {
+                    for (var replicaEntry : logDir.replicaInfos().entrySet()) {
+                        String topic = replicaEntry.getKey().topic();
+                        long replicaSize = replicaEntry.getValue().size();
+                        if (topicNames.contains(topic) && replicaSize >= 0) {
+                            sizes.merge(topic, replicaSize, Long::sum);
+                        }
+                    }
+                }
+            }
+            return sizes;
+        } catch (Exception e) {
+            return Map.of();
+        }
+    }
+
+    private Map<String, Long> fetchMessageCounts(AdminClient adminClient, Map<String, TopicDescription> descriptions) {
+        try {
+            Map<TopicPartition, OffsetSpec> offsetRequests = new HashMap<>();
+            for (TopicDescription topic : descriptions.values()) {
+                for (var partition : topic.partitions()) {
+                    offsetRequests.put(new TopicPartition(topic.name(), partition.partition()), OffsetSpec.latest());
+                }
+            }
+
+            if (offsetRequests.isEmpty()) {
+                return Map.of();
+            }
+
+            var offsets = adminClient.listOffsets(offsetRequests).all().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            return offsets
+                .entrySet()
+                .stream()
+                .collect(Collectors.groupingBy(e -> e.getKey().topic(), Collectors.summingLong(e -> e.getValue().offset())));
+        } catch (Exception e) {
+            return Map.of();
+        }
+    }
+
+    @FunctionalInterface
+    private interface AdminClientAction<T> {
+        T execute(AdminClient adminClient) throws Exception;
+    }
+
+    private <T> T withAdminClient(KafkaClusterConfiguration config, AdminClientAction<T> action) {
+        List<Path> tempFiles = new ArrayList<>();
+        Properties properties = buildProperties(config, tempFiles);
+        try (AdminClient adminClient = createAdminClient(properties)) {
+            return action.execute(adminClient);
         } catch (ExecutionException e) {
             throw handleExecutionException(e);
         } catch (TimeoutException e) {
@@ -59,7 +917,9 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             Thread.currentThread().interrupt();
             throw new KafkaExplorerException("Connection to Kafka cluster was interrupted", TechnicalCode.INTERRUPTED, e);
         } catch (Exception e) {
-            throw new KafkaExplorerException("Failed to connect to Kafka cluster: " + e.getMessage(), TechnicalCode.CONNECTION_FAILED, e);
+            throw new KafkaExplorerException("Failed to connect to Kafka cluster", TechnicalCode.CONNECTION_FAILED, e);
+        } finally {
+            deleteTempFiles(tempFiles);
         }
     }
 
@@ -67,7 +927,82 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
         return AdminClient.create(properties);
     }
 
-    private Properties buildProperties(KafkaConnectionConfig config) {
+    private record TopicStats(
+        int totalTopics,
+        int totalPartitions,
+        Map<Integer, Integer> leaderCounts,
+        Map<Integer, Integer> replicaCounts
+    ) {}
+
+    private TopicStats fetchTopicStats(AdminClient adminClient) throws ExecutionException, InterruptedException, TimeoutException {
+        Set<String> topicNames = adminClient
+            .listTopics(new ListTopicsOptions().listInternal(true))
+            .names()
+            .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        if (topicNames.isEmpty()) {
+            return new TopicStats(0, 0, Map.of(), Map.of());
+        }
+
+        Map<String, TopicDescription> descriptions = adminClient
+            .describeTopics(topicNames)
+            .allTopicNames()
+            .get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        Map<Integer, Integer> leaderCounts = new HashMap<>();
+        Map<Integer, Integer> replicaCounts = new HashMap<>();
+        int totalPartitions = 0;
+
+        for (TopicDescription topic : descriptions.values()) {
+            for (var partition : topic.partitions()) {
+                totalPartitions++;
+                if (partition.leader() != null && partition.leader().id() >= 0) {
+                    leaderCounts.merge(partition.leader().id(), 1, Integer::sum);
+                }
+                for (Node replica : partition.replicas()) {
+                    replicaCounts.merge(replica.id(), 1, Integer::sum);
+                }
+            }
+        }
+
+        return new TopicStats(topicNames.size(), totalPartitions, leaderCounts, replicaCounts);
+    }
+
+    private Map<Integer, Long> fetchLogDirSizes(AdminClient adminClient, List<Integer> brokerIds) {
+        try {
+            var logDirsResult = adminClient.describeLogDirs(brokerIds).allDescriptions().get(GET_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+            Map<Integer, Long> sizes = new HashMap<>();
+            for (var entry : logDirsResult.entrySet()) {
+                long totalSize = entry
+                    .getValue()
+                    .values()
+                    .stream()
+                    .flatMap(logDir -> logDir.replicaInfos().values().stream())
+                    .mapToLong(info -> info.size())
+                    .sum();
+                sizes.put(entry.getKey(), totalSize);
+            }
+            return sizes;
+        } catch (Exception e) {
+            // Log dir info is best-effort, don't fail the whole request
+            return Map.of();
+        }
+    }
+
+    private BrokerDetail toBrokerDetail(Node node, TopicStats topicStats, Map<Integer, Long> logDirSizes) {
+        return new BrokerDetail(
+            node.id(),
+            node.host(),
+            node.port(),
+            node.rack(),
+            topicStats.leaderCounts().getOrDefault(node.id(), 0),
+            topicStats.replicaCounts().getOrDefault(node.id(), 0),
+            logDirSizes.getOrDefault(node.id(), null)
+        );
+    }
+
+    private Properties buildProperties(KafkaClusterConfiguration config, List<Path> tempFiles) {
         Properties properties = new Properties();
         // TODO: Add allowed bootstrap servers validation via gravitee.yml config to prevent SSRF
         properties.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, config.bootstrapServers());
@@ -89,11 +1024,138 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             configureSasl(properties, config.security().sasl().mechanism());
         }
 
+        if (isSslProtocol(protocol) && config.security() != null && config.security().ssl() != null) {
+            configureSsl(properties, config.security().ssl(), tempFiles);
+        }
+
         return properties;
     }
 
     private boolean isSaslProtocol(SecurityProtocol protocol) {
         return protocol == SecurityProtocol.SASL_PLAINTEXT || protocol == SecurityProtocol.SASL_SSL;
+    }
+
+    private boolean isSslProtocol(SecurityProtocol protocol) {
+        return protocol == SecurityProtocol.SSL || protocol == SecurityProtocol.SASL_SSL;
+    }
+
+    private void configureSsl(Properties properties, SslOptions sslOptions, List<Path> tempFiles) {
+        if (sslOptions.isTrustAll()) {
+            properties.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "");
+        }
+
+        if (!sslOptions.isHostnameVerifier()) {
+            properties.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "");
+        }
+
+        configureTrustStore(properties, sslOptions.getTrustStore(), tempFiles);
+        configureKeyStore(properties, sslOptions.getKeyStore(), tempFiles);
+    }
+
+    private void configureTrustStore(Properties properties, TrustStore trustStore, List<Path> tempFiles) {
+        if (trustStore == null) {
+            return;
+        }
+        switch (trustStore) {
+            case JKSTrustStore jks -> {
+                properties.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, "JKS");
+                setStoreLocation(properties, SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, jks.getPath(), jks.getContent(), tempFiles);
+                if (jks.getPassword() != null) {
+                    properties.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, jks.getPassword());
+                }
+            }
+            case PKCS12TrustStore pkcs12 -> {
+                properties.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, "PKCS12");
+                setStoreLocation(properties, SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, pkcs12.getPath(), pkcs12.getContent(), tempFiles);
+                if (pkcs12.getPassword() != null) {
+                    properties.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, pkcs12.getPassword());
+                }
+            }
+            case PEMTrustStore pem -> {
+                properties.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, "PEM");
+                if (pem.getContent() != null) {
+                    properties.put(SslConfigs.SSL_TRUSTSTORE_CERTIFICATES_CONFIG, pem.getContent());
+                } else if (pem.getPath() != null) {
+                    properties.put(SslConfigs.SSL_TRUSTSTORE_CERTIFICATES_CONFIG, readFileContent(pem.getPath()));
+                }
+            }
+            default -> {}
+        }
+    }
+
+    private void configureKeyStore(Properties properties, KeyStore keyStore, List<Path> tempFiles) {
+        if (keyStore == null) {
+            return;
+        }
+        switch (keyStore) {
+            case JKSKeyStore jks -> {
+                properties.put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, "JKS");
+                setStoreLocation(properties, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, jks.getPath(), jks.getContent(), tempFiles);
+                if (jks.getPassword() != null) {
+                    properties.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, jks.getPassword());
+                }
+                if (jks.getKeyPassword() != null) {
+                    properties.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG, jks.getKeyPassword());
+                }
+            }
+            case PKCS12KeyStore pkcs12 -> {
+                properties.put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, "PKCS12");
+                setStoreLocation(properties, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, pkcs12.getPath(), pkcs12.getContent(), tempFiles);
+                if (pkcs12.getPassword() != null) {
+                    properties.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, pkcs12.getPassword());
+                }
+                if (pkcs12.getKeyPassword() != null) {
+                    properties.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG, pkcs12.getKeyPassword());
+                }
+            }
+            case PEMKeyStore pem -> {
+                properties.put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, "PEM");
+                if (pem.getCertContent() != null) {
+                    properties.put(SslConfigs.SSL_KEYSTORE_CERTIFICATE_CHAIN_CONFIG, pem.getCertContent());
+                } else if (pem.getCertPath() != null) {
+                    properties.put(SslConfigs.SSL_KEYSTORE_CERTIFICATE_CHAIN_CONFIG, readFileContent(pem.getCertPath()));
+                }
+                if (pem.getKeyContent() != null) {
+                    properties.put(SslConfigs.SSL_KEYSTORE_KEY_CONFIG, pem.getKeyContent());
+                } else if (pem.getKeyPath() != null) {
+                    properties.put(SslConfigs.SSL_KEYSTORE_KEY_CONFIG, readFileContent(pem.getKeyPath()));
+                }
+            }
+            default -> {}
+        }
+    }
+
+    private void setStoreLocation(Properties properties, String configKey, String path, String base64Content, List<Path> tempFiles) {
+        if (path != null) {
+            properties.put(configKey, path);
+        } else if (base64Content != null) {
+            try {
+                Path tempFile = Files.createTempFile("kafka-ssl-", ".store");
+                Files.write(tempFile, Base64.getDecoder().decode(base64Content));
+                tempFiles.add(tempFile);
+                properties.put(configKey, tempFile.toString());
+            } catch (IOException e) {
+                throw new KafkaExplorerException("Failed to create temporary SSL store file", TechnicalCode.CONNECTION_FAILED, e);
+            }
+        }
+    }
+
+    private String readFileContent(String path) {
+        try {
+            return Files.readString(Path.of(path));
+        } catch (IOException e) {
+            throw new KafkaExplorerException("Failed to read file: " + path, TechnicalCode.CONNECTION_FAILED, e);
+        }
+    }
+
+    private void deleteTempFiles(List<Path> tempFiles) {
+        for (Path tempFile : tempFiles) {
+            try {
+                Files.deleteIfExists(tempFile);
+            } catch (IOException ignored) {
+                // Best effort cleanup
+            }
+        }
     }
 
     private void configureSasl(Properties properties, SaslMechanism mechanism) {
@@ -120,13 +1182,9 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
     private KafkaExplorerException handleExecutionException(ExecutionException e) {
         Throwable cause = e.getCause();
         if (cause instanceof AuthenticationException) {
-            return new KafkaExplorerException("Authentication failed: " + cause.getMessage(), TechnicalCode.AUTHENTICATION_FAILED, cause);
+            return new KafkaExplorerException("Authentication failed", TechnicalCode.AUTHENTICATION_FAILED, cause);
         }
-        return new KafkaExplorerException(
-            "Failed to connect to Kafka cluster: " + cause.getMessage(),
-            TechnicalCode.CONNECTION_FAILED,
-            cause
-        );
+        return new KafkaExplorerException("Failed to connect to Kafka cluster", TechnicalCode.CONNECTION_FAILED, cause);
     }
 
     private KafkaNode toKafkaNode(Node node) {

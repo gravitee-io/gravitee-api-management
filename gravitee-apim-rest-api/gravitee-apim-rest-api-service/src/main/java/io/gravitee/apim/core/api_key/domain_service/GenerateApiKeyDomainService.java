@@ -112,10 +112,19 @@ public class GenerateApiKeyDomainService {
     }
 
     private boolean isKeyExistFor(String apiKeyValue, SubscriptionEntity subscription) {
-        String apiId = subscription.getApiId();
-        log.debug("Check if an API Key can be created for api {} and application {}", apiId, subscription.getApplicationId());
+        String referenceId = subscription.getReferenceId();
+        String referenceType = subscription.getReferenceType() != null ? subscription.getReferenceType().name() : null;
+        log.debug(
+            "Check if an API Key can be created for reference {} (type {}) and application {}",
+            referenceId,
+            referenceType,
+            subscription.getApplicationId()
+        );
 
-        return apiKeyQueryService.findByKeyAndApiId(apiKeyValue, apiId).isEmpty();
+        if (referenceId != null && referenceType != null) {
+            return apiKeyQueryService.findByKeyAndReferenceIdAndReferenceType(apiKeyValue, referenceId, referenceType).isEmpty();
+        }
+        return apiKeyQueryService.findByKeyAndApiId(apiKeyValue, subscription.getApiId()).isEmpty();
     }
 
     private ApiKeyEntity findOrGenerate(

@@ -28,6 +28,7 @@ import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundE
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -152,7 +153,8 @@ public class DeletePortalNavigationItemUseCaseTest {
         // Given
         var pageContent = portalPageContentCrudService.createDefault(
             PortalNavigationItemFixtures.ORG_ID,
-            PortalNavigationItemFixtures.ENV_ID
+            PortalNavigationItemFixtures.ENV_ID,
+            PortalPageContentType.GRAVITEE_MARKDOWN
         );
         var toDelete = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "page11", null)
             .toBuilder()

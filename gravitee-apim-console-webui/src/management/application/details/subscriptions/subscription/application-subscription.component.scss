@@ -24,6 +24,11 @@
   margin-top: 8px;
   margin-bottom: 16px;
 
+  .subscription__metadata-cell {
+    min-width: 0;
+    max-width: 100%;
+  }
+
   .kubernetes-origin-message {
     margin: 15px 0 0 15px;
     display: flex;

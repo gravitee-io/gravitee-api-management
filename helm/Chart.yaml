@@ -32,3 +32,5 @@ annotations:
   artifacthub.io/changes: |
     - kind: added
       description: 'Allow configuration of ECS logging'
+    - kind: added
+      description: 'Add parameter to enable or disable Alert Engine default filters (enabled by default) through the APIM Rest API.'

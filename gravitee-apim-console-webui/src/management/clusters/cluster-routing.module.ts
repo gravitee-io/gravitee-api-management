@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
+import { KAFKA_EXPLORER_BASE_URL } from '@gravitee/gravitee-kafka-explorer';
+
+import { inject, NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 import { ClusterNavigationComponent } from './cluster-navigation/cluster-navigation.component';
@@ -23,7 +25,10 @@ import { ClusterListComponent } from './list/cluster-list.component';
 import { ClusterUserPermissionsComponent } from './details/user-permissions/cluster-user-permissions.component';
 import { ClusterGuard } from './cluster.guard';
 
+import { Constants } from '../../entities/Constants';
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
+import { HasLicenseGuard } from '../../shared/components/gio-license/has-license.guard';
+import { ApimFeature } from '../../shared/components/gio-license/gio-license-data';
 
 const clusterRoutes: Routes = [
   {
@@ -42,7 +47,7 @@ const clusterRoutes: Routes = [
     path: ':clusterId',
     component: ClusterNavigationComponent,
     canActivate: [ClusterGuard.loadPermissions],
-    canActivateChild: [PermissionGuard.checkRouteDataPermissions],
+    canActivateChild: [PermissionGuard.checkRouteDataPermissions, HasLicenseGuard],
     canDeactivate: [ClusterGuard.clearPermissions],
     children: [
       {
@@ -56,6 +61,20 @@ const clusterRoutes: Routes = [
         data: {
           permissions: {
             anyOf: ['cluster-definition-r'],
+          },
+        },
+      },
+      {
+        path: 'explorer',
+        loadChildren: () => import('@gravitee/gravitee-kafka-explorer').then(m => m.KAFKA_EXPLORER_ROUTES),
+        providers: [{ provide: KAFKA_EXPLORER_BASE_URL, useFactory: () => inject(Constants).env.v2BaseURL }],
+        data: {
+          permissions: {
+            anyOf: ['cluster-definition-r'],
+          },
+          requireLicense: {
+            license: { feature: ApimFeature.APIM_NATIVE_KAFKA_EXPLORER },
+            redirect: '/',
           },
         },
       },

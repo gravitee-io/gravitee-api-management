@@ -122,16 +122,16 @@ describe('ApiEndpointGroupsStandardComponent', () => {
   };
 
   const a2aGroup: EndpointGroupV4 = {
-    name: 'Agent to agent',
-    type: 'agent-to-agent',
+    name: 'A2A Proxy',
+    type: 'a2a-proxy',
     loadBalancer: { type: 'WEIGHTED_RANDOM' },
     sharedConfiguration: {
       shared: 'configuration',
     },
     endpoints: [
       {
-        name: 'Agent to agent',
-        type: 'agent-to-agent',
+        name: 'A2A Proxy',
+        type: 'a2a-proxy',
         weight: 1,
         inheritConfiguration: true,
         configuration: {

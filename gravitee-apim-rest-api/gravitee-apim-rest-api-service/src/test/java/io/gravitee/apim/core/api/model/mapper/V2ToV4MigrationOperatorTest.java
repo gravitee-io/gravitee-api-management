@@ -908,6 +908,110 @@ class V2ToV4MigrationOperatorTest {
     }
 
     @Nested
+    class ScheduleNullGuardTest {
+
+        @Test
+        void should_not_migrate_endpointgroup_hc_when_schedule_is_null() {
+            // Setup Endpoint
+            Endpoint v2Endpoint = new Endpoint();
+            v2Endpoint.setName("endpoint-1");
+            v2Endpoint.setInherit(false);
+            v2Endpoint.setConfiguration("{\"target\":\"http://example.com\"}");
+
+            // Setup EndpointGroup
+            EndpointGroup v2Group = new EndpointGroup();
+            v2Group.setName("default-group");
+            v2Group.setEndpoints(Set.of(v2Endpoint));
+
+            LoadBalancer lb = new LoadBalancer();
+            lb.setType(LoadBalancerType.ROUND_ROBIN);
+            v2Group.setLoadBalancer(lb);
+
+            // Health check service with schedule = null (should be filtered out)
+            HealthCheckService healthCheckService = HealthCheckService.builder()
+                .enabled(true)
+                .schedule(null) // null schedule → must be filtered
+                .steps(List.of())
+                .build();
+            Services services = new Services();
+            services.setHealthCheckService(healthCheckService);
+
+            // Setup Proxy
+            Proxy proxy = new Proxy();
+            proxy.setGroups(Set.of(v2Group));
+            proxy.setVirtualHosts(List.of(new VirtualHost()));
+
+            var apiDef = new io.gravitee.definition.model.Api();
+            apiDef.setId("test-api");
+            apiDef.setName("Test API");
+            apiDef.setVersion("1.0");
+            apiDef.setProxy(proxy);
+            apiDef.setServices(services);
+
+            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+
+            // Act
+            var result = get(mapper.mapApi(api));
+
+            // Assert: healthCheck must not have been migrated because schedule is null
+            var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
+            assertThat(group.getServices()).isNotNull();
+            assertThat(group.getServices().getHealthCheck()).isNull();
+        }
+
+        @Test
+        void should_not_migrate_endpoint_hc_when_schedule_is_null() {
+            // Endpoint HC with schedule=null and inherit=false → not migrated
+            Endpoint v2Endpoint = new Endpoint();
+            v2Endpoint.setName("endpoint-1");
+            v2Endpoint.setInherit(false);
+            v2Endpoint.setConfiguration(
+                """
+                {
+                  "name": "default",
+                  "target": "http://test",
+                  "type": "http",
+                  "healthcheck": {
+                    "steps": [],
+                    "enabled": true,
+                    "inherit": false
+                  }
+                }
+                """
+            );
+
+            EndpointGroup v2Group = new EndpointGroup();
+            v2Group.setName("default-group");
+            v2Group.setEndpoints(Set.of(v2Endpoint));
+
+            LoadBalancer lb = new LoadBalancer();
+            lb.setType(LoadBalancerType.ROUND_ROBIN);
+            v2Group.setLoadBalancer(lb);
+
+            Proxy proxy = new Proxy();
+            proxy.setGroups(Set.of(v2Group));
+            proxy.setVirtualHosts(List.of(new VirtualHost()));
+
+            var apiDef = new io.gravitee.definition.model.Api();
+            apiDef.setId("test-api");
+            apiDef.setName("Test API");
+            apiDef.setVersion("1.0");
+            apiDef.setProxy(proxy);
+
+            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+
+            // Act
+            var result = get(mapper.mapApi(api));
+
+            // Assert: endpoint HC must not be migrated since schedule is null
+            var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
+            var endpoint = group.getEndpoints().getFirst();
+            assertThat(endpoint.getServices()).isNotNull();
+            assertThat(endpoint.getServices().getHealthCheck()).isNull();
+        }
+    }
+
+    @Nested
     class PlanMigratingTest {
 
         @ParameterizedTest

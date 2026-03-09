@@ -72,9 +72,7 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
             try {
                 event = eventRepository.findById(debugApiComponent.getEventId()).orElseThrow(TechnicalException::new);
                 final io.gravitee.definition.model.debug.DebugApiV2 debugApi = computeDebugApiEventPayload(debugContext, debugApiComponent);
-
-                event.setPayload(objectMapper.writeValueAsString(debugApi));
-                updateEvent(event, ApiDebugStatus.SUCCESS);
+                updateEvent(event.updatePayload(objectMapper.writeValueAsString(debugApi)), ApiDebugStatus.SUCCESS);
             } catch (JsonProcessingException | TechnicalException e) {
                 log.error("Error occurs while saving debug event", e);
                 failEvent(event);
@@ -168,10 +166,12 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
 
     private void updateEvent(io.gravitee.repository.management.model.Event debugEvent, ApiDebugStatus apiDebugStatus)
         throws TechnicalException {
-        debugEvent
-            .getProperties()
-            .put(io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue(), apiDebugStatus.name());
-        eventRepository.update(debugEvent);
+        eventRepository.update(
+            debugEvent.updateProperties(
+                io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue(),
+                apiDebugStatus.name()
+            )
+        );
     }
 
     protected io.gravitee.definition.model.debug.DebugApiV2 convert(DebugApiV2 content) {

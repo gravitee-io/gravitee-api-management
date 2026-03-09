@@ -31,6 +31,7 @@ import io.gravitee.apim.core.dashboard.model.Dashboard;
 import io.gravitee.apim.core.dashboard.model.DashboardWidget;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,7 +66,12 @@ class UpdateDashboardUseCaseTest {
             .request(
                 DashboardWidget.Request.builder()
                     .type("measures")
-                    .timeRange(DashboardWidget.TimeRange.builder().from("2025-10-07T06:50:30Z").to("2025-12-07T11:35:30Z").build())
+                    .timeRange(
+                        DashboardWidget.TimeRange.builder()
+                            .from(Instant.parse("2025-10-07T06:50:30Z"))
+                            .to(Instant.parse("2025-12-07T11:35:30Z"))
+                            .build()
+                    )
                     .metrics(List.of(DashboardWidget.MetricRequest.builder().name("HTTP_REQUESTS").measures(List.of("COUNT")).build()))
                     .build()
             )
@@ -81,7 +87,12 @@ class UpdateDashboardUseCaseTest {
             .request(
                 DashboardWidget.Request.builder()
                     .type("measures")
-                    .timeRange(DashboardWidget.TimeRange.builder().from("2025-12-07T11:35:30Z").to("2025-10-07T06:50:30Z").build())
+                    .timeRange(
+                        DashboardWidget.TimeRange.builder()
+                            .from(Instant.parse("2025-12-07T11:35:30Z"))
+                            .to(Instant.parse("2025-10-07T06:50:30Z"))
+                            .build()
+                    )
                     .metrics(List.of(DashboardWidget.MetricRequest.builder().name("HTTP_REQUESTS").measures(List.of("COUNT")).build()))
                     .build()
             )

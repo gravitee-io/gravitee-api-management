@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import fixtures.core.model.SubscriptionFormFixtures;
 import inmemory.SubscriptionFormCrudServiceInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
@@ -57,7 +58,7 @@ class UpdateSubscriptionFormUseCaseTest {
         );
 
         // Then
-        assertThat(result.subscriptionForm().getGmdContent()).isEqualTo("<gmd-input name=\"updated\"/>");
+        assertThat(result.subscriptionForm().getGmdContent()).isEqualTo(GraviteeMarkdown.of("<gmd-input name=\"updated\"/>"));
         assertThat(result.subscriptionForm().getId()).isEqualTo(existingForm.getId());
     }
 

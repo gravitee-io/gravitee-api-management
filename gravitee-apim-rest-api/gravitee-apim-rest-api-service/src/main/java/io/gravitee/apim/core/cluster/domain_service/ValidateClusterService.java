@@ -15,14 +15,23 @@
  */
 package io.gravitee.apim.core.cluster.domain_service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.apim.core.json.JsonSchemaChecker;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 
 @DomainService
+@RequiredArgsConstructor
 public class ValidateClusterService {
+
+    private final JsonSchemaChecker jsonSchemaChecker;
+    private final ClusterConfigurationSchemaService clusterConfigurationSchemaService;
+    private final ObjectMapper objectMapper;
 
     public void validate(Cluster cluster) {
         if (StringUtils.isEmpty(cluster.getName())) {
@@ -30,6 +39,13 @@ public class ValidateClusterService {
         }
         if (Objects.isNull(cluster.getConfiguration())) {
             throw new InvalidDataException("Configuration is required.");
+        }
+        try {
+            String configJson = objectMapper.writeValueAsString(cluster.getConfiguration());
+            String schema = clusterConfigurationSchemaService.getConfigurationSchema();
+            jsonSchemaChecker.validate(schema, configJson);
+        } catch (JsonProcessingException e) {
+            throw new InvalidDataException("Configuration is not valid JSON.");
         }
     }
 }

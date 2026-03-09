@@ -29,6 +29,7 @@ export interface MetricRequest {
   name: MetricName;
   measures: MeasureName[];
   filters?: RequestFilter[];
+  sorts?: SortFilter[];
 }
 
 export interface Order {
@@ -45,4 +46,9 @@ export interface RequestFilter {
   name: FilterName;
   operator: 'EQ' | 'IN' | 'LTE' | 'GTE';
   value: string | string[];
+}
+
+export interface SortFilter {
+  measure: MeasureName;
+  order: 'ASC' | 'DESC';
 }

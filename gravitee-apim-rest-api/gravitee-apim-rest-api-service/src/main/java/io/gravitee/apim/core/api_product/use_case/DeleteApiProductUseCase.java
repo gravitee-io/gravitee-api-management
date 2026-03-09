@@ -15,11 +15,13 @@
  */
 package io.gravitee.apim.core.api_product.use_case;
 
+import static io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService.oneShotIndexation;
 import static java.util.Map.entry;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -49,6 +51,7 @@ public class DeleteApiProductUseCase {
     private final ApiStateDomainService apiStateDomainService;
     private final EventCrudService eventCrudService;
     private final EventLatestCrudService eventLatestCrudService;
+    private final ApiProductIndexerDomainService apiProductIndexerDomainService;
 
     public void execute(Input input) {
         ApiProduct apiProduct = apiProductQueryService
@@ -64,6 +67,7 @@ public class DeleteApiProductUseCase {
         publishUndeployEvent(input.auditInfo(), apiProduct);
 
         apiProductCrudService.delete(input.apiProductId());
+        apiProductIndexerDomainService.delete(oneShotIndexation(input.auditInfo()), apiProduct);
         createAuditLog(input.apiProductId, input.auditInfo());
     }
 

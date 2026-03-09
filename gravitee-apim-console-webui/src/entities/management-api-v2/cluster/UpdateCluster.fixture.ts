@@ -21,7 +21,9 @@ export function fakeUpdateCluster(overrides: Partial<UpdateCluster> = {}): Updat
     description: 'An updated test cluster',
     configuration: {
       bootstrapServers: 'kafka.example.com:9092',
-      security: 'none',
+      security: {
+        protocol: 'PLAINTEXT',
+      },
     },
     ...overrides,
   };

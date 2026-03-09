@@ -27,6 +27,11 @@ export interface BasePlan {
    * @example 6c530064-0b2c-4004-9300-640b2ce0047b
    */
   apiId?: string;
+  /**
+   * @description Id of the API Product owning the plan. Present when the plan belongs to an API Product.
+   * @example 6c530064-0b2c-4004-9300-640b2ce0047b
+   */
+  apiProductId?: string;
   characteristics?: string[];
   /**
    * Format: date-time

@@ -57,6 +57,9 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
   @Input()
   isFederated = false;
 
+  @Input()
+  hideAccessControl = false;
+
   conditionPages$ = this.api$.pipe(
     switchMap(api =>
       this.documentationService.apiSearch(api.id, {

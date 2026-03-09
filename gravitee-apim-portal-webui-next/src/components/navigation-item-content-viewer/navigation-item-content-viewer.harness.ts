@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,13 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { GraviteeMarkdownViewerHarness } from '@gravitee/gravitee-markdown';
 
 import { DivHarness } from '../../testing/div.harness';
+import { RedocContentViewerHarness } from '../redoc-content-viewer/redoc-content-viewer.harness';
 
 export class NavigationItemContentViewerHarness extends ComponentHarness {
   public static hostSelector = 'app-navigation-item-content-viewer';
 
   private locateGMDViewer = this.locatorForOptional(GraviteeMarkdownViewerHarness);
+  private locateRedocViewer = this.locatorForOptional(RedocContentViewerHarness);
   private locateEmptyState = this.locatorForOptional(DivHarness.with({ selector: '.empty-state' }));
 
   public async isShowingMarkdownContent(): Promise<boolean> {
@@ -32,6 +34,15 @@ export class NavigationItemContentViewerHarness extends ComponentHarness {
 
   public async getGMDViewer(): Promise<GraviteeMarkdownViewerHarness | null> {
     return this.locateGMDViewer();
+  }
+
+  public async isShowingRedocContent(): Promise<boolean> {
+    const redocViewer = await this.locateRedocViewer();
+    return redocViewer !== null;
+  }
+
+  public async getRedocViewer(): Promise<RedocContentViewerHarness | null> {
+    return this.locateRedocViewer();
   }
 
   public async getEmptyState(): Promise<DivHarness | null> {

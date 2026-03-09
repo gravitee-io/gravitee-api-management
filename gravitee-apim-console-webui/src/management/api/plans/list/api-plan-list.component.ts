@@ -34,8 +34,7 @@ import { ConstantsService, PlanMenuItemVM } from '../../../../services-ngx/const
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { Api, Plan, PLAN_STATUS, PlanStatus } from '../../../../entities/management-api-v2';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
-
-type PlanDS = Plan & { securityTypeLabel: string };
+import { PlanActionEvent, PlanDS } from '../../component/plan/plan-list/plan-list.component';
 
 @Component({
   selector: 'api-plan-list',
@@ -46,7 +45,6 @@ type PlanDS = Plan & { securityTypeLabel: string };
 export class ApiPlanListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public api: Api;
-  public displayedColumns = ['name', 'type', 'status', 'deploy-on', 'actions'];
   public plansTableDS: PlanDS[] = [];
   public isLoadingData = true;
   public apiPlanStatus: { name: PlanStatus; number: number | null }[] = PLAN_STATUS.map(status => ({ name: status, number: null }));
@@ -81,10 +79,6 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
             api.definitionContext?.origin === 'KUBERNETES' ||
             api.definitionVersion === 'V1';
 
-          if (!this.isReadOnly && !this.displayedColumns.includes('drag-icon')) {
-            this.displayedColumns.unshift('drag-icon');
-          }
-
           this.computePlanOptions();
         }),
         tap(() => this.initPlansTableDS(this.status, true)),
@@ -105,6 +99,17 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
   public searchPlansByStatus(status: PlanStatus): void {
     this.status = status;
     this.initPlansTableDS(this.status);
+  }
+
+  public navigateToNewPlan(planFormType: string): void {
+    this.router.navigate(['./new'], {
+      relativeTo: this.activatedRoute,
+      queryParams: { selectedPlanMenuItem: planFormType },
+    });
+  }
+
+  public navigateToPlan(plan: PlanDS): void {
+    this.router.navigate(['./', plan.id], { relativeTo: this.activatedRoute });
   }
 
   public dropRow(event: CdkDragDrop<string[]>) {
@@ -142,6 +147,23 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
       this.router.navigate(['../v4/policy-studio'], {
         relativeTo: this.activatedRoute,
       });
+    }
+  }
+
+  public onActionSelected(event: PlanActionEvent): void {
+    switch (event.action) {
+      case 'PUBLISH':
+        this.publishPlan(event.plan);
+        break;
+      case 'DEPRECATE':
+        this.deprecatePlan(event.plan);
+        break;
+      case 'CLOSE':
+        this.closePlan(event.plan);
+        break;
+      case 'DESIGN':
+        this.designPlan(event.plan.id);
+        break;
     }
   }
 

@@ -22,6 +22,8 @@ import { MatChipHarness } from '@angular/material/chips/testing';
 import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 
+import { GMD_FORM_STATE_STORE, GmdFormStateStore } from '@gravitee/gravitee-markdown';
+
 import { TermsAndConditionsDialogHarness } from './components/terms-and-conditions-dialog/terms-and-conditions-dialog.harness';
 import { SubscribeToApiCheckoutHarness } from './subscribe-to-api-checkout/subscribe-to-api-checkout.harness';
 import { SubscribeToApiChooseApplicationHarness } from './subscribe-to-api-choose-application/subscribe-to-api-choose-application.harness';
@@ -37,6 +39,7 @@ import { fakeApplication, fakeApplicationsResponse } from '../../../entities/app
 import { Page } from '../../../entities/page/page';
 import { fakePage } from '../../../entities/page/page.fixtures';
 import { fakePlan } from '../../../entities/plan/plan.fixture';
+import { SubscriptionForm } from '../../../entities/portal/subscription-form';
 import {
   CreateSubscription,
   fakeSubscription,
@@ -72,7 +75,7 @@ describe('SubscribeToApiComponent', () => {
   const APP_ID_WITH_CLIENT_CERTIFICATE = 'app-id-with-client-certificate';
   const CONFIGURATION_KAFKA_SASL_MECHANISMS = '[PLAIN, SCRAM-SHA-256, SCRAM-SHA-512]';
 
-  const init = async (sharedApiKeyModeEnabled: boolean, api: Api = API) => {
+  const init = async (sharedApiKeyModeEnabled: boolean, api: Api = API, subscriptionForm: SubscriptionForm | null = null) => {
     await TestBed.configureTestingModule({
       imports: [SubscribeToApiComponent, AppTestingModule],
       providers: [
@@ -104,6 +107,7 @@ describe('SubscribeToApiComponent', () => {
     component.api = api;
     fixture.detectChanges();
 
+    expectGetSubscriptionForm(subscriptionForm);
     httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${API_ID}/plans?size=-1`).flush({
       data: [
         fakePlan({ id: KEYLESS_PLAN_ID, security: 'KEY_LESS' }),
@@ -174,21 +178,16 @@ describe('SubscribeToApiComponent', () => {
         await goToNextStep();
         fixture.detectChanges();
 
-        expect(getTitle()).toEqual('Checkout');
+        expect(getTitle()).toEqual('Review');
         const checkout = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
         const subscribeButton = await getSubscribeButton();
-        expect(await subscribeButton?.isDisabled()).toEqual(true);
-
-        const messageBox = await checkout.getMessageInput();
-        await messageBox.setValue('Test message');
-
+        expect(await checkout.isSubscriptionFormVisible()).toEqual(false);
         expect(await subscribeButton?.isDisabled()).toEqual(false);
         await subscribeButton?.click();
 
         expectPostCreateSubscription({
           plan: PUSH_PLAN_ID,
           application: APP_ID_1,
-          request: 'Test message',
           configuration: {
             channel: '',
             entrypointId: 'webhook',
@@ -224,10 +223,10 @@ describe('SubscribeToApiComponent', () => {
         await goToNextStep();
 
         fixture.detectChanges();
-        expect(getTitle()).toEqual('Checkout');
+        expect(getTitle()).toEqual('Review');
       });
     });
-    describe('Step 3 -- Checkout', () => {
+    describe('Step 2 -- Review', () => {
       describe('V4 Proxy', () => {
         beforeEach(async () => {
           await init(true, fakeApi({ id: API_ID, type: 'PROXY', definitionVersion: 'V4', entrypoints: [ENTRYPOINT] }));
@@ -237,7 +236,7 @@ describe('SubscribeToApiComponent', () => {
           await goToNextStep();
           fixture.detectChanges();
         });
-        it('should see checkout information', async () => {
+        it('should see review information', async () => {
           expect(fixture.debugElement.query(By.css('app-subscription-info'))).toBeTruthy();
           const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
           expect(apiAccess).toBeTruthy();
@@ -267,7 +266,7 @@ describe('SubscribeToApiComponent', () => {
           await goToNextStep();
           fixture.detectChanges();
         });
-        it('should see checkout information', async () => {
+        it('should see review information', async () => {
           expect(fixture.debugElement.query(By.css('app-subscription-info'))).toBeTruthy();
           const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
           expect(apiAccess).toBeTruthy();
@@ -323,7 +322,7 @@ describe('SubscribeToApiComponent', () => {
           fixture.detectChanges();
         });
 
-        it('should not allow checkout', async () => {
+        it('should not allow proceeding without an application', async () => {
           const step2 = await harnessLoader.getHarness(SubscribeToApiChooseApplicationHarness);
           expect(step2).toBeTruthy();
           expect(await step2.noApplicationsMessageShown()).toEqual(true);
@@ -399,7 +398,7 @@ describe('SubscribeToApiComponent', () => {
           await goToNextStep();
 
           fixture.detectChanges();
-          expect(getTitle()).toEqual('Checkout');
+          expect(getTitle()).toEqual('Review');
         });
 
         it('should list pages of applications and go to next step', async () => {
@@ -439,7 +438,7 @@ describe('SubscribeToApiComponent', () => {
           await goToNextStep();
 
           fixture.detectChanges();
-          expect(getTitle()).toEqual('Checkout');
+          expect(getTitle()).toEqual('Review');
         });
 
         it('should disable applications with valid subscriptions', async () => {
@@ -466,38 +465,7 @@ describe('SubscribeToApiComponent', () => {
       });
     });
 
-    describe('Step 3 -- Checkout', () => {
-      describe('When comment is required', () => {
-        beforeEach(async () => {
-          await init(true);
-          await selectPlan(API_KEY_PLAN_ID_COMMENT_REQUIRED);
-          await selectApplication();
-
-          fixture.detectChanges();
-        });
-        it('should not allow subscribe without comment', async () => {
-          const subscribeButton = await getSubscribeButton();
-          expect(subscribeButton).toBeTruthy();
-          expect(await subscribeButton?.isDisabled()).toEqual(true);
-        });
-        it('should subscribe with comment', async () => {
-          const subscribeButton = await getSubscribeButton();
-          expect(await subscribeButton?.isDisabled()).toEqual(true);
-
-          const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
-          const messageBox = await step3.getMessageInput();
-          await messageBox.setValue('My new message');
-
-          expect(await subscribeButton?.isDisabled()).toEqual(false);
-          await subscribeButton?.click();
-
-          expectPostCreateSubscription({
-            plan: API_KEY_PLAN_ID_COMMENT_REQUIRED,
-            application: 'app-id',
-            request: 'My new message',
-          });
-        });
-      });
+    describe('Step 3 -- Review', () => {
       describe('When terms and conditions need to be accepted', () => {
         const PAGE = fakePage({
           id: GENERAL_CONDITIONS_ID,
@@ -543,6 +511,38 @@ describe('SubscribeToApiComponent', () => {
             general_conditions_accepted: true,
             general_conditions_content_revision: PAGE.contentRevisionId,
           });
+        });
+      });
+      describe('When a subscription form is enabled', () => {
+        const subscriptionForm: SubscriptionForm = {
+          gmdContent: '# Subscription form',
+        };
+        beforeEach(async () => {
+          await init(true, API, subscriptionForm);
+          await selectPlan(API_KEY_PLAN_ID);
+          await selectApplication();
+
+          fixture.detectChanges();
+        });
+        it('should render the subscription form', async () => {
+          const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+          expect(await step3.isSubscriptionFormVisible()).toEqual(true);
+        });
+        it('should block subscribe when required form field is invalid', async () => {
+          const store = fixture.debugElement.injector.get<GmdFormStateStore>(GMD_FORM_STATE_STORE);
+          store.updateField({
+            id: 'field-1',
+            fieldKey: 'company',
+            value: '',
+            valid: false,
+            required: true,
+            touched: true,
+            validationErrors: ['required'],
+          });
+          fixture.detectChanges();
+
+          const subscribeButton = await getSubscribeButton();
+          expect(await subscribeButton?.isDisabled()).toEqual(true);
         });
       });
       describe('API Key Management', () => {
@@ -736,17 +736,6 @@ describe('SubscribeToApiComponent', () => {
 
           expectPostCreateSubscription({ plan: API_KEY_PLAN_ID, application: 'app-id' });
         });
-        it('should subscribe with comment', async () => {
-          const step3 = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
-          const messageBox = await step3.getMessageInput();
-          await messageBox.setValue('My new message');
-
-          const subscribeButton = await getSubscribeButton();
-          expect(await subscribeButton?.isDisabled()).toEqual(false);
-          await subscribeButton?.click();
-
-          expectPostCreateSubscription({ plan: API_KEY_PLAN_ID, application: 'app-id', request: 'My new message' });
-        });
       });
     });
   });
@@ -889,7 +878,7 @@ describe('SubscribeToApiComponent', () => {
       });
     });
 
-    describe('Step 3 -- Checkout', () => {
+    describe('Step 3 -- Review', () => {
       beforeEach(async () => {
         await selectPlan(OAUTH2_PLAN_ID);
         await selectApplication();
@@ -1044,7 +1033,7 @@ describe('SubscribeToApiComponent', () => {
       });
     });
 
-    describe('Step 3 -- Checkout', () => {
+    describe('Step 3 -- Review', () => {
       beforeEach(async () => {
         await selectPlan(JWT_PLAN_ID);
         await selectApplication();
@@ -1152,7 +1141,7 @@ describe('SubscribeToApiComponent', () => {
       });
     });
 
-    describe('Step 3 -- Checkout', () => {
+    describe('Step 3 -- Review', () => {
       beforeEach(async () => {
         await selectPlan(MTLS_PLAN_ID);
         await selectApplication(APP_ID_WITH_CLIENT_CERTIFICATE);
@@ -1166,6 +1155,35 @@ describe('SubscribeToApiComponent', () => {
 
         expectPostCreateSubscription({ plan: MTLS_PLAN_ID, application: APP_ID_WITH_CLIENT_CERTIFICATE });
       });
+    });
+  });
+
+  describe('cancelFn input', () => {
+    it('should NOT show a Cancel button when cancelFn is not provided', async () => {
+      await init(false);
+      const cancelBtn = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Cancel' }));
+      expect(cancelBtn).toBeNull();
+    });
+
+    it('should show a Cancel button when cancelFn is provided', async () => {
+      await init(false);
+      fixture.componentRef.setInput('cancelFn', () => {});
+      fixture.detectChanges();
+
+      const cancelBtn = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Cancel' }));
+      expect(cancelBtn).toBeTruthy();
+    });
+
+    it('should call cancelFn when Cancel button is clicked', async () => {
+      await init(false);
+      const cancelFnSpy = jest.fn();
+      fixture.componentRef.setInput('cancelFn', cancelFnSpy);
+      fixture.detectChanges();
+
+      const cancelBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
+      await cancelBtn.click();
+
+      expect(cancelFnSpy).toHaveBeenCalled();
     });
   });
 
@@ -1203,8 +1221,17 @@ describe('SubscribeToApiComponent', () => {
 
   function expectGetApplications(page: number = 1, applicationsResponse: ApplicationsResponse = fakeApplicationsResponse()) {
     httpTestingController
-      .expectOne(`${TESTING_BASE_URL}/applications?page=${page}&size=9&forSubscription=true`)
+      .expectOne(`${TESTING_BASE_URL}/applications?page=${page}&size=6&forSubscription=true`)
       .flush(applicationsResponse);
+  }
+
+  function expectGetSubscriptionForm(subscriptionForm: SubscriptionForm | null) {
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/subscription-form`);
+    if (subscriptionForm) {
+      req.flush(subscriptionForm);
+    } else {
+      req.flush(null, { status: 404, statusText: 'Not Found' });
+    }
   }
 
   function expectPostCreateSubscription(expectedCreateSubscription: CreateSubscription, response: Subscription = fakeSubscription()) {
@@ -1244,7 +1271,7 @@ describe('SubscribeToApiComponent', () => {
   }
 
   function getTitle(): string {
-    return fixture.debugElement.query(By.css('.m3-title-large')).nativeElement.textContent;
+    return fixture.debugElement.query(By.css('.next-gen-h5')).nativeElement.textContent;
   }
 
   async function selectPlan(planId: string): Promise<void> {

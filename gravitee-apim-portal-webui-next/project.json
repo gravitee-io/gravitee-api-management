@@ -117,13 +117,9 @@
       }
     },
     "lint": {},
-    "lint-eslint": {
-      "executor": "@angular-eslint/builder:lint",
-      "options": {
-        "lintFilePatterns": ["gravitee-apim-portal-webui-next/src/**/*.ts", "gravitee-apim-portal-webui-next/src/**/*.html"]
-      }
-    },
+    "lint-eslint": {},
     "lint-license": {},
+    "lint-prettier": {},
     "storybook": {
       "executor": "@storybook/angular:start-storybook",
       "options": {
