@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { Component, effect, inject, input } from '@angular/core';
-import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatTabLink, MatTabNav, MatTabNavPanel } from '@angular/material/tabs';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { BreadcrumbService } from 'xng-breadcrumb';
@@ -24,7 +23,7 @@ import { CurrentUserService } from '../../../services/current-user.service';
 
 @Component({
   selector: 'app-application',
-  imports: [RouterOutlet, MatCard, MatCardContent, MatTabLink, MatTabNav, MatTabNavPanel, RouterLinkActive, RouterLink],
+  imports: [RouterOutlet, MatTabLink, MatTabNav, MatTabNavPanel, RouterLinkActive, RouterLink],
   templateUrl: './application.component.html',
   styleUrl: './application.component.scss',
 })

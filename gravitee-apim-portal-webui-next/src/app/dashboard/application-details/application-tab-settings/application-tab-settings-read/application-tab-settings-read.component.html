@@ -75,9 +75,7 @@
       <div class="settings-view__details__row">
         <span class="material-icons icon-small settings-view__details__row__icon">security</span>
         <span class="settings-view__details__row__label m3-body-medium" i18n="@@securityLabelApplicationSettings">Security</span>
-        <span class="settings-view__details__row__chip m3-label-medium" data-testId="securityType">{{
-          readOnlyValues().securityType
-        }}</span>
+        <mat-chip data-testId="securityType">{{ readOnlyValues().securityType }}</mat-chip>
       </div>
 
       @if (readOnlyValues().grantTypes) {

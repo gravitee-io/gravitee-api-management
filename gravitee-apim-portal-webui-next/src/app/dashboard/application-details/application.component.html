@@ -16,33 +16,31 @@
 
 -->
 <div class="content">
-  <mat-card class="application" appearance="outlined">
-    <mat-card-content>
-      <nav mat-tab-nav-bar [tabPanel]="tabPanel" mat-stretch-tabs="false">
-        <a
-          mat-tab-link
-          [routerLink]="['.', 'settings']"
-          routerLinkActive
-          #settingsActive="routerLinkActive"
-          [active]="settingsActive.isActive"
-          i18n="@@appSettings"
-          >Settings & Security</a
-        >
-        <a
-          mat-tab-link
-          [routerLink]="['.', 'logs']"
-          routerLinkActive
-          #logsActive="routerLinkActive"
-          [active]="logsActive.isActive"
-          i18n="@@appAnalyticsAndLogs"
-          >Logs</a
-        >
-      </nav>
-      <mat-tab-nav-panel #tabPanel>
-        <div class="application__content">
-          <router-outlet />
-        </div>
-      </mat-tab-nav-panel>
-    </mat-card-content>
-  </mat-card>
+  <div class="application">
+    <nav mat-tab-nav-bar [tabPanel]="tabPanel" mat-stretch-tabs="false">
+      <a
+        mat-tab-link
+        [routerLink]="['.', 'settings']"
+        routerLinkActive
+        #settingsActive="routerLinkActive"
+        [active]="settingsActive.isActive"
+        i18n="@@appSettings"
+        >Settings & Security</a
+      >
+      <a
+        mat-tab-link
+        [routerLink]="['.', 'logs']"
+        routerLinkActive
+        #logsActive="routerLinkActive"
+        [active]="logsActive.isActive"
+        i18n="@@appAnalyticsAndLogs"
+        >Logs</a
+      >
+    </nav>
+    <mat-tab-nav-panel #tabPanel>
+      <div class="application__content">
+        <router-outlet />
+      </div>
+    </mat-tab-nav-panel>
+  </div>
 </div>

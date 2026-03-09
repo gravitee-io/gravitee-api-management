@@ -15,11 +15,9 @@
  */
 import { Component, input, Input, InputSignal } from '@angular/core';
 
-import { CompanyTitleComponent } from '../company-title/company-title.component';
-
 @Component({
   selector: 'app-footer',
-  imports: [CompanyTitleComponent],
+  imports: [],
   templateUrl: './footer.component.html',
   styleUrl: './footer.component.scss',
 })

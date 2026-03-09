@@ -16,15 +16,18 @@
 @use '../../../../scss/theme';
 @use '@angular/material' as mat;
 
-@use '../../../../scss/layout' as layout;
-
 :host {
-  @include layout.large-container-legacy();
+  display: flex;
+  flex-direction: column;
+  max-width: theme.$inner-content-width;
+  padding: 16px;
 }
 
 .content {
+  display: flex;
   flex-flow: column;
   gap: 32px;
+  padding-top: 24px;
 }
 
 .cards-container {
