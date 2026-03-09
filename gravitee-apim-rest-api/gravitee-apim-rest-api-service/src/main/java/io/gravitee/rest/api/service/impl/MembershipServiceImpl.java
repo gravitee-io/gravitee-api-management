@@ -40,6 +40,7 @@ import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Command;
@@ -91,6 +92,7 @@ import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.MembershipAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.NotAuthorizedMembershipException;
 import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
+import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerRemovalException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -364,13 +366,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         final GroupEntity group = groupService.findById(executionContext, reference.getId());
                         shouldNotify = !group.isDisableMembershipNotifications();
                     } else if (MembershipReferenceType.API.equals(reference.getType())) {
-                        final GenericApiEntity api = apiSearchService.findGenericById(
-                            executionContext,
-                            reference.getId(),
-                            false,
-                            false,
-                            false
-                        );
+                        final Api api = apiSearchService.findRepositoryApiById(executionContext, reference.getId());
                         shouldNotify = !api.isDisableMembershipNotifications();
                     } else if (MembershipReferenceType.APPLICATION.equals(reference.getType())) {
                         final ApplicationEntity application = applicationService.findById(executionContext, reference.getId());
@@ -586,9 +582,13 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 params = paramsBuilder.application(applicationEntity).user(user).build();
                 break;
             case API:
-                GenericApiEntity indexableApi = apiSearchService.findGenericById(executionContext, referenceId, false, false, false);
-                template = EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_API_MEMBER_SUBSCRIPTION;
-                params = paramsBuilder.api(indexableApi).user(user).build();
+                try {
+                    GenericApiEntity indexableApi = apiSearchService.findGenericById(executionContext, referenceId, false, false, false);
+                    template = EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_API_MEMBER_SUBSCRIPTION;
+                    params = paramsBuilder.api(indexableApi).user(user).build();
+                } catch (PrimaryOwnerNotFoundException e) {
+                    log.warn("Primary owner not found for API {} during notification, skipping email", referenceId, e);
+                }
                 break;
             case GROUP:
                 groupEntity = groupService.findById(executionContext, referenceId);
