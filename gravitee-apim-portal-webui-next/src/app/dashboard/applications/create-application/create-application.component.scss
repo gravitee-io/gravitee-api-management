@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../../scss/theme';
+@use '../../../../scss/theme';
 @use '@angular/material' as mat;
 
-@use '../../../scss/layout' as layout;
+@use '../../../../scss/layout' as layout;
 
 :host {
   @include layout.large-container-legacy();

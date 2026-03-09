@@ -73,7 +73,7 @@ export default class ApplicationsComponent {
   }
 
   navigateToApplication(id: string) {
-    this.router.navigate(['/applications', id]);
+    this.router.navigate(['/dashboard/applications', id]);
   }
 
   private loadApplications$() {
