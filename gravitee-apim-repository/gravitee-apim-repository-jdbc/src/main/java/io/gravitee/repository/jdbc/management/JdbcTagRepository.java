@@ -91,7 +91,6 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
             tag.ifPresent(this::addGroups);
             return tag;
         } catch (final Exception ex) {
-            log.error("Failed to find {} tags by key, referenceId and referenceType:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tags by key, referenceId and referenceType", ex);
         }
     }
@@ -118,7 +117,6 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
                 .peek(this::addGroups)
                 .collect(toSet());
         } catch (final Exception ex) {
-            log.error("Failed to find {} tags by keys, referenceId and referenceType:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tags by keys, referenceId and referenceType", ex);
         }
     }
@@ -149,7 +147,6 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
             log.debug("JdbcTagRepository.deleteByReferenceIdAndReferenceType({},{}) - Done", referenceId, referenceType);
             return rows;
         } catch (final Exception ex) {
-            log.error("Failed to delete tags by reference {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete tags by reference", ex);
         }
     }
@@ -168,7 +165,6 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
                 .peek(this::addGroups)
                 .collect(toSet());
         } catch (final Exception ex) {
-            log.error("Failed to find {} tags referenceId and referenceType:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tags by referenceId and referenceType", ex);
         }
     }
