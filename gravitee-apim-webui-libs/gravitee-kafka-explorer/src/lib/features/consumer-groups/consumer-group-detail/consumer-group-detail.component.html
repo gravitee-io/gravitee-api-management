@@ -59,42 +59,59 @@
         <mat-card-title>Members</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <table mat-table [dataSource]="detail.members">
-          <ng-container matColumnDef="memberId">
-            <th mat-header-cell *matHeaderCellDef>Member ID</th>
-            <td mat-cell *matCellDef="let m">{{ m.memberId }}</td>
-          </ng-container>
+        <gke-data-table
+          [empty]="detail.members.length === 0"
+          emptyMessage="No members found"
+          [paginated]="true"
+          [totalElements]="memberSortedData().length"
+          [page]="memberPage()"
+          [pageSize]="memberPageSize()"
+          (pageChange)="memberPage.set($event.page); memberPageSize.set($event.pageSize)"
+        >
+          <table
+            mat-table
+            [dataSource]="memberPaginatedData()"
+            matSort
+            [matSortActive]="memberSortActive()"
+            [matSortDirection]="memberSortDirection()"
+            (matSortChange)="onMemberSortChange($event)"
+          >
+            <ng-container matColumnDef="memberId">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Member ID</th>
+              <td mat-cell *matCellDef="let m">{{ m.memberId }}</td>
+            </ng-container>
 
-          <ng-container matColumnDef="clientId">
-            <th mat-header-cell *matHeaderCellDef>Client ID</th>
-            <td mat-cell *matCellDef="let m">{{ m.clientId }}</td>
-          </ng-container>
+            <ng-container matColumnDef="clientId">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Client ID</th>
+              <td mat-cell *matCellDef="let m">{{ m.clientId }}</td>
+            </ng-container>
 
-          <ng-container matColumnDef="host">
-            <th mat-header-cell *matHeaderCellDef>Host</th>
-            <td mat-cell *matCellDef="let m">{{ m.host }}</td>
-          </ng-container>
+            <ng-container matColumnDef="host">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Host</th>
+              <td mat-cell *matCellDef="let m">{{ m.host }}</td>
+            </ng-container>
 
-          <ng-container matColumnDef="assignments">
-            <th mat-header-cell *matHeaderCellDef>Assignments</th>
-            <td mat-cell *matCellDef="let m">
-              @for (a of m.assignments; track a.topicName) {
-                <span
-                  ><a
-                    class="consumer-group-detail__topic-link"
-                    tabindex="0"
-                    (click)="topicSelect.emit(a.topicName); $event.stopPropagation()"
-                    (keydown.enter)="topicSelect.emit(a.topicName); $event.stopPropagation()"
-                    >{{ a.topicName }}</a
-                  >[{{ a.partitions.join(', ') }}]</span
-                >
-              }
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="assignments">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Assignments</th>
+              <td mat-cell *matCellDef="let m">
+                @for (a of m.assignments; track a.topicName) {
+                  <span
+                    ><a
+                      class="consumer-group-detail__topic-link"
+                      tabindex="0"
+                      (click)="topicSelect.emit(a.topicName); $event.stopPropagation()"
+                      (keydown.enter)="topicSelect.emit(a.topicName); $event.stopPropagation()"
+                      >{{ a.topicName }}</a
+                    >[{{ a.partitions.join(', ') }}]</span
+                  >
+                }
+              </td>
+            </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="memberColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: memberColumns"></tr>
-        </table>
+            <tr mat-header-row *matHeaderRowDef="memberColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: memberColumns"></tr>
+          </table>
+        </gke-data-table>
       </mat-card-content>
     </mat-card>
 
@@ -103,48 +120,65 @@
         <mat-card-title>Offsets</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <table mat-table [dataSource]="detail.offsets">
-          <ng-container matColumnDef="topic">
-            <th mat-header-cell *matHeaderCellDef>Topic</th>
-            <td mat-cell *matCellDef="let o">
-              <a
-                class="consumer-group-detail__topic-link"
-                tabindex="0"
-                (click)="topicSelect.emit(o.topic); $event.stopPropagation()"
-                (keydown.enter)="topicSelect.emit(o.topic); $event.stopPropagation()"
-                >{{ o.topic }}</a
-              >
-            </td>
-          </ng-container>
+        <gke-data-table
+          [empty]="detail.offsets.length === 0"
+          emptyMessage="No offsets found"
+          [paginated]="true"
+          [totalElements]="offsetSortedData().length"
+          [page]="offsetPage()"
+          [pageSize]="offsetPageSize()"
+          (pageChange)="offsetPage.set($event.page); offsetPageSize.set($event.pageSize)"
+        >
+          <table
+            mat-table
+            [dataSource]="offsetPaginatedData()"
+            matSort
+            [matSortActive]="offsetSortActive()"
+            [matSortDirection]="offsetSortDirection()"
+            (matSortChange)="onOffsetSortChange($event)"
+          >
+            <ng-container matColumnDef="topic">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Topic</th>
+              <td mat-cell *matCellDef="let o">
+                <a
+                  class="consumer-group-detail__topic-link"
+                  tabindex="0"
+                  (click)="topicSelect.emit(o.topic); $event.stopPropagation()"
+                  (keydown.enter)="topicSelect.emit(o.topic); $event.stopPropagation()"
+                  >{{ o.topic }}</a
+                >
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="partition">
-            <th mat-header-cell *matHeaderCellDef>Partition</th>
-            <td mat-cell *matCellDef="let o">{{ o.partition }}</td>
-          </ng-container>
+            <ng-container matColumnDef="partition">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Partition</th>
+              <td mat-cell *matCellDef="let o">{{ o.partition }}</td>
+            </ng-container>
 
-          <ng-container matColumnDef="committedOffset">
-            <th mat-header-cell *matHeaderCellDef>Committed Offset</th>
-            <td mat-cell *matCellDef="let o">{{ o.committedOffset }}</td>
-          </ng-container>
+            <ng-container matColumnDef="committedOffset">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Committed Offset</th>
+              <td mat-cell *matCellDef="let o">{{ o.committedOffset }}</td>
+            </ng-container>
 
-          <ng-container matColumnDef="endOffset">
-            <th mat-header-cell *matHeaderCellDef>End Offset</th>
-            <td mat-cell *matCellDef="let o">{{ o.endOffset }}</td>
-          </ng-container>
+            <ng-container matColumnDef="endOffset">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>End Offset</th>
+              <td mat-cell *matCellDef="let o">{{ o.endOffset }}</td>
+            </ng-container>
 
-          <ng-container matColumnDef="lag">
-            <th mat-header-cell *matHeaderCellDef>Lag</th>
-            <td mat-cell *matCellDef="let o">
-              {{ o.lag }}
-              @if (o.lag > 0) {
-                <gke-badge class="consumer-group-detail__lag-warning" color="warning">behind</gke-badge>
-              }
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="lag">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Lag</th>
+              <td mat-cell *matCellDef="let o">
+                {{ o.lag }}
+                @if (o.lag > 0) {
+                  <gke-badge class="consumer-group-detail__lag-warning" color="warning">behind</gke-badge>
+                }
+              </td>
+            </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="offsetColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: offsetColumns"></tr>
-        </table>
+            <tr mat-header-row *matHeaderRowDef="offsetColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: offsetColumns"></tr>
+          </table>
+        </gke-data-table>
       </mat-card-content>
     </mat-card>
   }
