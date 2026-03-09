@@ -60,6 +60,7 @@ import {
   PortalNavigationLink,
   PortalNavigationPage,
   PortalPageContentType,
+  PortalVisibility,
   UpdatePortalNavigationItem,
 } from '../../entities/management-api-v2';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
@@ -264,12 +265,13 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         data: {
           mode: 'create',
           existingApiIds: this.extractApiIdsFromNavigationItems(),
+          parentItem: existingItem,
         },
       })
       .afterClosed()
       .pipe(
         filter(result => !!result),
-        switchMap(result => this.createApisInOrder(existingItem?.id, result.apiIds ?? [])),
+        switchMap(result => this.createApisInOrder(existingItem?.id, result.apiIds ?? [], result.visibility ?? 'PUBLIC')),
         map(id => id ?? existingItem?.id ?? null),
         tap(id => {
           this.refreshMenuList.next(1);
@@ -391,7 +393,11 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       : null;
   }
 
-  private createApisInOrder(parentId: string | undefined, apiIds: string[]): Observable<string | null> {
+  private createApisInOrder(
+    parentId: string | undefined,
+    apiIds: string[],
+    visibility: PortalVisibility = 'PUBLIC',
+  ): Observable<string | null> {
     if (!parentId) {
       this.snackBarService.error('Select a folder before adding APIs');
       return of(null);
@@ -406,7 +412,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       type: 'API',
       area: 'TOP_NAVBAR',
       parentId,
-      visibility: 'PUBLIC',
+      visibility,
       apiId,
     }));
 
