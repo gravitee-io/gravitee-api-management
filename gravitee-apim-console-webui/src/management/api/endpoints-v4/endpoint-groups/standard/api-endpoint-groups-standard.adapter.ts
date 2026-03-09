@@ -83,7 +83,7 @@ const toEndpointsFromApiV4 = (api: ApiV4, tenants: Tenant[]): EndpointGroup[] =>
                 general: toGeneralInfo(api, endpoint),
                 nameBadge,
                 options,
-                tenants: endpoint.tenants?.map(tenantId => tenants.find(tenant => tenant.id === tenantId)?.name ?? tenantId),
+                tenants: endpoint.tenants?.map(tenantKey => getTenantNameByKey(tenants, tenantKey)),
                 weight: endpoint.weight,
                 configuration: endpoint.configuration,
               } satisfies Endpoint;
@@ -170,4 +170,8 @@ const toEndpointOptions = (api: ApiV4, endpointGroup: EndpointGroupV4, endpoint:
     }
   }
   return [];
+};
+
+const getTenantNameByKey = (tenants: Tenant[], tenantKey: string): string => {
+  return tenants.find(tenant => tenant.key === tenantKey)?.name ?? tenantKey;
 };
