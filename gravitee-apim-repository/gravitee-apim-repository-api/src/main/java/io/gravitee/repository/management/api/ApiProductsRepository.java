@@ -15,9 +15,14 @@
  */
 package io.gravitee.repository.management.api;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.ApiProductCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiProduct;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -27,4 +32,5 @@ public interface ApiProductsRepository extends CrudRepository<ApiProduct, String
     Set<ApiProduct> findByApiId(String apiId) throws TechnicalException;
     Set<ApiProduct> findByIds(Collection<String> ids) throws TechnicalException;
     Set<ApiProduct> findApiProductsByApiIds(Collection<String> apiIds) throws TechnicalException;
+    Page<String> searchIds(List<ApiProductCriteria> apiProductCriteriaList, Pageable pageable, Sortable sortable) throws TechnicalException;
 }

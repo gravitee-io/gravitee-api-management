@@ -5,7 +5,7 @@
 		</header>
 		<div style="margin-top: 50px; color: #424e5a;">
 			<h3>Hi,</h3>
-			<p>Application <b>${application.name}</b> has just subscribed to the API <b>${api.name}</b> with plan <b>${plan.name}</b>.</p>
+			<p>Application <b>${application.name}</b> has just subscribed to the <#if api??>API <b>${api.name}</b><#elseif apiProduct??>API Product <b>${apiProduct.name}</b><#else>API/API Product</#if> with plan <b>${plan.name}</b>.</p>
 			<#if plan.validation == 'MANUAL'>
 				<p>This subscription need your approval<#if subscriptionsUrl?? && subscriptionsUrl != ''> <a href="${subscriptionsUrl}">here</a></#if>.</p>
 			</#if>

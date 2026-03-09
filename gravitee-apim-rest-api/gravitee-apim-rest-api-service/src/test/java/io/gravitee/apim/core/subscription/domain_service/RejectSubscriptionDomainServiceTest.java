@@ -44,6 +44,7 @@ import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApplicationHookContext;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -181,7 +182,14 @@ public class RejectSubscriptionDomainServiceTest {
             });
 
             assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
-                new SubscriptionRejectedApiHookContext("api-id", "application-id", "plan-published", "subscription-id", USER_ID)
+                new SubscriptionRejectedApiHookContext(
+                    SubscriptionReferenceType.API,
+                    "api-id",
+                    "application-id",
+                    "plan-published",
+                    "subscription-id",
+                    USER_ID
+                )
             );
 
             if (shouldTriggerEmailNotification) {
@@ -189,6 +197,7 @@ public class RejectSubscriptionDomainServiceTest {
                     new ApplicationNotification(
                         new SubscriptionRejectedApplicationHookContext(
                             "application-id",
+                            SubscriptionReferenceType.API,
                             "api-id",
                             "plan-published",
                             "subscription-id",
@@ -199,6 +208,7 @@ public class RejectSubscriptionDomainServiceTest {
                         new Recipient("EMAIL", "subscriber@mail.fake"),
                         new SubscriptionRejectedApplicationHookContext(
                             "application-id",
+                            SubscriptionReferenceType.API,
                             "api-id",
                             "plan-published",
                             "subscription-id",
@@ -211,6 +221,7 @@ public class RejectSubscriptionDomainServiceTest {
                     new ApplicationNotification(
                         new SubscriptionRejectedApplicationHookContext(
                             "application-id",
+                            SubscriptionReferenceType.API,
                             "api-id",
                             "plan-published",
                             "subscription-id",
@@ -288,7 +299,14 @@ public class RejectSubscriptionDomainServiceTest {
             });
 
             assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
-                new SubscriptionRejectedApiHookContext("api-id", "application-id", "plan-published", "subscription-id", USER_ID)
+                new SubscriptionRejectedApiHookContext(
+                    SubscriptionReferenceType.API,
+                    "api-id",
+                    "application-id",
+                    "plan-published",
+                    "subscription-id",
+                    USER_ID
+                )
             );
 
             if (shouldTriggerEmailNotification) {
@@ -296,6 +314,7 @@ public class RejectSubscriptionDomainServiceTest {
                     new ApplicationNotification(
                         new SubscriptionRejectedApplicationHookContext(
                             "application-id",
+                            SubscriptionReferenceType.API,
                             "api-id",
                             "plan-published",
                             "subscription-id",
@@ -306,6 +325,7 @@ public class RejectSubscriptionDomainServiceTest {
                         new Recipient("EMAIL", "subscriber@mail.fake"),
                         new SubscriptionRejectedApplicationHookContext(
                             "application-id",
+                            SubscriptionReferenceType.API,
                             "api-id",
                             "plan-published",
                             "subscription-id",
@@ -318,6 +338,7 @@ public class RejectSubscriptionDomainServiceTest {
                     new ApplicationNotification(
                         new SubscriptionRejectedApplicationHookContext(
                             "application-id",
+                            SubscriptionReferenceType.API,
                             "api-id",
                             "plan-published",
                             "subscription-id",

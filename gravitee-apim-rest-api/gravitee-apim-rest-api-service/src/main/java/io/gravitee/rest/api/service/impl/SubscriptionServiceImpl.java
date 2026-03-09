@@ -60,8 +60,10 @@ import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -130,6 +132,7 @@ import io.gravitee.rest.api.service.exceptions.SubscriptionNotUpdatableException
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TransferNotAllowedException;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApiProductTemplateModel;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
@@ -787,19 +790,31 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     paramSubscription.setRequest(Jsoup.clean(subscription.getRequest(), Safelist.none()));
                 }
 
-                // Notifications are not applicable for API Product subscriptions (TODO: implement notifications for API Product subscriptions)
-                if (!isApiProduct && api != null) {
-                    final Map<String, Object> params = new NotificationParamsBuilder()
-                        .api(api)
-                        .plan(genericPlanEntity)
-                        .application(applicationEntity)
-                        .owner(apiOwner)
-                        .subscription(paramSubscription)
-                        .subscriptionsUrl(subscriptionsUrl)
-                        .build();
-
-                    notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_NEW, apiId, params);
-                    notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_NEW, application, params);
+                if (isApiProduct) {
+                    triggerSubscriptionNotificationsForApiProduct(
+                        executionContext,
+                        referenceId,
+                        application,
+                        applicationEntity,
+                        genericPlanEntity,
+                        paramSubscription,
+                        Optional.of(subscriptionsUrl),
+                        true,
+                        ApiHook.SUBSCRIPTION_NEW
+                    );
+                } else {
+                    triggerSubscriptionNotificationsForApi(
+                        executionContext,
+                        apiId,
+                        application,
+                        apiOwner,
+                        api,
+                        genericPlanEntity,
+                        applicationEntity,
+                        paramSubscription,
+                        subscriptionsUrl,
+                        ApiHook.SUBSCRIPTION_NEW
+                    );
                 }
                 return convert(subscription);
             }
@@ -816,6 +831,145 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         }
 
         return Optional.ofNullable(Base64.getEncoder().encodeToString(settings.getTls().getClientCertificate().getBytes()));
+    }
+
+    /**
+     * Triggers subscription notifications for both API and API Product. Caller builds params with either "api" or "api-product".
+     */
+    private void triggerSubscriptionNotifications(
+        ExecutionContext executionContext,
+        NotificationReferenceType referenceType,
+        String referenceId,
+        String applicationId,
+        Map<String, Object> params,
+        ApiHook hook
+    ) {
+        notifierService.trigger(executionContext, hook, referenceType, referenceId, params);
+        notifierService.trigger(executionContext, ApplicationHook.valueOf(hook.name()), applicationId, params);
+    }
+
+    private void triggerSubscriptionNotificationsForApi(
+        ExecutionContext executionContext,
+        String apiId,
+        String applicationId,
+        PrimaryOwnerEntity owner,
+        GenericApiModel genericApiModel,
+        GenericPlanEntity genericPlanEntity,
+        ApplicationEntity applicationEntity,
+        SubscriptionEntity subscriptionEntity,
+        String subscriptionsUrl,
+        ApiHook hook
+    ) {
+        if (owner == null) {
+            return;
+        }
+        NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder()
+            .owner(owner)
+            .api(genericApiModel)
+            .plan(genericPlanEntity)
+            .application(applicationEntity);
+        if (subscriptionEntity != null) {
+            paramsBuilder.subscription(subscriptionEntity);
+        }
+        if (subscriptionsUrl != null) {
+            paramsBuilder.subscriptionsUrl(subscriptionsUrl);
+        }
+        triggerSubscriptionNotifications(
+            executionContext,
+            NotificationReferenceType.API,
+            apiId,
+            applicationId,
+            paramsBuilder.build(),
+            hook
+        );
+    }
+
+    private Map<String, Object> buildSubscriptionNotificationParamsForApiProduct(
+        ExecutionContext executionContext,
+        String apiProductId,
+        ApplicationEntity applicationEntity,
+        GenericPlanEntity genericPlanEntity,
+        SubscriptionEntity subscriptionEntity,
+        Optional<String> subscriptionsUrl,
+        boolean includeSubscribedByUser
+    ) throws TechnicalException {
+        Optional<ApiProduct> apiProductOpt = apiProductsRepository.findById(apiProductId);
+        if (apiProductOpt.isEmpty()) {
+            log.debug("API Product [{}] not found, skipping subscription notification params", apiProductId);
+            return Map.of();
+        }
+        ApiProduct apiProduct = apiProductOpt.get();
+        PrimaryOwnerEntity productOwner = null;
+        String ownerUserId = getPrimaryOwnerUserIdOrNull(executionContext, apiProductId);
+        if (ownerUserId != null) {
+            try {
+                productOwner = new PrimaryOwnerEntity(userService.findById(executionContext, ownerUserId));
+            } catch (Exception e) {
+                log.debug("Could not resolve primary owner user {} for API Product notification", ownerUserId, e);
+            }
+        }
+        ApiProductTemplateModel apiProductModel = ApiProductTemplateModel.builder()
+            .id(apiProduct.getId())
+            .name(apiProduct.getName())
+            .version(apiProduct.getVersion() != null ? apiProduct.getVersion() : "")
+            .primaryOwner(productOwner)
+            .build();
+        PrimaryOwnerEntity owner = productOwner != null ? productOwner : applicationEntity.getPrimaryOwner();
+        NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder()
+            .apiProduct(apiProductModel)
+            .plan(genericPlanEntity)
+            .application(applicationEntity)
+            .subscription(subscriptionEntity);
+        if (owner != null) {
+            paramsBuilder.owner(owner);
+        }
+        subscriptionsUrl.ifPresent(paramsBuilder::subscriptionsUrl);
+        if (includeSubscribedByUser) {
+            UserDetails authenticatedUser = getAuthenticatedUser();
+            if (authenticatedUser != null && authenticatedUser.getId() != null) {
+                try {
+                    UserEntity subscribedByUser = userService.findById(executionContext, authenticatedUser.getId());
+                    if (subscribedByUser != null) {
+                        paramsBuilder.user(subscribedByUser);
+                    }
+                } catch (Exception e) {
+                    log.debug("Could not resolve subscribed-by user {} for notification params", authenticatedUser.getId(), e);
+                }
+            }
+        }
+        return paramsBuilder.build();
+    }
+
+    private void triggerSubscriptionNotificationsForApiProduct(
+        ExecutionContext executionContext,
+        String apiProductId,
+        String applicationId,
+        ApplicationEntity applicationEntity,
+        GenericPlanEntity genericPlanEntity,
+        SubscriptionEntity subscriptionEntity,
+        Optional<String> subscriptionsUrl,
+        boolean includeSubscribedByUser,
+        ApiHook hook
+    ) throws TechnicalException {
+        Map<String, Object> params = buildSubscriptionNotificationParamsForApiProduct(
+            executionContext,
+            apiProductId,
+            applicationEntity,
+            genericPlanEntity,
+            subscriptionEntity,
+            subscriptionsUrl,
+            includeSubscribedByUser
+        );
+        if (!params.isEmpty()) {
+            triggerSubscriptionNotifications(
+                executionContext,
+                NotificationReferenceType.API_PRODUCT,
+                apiProductId,
+                applicationId,
+                params,
+                hook
+            );
+        }
     }
 
     private long countSubscriptionMatchingPredicate(
@@ -1113,17 +1267,31 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, referenceId);
             }
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
-            // Notifications are not applicable for API Product subscriptions (TODO: implement notifications for API Product subscriptions)
-            if (!isApiProduct) {
-                final Map<String, Object> params = new NotificationParamsBuilder()
-                    .owner(owner)
-                    .api(genericApiModel)
-                    .plan(genericPlanEntity)
-                    .application(application)
-                    .subscription(result)
-                    .build();
-                notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_FAILED, referenceId, params);
-                notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_FAILED, application.getId(), params);
+            if (isApiProduct) {
+                triggerSubscriptionNotificationsForApiProduct(
+                    executionContext,
+                    referenceId,
+                    application.getId(),
+                    application,
+                    genericPlanEntity,
+                    result,
+                    Optional.empty(),
+                    false,
+                    ApiHook.SUBSCRIPTION_FAILED
+                );
+            } else if (owner != null) {
+                triggerSubscriptionNotificationsForApi(
+                    executionContext,
+                    referenceId,
+                    application.getId(),
+                    owner,
+                    genericApiModel,
+                    genericPlanEntity,
+                    application,
+                    result,
+                    null,
+                    ApiHook.SUBSCRIPTION_FAILED
+                );
             }
 
             return result;
@@ -1160,17 +1328,31 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, referenceId);
             }
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
-            // Notifications are not applicable for API Product subscriptions (TODO: implement notifications for API Product subscriptions)
-            if (!isApiProduct) {
-                final Map<String, Object> params = new NotificationParamsBuilder()
-                    .owner(owner)
-                    .api(genericApiModel)
-                    .plan(genericPlanEntity)
-                    .application(application)
-                    .subscription(result)
-                    .build();
-                notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_FAILED, referenceId, params);
-                notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_FAILED, application.getId(), params);
+            if (isApiProduct) {
+                triggerSubscriptionNotificationsForApiProduct(
+                    executionContext,
+                    referenceId,
+                    application.getId(),
+                    application,
+                    genericPlanEntity,
+                    result,
+                    Optional.empty(),
+                    false,
+                    ApiHook.SUBSCRIPTION_FAILED
+                );
+            } else if (owner != null) {
+                triggerSubscriptionNotificationsForApi(
+                    executionContext,
+                    referenceId,
+                    application.getId(),
+                    owner,
+                    genericApiModel,
+                    genericPlanEntity,
+                    application,
+                    result,
+                    null,
+                    ApiHook.SUBSCRIPTION_FAILED
+                );
             }
 
             return result;
@@ -1276,16 +1458,31 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, referenceId);
                 }
                 final PrimaryOwnerEntity owner = application.getPrimaryOwner();
-                // Notifications are not applicable for API Product subscriptions (TODO: implement notifications for API Product subscriptions)
-                if (!isApiProduct) {
-                    final Map<String, Object> params = new NotificationParamsBuilder()
-                        .owner(owner)
-                        .api(genericApiModel)
-                        .plan(genericPlanEntity)
-                        .application(application)
-                        .build();
-                    notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_PAUSED, referenceId, params);
-                    notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_PAUSED, application.getId(), params);
+                if (isApiProduct) {
+                    triggerSubscriptionNotificationsForApiProduct(
+                        executionContext,
+                        referenceId,
+                        application.getId(),
+                        application,
+                        genericPlanEntity,
+                        convert(subscription),
+                        Optional.empty(),
+                        false,
+                        ApiHook.SUBSCRIPTION_PAUSED
+                    );
+                } else if (owner != null) {
+                    triggerSubscriptionNotificationsForApi(
+                        executionContext,
+                        referenceId,
+                        application.getId(),
+                        owner,
+                        genericApiModel,
+                        genericPlanEntity,
+                        application,
+                        null,
+                        null,
+                        ApiHook.SUBSCRIPTION_PAUSED
+                    );
                 }
                 createAudit(
                     executionContext,
@@ -1473,16 +1670,31 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, referenceId);
                 }
                 final PrimaryOwnerEntity owner = application.getPrimaryOwner();
-                // Notifications are not applicable for API Product subscriptions (TODO: implement notifications for API Product subscriptions)
-                if (!isApiProduct) {
-                    final Map<String, Object> params = new NotificationParamsBuilder()
-                        .owner(owner)
-                        .api(genericApiModel)
-                        .plan(genericPlanEntity)
-                        .application(application)
-                        .build();
-                    notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_RESUMED, referenceId, params);
-                    notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_RESUMED, application.getId(), params);
+                if (isApiProduct) {
+                    triggerSubscriptionNotificationsForApiProduct(
+                        executionContext,
+                        referenceId,
+                        application.getId(),
+                        application,
+                        genericPlanEntity,
+                        convert(subscription),
+                        Optional.empty(),
+                        false,
+                        ApiHook.SUBSCRIPTION_RESUMED
+                    );
+                } else if (owner != null) {
+                    triggerSubscriptionNotificationsForApi(
+                        executionContext,
+                        referenceId,
+                        application.getId(),
+                        owner,
+                        genericApiModel,
+                        genericPlanEntity,
+                        application,
+                        null,
+                        null,
+                        ApiHook.SUBSCRIPTION_RESUMED
+                    );
                 }
                 createAudit(
                     executionContext,
@@ -1759,6 +1971,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             builder.referenceIds(query.getApis());
             builder.referenceType(SubscriptionReferenceType.API);
             builder.apis(query.getApis());
+        } else if (query.getApiProducts() != null && !query.getApiProducts().isEmpty()) {
+            builder.referenceIds(query.getApiProducts());
+            builder.referenceType(SubscriptionReferenceType.API_PRODUCT);
         }
 
         if (query.getStatuses() != null) {
@@ -1847,17 +2062,31 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             SubscriptionEntity subscriptionEntity = convert(subscription);
 
-            // Notifications are not applicable for API Product subscriptions (TODO: implement notifications for API Product subscriptions)
-            if (!isApiProduct) {
-                final Map<String, Object> params = new NotificationParamsBuilder()
-                    .owner(owner)
-                    .application(application)
-                    .api(genericApiModel)
-                    .plan(subscriptionGenericPlanEntity)
-                    .subscription(subscriptionEntity)
-                    .build();
-                notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_TRANSFERRED, referenceId, params);
-                notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_TRANSFERRED, application.getId(), params);
+            if (isApiProduct) {
+                triggerSubscriptionNotificationsForApiProduct(
+                    executionContext,
+                    referenceId,
+                    application.getId(),
+                    application,
+                    subscriptionGenericPlanEntity,
+                    subscriptionEntity,
+                    Optional.empty(),
+                    false,
+                    ApiHook.SUBSCRIPTION_TRANSFERRED
+                );
+            } else if (owner != null) {
+                triggerSubscriptionNotificationsForApi(
+                    executionContext,
+                    referenceId,
+                    application.getId(),
+                    owner,
+                    genericApiModel,
+                    subscriptionGenericPlanEntity,
+                    application,
+                    subscriptionEntity,
+                    null,
+                    ApiHook.SUBSCRIPTION_TRANSFERRED
+                );
             }
             return subscriptionEntity;
         } catch (TechnicalException ex) {

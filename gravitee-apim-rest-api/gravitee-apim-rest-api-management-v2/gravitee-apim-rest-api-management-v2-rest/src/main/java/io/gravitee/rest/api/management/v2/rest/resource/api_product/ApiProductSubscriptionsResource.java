@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
 import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
+import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.SearchSubscriptionsUseCase;
 import io.gravitee.common.data.domain.Page;
@@ -82,6 +83,9 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
 
     @Inject
     private CreateSubscriptionUseCase createSubscriptionUseCase;
+
+    @Inject
+    private AcceptSubscriptionUseCase acceptSubscriptionUseCase;
 
     @Inject
     private SearchSubscriptionsUseCase searchSubscriptionsUseCase;
@@ -228,12 +232,34 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
             .build();
 
         CreateSubscriptionUseCase.Output output = createSubscriptionUseCase.execute(input);
-        Subscription subscription = subscriptionMapper.map(output.subscription());
+        io.gravitee.apim.core.subscription.model.SubscriptionEntity createdSubscription = output.subscription();
+        Subscription subscription = subscriptionMapper.map(createdSubscription);
         subscription.setApi(null);
         subscription.setApiProduct(new BaseApiProduct().id(apiProductId));
 
-        log.debug("Created subscription {} for API Product {}", output.subscription().getId(), apiProductId);
-        return Response.created(this.getLocationHeader(output.subscription().getId())).entity(subscription).build();
+        if (createdSubscription.getStatus() == io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.PENDING) {
+            var result = acceptSubscriptionUseCase.execute(
+                AcceptSubscriptionUseCase.Input.builder()
+                    .referenceId(apiProductId)
+                    .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                    .subscriptionId(createdSubscription.getId())
+                    .auditInfo(getAuditInfo())
+                    .customKey(getCustomApiKey(createSubscription))
+                    .build()
+            );
+            subscription = subscriptionMapper.map(result.subscription());
+            subscription.setApi(null);
+            subscription.setApiProduct(new BaseApiProduct().id(apiProductId));
+        }
+
+        log.debug("Created subscription {} for API Product {}", createdSubscription.getId(), apiProductId);
+        return Response.created(this.getLocationHeader(createdSubscription.getId())).entity(subscription).build();
+    }
+
+    private String getCustomApiKey(CreateSubscription createSubscription) {
+        return (createSubscription.getCustomApiKey() != null && !createSubscription.getCustomApiKey().isEmpty())
+            ? createSubscription.getCustomApiKey()
+            : null;
     }
 
     @Path("/{subscriptionId}")

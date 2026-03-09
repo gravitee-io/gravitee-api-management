@@ -39,6 +39,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiKeyAuditEvent;
 import io.gravitee.apim.core.notification.model.hook.ApiKeyRevokedApiHookContext;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
@@ -249,8 +250,8 @@ class RevokeApplicationApiKeyUseCaseTest {
 
         // Then
         assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
-            new ApiKeyRevokedApiHookContext(API_1, APPLICATION_ID, PLAN_1, apiKey.getKey()),
-            new ApiKeyRevokedApiHookContext(API_2, APPLICATION_ID, PLAN_2, apiKey.getKey())
+            new ApiKeyRevokedApiHookContext(SubscriptionReferenceType.API, API_1, APPLICATION_ID, PLAN_1, apiKey.getKey()),
+            new ApiKeyRevokedApiHookContext(SubscriptionReferenceType.API, API_2, APPLICATION_ID, PLAN_2, apiKey.getKey())
         );
     }
 
@@ -274,6 +275,7 @@ class RevokeApplicationApiKeyUseCaseTest {
                 .toBuilder()
                 .id(SUBSCRIPTION_1)
                 .apiId(API_1)
+                .referenceId(API_1)
                 .applicationId(APPLICATION_ID)
                 .planId(PLAN_1)
                 .build(),
@@ -281,6 +283,7 @@ class RevokeApplicationApiKeyUseCaseTest {
                 .toBuilder()
                 .id(SUBSCRIPTION_2)
                 .apiId(API_2)
+                .referenceId(API_2)
                 .applicationId(APPLICATION_ID)
                 .planId(PLAN_2)
                 .build()

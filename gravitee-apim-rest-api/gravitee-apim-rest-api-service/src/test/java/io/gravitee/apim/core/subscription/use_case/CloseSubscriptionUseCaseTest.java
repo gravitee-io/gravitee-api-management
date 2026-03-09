@@ -321,10 +321,12 @@ class CloseSubscriptionUseCaseTest {
 
         // Then
         assertThat(triggerNotificationService.getApiNotifications()).containsExactly(
-            new SubscriptionClosedApiHookContext(api.getId(), APPLICATION_ID, "plan-id")
+            new SubscriptionClosedApiHookContext(SubscriptionReferenceType.API, api.getId(), APPLICATION_ID, "plan-id")
         );
         assertThat(triggerNotificationService.getApplicationNotifications()).containsExactly(
-            new ApplicationNotification(new SubscriptionClosedApplicationHookContext(APPLICATION_ID, api.getId(), "plan-id"))
+            new ApplicationNotification(
+                new SubscriptionClosedApplicationHookContext(APPLICATION_ID, SubscriptionReferenceType.API, api.getId(), "plan-id")
+            )
         );
     }
 

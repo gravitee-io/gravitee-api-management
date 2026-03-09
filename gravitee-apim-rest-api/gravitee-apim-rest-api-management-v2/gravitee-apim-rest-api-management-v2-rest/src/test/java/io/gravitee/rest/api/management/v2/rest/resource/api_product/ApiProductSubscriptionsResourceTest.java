@@ -26,6 +26,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -35,6 +36,7 @@ import assertions.MAPIAssertions;
 import fixtures.PlanFixtures;
 import fixtures.SubscriptionFixtures;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
+import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
@@ -72,6 +74,9 @@ class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
     private CreateSubscriptionUseCase createSubscriptionUseCase;
 
     @Inject
+    private AcceptSubscriptionUseCase acceptSubscriptionUseCase;
+
+    @Inject
     private SubscriptionService subscriptionService;
 
     @Inject
@@ -104,7 +109,7 @@ class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(createSubscriptionUseCase, subscriptionService, apiKeyService, planSearchService);
+        reset(createSubscriptionUseCase, acceptSubscriptionUseCase, subscriptionService, apiKeyService, planSearchService);
     }
 
     @Nested
@@ -418,6 +423,19 @@ class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
                     .updatedAt(ZonedDateTime.now())
                     .build();
             when(createSubscriptionUseCase.execute(any())).thenReturn(new CreateSubscriptionUseCase.Output(created));
+            doReturn(
+                new AcceptSubscriptionUseCase.Output(
+                    fixtures.core.model.SubscriptionFixtures.aSubscription()
+                        .toBuilder()
+                        .id("new-sub-id")
+                        .planId("plan-1")
+                        .applicationId("app-1")
+                        .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
+                        .build()
+                )
+            )
+                .when(acceptSubscriptionUseCase)
+                .execute(any());
 
             var createPayload = new io.gravitee.rest.api.management.v2.rest.model.CreateSubscription();
             createPayload.setPlanId("plan-1");
@@ -441,6 +459,7 @@ class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
                 soft.assertThat(captor.getValue().planId()).isEqualTo("plan-1");
                 soft.assertThat(captor.getValue().applicationId()).isEqualTo("app-1");
             });
+            verify(acceptSubscriptionUseCase).execute(any());
         }
 
         @Test

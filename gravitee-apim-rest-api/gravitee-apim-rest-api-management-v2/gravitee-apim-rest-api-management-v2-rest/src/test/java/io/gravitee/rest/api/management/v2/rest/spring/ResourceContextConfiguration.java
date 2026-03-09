@@ -73,6 +73,7 @@ import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.api_product.use_case.CreateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeployApiProductUseCase;
+import io.gravitee.apim.core.api_product.use_case.GetApiProductApisUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.SearchApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.UpdateApiProductUseCase;
@@ -119,6 +120,7 @@ import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
+import io.gravitee.apim.core.notification.crud_service.NotificationConfigCrudService;
 import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.open_api.OpenApiValidator;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
@@ -468,6 +470,11 @@ public class ResourceContextConfiguration {
     @Bean
     public CreateApiDomainService createApiDomainService() {
         return mock(CreateApiDomainService.class);
+    }
+
+    @Bean
+    public NotificationConfigCrudService notificationConfigCrudService() {
+        return mock(NotificationConfigCrudService.class);
     }
 
     @Bean
@@ -923,6 +930,12 @@ public class ResourceContextConfiguration {
     @Primary
     public CreateApiProductUseCase createApiProductUseCase() {
         return mock(CreateApiProductUseCase.class);
+    }
+
+    @Bean
+    @Primary
+    public GetApiProductApisUseCase getApiProductApisUseCase() {
+        return mock(GetApiProductApisUseCase.class);
     }
 
     @Bean

@@ -33,6 +33,14 @@ import java.util.Set;
  */
 public interface NotifierService {
     void trigger(ExecutionContext executionContext, final ApiHook hook, final String apiId, Map<String, Object> params);
+
+    void trigger(
+        ExecutionContext executionContext,
+        ApiHook hook,
+        NotificationReferenceType referenceType,
+        String referenceId,
+        Map<String, Object> params
+    );
     void trigger(ExecutionContext executionContext, final ApplicationHook hook, final String applicationId, Map<String, Object> params);
     void trigger(
         ExecutionContext executionContext,

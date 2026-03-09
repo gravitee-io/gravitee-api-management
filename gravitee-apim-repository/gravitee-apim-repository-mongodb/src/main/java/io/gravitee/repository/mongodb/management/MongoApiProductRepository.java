@@ -17,13 +17,18 @@ package io.gravitee.repository.mongodb.management;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiProductsRepository;
+import io.gravitee.repository.management.api.search.ApiProductCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.mongodb.management.internal.apiproducts.ApiProductsMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiProductMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -159,5 +164,11 @@ public class MongoApiProductRepository implements ApiProductsRepository {
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find api products by api ids", ex);
         }
+    }
+
+    @Override
+    public Page<String> searchIds(List<ApiProductCriteria> apiProductCriteriaList, Pageable pageable, Sortable sortable)
+        throws TechnicalException {
+        return internalApiProductRepo.searchIds(apiProductCriteriaList, pageable, sortable);
     }
 }

@@ -24,6 +24,7 @@ public enum NotificationReferenceType {
     @Deprecated
     PORTAL,
     API,
+    API_PRODUCT,
     APPLICATION,
     ENVIRONMENT,
 }

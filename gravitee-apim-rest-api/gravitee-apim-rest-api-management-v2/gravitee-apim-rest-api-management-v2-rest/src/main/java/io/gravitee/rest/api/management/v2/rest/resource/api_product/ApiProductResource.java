@@ -133,6 +133,11 @@ public class ApiProductResource extends AbstractResource {
         return Response.ok(output.apiProduct()).build();
     }
 
+    @Path("/apis")
+    public ApiProductApisResource getApiProductApisResource() {
+        return resourceContext.getResource(ApiProductApisResource.class);
+    }
+
     @Path("/members")
     public ApiProductMembersResource getApiProductMembersResource() {
         return resourceContext.getResource(ApiProductMembersResource.class);
@@ -146,5 +151,10 @@ public class ApiProductResource extends AbstractResource {
     @Path("/subscriptions")
     public ApiProductSubscriptionsResource getApiProductSubscriptionsResource() {
         return resourceContext.getResource(ApiProductSubscriptionsResource.class);
+    }
+
+    @Path("/notificationSettings")
+    public ApiProductNotificationSettingsResource getApiProductNotificationSettingsResource() {
+        return resourceContext.getResource(ApiProductNotificationSettingsResource.class);
     }
 }
