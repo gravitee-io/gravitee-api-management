@@ -14,32 +14,21 @@
  * limitations under the License.
  */
 import { CommonModule, DecimalPipe } from '@angular/common';
-import { Component, input, output } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { Sort, MatSortModule, SortDirection } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { BadgeComponent } from '../../../components/badge/badge.component';
+import { DataTableComponent } from '../../../components/data-table/data-table.component';
 import { ConsumerGroupSummary } from '../../../models/kafka-cluster.model';
 import { consumerGroupStateColor } from '../consumer-group-state';
 
 @Component({
   selector: 'gke-consumer-groups',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatTableModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatPaginatorModule,
-    MatProgressBarModule,
-    DecimalPipe,
-    BadgeComponent,
-  ],
+  imports: [CommonModule, MatCardModule, MatTableModule, MatSortModule, MatTooltipModule, DecimalPipe, BadgeComponent, DataTableComponent],
   templateUrl: './consumer-groups.component.html',
   styleUrls: ['./consumer-groups.component.scss'],
 })
@@ -58,12 +47,38 @@ export class ConsumerGroupsComponent {
 
   stateColor = consumerGroupStateColor;
 
-  onFilterInput(event: Event) {
-    const value = (event.target as HTMLInputElement).value;
-    this.filterChange.emit(value);
-  }
+  sortActive = signal('');
+  sortDirection = signal<SortDirection>('');
 
-  onPageEvent(event: PageEvent) {
-    this.pageChange.emit({ page: event.pageIndex, pageSize: event.pageSize });
+  sortedConsumerGroups = computed(() => {
+    const data = this.consumerGroups();
+    const active = this.sortActive();
+    const direction = this.sortDirection();
+    if (!active || direction === '') return data;
+
+    const factor = direction === 'asc' ? 1 : -1;
+    return [...data].sort((a, b) => {
+      switch (active) {
+        case 'groupId':
+          return a.groupId.localeCompare(b.groupId) * factor;
+        case 'state':
+          return (a.state ?? '').localeCompare(b.state ?? '') * factor;
+        case 'membersCount':
+          return (a.membersCount - b.membersCount) * factor;
+        case 'numTopics':
+          return (a.numTopics - b.numTopics) * factor;
+        case 'coordinator':
+          return ((a.coordinator?.id ?? 0) - (b.coordinator?.id ?? 0)) * factor;
+        case 'totalLag':
+          return (a.totalLag - b.totalLag) * factor;
+        default:
+          return 0;
+      }
+    });
+  });
+
+  onSortChange(sort: Sort) {
+    this.sortActive.set(sort.active);
+    this.sortDirection.set(sort.direction);
   }
 }

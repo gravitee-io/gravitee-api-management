@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 import { CommonModule, DecimalPipe } from '@angular/common';
-import { Component, input, output } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { Sort, MatSortModule, SortDirection } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { BadgeComponent } from '../../../components/badge/badge.component';
+import { DataTableComponent } from '../../../components/data-table/data-table.component';
 import { KafkaTopic } from '../../../models/kafka-cluster.model';
 import { FileSizePipe } from '../../../pipes/file-size.pipe';
 
@@ -33,13 +32,12 @@ import { FileSizePipe } from '../../../pipes/file-size.pipe';
     CommonModule,
     MatCardModule,
     MatTableModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatPaginatorModule,
-    MatProgressBarModule,
+    MatSortModule,
+    MatTooltipModule,
     FileSizePipe,
     DecimalPipe,
     BadgeComponent,
+    DataTableComponent,
   ],
   templateUrl: './topics.component.html',
   styleUrls: ['./topics.component.scss'],
@@ -57,12 +55,38 @@ export class TopicsComponent {
 
   displayedColumns = ['name', 'partitionCount', 'replicationFactor', 'underReplicatedCount', 'messageCount', 'size'];
 
-  onFilterInput(event: Event) {
-    const value = (event.target as HTMLInputElement).value;
-    this.filterChange.emit(value);
-  }
+  sortActive = signal('');
+  sortDirection = signal<SortDirection>('');
 
-  onPageEvent(event: PageEvent) {
-    this.pageChange.emit({ page: event.pageIndex, pageSize: event.pageSize });
+  sortedTopics = computed(() => {
+    const data = this.topics();
+    const active = this.sortActive();
+    const direction = this.sortDirection();
+    if (!active || direction === '') return data;
+
+    const factor = direction === 'asc' ? 1 : -1;
+    return [...data].sort((a, b) => {
+      switch (active) {
+        case 'name':
+          return a.name.localeCompare(b.name) * factor;
+        case 'partitionCount':
+          return (a.partitionCount - b.partitionCount) * factor;
+        case 'replicationFactor':
+          return (a.replicationFactor - b.replicationFactor) * factor;
+        case 'underReplicatedCount':
+          return ((a.underReplicatedCount ?? 0) - (b.underReplicatedCount ?? 0)) * factor;
+        case 'messageCount':
+          return ((a.messageCount ?? 0) - (b.messageCount ?? 0)) * factor;
+        case 'size':
+          return ((a.size ?? 0) - (b.size ?? 0)) * factor;
+        default:
+          return 0;
+      }
+    });
+  });
+
+  onSortChange(sort: Sort) {
+    this.sortActive.set(sort.active);
+    this.sortDirection.set(sort.direction);
   }
 }

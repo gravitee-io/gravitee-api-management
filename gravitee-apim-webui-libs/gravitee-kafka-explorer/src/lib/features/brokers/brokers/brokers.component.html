@@ -53,52 +53,61 @@
       <mat-card-title>Broker Nodes</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <table mat-table [dataSource]="nodes()">
-        <ng-container matColumnDef="id">
-          <th mat-header-cell *matHeaderCellDef>Node ID</th>
-          <td mat-cell *matCellDef="let node">
-            <span class="brokers__node-id">
-              {{ node.id }}
-              @if (node.id === controllerId()) {
-                <gke-badge class="brokers__controller-badge" color="primary">Controller</gke-badge>
-              }
-            </span>
-          </td>
-        </ng-container>
+      <gke-data-table [empty]="nodes().length === 0">
+        <table
+          mat-table
+          [dataSource]="sortedNodes()"
+          matSort
+          [matSortActive]="sortActive()"
+          [matSortDirection]="sortDirection()"
+          (matSortChange)="onSortChange($event)"
+        >
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Node ID</th>
+            <td mat-cell *matCellDef="let node">
+              <span class="brokers__node-id">
+                {{ node.id }}
+                @if (node.id === controllerId()) {
+                  <gke-badge class="brokers__controller-badge" color="primary">Controller</gke-badge>
+                }
+              </span>
+            </td>
+          </ng-container>
 
-        <ng-container matColumnDef="host">
-          <th mat-header-cell *matHeaderCellDef>Host</th>
-          <td mat-cell *matCellDef="let node">{{ node.host }}</td>
-        </ng-container>
+          <ng-container matColumnDef="host">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Host</th>
+            <td mat-cell *matCellDef="let node">{{ node.host }}</td>
+          </ng-container>
 
-        <ng-container matColumnDef="port">
-          <th mat-header-cell *matHeaderCellDef>Port</th>
-          <td mat-cell *matCellDef="let node">{{ node.port }}</td>
-        </ng-container>
+          <ng-container matColumnDef="port">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Port</th>
+            <td mat-cell *matCellDef="let node">{{ node.port }}</td>
+          </ng-container>
 
-        <ng-container matColumnDef="rack">
-          <th mat-header-cell *matHeaderCellDef>Rack</th>
-          <td mat-cell *matCellDef="let node">{{ node.rack || '-' }}</td>
-        </ng-container>
+          <ng-container matColumnDef="rack">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Rack</th>
+            <td mat-cell *matCellDef="let node">{{ node.rack || '-' }}</td>
+          </ng-container>
 
-        <ng-container matColumnDef="leaderPartitions">
-          <th mat-header-cell *matHeaderCellDef>Leader Partitions</th>
-          <td mat-cell *matCellDef="let node">{{ node.leaderPartitions }}</td>
-        </ng-container>
+          <ng-container matColumnDef="leaderPartitions">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Leader Partitions</th>
+            <td mat-cell *matCellDef="let node">{{ node.leaderPartitions }}</td>
+          </ng-container>
 
-        <ng-container matColumnDef="replicaPartitions">
-          <th mat-header-cell *matHeaderCellDef>Replica Partitions</th>
-          <td mat-cell *matCellDef="let node">{{ node.replicaPartitions }}</td>
-        </ng-container>
+          <ng-container matColumnDef="replicaPartitions">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Replica Partitions</th>
+            <td mat-cell *matCellDef="let node">{{ node.replicaPartitions }}</td>
+          </ng-container>
 
-        <ng-container matColumnDef="logDirSize">
-          <th mat-header-cell *matHeaderCellDef>Disk Usage</th>
-          <td mat-cell *matCellDef="let node">{{ node.logDirSize | gkeFileSize }}</td>
-        </ng-container>
+          <ng-container matColumnDef="logDirSize">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Disk Usage</th>
+            <td mat-cell *matCellDef="let node">{{ node.logDirSize | gkeFileSize }}</td>
+          </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns" class="brokers__row" (click)="brokerSelect.emit(row.id)"></tr>
-      </table>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns" class="brokers__row" (click)="brokerSelect.emit(row.id)"></tr>
+        </table>
+      </gke-data-table>
     </mat-card-content>
   </mat-card>
 </div>
