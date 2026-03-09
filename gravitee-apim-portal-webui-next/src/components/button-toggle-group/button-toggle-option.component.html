@@ -32,7 +32,7 @@
     limitations under the License.
 
 -->
-<button class="button-toggle-option" [class.button-toggle-option--active]="isActive" mat-flat-button (click)="select()">
+<button class="button-toggle-option" [class.button-toggle-option--active]="isActive()" mat-flat-button (click)="select()">
   <span class="material-icons">{{ icon() }}</span>
   {{ label() }}
 </button>

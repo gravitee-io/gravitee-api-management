@@ -28,7 +28,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 
 import { ButtonToggleGroupComponent } from './button-toggle-group.component';
@@ -47,9 +47,7 @@ export class ButtonToggleOptionComponent {
 
   protected readonly group = inject(ButtonToggleGroupComponent);
 
-  get isActive(): boolean {
-    return this.group.value() === this.value();
-  }
+  readonly isActive = computed(() => this.group.value() === this.value());
 
   select(): void {
     this.group.value.set(this.value());

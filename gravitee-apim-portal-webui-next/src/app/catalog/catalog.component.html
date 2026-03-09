@@ -65,7 +65,7 @@
               <td mat-cell *matCellDef="let api">
                 @if (api.labels) {
                   @for (label of api.labels; track label) {
-                    <mat-chip class="label-chip"># {{ label }}</mat-chip>
+                    <mat-chip># {{ label }}</mat-chip>
                   }
                 }
               </td>
