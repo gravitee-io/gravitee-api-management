@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { EMPTY, Subject } from 'rxjs';
+import { Component, DestroyRef, inject } from '@angular/core';
+import { EMPTY } from 'rxjs';
 import { MatTableDataSource } from '@angular/material/table';
-import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, switchMap, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { OrgSettingAddTenantComponent, OrgSettingAddTenantDialogData } from './org-settings-add-tenant.component';
 
 import { TenantService } from '../../../services-ngx/tenant.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { Tenant } from '../../../entities/tenant/tenant';
+import { Tenant, UpdateTenantEntity } from '../../../entities/tenant/tenant';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
@@ -35,31 +36,30 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
   styleUrls: ['./org-settings-tenants.component.scss'],
   standalone: false,
 })
-export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
-  displayedColumns: string[] = ['id', 'name', 'description', 'actions'];
+export class OrgSettingsTenantsComponent {
+  private readonly tenantService = inject(TenantService);
+  private readonly matDialog = inject(MatDialog);
+  private readonly snackBarService = inject(SnackBarService);
+  private readonly destroyRef = inject(DestroyRef);
+  private tenants: Tenant[] = [];
+
+  displayedColumns: string[] = ['key', 'name', 'description', 'actions'];
   tenantsDataSource: MatTableDataSource<Tenant> = new MatTableDataSource([]);
   tenantsTableUnpaginatedLength = 0;
 
-  private unsubscribe$ = new Subject<boolean>();
-  private tenants: Tenant[] = [];
-
-  constructor(
-    private readonly tenantService: TenantService,
-    private readonly matDialog: MatDialog,
-    private readonly snackBarService: SnackBarService,
-  ) {}
-
-  ngOnInit(): void {
-    this.tenantService.list().subscribe(tenants => {
-      this.tenants = tenants;
-      this.tenantsDataSource.data = tenants;
-      this.tenantsTableUnpaginatedLength = tenants.length;
-    });
+  constructor() {
+    this.loadTenants();
   }
 
-  ngOnDestroy() {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.unsubscribe();
+  private loadTenants(): void {
+    this.tenantService
+      .list()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(tenants => {
+        this.tenants = tenants;
+        this.tenantsDataSource.data = tenants;
+        this.tenantsTableUnpaginatedLength = tenants.length;
+      });
   }
 
   onAddTenantClicked(): void {
@@ -81,9 +81,9 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(() => this.ngOnInit());
+      .subscribe(() => this.loadTenants());
   }
 
   onDeleteTenantClicked(tenant: Tenant) {
@@ -101,11 +101,11 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter(confirm => confirm === true),
-        switchMap(() => this.tenantService.delete(tenant.id)),
+        switchMap(() => this.tenantService.delete(tenant.key)),
         tap(() => this.snackBarService.success(`Tenant successfully deleted!`)),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(() => this.ngOnInit());
+      .subscribe(() => this.loadTenants());
   }
 
   onEditTenantClicked(tenant: Tenant) {
@@ -121,7 +121,7 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter(result => !!result),
-        switchMap(updatedTenant => this.tenantService.update([updatedTenant])),
+        switchMap(tenant => this.tenantService.update([this.toUpdateTenantEntity(tenant)])),
         tap(() => {
           this.snackBarService.success('Tenant successfully updated!');
         }),
@@ -129,14 +129,22 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(() => this.ngOnInit());
+      .subscribe(() => this.loadTenants());
   }
 
   onFiltersChanged(filters: GioTableWrapperFilters) {
     const filtered = gioTableFilterCollection(this.tenants, filters);
     this.tenantsDataSource.data = filtered.filteredCollection;
     this.tenantsTableUnpaginatedLength = filtered.unpaginatedLength;
+  }
+
+  private toUpdateTenantEntity(tenant: Tenant): UpdateTenantEntity {
+    return {
+      name: tenant.name,
+      key: tenant.key,
+      description: tenant.description,
+    };
   }
 }
