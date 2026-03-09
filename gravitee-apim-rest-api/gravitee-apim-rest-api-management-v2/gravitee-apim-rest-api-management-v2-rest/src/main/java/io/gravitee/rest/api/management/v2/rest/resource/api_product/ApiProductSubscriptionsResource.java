@@ -29,6 +29,7 @@ import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
+import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -226,6 +227,7 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
             .customApiKey(createSubscription.getCustomApiKey())
             .configuration(coreConfig)
             .metadata(createSubscription.getMetadata())
+            .apiKeyMode(getApiKeyMode(createSubscription))
             .generalConditionsAccepted(null)
             .generalConditionsContentRevision(null)
             .auditInfo(getAuditInfo())
@@ -310,5 +312,9 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
 
     private Error subscriptionInvalid(String message) {
         return new Error().httpStatus(Response.Status.BAD_REQUEST.getStatusCode()).message(message).technicalCode("subscription.invalid");
+    }
+
+    private ApiKeyMode getApiKeyMode(CreateSubscription createSubscription) {
+        return createSubscription.getApiKeyMode() != null ? ApiKeyMode.valueOf(createSubscription.getApiKeyMode().name()) : null;
     }
 }

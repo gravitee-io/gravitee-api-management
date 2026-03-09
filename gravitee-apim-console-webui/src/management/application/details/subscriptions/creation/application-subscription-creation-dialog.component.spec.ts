@@ -419,6 +419,32 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
         generalConditions: null,
       });
 
+      it('should display Shared API Key choice and create subscription when app has existing API Key subscription', fakeAsync(async () => {
+        await init(APP, {
+          plan: {
+            security: {
+              ...DEFAULT_ENV_SETTINGS.plan.security,
+              sharedApiKey: { enabled: true },
+            },
+          },
+        });
+
+        await dialogHarness.searchApi(API_PRODUCT_NAME);
+        tick(100);
+        expectApiSearchPost(API_PRODUCT_NAME, [], [API_PRODUCT]);
+
+        await dialogHarness.selectApi(API_PRODUCT_NAME);
+        expectSubscribableApiProductPlansGet(API_PRODUCT_ID, [{ ...API_PRODUCT_PLAN, apiId: undefined, apiProductId: API_PRODUCT_ID }]);
+
+        await dialogHarness.selectPlan(API_PRODUCT_PLAN.name);
+        await dialogHarness.selectApiKeyMode('Shared API Key');
+        await dialogHarness.createSubscription();
+
+        const subscription = fakeNewSubscriptionEntity({ apiKeyMode: ApiKeyMode.SHARED });
+        expectApiSubscriptionsPostRequest(subscription, API_PRODUCT_PLAN.id, ApiKeyMode.SHARED);
+        expect(routerNavigateSpy).toHaveBeenCalledWith(['.', expect.anything()], expect.anything());
+      }));
+
       it('should create a subscription for an API Product', fakeAsync(async () => {
         await init();
 

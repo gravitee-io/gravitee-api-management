@@ -39,6 +39,7 @@ import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.management.v2.rest.model.ApiKeyMode;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.VerifySubscription;
 import io.gravitee.rest.api.management.v2.rest.model.VerifySubscriptionResponse;
@@ -63,6 +64,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 
 class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
@@ -458,8 +461,40 @@ class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
                 soft.assertThat(captor.getValue().referenceType()).isEqualTo(SubscriptionReferenceType.API_PRODUCT);
                 soft.assertThat(captor.getValue().planId()).isEqualTo("plan-1");
                 soft.assertThat(captor.getValue().applicationId()).isEqualTo("app-1");
+                soft.assertThat(captor.getValue().apiKeyMode()).isNull();
             });
             verify(acceptSubscriptionUseCase).execute(any());
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = ApiKeyMode.class, names = { "SHARED", "EXCLUSIVE" })
+        void should_create_subscription_with_api_key_mode(ApiKeyMode apiKeyMode) {
+            io.gravitee.apim.core.subscription.model.SubscriptionEntity created =
+                io.gravitee.apim.core.subscription.model.SubscriptionEntity.builder()
+                    .id("new-sub-id")
+                    .apiId(null)
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                    .planId("plan-1")
+                    .applicationId("app-1")
+                    .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
+                    .createdAt(ZonedDateTime.now())
+                    .updatedAt(ZonedDateTime.now())
+                    .build();
+            when(createSubscriptionUseCase.execute(any())).thenReturn(new CreateSubscriptionUseCase.Output(created));
+
+            var createPayload = new io.gravitee.rest.api.management.v2.rest.model.CreateSubscription();
+            createPayload.setPlanId("plan-1");
+            createPayload.setApplicationId("app-1");
+            createPayload.setApiKeyMode(apiKeyMode);
+
+            Response response = rootTarget().request().post(json(createPayload));
+
+            MAPIAssertions.assertThat(response).hasStatus(CREATED_201);
+
+            var captor = ArgumentCaptor.forClass(CreateSubscriptionUseCase.Input.class);
+            verify(createSubscriptionUseCase).execute(captor.capture());
+            assertThat(captor.getValue().apiKeyMode()).isEqualTo(io.gravitee.rest.api.model.ApiKeyMode.valueOf(apiKeyMode.name()));
         }
 
         @Test

@@ -2280,9 +2280,22 @@ components:
           type: object
           additionalProperties:
             type: string
+        apiKeyMode:
+          $ref: "#/components/schemas/ApiKeyMode"
       required:
         - applicationId
         - planId
+    ApiKeyMode:
+      type: string
+      description: |
+        The mode of an application regarding ApiKey plans.
+        * UNSPECIFIED: no selected mode yet
+        * EXCLUSIVE: an API Key is generated for each new subscription
+        * SHARED: the same API Key is reused for all subscriptions of the application
+      enum:
+        - UNSPECIFIED
+        - EXCLUSIVE
+        - SHARED
     UpdateSubscription:
       type: object
       description: Request to update a subscription

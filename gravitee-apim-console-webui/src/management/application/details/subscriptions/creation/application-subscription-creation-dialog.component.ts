@@ -224,6 +224,16 @@ export class ApplicationSubscriptionCreationDialogComponent {
       .subscribe();
   }
 
+  private subscriptionMatchesPlan(
+    subscription: SubscriptionPage | null | undefined,
+    { apiId, apiProductId }: { apiId?: string; apiProductId?: string },
+  ): boolean {
+    if (!subscription) return false;
+    if (apiId) return subscription.api === apiId;
+    if (apiProductId) return subscription.referenceType === 'API_PRODUCT' && subscription.referenceId === apiProductId;
+    return false;
+  }
+
   private onApiKeyPlanChange() {
     this.form.controls.selectedPlan.valueChanges
       .pipe(
@@ -234,8 +244,8 @@ export class ApplicationSubscriptionCreationDialogComponent {
             !this.isFederatedApi &&
               this.canUseSharedApiKeys &&
               this.application.api_key_mode === ApiKeyMode.UNSPECIFIED &&
-              plan.apiId != null &&
-              this.apiKeySubscriptions.some(subscription => subscription?.api !== plan.apiId),
+              (plan.apiId != null || plan.apiProductId != null) &&
+              this.apiKeySubscriptions.some(subscription => !this.subscriptionMatchesPlan(subscription, plan)),
           ),
         ),
         tap(shouldDisplayKeyModeChoice => {
