@@ -87,7 +87,9 @@
 
                     <div class="form__field">
                       <p class="m3-label-large" i18n="@@createApplicationClientId">Client ID</p>
-                      <p class="m3-body-small" i18n="@@createApplicationClientIdHint">The client_id of the application. This field is required to subscribe to certain types of API Plan (OAuth2, JWT)</p>
+                      <p class="m3-body-small" i18n="@@createApplicationClientIdHint">
+                        The client_id of the application. This field is required to subscribe to certain types of API Plan (OAuth2, JWT)
+                      </p>
                       <mat-form-field appearance="outline">
                         <input matInput formControlName="appClientId" aria-label="Client ID" />
                       </mat-form-field>
@@ -121,7 +123,9 @@
                   @if (requiresRedirectUris() && redirectUrisControl; as redirectUrisCtrl) {
                     <div class="form__field">
                       <p class="m3-label-large" i18n="@@applicationRedirectUris">Redirect URIs *</p>
-                      <p class="m3-body-small" i18n="@@applicationRedirectUrisHint">The URI where the authorization server sends OAuth responses.</p>
+                      <p class="m3-body-small" i18n="@@applicationRedirectUrisHint">
+                        The URI where the authorization server sends OAuth responses.
+                      </p>
                       <mat-form-field appearance="outline">
                         <mat-chip-grid #redirectURIChipGrid aria-label="Redirect URIs" [formControl]="redirectUrisCtrl">
                           @for (uri of redirectUrisCtrl.value; track uri) {
@@ -146,7 +150,9 @@
 
                   <div class="form__field">
                     <p class="m3-label-large" i18n="@@createApplicationClientCertificate">Client Certificate (PEM Only)</p>
-                    <p class="m3-body-small" i18n="@@createApplicationClientCertificateHint">The client_certificate of the application. This field is required to subscribe to certain mTLS plans.</p>
+                    <p class="m3-body-small" i18n="@@createApplicationClientCertificateHint">
+                      The client_certificate of the application. This field is required to subscribe to certain mTLS plans.
+                    </p>
                     <mat-form-field appearance="outline" class="form__field--certificate">
                       <textarea matInput formControlName="clientCertificate" rows="6" aria-label="Client Certificate"></textarea>
                     </mat-form-field>
