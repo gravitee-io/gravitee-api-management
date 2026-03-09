@@ -43,35 +43,52 @@
         <mat-card-title>Partitions</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <table mat-table [dataSource]="detail.partitions">
-          <ng-container matColumnDef="id">
-            <th mat-header-cell *matHeaderCellDef>ID</th>
-            <td mat-cell *matCellDef="let p">{{ p.id }}</td>
-          </ng-container>
+        <gke-data-table
+          [empty]="detail.partitions.length === 0"
+          emptyMessage="No partitions found"
+          [paginated]="true"
+          [totalElements]="partitionSortedData().length"
+          [page]="partitionPage()"
+          [pageSize]="partitionPageSize()"
+          (pageChange)="partitionPage.set($event.page); partitionPageSize.set($event.pageSize)"
+        >
+          <table
+            mat-table
+            [dataSource]="partitionPaginatedData()"
+            matSort
+            [matSortActive]="partitionSortActive()"
+            [matSortDirection]="partitionSortDirection()"
+            (matSortChange)="onPartitionSortChange($event)"
+          >
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
+              <td mat-cell *matCellDef="let p">{{ p.id }}</td>
+            </ng-container>
 
-          <ng-container matColumnDef="leader">
-            <th mat-header-cell *matHeaderCellDef>Leader</th>
-            <td mat-cell *matCellDef="let p">{{ p.leader?.host }}:{{ p.leader?.port }}</td>
-          </ng-container>
+            <ng-container matColumnDef="leader">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Leader</th>
+              <td mat-cell *matCellDef="let p">{{ p.leader?.host }}:{{ p.leader?.port }}</td>
+            </ng-container>
 
-          <ng-container matColumnDef="replicas">
-            <th mat-header-cell *matHeaderCellDef>Replicas</th>
-            <td mat-cell *matCellDef="let p">{{ p.replicas?.length }}</td>
-          </ng-container>
+            <ng-container matColumnDef="replicas">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Replicas</th>
+              <td mat-cell *matCellDef="let p">{{ p.replicas?.length }}</td>
+            </ng-container>
 
-          <ng-container matColumnDef="isr">
-            <th mat-header-cell *matHeaderCellDef>ISR</th>
-            <td mat-cell *matCellDef="let p">{{ p.isr?.length }}</td>
-          </ng-container>
+            <ng-container matColumnDef="isr">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>ISR</th>
+              <td mat-cell *matCellDef="let p">{{ p.isr?.length }}</td>
+            </ng-container>
 
-          <ng-container matColumnDef="offline">
-            <th mat-header-cell *matHeaderCellDef>Offline</th>
-            <td mat-cell *matCellDef="let p">{{ p.offline?.length }}</td>
-          </ng-container>
+            <ng-container matColumnDef="offline">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Offline</th>
+              <td mat-cell *matCellDef="let p">{{ p.offline?.length }}</td>
+            </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="partitionColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: partitionColumns"></tr>
-        </table>
+            <tr mat-header-row *matHeaderRowDef="partitionColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: partitionColumns"></tr>
+          </table>
+        </gke-data-table>
       </mat-card-content>
     </mat-card>
 
@@ -80,35 +97,55 @@
         <mat-card-title>Configuration</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <table mat-table [dataSource]="detail.configs">
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Name</th>
-            <td mat-cell *matCellDef="let c">{{ c.name }}</td>
-          </ng-container>
+        <gke-data-table
+          [filterable]="true"
+          filterPlaceholder="Search configuration..."
+          [empty]="configsEmpty()"
+          emptyMessage="No configuration found"
+          (filterChange)="onConfigFilter($event)"
+          [paginated]="true"
+          [totalElements]="configSortedData().length"
+          [page]="configPage()"
+          [pageSize]="configPageSize()"
+          (pageChange)="configPage.set($event.page); configPageSize.set($event.pageSize)"
+        >
+          <table
+            mat-table
+            [dataSource]="configPaginatedData()"
+            matSort
+            [matSortActive]="configSortActive()"
+            [matSortDirection]="configSortDirection()"
+            (matSortChange)="onConfigSortChange($event)"
+          >
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+              <td mat-cell *matCellDef="let c">{{ c.name }}</td>
+            </ng-container>
 
-          <ng-container matColumnDef="value">
-            <th mat-header-cell *matHeaderCellDef>Value</th>
-            <td mat-cell *matCellDef="let c">{{ c.sensitive ? '******' : c.value }}</td>
-          </ng-container>
+            <ng-container matColumnDef="value">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Value</th>
+              <td mat-cell *matCellDef="let c">{{ c.sensitive ? '******' : c.value }}</td>
+            </ng-container>
 
-          <ng-container matColumnDef="source">
-            <th mat-header-cell *matHeaderCellDef>Source</th>
-            <td mat-cell *matCellDef="let c">{{ c.source }}</td>
-          </ng-container>
+            <ng-container matColumnDef="source">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Source</th>
+              <td mat-cell *matCellDef="let c">{{ c.source }}</td>
+            </ng-container>
 
-          <ng-container matColumnDef="readOnly">
-            <th mat-header-cell *matHeaderCellDef>Read Only</th>
-            <td mat-cell *matCellDef="let c">{{ c.readOnly ? 'Yes' : 'No' }}</td>
-          </ng-container>
+            <ng-container matColumnDef="readOnly">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Read Only</th>
+              <td mat-cell *matCellDef="let c">{{ c.readOnly ? 'Yes' : 'No' }}</td>
+            </ng-container>
 
-          <ng-container matColumnDef="sensitive">
-            <th mat-header-cell *matHeaderCellDef>Sensitive</th>
-            <td mat-cell *matCellDef="let c">{{ c.sensitive ? 'Yes' : 'No' }}</td>
-          </ng-container>
+            <ng-container matColumnDef="sensitive">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Sensitive</th>
+              <td mat-cell *matCellDef="let c">{{ c.sensitive ? 'Yes' : 'No' }}</td>
+            </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="configColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: configColumns"></tr>
-        </table>
+            <tr mat-header-row *matHeaderRowDef="configColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: configColumns"></tr>
+          </table>
+        </gke-data-table>
       </mat-card-content>
     </mat-card>
 
@@ -117,12 +154,25 @@
         <mat-card-title>Consumer Groups</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        @if (consumerGroups().length === 0) {
-          <p class="topic-detail__empty">No consumer groups found</p>
-        } @else {
-          <table mat-table [dataSource]="consumerGroups()">
+        <gke-data-table
+          [empty]="consumerGroups().length === 0"
+          emptyMessage="No consumer groups found"
+          [paginated]="true"
+          [totalElements]="cgSortedData().length"
+          [page]="cgPage()"
+          [pageSize]="cgPageSize()"
+          (pageChange)="cgPage.set($event.page); cgPageSize.set($event.pageSize)"
+        >
+          <table
+            mat-table
+            [dataSource]="cgPaginatedData()"
+            matSort
+            [matSortActive]="cgSortActive()"
+            [matSortDirection]="cgSortDirection()"
+            (matSortChange)="onCgSortChange($event)"
+          >
             <ng-container matColumnDef="groupId">
-              <th mat-header-cell *matHeaderCellDef>Group ID</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Group ID</th>
               <td mat-cell *matCellDef="let g">
                 <a
                   class="topic-detail__link"
@@ -135,12 +185,12 @@
             </ng-container>
 
             <ng-container matColumnDef="membersCount">
-              <th mat-header-cell *matHeaderCellDef>Active Consumers</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Active Consumers</th>
               <td mat-cell *matCellDef="let g">{{ g.membersCount }}</td>
             </ng-container>
 
             <ng-container matColumnDef="totalLag">
-              <th mat-header-cell *matHeaderCellDef>Messages Behind</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Messages Behind</th>
               <td mat-cell *matCellDef="let g">
                 {{ g.totalLag }}
                 @if (g.totalLag > 0) {
@@ -150,12 +200,12 @@
             </ng-container>
 
             <ng-container matColumnDef="coordinator">
-              <th mat-header-cell *matHeaderCellDef>Coordinator</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Coordinator</th>
               <td mat-cell *matCellDef="let g">{{ g.coordinator?.host }}:{{ g.coordinator?.port }}</td>
             </ng-container>
 
             <ng-container matColumnDef="state">
-              <th mat-header-cell *matHeaderCellDef>State</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>State</th>
               <td mat-cell *matCellDef="let g">
                 <gke-badge [color]="stateColor(g.state)">{{ g.state }}</gke-badge>
               </td>
@@ -164,7 +214,7 @@
             <tr mat-header-row *matHeaderRowDef="consumerGroupColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: consumerGroupColumns"></tr>
           </table>
-        }
+        </gke-data-table>
       </mat-card-content>
     </mat-card>
   }
