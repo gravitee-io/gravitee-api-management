@@ -25,7 +25,6 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpec
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpecsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricSpecsResponse;
-import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricType;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Operator;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -106,7 +105,6 @@ class AnalyticsDefinitionResourceTest extends ApiResourceTest {
                     .findFirst()
                     .orElseThrow();
                 assertThat(httpRequests.getLabel()).isEqualTo("HTTP Requests");
-                assertThat(httpRequests.getType()).isEqualTo(MetricType.COUNTER);
                 assertThat(httpRequests.getApis()).contains(ApiName.HTTP_PROXY);
                 assertThat(httpRequests.getMeasures()).isNotEmpty();
                 assertThat(httpRequests.getFacets()).isNotEmpty();

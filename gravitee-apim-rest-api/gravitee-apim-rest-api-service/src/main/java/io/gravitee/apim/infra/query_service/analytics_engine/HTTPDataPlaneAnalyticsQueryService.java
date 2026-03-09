@@ -51,6 +51,8 @@ public class HTTPDataPlaneAnalyticsQueryService implements AnalyticsEngineQueryS
         return Set.of(
             HTTP_REQUESTS,
             HTTP_ERRORS,
+            HTTP_ERROR_RATE,
+            HTTP_RPS,
             HTTP_REQUEST_CONTENT_LENGTH,
             HTTP_RESPONSE_CONTENT_LENGTH,
             HTTP_ENDPOINT_RESPONSE_TIME,

@@ -19,7 +19,6 @@ public record ApiSpec(Name name, String label) {
     public enum Name {
         HTTP_PROXY,
         MESSAGE,
-        KAFKA,
         LLM,
         MCP,
     }

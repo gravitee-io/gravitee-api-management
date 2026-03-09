@@ -228,7 +228,7 @@ class DashboardResourceTest extends AbstractResourceTest {
                 () -> assertThat(statsWidget.getType()).isEqualTo(WidgetType.STATS),
                 () -> assertThat(statsWidget.getRequest().getType()).isEqualTo(WidgetRequest.TypeEnum.MEASURES),
                 () -> assertThat(statsWidget.getRequest().getTimeRange().getFrom()).isEqualTo(OffsetDateTime.parse("2025-10-07T06:50:30Z")),
-                () -> assertThat(statsWidget.getRequest().getMetrics().getFirst().getName()).isEqualTo(MetricName.HTTP_ERRORS)
+                () -> assertThat(statsWidget.getRequest().getMetrics().getFirst().getName()).isEqualTo(MetricName.HTTP_ERROR_RATE)
             );
 
             var pieWidget = result.getWidgets().get(1);
@@ -250,7 +250,7 @@ class DashboardResourceTest extends AbstractResourceTest {
             assertThat(stored.getWidgets().getFirst().getRequest().getMetrics())
                 .hasSize(1)
                 .first()
-                .satisfies(m -> assertThat(m.getName()).isEqualTo("HTTP_ERRORS"));
+                .satisfies(m -> assertThat(m.getName()).isEqualTo("HTTP_ERROR_RATE"));
             assertThat(stored.getWidgets().get(1).getType()).isEqualTo("pie");
             assertThat(stored.getWidgets().get(1).getRequest().getBy()).containsExactly("APPLICATION");
             assertThat(stored.getWidgets().get(1).getRequest().getLimit()).isEqualTo(10);

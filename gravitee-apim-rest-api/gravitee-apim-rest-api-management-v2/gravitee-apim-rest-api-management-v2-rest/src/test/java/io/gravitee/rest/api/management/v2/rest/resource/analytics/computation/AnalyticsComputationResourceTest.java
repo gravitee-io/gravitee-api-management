@@ -268,7 +268,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
         @Test
         void should_fail_with_incompatible_facet() {
             var invalidRequest = aRequestCountFacetRequest();
-            invalidRequest.setBy(List.of(FacetName.KAFKA_TOPIC));
+            invalidRequest.setBy(List.of(FacetName.MESSAGE_CONNECTOR_TYPE));
             var response = rootTarget().path("facets").request().post(Entity.json(invalidRequest));
 
             assertThat(response).hasStatus(400);
@@ -378,7 +378,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
 
         @Test
         void should_fail_with_incompatible_facet() {
-            var invalidRequest = aRequestCountTimeSeries().by(List.of(FacetName.KAFKA_TOPIC));
+            var invalidRequest = aRequestCountTimeSeries().by(List.of(FacetName.MESSAGE_CONNECTOR_TYPE));
             var response = rootTarget().path("time-series").request().post(Entity.json(invalidRequest));
 
             assertThat(response).hasStatus(400);

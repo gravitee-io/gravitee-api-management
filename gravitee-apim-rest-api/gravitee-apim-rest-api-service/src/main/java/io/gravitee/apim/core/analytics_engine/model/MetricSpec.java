@@ -21,7 +21,6 @@ public record MetricSpec(
     Name name,
     String label,
     List<ApiSpec.Name> apis,
-    Type type,
     Unit unit,
     List<Measure> measures,
     List<FilterSpec.Name> filters,
@@ -30,6 +29,8 @@ public record MetricSpec(
     public enum Name {
         HTTP_REQUESTS,
         HTTP_ERRORS,
+        HTTP_ERROR_RATE,
+        HTTP_RPS,
         HTTP_REQUEST_CONTENT_LENGTH,
         HTTP_RESPONSE_CONTENT_LENGTH,
         HTTP_ENDPOINT_RESPONSE_TIME,
@@ -45,35 +46,15 @@ public record MetricSpec(
         MESSAGES,
         MESSAGE_ERRORS,
         MESSAGE_GATEWAY_LATENCY,
-        KAFKA_DOWNSTREAM_PUBLISH_MESSAGES,
-        KAFKA_DOWNSTREAM_SUBSCRIBE_MESSAGES,
-        KAFKA_DOWNSTREAM_PUBLISH_MESSAGES_BYTES,
-        KAFKA_DOWNSTREAM_SUBSCRIBE_MESSAGE_BYTES,
-        KAFKA_UPSTREAM_PUBLISH_MESSAGES,
-        KAFKA_UPSTREAM_SUBSCRIBE_MESSAGES,
-        KAFKA_UPSTREAM_PUBLISH_MESSAGE_BYTES,
-        KAFKA_UPSTREAM_SUBSCRIBE_MESSAGE_BYTES,
-        KAFKA_DOWNSTREAM_AUTHENTICATION_SUCCESSES,
-        KAFKA_DOWNSTREAM_AUTHENTICATED_CONNECTIONS,
-        KAFKA_UPSTREAM_AUTHENTICATION_SUCCESSES,
-        KAFKA_UPSTREAM_AUTHENTICATED_CONNECTIONS,
-        KAFKA_UPSTREAM_AUTHENTICATION_ERRORS,
-        KAFKA_DOWNSTREAM_AUTHENTICATION_ERRORS,
-        KAFKA_DOWNSTREAM_ACTIVE_CONNECTIONS,
-        KAFKA_UPSTREAM_ACTIVE_CONNECTIONS,
-        SUBSCRIPTIONS,
-        APIS,
-    }
-
-    public enum Type {
-        GAUGE,
-        COUNTER,
+        MESSAGE_RPS,
     }
 
     public enum Unit {
         NUMBER,
         MILLISECONDS,
         BYTES,
+        PERCENTAGE,
+        RPS,
     }
 
     public enum Measure {
@@ -81,11 +62,10 @@ public record MetricSpec(
         COUNT,
         MAX,
         MIN,
-        RPS,
+        VALUE,
         P50,
         P99,
         P95,
         P90,
-        PERCENTAGE,
     }
 }

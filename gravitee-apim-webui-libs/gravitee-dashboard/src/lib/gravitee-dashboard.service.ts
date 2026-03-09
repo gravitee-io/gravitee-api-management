@@ -69,8 +69,8 @@ export class GraviteeDashboardService {
           type: 'measures',
           metrics: [
             {
-              name: 'HTTP_ERRORS',
-              measures: ['PERCENTAGE'],
+              name: 'HTTP_ERROR_RATE',
+              measures: ['VALUE'],
             },
           ],
         },

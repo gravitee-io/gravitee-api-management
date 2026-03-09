@@ -103,14 +103,18 @@ public class HTTPMeasuresQueryAdapter {
     }
 
     private boolean isComputedMetric(Metric metric) {
-        return metric == Metric.LLM_PROMPT_TOTAL_TOKEN || metric == Metric.LLM_PROMPT_TOKEN_TOTAL_COST;
+        return switch (metric) {
+            case LLM_PROMPT_TOTAL_TOKEN, LLM_PROMPT_TOKEN_TOTAL_COST, HTTP_ERROR_RATE, HTTP_RPS -> true;
+            default -> false;
+        };
     }
 
     private Optional<Map<String, JsonObject>> aggregate(String aggName, String field, Metric metric, Measure measure) {
         return switch (metric) {
             case LLM_PROMPT_TOTAL_TOKEN -> aggregateLLMTotalToken(aggName, measure);
             case LLM_PROMPT_TOKEN_TOTAL_COST -> aggregateLLMTotalCost(aggName, measure);
-            case HTTP_ERRORS -> aggregateHTTPErrors(aggName, field, metric, measure);
+            case HTTP_ERROR_RATE -> aggregateHTTPErrorRate(aggName, measure);
+            case HTTP_RPS -> aggregateHTTPRPS(aggName, measure);
             default -> aggregateByMeasure(aggName, field, metric, measure);
         };
     }
@@ -131,11 +135,18 @@ public class HTTPMeasuresQueryAdapter {
         };
     }
 
-    private Optional<Map<String, JsonObject>> aggregateHTTPErrors(String aggName, String field, Metric metric, Measure measure) {
-        if (measure == Measure.PERCENTAGE) {
-            return errorRate().map(errorRate -> errorRate.build(aggName, field));
-        }
-        return aggregateByMeasure(aggName, field, metric, measure);
+    private Optional<Map<String, JsonObject>> aggregateHTTPErrorRate(String aggName, Measure measure) {
+        return switch (measure) {
+            case VALUE -> errorRate().map(errorRate -> errorRate.build(aggName, null));
+            default -> Optional.empty();
+        };
+    }
+
+    private Optional<Map<String, JsonObject>> aggregateHTTPRPS(String aggName, Measure measure) {
+        return switch (measure) {
+            case VALUE -> rps().map(rps -> rps.build(aggName, null));
+            default -> Optional.empty();
+        };
     }
 
     private Optional<Map<String, JsonObject>> aggregateByMeasure(String aggName, String field, Metric metric, Measure measure) {
@@ -148,8 +159,7 @@ public class HTTPMeasuresQueryAdapter {
             case P90 -> p90().map(p90 -> p90.build(aggName, field));
             case P95 -> p95().map(p95 -> p95.build(aggName, field));
             case P99 -> p99().map(p99 -> p99.build(aggName, field));
-            case RPS -> rps().map(rps -> rps.build(aggName, field));
-            case PERCENTAGE -> Optional.empty();
+            default -> Optional.empty();
         };
     }
 

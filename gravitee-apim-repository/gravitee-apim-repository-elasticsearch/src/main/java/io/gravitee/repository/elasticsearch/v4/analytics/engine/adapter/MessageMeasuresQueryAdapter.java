@@ -22,6 +22,7 @@ import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountWithSumBuilder;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.HTTPRPSBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleAVGBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleMaxBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleMinBuilder;
@@ -54,6 +55,7 @@ public class MessageMeasuresQueryAdapter {
     private final SimpleMaxBuilder maxBuilder = new SimpleMaxBuilder();
     private final CountBuilder countWithSumBuilder = new CountWithSumBuilder();
     private final SimpleAVGBuilder avgBuilder = new SimpleAVGBuilder();
+    private final HTTPRPSBuilder rpsBuilder = new HTTPRPSBuilder();
 
     private final FieldResolver fieldResolver = new MessageFieldResolver();
 
@@ -89,7 +91,7 @@ public class MessageMeasuresQueryAdapter {
         var aggs = new JsonObject();
         for (var metric : metrics) {
             for (var measure : metric.measures()) {
-                var field = fieldResolver.fromMetric(metric.metric());
+                var field = isComputedMetric(metric.metric()) ? null : fieldResolver.fromMetric(metric.metric());
                 var aggName = AggregationAdapter.adaptName(metric.metric(), measure);
 
                 aggregate(aggName, field, metric.metric(), measure).ifPresent(agg -> {
@@ -100,7 +102,25 @@ public class MessageMeasuresQueryAdapter {
         return aggs;
     }
 
+    private boolean isComputedMetric(Metric metric) {
+        return metric == Metric.MESSAGE_RPS;
+    }
+
     private Optional<Map<String, JsonObject>> aggregate(String aggName, String field, Metric metric, Measure measure) {
+        return switch (metric) {
+            case MESSAGE_RPS -> aggregateMessageRPS(aggName, measure);
+            default -> aggregateByMeasure(aggName, field, measure);
+        };
+    }
+
+    private Optional<Map<String, JsonObject>> aggregateMessageRPS(String aggName, Measure measure) {
+        return switch (measure) {
+            case VALUE -> Optional.of(rpsBuilder.build(aggName, null));
+            default -> Optional.empty();
+        };
+    }
+
+    private Optional<Map<String, JsonObject>> aggregateByMeasure(String aggName, String field, Measure measure) {
         return switch (measure) {
             case Measure.AVG -> avg().map(avg -> avg.build(aggName, field));
             case Measure.COUNT -> count().map(count -> count.build(aggName, field));
@@ -110,7 +130,7 @@ public class MessageMeasuresQueryAdapter {
             case Measure.P90 -> p90().map(p90 -> p90.build(aggName, field));
             case Measure.P95 -> p95().map(p95 -> p95.build(aggName, field));
             case Measure.P99 -> p99().map(p99 -> p99.build(aggName, field));
-            case Measure.RPS, Measure.PERCENTAGE -> Optional.empty();
+            default -> Optional.empty();
         };
     }
 
