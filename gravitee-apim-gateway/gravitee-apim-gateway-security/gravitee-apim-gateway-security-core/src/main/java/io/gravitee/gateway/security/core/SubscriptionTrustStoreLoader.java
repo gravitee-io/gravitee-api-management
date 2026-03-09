@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.security.core;
 
+import com.nimbusds.jose.util.Base64URL;
 import io.gravitee.common.security.PKCS7Utils;
 import io.gravitee.common.util.KeyStoreUtils;
 import io.gravitee.gateway.api.service.Subscription;
@@ -99,9 +100,10 @@ public class SubscriptionTrustStoreLoader extends AbstractKeyStoreLoader<Subscri
         // Base64 => hex (lowercase) and id in lower (just in case)
         // keystore aliases are made lowercase...
         // need to be compliant with it to avoid issue when removing the loader
+
         return "sub_%s_cert_%s".formatted(
             subscriptionCertificate.subscription().getId().toLowerCase(),
-            Hex.toHexString(Base64.getMimeDecoder().decode(subscriptionCertificate.fingerprint()))
+            Hex.toHexString(Base64URL.from(subscriptionCertificate.fingerprint()).decode())
         );
     }
 
