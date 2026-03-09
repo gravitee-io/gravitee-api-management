@@ -60,6 +60,13 @@ interface FlatTreeNode {
   children?: SectionNode[];
 }
 
+interface PublishActionState {
+  disabled: boolean;
+  tooltip: string;
+  ariaDisabled: boolean;
+  tabIndex: -1 | null;
+}
+
 type ProcessingNode = SectionNode & {
   __order: number;
   __parentId: string | null;
@@ -102,9 +109,82 @@ export class FlatTreeComponent {
     return links && Array.isArray(links) ? this.mapLinksToNodes(links) : [];
   });
 
+  readonly publishActionEnabledState: PublishActionState = {
+    disabled: false,
+    tooltip: '',
+    ariaDisabled: false,
+    tabIndex: null,
+  };
+
+  private parentNavigationItemByChildId = computed(() => {
+    const links = this.links();
+    const parentByChildId = new Map<string, PortalNavigationItem | undefined>();
+
+    if (!links || !Array.isArray(links)) {
+      return parentByChildId;
+    }
+
+    const itemsById = new Map<string, PortalNavigationItem>(links.map(item => [item.id, item]));
+
+    for (const link of links) {
+      parentByChildId.set(link.id, link.parentId ? itemsById.get(link.parentId) : undefined);
+    }
+
+    return parentByChildId;
+  });
+
+  publishStateByNodeId = computed(() => {
+    const links = this.links();
+    const publishStateByNodeId = new Map<string, PublishActionState>();
+
+    if (!links || !Array.isArray(links)) {
+      return publishStateByNodeId;
+    }
+
+    const parentByChildId = this.parentNavigationItemByChildId();
+
+    for (const link of links) {
+      if (!link.parentId) {
+        publishStateByNodeId.set(link.id, this.publishActionEnabledState);
+        continue;
+      }
+
+      const parentNavigationItem = parentByChildId.get(link.id);
+      if (!parentNavigationItem) {
+        publishStateByNodeId.set(
+          link.id,
+          this.toDisabledPublishActionState('A navigation item cannot be published because its parent is unavailable'),
+        );
+        continue;
+      }
+
+      if (!parentNavigationItem.published) {
+        publishStateByNodeId.set(
+          link.id,
+          this.toDisabledPublishActionState(
+            `A navigation item cannot be published within an unpublished ${parentNavigationItem.type.toLocaleLowerCase()}`,
+          ),
+        );
+        continue;
+      }
+
+      publishStateByNodeId.set(link.id, this.publishActionEnabledState);
+    }
+
+    return publishStateByNodeId;
+  });
+
   isSelected = (node: FlatTreeNode) => this.selectedId() === node.id;
 
   isUnpublished = (node: FlatTreeNode) => node.data?.published === false;
+
+  isPublishDisabled(node: SectionNode): boolean {
+    return this.getPublishActionState(node).disabled;
+  }
+
+  getPublishDisabledTooltip(node: SectionNode): string {
+    return this.getPublishActionState(node).tooltip;
+  }
 
   treeBase = viewChild(MatTree);
 
@@ -259,6 +339,19 @@ export class FlatTreeComponent {
 
   private mapFlatTreeNodeToSectionNode(flatTreeNode: FlatTreeNode): SectionNode {
     return flatTreeNode as SectionNode;
+  }
+
+  private getPublishActionState(node: SectionNode): PublishActionState {
+    return this.publishStateByNodeId().get(node.id) ?? this.publishActionEnabledState;
+  }
+
+  private toDisabledPublishActionState(tooltip: string): PublishActionState {
+    return {
+      disabled: true,
+      tooltip,
+      ariaDisabled: true,
+      tabIndex: -1,
+    };
   }
 
   private mapLinksToNodes(links: PortalNavigationItem[]): SectionNode[] {

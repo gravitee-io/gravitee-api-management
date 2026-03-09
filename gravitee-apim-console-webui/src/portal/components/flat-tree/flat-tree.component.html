@@ -144,10 +144,20 @@
         </button>
 
         @if (isUnpublished(node)) {
-          <button mat-menu-item (click)="onPublish(node)" data-testid="publish-node-button">
-            <mat-icon svgIcon="gio:eye-empty"></mat-icon>
-            Publish
-          </button>
+          @let publishState = publishStateByNodeId().get(node.id) ?? publishActionEnabledState;
+          <span [matTooltip]="publishState.tooltip" [matTooltipDisabled]="!publishState.disabled" matTooltipPosition="right">
+            <button
+              mat-menu-item
+              [disabled]="publishState.disabled"
+              [attr.aria-disabled]="publishState.ariaDisabled"
+              [attr.tabindex]="publishState.tabIndex"
+              (click)="onPublish(node)"
+              data-testid="publish-node-button"
+            >
+              <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+              Publish
+            </button>
+          </span>
         } @else {
           <button mat-menu-item (click)="onUnpublish(node)" data-testid="unpublish-node-button">
             <mat-icon svgIcon="gio:eye-off"></mat-icon>
