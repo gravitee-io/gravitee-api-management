@@ -15,12 +15,11 @@
  */
 package io.gravitee.apim.infra.domain_service.logs_engine.definition;
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.gravitee.apim.core.logs_engine.model.LogsDefinition;
 import io.gravitee.apim.core.logs_engine.model.LogsDefinitionSpec;
 import io.gravitee.apim.core.logs_engine.model.LogsFilterSpec;
 import io.gravitee.apim.core.logs_engine.query_service.LogsDefinitionQueryService;
-import java.io.IOException;
+import io.gravitee.apim.infra.domain_service.observability.YAMLDefinitionLoader;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -32,23 +31,10 @@ public class LogsDefinitionYAMLQueryService implements LogsDefinitionQueryServic
 
     private static final String LOGS_DEFINITION_FILE = "logs/definition/logs-definition.yaml";
 
-    private static final YAMLMapper YAML = new YAMLMapper();
-
     private final LogsDefinitionSpec spec;
 
     public LogsDefinitionYAMLQueryService() {
-        spec = readYAMLDefinition().spec();
-    }
-
-    private static LogsDefinition readYAMLDefinition() {
-        try (var stream = LogsDefinitionYAMLQueryService.class.getClassLoader().getResourceAsStream(LOGS_DEFINITION_FILE)) {
-            if (stream == null) {
-                throw new IllegalStateException("Logs definition file not found on classpath: " + LOGS_DEFINITION_FILE);
-            }
-            return YAML.readValue(stream, LogsDefinition.class);
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to parse logs definition file: " + LOGS_DEFINITION_FILE, e);
-        }
+        spec = YAMLDefinitionLoader.load(LOGS_DEFINITION_FILE, LogsDefinition.class).spec();
     }
 
     @Override
