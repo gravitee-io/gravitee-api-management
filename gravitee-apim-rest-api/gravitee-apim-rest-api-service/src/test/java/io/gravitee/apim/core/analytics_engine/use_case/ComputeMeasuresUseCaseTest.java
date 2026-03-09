@@ -28,6 +28,7 @@ import io.gravitee.apim.core.analytics_engine.model.*;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.observability.model.FilterOperator;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Instant;
 import java.util.List;
@@ -103,7 +104,7 @@ class ComputeMeasuresUseCaseTest {
 
     @Test
     void should_apply_transformer_filters_to_query() {
-        var apiFilter = new Filter(FilterSpec.Name.API, FilterSpec.Operator.IN, Set.of("api-1"));
+        var apiFilter = new Filter(FilterSpec.Name.API, FilterOperator.IN, Set.of("api-1"));
         when(transformer1.transform(eq(ANALYTICS_CONTEXT), any())).thenReturn(List.of(apiFilter));
 
         var useCase = new ComputeMeasuresUseCase(queryContextProvider, validator, List.of(transformer1), contextLoader);
@@ -122,8 +123,8 @@ class ComputeMeasuresUseCaseTest {
 
     @Test
     void should_chain_filters_from_multiple_transformers() {
-        var filter1 = new Filter(FilterSpec.Name.API, FilterSpec.Operator.IN, Set.of("api-1"));
-        var filter2 = new Filter(FilterSpec.Name.APPLICATION, FilterSpec.Operator.IN, Set.of("app-1"));
+        var filter1 = new Filter(FilterSpec.Name.API, FilterOperator.IN, Set.of("api-1"));
+        var filter2 = new Filter(FilterSpec.Name.APPLICATION, FilterOperator.IN, Set.of("app-1"));
 
         when(transformer1.transform(eq(ANALYTICS_CONTEXT), any())).thenReturn(List.of(filter1));
         when(transformer2.transform(eq(ANALYTICS_CONTEXT), any())).thenReturn(List.of(filter1, filter2));

@@ -13,21 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.logs_engine.model;
-
-import io.gravitee.apim.core.analytics_engine.model.NumberRange;
-import io.gravitee.apim.core.observability.model.FilterOperator;
-import io.gravitee.apim.core.observability.model.FilterType;
-import java.util.List;
+package io.gravitee.apim.core.observability.model;
 
 /**
  * @author GraviteeSource Team
  */
-public record LogsFilterSpec(
-    FilterName name,
-    String label,
-    FilterType type,
-    List<String> enumValues,
-    NumberRange range,
-    List<FilterOperator> operators
-) {}
+public enum FilterOperator {
+    EQ,
+    LTE,
+    GTE,
+    IN,
+}

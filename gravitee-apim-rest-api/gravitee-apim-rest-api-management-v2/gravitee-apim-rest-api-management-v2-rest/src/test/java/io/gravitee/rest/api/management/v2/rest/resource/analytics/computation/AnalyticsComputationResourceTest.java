@@ -26,6 +26,7 @@ import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProc
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.observability.model.FilterOperator;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
@@ -448,7 +449,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
         void should_forward_transformer_api_filter_to_es_query() {
             var apiFilter = new io.gravitee.apim.core.analytics_engine.model.Filter(
                 FilterSpec.Name.API,
-                FilterSpec.Operator.IN,
+                FilterOperator.IN,
                 Set.of("api-1")
             );
             when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenReturn(List.of(apiFilter));
@@ -489,11 +490,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
         @Test
         void should_scope_api_filter_to_authorized_ids() {
             var authorizedIds = Set.of("api-1", "api-2");
-            var apiFilter = new io.gravitee.apim.core.analytics_engine.model.Filter(
-                FilterSpec.Name.API,
-                FilterSpec.Operator.IN,
-                authorizedIds
-            );
+            var apiFilter = new io.gravitee.apim.core.analytics_engine.model.Filter(FilterSpec.Name.API, FilterOperator.IN, authorizedIds);
             when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenReturn(List.of(apiFilter));
 
             var queryContext = new QueryContext(ORGANIZATION, ENVIRONMENT);

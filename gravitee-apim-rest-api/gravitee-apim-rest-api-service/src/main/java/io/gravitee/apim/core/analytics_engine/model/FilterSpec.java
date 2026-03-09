@@ -15,9 +15,18 @@
  */
 package io.gravitee.apim.core.analytics_engine.model;
 
+import io.gravitee.apim.core.observability.model.FilterOperator;
+import io.gravitee.apim.core.observability.model.FilterType;
 import java.util.List;
 
-public record FilterSpec(Name name, String label, Type type, List<String> enumValues, NumberRange range, List<Operator> operators) {
+public record FilterSpec(
+    Name name,
+    String label,
+    FilterType type,
+    List<String> enumValues,
+    NumberRange range,
+    List<FilterOperator> operators
+) {
     public enum Name {
         API,
         APPLICATION,
@@ -60,19 +69,5 @@ public record FilterSpec(Name name, String label, Type type, List<String> enumVa
         MCP_PROXY_RESOURCE,
         MCP_PROXY_PROMPT,
         API_TYPE,
-    }
-
-    public enum Type {
-        STRING,
-        KEYWORD,
-        ENUM,
-        NUMBER,
-    }
-
-    public enum Operator {
-        EQ,
-        LTE,
-        GTE,
-        IN,
     }
 }

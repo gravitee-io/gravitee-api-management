@@ -20,6 +20,7 @@ import io.gravitee.apim.core.analytics_engine.exception.InvalidQueryException;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.observability.model.FilterOperator;
 import io.gravitee.definition.model.v4.ApiType;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -64,7 +65,7 @@ public class ApiTypeFilterTransformer implements QueryFilterTransformer {
             .map(f -> resolveApiIds(context, f))
             .orElseGet(context::authorizedApiIds);
 
-        transformed.add(new Filter(FilterSpec.Name.API, FilterSpec.Operator.IN, apiIds));
+        transformed.add(new Filter(FilterSpec.Name.API, FilterOperator.IN, apiIds));
 
         return transformed;
     }
@@ -85,7 +86,7 @@ public class ApiTypeFilterTransformer implements QueryFilterTransformer {
 
     @SuppressWarnings("unchecked")
     private static List<ApiType> toApiTypes(Filter apiTypeFilter) {
-        if (apiTypeFilter.operator() == FilterSpec.Operator.IN) {
+        if (apiTypeFilter.operator() == FilterOperator.IN) {
             return ((Collection<String>) apiTypeFilter.value()).stream().map(ApiTypeFilterTransformer::mapApiType).toList();
         }
         return List.of(mapApiType((String) apiTypeFilter.value()));
