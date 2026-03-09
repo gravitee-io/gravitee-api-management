@@ -18,7 +18,7 @@ package io.gravitee.plugin.endpoint.http.proxy.client;
 
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.node.api.configuration.Configuration;
-import io.gravitee.node.vertx.client.http.VertxHttpClientFactory;
+import io.gravitee.node.vertx.client.http.VertxWebSocketClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.gravitee.plugin.mappers.HttpClientOptionsMapper;
@@ -52,12 +52,12 @@ public class WebSocketClientFactory {
         return webSocketClient;
     }
 
-    protected VertxHttpClientFactory.VertxHttpClientFactoryBuilder buildWebSocketClient(
+    protected VertxWebSocketClientFactory.VertxWebSocketClientFactoryBuilder buildWebSocketClient(
         final HttpExecutionContext ctx,
         final HttpProxyEndpointConnectorConfiguration configuration,
         final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
     ) {
-        return VertxHttpClientFactory.builder()
+        return VertxWebSocketClientFactory.builder()
             .vertx(ctx.getComponent(Vertx.class))
             .nodeConfiguration(ctx.getComponent(Configuration.class))
             .defaultTarget(configuration.getTarget())
