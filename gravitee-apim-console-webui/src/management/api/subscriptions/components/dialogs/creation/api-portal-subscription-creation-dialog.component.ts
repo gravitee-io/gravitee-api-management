@@ -259,7 +259,10 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
         }),
         switchMap(([subscriptions, plan]) => {
           if (this.canUseSharedApiKeys && this.form.get('selectedApplication').value.api_key_mode === ApiKeyMode.UNSPECIFIED) {
-            return of(subscriptions?.data?.filter(subscription => subscription?.api !== plan?.apiId).length >= 1);
+            const hasOtherApiKeySubscription = (subscriptions?.data ?? []).some(
+              subscription => !this.subscriptionMatchesPlan(subscription, plan),
+            );
+            return of(hasOtherApiKeySubscription);
           }
           return of(false);
         }),
@@ -303,6 +306,16 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  private subscriptionMatchesPlan(
+    subscription: SubscriptionPage | null | undefined,
+    { apiId, apiProductId }: { apiId?: string; apiProductId?: string },
+  ): boolean {
+    if (!subscription) return false;
+    if (apiId) return subscription.api === apiId;
+    if (apiProductId) return subscription.referenceType === 'API_PRODUCT' && subscription.referenceId === apiProductId;
+    return false;
   }
 
   private onJwtOrOauth2PlanChange() {

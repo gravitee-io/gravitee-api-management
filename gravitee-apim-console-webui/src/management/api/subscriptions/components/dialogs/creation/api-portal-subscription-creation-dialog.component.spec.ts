@@ -66,6 +66,7 @@ class TestComponent {
   public plans?: Plan[];
   public isFederatedApi?: boolean;
   public availableSubscriptionEntrypoints?: Entrypoint[];
+  public apiProductId?: string;
   public subscriptionToCreate: CreateSubscription;
   public dialog: MatDialogRef<ApiPortalSubscriptionCreationDialogComponent>;
   constructor(private readonly matDialog: MatDialog) {}
@@ -80,6 +81,7 @@ class TestComponent {
         plans: this.plans,
         availableSubscriptionEntrypoints: this.availableSubscriptionEntrypoints,
         isFederatedApi: this.isFederatedApi,
+        apiProductId: this.apiProductId,
       },
       role: 'alertdialog',
       id: 'testDialog',
@@ -511,6 +513,45 @@ describe('Subscription creation dialog', () => {
         await harness.chooseApiKeyMode('Shared API Key');
 
         expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
+      });
+
+      it('should display Shared API Key choice for API Product when app has existing API subscription', async () => {
+        const API_PRODUCT_ID = 'my-api-product';
+        const applicationWithClientId = fakeApplication({
+          id: 'my-app',
+          name: 'withClientId',
+          settings: { app: { client_id: 'clientId' } },
+          api_key_mode: ApiKeyMode.UNSPECIFIED,
+        });
+        const planV4 = fakePlanV4({
+          apiId: undefined,
+          apiProductId: API_PRODUCT_ID,
+          mode: 'STANDARD',
+          security: { type: 'API_KEY' },
+          generalConditions: undefined,
+        });
+        component.plans = [planV4];
+        component.availableSubscriptionEntrypoints = [];
+        component.apiProductId = API_PRODUCT_ID;
+
+        await componentTestingOpenDialog();
+
+        const harness = await loader.getHarness(ApiPortalSubscriptionCreationDialogHarness);
+        await harness.searchApplication('withClientId');
+        expectApplicationsSearch('withClientId', [applicationWithClientId]);
+        await harness.selectApplication(applicationWithClientId.name);
+
+        const apikeySubscription: Partial<SubscriptionPage> = {
+          security: PlanSecurityType.API_KEY,
+          api: 'another-api-id',
+          origin: 'MANAGEMENT',
+        };
+        expectSubscriptionsForApplication(applicationWithClientId.id, [apikeySubscription]);
+
+        await harness.choosePlan(planV4.name);
+
+        expectApiKeySubscriptionsGetRequest(applicationWithClientId.id, [apikeySubscription]);
+        expect(await harness.isApiKeyModeRadioGroupDisplayed()).toBeTruthy();
       });
     });
     describe('With custom API Key enabled and shared apiKey enabled and API is Federated', () => {
