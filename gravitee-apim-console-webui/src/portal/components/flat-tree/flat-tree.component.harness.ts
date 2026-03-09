@@ -152,6 +152,12 @@ export class FlatTreeComponentHarness extends ComponentHarness {
     await unpublishButton.click();
   }
 
+  async openPublishMenuAndGetItem(id: string): Promise<MatMenuItemHarness | null> {
+    const moreActionsButton = await this.getMoreActionsButtonById(id)();
+    await moreActionsButton.click();
+    return this.getMenuItemByTestId('publish-node-button');
+  }
+
   async getMenuItemByText(text: string): Promise<MatMenuItemHarness | null> {
     return this._documentRootLocator.locatorForOptional(MatMenuItemHarness.with({ text }))();
   }

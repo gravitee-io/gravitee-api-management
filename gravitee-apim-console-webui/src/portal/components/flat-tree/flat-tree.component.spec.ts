@@ -288,7 +288,10 @@ describe('FlatTreeComponent', () => {
     const actionSpy = jest.fn();
     component.nodeMenuAction.subscribe(actionSpy);
 
-    const links = [makeItem('p1', 'PAGE', 'Page 1', 0, 'parent-id', false)];
+    const links = [
+      makeItem('parent-id', 'FOLDER', 'Parent Folder', 0, null, true),
+      makeItem('p1', 'PAGE', 'Page 1', 0, 'parent-id', false),
+    ];
 
     fixture.componentRef.setInput('links', links);
     fixture.detectChanges();
@@ -332,6 +335,150 @@ describe('FlatTreeComponent', () => {
         }),
       }),
     );
+  });
+
+  describe('publish disabled state', () => {
+    const findNode = (id: string, nodes: SectionNode[] = component.tree()): SectionNode | undefined => {
+      for (const node of nodes) {
+        if (node.id === id) {
+          return node;
+        }
+
+        if (node.children) {
+          const foundChild = findNode(id, node.children);
+          if (foundChild) {
+            return foundChild;
+          }
+        }
+      }
+
+      return undefined;
+    };
+
+    it('should not disable publish for root node', () => {
+      const links = [makeItem('root-page', 'PAGE', 'Root Page', 0)];
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+
+      const rootNode = findNode('root-page');
+      expect(component.isPublishDisabled(rootNode)).toBe(false);
+      expect(component.getPublishDisabledTooltip(rootNode)).toBe('');
+    });
+
+    it('should disable publish when parent is unpublished', () => {
+      const links = [
+        makeItem('folder-1', 'FOLDER', 'Folder 1', 0, null, false),
+        makeItem('child-page-1', 'PAGE', 'Child Page 1', 0, 'folder-1', false),
+      ];
+
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+
+      const childNode = findNode('child-page-1');
+      expect(component.isPublishDisabled(childNode)).toBe(true);
+      expect(component.getPublishDisabledTooltip(childNode)).toBe('A navigation item cannot be published within an unpublished folder');
+    });
+
+    it('should not disable publish when parent is published', () => {
+      const links = [
+        makeItem('folder-1', 'FOLDER', 'Folder 1', 0, null, true),
+        makeItem('child-page-1', 'PAGE', 'Child Page 1', 0, 'folder-1', false),
+      ];
+
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+
+      const childNode = findNode('child-page-1');
+      expect(component.isPublishDisabled(childNode)).toBe(false);
+      expect(component.getPublishDisabledTooltip(childNode)).toBe('');
+    });
+
+    it('should refresh parent lookup cache when links signal changes', () => {
+      fixture.componentRef.setInput('links', [
+        makeItem('folder-1', 'FOLDER', 'Folder 1', 0, null, false),
+        makeItem('child-page-1', 'PAGE', 'Child Page 1', 0, 'folder-1', false),
+      ]);
+      fixture.detectChanges();
+
+      let childNode = findNode('child-page-1');
+      expect(component.isPublishDisabled(childNode)).toBe(true);
+
+      fixture.componentRef.setInput('links', [
+        makeItem('folder-1', 'FOLDER', 'Folder 1', 0, null, true),
+        makeItem('child-page-1', 'PAGE', 'Child Page 1', 0, 'folder-1', false),
+      ]);
+      fixture.detectChanges();
+
+      childNode = findNode('child-page-1');
+      expect(component.isPublishDisabled(childNode)).toBe(false);
+    });
+
+    it('should disable publish when parent cannot be resolved', () => {
+      const links = [makeItem('orphan-page', 'PAGE', 'Orphan Page', 0, 'missing-parent', false)];
+
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+
+      const orphanNode = findNode('orphan-page');
+      expect(component.isPublishDisabled(orphanNode)).toBe(true);
+      expect(component.getPublishDisabledTooltip(orphanNode)).toBe(
+        'A navigation item cannot be published because its parent is unavailable',
+      );
+    });
+
+    it('should disable publish menu item when parent is unpublished', async () => {
+      const links = [
+        makeItem('folder-1', 'FOLDER', 'Folder 1', 0, null, false),
+        makeItem('child-page-1', 'PAGE', 'Child Page 1', 0, 'folder-1', false),
+      ];
+
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const publishButton = await harness.openPublishMenuAndGetItem('child-page-1');
+      expect(publishButton).toBeTruthy();
+      expect(await publishButton.isDisabled()).toBe(true);
+    });
+
+    it('should not emit publish action when clicking disabled publish menu item', async () => {
+      const actionSpy = jest.fn();
+      component.nodeMenuAction.subscribe(actionSpy);
+
+      const links = [
+        makeItem('folder-1', 'FOLDER', 'Folder 1', 0, null, false),
+        makeItem('child-page-1', 'PAGE', 'Child Page 1', 0, 'folder-1', false),
+      ];
+
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const publishButton = await harness.openPublishMenuAndGetItem('child-page-1');
+      expect(publishButton).toBeTruthy();
+      expect(await publishButton.isDisabled()).toBe(true);
+
+      const disabledPublishButton = document.querySelector('[data-testid="publish-node-button"]') as HTMLButtonElement;
+      expect(disabledPublishButton).toBeTruthy();
+
+      disabledPublishButton.click();
+      expect(actionSpy).not.toHaveBeenCalled();
+    });
+
+    it('should keep publish menu item enabled when parent is published', async () => {
+      const links = [
+        makeItem('folder-1', 'FOLDER', 'Folder 1', 0, null, true),
+        makeItem('child-page-1', 'PAGE', 'Child Page 1', 0, 'folder-1', false),
+      ];
+
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const publishButton = await harness.openPublishMenuAndGetItem('child-page-1');
+      expect(publishButton).toBeTruthy();
+      expect(await publishButton.isDisabled()).toBe(false);
+    });
   });
 
   it('should handle nested folder structure', async () => {
