@@ -458,7 +458,8 @@ describe('GraviteeDashboardComponent', () => {
     const component = newFixture.componentInstance;
     const selectedFilters = component.currentSelectedFilters();
 
-    expect(selectedFilters.length).toBe(0);
+    expect(selectedFilters.length).toBe(1);
+    expect(selectedFilters[0]).toEqual({ parentKey: 'period', value: '5m' });
   });
 
   it('should apply filters to widget requests', fakeAsync(() => {
