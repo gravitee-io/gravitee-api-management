@@ -54,7 +54,8 @@ export class MessagesBrowserHarness extends ComponentHarness {
     const tables = await this.getTables();
     if (tables.length < 1) return [];
     const rows = await tables[0].getRows();
-    return parallel(() => rows.map(row => row.getCellTextByColumnName()));
+    const allCells = await parallel(() => rows.map(row => row.getCellTextByColumnName()));
+    return allCells.filter(cells => 'partition' in cells);
   }
 
   async clickMessageRow(index: number) {
