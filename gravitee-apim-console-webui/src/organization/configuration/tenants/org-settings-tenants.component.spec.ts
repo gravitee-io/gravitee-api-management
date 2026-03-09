@@ -60,8 +60,8 @@ describe('OrgSettingsTenantsComponent', () => {
     fixture.detectChanges();
 
     const tenants = [
-      fakeTenant({ id: 'tenant-1', name: 'Tenant 1', description: 'Tenant 1 description' }),
-      fakeTenant({ id: 'tenant-2', name: 'Tenant 2', description: 'Tenant 2 description' }),
+      fakeTenant({ id: 'tenant-1-id', key: 'tenant-1', name: 'Tenant 1', description: 'Tenant 1 description' }),
+      fakeTenant({ id: 'tenant-2-id', key: 'tenant-2', name: 'Tenant 2', description: 'Tenant 2 description' }),
     ];
 
     respondToGetTenants(tenants);
@@ -79,8 +79,8 @@ describe('OrgSettingsTenantsComponent', () => {
     fixture.detectChanges();
 
     const tenants = [
-      fakeTenant({ id: 'tenant-1', name: 'Tenant 1', description: 'Tenant 1 description' }),
-      fakeTenant({ id: 'tenant-2', name: 'Tenant 2', description: 'Tenant 2 description' }),
+      fakeTenant({ id: 'tenant-1-id', key: 'tenant-1', name: 'Tenant 1', description: 'Tenant 1 description' }),
+      fakeTenant({ id: 'tenant-2-id', key: 'tenant-2', name: 'Tenant 2', description: 'Tenant 2 description' }),
     ];
 
     respondToGetTenants(tenants);
@@ -107,6 +107,9 @@ describe('OrgSettingsTenantsComponent', () => {
     const nameInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
     await nameInput.setValue('External');
 
+    const keyInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=key]' }));
+    await keyInput.setValue('external');
+
     const descriptionInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=description' }));
     await descriptionInput.setValue('External tenant');
 
@@ -120,13 +123,15 @@ describe('OrgSettingsTenantsComponent', () => {
     expect(req.request.body).toEqual([
       {
         name: 'External',
+        key: 'external',
         description: 'External tenant',
       },
     ]);
 
     const serverResponse = [
       {
-        id: 'external',
+        id: 'external-tenant-id',
+        key: 'external',
         name: 'External',
         description: 'External tenant',
       },
@@ -139,7 +144,7 @@ describe('OrgSettingsTenantsComponent', () => {
     permissionsService._setPermissions(['organization-tenant-u']);
     fixture.detectChanges();
 
-    respondToGetTenants([fakeTenant({ id: 'tenant-1', name: 'Tenant 1', description: 'Tenant 1 description' })]);
+    respondToGetTenants([fakeTenant({ id: 'tenant-1-id', key: 'tenant-1', name: 'Tenant 1', description: 'Tenant 1 description' })]);
 
     fixture.detectChanges();
 
@@ -161,7 +166,7 @@ describe('OrgSettingsTenantsComponent', () => {
     });
     expect(req.request.body).toEqual([
       {
-        id: 'tenant-1',
+        key: 'tenant-1',
         name: 'External',
         description: 'External tenant',
       },
@@ -169,7 +174,8 @@ describe('OrgSettingsTenantsComponent', () => {
 
     const serverResponse = [
       {
-        id: 'external',
+        id: 'external-tenant-id',
+        key: 'external',
         name: 'External',
         description: 'External tenant',
       },
@@ -182,7 +188,7 @@ describe('OrgSettingsTenantsComponent', () => {
     permissionsService._setPermissions(['organization-tenant-d']);
     fixture.detectChanges();
 
-    respondToGetTenants([fakeTenant({ id: 'tenant-1', name: 'Tenant 1', description: 'Tenant 1 description' })]);
+    respondToGetTenants([fakeTenant({ id: 'tenant-1-id', key: 'tenant-1', name: 'Tenant 1', description: 'Tenant 1 description' })]);
 
     fixture.detectChanges();
 
@@ -218,7 +224,7 @@ describe('OrgSettingsTenantsComponent', () => {
   it('should not submit tenant form if name is too long', async () => {
     permissionsService._setPermissions(['organization-tenant-c']);
     fixture.detectChanges();
-    respondToGetTenants([fakeTenant({ id: 'tenant-1', name: 'Tenant 1', description: 'Tenant 1 description' })]);
+    respondToGetTenants([fakeTenant({ id: 'tenant-1-id', key: 'tenant-1', name: 'Tenant 1', description: 'Tenant 1 description' })]);
     fixture.detectChanges();
     const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to add a tenant"]' }));
     await addButton.click();

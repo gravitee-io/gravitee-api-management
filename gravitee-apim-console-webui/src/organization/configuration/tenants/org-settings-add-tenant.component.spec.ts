@@ -26,7 +26,7 @@ import { OrgSettingAddTenantComponent, OrgSettingAddTenantDialogData } from './o
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { fakeTenant } from '../../../entities/tenant/tenant.fixture';
 
-describe('GioConfirmDialogComponent', () => {
+describe('OrgSettingAddTenantComponent', () => {
   let component: OrgSettingAddTenantComponent;
   let fixture: ComponentFixture<OrgSettingAddTenantComponent>;
   let loader: HarnessLoader;
@@ -67,6 +67,9 @@ describe('GioConfirmDialogComponent', () => {
       const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
       await nameInput.setValue('External');
 
+      const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=key]' }));
+      await keyInput.setValue('external');
+
       const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=description' }));
       await descriptionInput.setValue('External tenant');
 
@@ -74,6 +77,7 @@ describe('GioConfirmDialogComponent', () => {
 
       expect(matDialogRefMock.close).toHaveBeenCalledWith({
         name: 'External',
+        key: 'external',
         description: 'External tenant',
       });
     });
@@ -83,7 +87,8 @@ describe('GioConfirmDialogComponent', () => {
     beforeEach(() => {
       const dialogData: OrgSettingAddTenantDialogData = {
         tenant: fakeTenant({
-          id: 'external',
+          id: '875fb0a0-1ea2-3a1d-bfd6-f59f9a18bd5b',
+          key: 'external',
           name: 'External',
           description: 'External tenant',
         }),
@@ -109,9 +114,9 @@ describe('GioConfirmDialogComponent', () => {
 
       const submitButton = await loader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
 
-      const idInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=id]' }));
-      expect(await idInput.isDisabled()).toBeTruthy();
-      expect(await idInput.getValue()).toEqual('external');
+      const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=key]' }));
+      expect(await keyInput.isDisabled()).toBeTruthy();
+      expect(await keyInput.getValue()).toEqual('external');
 
       const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
       await nameInput.setValue('');
@@ -124,7 +129,7 @@ describe('GioConfirmDialogComponent', () => {
       await submitButton.click();
 
       expect(matDialogRefMock.close).toHaveBeenCalledWith({
-        id: 'external',
+        key: 'external',
         name: 'Internal',
         description: 'Internal tenant',
       });
@@ -139,6 +144,28 @@ describe('GioConfirmDialogComponent', () => {
       expect(await submitButton.isDisabled()).toBeTruthy();
       expect(component.tenantForm.controls['name'].valid).toBeFalsy();
       expect(component.tenantForm.controls['name'].errors?.['maxlength']).toBeTruthy();
+    });
+
+    it.each`
+      key                                 | sanitized
+      ${'My Tenant Key'}                  | ${'my-tenant-key'}
+      ${'Tênant Spécîal @#$ Nàme!'}       | ${'tenant-special-name'}
+      ${'Tenant   With    Multiple---Sp'} | ${'tenant-with-multiple-sp'}
+      ${'Tenant Key---'}                  | ${'tenant-key'}
+      ${'UPPERCASE KEY'}                  | ${'uppercase-key'}
+      ${'Key 123 Value 456'}              | ${'key-123-value-456'}
+      ${'eu east 1! @#$%'}                | ${'eu-east-1'}
+    `('should sanitize key "$key" to "$sanitized"', async ({ key, sanitized }) => {
+      fixture.detectChanges();
+
+      component.tenantForm.controls.key.setValue(key);
+      fixture.detectChanges();
+
+      const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=key]' }));
+      await keyInput.blur();
+      fixture.detectChanges();
+
+      expect(await keyInput.getValue()).toBe(sanitized);
     });
   });
 });

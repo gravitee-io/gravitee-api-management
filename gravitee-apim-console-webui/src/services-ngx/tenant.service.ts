@@ -18,7 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { Tenant } from '../entities/tenant/tenant';
+import { Tenant, UpdateTenantEntity } from '../entities/tenant/tenant';
 import { NewTenant } from '../entities/tenant/newTenant';
 
 @Injectable({
@@ -38,7 +38,7 @@ export class TenantService {
     return this.http.post<Tenant[]>(`${this.constants.org.baseURL}/configuration/tenants`, tenants);
   }
 
-  update(tenants: Tenant[]): Observable<Tenant[]> {
+  update(tenants: UpdateTenantEntity[]): Observable<Tenant[]> {
     return this.http.put<Tenant[]>(`${this.constants.org.baseURL}/configuration/tenants`, tenants);
   }
 

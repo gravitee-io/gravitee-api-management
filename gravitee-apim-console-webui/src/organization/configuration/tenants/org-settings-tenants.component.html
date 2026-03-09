@@ -18,7 +18,7 @@
 <h1>Tenants</h1>
 
 <h4>
-  Copy/paste the tenant's id to the API gateway configuration file in order to resolve API endpoints according to the configured tenant.
+  Copy/paste the tenant's key to the API gateway configuration file in order to resolve API endpoints according to the configured tenant.
 </h4>
 
 <div class="add-button-container" *gioPermission="{ anyOf: ['organization-tenant-c'] }">
@@ -30,9 +30,9 @@
 <gio-table-wrapper [length]="tenantsTableUnpaginatedLength" (filtersChange)="onFiltersChanged($event)">
   <table mat-table [dataSource]="tenantsDataSource" class="tenants-table" id="tenantsTable" aria-label="Tenant table">
     <!-- Id Column -->
-    <ng-container matColumnDef="id">
-      <th mat-header-cell *matHeaderCellDef id="id">Id</th>
-      <td mat-cell *matCellDef="let element">{{ element.id }}</td>
+    <ng-container matColumnDef="key">
+      <th mat-header-cell *matHeaderCellDef id="key">Key</th>
+      <td mat-cell *matCellDef="let element">{{ element.key }}</td>
     </ng-container>
 
     <!-- Name Column -->
