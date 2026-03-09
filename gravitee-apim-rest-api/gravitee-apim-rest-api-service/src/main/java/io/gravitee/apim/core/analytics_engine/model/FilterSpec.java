@@ -17,6 +17,7 @@ package io.gravitee.apim.core.analytics_engine.model;
 
 import io.gravitee.apim.core.observability.model.FilterOperator;
 import io.gravitee.apim.core.observability.model.FilterType;
+import io.gravitee.apim.core.observability.model.NumberRange;
 import java.util.List;
 
 public record FilterSpec(

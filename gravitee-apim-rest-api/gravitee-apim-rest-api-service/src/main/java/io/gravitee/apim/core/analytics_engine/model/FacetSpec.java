@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.analytics_engine.model;
 
+import io.gravitee.apim.core.observability.model.NumberRange;
 import java.util.List;
 
 public record FacetSpec(Name name, String label, String type, List<Object> enumValues, NumberRange range) {

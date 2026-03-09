@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.apim.core.analytics_engine.model.NumberRange;
+import io.gravitee.apim.core.observability.model.NumberRange;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.LogsFilterSpec;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.LogsFilterSpecRange;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.LogsFilterSpecsResponse;
