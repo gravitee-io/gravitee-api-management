@@ -16,15 +16,7 @@
 @use '../../../scss/theme';
 
 .subscribe-to-api {
-  margin-top: 34px;
-
-  &__header {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  &__checkout {
+  &__review {
     display: flex;
     flex-flow: column;
     gap: 32px;
@@ -41,6 +33,10 @@
     }
 
     &__selected-application {
+      --mat-chip-elevated-container-color: #{theme.$chip-background};
+      --mat-chip-container-shape-radius: #{theme.$chip-shape};
+      --mat-chip-outline-width: 0;
+
       display: flex;
       align-items: center;
       gap: 8px;

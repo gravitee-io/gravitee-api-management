@@ -178,7 +178,7 @@ describe('SubscribeToApiComponent', () => {
         await goToNextStep();
         fixture.detectChanges();
 
-        expect(getTitle()).toEqual('Checkout');
+        expect(getTitle()).toEqual('Review');
         const checkout = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
         const subscribeButton = await getSubscribeButton();
         expect(await checkout.isSubscriptionFormVisible()).toEqual(false);
@@ -223,10 +223,10 @@ describe('SubscribeToApiComponent', () => {
         await goToNextStep();
 
         fixture.detectChanges();
-        expect(getTitle()).toEqual('Checkout');
+        expect(getTitle()).toEqual('Review');
       });
     });
-    describe('Step 3 -- Checkout', () => {
+    describe('Step 2 -- Review', () => {
       describe('V4 Proxy', () => {
         beforeEach(async () => {
           await init(true, fakeApi({ id: API_ID, type: 'PROXY', definitionVersion: 'V4', entrypoints: [ENTRYPOINT] }));
@@ -236,7 +236,7 @@ describe('SubscribeToApiComponent', () => {
           await goToNextStep();
           fixture.detectChanges();
         });
-        it('should see checkout information', async () => {
+        it('should see review information', async () => {
           expect(fixture.debugElement.query(By.css('app-subscription-info'))).toBeTruthy();
           const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
           expect(apiAccess).toBeTruthy();
@@ -266,7 +266,7 @@ describe('SubscribeToApiComponent', () => {
           await goToNextStep();
           fixture.detectChanges();
         });
-        it('should see checkout information', async () => {
+        it('should see review information', async () => {
           expect(fixture.debugElement.query(By.css('app-subscription-info'))).toBeTruthy();
           const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
           expect(apiAccess).toBeTruthy();
@@ -322,7 +322,7 @@ describe('SubscribeToApiComponent', () => {
           fixture.detectChanges();
         });
 
-        it('should not allow checkout', async () => {
+        it('should not allow proceeding without an application', async () => {
           const step2 = await harnessLoader.getHarness(SubscribeToApiChooseApplicationHarness);
           expect(step2).toBeTruthy();
           expect(await step2.noApplicationsMessageShown()).toEqual(true);
@@ -398,7 +398,7 @@ describe('SubscribeToApiComponent', () => {
           await goToNextStep();
 
           fixture.detectChanges();
-          expect(getTitle()).toEqual('Checkout');
+          expect(getTitle()).toEqual('Review');
         });
 
         it('should list pages of applications and go to next step', async () => {
@@ -438,7 +438,7 @@ describe('SubscribeToApiComponent', () => {
           await goToNextStep();
 
           fixture.detectChanges();
-          expect(getTitle()).toEqual('Checkout');
+          expect(getTitle()).toEqual('Review');
         });
 
         it('should disable applications with valid subscriptions', async () => {
@@ -465,7 +465,7 @@ describe('SubscribeToApiComponent', () => {
       });
     });
 
-    describe('Step 3 -- Checkout', () => {
+    describe('Step 3 -- Review', () => {
       describe('When terms and conditions need to be accepted', () => {
         const PAGE = fakePage({
           id: GENERAL_CONDITIONS_ID,
@@ -878,7 +878,7 @@ describe('SubscribeToApiComponent', () => {
       });
     });
 
-    describe('Step 3 -- Checkout', () => {
+    describe('Step 3 -- Review', () => {
       beforeEach(async () => {
         await selectPlan(OAUTH2_PLAN_ID);
         await selectApplication();
@@ -1033,7 +1033,7 @@ describe('SubscribeToApiComponent', () => {
       });
     });
 
-    describe('Step 3 -- Checkout', () => {
+    describe('Step 3 -- Review', () => {
       beforeEach(async () => {
         await selectPlan(JWT_PLAN_ID);
         await selectApplication();
@@ -1141,7 +1141,7 @@ describe('SubscribeToApiComponent', () => {
       });
     });
 
-    describe('Step 3 -- Checkout', () => {
+    describe('Step 3 -- Review', () => {
       beforeEach(async () => {
         await selectPlan(MTLS_PLAN_ID);
         await selectApplication(APP_ID_WITH_CLIENT_CERTIFICATE);
@@ -1155,6 +1155,35 @@ describe('SubscribeToApiComponent', () => {
 
         expectPostCreateSubscription({ plan: MTLS_PLAN_ID, application: APP_ID_WITH_CLIENT_CERTIFICATE });
       });
+    });
+  });
+
+  describe('cancelFn input', () => {
+    it('should NOT show a Cancel button when cancelFn is not provided', async () => {
+      await init(false);
+      const cancelBtn = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Cancel' }));
+      expect(cancelBtn).toBeNull();
+    });
+
+    it('should show a Cancel button when cancelFn is provided', async () => {
+      await init(false);
+      fixture.componentRef.setInput('cancelFn', () => {});
+      fixture.detectChanges();
+
+      const cancelBtn = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Cancel' }));
+      expect(cancelBtn).toBeTruthy();
+    });
+
+    it('should call cancelFn when Cancel button is clicked', async () => {
+      await init(false);
+      const cancelFnSpy = jest.fn();
+      fixture.componentRef.setInput('cancelFn', cancelFnSpy);
+      fixture.detectChanges();
+
+      const cancelBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
+      await cancelBtn.click();
+
+      expect(cancelFnSpy).toHaveBeenCalled();
     });
   });
 
@@ -1192,7 +1221,7 @@ describe('SubscribeToApiComponent', () => {
 
   function expectGetApplications(page: number = 1, applicationsResponse: ApplicationsResponse = fakeApplicationsResponse()) {
     httpTestingController
-      .expectOne(`${TESTING_BASE_URL}/applications?page=${page}&size=9&forSubscription=true`)
+      .expectOne(`${TESTING_BASE_URL}/applications?page=${page}&size=6&forSubscription=true`)
       .flush(applicationsResponse);
   }
 
@@ -1242,7 +1271,7 @@ describe('SubscribeToApiComponent', () => {
   }
 
   function getTitle(): string {
-    return fixture.debugElement.query(By.css('.m3-title-large')).nativeElement.textContent;
+    return fixture.debugElement.query(By.css('.next-gen-h5')).nativeElement.textContent;
   }
 
   async function selectPlan(planId: string): Promise<void> {

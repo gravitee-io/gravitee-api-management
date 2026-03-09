@@ -67,12 +67,15 @@
   --mat-radio-selected-hover-icon-color: #{theme.$primary-main-color} !important;
   --mat-radio-selected-icon-color: #{theme.$primary-main-color} !important;
   --mat-radio-selected-pressed-icon-color: #{theme.$primary-main-color} !important;
+  --mat-card-outlined-container-color: #{theme.$card-background-color};
 
   padding: 0;
   border: 2px solid #{theme.$tertiary-main-color};
 }
 
 .radio-card.disabled {
+  --mat-card-outlined-container-color: #{theme.$card-background-color};
+
   cursor: not-allowed;
 
   .radio-card__header-content__title {

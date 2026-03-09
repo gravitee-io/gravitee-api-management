@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 import { Component, computed, EventEmitter, Input, Output, Signal, WritableSignal } from '@angular/core';
-import { MatIcon } from '@angular/material/icon';
 
-import { BannerComponent } from '../../../../components/banner/banner.component';
 import { PlanCardComponent } from '../../../../components/subscribe/plan-card/plan-card.component';
+import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
+import { NarrowClassDirective } from '../../../../directives/narrow-class.directive';
 import { Api } from '../../../../entities/api/api';
 import { Plan } from '../../../../entities/plan/plan';
 
 @Component({
   selector: 'app-subscribe-to-api-choose-plan',
-  imports: [PlanCardComponent, BannerComponent, MatIcon],
+  imports: [PlanCardComponent, MobileClassDirective, NarrowClassDirective],
   templateUrl: './subscribe-to-api-choose-plan.component.html',
   styleUrl: './subscribe-to-api-choose-plan.component.scss',
 })

@@ -13,46 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.subscribe-to-api-checkout {
-  &__container {
-    display: flex;
-    flex-direction: column;
-    padding-top: 32px;
-    gap: 16px;
-  }
+import { Component, input } from '@angular/core';
 
-  &__top-row {
-    display: flex;
-    flex-direction: row;
-    gap: 32px;
-
-    @media (width <= 768px) {
-      flex-direction: column;
-    }
-  }
-
-  &__subscription-info {
-    min-width: 38%;
-  }
-
-  &__api-key-card {
-    flex: 1 1 100%;
-    min-width: 0;
-  }
-
-  &__api-key-mode {
-    display: flex;
-    flex-flow: column;
-    gap: 16px;
-
-    &__radio-cards {
-      display: flex;
-      gap: 16px;
-    }
-  }
-
-  &__form {
-    padding-top: 16px;
-    width: 100%;
-  }
+@Component({
+  selector: 'app-subscribe-to-api-step-header',
+  templateUrl: './subscribe-to-api-step-header.component.html',
+  styleUrl: './subscribe-to-api-step-header.component.scss',
+})
+export class SubscribeToApiStepHeaderComponent {
+  stepNumber = input.required<number>();
 }
