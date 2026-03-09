@@ -57,10 +57,20 @@ export class GraviteeDashboardComponent {
   baseURL = input.required<string>();
   filters = input.required<Filter[]>();
   widgetConfigs = input.required<Widget[]>();
+  defaultPeriod = input<string>('5m');
 
-  currentSelectedFilters = toSignal(this.activatedRoute.queryParams.pipe(map(params => this.getSelectedFiltersFromQueryParams(params))), {
-    initialValue: [] as SelectedFilter[],
-  });
+  currentSelectedFilters = toSignal(
+    this.activatedRoute.queryParams.pipe(
+      map(params => {
+        const filters = this.getSelectedFiltersFromQueryParams(params);
+        if (!filters.some(f => f.parentKey === 'period')) {
+          return [{ parentKey: 'period', value: this.defaultPeriod() }, ...filters];
+        }
+        return filters;
+      }),
+    ),
+    { initialValue: [{ parentKey: 'period', value: '5m' }] as SelectedFilter[] },
+  );
 
   readonly widgetsWithFilters = computed(() => {
     this.refreshTrigger();
