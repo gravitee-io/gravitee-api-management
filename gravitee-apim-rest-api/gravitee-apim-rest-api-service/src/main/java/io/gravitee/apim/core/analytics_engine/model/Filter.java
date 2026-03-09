@@ -15,8 +15,10 @@
  */
 package io.gravitee.apim.core.analytics_engine.model;
 
+import io.gravitee.apim.core.observability.model.FilterOperator;
+
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record Filter(FilterSpec.Name name, FilterSpec.Operator operator, Object value) {}
+public record Filter(FilterSpec.Name name, FilterOperator operator, Object value) {}

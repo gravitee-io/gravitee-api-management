@@ -24,6 +24,7 @@ import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.observability.model.FilterOperator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -80,7 +81,7 @@ class ApiTypeFilterTransformerTest {
 
         assertThat(filters).hasSize(1);
         assertThat(filters.getFirst().name()).isEqualTo(FilterSpec.Name.API);
-        assertThat(filters.getFirst().operator()).isEqualTo(FilterSpec.Operator.IN);
+        assertThat(filters.getFirst().operator()).isEqualTo(FilterOperator.IN);
         assertThat(filters.getFirst().value())
             .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
             .containsExactlyInAnyOrderElementsOf(authorizedApiIds);
@@ -89,7 +90,7 @@ class ApiTypeFilterTransformerTest {
     @Test
     void should_preserve_existing_filters() {
         var context = buildContext(Set.of("api-1"), Map.of(ApiType.PROXY, Set.of("api-1")));
-        var existingFilter = new Filter(FilterSpec.Name.APPLICATION, FilterSpec.Operator.EQ, "app-1");
+        var existingFilter = new Filter(FilterSpec.Name.APPLICATION, FilterOperator.EQ, "app-1");
 
         var filters = transformer.transform(context, List.of(existingFilter));
 
@@ -112,12 +113,12 @@ class ApiTypeFilterTransformerTest {
     void should_narrow_to_mcp_apis_with_eq_operator() {
         var context = buildContext(Set.of("api-1", "api-2", "api-3"), STANDARD_API_IDS_BY_TYPE);
 
-        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterSpec.Operator.EQ, "MCP");
+        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "MCP");
         var filters = transformer.transform(context, List.of(apiTypeFilter));
 
         assertThat(filters).hasSize(1);
         assertThat(filters.getFirst().name()).isEqualTo(FilterSpec.Name.API);
-        assertThat(filters.getFirst().operator()).isEqualTo(FilterSpec.Operator.IN);
+        assertThat(filters.getFirst().operator()).isEqualTo(FilterOperator.IN);
         assertThat(filters.getFirst().value()).asInstanceOf(InstanceOfAssertFactories.collection(String.class)).containsExactly("api-2");
     }
 
@@ -125,7 +126,7 @@ class ApiTypeFilterTransformerTest {
     void should_narrow_to_multiple_api_types_with_in_operator() {
         var context = buildContext(Set.of("api-1", "api-2", "api-3"), STANDARD_API_IDS_BY_TYPE);
 
-        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterSpec.Operator.IN, List.of("LLM", "MCP"));
+        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.IN, List.of("LLM", "MCP"));
         var filters = transformer.transform(context, List.of(apiTypeFilter));
 
         assertThat(filters).hasSize(1);
@@ -139,8 +140,8 @@ class ApiTypeFilterTransformerTest {
     void should_remove_api_type_filter_from_output() {
         var context = buildContext(Set.of("api-1"), Map.of(ApiType.PROXY, Set.of("api-1")));
 
-        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterSpec.Operator.EQ, "HTTP_PROXY");
-        var otherFilter = new Filter(FilterSpec.Name.APPLICATION, FilterSpec.Operator.EQ, "app-1");
+        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "HTTP_PROXY");
+        var otherFilter = new Filter(FilterSpec.Name.APPLICATION, FilterOperator.EQ, "app-1");
 
         var filters = transformer.transform(context, List.of(apiTypeFilter, otherFilter));
 
@@ -152,7 +153,7 @@ class ApiTypeFilterTransformerTest {
     @Test
     void should_return_empty_api_filter_when_api_type_present_but_no_authorized_apis() {
         var context = buildContext(Set.of());
-        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterSpec.Operator.EQ, "MCP");
+        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "MCP");
 
         var filters = transformer.transform(context, List.of(apiTypeFilter));
 
@@ -165,7 +166,7 @@ class ApiTypeFilterTransformerTest {
     void should_map_http_proxy_to_proxy_api_type() {
         var context = buildContext(Set.of("api-1"), Map.of(ApiType.PROXY, Set.of("api-1")));
 
-        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterSpec.Operator.EQ, "HTTP_PROXY");
+        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "HTTP_PROXY");
         var filters = transformer.transform(context, List.of(apiTypeFilter));
 
         assertThat(filters.getFirst().value()).asInstanceOf(InstanceOfAssertFactories.collection(String.class)).containsExactly("api-1");
@@ -175,7 +176,7 @@ class ApiTypeFilterTransformerTest {
     void should_map_message_to_message_api_type() {
         var context = buildContext(Set.of("api-4"), Map.of(ApiType.MESSAGE, Set.of("api-4")));
 
-        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterSpec.Operator.EQ, "MESSAGE");
+        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "MESSAGE");
         var filters = transformer.transform(context, List.of(apiTypeFilter));
 
         assertThat(filters.getFirst().value()).asInstanceOf(InstanceOfAssertFactories.collection(String.class)).containsExactly("api-4");
@@ -185,7 +186,7 @@ class ApiTypeFilterTransformerTest {
     void should_map_kafka_to_native_api_type() {
         var context = buildContext(Set.of("api-5"), Map.of(ApiType.NATIVE, Set.of("api-5")));
 
-        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterSpec.Operator.EQ, "KAFKA");
+        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "KAFKA");
         var filters = transformer.transform(context, List.of(apiTypeFilter));
 
         assertThat(filters.getFirst().value()).asInstanceOf(InstanceOfAssertFactories.collection(String.class)).containsExactly("api-5");
@@ -194,7 +195,7 @@ class ApiTypeFilterTransformerTest {
     @Test
     void should_throw_on_unknown_api_type_value() {
         var context = buildContext(Set.of("api-1"));
-        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterSpec.Operator.EQ, "UNKNOWN");
+        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "UNKNOWN");
 
         assertThatThrownBy(() -> transformer.transform(context, List.of(apiTypeFilter)))
             .isInstanceOf(InvalidQueryException.class)
@@ -206,7 +207,7 @@ class ApiTypeFilterTransformerTest {
         var apiIdsByType = Map.of(ApiType.PROXY, Set.of("api-1"), ApiType.LLM_PROXY, Set.of("api-3"));
         var context = buildContext(Set.of("api-1", "api-3"), apiIdsByType);
 
-        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterSpec.Operator.EQ, "MCP");
+        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "MCP");
         var filters = transformer.transform(context, List.of(apiTypeFilter));
 
         assertThat(filters.getFirst().value())
@@ -219,7 +220,7 @@ class ApiTypeFilterTransformerTest {
     void should_return_authorized_mcp_apis_only_when_multiple_types_exist() {
         var context = buildContext(Set.of("api-2", "api-3"), STANDARD_API_IDS_BY_TYPE);
 
-        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterSpec.Operator.EQ, "MCP");
+        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "MCP");
         var filters = transformer.transform(context, List.of(apiTypeFilter));
 
         assertThat(filters.getFirst().value()).asInstanceOf(InstanceOfAssertFactories.collection(String.class)).containsExactly("api-2");

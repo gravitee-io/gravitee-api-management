@@ -23,6 +23,7 @@ import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
+import io.gravitee.apim.core.observability.model.FilterOperator;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -162,7 +163,7 @@ class DashboardWidgetRequestMapperTest {
 
             assertThat(result.filters()).hasSize(1);
             assertThat(result.filters().get(0).name()).isEqualTo(FilterSpec.Name.API);
-            assertThat(result.filters().get(0).operator()).isEqualTo(FilterSpec.Operator.EQ);
+            assertThat(result.filters().get(0).operator()).isEqualTo(FilterOperator.EQ);
             assertThat(result.filters().get(0).value()).isEqualTo("my-api-id");
         }
 
@@ -183,7 +184,7 @@ class DashboardWidgetRequestMapperTest {
 
             assertThat(result.metrics().get(0).filters()).hasSize(1);
             assertThat(result.metrics().get(0).filters().get(0).name()).isEqualTo(FilterSpec.Name.API_TYPE);
-            assertThat(result.metrics().get(0).filters().get(0).operator()).isEqualTo(FilterSpec.Operator.EQ);
+            assertThat(result.metrics().get(0).filters().get(0).operator()).isEqualTo(FilterOperator.EQ);
             assertThat(result.metrics().get(0).filters().get(0).value()).isEqualTo("LLM");
         }
 

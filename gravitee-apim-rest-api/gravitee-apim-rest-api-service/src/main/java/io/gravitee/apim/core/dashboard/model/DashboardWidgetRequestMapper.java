@@ -26,6 +26,7 @@ import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
+import io.gravitee.apim.core.observability.model.FilterOperator;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import java.util.List;
 
@@ -140,9 +141,9 @@ public final class DashboardWidgetRequestMapper {
         }
     }
 
-    private static FilterSpec.Operator parseFilterOperator(String value) {
+    private static FilterOperator parseFilterOperator(String value) {
         try {
-            return FilterSpec.Operator.valueOf(value);
+            return FilterOperator.valueOf(value);
         } catch (IllegalArgumentException e) {
             throw new InvalidQueryException("Unknown filter operator: " + value);
         }

@@ -28,6 +28,7 @@ import io.gravitee.apim.core.analytics_engine.model.TimeSeriesBucketResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesMetricResponse;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.observability.model.FilterOperator;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.*;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CustomInterval;
 import java.time.Instant;
@@ -101,8 +102,8 @@ public interface AnalyticsMeasuresMapper {
         return FilterSpec.Name.valueOf(filterName.name());
     }
 
-    default FilterSpec.Operator mapOperator(Operator operator) {
-        return FilterSpec.Operator.valueOf(operator.name());
+    default FilterOperator mapOperator(Operator operator) {
+        return FilterOperator.valueOf(operator.name());
     }
 
     default Instant toInstant(Object timeRangeBound) {
