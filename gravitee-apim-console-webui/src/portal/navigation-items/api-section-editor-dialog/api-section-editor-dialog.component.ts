@@ -19,7 +19,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -37,6 +37,7 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
 
 export interface ApiSectionEditorDialogData {
   mode: 'create';
+  existingApiIds?: string[];
 }
 
 export interface ApiSectionEditorDialogResult {
@@ -89,6 +90,7 @@ type ApiSectionForm = FormGroup<ApiSectionFormControls>;
 })
 export class ApiSectionEditorDialogComponent implements OnInit {
   private readonly apiService = inject(ApiV2Service);
+  private readonly dialogData = inject<ApiSectionEditorDialogData>(MAT_DIALOG_DATA);
 
   form!: ApiSectionForm;
   public initialFormValues: ApiSectionFormValues;
@@ -144,7 +146,7 @@ export class ApiSectionEditorDialogComponent implements OnInit {
       this.selectedOrderedApis.set(current.filter(a => ids.includes(a.id)));
     });
 
-    const disabledSet = new Set<string>([]);
+    const disabledSet = new Set<string>(this.dialogData?.existingApiIds ?? []);
 
     this.rows$ = this.filters$.pipe(
       debounceTime(100),

@@ -15,7 +15,7 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { DivHarness } from '@gravitee/ui-particles-angular/testing';
+import { DivHarness, SpanHarness } from '@gravitee/ui-particles-angular/testing';
 
 export class ApiSectionEditorDialogHarness extends ComponentHarness {
   static hostSelector = 'api-section-editor-dialog';
@@ -23,6 +23,7 @@ export class ApiSectionEditorDialogHarness extends ComponentHarness {
   private locateCancelButton = this.locatorFor(MatButtonHarness.with({ text: 'Cancel' }));
   private locateSubmitButton = this.locatorFor(MatButtonHarness.with({ text: /Add|Save/ }));
   private locateFormTitle = this.locatorFor(DivHarness.with({ selector: '[mat-dialog-title]' }));
+  private locateAlreadyAddedLabels = this.locatorForAll(SpanHarness.with({ selector: '[data-testid^="api-picker-already-added-"]' }));
 
   async clickCancelButton(): Promise<void> {
     const cancelButton = await this.locateCancelButton();
@@ -42,5 +43,22 @@ export class ApiSectionEditorDialogHarness extends ComponentHarness {
   async getDialogTitle(): Promise<string> {
     const titleElement = await this.locateFormTitle();
     return titleElement.getText();
+  }
+
+  async getAlreadyAddedLabel(apiId: string): Promise<SpanHarness | null> {
+    const labels = await this.getAlreadyAddedLabels();
+    const expectedDataTestId = `api-picker-already-added-${apiId}`;
+    for (const label of labels) {
+      const host = await label.host();
+      const dataTestId = await host.getAttribute('data-testid');
+      if (dataTestId === expectedDataTestId) {
+        return label;
+      }
+    }
+    return null;
+  }
+
+  async getAlreadyAddedLabels(): Promise<SpanHarness[]> {
+    return this.locateAlreadyAddedLabels();
   }
 }

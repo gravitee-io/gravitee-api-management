@@ -16,6 +16,7 @@
 import { ConfigureTestingGraviteeMarkdownEditor } from '@gravitee/gravitee-markdown';
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatDialog } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -2030,6 +2031,43 @@ describe('PortalNavigationItemsComponent', () => {
     await dialog.clickCancelButton();
 
     expect(component.hasUnsavedChanges()).toBeFalsy();
+  });
+
+  describe('API section dialog with already-added APIs', () => {
+    const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'API Folder' });
+    const existingApi = fakePortalNavigationApi({ id: 'nav-api-1', apiId: 'api-already-added', title: 'Existing API' });
+
+    beforeEach(async () => {
+      await expectGetNavigationItems(
+        fakePortalNavigationItemsResponse({
+          items: [folder, existingApi],
+        }),
+      );
+    });
+
+    it('should pass existingApiIds to dialog when menu contains API items', async () => {
+      const matDialog = TestBed.inject(MatDialog);
+      const openSpy = jest.spyOn(matDialog, 'open');
+      const component = fixture.componentInstance;
+      const folderNode = { id: folder.id, label: folder.title, type: folder.type, data: folder } as any;
+
+      await harness.selectNavigationItemByTitle(folder.title);
+      component.onNodeMenuAction({ action: 'create', itemType: 'API', node: folderNode });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      await expectApiSearchResponse([]);
+
+      expect(openSpy).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          data: expect.objectContaining({
+            mode: 'create',
+            existingApiIds: ['api-already-added'],
+          }),
+        }),
+      );
+    });
   });
 
   describe('calling onAddSection with API type', () => {
