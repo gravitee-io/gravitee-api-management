@@ -56,7 +56,7 @@ $border-width: var(--gio-app-outline-width, 1px);
 $card-container-shape: var(--gio-app-card-container-shape, $container-shape);
 $card-border-width: var(--gio-app-card-outline-width);
 $card-border-color: var(--gio-app-card-outline-color, $border-color);
-$card-background-color: var(--gio-app-card-background-color);
+$card-background-color: var(--gio-app-card-background-color, #ffffff);
 $card-text-color: var(--gio-app-card-text-color);
 $card-elevation: var(--gio-app-card-elevation);
 

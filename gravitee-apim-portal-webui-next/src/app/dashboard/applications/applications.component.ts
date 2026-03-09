@@ -17,7 +17,7 @@ import { Component, Signal, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BehaviorSubject, catchError, distinctUntilChanged, map, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
@@ -54,6 +54,7 @@ export default class ApplicationsComponent {
   canCreate = computed(() => this.currentUser().permissions?.APPLICATION?.includes('C') || false);
   protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
 
+  private readonly activatedRoute = inject(ActivatedRoute);
   private readonly applicationService = inject(ApplicationService);
   private readonly router = inject(Router);
   private readonly page$ = new BehaviorSubject<number>(1);
@@ -72,7 +73,7 @@ export default class ApplicationsComponent {
   }
 
   navigateToApplication(id: string) {
-    this.router.navigate(['/dashboard/applications', id]);
+    this.router.navigate([id], { relativeTo: this.activatedRoute });
   }
 
   private loadApplications$() {

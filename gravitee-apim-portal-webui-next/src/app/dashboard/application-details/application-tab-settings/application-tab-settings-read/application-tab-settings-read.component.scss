@@ -61,13 +61,6 @@
         font-style: italic;
         color: theme.$paragraph-color;
       }
-
-      &__chip {
-        background-color: theme.$chip-background;
-        border-radius: theme.$container-shape;
-        padding: 2px 12px;
-        border: theme.$border-width solid theme.$border-color;
-      }
     }
   }
 

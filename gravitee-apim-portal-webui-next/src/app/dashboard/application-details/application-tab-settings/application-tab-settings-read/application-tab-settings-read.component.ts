@@ -18,6 +18,7 @@ import { Component, computed, inject, input, output } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
 import { switchMap } from 'rxjs';
 
 import { ApplicationType } from '../../../../../entities/application/application';
@@ -25,7 +26,7 @@ import { ApplicationService } from '../../../../../services/application.service'
 
 @Component({
   selector: 'app-application-tab-settings-read',
-  imports: [DatePipe, MatButtonModule, MatCardModule],
+  imports: [DatePipe, MatButtonModule, MatCardModule, MatChipsModule],
   templateUrl: './application-tab-settings-read.component.html',
   styleUrl: './application-tab-settings-read.component.scss',
 })
