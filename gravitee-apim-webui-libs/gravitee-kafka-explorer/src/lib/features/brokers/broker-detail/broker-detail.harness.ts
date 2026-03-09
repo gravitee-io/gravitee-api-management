@@ -19,6 +19,7 @@ import { MatProgressBarHarness } from '@angular/material/progress-bar/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
 import { BadgeHarness } from '../../../components/badge/badge.harness';
+import { DataTableHarness } from '../../../components/data-table/data-table.harness';
 
 export class BrokerDetailHarness extends ComponentHarness {
   static hostSelector = 'gke-broker-detail';
@@ -29,7 +30,7 @@ export class BrokerDetailHarness extends ComponentHarness {
   private readonly getProgressBar = this.locatorForOptional(MatProgressBarHarness);
   private readonly getTitle = this.locatorFor('.broker-detail__title');
   private readonly getControllerBadge = this.locatorForOptional(BadgeHarness.with({ selector: '.broker-detail__controller-badge' }));
-  private readonly getEmptyMessage = this.locatorForOptional('.broker-detail__empty-message');
+  private readonly getDataTables = this.locatorForAll(DataTableHarness);
 
   async getBrokerTitle() {
     const title = await this.getTitle();
@@ -50,8 +51,9 @@ export class BrokerDetailHarness extends ComponentHarness {
   }
 
   async getLogDirEmptyMessage() {
-    const el = await this.getEmptyMessage();
-    return el ? el.text() : null;
+    const dataTables = await this.getDataTables();
+    if (dataTables.length < 1) return null;
+    return dataTables[0].getEmptyText();
   }
 
   async getLogDirRows() {

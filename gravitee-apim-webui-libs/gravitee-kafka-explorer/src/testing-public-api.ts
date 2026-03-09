@@ -17,6 +17,7 @@
  * Public API Surface of gravitee-kafka-explorer/testing
  */
 
+export * from './lib/components/data-table/data-table.harness';
 export * from './lib/kafka-explorer/kafka-explorer.harness';
 export * from './lib/features/brokers/brokers/brokers.harness';
 export * from './lib/features/brokers/broker-detail/broker-detail.harness';
