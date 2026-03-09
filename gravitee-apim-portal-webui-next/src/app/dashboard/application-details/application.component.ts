@@ -24,16 +24,7 @@ import { CurrentUserService } from '../../../services/current-user.service';
 
 @Component({
   selector: 'app-application',
-  imports: [
-    RouterOutlet,
-    MatCard,
-    MatCardContent,
-    MatTabLink,
-    MatTabNav,
-    MatTabNavPanel,
-    RouterLinkActive,
-    RouterLink,
-  ],
+  imports: [RouterOutlet, MatCard, MatCardContent, MatTabLink, MatTabNav, MatTabNavPanel, RouterLinkActive, RouterLink],
   templateUrl: './application.component.html',
   styleUrl: './application.component.scss',
 })

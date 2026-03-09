@@ -17,19 +17,7 @@
 -->
 @if (application(); as application) {
   @if (isEditing() && canUpdate()) {
-    <app-application-tab-settings-edit [applicationId]="application.id" [applicationTypeConfiguration]="applicationTypeConfiguration()">
-      @if (canDelete()) {
-        <button
-          mat-button
-          (click)="deleteApplication()"
-          i18n="@@deleteApplicationSettings"
-          aria-label="Delete application"
-          additionalActions
-        >
-          Delete application
-        </button>
-      }
-    </app-application-tab-settings-edit>
+    <app-application-tab-settings-edit [applicationId]="application.id" [applicationTypeConfiguration]="applicationTypeConfiguration()" />
   } @else {
     <app-application-tab-settings-read
       [applicationId]="application.id"

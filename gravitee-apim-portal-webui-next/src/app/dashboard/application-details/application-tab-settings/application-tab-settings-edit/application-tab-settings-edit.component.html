@@ -25,12 +25,19 @@
             <p class="m3-label-large" i18n="@@applicationNameApplicationSettings">Application name *</p>
             <mat-form-field appearance="outline">
               <input matInput formControlName="name" aria-label="Application name" data-testId="name" />
+              <mat-error i18n="@@nameRequiredApplicationSettings">Application name is required</mat-error>
             </mat-form-field>
           </div>
           <div class="settings-edit__form__field">
             <p class="m3-label-large" i18n="@@applicationDescriptionApplicationSettings">Description (optional)</p>
             <mat-form-field appearance="outline">
-              <textarea matInput formControlName="description" aria-label="Application description" data-testId="description" rows="1"></textarea>
+              <textarea
+                matInput
+                formControlName="description"
+                aria-label="Application description"
+                data-testId="description"
+                rows="1"
+              ></textarea>
             </mat-form-field>
           </div>
           <div class="settings-edit__form__field">
@@ -81,7 +88,12 @@
               <div class="settings-edit__form__field">
                 <p class="m3-label-large" i18n="@@applicationRedirectUrisApplicationSettings">Redirect URIs *</p>
                 <mat-form-field appearance="outline">
-                  <mat-chip-grid #redirectURIChipGrid aria-label="Redirect URIs" formControlName="oauthRedirectUris" data-testId="redirectUris">
+                  <mat-chip-grid
+                    #redirectURIChipGrid
+                    aria-label="Redirect URIs"
+                    formControlName="oauthRedirectUris"
+                    data-testId="redirectUris"
+                  >
                     @for (uri of applicationSettingsForm.controls.oauthRedirectUris.value; track uri) {
                       <mat-chip-row (removed)="removeRedirectUri(uri)">
                         {{ uri }}
@@ -100,6 +112,7 @@
                   <mat-hint i18n="@@hintRedirectUrisApplicationSettings"
                     >URIs where the authorization server will send OAuth responses</mat-hint
                   >
+                  <mat-error i18n="@@redirectUrisRequiredApplicationSettings">At least one redirect URI is required</mat-error>
                 </mat-form-field>
               </div>
             }
@@ -114,6 +127,7 @@
                 <mat-hint i18n="@@hintGrantTypesApplicationSettings"
                   >Grant types allowed for the client. Please set only grant types you need for security reasons</mat-hint
                 >
+                <mat-error i18n="@@grantTypesRequiredApplicationSettings">At least one grant type is required</mat-error>
               </mat-form-field>
             </div>
           }

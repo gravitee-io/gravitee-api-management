@@ -24,7 +24,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { isEqual } from 'lodash';
 import { map, Observable, startWith, Subject, take, takeUntil, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
@@ -37,7 +37,6 @@ interface ApplicationSettingsVM {
   name: string;
   description: string | undefined;
   domain: string | undefined;
-  picture: string | undefined;
   appType: string | undefined;
   appClientId: string | undefined;
   oauthRedirectUris: string[] | undefined;
@@ -48,7 +47,6 @@ interface ApplicationSettingsForm {
   name: FormControl<string>;
   description: FormControl<string | undefined>;
   domain: FormControl<string | undefined>;
-  picture: FormControl<string | undefined>;
   appType: FormControl<string | undefined>;
   appClientId: FormControl<string | undefined>;
   oauthRedirectUris: FormControl<string[] | undefined>;
@@ -89,7 +87,6 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
     name: '',
     description: undefined,
     domain: undefined,
-    picture: undefined,
     appType: undefined,
     appClientId: undefined,
     oauthRedirectUris: undefined,
@@ -100,7 +97,6 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
     name: new FormControl<string>('', { nonNullable: true }),
     description: new FormControl<string | undefined>(undefined, { nonNullable: true }),
     domain: new FormControl<string | undefined>(undefined, { nonNullable: true }),
-    picture: new FormControl<string | undefined>(undefined, { nonNullable: true }),
     appType: new FormControl<string | undefined>(undefined, { nonNullable: true }),
     appClientId: new FormControl<string | undefined>(undefined, { nonNullable: true }),
     oauthRedirectUris: new FormControl<string[] | undefined>(undefined, { nonNullable: true }),
@@ -117,7 +113,6 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
   constructor(
     private readonly applicationService: ApplicationService,
     private router: Router,
-    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
@@ -136,18 +131,6 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
         map(value => isEqual(this.initialValues, value)),
       );
     });
-  }
-
-  deletePicture(): void {
-    this.applicationSettingsForm.controls.picture.setValue(undefined);
-  }
-
-  async onPictureChange($event: Event) {
-    const target = $event.target as HTMLInputElement;
-    const files = target.files; // Here we use only the first file (single file)
-    if (files && files.length > 0) {
-      this.applicationSettingsForm.controls.picture.setValue(await toBase64(files[0]));
-    }
   }
 
   addRedirectUri(event: MatChipInputEvent) {
@@ -202,7 +185,6 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
       name: application.name,
       description: application.description,
       domain: application.domain,
-      picture: application.picture,
       appType: application.settings.app?.type,
       appClientId: application.settings.app?.client_id,
       oauthGrantTypes: application.settings.oauth?.grant_types,
@@ -240,7 +222,6 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
       name: appVM.name,
       description: appVM.description,
       domain: appVM.domain,
-      picture: appVM.picture,
     };
     if (appToUpdate.settings.app) {
       appToUpdate.settings.app.type = appVM.appType;
@@ -266,14 +247,3 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
     return appToUpdate;
   }
 }
-
-const toBase64 = (file: File) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      // because we use `readAsDataURL`, reader.result is guaranteed to be a string
-      resolve(<string>reader.result);
-    };
-    reader.onerror = error => reject(error);
-  });

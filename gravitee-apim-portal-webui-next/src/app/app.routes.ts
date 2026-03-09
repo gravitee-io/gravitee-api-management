@@ -178,9 +178,7 @@ export const routes: Routes = [
       {
         path: 'applications/create',
         loadComponent: () =>
-          import('./dashboard/applications/create-application/create-application.component').then(
-            m => m.CreateApplicationComponent,
-          ),
+          import('./dashboard/applications/create-application/create-application.component').then(m => m.CreateApplicationComponent),
         data: { breadcrumb: 'Create Application' },
       },
       {
@@ -215,9 +213,7 @@ export const routes: Routes = [
   },
   {
     path: 'applications',
-    children: [
-      { path: '', redirectTo: '/dashboard/applications', pathMatch: 'full' },
-    ],
+    children: [{ path: '', redirectTo: '/dashboard/applications', pathMatch: 'full' }],
   },
   {
     path: 'documentation',
