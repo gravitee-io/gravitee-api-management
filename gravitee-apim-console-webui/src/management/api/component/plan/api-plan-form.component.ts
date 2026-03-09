@@ -153,6 +153,12 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
 
   @Input({ required: true }) isTcpApi!: boolean;
 
+  /**
+   * When set, overrides the default restriction step visibility (e.g. use false to hide for API Product).
+   * When undefined, restriction step is shown in create mode for non-TCP, non-native APIs.
+   */
+  @Input() showRestrictionStep?: boolean;
+
   public isInit = false;
 
   public planForm = new UntypedFormGroup({});
@@ -215,7 +221,8 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     this.ngControl.control.setValidators(this.validate.bind(this));
     this.ngControl.control.updateValueAndValidity();
 
-    this.displayRestrictionStep = this.mode === 'create' && !this.isTcpApi && !this.isNative;
+    this.displayRestrictionStep =
+      this.showRestrictionStep !== undefined ? this.showRestrictionStep : this.mode === 'create' && !this.isTcpApi && !this.isNative;
     this.displaySecurityStep =
       !this.isFederated &&
       !['KEY_LESS', 'PUSH'].includes(this.planMenuItem.planFormType) &&
