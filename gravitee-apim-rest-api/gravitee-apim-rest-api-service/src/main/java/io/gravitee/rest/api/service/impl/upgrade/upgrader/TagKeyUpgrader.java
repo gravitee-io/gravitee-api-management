@@ -56,7 +56,7 @@ public class TagKeyUpgrader implements Upgrader {
                 });
             return true;
         } catch (Exception ex) {
-            log.error("Failed to migrate sharding tags", ex);
+            log.error("TagKeyUpgrader failed. Fail to upgrade tag key");
             return false;
         }
     }
