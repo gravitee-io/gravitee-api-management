@@ -35,6 +35,16 @@
         <mat-error *ngIf="mappingForm.get('tags').hasError('required')">At least one tag must be selected.</mat-error>
       </mat-form-field>
 
+      <mat-form-field>
+        <mat-label>Environments</mat-label>
+        <mat-select formControlName="environmentIds" aria-label="Environments selection" multiple>
+          <mat-option *ngFor="let env of environments$ | async" [value]="env.id">
+            {{ env.name || env.id }}
+          </mat-option>
+        </mat-select>
+        <mat-hint>Leave empty to apply to all environments</mat-hint>
+      </mat-form-field>
+
       @switch (target) {
         @case ('HTTP') {
           <mat-form-field>
